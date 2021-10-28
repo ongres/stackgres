@@ -37,6 +37,9 @@ public class StackGresClusterInstalledExtension {
   @NotNull(message = "repository cannot be null")
   private String repository;
 
+  @JsonProperty("flavor")
+  private String flavor;
+
   @JsonProperty("postgresVersion")
   @NotNull(message = "postgresVersion cannot be null")
   private String postgresVersion;
@@ -79,6 +82,14 @@ public class StackGresClusterInstalledExtension {
     this.repository = repository;
   }
 
+  public String getFlavor() {
+    return flavor;
+  }
+
+  public void setFlavor(String flavor) {
+    this.flavor = flavor;
+  }
+
   public String getPostgresVersion() {
     return postgresVersion;
   }
@@ -105,7 +116,8 @@ public class StackGresClusterInstalledExtension {
 
   @Override
   public int hashCode() {
-    return Objects.hash(build, extraMounts, name, postgresVersion, publisher, repository, version);
+    return Objects.hash(build, extraMounts, flavor, name, postgresVersion, publisher, repository,
+        version);
   }
 
   @Override
@@ -118,7 +130,7 @@ public class StackGresClusterInstalledExtension {
     }
     StackGresClusterInstalledExtension other = (StackGresClusterInstalledExtension) obj;
     return Objects.equals(build, other.build) && Objects.equals(extraMounts, other.extraMounts)
-        && Objects.equals(name, other.name)
+        && Objects.equals(flavor, other.flavor) && Objects.equals(name, other.name)
         && Objects.equals(postgresVersion, other.postgresVersion)
         && Objects.equals(publisher, other.publisher)
         && Objects.equals(repository, other.repository) && Objects.equals(version, other.version);

@@ -8,13 +8,16 @@ package io.stackgres.common.extension;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.Objects;
+import java.util.Optional;
 
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 
 public class StackGresExtensionIndexAnyVersion {
   private final String name;
   private final String publisher;
+  private final String flavor;
   private final String postgresVersion;
   private final String postgresExactVersion;
   private final boolean fromIndex;
@@ -26,6 +29,10 @@ public class StackGresExtensionIndexAnyVersion {
       StackGresClusterExtension extension) {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
+    this.flavor = Optional.of(getPostgresFlavorComponent(cluster))
+        .filter(component -> component != StackGresComponent.POSTGRESQL)
+        .map(StackGresComponent::getName)
+        .orElse(null);
     this.postgresVersion = getPostgresFlavorComponent(cluster).findMajorVersion(
         cluster.getSpec().getPostgres().getVersion());
     this.postgresExactVersion = getPostgresFlavorComponent(cluster).findVersion(
@@ -41,6 +48,7 @@ public class StackGresExtensionIndexAnyVersion {
       StackGresExtensionVersionTarget target) {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
+    this.flavor = target.getFlavorOrDefault();
     this.postgresVersion = target.getPostgresVersion();
     this.postgresExactVersion = null;
     this.fromIndex = true;
@@ -86,12 +94,14 @@ public class StackGresExtensionIndexAnyVersion {
     return Objects.equals(self.arch, other.arch)
         && Objects.equals(self.os, other.os)
         && Objects.equals(self.build, other.build)
+        && Objects.equals(self.flavor, other.flavor)
         && Objects.equals(self.postgresVersion, other.postgresVersion);
   }
 
   private boolean equalsWithFromIndex(StackGresExtensionIndexAnyVersion other,
       StackGresExtensionIndexAnyVersion fromIndex) {
-    return (Objects.equals(fromIndex.postgresVersion, other.postgresVersion) // NOPMD
+    return Objects.equals(fromIndex.flavor, other.flavor)
+        && (Objects.equals(fromIndex.postgresVersion, other.postgresVersion) // NOPMD
         || Objects.equals(fromIndex.postgresVersion, other.postgresExactVersion)) // NOPMD
         && (Objects.isNull(fromIndex.build) // NOPMD
             || (Objects.equals(fromIndex.arch, other.arch) // NOPMD
@@ -102,8 +112,9 @@ public class StackGresExtensionIndexAnyVersion {
   @Override
   public String toString() {
     return String.format(
-        "%s/%s/%s/%s-pg%s%s",
+        "%s/%s/%s/%s-%s%s%s",
         publisher, arch, os, name,
+        ExtensionUtil.getFlavorPrefix(flavor),
         postgresExactVersion != null ? postgresExactVersion : postgresVersion,
         build != null ? "-build-" + build : "");
   }

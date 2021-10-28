@@ -192,7 +192,7 @@ docker_pull() {
   local IMAGE_NAME="$1"
   local MAPPED_IMAGE_NAME="$(printf '%s' "$IMAGE_NAME" | eval "$(
     printf '%s\n' "$E2E_IMAGE_MAP" | tr ' ' '\n' \
-      | sed 's/=/#/g' \
+      | grep -v '^$' | sed 's/=/#/g' \
       | {
         printf 'cat'
         while read -r SED_EXPR

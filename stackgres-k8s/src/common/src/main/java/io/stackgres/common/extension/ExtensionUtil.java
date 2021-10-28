@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 
@@ -135,8 +136,12 @@ public interface ExtensionUtil {
         extension.getBuild());
     return extension.getName()
         + "-" + extension.getVersion()
-        + "-pg" + extension.getPostgresVersion()
+        + "-" + getFlavorPrefix(extension.getFlavor()) + extension.getPostgresVersion()
         + buildVersion.map(build -> "-build-" + build).orElse("");
+  }
+
+  static String getFlavorPrefix(String flavor) {
+    return Objects.equals(StackGresPostgresFlavor.BABELFISH.toString(), flavor) ? "bf" : "pg";
   }
 
   static URI getExtensionPackageUri(URI repositoryUri,
@@ -161,6 +166,7 @@ public interface ExtensionUtil {
         .orElseThrow(() -> new RuntimeException("URI not found for extension "
             + ExtensionUtil.getDescription(extensionMetadata)))
         .toString());
+    installedExtension.setFlavor(extensionMetadata.getTarget().getFlavorOrDefault());
     installedExtension.setPostgresVersion(extensionMetadata.getTarget().getPostgresVersion());
     installedExtension.setBuild(extensionMetadata.getTarget().getBuild());
     return installedExtension;
@@ -174,27 +180,25 @@ public interface ExtensionUtil {
   }
 
   static URI getIndexUri(URI extensionsUrl) {
-    return UriBuilder.fromUri(extensionsUrl).path("/v1/index.json").build();
+    return UriBuilder.fromUri(extensionsUrl).path("/v2/index.json").build();
   }
 
   static String getDescription(StackGresCluster cluster,
       StackGresClusterExtension extension) {
+    final String flavor = cluster.getSpec().getPostgres().getFlavor();
     final String pgMajorVersion = getPostgresFlavorComponent(cluster).findMajorVersion(
         cluster.getSpec().getPostgres().getVersion());
-    return getDescription(pgMajorVersion, extension);
+    return extension.getPublisherOrDefault() + "/" + extension.getName()
+        + " for version " + extension.getVersionOrDefaultChannel()
+        + "[" + getFlavorPrefix(flavor) + pgMajorVersion
+        + "/" + ARCH_X86_64 + "/" + OS_LINUX + "]";
   }
 
   static String getDescription(StackGresClusterInstalledExtension extension) {
     return extension.getPublisher() + "/" + extension.getName()
       + " for version " + extension.getVersion()
-      + "[" + extension.getPostgresVersion() + "/" + ARCH_X86_64 + "/" + OS_LINUX + "]";
-  }
-
-  static String getDescription(String pgMajorVersion,
-      StackGresClusterExtension extension) {
-    return extension.getPublisherOrDefault() + "/" + extension.getName()
-        + " for version " + extension.getVersionOrDefaultChannel()
-        + "[" + pgMajorVersion + "/" + ARCH_X86_64 + "/" + OS_LINUX + "]";
+      + "[" + getFlavorPrefix(extension.getFlavor()) + extension.getPostgresVersion()
+      + "/" + ARCH_X86_64 + "/" + OS_LINUX + "]";
   }
 
   static String getDescription(StackGresExtensionMetadata extensionMetadata) {
@@ -206,7 +210,7 @@ public interface ExtensionUtil {
       StackGresExtensionVersion version, StackGresExtensionVersionTarget target) {
     return extension.getPublisherOrDefault() + "/" + extension.getName()
         + " for version " + version.getVersion()
-        + "[" + target.getPostgresVersion()
+        + "[" + getFlavorPrefix(target.getFlavor()) + target.getPostgresVersion()
         + "/" + target.getArchOrDefault()
         + "/" + target.getOsOrDefault() + "]";
   }

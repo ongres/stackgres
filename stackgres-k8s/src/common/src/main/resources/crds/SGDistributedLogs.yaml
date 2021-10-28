@@ -178,6 +178,9 @@ spec:
                       repository:
                         type: string
                         description: The repository base URL from where the extension will be installed from.
+                      flavor:
+                        type: string
+                        description: The postgres flavor of the extension to install.
                       postgresVersion:
                         type: string
                         description: The postgres major version of the extension to install.

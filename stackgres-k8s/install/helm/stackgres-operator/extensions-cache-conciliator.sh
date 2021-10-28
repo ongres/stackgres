@@ -289,7 +289,7 @@ pull_indexes() {
           CURL_EXTRA_OPTS="$CURL_EXTRA_OPTS -k"
         fi
       fi
-      curl -f -s -L $CURL_EXTRA_OPTS "${EXTENSIONS_REPOSITORY_URL%%\?*}/v1/${INDEX_NAME}.json" > "last-${INDEX_NAME}.json"
+      curl -f -s -L $CURL_EXTRA_OPTS "${EXTENSIONS_REPOSITORY_URL%%\?*}/v2/${INDEX_NAME}.json" > "last-${INDEX_NAME}.json"
       jq -s '.[0] as $last | .[1] as $current_unwrapped
         | $last
         | .publishers = (.publishers | map(
@@ -309,8 +309,8 @@ pull_indexes() {
         ' "last-${INDEX_NAME}.json" "unwrapped-${INDEX_NAME}.json" > "new-unwrapped-${INDEX_NAME}.json"
       local EXTENSIONS_REPOSITORY_PATH="${EXTENSIONS_REPOSITORY_URL#*://}"
       EXTENSIONS_REPOSITORY_PATH="${EXTENSIONS_REPOSITORY_PATH%%\?*}"
-      mkdir -p "$EXTENSIONS_REPOSITORY_PATH/v1/"
-      mv "last-${INDEX_NAME}.json" "$EXTENSIONS_REPOSITORY_PATH/v1/${INDEX_NAME}.json"
+      mkdir -p "$EXTENSIONS_REPOSITORY_PATH/v2/"
+      mv "last-${INDEX_NAME}.json" "$EXTENSIONS_REPOSITORY_PATH/v2/${INDEX_NAME}.json"
       mv "new-unwrapped-${INDEX_NAME}.json" "unwrapped-${INDEX_NAME}.json"
       date +%s > "${INDEX_NAME}-${INDEX}.timestamp"
     done

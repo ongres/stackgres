@@ -14,11 +14,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
 public class StackGresExtensionVersionTarget {
+
+  private String flavor;
 
   @NotNull(message = "postgresVersion is required")
   private String postgresVersion;
@@ -28,6 +31,21 @@ public class StackGresExtensionVersionTarget {
   private String arch;
 
   private String os;
+
+  public String getFlavor() {
+    return flavor;
+  }
+
+  @JsonIgnore
+  public String getFlavorOrDefault() {
+    return Optional.ofNullable(flavor)
+        .filter(flavor -> !flavor.equals(StackGresPostgresFlavor.VANILLA.toString()))
+        .orElse(null);
+  }
+
+  public void setFlavor(String flavor) {
+    this.flavor = flavor;
+  }
 
   public String getPostgresVersion() {
     return postgresVersion;
@@ -73,7 +91,7 @@ public class StackGresExtensionVersionTarget {
 
   @Override
   public int hashCode() {
-    return Objects.hash(getArchOrDefault(), build, getOsOrDefault(), postgresVersion);
+    return Objects.hash(arch, build, flavor, os, postgresVersion);
   }
 
   @Override
@@ -85,9 +103,8 @@ public class StackGresExtensionVersionTarget {
       return false;
     }
     StackGresExtensionVersionTarget other = (StackGresExtensionVersionTarget) obj;
-    return Objects.equals(getArchOrDefault(), other.getArchOrDefault())
-        && Objects.equals(build, other.build)
-        && Objects.equals(getOsOrDefault(), other.getOsOrDefault())
+    return Objects.equals(arch, other.arch) && Objects.equals(build, other.build)
+        && Objects.equals(flavor, other.flavor) && Objects.equals(os, other.os)
         && Objects.equals(postgresVersion, other.postgresVersion);
   }
 
