@@ -7,7 +7,9 @@ e2e_test_install() {
     --set-string cluster.postgres.flavor=babelfish \
     --set-string 'nonProductionOptions.enabledFeatureGates[0]=babelfish-flavor'
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 1
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
 }
 
 e2e_test() {
@@ -149,9 +151,9 @@ pgbouncer_users_check() {
     | kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" pgbouncerconf --type merge -p "$(cat)"
   wait_until eval '! kubectl wait -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
   kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true"
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
 
-  RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-primary -i 1 -p 5432 -u user1:test)"
+  RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-primary -i 0 -p 5432 -u user1:test)"
   if [ "$RESPONSE_REPLICA" = "1" ]
   then
     echo "SUCCESS: Connections are possible using user1 in pgbouncer users section"
@@ -160,7 +162,7 @@ pgbouncer_users_check() {
     return 1
   fi
 
-  RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-primary -i 1 -p 5432 -u user2:test)"
+  RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-primary -i 0 -p 5432 -u user2:test)"
   if [ "$RESPONSE_REPLICA" = "1" ]
   then
     echo "SUCCESS: Connections are possible using user2 in pgbouncer users section"

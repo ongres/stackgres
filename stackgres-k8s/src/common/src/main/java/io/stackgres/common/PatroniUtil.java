@@ -18,6 +18,7 @@ public interface PatroniUtil {
   String CONFIG_SERVICE = "-config";
   int POSTGRES_SERVICE_PORT = 5432;
   int REPLICATION_SERVICE_PORT = 5433;
+  int BABELFISH_SERVICE_PORT = 1433;
 
   static String name(@NotNull String clusterName) {
     return ResourceUtil.nameIsValidService(clusterName);
