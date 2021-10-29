@@ -47,7 +47,7 @@ printf '%s' "$PIPELINE_SAME_JOB_IDS" \
       )
       if grep -qxF 'file-not-found' "$TEMP_DIR/jobs/artifacts.zip.~"
       then
-        echo '[{}, []]' > '$TEMP_DIR/jobs/job_test_report.~'
+        echo '{}' > '$TEMP_DIR/jobs/job_test_report.~'
         break
       fi
       if ! unzip -p '$TEMP_DIR/jobs/artifacts.zip.~' >/dev/null
@@ -61,7 +61,12 @@ printf '%s' "$PIPELINE_SAME_JOB_IDS" \
         then
           rm -f '$TEMP_DIR/jobs/artifacts.zip.~' '$TEMP_DIR/jobs/job_test_report.~'
         else
-          xq 'select(has(\"empty\")|not) | .testsuites.testsuite.test_cases = (
+          xq '
+            select((has(\"empty\")|not)
+              and .testsuites != null
+              and .testsuites.testsuite != null
+              and .testsuites.testsuite.test_cases != null)
+            | .testsuites.testsuite.test_cases = (
               (if (.testsuites.testsuite.testcase | type) == \"object\"
                 then [.testsuites.testsuite.testcase] else .testsuites.testsuite.testcase end)
               | map(.status = if has(\"failure\") then \"failure\" else \"success\" end
@@ -244,7 +249,8 @@ EOF
 if [ "x$PIPELINE_SAME_JOB_IDS" != x ]
 then
   jq -r -s "$(cat << EOF
-    .[] | .test_suites[]
+    .[] | select(.test_suites != null)
+      | .test_suites[]
       | select(.name == "$CI_JOB_NAME").test_cases[]
       | select(.status == "success")
 EOF
