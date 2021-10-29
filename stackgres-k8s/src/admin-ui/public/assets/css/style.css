@@ -408,6 +408,12 @@ svg.background circle {
     padding: 20px;
 }
 
+.clearfix {
+    content: "";
+    clear: both;
+    display: table;
+}
+
 /* Log in */
 
 #nav .right > div#signup {
@@ -514,19 +520,23 @@ form#login .warning {
     background-size: 80px;
 }
 
+.row-50 {
+    display: inline-block;
+    width: 100%;
+}
+
 .row-50 .col {
-    /*width: 50%;*/
     width: 45%;
     float: left;
 }
 
-.row-50 .col:first-child {
-    /*padding-right: 5px;*/
+.row-50 .col:nth-of-type(2n) {
+    margin-left: 7%;
 }
 
-.row-50 .col:last-child {
-    /*padding-left: 5px;*/
-    margin-left: 10%;
+.row-100 > .col {
+    display: inline-block;
+    width: 97%;
 }
 
 .row-20 .col {
@@ -2712,13 +2722,14 @@ button.cancelBtn:hover {
 
 fieldset {
     border: 1px solid var(--gray2);
-    padding: 20px 20px 0;
+    padding: 20px 25px 0;
     border-radius: 5px;
     margin-bottom: 25px;
 }
 
 .form fieldset h3 {
-    display: inline;
+    display: block;
+    margin-bottom: 20px;
 }
 
 .config .form {    
@@ -2791,12 +2802,23 @@ fieldset {
 
 .form fieldset .header {
     margin-bottom: 15px;
+    position: relative;
+}
+
+.form fieldset .header a.addRow {
+    position: absolute;
+    right: 0;
+    bottom: 5px;
 }
 
 .form .header h2 {
     font-size: 14px;
     display: inline-block;
     float: left;
+}
+
+.form .header h3 {
+    margin-bottom: 0;
 }
 
 .form .header h3 span {
@@ -2807,7 +2829,6 @@ fieldset {
 .form .header label {
     display: inline-block;
     width: auto;
-    float: right;
     cursor: pointer;
     position: relative;
     top: 2px;
@@ -5038,6 +5059,12 @@ fieldset .section {
     margin-bottom: 20px;
     display: inline-block;
 }
+
+fieldset fieldset .section {
+    width: calc(100% + 50px);
+    margin-left: -25px;
+}
+
 
 fieldset .section:last-child {
     border-bottom: 0;
