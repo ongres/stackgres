@@ -13,7 +13,7 @@ import java.util.Map;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
@@ -35,7 +35,7 @@ public class VersionsResource {
   @CommonApiResponses
   @GET
   @Path("postgresql")
-  public Map<String, List<String>> supportedPostgresVersions(@PathParam("flavor") String flavor) {
+  public Map<String, List<String>> supportedPostgresVersions(@QueryParam("flavor") String flavor) {
     return Map.of(
         "postgresql", getPostgresFlavorComponent(flavor).getOrderedVersions().toList());
   }
