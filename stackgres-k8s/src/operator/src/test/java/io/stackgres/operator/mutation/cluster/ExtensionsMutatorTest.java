@@ -37,6 +37,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ExtensionsMutatorTest {
 
+  private static final String POSTGRES_VERSION =
+      StackGresComponent.POSTGRESQL.getOrderedVersions().findFirst().get();
+
   private static final String POSTGRES_MAJOR_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedMajorVersions().findFirst().get();
 
@@ -58,6 +61,7 @@ class ExtensionsMutatorTest {
   void setUp() throws Exception {
     review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
 
     mutator = new ExtensionsMutator(extensionMetadataManager, JsonUtil.JSON_MAPPER);
 

@@ -26,7 +26,7 @@ check_metrics() {
     return 1
   fi
 
-  for ENVOY_CLUSTER in postgres_cluster postgres_raw_cluster
+  for ENVOY_CLUSTER in patroni_cluster postgres_cluster postgres_cluster_pool
   do
     if kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
       -- curl -s -f "http://$CLUSTER_NAME-envoyexp:8001/stats/prometheus" \

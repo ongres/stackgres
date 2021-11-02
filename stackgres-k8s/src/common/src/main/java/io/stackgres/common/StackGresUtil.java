@@ -276,9 +276,9 @@ public interface StackGresUtil {
       return ImmutableList.of();
     }
     if (Objects.equals("6.6",
-        getPostgresFlavorComponent(cluster).findBuildVersion(
+        StackGresComponent.PATRONI.findBuildVersion(
             StackGresComponent.LATEST, ImmutableMap.of(
-                StackGresComponent.POSTGRESQL,
+                getPostgresFlavorComponent(cluster),
                 cluster.getSpec().getPostgres().getVersion())))) {
       return ImmutableList.of();
     }

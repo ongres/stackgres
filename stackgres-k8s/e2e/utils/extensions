@@ -14,24 +14,26 @@ EXTENSIONS_CACHE_PRELOADED_EXTENSIONS="$(
     echo 'postgis_raster-.*-pg12(12|13)'
   } | jq -R . | jq -s .
   )"
+DEFAULT_FLAVOR=pg
 DEFAULT_BUILD_ARCH=x86_64
 DEFAULT_BUILD_OS=linux
 
 get_latest_version_of_extension() {
   local EXTENSION_NAME="$1"
   local POSTGRES_VERSION="$2"
+  local FLAVOR="${3:-pg}"
   local VERSIONS
 
   if [ ! -f "$TARGET_PATH/index.json" ]
   then
-    curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/v1/index.json" > "$TARGET_PATH/index.json"
+    curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/v2/index.json" > "$TARGET_PATH/index.json"
   fi
 
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION")"
-  PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | grep "/patroni:.*-pg$POSTGRES_VERSION")"
+  PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | grep "/patroni:.*-$FLAVOR$POSTGRES_VERSION")"
   PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | sort | tail -n 1)"
   PATRONI_IMAGE_TAG="${PATRONI_IMAGE##*:}"
-  PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PATRONI_IMAGE##*-pg}"
+  PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PATRONI_IMAGE##*-$FLAVOR}"
   PATRONI_IMAGE_POSTGRES_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION%%.*}"
   PATRONI_IMAGE_BUILD_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION##*-build-}"
@@ -64,7 +66,7 @@ get_preloaded_extensions() {
   fi
   if [ ! -f "$TARGET_PATH/index.json" ]
   then
-    curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/v1/index.json" > "$TARGET_PATH/index.json"
+    curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/v2/index.json" > "$TARGET_PATH/index.json"
   fi
   if [ ! -f "$TARGET_PATH/unwrapped-hashes.json" ]
   then
@@ -95,7 +97,9 @@ get_preloaded_extensions() {
         | $availableForEntry | $result | .[$key] = $availableForEntry) | to_entries | map(.value))
     | .availableFor[] | . as $availableFor
     | select('"$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS"' | any(. as $test
-      | $extension.name + "-" + $version.version + "-pg" + $availableFor.postgresVersion
+      | $extension.name + "-" + $version.version + "-"
+        + ($availableFor.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
+        + $availableFor.postgresVersion
         + ($availableFor.build | if . != null then "-build-" + . else "" end)
       | test($test; "")))
     | ($extension.repository | if . != null then . else '"$(
@@ -104,6 +108,7 @@ get_preloaded_extensions() {
       + $extension.name + " "
       + $version.version + " "
       + $availableFor.postgresVersion
+      + " " + ($availableFor.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
       + " " + ($availableFor.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
       + " " + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end)
       + " " + ($availableFor.build | if . != null then . else "" end)' \
@@ -116,15 +121,16 @@ get_preloaded_extensions() {
 
 get_extension_image() {
   [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] \
-    && [ -n "$5" ] && [ -n "$6" ] && [ -n "$7" ]
+    && [ -n "$5" ] && [ -n "$6" ] && [ -n "$7" ] && [ -n "$8" ]
   local EXTENSIONS_REPOSITORY_URL="$1"
   local PUBLISHER="$2"
   local NAME="$3"
   local VERSION="$4"
   local POSTGRES_VERSION="$5"
-  local BUILD_ARCH="$6"
-  local BUILD_OS="$7"
-  local BUILD="$8"
+  local FLAVOR="$6"
+  local BUILD_ARCH="$7"
+  local BUILD_OS="$8"
+  local BUILD="$9"
   local IMAGE_TEMPLATE COMPONENT COMPONENT_VERSION HASH IMAGE_NAME CONTAINER STATEFULSET
   IMAGE_TEMPLATE="$(get_image_template_from_url "$EXTENSIONS_REPOSITORY_URL")"
   COMPONENT="$(jq -r ".extensions[\"$NAME\"]
@@ -155,23 +161,27 @@ get_extension_image() {
   fi
   if [ -z "$COMPONENT_VERSION" ]
   then
-    echo "Can not retrieve component version for extension $REPOSITORY $PUBLISHER $NAME $VERSION pg$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
+    echo "Can not retrieve component version for extension $REPOSITORY $PUBLISHER $NAME $VERSION $FLAVOR$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
     return 1
   fi
   # shellcheck disable=SC2034
   HASH="$(jq -r ".extensions[\"$NAME\"]
     | .versions[] | select(.version == \"$VERSION\")
-    | .availableFor[] | select(.postgresVersion == \"$POSTGRES_VERSION\" and (.build == \"$BUILD\" or (.build == null and \"$BUILD\" == \"\")))
+    | .availableFor[] | select(.postgresVersion == \"$POSTGRES_VERSION\"
+      and (.flavor == \"$FLAVOR\" or (.flavor == null and \"$FLAVOR\" == \"$DEFAULT_FLAVOR\")))
+      and (.build == \"$BUILD\" or (.build == null and \"$BUILD\" == \"\")))
     | .buildHash" "$TARGET_PATH/unwrapped-hashes.json")"
   if [ -z "$HASH" ]
   then
-    echo "Can not retrieve hash for extension $REPOSITORY $PUBLISHER $NAME $VERSION pg$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
+    echo "Can not retrieve hash for extension $REPOSITORY $PUBLISHER $NAME $VERSION $FLAVOR$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
     return 1
   fi
   # shellcheck disable=SC2034
   POSTGRES_EXACT_VERSION="$(jq -r ".extensions[\"plpgsql\"]
     | .versions[]
-    | .availableFor[] | select(.postgresVersion == \"$POSTGRES_VERSION\" and (.build == \"$BUILD\" or (.build == null and \"$BUILD\" == \"\")))
+    | .availableFor[] | select(.postgresVersion == \"$POSTGRES_VERSION\"
+      and (.flavor == \"$FLAVOR\" or (.flavor == null and \"$FLAVOR\" == \"$DEFAULT_FLAVOR\")))
+      and (.build == \"$BUILD\" or (.build == null and \"$BUILD\" == \"\")))
     | .postgresVersion" "$TARGET_PATH/unwrapped-hashes.json")"
   if [ -z "$POSTGRES_EXACT_VERSION" ]
   then
@@ -195,7 +205,7 @@ get_extension_image() {
   fi
   if [ -z "$POSTGRES_EXACT_VERSION" ]
   then
-    echo "Can not retrieve postgres exact version for extension $REPOSITORY $PUBLISHER $NAME $VERSION pg$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
+    echo "Can not retrieve postgres exact version for extension $REPOSITORY $PUBLISHER $NAME $VERSION $FLAVOR$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
     return 1
   fi
   IMAGE_NAME="$(eval "echo \"$IMAGE_TEMPLATE\"")"

@@ -607,10 +607,10 @@ load_extensions_images_from() {
   local EXTENSIONS
   EXTENSIONS="$(get_preloaded_extensions)"
   EXTENSIONS="$(printf '%s' "$EXTENSIONS" \
-    | while read -r REPOSITORY PUBLISHER NAME VERSION POSTGRES_VERSION BUILD_ARCH BUILD_OS BUILD
+    | while read -r REPOSITORY PUBLISHER NAME VERSION POSTGRES_VERSION FLAVOR BUILD_ARCH BUILD_OS BUILD
       do
         get_extension_image "$EXTENSIONS_REPOSITORY_URL" "$PUBLISHER" "$NAME" \
-          "$VERSION" "$POSTGRES_VERSION" "$BUILD_ARCH" "$BUILD_OS" "$BUILD"
+          "$VERSION" "$POSTGRES_VERSION" "$FLAVOR" "$BUILD_ARCH" "$BUILD_OS" "$BUILD"
       done)"
   if [ -n "$REPOSITORY" ] && [ -n "$IMAGE_PATH" ]
   then

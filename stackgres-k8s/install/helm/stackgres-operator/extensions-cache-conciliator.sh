@@ -21,6 +21,7 @@ run () {
   STATEFULSET_JSON_FILE=statefulset.json
   ANY_IMAGE_REPOSITORY_URL="$(any_image_repository_url && echo true || echo false)"
 
+  EXTENSION_METADATA_VERSION=v2
   DEFAULT_FLAVOR=pg
   DEFAULT_BUILD_ARCH=x86_64
   DEFAULT_BUILD_OS=linux
@@ -290,7 +291,7 @@ pull_indexes() {
           CURL_EXTRA_OPTS="$CURL_EXTRA_OPTS -k"
         fi
       fi
-      curl -f -s -L $CURL_EXTRA_OPTS "${EXTENSIONS_REPOSITORY_URL%%\?*}/v1/${INDEX_NAME}.json" > "last-${INDEX_NAME}.json"
+      curl -f -s -L $CURL_EXTRA_OPTS "${EXTENSIONS_REPOSITORY_URL%%\?*}/${EXTENSION_METADATA_VERSION}/${INDEX_NAME}.json" > "last-${INDEX_NAME}.json"
       jq -s '.[0] as $last | .[1] as $current_unwrapped
         | $last
         | .publishers = (.publishers | map(
@@ -310,8 +311,8 @@ pull_indexes() {
         ' "last-${INDEX_NAME}.json" "unwrapped-${INDEX_NAME}.json" > "new-unwrapped-${INDEX_NAME}.json"
       local EXTENSIONS_REPOSITORY_PATH="${EXTENSIONS_REPOSITORY_URL#*://}"
       EXTENSIONS_REPOSITORY_PATH="${EXTENSIONS_REPOSITORY_PATH%%\?*}"
-      mkdir -p "$EXTENSIONS_REPOSITORY_PATH/v1/"
-      mv "last-${INDEX_NAME}.json" "$EXTENSIONS_REPOSITORY_PATH/v1/${INDEX_NAME}.json"
+      mkdir -p "$EXTENSIONS_REPOSITORY_PATH/$EXTENSION_METADATA_VERSION/"
+      mv "last-${INDEX_NAME}.json" "$EXTENSIONS_REPOSITORY_PATH/$EXTENSION_METADATA_VERSION/${INDEX_NAME}.json"
       mv "new-unwrapped-${INDEX_NAME}.json" "unwrapped-${INDEX_NAME}.json"
       date +%s > "${INDEX_NAME}-${INDEX}.timestamp"
     done
@@ -390,6 +391,7 @@ get_to_install_extensions() {
         + .name + " "
         + .version + " "
         + .postgresVersion
+        + " " + (.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
         + " " + (.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
         + " " + (.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end)
         + " " + (.build | if . != null then . else "" end)
@@ -415,6 +417,7 @@ get_to_install_extensions() {
       + $extension.name + " "
       + $version.version + " "
       + $availableFor.postgresVersion
+      + " " + ($availableFor.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
       + " " + ($availableFor.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
       + " " + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end)
       + " " + ($availableFor.build | if . != null then . else "" end)' \

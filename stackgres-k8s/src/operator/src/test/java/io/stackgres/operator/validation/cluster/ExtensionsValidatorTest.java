@@ -35,6 +35,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ExtensionsValidatorTest {
 
+  private static final String POSTGRES_VERSION =
+      StackGresComponent.POSTGRESQL.getOrderedVersions().findFirst().get();
+
   private static final String POSTGRES_MAJOR_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedMajorVersions().findFirst().get();
 
@@ -115,15 +118,20 @@ class ExtensionsValidatorTest {
   }
 
   private StackGresClusterReview getCreationReview() {
-    return JsonUtil
+    StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json",
             StackGresClusterReview.class);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
+    return review;
   }
 
   private StackGresClusterReview getUpdateReview() {
-    return JsonUtil
+    StackGresClusterReview review = JsonUtil
         .readFromJson("cluster_allow_requests/postgres_config_update.json",
             StackGresClusterReview.class);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
+    review.getRequest().getOldObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
+    return review;
   }
 
   private StackGresClusterInstalledExtension getInstalledExtension(String name) {
