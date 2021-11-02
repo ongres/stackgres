@@ -18,7 +18,7 @@ public abstract class AbstractRequiredResourceDecorator<T>
   private DecoratorDiscoverer<T> decoratorDiscoverer;
   private ResourceGenerationDiscoverer<T> generatorsDiscoverer;
 
-  public AbstractRequiredResourceDecorator(DecoratorDiscoverer<T> decoratorDiscoverer,
+  protected AbstractRequiredResourceDecorator(DecoratorDiscoverer<T> decoratorDiscoverer,
       ResourceGenerationDiscoverer<T> generatorsDiscoverer) {
     this.decoratorDiscoverer = decoratorDiscoverer;
     this.generatorsDiscoverer = generatorsDiscoverer;

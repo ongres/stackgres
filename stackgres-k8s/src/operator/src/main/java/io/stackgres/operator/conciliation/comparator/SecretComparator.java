@@ -47,11 +47,10 @@ public class SecretComparator extends StackGresAbstractComparator {
     if (secretData != null) {
       data.putAll(secretData);
     }
-    Secret encodedSecret = new SecretBuilder(secret)
+    return new SecretBuilder(secret)
         .withStringData(null)
         .withData(data)
         .build();
-    return encodedSecret;
   }
 
 }

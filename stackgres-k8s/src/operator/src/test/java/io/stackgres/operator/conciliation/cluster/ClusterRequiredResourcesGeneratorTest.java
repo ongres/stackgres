@@ -291,7 +291,7 @@ class ClusterRequiredResourcesGeneratorTest {
   }
 
   @Test
-  void givenAClusterInvalidRestoreData_getRequiredResourcesShouldNotScanForBackups() {
+  void givenAClusterUnknownRestoreData_getRequiredResourcesShouldNotFail() {
 
     cluster.getSpec().getInitData().getRestore()
         .setFromBackup(new StackGresClusterRestoreFromBackup());
@@ -315,9 +315,9 @@ class ClusterRequiredResourcesGeneratorTest {
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupScanner.getResources()).thenReturn(backups);
+    mockSecrets(clusterNamespace);
 
-    assertException("SGCluster " + clusterNamespace + "/" + clusterName
-        + " have an invalid restore backup Uid");
+    generator.getRequiredResources(cluster);
 
     verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);

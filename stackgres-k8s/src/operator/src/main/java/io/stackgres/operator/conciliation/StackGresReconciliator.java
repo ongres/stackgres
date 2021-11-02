@@ -94,8 +94,7 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
       try {
         onPreReconciliation(customResource);
         LOGGER.info("Checking reconciliation status of {}", customResourceId);
-        ReconciliationResult result = conciliator
-            .evalReconciliationState(customResource);
+        ReconciliationResult result = conciliator.evalReconciliationState(customResource);
         if (!result.isUpToDate()) {
           LOGGER.info("{} it's not up to date. Reconciling", customResourceId);
 
@@ -128,7 +127,7 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
                     resource.getKind());
                 handlerDelegator.delete(resource);
               });
-          if (result.getDeletions().size() == 0 && result.getPatches().size() == 0) {
+          if (result.getDeletions().isEmpty() && result.getPatches().isEmpty()) {
             onConfigCreated(customResource, result);
           } else {
             onConfigUpdated(customResource, result);

@@ -14,20 +14,17 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
-import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -137,32 +134,18 @@ public class ClusterRequiredResourcesGenerator
         .flatMap(poolingConfigName -> poolingConfigFinder
             .findByNameAndNamespace(poolingConfigName, clusterNamespace));
 
-    Optional<StackGresClusterRestore> restoreConfig = Optional
+    // The logic here is return an empty if there is no StackGresClusterRestore
+    // if the uid match return that backup and if the backup is not found return a dummy object,
+    // the dummy object is for the cases when the restore is done but the backup is deleted.
+    // This way the template don't change after a reconciliation cycle requiring a restart.
+    final Optional<StackGresBackup> restoreBackup = Optional
         .ofNullable(config.getSpec().getInitData())
-        .map(StackGresClusterInitData::getRestore);
-
-    final Optional<StackGresBackup> restoreBackup;
-    if (restoreConfig.isEmpty()) {
-      restoreBackup = Optional.empty();
-    } else {
-      restoreBackup = restoreConfig.map(restore -> {
-        final List<StackGresBackup> backups = backupScanner.getResources();
-        return backups.stream()
-            .filter(backup -> backup.getMetadata().getUid().equals(
-                restore.getFromBackup().getUid()))
-            .peek(backup -> {
-              Preconditions.checkNotNull(backup.getStatus(),
-                  "Backup is " + BackupPhase.RUNNING.label());
-              Preconditions.checkNotNull(backup.getStatus().getProcess(),
-                  "Backup is " + BackupPhase.RUNNING.label());
-              Preconditions.checkArgument(backup.getStatus().getProcess().getStatus()
-                  .equals(BackupPhase.COMPLETED.label()),
-                  "Backup is " + backup.getStatus().getProcess().getStatus());
-            }).findFirst().orElseThrow(() -> new IllegalArgumentException(
-                "SGCluster " + clusterNamespace + "/" + clusterName
-                    + " have an invalid restore backup Uid"));
-      });
-    }
+        .map(StackGresClusterInitData::getRestore)
+        .flatMap(restore -> backupScanner.getResources().stream()
+            .filter(backup -> backup.getMetadata().getUid()
+                .equals(restore.getFromBackup().getUid()))
+            .findFirst()
+            .or(() -> Optional.of(new StackGresBackup())));
 
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .source(config)

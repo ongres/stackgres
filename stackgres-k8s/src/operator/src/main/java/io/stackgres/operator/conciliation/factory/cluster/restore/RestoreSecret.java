@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
@@ -53,48 +53,43 @@ public class RestoreSecret
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
             .source(buildSource(context))
-            .build()
-    );
+            .build());
   }
 
-  public @NotNull Volume buildVolume(StackGresClusterContext context) {
-    return
-        new VolumeBuilder()
-            .withName(StatefulSetDynamicVolumes.RESTORE_CREDENTIALS.getVolumeName())
-            .withSecret(new SecretVolumeSourceBuilder()
-                .withSecretName(name(context))
-                .build())
-            .build();
+  private @NotNull Volume buildVolume(StackGresClusterContext context) {
+    return new VolumeBuilder()
+        .withName(StatefulSetDynamicVolumes.RESTORE_CREDENTIALS.getVolumeName())
+        .withSecret(new SecretVolumeSourceBuilder()
+            .withSecretName(name(context))
+            .build())
+        .build();
   }
 
-  public @NotNull Optional<HasMetadata> buildSource(StackGresClusterContext context) {
+  private @NotNull Optional<Secret> buildSource(StackGresClusterContext context) {
     return context.getRestoreBackup().map(restoreBackup -> {
+      final Map<String, String> data = new HashMap<>();
+      final StackGresCluster cluster = context.getSource();
 
-          Map<String, String> data = new HashMap<>();
+      if (restoreBackup.getSpec() != null && restoreBackup.getStatus() != null) {
+        data.put("BACKUP_RESOURCE_VERSION",
+            restoreBackup.getMetadata().getResourceVersion());
+        String backupNamespace = restoreBackup.getMetadata().getNamespace();
+        StackGresBackupConfigSpec backupConfig = restoreBackup.getStatus().getBackupConfig();
+        data.putAll(envVarFactory.getSecretEnvVar(backupNamespace, backupConfig));
+      } else {
+        data.put("RESTORE_BACKUP_ERROR", "Can not restore from backup. Backup not found!");
+      }
 
-          data.put("BACKUP_RESOURCE_VERSION",
-              restoreBackup.getMetadata().getResourceVersion());
-
-          String backupNamespace = restoreBackup.getMetadata().getNamespace();
-
-          final StackGresBackupConfigSpec backupConfig = restoreBackup.getStatus()
-              .getBackupConfig();
-          data.putAll(envVarFactory.getSecretEnvVar(backupNamespace, backupConfig));
-
-          final StackGresCluster cluster = context.getSource();
-          return
-              new SecretBuilder()
-                  .withNewMetadata()
-                  .withNamespace(cluster.getMetadata().getNamespace())
-                  .withName(name(context))
-                  .withLabels(labelFactory.genericLabels(cluster))
-                  .endMetadata()
-                  .withType("Opaque")
-                  .withStringData(StackGresUtil.addMd5Sum(data))
-                  .build();
-        }
-    );
-
+      return new SecretBuilder()
+          .withNewMetadata()
+          .withNamespace(cluster.getMetadata().getNamespace())
+          .withName(name(context))
+          .withLabels(labelFactory.genericLabels(cluster))
+          .endMetadata()
+          .withType("Opaque")
+          .withStringData(StackGresUtil.addMd5Sum(data))
+          .build();
+    });
   }
 
   @Inject

@@ -69,6 +69,7 @@ e2e_test() {
   run_test "Check that backup is compatible with cluster" check_backup_pg_version
   run_test "Check that restore default values" check_restore_default_values
   run_test "Check that restore using PITR" check_restore_using_pitr
+  run_test "Check that cluster keep working after backup is removed" check_delete_backup_dont_require_restart
 }
 
 create_mock_data() {
@@ -267,3 +268,28 @@ check_restore_using_pitr() {
   fi
 }
 
+check_delete_backup_dont_require_restart() {
+  kubectl delete sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_NAME"
+  sleep 12
+
+  PENDING_RESTART="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -ojson | jq -r '. | select(.status.conditions[] | select(.type == "PendingRestart" and .status == "True")) | .metadata.name')"
+
+  if [ -z "$PENDING_RESTART" ]
+  then
+    echo "SUCCESS: No cluster with pending restart."
+  else
+    echo "FAIL: Cluster with pending restart found."
+    return 1
+  fi
+
+  kubectl patch sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    --patch '[{"op":"replace","path":"/spec/instances","value":1}]'
+
+  if wait_until eval '[ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath="{.status.replicas}")" -eq 1 ]'
+  then
+    echo "SUCCESS: Cluster is still reconciled."
+  else
+    echo "FAIL: Cluster is not reconciled."
+    return 1
+  fi
+}

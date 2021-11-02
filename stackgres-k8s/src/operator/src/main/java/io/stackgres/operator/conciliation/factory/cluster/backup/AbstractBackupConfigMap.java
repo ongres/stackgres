@@ -205,7 +205,7 @@ public abstract class AbstractBackupConfigMap {
         .orElse("");
   }
 
-  private <T> String convertEnvValue(T value) {
+  protected <T> String convertEnvValue(T value) {
     return value.toString();
   }
 
