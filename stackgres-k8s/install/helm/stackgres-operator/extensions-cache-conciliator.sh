@@ -21,6 +21,7 @@ run () {
   STATEFULSET_JSON_FILE=statefulset.json
   ANY_IMAGE_REPOSITORY_URL="$(any_image_repository_url && echo true || echo false)"
 
+  DEFAULT_FLAVOR=pg
   DEFAULT_BUILD_ARCH=x86_64
   DEFAULT_BUILD_OS=linux
   NOT_FOUND_URL_REGEXP='^[^ ]\+ - - \[\([^]]\+\)\] "GET \([^ ]\+\) HTTP\/1\.1" 404 [^ ]\+ "[^"]*" "[^"]*" "[^"]*"$'
@@ -84,17 +85,17 @@ run () {
     rm -f pulled_to_install_extensions
     touch pulled_to_install_extensions
     cat pull_to_install_extensions not_found_to_install_extensions \
-      | while read -r TO_INSTALL_REPOSITORY PUBLISHER NAME VERSION POSTGRES_VERSION BUILD_ARCH BUILD_OS BUILD
+      | while read -r TO_INSTALL_REPOSITORY PUBLISHER NAME VERSION POSTGRES_VERSION FLAVOR BUILD_ARCH BUILD_OS BUILD
         do
           try_function pull_extension "$TO_INSTALL_REPOSITORY" "$PUBLISHER" "$NAME" \
-              "$VERSION" "$POSTGRES_VERSION" "$BUILD_ARCH" "$BUILD_OS" "$BUILD"
+              "$VERSION" "$POSTGRES_VERSION" "$FLAVOR" "$BUILD_ARCH" "$BUILD_OS" "$BUILD"
           if "$RESULT"
           then
             echo "$TO_INSTALL_REPOSITORY" "$PUBLISHER" "$NAME" \
-              "$VERSION" "$POSTGRES_VERSION" "$BUILD_ARCH" "$BUILD_OS" "$BUILD" >> pulled_to_install_extensions
+              "$VERSION" "$POSTGRES_VERSION" "$FLAVOR" "$BUILD_ARCH" "$BUILD_OS" "$BUILD" >> pulled_to_install_extensions
           else
             echo "Warning: error while trying to pull extension " \
-              "$NAME-$VERSION-pg$POSTGRES_VERSION$([ -z "$BUILD" ] || printf '%s' "-build-$BUILD")" \
+              "$NAME-$VERSION-$FLAVOR$POSTGRES_VERSION$([ -z "$BUILD" ] || printf '%s' "-build-$BUILD")" \
               "(publisher $PUBLISHER from $TO_INSTALL_REPOSITORY for $BUILD_ARCH/$BUILD_OS)" >&2
           fi
         done
@@ -289,7 +290,7 @@ pull_indexes() {
           CURL_EXTRA_OPTS="$CURL_EXTRA_OPTS -k"
         fi
       fi
-      curl -f -s -L $CURL_EXTRA_OPTS "${EXTENSIONS_REPOSITORY_URL%%\?*}/v2/${INDEX_NAME}.json" > "last-${INDEX_NAME}.json"
+      curl -f -s -L $CURL_EXTRA_OPTS "${EXTENSIONS_REPOSITORY_URL%%\?*}/v1/${INDEX_NAME}.json" > "last-${INDEX_NAME}.json"
       jq -s '.[0] as $last | .[1] as $current_unwrapped
         | $last
         | .publishers = (.publishers | map(
@@ -309,8 +310,8 @@ pull_indexes() {
         ' "last-${INDEX_NAME}.json" "unwrapped-${INDEX_NAME}.json" > "new-unwrapped-${INDEX_NAME}.json"
       local EXTENSIONS_REPOSITORY_PATH="${EXTENSIONS_REPOSITORY_URL#*://}"
       EXTENSIONS_REPOSITORY_PATH="${EXTENSIONS_REPOSITORY_PATH%%\?*}"
-      mkdir -p "$EXTENSIONS_REPOSITORY_PATH/v2/"
-      mv "last-${INDEX_NAME}.json" "$EXTENSIONS_REPOSITORY_PATH/v2/${INDEX_NAME}.json"
+      mkdir -p "$EXTENSIONS_REPOSITORY_PATH/v1/"
+      mv "last-${INDEX_NAME}.json" "$EXTENSIONS_REPOSITORY_PATH/v1/${INDEX_NAME}.json"
       mv "new-unwrapped-${INDEX_NAME}.json" "unwrapped-${INDEX_NAME}.json"
       date +%s > "${INDEX_NAME}-${INDEX}.timestamp"
     done
@@ -404,7 +405,9 @@ get_to_install_extensions() {
         | $availableForEntry | $result | .[$key] = $availableForEntry) | to_entries | map(.value))
     | .availableFor[] | . as $availableFor
     | select('"$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS"' | any(. as $test
-      | $extension.name + "-" + $version.version + "-pg" + $availableFor.postgresVersion
+      | $extension.name + "-" + $version.version + "-"
+        + ($availableFor.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
+        + $availableFor.postgresVersion
         + ($availableFor.build | if . != null then "-build-" + . else "" end)
       | test($test; "")))
     | $extension.repository + " "
@@ -476,13 +479,16 @@ get_extension_from_url() {
           $extension.publisher + "/"
             + ($availableFor.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end) + "/"
             + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end) + "/"
-            + $extension.name + "-" + $version.version + "-pg" + $availableFor.postgresVersion
+            + $extension.name + "-" + $version.version + "-"
+            + ($availableFor.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
+            + $availableFor.postgresVersion
             + ($availableFor.build | if . != null then "-build-" + . else "" end))
         | $extension.repository + " "
           + $extension.publisher + " "
           + $extension.name + " "
           + $version.version + " "
           + $availableFor.postgresVersion
+          + " " + ($availableFor.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
           + " " + ($availableFor.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
           + " " + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end)
           + " " + ($availableFor.build | if . != null then . else "" end))
@@ -493,20 +499,21 @@ get_extension_from_url() {
 
 pull_extension() {
   [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] \
-    && [ -n "$5" ] && [ -n "$6" ] && [ -n "$7" ] \
+    && [ -n "$5" ] && [ -n "$6" ] && [ -n "$7" ] && [ -n "$8" ] \
     && true || false
   local TO_INSTALL_REPOSITORY="$1"
   local PUBLISHER="$2"
   local NAME="$3"
   local VERSION="$4"
   local POSTGRES_VERSION="$5"
-  local BUILD_ARCH="$6"
-  local BUILD_OS="$7"
-  local BUILD="$8"
+  local FLAVOR="$6"
+  local BUILD_ARCH="$7"
+  local BUILD_OS="$8"
+  local BUILD="$9"
 
   local REPOSITORY="$TO_INSTALL_REPOSITORY"
   local EXTENSION_PACKAGE
-  EXTENSION_PACKAGE="$NAME-$VERSION-pg$POSTGRES_VERSION$([ -z "$BUILD" ] || printf '%s' "-build-$BUILD")"
+  EXTENSION_PACKAGE="$NAME-$VERSION-$FLAVOR$POSTGRES_VERSION$([ -z "$BUILD" ] || printf '%s' "-build-$BUILD")"
   echo " * Required extension $EXTENSION_PACKAGE"
   EXTENSIONS_REPOSITORY_URL="$(find_repository_base_url "$REPOSITORY")"
 
@@ -517,7 +524,7 @@ pull_extension() {
       "$EXTENSION_PACKAGE"
   else
     add_extension_image_to_statefulset "$EXTENSIONS_REPOSITORY_URL" "$REPOSITORY" "$PUBLISHER" "$NAME" \
-      "$VERSION" "$POSTGRES_VERSION" "$BUILD_ARCH" "$BUILD_OS" "$BUILD"
+      "$VERSION" "$POSTGRES_VERSION" "$FLAVOR" "$BUILD_ARCH" "$BUILD_OS" "$BUILD"
   fi
 }
 
@@ -661,16 +668,17 @@ apply_extension_cache_retention_policy() {
 add_extension_image_to_statefulset() {
   [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ] && [ -n "$4" ] \
     && [ -n "$5" ] && [ -n "$6" ] && [ -n "$7" ] && [ -n "$8" ] \
-    && true || false
+    && [ -n "$9" ] && true || false
   local EXTENSIONS_REPOSITORY_URL="$1"
   local REPOSITORY="$2"
   local PUBLISHER="$3"
   local NAME="$4"
   local VERSION="$5"
   local POSTGRES_VERSION="$6"
-  local BUILD_ARCH="$7"
-  local BUILD_OS="$8"
-  local BUILD="$9"
+  local FLAVOR="$7"
+  local BUILD_ARCH="$8"
+  local BUILD_OS="$9"
+  local BUILD="$10"
   local IMAGE_TEMPLATE COMPONENT COMPONENT_VERSION HASH IMAGE_NAME CONTAINER STATEFULSET
   IMAGE_TEMPLATE="$(get_image_template_from_url "$EXTENSIONS_REPOSITORY_URL")"
   COMPONENT="$(jq -r ".extensions[\"$NAME\"]
@@ -701,23 +709,27 @@ add_extension_image_to_statefulset() {
   fi
   if [ -z "$COMPONENT_VERSION" ]
   then
-    echo "   ! Can not retrieve component version for extension $REPOSITORY $PUBLISHER $NAME $VERSION pg$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
+    echo "   ! Can not retrieve component version for extension $REPOSITORY $PUBLISHER $NAME $VERSION $FLAVOR$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
     return 1
   fi
   # shellcheck disable=SC2034
   HASH="$(jq -r ".extensions[\"$NAME\"]
     | .versions[] | select(.version == \"$VERSION\")
-    | .availableFor[] | select(.postgresVersion == \"$POSTGRES_VERSION\" and (.build == \"$BUILD\" or (.build == null and \"$BUILD\" == \"\")))
+    | .availableFor[] | select(.postgresVersion == \"$POSTGRES_VERSION\"
+      and (.flavor == \"$FLAVOR\" or (.flavor == null and \"$FLAVOR\" == \"$DEFAULT_FLAVOR\"))
+      and (.build == \"$BUILD\" or (.build == null and \"$BUILD\" == \"\")))
     | .buildHash" unwrapped-hashes.json)"
   if [ -z "$HASH" ]
   then
-    echo "   ! Can not retrieve hash for extension $REPOSITORY $PUBLISHER $NAME $VERSION pg$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
+    echo "   ! Can not retrieve hash for extension $REPOSITORY $PUBLISHER $NAME $VERSION $FLAVOR$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
     return 1
   fi
   # shellcheck disable=SC2034
   POSTGRES_EXACT_VERSION="$(jq -r ".extensions[\"plpgsql\"]
     | .versions[]
-    | .availableFor[] | select(.postgresVersion == \"$POSTGRES_VERSION\" and (.build == \"$BUILD\" or (.build == null and \"$BUILD\" == \"\")))
+    | .availableFor[] | select(.postgresVersion == \"$POSTGRES_VERSION\"
+      and (.flavor == \"$FLAVOR\" or (.flavor == null and \"$FLAVOR\" == \"$DEFAULT_FLAVOR\"))
+      and (.build == \"$BUILD\" or (.build == null and \"$BUILD\" == \"\")))
     | .postgresVersion" unwrapped-hashes.json)"
   if [ -z "$POSTGRES_EXACT_VERSION" ]
   then
@@ -741,7 +753,7 @@ add_extension_image_to_statefulset() {
   fi
   if [ -z "$POSTGRES_EXACT_VERSION" ]
   then
-    echo "   ! Can not retrieve postgres exact version for extension $REPOSITORY $PUBLISHER $NAME $VERSION pg$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
+    echo "   ! Can not retrieve postgres exact version for extension $REPOSITORY $PUBLISHER $NAME $VERSION $FLAVOR$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
     return 1
   fi
   IMAGE_NAME="$(eval "echo \"$IMAGE_TEMPLATE\"")"
