@@ -5,6 +5,11 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+  install_operator_only
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -13,7 +18,6 @@ e2e_test_install() {
   
   wait_pods_running "$CLUSTER_NAMESPACE" 3
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-
 }
 
 install_pgbench() {
