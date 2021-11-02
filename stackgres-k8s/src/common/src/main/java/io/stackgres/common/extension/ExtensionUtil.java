@@ -16,15 +16,16 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
-import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 
@@ -32,6 +33,7 @@ public interface ExtensionUtil {
 
   String DEFAULT_CHANNEL = "stable";
   String DEFAULT_PUBLISHER = "com.ongres";
+  String DEFAULT_FLAVOR = "pg";
   String ARCH_X86_64 = "x86_64";
   String DEFAULT_ARCH = ARCH_X86_64;
   String OS_LINUX = "linux";
@@ -141,7 +143,18 @@ public interface ExtensionUtil {
   }
 
   static String getFlavorPrefix(String flavor) {
-    return Objects.equals(StackGresPostgresFlavor.BABELFISH.toString(), flavor) ? "bf" : "pg";
+    return Optional.ofNullable(flavor).orElse(DEFAULT_FLAVOR);
+  }
+
+  static @Nullable String getComponentFlavor(StackGresComponent component) {
+    switch (component) {
+      case POSTGRESQL:
+        return null;
+      case BABELFISH:
+        return "bf";
+      default:
+        throw new IllegalArgumentException("Component " + component + " is not a valid flavor");
+    }
   }
 
   static URI getExtensionPackageUri(URI repositoryUri,

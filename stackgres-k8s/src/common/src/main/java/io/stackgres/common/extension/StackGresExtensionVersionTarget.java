@@ -14,7 +14,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -39,7 +38,7 @@ public class StackGresExtensionVersionTarget {
   @JsonIgnore
   public String getFlavorOrDefault() {
     return Optional.ofNullable(flavor)
-        .filter(flavor -> !flavor.equals(StackGresPostgresFlavor.VANILLA.toString()))
+        .filter(flavor -> !flavor.equals(ExtensionUtil.DEFAULT_FLAVOR))
         .orElse(null);
   }
 

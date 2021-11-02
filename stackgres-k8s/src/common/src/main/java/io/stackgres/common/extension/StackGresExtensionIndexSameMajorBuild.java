@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import org.jooq.lambda.Seq;
@@ -38,8 +37,7 @@ public class StackGresExtensionIndexSameMajorBuild {
     this.publisher = extension.getPublisherOrDefault();
     this.version = extension.getVersionOrDefaultChannel();
     this.flavor = Optional.of(getPostgresFlavorComponent(cluster))
-        .filter(component -> component != StackGresComponent.POSTGRESQL)
-        .map(StackGresComponent::getName)
+        .map(ExtensionUtil::getComponentFlavor)
         .orElse(null);
     this.postgresVersion = getPostgresFlavorComponent(cluster).findMajorVersion(
         cluster.getSpec().getPostgres().getVersion());
