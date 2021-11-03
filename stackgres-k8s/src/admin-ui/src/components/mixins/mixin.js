@@ -500,7 +500,7 @@ export const mixin = {
           Object.keys(pgFlavors).forEach(function(flavor) {
             /* Postgres versions */
             axios
-            .get('/stackgres/version/postgresql?' + flavor)
+            .get('/stackgres/version/postgresql?flavor=' + flavor)
             .then( function(response){
 
               let postgresVersions = {};

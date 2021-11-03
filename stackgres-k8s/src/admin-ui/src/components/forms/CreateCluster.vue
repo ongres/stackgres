@@ -1513,7 +1513,7 @@
                     vc.postgresVersion = version; 
 
                     axios
-                    .get('/stackgres/extensions/' + vc.postgresVersion + '?' + vc.flavor)
+                    .get('/stackgres/extensions/' + vc.postgresVersion + '?flavor=' + vc.flavor)
                     .then(function (response) {
                         vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.sortExtensions(response.data.extensions)
                     })
@@ -1843,7 +1843,7 @@
 
                 if(!vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) || (vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) && !vc.extensionsList[vc.flavor][vc.postgresVersion].length )) {
                     axios
-                    .get('/stackgres/extensions/' + ( (vc.postgresVersion == 'latest') ? 'latest' : vc.postgresVersion ) + '?' + vc.flavor)
+                    .get('/stackgres/extensions/' + ( (vc.postgresVersion == 'latest') ? 'latest' : vc.postgresVersion ) + '?flavor=' + vc.flavor)
                     .then(function (response) {
 
                         if(vc.flavor == 'babelfish') {
