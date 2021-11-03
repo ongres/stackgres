@@ -22,6 +22,8 @@ configurations:
         enablePathStyleAddressing: true
         endpoint: http://restore-backup-minio.restore-backup.svc.cluster.local:9000
 cluster:
+  postgres:
+    version: "13"
   pods:
     persistentVolume:
       size: 128Mi
