@@ -41,6 +41,10 @@ printf '%s' "$PIPELINE_SAME_JOB_IDS" \
     RETRY=3
     while true
     do
+      if [ -f '$TEMP_DIR/jobs/job_test_report.~' ]
+      then
+        break
+      fi
       $(
       get_or_default_script "https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/jobs/~/artifacts" \
         'file-not-found' "$TEMP_DIR/jobs/artifacts.zip.~"
@@ -54,42 +58,36 @@ printf '%s' "$PIPELINE_SAME_JOB_IDS" \
       then
         rm -f '$TEMP_DIR/jobs/artifacts.zip.~' '$TEMP_DIR/jobs/job_test_report.~'
       else
-        [ -f '$TEMP_DIR/jobs/job_test_report.~' ] \
-          || (unzip -p '$TEMP_DIR/jobs/artifacts.zip.~' stackgres-k8s/e2e/target/e2e-tests-junit-report.xml 2>/dev/null \
-              || echo '<empty />') > '$TEMP_DIR/jobs/e2e-tests-junit-report.xml.~'
-        if ! xq null '$TEMP_DIR/jobs/e2e-tests-junit-report.xml.~' >/dev/null
-        then
-          rm -f '$TEMP_DIR/jobs/artifacts.zip.~' '$TEMP_DIR/jobs/job_test_report.~'
-        else
-          xq '
-            select((has(\"empty\")|not)
-              and .testsuites != null
-              and .testsuites.testsuite != null
-              and .testsuites.testsuite.test_cases != null)
-            | .testsuites.testsuite.test_cases = (
-              (if (.testsuites.testsuite.testcase | type) == \"object\"
-                then [.testsuites.testsuite.testcase] else .testsuites.testsuite.testcase end)
-              | map(.status = if has(\"failure\") then \"failure\" else \"success\" end
-                | del(.failure)
-                | .execution_time = .[\"@time\"]
-                | del(.[\"@time\"]))
-                | group_by(.[\"@classname\"])
-                | map(sort_by(if .status == \"failure\" then 0 else 1 end) | .[0]))
-            | del(.testsuites.testsuite.testcase)
-            | .testsuites.testsuite.total_time = .testsuites.testsuite[\"@time\"]
-            | del(.testsuites.testsuite[\"@time\"])
-            | .testsuites.testsuite.total_count = .testsuites.testsuite[\"@tests\"]
-            | del(.testsuites.testsuite[\"@tests\"])
-            | .testsuites.testsuite[\"@name\"] = '\"\$(
-                jq '.[] | select(.id == ~).name' stackgres-k8s/ci/test/target/jobs.json
-              )\"'
-            | .test_suites = [ .testsuites.testsuite ]
-            | del(.testsuites)' \
-              '$TEMP_DIR/jobs/e2e-tests-junit-report.xml.~' \
-            | tr -d '@' \
-               > '$TEMP_DIR/jobs/job_test_report.~'
-          break
-        fi
+        (unzip -p '$TEMP_DIR/jobs/artifacts.zip.~' stackgres-k8s/e2e/target/e2e-tests-junit-report.xml 2>/dev/null \
+            | xq -x . || echo '<empty />') > '$TEMP_DIR/jobs/e2e-tests-junit-report.xml.~'
+        xq '
+          select((has(\"empty\")|not)
+            and .testsuites != null
+            and .testsuites.testsuite != null
+            and .testsuites.testsuite.test_cases != null)
+          | .testsuites.testsuite.test_cases = (
+            (if (.testsuites.testsuite.testcase | type) == \"object\"
+              then [.testsuites.testsuite.testcase] else .testsuites.testsuite.testcase end)
+            | map(.status = if has(\"failure\") then \"failure\" else \"success\" end
+              | del(.failure)
+              | .execution_time = .[\"@time\"]
+              | del(.[\"@time\"]))
+              | group_by(.[\"@classname\"])
+              | map(sort_by(if .status == \"failure\" then 0 else 1 end) | .[0]))
+          | del(.testsuites.testsuite.testcase)
+          | .testsuites.testsuite.total_time = .testsuites.testsuite[\"@time\"]
+          | del(.testsuites.testsuite[\"@time\"])
+          | .testsuites.testsuite.total_count = .testsuites.testsuite[\"@tests\"]
+          | del(.testsuites.testsuite[\"@tests\"])
+          | .testsuites.testsuite[\"@name\"] = '\"\$(
+              jq '.[] | select(.id == ~).name' stackgres-k8s/ci/test/target/jobs.json
+            )\"'
+          | .test_suites = [ .testsuites.testsuite ]
+          | del(.testsuites)' \
+            '$TEMP_DIR/jobs/e2e-tests-junit-report.xml.~' \
+          | tr -d '@' \
+             > '$TEMP_DIR/jobs/job_test_report.~'
+        break
       fi
       if [ \"\$RETRY\" -lt 0 ]
       then
