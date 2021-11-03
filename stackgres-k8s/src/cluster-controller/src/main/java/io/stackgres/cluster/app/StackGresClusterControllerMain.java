@@ -6,7 +6,7 @@
 package io.stackgres.cluster.app;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
@@ -18,6 +18,8 @@ import io.stackgres.cluster.controller.ClusterControllerReconciliationCycle;
 import io.stackgres.common.resource.KubernetesClientStatusUpdateException;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle.ReconciliationCycleResult;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,12 +36,14 @@ public class StackGresClusterControllerMain {
         .map(command -> command.equals("run-reconciliation-cycle"))
         .findFirst()
         .orElse(false)) {
-      AtomicInteger exitCodeReference = new AtomicInteger(0);
+      AtomicReference<Tuple2<Integer, Throwable>> exitCodeReference =
+          new AtomicReference<>(Tuple.tuple(0, null));
       Quarkus.run(StackGresClusterControllerReconcile.class,
-          (exitCode, throwable) -> exitCodeReference.set(exitCode),
+          (exitCode, throwable) -> exitCodeReference.set(Tuple.tuple(exitCode, throwable)),
           args);
-      if (exitCodeReference.get() != 0) {
-        throw new RuntimeException("exit code " + exitCodeReference.get());
+      if (exitCodeReference.get().v1 != 0) {
+        throw new RuntimeException("exit code " + exitCodeReference.get(),
+            exitCodeReference.get().v2);
       }
       return;
     }
