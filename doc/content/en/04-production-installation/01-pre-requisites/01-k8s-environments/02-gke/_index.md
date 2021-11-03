@@ -13,7 +13,7 @@ To create a [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engin
 
  * Project: my-project
  * Cluster name: stackgres
- * GKE version: 1.20.10-gke.1600
+ * GKE version: 1.21.3-gke.2001
  * Zone: us-west1
  * Node locations: us-west1-a,us-west1-b,us-west1-c
  * Machine type: e2-standard-4
@@ -24,9 +24,9 @@ To create a [Google Kubernetes Engine](https://cloud.google.com/kubernetes-engin
 ```bash
 gcloud beta container \
  --project "my-project" clusters create "stackgres" \
- --region "us-west1" \ \
+ --region "us-west1" \
  --no-enable-basic-auth \
- --cluster-version "1.20.10-gke.1600" \
+ --cluster-version "1.21.3-gke.2001" \
  --no-enable-ip-alias \
  --release-channel "None" \
  --machine-type "e2-standard-4" \
@@ -57,9 +57,9 @@ stackgres  southamerica-east1  1.20.10-gke.1600  34.95.157.116  e2-standard-4  1
 To cleanup the kubernetes cluster you may issue following command:
 ```bash
 gcloud -q beta container \
-  --project my-project \
+  --project "my-project" \
   clusters delete stackgres \
-  --region us-west1 \
+  --region us-west1
 ```
 
 You may also want to cleanup compute disks used by persistence volumes that may have been created:
