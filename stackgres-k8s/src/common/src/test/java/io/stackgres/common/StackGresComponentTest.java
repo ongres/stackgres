@@ -10,6 +10,9 @@ import static com.google.common.truth.Truth8.assertThat;
 
 import java.util.Comparator;
 
+import com.google.common.collect.ImmutableMap;
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -38,7 +41,7 @@ class StackGresComponentTest {
 
   @ParameterizedTest
   @EnumSource(StackGresComponent.class)
-  void getAllImageTags_shouldNotFail(StackGresComponent component) {
+  void getAllImageNames_shouldNotFail(StackGresComponent component) {
     if (component.hasImage()) {
       assertThat(component.getOrderedImageNames().stream()).isNotEmpty();
       assertThat(component.getOrderedImageNames().stream()).containsNoDuplicates();
@@ -47,9 +50,38 @@ class StackGresComponentTest {
 
   @ParameterizedTest
   @EnumSource(StackGresComponent.class)
-  void getLatestImageTags_shouldNotFail(StackGresComponent component) {
+  void getLatestImageNames_shouldNotFail(StackGresComponent component) {
     if (component.hasImage()) {
       assertThat(component.findLatestImageName()).isNotEmpty();
+    }
+  }
+
+  @ParameterizedTest
+  @EnumSource(StackGresComponent.class)
+  void getLatestImageNamesForEachLatestComponents_shouldNotFail(StackGresComponent component) {
+    if (component.hasImage()) {
+      var allLatestImages = Seq.seq(component.getComposedVersions())
+          .map(composedVersion -> Seq.seq(composedVersion.subVersions)
+              .map(Tuple2::v1)
+              .toList())
+          .distinct()
+          .map(composedVersionCombination -> {
+            var subComponentVersions = Seq.seq(composedVersionCombination)
+                .zipWithIndex()
+                .collect(ImmutableMap.toImmutableMap(
+                    subComponentIndex -> component.getSubComponents()
+                        .get(subComponentIndex.v2.intValue())
+                        .get(subComponentIndex.v1),
+                    subComponentIndex -> StackGresComponent.LATEST));
+            return component.findImageName(StackGresComponent.LATEST,
+                subComponentVersions);
+          })
+          .toList();
+      allLatestImages.forEach(latestImageName -> {
+        assertThat(latestImageName).isNotEmpty();
+      });
+      assertThat(Seq.seq(allLatestImages).distinct().count())
+          .isEqualTo(allLatestImages.size());
     }
   }
 

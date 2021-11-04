@@ -123,7 +123,7 @@ public enum StackGresComponent {
             .collect(ImmutableList.toImmutableList()));
   }
 
-  private List<ComposedVersion> composedVersions() {
+  public List<ComposedVersion> getComposedVersions() {
     return Seq.seq(this.subComponents)
         .map(alternativeSubComponents -> Seq.seq(alternativeSubComponents)
             .map(subComponentVersions()::get)
@@ -138,7 +138,10 @@ public enum StackGresComponent {
                       .equals(composedVersion.getVersion().build))
                     .map(t -> t.v2.append(alternativeSubComponents.v2.intValue(), t.v1)))
                 .toList(),
-            (u, v) -> v);
+            (u, v) -> v)
+        .stream()
+        .sorted(Comparator.reverseOrder())
+        .collect(ImmutableList.toImmutableList());
   }
 
   private ImmutableMap<StackGresComponent, List<ImageVersion>> subComponentVersions() {
@@ -586,8 +589,7 @@ public enum StackGresComponent {
   }
 
   public Seq<ComposedVersion> orderedComposedVersions() {
-    return Seq.seq(this.composedVersions())
-        .sorted(Comparator.reverseOrder());
+    return Seq.seq(getComposedVersions());
   }
 
   private void checkSubComponents(Map<StackGresComponent, String> subComponentVersions) {
