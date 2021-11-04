@@ -179,7 +179,14 @@
                             config 
                         )
                         .then(function (response) {
-                            vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgpoolconfigs');
+                            
+                            var urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.has('newtab')) {
+                                opener.fetchParentAPI('sgpoolconfig');
+                                vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgpoolconfigs');
+                            } else {
+                                vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgpoolconfigs');
+                            }
 
                             vc.fetchAPI('sgpoolconfig');
                             router.push('/' + config.metadata.namespace + '/sgpoolconfigs');

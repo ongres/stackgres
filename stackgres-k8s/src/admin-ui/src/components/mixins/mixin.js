@@ -1270,10 +1270,10 @@ export const mixin = {
         
         $('[required]').each(function() {
           if ( !$(this).val() ) {
-              $(this).addClass("notValid");
-              isValid = false;
+            $(this).addClass("notValid");
+            isValid = false;
           } else if ($(this).hasClass('error')) {
-              $(this).removeClass('notValid');
+            $(this).removeClass('notValid');
           }
         });
 
@@ -1282,7 +1282,6 @@ export const mixin = {
             vc.notify('Please fill every mandatory field in the form', 'message', 'general');
           }, 100);
         }
-
 
         return isValid
       }
@@ -1311,7 +1310,12 @@ export const mixin = {
         namespace: vc.$route.params.hasOwnProperty('namespace') ? vc.$route.params.namespace : '',
         name: vc.$route.params.hasOwnProperty('name') ? vc.$route.params.name : '',
         component: vc.$route.name.length ? vc.$route.name : ''
-      })
+      });
+
+      // Allow API fetching from child browser tabs
+      window.fetchParentAPI = function(kind) {
+        vc.fetchAPI(kind);
+      }
 
     },
 

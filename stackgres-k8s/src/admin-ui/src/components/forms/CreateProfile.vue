@@ -207,8 +207,15 @@
                         )
                         .then(function (response) {
 
-                            vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message','sginstanceprofiles');
-                            vc.fetchAPI('sginstanceprofile');
+                            var urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.has('newtab')) {
+                                opener.fetchParentAPI('sginstanceprofile');
+                                vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your profile from the list.', 'message','sginstanceprofiles');
+                            } else {
+                                vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message','sginstanceprofiles');
+                            }
+
+                            vc.fetchAPI('sginstanceprofiles');
                             router.push('/' + profile.metadata.namespace + '/sginstanceprofiles');
             
                         })
