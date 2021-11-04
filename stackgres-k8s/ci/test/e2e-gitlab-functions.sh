@@ -1,6 +1,7 @@
 #!/bin/sh
 
 [ "$DEBUG" != true ] || set -x
+export SHELL_XTRACE
 SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
 
 set -e

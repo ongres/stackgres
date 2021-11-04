@@ -1,8 +1,13 @@
 #!/bin/sh
 
+# shellcheck disable=SC1090
 . "$(dirname "$0")/build-functions.sh"
 
 set -e
+
+generate_image_hashes
+
+show_image_hashes
 
 if [ -n "$1" ]
 then
@@ -10,10 +15,6 @@ then
 else
   MODULES="$(jq -r '.modules | to_entries[] | .key' stackgres-k8s/ci/build/target/config.json)"
 fi
-
-generate_image_hashes
-
-show_image_hashes
 
 retrieve_image_digests stackgres-k8s/ci/build/target/all-images \
   > stackgres-k8s/ci/build/target/image-digests

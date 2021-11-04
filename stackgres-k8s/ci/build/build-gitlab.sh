@@ -1,9 +1,11 @@
 #!/bin/sh
 
+# shellcheck disable=SC1090
 . "$(dirname "$0")/build-functions.sh"
 
 set -e
 
+# shellcheck disable=SC2015
 [ -n "$CI_JOB_ID" ] && [ -n "$CI_PROJECT_ID" ] \
   && [ -n "$CI_REGISTRY" ] && [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ] \
   && true || false
@@ -13,7 +15,14 @@ mkdir -p "$TEMP_DIR"
 
 echo "Copying project files ..."
 
-cp -r . "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
+if [ "$1" = build ]
+then
+  cp -r . "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
+elif [ "$1" = extract ]
+then
+  mkdir -p "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/ci"
+  cp -r stackgres-k8s/ci/build "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/ci/build"
+fi
 
 echo "done"
 
@@ -31,7 +40,8 @@ then
 
   TO_COPY_FILES=""
   TO_EXTRACT_MODULE_FILES=""
-  while [ "x$1" = x--copy -o "x$1" = x--extract ]
+  # shellcheck disable=SC2166
+  while [ "x$1" = x--copy ] || [ "x$1" = x--extract ]
   do
     TO_COPY_FILE="$2"
     if [ "x$1" = x--extract ]
@@ -92,6 +102,7 @@ then
   sh stackgres-k8s/ci/build/build-functions.sh generate_image_hashes
   sh stackgres-k8s/ci/build/build-functions.sh extract "$@"
 
+  # shellcheck disable=SC2048
   for FILE in $*
   do
     if [ -d "$FILE" ]

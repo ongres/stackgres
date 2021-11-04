@@ -15,8 +15,6 @@ command -v xargs > /dev/null || message_and_exit 'The program `xargs` is require
 command -v ls > /dev/null || message_and_exit 'The program `ls` is required to be in PATH' 8
 command -v jq > /dev/null || message_and_exit 'The program `jq` is required to be in PATH' 8
 command -v yq > /dev/null || message_and_exit 'The program `yq` (https://kislyuk.github.io/yq/) is required to be in PATH' 8
-command -v git > /dev/null || message_and_exit 'The program `git` is required to be in PATH' 8
-command -v md5sum > /dev/null || message_and_exit 'The program `md5sum` is required to be in PATH' 8
 command -v find > /dev/null || message_and_exit 'The program `find` is required to be in PATH' 8
 command -v java > /dev/null || message_and_exit 'The program `java` is required to be in PATH' 8
 command -v docker > /dev/null || message_and_exit 'The program `docker` is required to be in PATH' 8
@@ -41,11 +39,11 @@ module_image_name() {
     jq -r ".modules[\"$MODULE\"]" stackgres-k8s/ci/build/target/config.json
     if [ "$MODULE_DOCKERFILE" != null ]
     then
-      file_hash "$MODULE_DOCKERFILE"
+      path_hash "$MODULE_DOCKERFILE"
     fi
     for MODULE_SOURCE in $MODULE_SOURCES
     do
-      file_hash "$MODULE_SOURCE"
+      path_hash "$MODULE_SOURCE"
     done
   } > "stackgres-k8s/ci/build/target/$MODULE-hash"
   MODULE_HASH="$(md5sum "stackgres-k8s/ci/build/target/$MODULE-hash" | cut -d ' ' -f 1)"
@@ -152,7 +150,6 @@ build_module_image() {
   local BUILD_IMAGE_NAME
   local TARGET_IMAGE_NAME
   local MODULE_PATH
-  local MODULE_SOURCES
   local MODULE_ARTIFACTS
   local MODULE_DOCKERFILE
   BUILD_IMAGE_NAME="$(jq -r ".modules[\"$MODULE\"].build_image" stackgres-k8s/ci/build/target/config.json)"
@@ -171,7 +168,6 @@ build_module_image() {
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
   MODULE_DOCKERFILE="$(jq -r ".modules[\"$MODULE\"].dockerfile.path" stackgres-k8s/ci/build/target/config.json)"
   MODULE_ARTIFACTS="$(module_list_of_files "$MODULE" artifacts)"
-  MODULE_SOURCES="$(module_list_of_files "$MODULE" sources)"
   (
   echo '*'
   for MODULE_ARTIFACT in $MODULE_ARTIFACTS
@@ -242,13 +238,39 @@ module_list_of_files() {
 }
 
 project_hash() {
-  git rev-parse HEAD
+  local MODULES
+  MODULES="$(jq -r '.modules | to_entries[] | .key' \
+    stackgres-k8s/ci/build/target/config.json)"
+  printf '%s' "$MODULES" \
+    | while read -r MODULE
+      do
+        for MODULE_SOURCE in $(module_list_of_files "$MODULE" sources)
+        do
+          echo "$MODULE_SOURCE"
+        done
+      done \
+    | sort \
+    | while read -r MODULE_SOURCE
+      do
+        path_hash "$MODULE_SOURCE"
+      done > "stackgres-k8s/ci/build/target/modules-hash"
+  md5sum "stackgres-k8s/ci/build/target/modules-hash" | cut -d ' ' -f 1
 }
 
-file_hash() {
+path_hash() {
   [ "$#" -ge 1 ] || false
-  local MODULE_FILE="$1"
-  git rev-parse HEAD:"$MODULE_FILE"
+  local FILE="$1"
+  if [ -d "$FILE" ]
+  then
+    find "$FILE" -type f -print0 \
+      | sort -z | xargs -r0 md5sum
+  elif [ -h "$FILE" ] || [ -f "$FILE" ]
+  then
+    md5sum "$(realpath --relative-to . "$FILE")" | md5sum
+  else
+    echo "Unsupported file type for $FILE" >&2
+    return 1
+  fi
 }
 
 docker_inspect() {

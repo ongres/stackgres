@@ -1,12 +1,16 @@
 #!/bin/sh
 
+# shellcheck disable=SC1090
 . "$(dirname "$0")/e2e-gitlab-functions.sh"
 
-export E2E_PATH="$(pwd)/stackgres-k8s/e2e"
+export E2E_PATH
+E2E_PATH="$(pwd)/stackgres-k8s/e2e"
 E2E_FAILURE_RETRY="${E2E_FAILURE_RETRY:-4}"
+# shellcheck disable=SC2015
 { [ "$IS_WEB" = true ] || [ "$IS_WEB" = false ]; } \
   && { [ "$IS_NATIVE" = true ] || [ "$IS_NATIVE" = false ]; } \
-  && [ -n "$E2E_SUFFIX" ] && [ -n "$IMAGE_TAG_SUFFIX" ] && [ -n "$E2E_RUN_ONLY" ] \
+  && [ -n "$E2E_SUFFIX" ] && [ -n "$IMAGE_TAG_SUFFIX" ] \
+  && [ -n "$E2E_RUN_ONLY" ] && [ -n "$E2E_SHELL" ] \
   && [ -n "$CI_COMMIT_SHORT_SHA" ] && [ -n "$CI_PROJECT_PATH" ] \
   && [ -n "$CI_REGISTRY" ] && [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ] \
   && true || false
@@ -67,7 +71,7 @@ do
     echo "Excluding following tests since already passed:"
     echo
     printf '%s' "$E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | grep -v '^$' \
-      | while read E2E_EXCLUDED_TEST
+      | while read -r E2E_EXCLUDED_TEST
         do
           printf ' - %s\n' "$E2E_EXCLUDED_TEST"
         done
@@ -93,6 +97,7 @@ do
 
   unset DEBUG
 
+  # shellcheck disable=SC2086
   flock -s /tmp/stackgres-build-operator-native-executable \
     flock -s /tmp/stackgres-build-restapi-native-executable \
     flock -s /tmp/stackgres-build-jobs-native-executable \
@@ -115,47 +120,75 @@ do
   then
     break
   fi
+  sleep 10
 done
 
-xq -r '
-  select(.testsuites != null and .testsuites.testsuite != null and .testsuites.testsuite.testcase != null)
-  | if (.testsuites.testsuite.testcase | type) == "object"
-    then [.testsuites.testsuite.testcase][]
-    else .testsuites.testsuite.testcase[]
-    end
-  | select((has("failure")|not))["@name"]' \
-  stackgres-k8s/e2e/target/e2e-tests-junit-report.xml \
-  > stackgres-k8s/ci/test/target/passed-tests
+E2E_STORE_RESULT_RETRY=4
+set +e
+while true
+do
+  (
+  set -e
+  if [ -f "stackgres-k8s/e2e/target/e2e-tests-junit-report.xml" ]
+  then
+    PASSED_TEST_PATH="$(realpath stackgres-k8s/ci/test/target/passed-tests)"
+    TEST_RESULT_IMAGES_PATH="$(realpath stackgres-k8s/ci/test/target/test-result-images)"
 
-cat << EOF > stackgres-k8s/e2e/target/Dockerfile.e2e
-FROM alpine:3.13.5
-  COPY . /e2e
+    xq -r '
+      select(.testsuites != null
+        and .testsuites.testsuite != null
+        and .testsuites.testsuite.testcase != null)
+      | if (.testsuites.testsuite.testcase | type) == "object"
+        then [.testsuites.testsuite.testcase][]
+        else .testsuites.testsuite.testcase[]
+        end
+      | select((has("failure")|not))["@name"]' \
+      stackgres-k8s/e2e/target/e2e-tests-junit-report.xml \
+      > "$PASSED_TEST_PATH"
+
+    cat << EOF > stackgres-k8s/e2e/target/Dockerfile.e2e
+  FROM alpine:3.13.5
+    COPY . /project
 EOF
 
-mkdir -p "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/e2e/target"
-rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/e2e/target"
-cp -r  stackgres-k8s/e2e/target/. "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/e2e/target/."
-(
-cd "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-docker build -f stackgres-k8s/e2e/target/Dockerfile.e2e \
-  $(
-    cat stackgres-k8s/ci/test/target/passed-tests \
-      | while read -r TEST_NAME
+    mkdir -p "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/e2e"
+    rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/e2e/target"
+    cp -r  stackgres-k8s/e2e/target/. \
+      "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/e2e/target"
+    (
+    cd "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
+    # shellcheck disable=SC2046
+    docker build -f stackgres-k8s/e2e/target/Dockerfile.e2e \
+      $(
+        while read -r TEST_NAME
         do
-          IMAGE_NAME="$(grep "^TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
+          IMAGE_NAME="$(grep "^TEST_NAME=" "$TEST_RESULT_IMAGES_PATH" \
             | cut -d = -f 2-)"
           printf '%s %s ' '-t' "$IMAGE_NAME"
-        done
-  ) \
-  stackgres-k8s/e2e/target
-)
-rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-cat stackgres-k8s/ci/test/target/passed-tests \
-  | while read -r TEST_NAME
+        done < "$PASSED_TEST_PATH"
+      ) \
+      stackgres-k8s/e2e/target
+    )
+    rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
+    while read -r TEST_NAME
     do
-      IMAGE_NAME="$(grep "^TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
+      IMAGE_NAME="$(grep "^$TEST_NAME=" "$TEST_RESULT_IMAGES_PATH" \
         | cut -d = -f 2-)"
       docker push "$IMAGE_NAME"
-    done
+    done < "$PASSED_TEST_PATH"
+  fi
+  )
+  STORE_RESULT_EXIT_CODE="$?"
+  if [ "$STORE_RESULT_EXIT_CODE" = 0 ]
+  then
+    break
+  fi
+  E2E_STORE_RESULT_RETRY="$((E2E_STORE_RESULT_RETRY - 1))"
+  if [ "$E2E_STORE_RESULT_RETRY" -le 0 ]
+  then
+    break
+  fi
+  sleep 10
+done
 
 exit "$EXIT_CODE"
