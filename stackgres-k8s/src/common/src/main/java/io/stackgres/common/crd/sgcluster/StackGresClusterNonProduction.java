@@ -25,7 +25,7 @@ public class StackGresClusterNonProduction {
 
   @JsonProperty("enabledFeatureGates")
   @ValidEnumList(enumClass = StackGresFeatureGates.class, allowNulls = true,
-      message = "enabledFeatureGates must contains only babelfish-flavor")
+      message = "enabledFeatureGates must contain only babelfish-flavor")
   public List<String> enabledFeatureGates;
 
   public Boolean getDisableClusterPodAntiAffinity() {
