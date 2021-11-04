@@ -164,8 +164,8 @@
                         <li class="extension notFound">No extensions match your search terms...</li>
                         <li v-for="(ext, index) in extensionsList[flavor][postgresVersion]" v-if="!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
                             <label class="hoverTooltip">
-                                <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="(!ext.versions.length || ( (flavor == 'babelfish') && (reqBabelfishExtensions.includes(ext.name)) ) )" :title="( (flavor == 'babelfish') && (reqBabelfishExtensions.includes(ext.name)) ) && 'This extension is mandatory when Babelfish is set as the desired postgres flavor'"/>
-                                {{ ext.name }} <span v-if="!ext.versions.length" class="notCompatible" title="This extension is not compatible with the selected Postgres version"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg> </span>
+                                <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length"/>
+                                {{ ext.name }} <span v-if="!ext.versions.length" class="notCompatible" data-tooltip="This extension is not compatible with the selected Postgres version"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg> </span>
                             </label>
                             <button class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
 
@@ -188,7 +188,7 @@
                                     <div class="header">
                                         <h4>Choose Version</h4>
                                     </div>
-                                    <select v-model="extVersion.version" @change="setExtVersion(extVersion.version)" class="extVersion" :disabled="( (flavor == 'babelfish') && (reqBabelfishExtensions.includes(ext.name)) )">
+                                    <select v-model="extVersion.version" @change="setExtVersion(extVersion.version)" class="extVersion">
                                         <option v-if="!ext.versions.length" selected>Not available for this postgres version</option>
                                         <option v-for="v in ext.versions" :selected="extVersion.version == v">{{ v }}</option>
                                     </select>
@@ -1064,7 +1064,6 @@
                     name: '',
                     version: ''
                 },
-                reqBabelfishExtensions: [ 'dblink', 'pg_stat_statements', 'plpgsql', 'plpython3u' ],
                 affinityOperators: [
                     { label: 'In', value: 'In' },
                     { label: 'Not In', value: 'NotIn' },
@@ -1375,11 +1374,13 @@
                                     }
                                 }) )                    
                             },
-                            "configurations": {
-                                ...(this.pgConfig.length && ( {"sgPostgresConfig": this.pgConfig }) ),
-                                ...(this.backupConfig.length && ( {"sgBackupConfig": this.backupConfig }) ),
-                                ...(this.connectionPoolingConfig.length && ( {"sgPoolingConfig": this.connectionPoolingConfig }) ),
-                            },
+                            ...( (this.pgConfig.length || this.backupConfig.length || this.connectionPoolingConfig.length) && ({
+                                "configurations": {
+                                    ...(this.pgConfig.length && ( {"sgPostgresConfig": this.pgConfig }) ),
+                                    ...(this.backupConfig.length && ( {"sgBackupConfig": this.backupConfig }) ),
+                                    ...(this.connectionPoolingConfig.length && ( {"sgPoolingConfig": this.connectionPoolingConfig }) ),
+                                }
+                            }) ),
                             ...(this.distributedLogs.length && ({
                                 "distributedLogs": {
                                     "sgDistributedLogs": this.distributedLogs
@@ -1845,23 +1846,6 @@
                     axios
                     .get('/stackgres/extensions/' + ( (vc.postgresVersion == 'latest') ? 'latest' : vc.postgresVersion ) + '?flavor=' + vc.flavor)
                     .then(function (response) {
-
-                        if(vc.flavor == 'babelfish') {
-                            vc.reqBabelfishExtensions.forEach(function(ext) {    
-                                if(!vc.selectedExtensions.filter(e => (e.name == ext)).length) {
-                                    let e = response.data.extensions.find(e => (e.name == ext));
-                                    if(typeof e != 'undefined') {
-                                        vc.selectedExtensions.push({
-                                            name: e.name,
-                                            publisher: e.publiser,
-                                            repository: e.repository,
-                                            version: e.versions[0]
-                                        });
-                                    }
-                                }
-                            })
-                        }
-
                         vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.sortExtensions(response.data.extensions)
                     })
                     .catch(function (error) {
