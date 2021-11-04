@@ -149,7 +149,7 @@ public interface ExtensionUtil {
   static @Nullable String getComponentFlavor(StackGresComponent component) {
     switch (component) {
       case POSTGRESQL:
-        return null;
+        return "pg";
       case BABELFISH:
         return "bf";
       default:

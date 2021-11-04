@@ -38,8 +38,7 @@ public class StackGresExtensionVersionTarget {
   @JsonIgnore
   public String getFlavorOrDefault() {
     return Optional.ofNullable(flavor)
-        .filter(flavor -> !flavor.equals(ExtensionUtil.DEFAULT_FLAVOR))
-        .orElse(null);
+        .orElse(ExtensionUtil.DEFAULT_FLAVOR);
   }
 
   public void setFlavor(String flavor) {
