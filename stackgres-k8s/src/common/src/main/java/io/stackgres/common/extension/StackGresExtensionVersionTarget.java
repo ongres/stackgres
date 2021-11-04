@@ -13,6 +13,7 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.base.Predicates;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonDeserialize
@@ -39,6 +40,13 @@ public class StackGresExtensionVersionTarget {
   public String getFlavorOrDefault() {
     return Optional.ofNullable(flavor)
         .orElse(ExtensionUtil.DEFAULT_FLAVOR);
+  }
+
+  @JsonIgnore
+  public String getFlavorOrNullIfDefault() {
+    return Optional.ofNullable(flavor)
+        .filter(Predicates.not(ExtensionUtil.DEFAULT_FLAVOR::equals))
+        .orElse(null);
   }
 
   public void setFlavor(String flavor) {

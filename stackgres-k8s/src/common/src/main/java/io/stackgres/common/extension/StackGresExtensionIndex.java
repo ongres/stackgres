@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
@@ -26,11 +27,12 @@ public class StackGresExtensionIndex {
   private final String arch;
   private final String os;
 
-  public StackGresExtensionIndex(StackGresClusterInstalledExtension installedExtension) {
+  public StackGresExtensionIndex(StackGresCluster cluster,
+      StackGresClusterInstalledExtension installedExtension) {
     this.name = installedExtension.getName();
     this.publisher = installedExtension.getPublisher();
     this.version = installedExtension.getVersion();
-    this.flavor = installedExtension.getFlavor();
+    this.flavor = ExtensionUtil.getFlavorPrefix(cluster);
     this.postgresVersion = installedExtension.getPostgresVersion();
     this.fromIndex = false;
     this.channels = ImmutableList.of();
@@ -114,8 +116,7 @@ public class StackGresExtensionIndex {
     return String.format(
         "%s/%s/%s/%s-%s-%s%s%s%s",
         publisher, arch, os, name, version,
-        ExtensionUtil.getFlavorPrefix(flavor),
-        postgresVersion,
+        flavor, postgresVersion,
         build != null ? "-build-" + build : "",
             channels.isEmpty() ? "" : " (channels: " + channels.stream()
             .collect(Collectors.joining(", ")) + ")");

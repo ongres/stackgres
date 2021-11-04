@@ -165,7 +165,7 @@ public class ExtensionManagerTest {
     verify(webClient, times(1)).getJson(
         eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
     verify(webClient, times(1)).getInputStream(
-        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension)));
+        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, cluster, extension)));
     verify(fileSystemHandler, times(0)).newInputStream(any());
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(2)).createDirectories(any());
@@ -205,7 +205,7 @@ public class ExtensionManagerTest {
     when(webClientFactory.create(any())).thenReturn(webClient);
     when(webClient.getJson(any(), any())).thenReturn(getExtensions());
     final String extensionPackageName =
-        ExtensionUtil.getExtensionPackageName(getInstalledExtension());
+        ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .newInputStream(
             eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -222,7 +222,7 @@ public class ExtensionManagerTest {
     verify(webClient, times(1)).getJson(
         eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
     verify(webClient, times(0)).getInputStream(
-        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension)));
+        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, cluster, extension)));
     verify(fileSystemHandler, times(2)).newInputStream(any());
     verify(fileSystemHandler, times(1)).newInputStream(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -246,7 +246,7 @@ public class ExtensionManagerTest {
     when(webClientFactory.create(any())).thenReturn(webClient);
     when(webClient.getJson(any(), any())).thenReturn(getExtensions());
     final String extensionPackageName =
-        ExtensionUtil.getExtensionPackageName(getInstalledExtension());
+        ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .newInputStream(
             eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -467,7 +467,7 @@ public class ExtensionManagerTest {
     when(webClientFactory.create(any())).thenReturn(webClient);
     when(webClient.getJson(any(), any())).thenReturn(getExtensions());
     final String extensionPackageName =
-        ExtensionUtil.getExtensionPackageName(getInstalledExtension());
+        ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .newInputStream(
             eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -485,7 +485,7 @@ public class ExtensionManagerTest {
     verify(webClient, times(1)).getJson(
         eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
     verify(webClient, times(0)).getInputStream(
-        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension)));
+        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, cluster, extension)));
     verify(fileSystemHandler, times(1)).newInputStream(any());
     verify(fileSystemHandler, times(1)).newInputStream(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -505,7 +505,7 @@ public class ExtensionManagerTest {
     when(webClientFactory.create(any())).thenReturn(webClient);
     when(webClient.getJson(any(), any())).thenReturn(getExtensions());
     final String extensionPackageName =
-        ExtensionUtil.getExtensionPackageName(getInstalledExtension());
+        ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .newInputStream(
             eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -527,7 +527,7 @@ public class ExtensionManagerTest {
     verify(webClient, times(1)).getJson(
         eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
     verify(webClient, times(0)).getInputStream(
-        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension)));
+        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, cluster, extension)));
     verify(fileSystemHandler, times(1)).newInputStream(any());
     verify(fileSystemHandler, times(1)).newInputStream(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -550,7 +550,7 @@ public class ExtensionManagerTest {
     when(webClientFactory.create(any())).thenReturn(webClient);
     when(webClient.getJson(any(), any())).thenReturn(getExtensions());
     final String extensionPackageName =
-        ExtensionUtil.getExtensionPackageName(getInstalledExtension());
+        ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .newInputStream(
             eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
@@ -572,7 +572,7 @@ public class ExtensionManagerTest {
     verify(webClient, times(1)).getJson(
         eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
     verify(webClient, times(0)).getInputStream(
-        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, extension)));
+        eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, cluster, extension)));
     verify(fileSystemHandler, times(0)).newInputStream(
         eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.SHA256_SUFFIX)));
@@ -622,7 +622,7 @@ public class ExtensionManagerTest {
     when(webClientFactory.create(any())).thenReturn(webClient);
     when(webClient.getJson(any(), any())).thenReturn(getExtensions());
     final String extensionPackageName =
-        ExtensionUtil.getExtensionPackageName(getInstalledExtension());
+        ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .exists(eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.PENDING_SUFFIX))))
@@ -654,7 +654,7 @@ public class ExtensionManagerTest {
     when(webClientFactory.create(any())).thenReturn(webClient);
     when(webClient.getJson(any(), any())).thenReturn(getExtensions());
     final String extensionPackageName =
-        ExtensionUtil.getExtensionPackageName(getInstalledExtension());
+        ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     ExtensionInstaller extensionInstaller =
         extensionManager.getExtensionInstaller(context(cluster), extension);
     extensionInstaller.setExtensionAsPending();
@@ -681,7 +681,7 @@ public class ExtensionManagerTest {
   void testUninstallExtension() throws Exception {
     StackGresCluster cluster = getCluster();
     final String extensionPackageName =
-        ExtensionUtil.getExtensionPackageName(getInstalledExtension());
+        ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .newInputStream(
             eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))

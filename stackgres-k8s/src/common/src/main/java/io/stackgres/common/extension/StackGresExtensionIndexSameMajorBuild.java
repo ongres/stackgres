@@ -9,7 +9,6 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
@@ -36,9 +35,7 @@ public class StackGresExtensionIndexSameMajorBuild {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.version = extension.getVersionOrDefaultChannel();
-    this.flavor = Optional.of(getPostgresFlavorComponent(cluster))
-        .map(ExtensionUtil::getComponentFlavor)
-        .orElse(null);
+    this.flavor = ExtensionUtil.getFlavorPrefix(cluster);
     this.postgresVersion = getPostgresFlavorComponent(cluster).findMajorVersion(
         cluster.getSpec().getPostgres().getVersion());
     this.postgresExactVersion = getPostgresFlavorComponent(cluster).findVersion(
@@ -130,8 +127,7 @@ public class StackGresExtensionIndexSameMajorBuild {
     return String.format(
         "%s/%s/%s/%s-%s-%s%s%s%s",
         publisher, arch, os, name, version,
-        ExtensionUtil.getFlavorPrefix(flavor),
-        postgresExactVersion != null ? postgresExactVersion : postgresVersion,
+        flavor, postgresExactVersion != null ? postgresExactVersion : postgresVersion,
         build != null ? "-build-" + build : "",
             channels.isEmpty() ? "" : " (channels: " + channels.stream()
             .collect(Collectors.joining(", ")) + ")");

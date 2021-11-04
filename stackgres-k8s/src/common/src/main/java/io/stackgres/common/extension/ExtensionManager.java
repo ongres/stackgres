@@ -86,10 +86,11 @@ public abstract class ExtensionManager {
       this.context = context;
       this.installedExtension = installedExtension;
       this.extensionPublisher = extensionPublisher;
-      this.packageName = ExtensionUtil.getExtensionPackageName(installedExtension);
+      this.packageName = ExtensionUtil.getExtensionPackageName(
+          context.getCluster(), installedExtension);
       this.extensionsRepositoryUri = extensionsRepositoryUri;
       this.extensionUri = ExtensionUtil.getExtensionPackageUri(
-          extensionsRepositoryUri, installedExtension);
+          extensionsRepositoryUri, context.getCluster(), installedExtension);
     }
 
     @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
@@ -113,7 +114,7 @@ public abstract class ExtensionManager {
         justification = "False positive")
     public void downloadAndExtract() throws Exception {
       LOGGER.info("Downloading {} from {}",
-          ExtensionUtil.getDescription(installedExtension), extensionUri);
+          ExtensionUtil.getDescription(context.getCluster(), installedExtension), extensionUri);
       try (WebClient client = webClientFactory.create(extensionsRepositoryUri)) {
         try (InputStream inputStream = client.getInputStream(extensionUri)) {
           extractTar(inputStream);
@@ -224,7 +225,7 @@ public abstract class ExtensionManager {
     private ExtensionUninstaller(ClusterContext context,
         StackGresClusterInstalledExtension extension) {
       this.context = context;
-      this.packageName = ExtensionUtil.getExtensionPackageName(extension);
+      this.packageName = ExtensionUtil.getExtensionPackageName(context.getCluster(), extension);
     }
 
     @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",

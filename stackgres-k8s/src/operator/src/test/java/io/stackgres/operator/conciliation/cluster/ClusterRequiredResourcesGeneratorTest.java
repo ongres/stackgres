@@ -299,7 +299,6 @@ class ClusterRequiredResourcesGeneratorTest {
         .setUid(UUID.randomUUID().toString());
 
     final ObjectMeta metadata = cluster.getMetadata();
-    final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
     final StackGresClusterSpec clusterSpec = cluster.getSpec();

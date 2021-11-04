@@ -107,6 +107,10 @@ public class ExtensionUtilTest {
 
   @Test
   public void testExtensionsMetadataMap() {
+    StackGresCluster cluster = new StackGresCluster();
+    cluster.setSpec(new StackGresClusterSpec());
+    cluster.getSpec().setPostgres(new StackGresClusterPostgres());
+    cluster.getSpec().getPostgres().setVersion(FIRST_PG_MAJOR_VERSION);
     StackGresClusterInstalledExtension installedExtension0 =
         new StackGresClusterInstalledExtension();
     installedExtension0.setName(extensions.get("pgsodium-1.1.0").getName());
@@ -147,52 +151,52 @@ public class ExtensionUtilTest {
         ExtensionUtil.toExtensionsMetadataIndex(
             REPOSITORY, extensionsMetadata);
     Assertions.assertNotNull(extensionMetadataMap.get(
-        new StackGresExtensionIndex(installedExtension0)));
+        new StackGresExtensionIndex(cluster, installedExtension0)));
     Assertions.assertNotEquals(
         REPOSITORY,
-        extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension0))
+        extensionMetadataMap.get(new StackGresExtensionIndex(cluster, installedExtension0))
             .getExtension().getRepository());
     Assertions.assertNotNull(extensionMetadataMap.get(
-        new StackGresExtensionIndex(installedExtension1)));
+        new StackGresExtensionIndex(cluster, installedExtension1)));
     Assertions.assertEquals(
         REPOSITORY.toString(),
-        extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension1))
+        extensionMetadataMap.get(new StackGresExtensionIndex(cluster, installedExtension1))
             .getExtension().getRepository());
     Assertions.assertNull(extensionMetadataMap.get(
-        new StackGresExtensionIndex(installedExtension2)));
+        new StackGresExtensionIndex(cluster, installedExtension2)));
     Assertions.assertNotNull(extensionMetadataMap.get(
-        new StackGresExtensionIndex(installedExtension3)));
+        new StackGresExtensionIndex(cluster, installedExtension3)));
     Assertions.assertEquals(
         REPOSITORY.toString(),
-        extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension3))
+        extensionMetadataMap.get(new StackGresExtensionIndex(cluster, installedExtension3))
             .getExtension().getRepository());
     installedExtension0.setPostgresVersion(SECOND_PG_MAJOR_VERSION);
     installedExtension1.setPostgresVersion(SECOND_PG_MAJOR_VERSION);
     installedExtension2.setPostgresVersion(SECOND_PG_MAJOR_VERSION);
     installedExtension3.setPostgresVersion(SECOND_PG_VERSION);
     Assertions.assertNotNull(extensionMetadataMap.get(
-        new StackGresExtensionIndex(installedExtension0)));
+        new StackGresExtensionIndex(cluster, installedExtension0)));
     Assertions.assertNotEquals(
         REPOSITORY,
-        extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension0))
+        extensionMetadataMap.get(new StackGresExtensionIndex(cluster, installedExtension0))
             .getExtension().getRepository());
     Assertions.assertNotNull(extensionMetadataMap.get(
-        new StackGresExtensionIndex(installedExtension1)));
+        new StackGresExtensionIndex(cluster, installedExtension1)));
     Assertions.assertEquals(
         REPOSITORY.toString(),
-        extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension1))
+        extensionMetadataMap.get(new StackGresExtensionIndex(cluster, installedExtension1))
             .getExtension().getRepository());
     Assertions.assertNotNull(extensionMetadataMap.get(
-        new StackGresExtensionIndex(installedExtension2)));
+        new StackGresExtensionIndex(cluster, installedExtension2)));
     Assertions.assertEquals(
         REPOSITORY.toString(),
-        extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension2))
+        extensionMetadataMap.get(new StackGresExtensionIndex(cluster, installedExtension2))
             .getExtension().getRepository());
     Assertions.assertNotNull(extensionMetadataMap.get(
-        new StackGresExtensionIndex(installedExtension3)));
+        new StackGresExtensionIndex(cluster, installedExtension3)));
     Assertions.assertEquals(
         REPOSITORY.toString(),
-        extensionMetadataMap.get(new StackGresExtensionIndex(installedExtension3))
+        extensionMetadataMap.get(new StackGresExtensionIndex(cluster, installedExtension3))
             .getExtension().getRepository());
   }
 
