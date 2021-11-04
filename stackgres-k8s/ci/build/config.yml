@@ -126,6 +126,9 @@ modules:
       - cd stackgres-k8s/src/admin-ui
       - export HOME=/project
       - npm install
+      - |
+        ! test -f node_modules/prettycron/node_modules/later/index.js \
+          || sed -i 's/later-cov/later/' node_modules/prettycron/node_modules/later/index.js
       - npm run build
       - sh $SHELL_XTRACE build.sh
     cache:
@@ -321,7 +324,6 @@ modules:
       - doc/LICENSE.md
       - doc/themes
       - stackgres-k8s/src/pom.xml
-      - stackgres-k8s/src/api-web/target/swagger-merged.yaml
       - stackgres-k8s/src/common/src/main/resources/crds
     build_image: klakegg/hugo:0.81.0-ubuntu
     build_env:

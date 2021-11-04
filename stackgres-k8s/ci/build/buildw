@@ -1,0 +1,16 @@
+#!/bin/sh
+PROJECT_PATH="$(realpath "$(dirname "$0")/../../..")"
+CONTAINER_NAME="${CONTAINER_NAME:-buildw-$(printf '%x' "$(date +%s)")}"
+env > /tmp/$CONTAINER_NAME.env
+docker run "$([ -t 1 ] && echo '-it' || echo '-i')" \
+  --network host \
+  --rm --name "$CONTAINER_NAME" \
+  -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
+  -v /etc/shadow:/etc/shadow:ro -v /etc/gshadow:/etc/gshadow:ro \
+  -u "$(id -u):$(id -g)" \
+  $(id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/') \
+  --env-file /tmp/$CONTAINER_NAME.env \
+  -v '/var/run/docker.sock:/var/run/docker.sock:rw' \
+  -v "$HOME":"$HOME":rw -e PROMPT_COMMAND= \
+  -v "$PROJECT_PATH:/project:rw" -w /project \
+  "${IMAGE:-registry.gitlab.com/ongresinc/stackgres/ci:1.4}" sh -ec "$*"

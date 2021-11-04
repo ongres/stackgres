@@ -4,6 +4,10 @@
 
 set -e
 
+[ -n "$CI_JOB_ID" ] && [ -n "$CI_PROJECT_ID" ] \
+  && [ -n "$CI_REGISTRY" ] && [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ] \
+  && true || false
+
 TEMP_DIR="/tmp/$CI_PROJECT_ID"
 mkdir -p "$TEMP_DIR"
 
@@ -111,7 +115,6 @@ EXIT_CODE="$?"
 
 echo "Cleaning up ..."
 
-cd "$CI_PROJECT_DIR"
 rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
 
 echo "done"
