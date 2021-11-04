@@ -35,7 +35,7 @@ module_image_name() {
   local MODULE_HASH
   MODULE_SOURCES="$(module_list_of_files "$MODULE" sources)"
   MODULE_DOCKERFILE="$(jq -r ".modules[\"$MODULE\"].dockerfile.path" stackgres-k8s/ci/build/target/config.json)"
-  MODULE_HASH="$( (
+  {
     echo "${BUILDER_VERSION%.*}"
     echo "$SOURCE_IMAGE_NAME"
     jq -r ".modules[\"$MODULE\"]" stackgres-k8s/ci/build/target/config.json
@@ -47,7 +47,8 @@ module_image_name() {
     do
       file_hash "$MODULE_SOURCE"
     done
-    ) | md5sum | cut -d ' ' -f 1)"
+  } > "stackgres-k8s/ci/build/target/$MODULE-hash"
+  MODULE_HASH="$(md5sum "stackgres-k8s/ci/build/target/$MODULE-hash" | cut -d ' ' -f 1)"
   printf 'registry.gitlab.com/ongresinc/stackgres/build/%s:hash-%s\n' "$MODULE" "$MODULE_HASH"
 }
 
@@ -113,15 +114,19 @@ run_commands_in_container() {
   local UID="$3"
   local COMMANDS="$4"
   local MODULE_PATH
+  if [ "$COMMANDS" = true ]
+  then
+    return
+  fi
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
-  eval "cat << EOF > stackgres-k8s/ci/build/target/$MODULE-build-env
+  eval "cat << EOF
 $(
     jq -r ".modules[\"$MODULE\"].build_env
           | to_entries
           | map(\"export \" + .key + \"=\\\"\" + .value + \"\\\"\")
           | .[]" stackgres-k8s/ci/build/target/config.json)
 EOF
-"
+   "  > "stackgres-k8s/ci/build/target/$MODULE-build-env"
   # shellcheck disable=SC2046
   docker_run -i $(! test -t 1 || printf '%s' '-t') --rm \
     --volume "$(pwd):/project" \
