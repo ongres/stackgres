@@ -10,4 +10,4 @@ docker run "$([ -t 1 ] && echo '-it' || echo '-i')" \
   $(id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/') \
   -v "$HOME":"$HOME":rw -e PROMPT_COMMAND= \
   -v "$PROJECT_PATH:/admin-ui:rw" -w /admin-ui \
-  "node:14" npm "$@"
+  "node:13.7.0" npm "$@"

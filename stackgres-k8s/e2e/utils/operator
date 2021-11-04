@@ -105,6 +105,8 @@ build_adminui_image() {
   (
   cd "$STACKGRES_PATH/src"
   shell admin-ui/npmw install
+  ! test -f admin-ui/node_modules/prettycron/node_modules/later/index.js \
+    || sed -i 's/later-cov/later/' admin-ui/node_modules/prettycron/node_modules/later/index.js
   shell admin-ui/npmw run build
   shell admin-ui/build.sh
   shell "admin-ui/$STACKGRES_IMAGE_BUILDER/build.sh"
