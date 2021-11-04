@@ -16,7 +16,7 @@ show_logs() {
       done
     return
   fi
-  find "$(realpath "$TARGET_PATH/logs")" -name '*.log' -type f \
+  find "$TARGET_PATH/logs" -name '*.log' -type f \
     | grep -v -F 'logs/results.log' | while read LOG
     do
       echo
@@ -30,7 +30,7 @@ show_logs() {
 }
 
 show_failed_logs() {
-  find "$(realpath "$TARGET_PATH")" -name '*.failed' -type f \
+  find "$TARGET_PATH" -name '*.failed' -type f \
     | while read FAILED
       do
         show_logs "$(basename "$FAILED" | sed 's/^\([^.]\+\)\.failed/\1/')"

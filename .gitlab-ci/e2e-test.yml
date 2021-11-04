@@ -9,9 +9,6 @@
     IS_NATIVE: "false"
     IS_WEB: "false"
   timeout: 12 hour
-  dependencies:
-    - build helm packages
-    - build helm templates
   script:
     - |
       if ! (test "$E2E_JOBS" -ge 1 && test "$E2E_JOBS" -le 6)

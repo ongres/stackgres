@@ -110,7 +110,7 @@ modules:
       - stackgres-k8s/src/distributedlogs-controller/target
       - .m2/repository/io/stackgres/stackgres-distributedlogs-controller
   admin-ui:
-    type: web
+    type: ui
     path: stackgres-k8s/src/admin-ui
     target_image: alpine:3.13.5
     build_image: node:14.17
@@ -221,7 +221,7 @@ modules:
       - stackgres-k8s/src/distributedlogs-controller/src/main/docker/stackgres-distributedlogs-controller.jvm.sh
       - stackgres-k8s/src/distributedlogs-controller/target/lib
   admin-ui-image:
-    type: image
+    type: ui-image
     path: stackgres-k8s/src/admin-ui
     target_image: registry.access.redhat.com/ubi8/nginx-118:1-42
     dockerfile:
@@ -282,12 +282,13 @@ modules:
       - stackgres-k8s/src/distributedlogs-controller/target/stackgres-distributedlogs-controller-runner
       - stackgres-k8s/src/distributedlogs-controller/src/main/docker/stackgres-distributedlogs-controller.native.sh
   helm-packages:
-    type: resource
+    type: helm
     target_image: alpine:3.13.5
     sources:
       - stackgres-k8s/install/helm/stackgres-operator
       - stackgres-k8s/install/helm/stackgres-cluster
       - stackgres-k8s/install/helm/build-helm-packages.sh
+      - stackgres-k8s/src/pom.xml
     build_image: dtzar/helm-kubectl:3.3.1
     build_commands:
       - export HOME=/project
@@ -295,18 +296,50 @@ modules:
     artifacts:
       - stackgres-k8s/install/helm/target/packages
   helm-templates:
-    type: resource
+    type: helm
     target_image: alpine:3.13.5
     sources:
       - stackgres-k8s/install/helm/stackgres-operator
       - stackgres-k8s/install/helm/stackgres-cluster
       - stackgres-k8s/install/helm/build-helm-templates.sh
+      - stackgres-k8s/src/pom.xml
     build_image: dtzar/helm-kubectl:3.3.1
     build_commands:
       - export HOME=/project
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-templates.sh
     artifacts:
       - stackgres-k8s/install/helm/target/templates
+  documentation:
+    type: docs
+    target_image: alpine:3.13.5
+    sources:
+      - doc/build.sh
+      - doc/config.toml
+      - doc/content
+      - doc/data/descriptions
+      - doc/demo
+      - doc/LICENSE.md
+      - doc/themes
+      - stackgres-k8s/src/pom.xml
+      - stackgres-k8s/src/api-web/target/swagger-merged.yaml
+      - stackgres-k8s/src/common/src/main/resources/crds
+    build_image: klakegg/hugo:0.81.0-ubuntu
+    build_env:
+      DOCUMENTATION_BASE_URL: '$DOCUMENTATION_BASE_URL'
+      DOCUMENTATION_EXTRA_PATH: '$DOCUMENTATION_EXTRA_PATH'
+    build_commands:
+      - sh -x doc/build.sh
+      - |
+        STACKGRES_VERSION="$(
+          grep '<artifactId>stackgres-parent</artifactId>' "stackgres-k8s/src/pom.xml" -A 2 -B 2 \
+            | sed -n 's/^.*<version>\([^<]\+\)<\/version>.*$/\1/p')"
+        STACKGRES_DOC_VERSION="$(
+          printf "%s" "$STACKGRES_VERSION" | cut -d . -f 1-2)$(printf "%s" "$STACKGRES_VERSION" \
+            | grep -q ".-SNAPSHOT$" && printf "%s" "-dev" || true)"
+      - mkdir -p "doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_VERSION"
+      - hugo -v --source doc --destination "$(pwd)/doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION" --baseURL="$DOCUMENTATION_BASE_URL/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION"
+    artifacts:
+      - doc/public
 stages:
   - stackgres-parent: null
   - stackgres-operator-framework: stackgres-parent
@@ -336,3 +369,4 @@ stages:
   - distributedlogs-controller-native-image: distributedlogs-controller-native
   - helm-packages: null
   - helm-templates: null
+  - documentation: stackgres-restapi

@@ -2,7 +2,14 @@
 
 . "$(dirname "$0")/e2e-gitlab-functions.sh"
 
+export E2E_PATH="$(pwd)/stackgres-k8s/e2e"
 E2E_FAILURE_RETRY="${E2E_FAILURE_RETRY:-4}"
+{ [ "$IS_WEB" = true ] || [ "$IS_WEB" = false ]; } \
+  && { [ "$IS_NATIVE" = true ] || [ "$IS_NATIVE" = false ]; } \
+  && [ -n "$E2E_SUFFIX" ] && [ -n "$IMAGE_TAG_SUFFIX" ] && [ -n "$E2E_RUN_ONLY" ] \
+  && [ -n "$CI_COMMIT_SHORT_SHA" ] && [ -n "$CI_PROJECT_PATH" ] \
+  && [ -n "$CI_REGISTRY" ] && [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ] \
+  && true || false
 
 set +e
 while true
@@ -42,12 +49,19 @@ do
 
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
 
-  echo "Retrieving jobs cache..."
+  echo "Variables:"
+  echo
+  sh stackgres-k8s/ci/test/e2e-variables.sh \
+    | while read -r VARIABLE
+      do
+        printf ' - %s' "$VARIABLE"
+      done
+  echo
+
+  echo "Retrieving cache..."
   export IS_WEB
   export IS_NATIVE
-  E2E_EXCLUDES_BY_HASH="$(flock /tmp/e2e-retrieve-pipeline-info.lock \
-    timeout -s KILL 300 \
-    sh stackgres-k8s/ci/test/e2e-already-passed-gitlab.sh)"
+  E2E_EXCLUDES_BY_HASH="$(sh stackgres-k8s/ci/test/e2e-already-passed-gitlab.sh)"
   if echo "$E2E_EXCLUDES_BY_HASH" | grep -q '[^ ]'
   then
     echo "Excluding following tests since already passed:"
@@ -61,7 +75,18 @@ do
   fi
   E2E_EXCLUDES="$(echo "$("$IS_WEB" || echo "ui ")$E2E_EXCLUDES $E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')"
   export E2E_EXCLUDES
-  flock /tmp/e2e-retrieve-pipeline-info.lock timeout -s KILL 300 sh stackgres-k8s/ci/test/e2e-variables.sh || true
+
+  echo "Retrieved image digests:"
+  sort stackgres-k8s/ci/test/target/all-test-result-images | uniq \
+    | while read -r IMAGE_NAME
+      do
+        printf ' - %s => %s\n' "$IMAGE_NAME" "$(
+          { grep "^$IMAGE_NAME=" stackgres-k8s/ci/test/target/test-result-image-digests || echo '=<not found>'; } \
+            | cut -d = -f 2-)"
+      done
+  echo "done"
+
+  echo
 
   sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-packages stackgres-k8s/install/helm/template/packages
   sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-templates stackgres-k8s/install/helm/template/templates
@@ -91,5 +116,46 @@ do
     break
   fi
 done
+
+xq -r '
+  select(.testsuites != null and .testsuites.testsuite != null and .testsuites.testsuite.testcase != null)
+  | if (.testsuites.testsuite.testcase | type) == "object"
+    then [.testsuites.testsuite.testcase][]
+    else .testsuites.testsuite.testcase[]
+    end
+  | select((has("failure")|not))["@name"]' \
+  stackgres-k8s/e2e/target/e2e-tests-junit-report.xml \
+  > stackgres-k8s/ci/test/target/passed-tests
+
+cat << EOF > stackgres-k8s/e2e/target/Dockerfile.e2e
+FROM alpine:3.13.5
+  COPY . /e2e
+EOF
+
+mkdir -p "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/e2e/target"
+rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/e2e/target"
+cp -r  stackgres-k8s/e2e/target/. "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/e2e/target/."
+(
+cd "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
+docker build -f stackgres-k8s/e2e/target/Dockerfile.e2e \
+  $(
+    cat stackgres-k8s/ci/test/target/passed-tests \
+      | while read -r TEST_NAME
+        do
+          IMAGE_NAME="$(grep "^TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
+            | cut -d = -f 2-)"
+          printf '%s %s ' '-t' "$IMAGE_NAME"
+        done
+  ) \
+  stackgres-k8s/e2e/target
+)
+rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
+cat stackgres-k8s/ci/test/target/passed-tests \
+  | while read -r TEST_NAME
+    do
+      IMAGE_NAME="$(grep "^TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
+        | cut -d = -f 2-)"
+      docker push "$IMAGE_NAME"
+    done
 
 exit "$EXIT_CODE"
