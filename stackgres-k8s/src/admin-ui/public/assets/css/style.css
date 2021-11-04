@@ -527,6 +527,7 @@ form#login .warning {
 
 .row-50 .col {
     width: 45%;
+    display: inline-block;
     float: left;
 }
 
@@ -2494,6 +2495,14 @@ fieldset {
     margin-bottom: 25px;
 }
 
+.form .step > .header {
+    margin-bottom: 25px;
+}
+
+.step .header + p {
+    margin-top: -20px;
+}
+
 .form fieldset .header {
     margin-bottom: 15px;
     position: relative;
@@ -2506,12 +2515,12 @@ fieldset {
 }
 
 .form .header h2 {
-    font-size: 14px;
+    font-size: 16px;
     display: inline-block;
-    float: left;
 }
 
 .form .header h3 {
+    display: inline-block;
     margin-bottom: 0;
 }
 
@@ -3180,6 +3189,10 @@ table.clusterInfo{
 
 .clusterInfo th {
     width: 20%;
+}
+
+#contentTooltip #clusterDetails [data-tooltip] {
+    display: none;
 }
 
 td.tag span:not(.helpTooltip) {
@@ -4607,6 +4620,10 @@ table.backupConfig tr.details.open td:first-of-type {
     color: var(--orange);
 }
 
+#contentTooltip table {
+    width: 100%;
+}
+
 .warning ul {
     padding-left: 20px;
 }
@@ -4747,9 +4764,8 @@ fieldset .header button {
 }
 
 fieldset .section {
-    width: calc(100% + 40px);
-    margin-left: -20px;
-    padding: 10px 20px 0;
+    width: 100%;
+    padding: 0 20px;
     border-bottom: 1px solid var(--borderColor);
     margin-bottom: 20px;
     display: inline-block;
@@ -4791,11 +4807,7 @@ fieldset.accordion .fields {
 }
 
 .fields > fieldset {
-    border: 0;
-    border-radius: 0;
-    width: calc(100% + 40px);
-    margin-left: -20px;
-    padding-top: 10px;
+    padding: 20px 20px 0;
 }
 
 .fields > fieldset:not(:last-of-type) {

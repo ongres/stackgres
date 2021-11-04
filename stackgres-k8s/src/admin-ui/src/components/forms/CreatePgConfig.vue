@@ -190,9 +190,16 @@
                             config 
                         )
                         .then(function (response) {
-                            vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfigs');
+                            
+                            var urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.has('newtab')) {
+                                opener.fetchParentAPI('sgpgconfigs');
+                                vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgpgconfigs');
+                            } else {
+                                vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfigs');
+                            }
             
-                            vc.fetchAPI('sgpgconfig');
+                            vc.fetchAPI('sgpgconfigs');
                             router.push('/' + config.metadata.namespace + '/sgpgconfigs');                    
                         })
                         .catch(function (error) {

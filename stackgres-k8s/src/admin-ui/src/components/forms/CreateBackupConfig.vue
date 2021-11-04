@@ -29,7 +29,7 @@
         <div class="form">
             <div class="header">
                 <h2>Backup Configuration Details</h2>
-                <label for="advancedMode" :class="(advancedMode) ? 'active' : ''">
+                <label for="advancedMode" :class="(advancedMode) ? 'active' : ''" class="floatRight">
                     <input v-model="advancedMode" type="checkbox" id="advancedMode" name="advancedMode" />
                     <span>Advanced</span>
                 </label>
@@ -159,7 +159,7 @@
                         Microsoft Azure Configuration
                     </h3>
 
-                    <label for="advancedModeStorage" :class="(advancedModeStorage) ? 'active' : ''">
+                    <label for="advancedModeStorage" :class="(advancedModeStorage) ? 'active' : ''" class="floatRight">
                         <input v-model="advancedModeStorage" type="checkbox" id="advancedModeStorage"/>
                         <span>Advanced</span>
                     </label>
@@ -634,7 +634,14 @@
                             config 
                         )
                         .then(function (response) {
-                            vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgbackupconfigs');
+                            
+                            var urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.has('newtab')) {
+                                opener.fetchParentAPI('sgbackupconfigs');
+                                vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgbackupconfigs');
+                            } else {
+                                vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgbackupconfigs');
+                            }
 
                             vc.fetchAPI('sgbackupconfig');
                             router.push('/' + config.metadata.namespace + '/sgbackupconfigs');
