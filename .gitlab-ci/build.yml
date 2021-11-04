@@ -64,6 +64,7 @@ build documentation:
       export DOCUMENTATION_BASE_URL="https://stackgres.io/doc"
       export DOCUMENTATION_EXTRA_PATH=""
       if [ -z "$CI_COMMIT_TAG" ] || echo "$CI_COMMIT_TAG" | grep -q '^latest-.*$'
+      then
         DOCUMENTATION_BASE_URL="https://ongresinc.gitlab.io/stackgres"
         if [ "${CI_COMMIT_REF_NAME%%-*}" != "main" ] && [ "${CI_COMMIT_REF_NAME%%-*}" != "current" ]
         then

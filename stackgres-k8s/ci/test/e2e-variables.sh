@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# shellcheck disable=SC1090
 . "$(dirname "$0")/e2e-gitlab-functions.sh"
 
 env | grep '^\(E2E_.*\|K8s_.*\|EXTENSIONS_.*\|STACKGRES_.*\)$' \

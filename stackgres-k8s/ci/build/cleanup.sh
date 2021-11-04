@@ -18,7 +18,7 @@ echo "Cleanup all build images ..."
 
 docker images | grep '^registry\.gitlab\.com/ongresinc/stackgres/build/' \
   | sed 's/ \+/ /g' | cut -d ' ' -f 3 \
-  | while read ID
+  | while read -r ID
     do
       CHILDS=""
       PARENTS="$ID"
@@ -47,7 +47,7 @@ echo "Cleanup all build intermediate images ..."
 
 docker images --filter label=build-of \
   | sed 's/ \+/ /g' | cut -d ' ' -f 3 \
-  | while read ID
+  | while read -r ID
     do
       CHILDS=""
       PARENTS="$ID"
