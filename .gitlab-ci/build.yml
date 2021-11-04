@@ -55,42 +55,25 @@ build ui:
       - stackgres-k8s/src/admin-ui/node_modules
 
 build documentation:
-  image:
-    name: klakegg/hugo:0.81.0-ubuntu
-    entrypoint: [ "" ]
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 2
-  dependencies:
-    - build
+  tags:
+    - stackgres-runner
   script:
-  - sh -x doc/build.sh
-  - |
-    STACKGRES_VERSION="$(
-      grep '<artifactId>stackgres-parent</artifactId>' "stackgres-k8s/src/pom.xml" -A 2 -B 2 \
-        | sed -n 's/^.*<version>\([^<]\+\)<\/version>.*$/\1/p')"
-    STACKGRES_DOC_VERSION="$(
-      printf "%s" "$STACKGRES_VERSION" | cut -d . -f 1-2)$(printf "%s" "$STACKGRES_VERSION" \
-        | grep -q ".-SNAPSHOT$" && printf "%s" "-dev" || true)"
-  - |
-    DOCUMENTATION_EXTRA_PATH=""
-    if [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
-    then
-      DOCUMENTATION_BASE_URL="https://stackgres.io/doc"
-    else
-      DOCUMENTATION_BASE_URL="https://ongresinc.gitlab.io/stackgres"
-      if [ "${CI_COMMIT_REF_NAME%%-*}" != "main" ] && [ "${CI_COMMIT_REF_NAME%%-*}" != "current" ]
-      then
-        DOCUMENTATION_EXTRA_PATH="$CI_COMMIT_REF_NAME/"
+    - |
+      export DOCUMENTATION_BASE_URL="https://stackgres.io/doc"
+      export DOCUMENTATION_EXTRA_PATH=""
+      if [[ -z "$CI_COMMIT_TAG" || "$CI_COMMIT_TAG" =~ ^latest-.*$ ]]
+        DOCUMENTATION_BASE_URL="https://ongresinc.gitlab.io/stackgres"
+        if [ "${CI_COMMIT_REF_NAME%%-*}" != "main" ] && [ "${CI_COMMIT_REF_NAME%%-*}" != "current" ]
+        then
+          DOCUMENTATION_EXTRA_PATH="$CI_COMMIT_REF_NAME/"
+        fi
       fi
-    fi
-  - mkdir -p "doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_VERSION"
-  - hugo -v --source doc --destination "$(pwd)/doc/public/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION" --baseURL="$DOCUMENTATION_BASE_URL/$DOCUMENTATION_EXTRA_PATH$STACKGRES_DOC_VERSION"
-  - |
-    if ( [[ ! -z "$CI_COMMIT_TAG" && ! "$CI_COMMIT_TAG" =~ ^latest-.*$ ]] \
-        || [ "${CI_COMMIT_REF_NAME%%-*}" = "main" ] || [ "${CI_COMMIT_REF_NAME%%-*}" = "current" ] ) \
-      && [ "$LATEST" = true ]
-    then
-      hugo -v --source doc --destination "$(pwd)/doc/public/latest" --baseURL="$DOCUMENTATION_BASE_URL/latest"
-    fi
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --extract documentation:doc/public \
+        documentation
   retry: 2
   artifacts:
     expire_in: 1 week

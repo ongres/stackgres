@@ -137,11 +137,10 @@ pages:
   environment:
     name: development
     url: https://ongresinc.gitlab.io/stackgres/
-  dependencies:
-    - build documentation
   script:
-  - tar cC doc public | tar x
-  - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+    - sh stackgres-k8s/ci/build/build-gitlab.sh extract documentation doc/public
+    - tar cC doc public | tar x
+    - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
   retry: 2
   artifacts:
     paths:

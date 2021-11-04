@@ -114,6 +114,14 @@ run_commands_in_container() {
   local COMMANDS="$4"
   local MODULE_PATH
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
+  eval "cat << EOF > stackgres-k8s/ci/build/target/$MODULE-build-env
+$(
+    jq -r ".modules[\"$MODULE\"].build_env
+          | to_entries
+          | map(\"export \" + .key + \"=\\\"\" + .value + \"\\\"\")
+          | .[]" stackgres-k8s/ci/build/target/config.json)
+EOF
+"
   # shellcheck disable=SC2046
   docker_run -i $(! test -t 1 || printf '%s' '-t') --rm \
     --volume "$(pwd):/project" \
@@ -124,14 +132,11 @@ run_commands_in_container() {
     --env "POST_BUILD_COMMANDS=$POST_BUILD_COMMANDS" \
     --env "MODULE_PATH=$MODULE_PATH" \
     --env "SHELL_XTRACE=$([ "$DEBUG" != true ] || printf '%s' -x)" \
+    --entrypoint /bin/sh \
     "$BUILD_IMAGE_NAME" \
-    sh -ec $(echo "$-" | grep -v -q x || printf '%s' '-x') \
-      "$(jq -r ".modules[\"$MODULE\"].build_env
-          | to_entries
-          | map(\"export \" + .key + \"='\" + .value + \"'\")
-          | .[]" \
-        stackgres-k8s/ci/build/target/config.json)
-      sh -ec $(echo "$-" | grep -v -q x || printf '%s' '-x') '$COMMANDS'"
+    -ec $(echo "$-" | grep -v -q x || printf '%s' '-x') "
+      $(cat "stackgres-k8s/ci/build/target/$MODULE-build-env")
+      $COMMANDS"
 }
 
 build_module_image() {
@@ -283,17 +288,6 @@ docker_push() {
   )
 }
 
-retrieve_image_hash_script() {
-  cat << EOF
-IMAGE_NAME='$1'
-IMAGE_DIGEST="\$(docker manifest inspect "\$IMAGE_NAME" 2>/dev/null || true)"
-if [ -n "\$IMAGE_DIGEST" ]
-then
-  printf '%s=%s\n' "\$IMAGE_NAME" "\$(printf '%s' "\$IMAGE_DIGEST" | jq -r '.config.digest')" > "stackgres-k8s/ci/build/target/image-digests.\${IMAGE_NAME##*/}"
-fi
-EOF
-}
-
 set_module_functions() {
   [ "$#" -ge 1 ] || false
   local MODULE="$1"
@@ -385,63 +379,61 @@ generate_image_hashes() {
     return 1
   fi
 
-  if test -f stackgres-k8s/ci/build/target/project_hash \
-    && [ "$(cat stackgres-k8s/ci/build/target/project_hash)" = "$(project_hash)" ]
+  if ! test -f stackgres-k8s/ci/build/target/project_hash \
+    || [ "$(cat stackgres-k8s/ci/build/target/project_hash)" != "$(project_hash)" ]
   then
-    echo "Calculated image hashes..."
+    cat << EOF > stackgres-k8s/ci/build/target/junit-build.hashes.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="build hashes">
+EOF
 
-    while IFS='=' read -r MODULE IMAGE_NAME
+    rm -f stackgres-k8s/ci/build/target/all-images
+    rm -f stackgres-k8s/ci/build/target/image-hashes
+    rm -f stackgres-k8s/ci/build/target/*-image-hashes
+    for MODULE in $(jq -r '.modules | to_entries[] | .key' stackgres-k8s/ci/build/target/config.json)
     do
-      printf ' - %s => %s\n' "$MODULE" "$IMAGE_NAME"
-    done < stackgres-k8s/ci/build/target/image-hashes
+      set_module_functions "$MODULE"
+      SOURCE_IMAGE_NAME="$(source_image_name "$MODULE")"
+      IMAGE_NAME="$(module_image_name "$MODULE" "$SOURCE_IMAGE_NAME")"
+      cat << EOF >> stackgres-k8s/ci/build/target/junit-build.hashes.xml
+    <testcase classname="module $MODULE" name="${IMAGE_NAME##*:hash-}" />
+EOF
+      printf '%s\n' "$IMAGE_NAME" > "stackgres-k8s/ci/build/target/image-hashes.$MODULE"
+      printf '%s\n' "$IMAGE_NAME" >> "stackgres-k8s/ci/build/target/$MODULE_TYPE-image-hashes"
+      printf '%s=%s\n' "$MODULE" "$IMAGE_NAME" >> stackgres-k8s/ci/build/target/image-hashes
+      if [ "$SOURCE_IMAGE_NAME" != null ]
+      then
+        printf '%s\n' "$SOURCE_IMAGE_NAME" >> stackgres-k8s/ci/build/target/all-images
+      fi
+      printf '%s\n' "$IMAGE_NAME" >> stackgres-k8s/ci/build/target/all-images
+    done
 
-    echo "done"
-
-    echo
-
-    echo "Calculated image type hashes ..."
-
+    rm -rf stackgres-k8s/ci/build/target/image-type-hashes
     for MODULE_TYPE_IMAGE_HASHES in stackgres-k8s/ci/build/target/*-image-hashes
     do
       local MODULE_TYPE="${MODULE_TYPE_IMAGE_HASHES##*/}"
       MODULE_TYPE="${MODULE_TYPE%-image-hashes}"
       local MODULE_TYPE_HASH
       MODULE_TYPE_HASH="$(md5sum "$MODULE_TYPE_IMAGE_HASHES" | cut -d ' ' -f 1 | tr -d '\n')"
-      printf " - %s hash => %s\n" "$MODULE_TYPE" "$MODULE_TYPE_HASH"
+      printf '%s=%s\n' "$MODULE_TYPE" "$MODULE_TYPE_HASH" >> stackgres-k8s/ci/build/target/image-type-hashes
+      cat << EOF >> stackgres-k8s/ci/build/target/junit-build.hashes.xml
+    <testcase classname="module type $MODULE_TYPE" name="$MODULE_TYPE_HASH" />
+EOF
     done
 
-    echo "done"
-
-    echo
-
-    return
-  fi
-
-  echo "Calculating image hashes ..."
-
-  cat << EOF > stackgres-k8s/ci/build/target/junit-build.hashes.xml
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-  <testsuite name="build hashes">
-EOF
-
-  rm -f stackgres-k8s/ci/build/target/all-images
-  rm -f stackgres-k8s/ci/build/target/image-hashes
-  rm -f stackgres-k8s/ci/build/target/*-image-hashes
-  for MODULE in $(jq -r '.modules | to_entries[] | .key' stackgres-k8s/ci/build/target/config.json)
-  do
-    set_module_functions "$MODULE"
-    SOURCE_IMAGE_NAME="$(source_image_name "$MODULE")"
-    IMAGE_NAME="$(module_image_name "$MODULE" "$SOURCE_IMAGE_NAME")"
     cat << EOF >> stackgres-k8s/ci/build/target/junit-build.hashes.xml
-    <testcase classname="module $MODULE" name="${IMAGE_NAME##*:hash-}" />
+  </testsuite>
+</testsuites>
 EOF
-    printf '%s\n' "$IMAGE_NAME" > "stackgres-k8s/ci/build/target/image-hashes.$MODULE"
-    printf '%s\n' "$IMAGE_NAME" >> "stackgres-k8s/ci/build/target/$MODULE_TYPE-image-hashes"
-    printf '%s=%s\n' "$MODULE" "$IMAGE_NAME" >> stackgres-k8s/ci/build/target/image-hashes
-    printf '%s\n' "$SOURCE_IMAGE_NAME" >> stackgres-k8s/ci/build/target/all-images
-    printf '%s\n' "$IMAGE_NAME" >> stackgres-k8s/ci/build/target/all-images
-  done
+
+    project_hash > stackgres-k8s/ci/build/target/project_hash
+  fi
+}
+
+show_image_hashes() {
+  echo "Calculated image hashes:"
+
   while IFS='=' read -r MODULE IMAGE_NAME
   do
     printf ' - %s => %s\n' "$MODULE" "$IMAGE_NAME"
@@ -451,51 +443,39 @@ EOF
 
   echo
 
-  echo "Calculating image type hashes ..."
+  echo "Calculated image type hashes:"
 
-  for MODULE_TYPE_IMAGE_HASHES in stackgres-k8s/ci/build/target/*-image-hashes
+  while IFS='=' read -r MODULE_TYPE MODULE_TYPE_HASH
   do
-    local MODULE_TYPE="${MODULE_TYPE_IMAGE_HASHES##*/}"
-    MODULE_TYPE="${MODULE_TYPE%-image-hashes}"
-    local MODULE_TYPE_HASH
-    MODULE_TYPE_HASH="$(md5sum "$MODULE_TYPE_IMAGE_HASHES" | cut -d ' ' -f 1 | tr -d '\n')"
-    printf " - %s hash => %s\n" "$MODULE_TYPE" "$MODULE_TYPE_HASH"
-    cat << EOF >> stackgres-k8s/ci/build/target/junit-build.hashes.xml
-    <testcase classname="module type $MODULE_TYPE" name="$MODULE_TYPE_HASH" />
-EOF
-  done
+    printf ' - %s => %s\n' "$MODULE_TYPE" "$MODULE_TYPE_HASH"
+  done < stackgres-k8s/ci/build/target/image-type-hashes
 
   echo "done"
 
   echo
-
-  cat << EOF >> stackgres-k8s/ci/build/target/junit-build.hashes.xml
-  </testsuite>
-</testsuites>
-EOF
-
-  project_hash > stackgres-k8s/ci/build/target/project_hash
 }
 
 retrieve_image_digests() {
-  echo "Retrieving image digests ..."
-  sort stackgres-k8s/ci/build/target/all-images | uniq \
+  sort "$1" | uniq \
     | xargs -I @ -P 16 sh -c \
       "$(
       echo "$-" | grep -v -q x || printf 'set -x\n'
       retrieve_image_hash_script @
       )"
   (! ls stackgres-k8s/ci/build/target/image-digests.* > /dev/null 2>&1 \
-    || cat stackgres-k8s/ci/build/target/image-digests.*) \
-    > stackgres-k8s/ci/build/target/image-digests
-  sort stackgres-k8s/ci/build/target/all-images | uniq \
-    | while read -r IMAGE_NAME
-      do
-        printf ' - %s => %s\n' "$IMAGE_NAME" "$( (grep "^$IMAGE_NAME=" stackgres-k8s/ci/build/target/image-digests || echo '=<not found>') | cut -d = -f 2-)"
-      done
-  echo "done"
+    || cat stackgres-k8s/ci/build/target/image-digests.*)
+}
 
-  echo
+retrieve_image_hash_script() {
+  cat << EOF
+IMAGE_NAME='$1'
+IMAGE_DIGEST="\$(docker manifest inspect "\$IMAGE_NAME" 2>/dev/null || true)"
+if [ -n "\$IMAGE_DIGEST" ]
+then
+  printf '%s=%s\n' "\$IMAGE_NAME" "\$(printf '%s' "\$IMAGE_DIGEST" | jq -r '.config.digest')" \
+    > "stackgres-k8s/ci/build/target/image-digests.\${IMAGE_NAME##*/}"
+fi
+EOF
 }
 
 extract() {

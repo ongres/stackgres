@@ -13,7 +13,22 @@ fi
 
 generate_image_hashes
 
-retrieve_image_digests
+show_image_hashes
+
+retrieve_image_digests stackgres-k8s/ci/build/target/all-images \
+  > stackgres-k8s/ci/build/target/image-digests
+
+echo "Retrieved image digests:"
+sort stackgres-k8s/ci/build/target/all-images | uniq \
+  | while read -r IMAGE_NAME
+    do
+      printf ' - %s => %s\n' "$IMAGE_NAME" "$(
+        { grep "^$IMAGE_NAME=" stackgres-k8s/ci/build/target/image-digests || echo '=<not found>'; } \
+          | cut -d = -f 2-)"
+    done
+echo "done"
+
+echo
 
 if [ "$MODULES" = "hashes" ]
 then
