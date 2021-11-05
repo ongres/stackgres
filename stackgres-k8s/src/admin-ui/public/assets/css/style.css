@@ -2219,7 +2219,7 @@ ul.select a.active {
 form .warning {
     background: rgba(0,173,181,.05);
     border: 1px solid var(--blue);
-    padding: 20px;
+    padding: 15px;
     border-radius: 6px;
     margin-bottom: 20px;
     display: inline-block;
@@ -4606,7 +4606,7 @@ table.backupConfig tr.details.open td:first-of-type {
     width: 25px;
 }
 
-#contentTooltip .warning {
+#contentTooltip .warning, .warning.orange {
     margin-bottom: 0;
     border-color: var(--orange) !important;
     background: rgb(255 87 34 / 10%);

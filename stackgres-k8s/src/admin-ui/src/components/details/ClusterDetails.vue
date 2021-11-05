@@ -29,6 +29,13 @@
                     </tr>
                     <tr>
                         <td class="label">
+                            Postgres Flavor
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.flavor')"></span>
+                        </td>
+                        <td colspan="3">{{ cluster.data.spec.postgres.flavor }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">
                             Postgres Version
                             <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
                         </td>
