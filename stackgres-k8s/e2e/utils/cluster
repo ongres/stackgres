@@ -41,11 +41,14 @@ create_or_replace_cluster() {
   if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
   then
     helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_CHART_PATH" \
-        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
+        --reuse-values \
+        $E2E_CLUSTER_OPTS \
+        --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
   else
     create_namespace_if_not_exists "$NAMESPACE"
     helm install "$RELEASE" "$CLUSTER_CHART_PATH" \
       --namespace "$NAMESPACE" \
+      $E2E_CLUSTER_OPTS \
       --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
   fi
 }
@@ -90,11 +93,15 @@ create_or_replace_cluster_for_version() {
   if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
   then
     eval "$(transform_params "$TRANSFORMER" helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_HELM_URL" \
-        --reuse-values --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
+        --reuse-values \
+        $E2E_CLUSTER_OPTS \
+        --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
   else
     create_namespace_if_not_exists "$NAMESPACE"
     eval "$(transform_params "$TRANSFORMER" helm install "$RELEASE" "$CLUSTER_HELM_URL" \
-        --namespace "$NAMESPACE" --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
+        --namespace "$NAMESPACE" \
+        $E2E_CLUSTER_OPTS \
+        --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
   fi
 }
 

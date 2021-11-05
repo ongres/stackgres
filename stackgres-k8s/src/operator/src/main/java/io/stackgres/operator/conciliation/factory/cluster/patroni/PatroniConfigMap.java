@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +51,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
   public static final String POSTGRES_PORT_NAME = "pgport";
   public static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
   public static final String PATRONI_RESTAPI_PORT_NAME = "patroniport";
+  public static final String BABELFISH_PORT_NAME = "babelfish";
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
 
@@ -61,15 +64,30 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .getResourceName(clusterContext.getCluster().getMetadata().getName());
   }
 
-  public static String getKubernetesPorts(final int pgPort, final int pgRawPort) {
-    return "["
-        + "{\"protocol\":\"TCP\","
-        + "\"name\":\"" + POSTGRES_PORT_NAME + "\","
-        + "\"port\":" + pgPort + "},"
-        + "{\"protocol\":\"TCP\","
-        + "\"name\":\"" + POSTGRES_REPLICATION_PORT_NAME + "\","
-        + "\"port\":" + pgRawPort + "}"
-        + "]";
+  public static String getKubernetesPorts(final StackGresCluster cluster,
+      final int pgPort, final int pgRawPort, final int babelfishPort) {
+    if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
+      return "["
+          + "{\"protocol\":\"TCP\","
+          + "\"name\":\"" + POSTGRES_PORT_NAME + "\","
+          + "\"port\":" + pgPort + "},"
+          + "{\"protocol\":\"TCP\","
+          + "\"name\":\"" + POSTGRES_REPLICATION_PORT_NAME + "\","
+          + "\"port\":" + pgRawPort + "},"
+          + "{\"protocol\":\"TCP\","
+          + "\"name\":\"" + BABELFISH_PORT_NAME + "\","
+          + "\"port\":" + babelfishPort + "}"
+          + "]";
+    } else {
+      return "["
+          + "{\"protocol\":\"TCP\","
+          + "\"name\":\"" + POSTGRES_PORT_NAME + "\","
+          + "\"port\":" + pgPort + "},"
+          + "{\"protocol\":\"TCP\","
+          + "\"name\":\"" + POSTGRES_REPLICATION_PORT_NAME + "\","
+          + "\"port\":" + pgRawPort + "}"
+          + "]";
+    }
   }
 
   @Override
@@ -110,12 +128,14 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     final String pgHost = "127.0.0.1"; // NOPMD
     final int pgRawPort = EnvoyUtil.PG_REPL_ENTRY_PORT;
     final int pgPort = EnvoyUtil.PG_ENTRY_PORT;
+    final int babelfishPort = EnvoyUtil.BF_ENTRY_PORT;
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", labelFactory.clusterScope(cluster));
     data.put("PATRONI_KUBERNETES_SCOPE_LABEL", labelFactory.labelMapper().clusterScopeKey());
     data.put("PATRONI_KUBERNETES_LABELS", patroniClusterLabelsAsJson);
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
-    data.put("PATRONI_KUBERNETES_PORTS", getKubernetesPorts(pgPort, pgRawPort));
+    data.put("PATRONI_KUBERNETES_PORTS", getKubernetesPorts(
+        cluster, pgPort, pgRawPort, babelfishPort));
     data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
     data.put("PATRONI_REPLICATION_USERNAME", "replicator");
     data.put("PATRONI_POSTGRESQL_LISTEN", pgHost + ":" + EnvoyUtil.PG_PORT);

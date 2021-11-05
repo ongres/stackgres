@@ -105,6 +105,8 @@ build_adminui_image() {
   (
   cd "$STACKGRES_PATH/src"
   shell admin-ui/npmw install
+  ! test -f admin-ui/node_modules/prettycron/node_modules/later/index.js \
+    || sed -i 's/later-cov/later/' admin-ui/node_modules/prettycron/node_modules/later/index.js
   shell admin-ui/npmw run build
   shell admin-ui/build.sh
   shell "admin-ui/$STACKGRES_IMAGE_BUILDER/build.sh"
@@ -226,35 +228,38 @@ load_operator_k8s() {
   local IMAGE_NAME
   if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
   then
-    if [ -n "$E2E_OPERATOR_REGISTRY" ]
+    if [ "$E2E_SKIP_LOAD_OPERATOR" != true ]
     then
-      echo "Loading operator images from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
-      for IMAGE_NAME in \
-        "$OPERATOR_IMAGE_NAME" \
-        "$RESTAPI_IMAGE_NAME" \
-        "$JOBS_IMAGE_NAME" \
-        "$CLUSTER_CONTROLLER_IMAGE_NAME" \
-        "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
-        "$ADMINUI_IMAGE_NAME"
-      do
-        echo "$IMAGE_NAME"
-      done | xargs_parallel_shell % "$E2E_PATH/e2e" \
-        pull_image_from "$E2E_OPERATOR_REGISTRY" "${E2E_OPERATOR_REGISTRY_PATH}stackgres/" "%"
-      echo "All operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
-    else
-      echo "Loading operator images from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
-      for IMAGE_NAME in \
-        "$OPERATOR_IMAGE_NAME" \
-        "$RESTAPI_IMAGE_NAME" \
-        "$JOBS_IMAGE_NAME" \
-        "$CLUSTER_CONTROLLER_IMAGE_NAME" \
-        "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
-        "$ADMINUI_IMAGE_NAME"
-      do
-        echo "$IMAGE_NAME"
-      done | xargs_parallel_shell % "$E2E_PATH/e2e" \
-        docker_pull "%"
-      echo "All operator images loaded from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
+      if [ -n "$E2E_OPERATOR_REGISTRY" ]
+      then
+        echo "Loading operator images from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+        for IMAGE_NAME in \
+          "$OPERATOR_IMAGE_NAME" \
+          "$RESTAPI_IMAGE_NAME" \
+          "$JOBS_IMAGE_NAME" \
+          "$CLUSTER_CONTROLLER_IMAGE_NAME" \
+          "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
+          "$ADMINUI_IMAGE_NAME"
+        do
+          echo "$IMAGE_NAME"
+        done | xargs_parallel_shell % "$E2E_PATH/e2e" \
+          pull_image_from "$E2E_OPERATOR_REGISTRY" "${E2E_OPERATOR_REGISTRY_PATH}stackgres/" "%"
+        echo "All operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+      else
+        echo "Loading operator images from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
+        for IMAGE_NAME in \
+          "$OPERATOR_IMAGE_NAME" \
+          "$RESTAPI_IMAGE_NAME" \
+          "$JOBS_IMAGE_NAME" \
+          "$CLUSTER_CONTROLLER_IMAGE_NAME" \
+          "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
+          "$ADMINUI_IMAGE_NAME"
+        do
+          echo "$IMAGE_NAME"
+        done | xargs_parallel_shell % "$E2E_PATH/e2e" \
+          docker_pull "%"
+        echo "All operator images loaded from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
+      fi
     fi
 
     if [ -n "$E2E_COMPONENTS_REGISTRY" ] && [ "$E2E_SKIP_LOAD_COMPONENTS" != true ]
@@ -604,10 +609,10 @@ load_extensions_images_from() {
   local EXTENSIONS
   EXTENSIONS="$(get_preloaded_extensions)"
   EXTENSIONS="$(printf '%s' "$EXTENSIONS" \
-    | while read -r REPOSITORY PUBLISHER NAME VERSION POSTGRES_VERSION BUILD_ARCH BUILD_OS BUILD
+    | while read -r REPOSITORY PUBLISHER NAME VERSION POSTGRES_VERSION FLAVOR BUILD_ARCH BUILD_OS BUILD
       do
         get_extension_image "$EXTENSIONS_REPOSITORY_URL" "$PUBLISHER" "$NAME" \
-          "$VERSION" "$POSTGRES_VERSION" "$BUILD_ARCH" "$BUILD_OS" "$BUILD"
+          "$VERSION" "$POSTGRES_VERSION" "$FLAVOR" "$BUILD_ARCH" "$BUILD_OS" "$BUILD"
       done)"
   if [ -n "$REPOSITORY" ] && [ -n "$IMAGE_PATH" ]
   then
@@ -641,11 +646,13 @@ get_component_images() {
     get_component_images_pre_1_0_0_alpha2 "$VERSION"
     return
   fi
-  local COMPONENT_POSTGRESQL_VERSIONS COMPONENT_PATRONI_VERSIONS \
+  local COMPONENT_POSTGRESQL_VERSIONS COMPONENT_BABELFISH_VERSIONS \
+    COMPONENT_PATRONI_VERSIONS \
     COMPONENT_PGBOUNCER_VERSIONS COMPONENT_POSTGRES_EXPORTER_VERSIONS \
     COMPONENT_ENVOY_VERSIONS COMPONENT_FLUENTBIT_VERSIONS \
     COMPONENT_FLUENTD_VERSIONS
   COMPONENT_POSTGRESQL_VERSIONS="$(get_component_versions "$VERSION" postgresql)"
+  COMPONENT_BABELFISH_VERSIONS="$(get_component_versions "$VERSION" babelfish)"
   COMPONENT_PATRONI_VERSIONS="$(get_component_versions "$VERSION" patroni)"
   COMPONENT_PGBOUNCER_VERSIONS="$(get_component_versions "$VERSION" pgbouncer)"
   COMPONENT_POSTGRES_EXPORTER_VERSIONS="$(get_component_versions "$VERSION" prometheus-postgres-exporter)"
@@ -661,6 +668,13 @@ get_component_images() {
       if [ "${VERSION#*-build-}" = "${SUBVERSION#*-build-}" ]
       then
         echo "docker.io/ongres/patroni:v${VERSION%-build-*}-pg${SUBVERSION%-build-*}-build-${VERSION#*-build-}"
+      fi
+    done
+    for SUBVERSION in $COMPONENT_BABELFISH_VERSIONS
+    do
+      if [ "${VERSION#*-build-}" = "${SUBVERSION#*-build-}" ]
+      then
+        echo "docker.io/ongres/patroni:v${VERSION%-build-*}-bf${SUBVERSION%-build-*}-build-${VERSION#*-build-}"
       fi
     done
   done

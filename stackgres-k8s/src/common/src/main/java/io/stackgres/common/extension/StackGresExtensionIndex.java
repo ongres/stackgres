@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
@@ -18,6 +19,7 @@ public class StackGresExtensionIndex {
   private final String name;
   private final String publisher;
   private final String version;
+  private final String flavor;
   private final String postgresVersion;
   private final boolean fromIndex;
   private final List<String> channels;
@@ -25,10 +27,12 @@ public class StackGresExtensionIndex {
   private final String arch;
   private final String os;
 
-  public StackGresExtensionIndex(StackGresClusterInstalledExtension installedExtension) {
+  public StackGresExtensionIndex(StackGresCluster cluster,
+      StackGresClusterInstalledExtension installedExtension) {
     this.name = installedExtension.getName();
     this.publisher = installedExtension.getPublisher();
     this.version = installedExtension.getVersion();
+    this.flavor = ExtensionUtil.getFlavorPrefix(cluster);
     this.postgresVersion = installedExtension.getPostgresVersion();
     this.fromIndex = false;
     this.channels = ImmutableList.of();
@@ -42,6 +46,7 @@ public class StackGresExtensionIndex {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.version = version.getVersion();
+    this.flavor = target.getFlavorOrDefault();
     this.postgresVersion = target.getPostgresVersion();
     this.fromIndex = true;
     this.channels = Seq.seq(extension.getChannels())
@@ -55,7 +60,7 @@ public class StackGresExtensionIndex {
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, postgresVersion, publisher);
+    return Objects.hash(name, flavor, postgresVersion, publisher);
   }
 
   @Override
@@ -69,6 +74,7 @@ public class StackGresExtensionIndex {
     StackGresExtensionIndex other = (StackGresExtensionIndex) obj;
     if (Objects.equals(publisher, other.publisher)
         && Objects.equals(name, other.name)
+        && Objects.equals(flavor, other.flavor)
         && Objects.equals(postgresVersion, other.postgresVersion)) {
       if (fromIndex && other.fromIndex) {
         return equalsBothFromIndex(this, other);
@@ -108,8 +114,9 @@ public class StackGresExtensionIndex {
   @Override
   public String toString() {
     return String.format(
-        "%s/%s/%s/%s-%s-pg%s%s%s",
-        publisher, arch, os, name, version, postgresVersion,
+        "%s/%s/%s/%s-%s-%s%s%s%s",
+        publisher, arch, os, name, version,
+        flavor, postgresVersion,
         build != null ? "-build-" + build : "",
             channels.isEmpty() ? "" : " (channels: " + channels.stream()
             .collect(Collectors.joining(", ")) + ")");

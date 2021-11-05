@@ -5,16 +5,15 @@
 
 package io.stackgres.operator.validation.dbops;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDbOpsReview;
@@ -35,28 +34,23 @@ public class DbOpsSecurityUpgradeValidator implements DbOpsValidator {
 
   @Override
   public void validate(StackGresDbOpsReview review) throws ValidationFailed {
-
     switch (review.getRequest().getOperation()) {
       case CREATE:
         StackGresDbOps dbOps = review.getRequest().getObject();
         if (dbOps.getSpec().isOpSecurityUpgrade()) {
-          Optional<String> postgresVersion = clusterFinder.findByNameAndNamespace(
-              dbOps.getSpec().getSgCluster(), dbOps.getMetadata().getNamespace())
-              .map(StackGresCluster::getSpec)
-              .map(StackGresClusterSpec::getPostgres)
-              .map(StackGresClusterPostgres::getVersion);
-          if (postgresVersion.map(version -> StackGresComponent.POSTGRESQL.getOrderedVersions()
-              .noneMatch(version::equals))
+          Optional<StackGresCluster> cluster = clusterFinder.findByNameAndNamespace(
+              dbOps.getSpec().getSgCluster(), dbOps.getMetadata().getNamespace());
+          if (cluster.map(c -> getPostgresFlavorComponent(c).getOrderedVersions()
+              .noneMatch(c.getSpec().getPostgres().getVersion()::equals))
               .orElse(false)) {
             fail("Major version upgrade must be performed on StackGresCluster before performing"
-                + " the upgrade since Postgres version " + postgresVersion.get() + " will not be"
-                + " supported after the upgrade is completed");
+                + " the upgrade since Postgres version " + cluster.get().getSpec().getPostgres()
+                .getVersion() + " will not be supported after the upgrade is completed");
           }
         }
         break;
       default:
     }
-
   }
 
 }

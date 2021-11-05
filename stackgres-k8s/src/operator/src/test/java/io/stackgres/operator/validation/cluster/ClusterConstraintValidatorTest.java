@@ -17,17 +17,24 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
+import io.stackgres.common.crd.sgcluster.StackGresFeatureGates;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
+import io.stackgres.common.validation.ValidEnum;
+import io.stackgres.common.validation.ValidEnumList;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.testutil.JsonUtil;
+import org.gradle.internal.impldep.com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 
 class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresClusterReview> {
@@ -494,7 +501,6 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
 
   @Test
   void givenTolerationsSetAndEffectNoExecute_shouldPass() throws ValidationFailed {
-
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPod()
         .setScheduling(new StackGresClusterPodScheduling());
@@ -510,12 +516,10 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .setEffect("NoExecute");
 
     validator.validate(review);
-
   }
 
   @Test
   void givenTolerationsSetAndEffectOtherThanNoExecute_shouldFail() {
-
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPod()
         .setScheduling(new StackGresClusterPodScheduling());
@@ -532,5 +536,48 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
 
     checkErrorCause(Toleration.class, "spec.pod.scheduling.tolerations[0].effect",
         "isEffectNoExecuteIfTolerationIsSet", review, AssertTrue.class);
+  }
+
+  @Test
+  void givenValidFlavor_shouldPass() throws ValidationFailed {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getPostgres().setFlavor(
+        StackGresPostgresFlavor.BABELFISH.toString());
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenInvalidFlavor_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getPostgres().setFlavor(
+        "glassfish");
+
+    checkErrorCause(StackGresClusterPostgres.class, "spec.postgres.flavor",
+        review, ValidEnum.class);
+  }
+
+  @Test
+  void givenValidFeatureGate_shouldPass() throws ValidationFailed {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setNonProduction(
+        new StackGresClusterNonProduction());
+    review.getRequest().getObject().getSpec().getNonProduction().setEnabledFeatureGates(
+        Lists.newArrayList(StackGresFeatureGates.BABELFISH_FLAVOR.toString()));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenInvalidFeatureGate_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setNonProduction(
+        new StackGresClusterNonProduction());
+    review.getRequest().getObject().getSpec().getNonProduction().setEnabledFeatureGates(
+        Lists.newArrayList("glassfish-flavor"));
+
+    checkErrorCause(StackGresClusterNonProduction.class,
+        "spec.nonProductionOptions.enabledFeatureGates",
+        review, ValidEnumList.class);
   }
 }

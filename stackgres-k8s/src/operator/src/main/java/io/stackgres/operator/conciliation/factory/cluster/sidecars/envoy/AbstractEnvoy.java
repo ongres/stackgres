@@ -51,11 +51,13 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
       ImmutableMap.of(
           "postgres_entry_port", EnvoyUtil.PG_ENTRY_PORT,
           "postgres_repl_entry_port", EnvoyUtil.PG_REPL_ENTRY_PORT,
+          "babelfish_entry_port", EnvoyUtil.BF_ENTRY_PORT,
           "patroni_entry_port", EnvoyUtil.PATRONI_ENTRY_PORT);
   protected static final ImmutableMap<String, Integer> CLUSTER_SOCKET_ADDRESS_PORT_MAPPING =
       ImmutableMap.of(
           "postgres_pool_port", EnvoyUtil.PG_POOL_PORT,
           "postgres_port", EnvoyUtil.PG_PORT,
+          "babelfish_port", EnvoyUtil.BF_PORT,
           "patroni_port", EnvoyUtil.PATRONI_PORT);
 
   protected final YamlMapperProvider yamlMapperProvider;

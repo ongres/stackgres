@@ -7,22 +7,16 @@ package io.stackgres.operator.mutation.distributedlogs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
-import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.testutil.JsonUtil;
@@ -31,7 +25,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,7 +43,7 @@ class ExtensionsMutatorTest {
 
   private ExtensionsMutator mutator;
 
-  private List<StackGresClusterInstalledExtension> defaultExtensions;
+  private List<StackGresClusterInstalledExtension> installedExtensions;
 
   @BeforeEach
   void setUp() throws Exception {
@@ -59,38 +52,16 @@ class ExtensionsMutatorTest {
 
     mutator = new ExtensionsMutator(extensionMetadataManager, JsonUtil.JSON_MAPPER);
 
-    defaultExtensions = Seq.of(
-        "plpgsql",
-        "pg_stat_statements",
-        "dblink",
-        "plpython3u",
-        "timescaledb")
-        .map(this::getDefaultExtension)
+    installedExtensions = Seq.<String>of()
+        .map(this::getInstalledExtension)
         .collect(ImmutableList.toImmutableList());
-    when(extensionMetadataManager.findExtensionCandidateAnyVersion(
-        any(), any()))
-        .then(this::getDefaultExtensionMetadata);
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(),
-        argThat(extension -> defaultExtensions.stream()
-            .anyMatch(defaultExtension -> defaultExtension.getName()
-                .equals(extension.getName())))))
-        .then(this::getDefaultExtensionMetadata);
-  }
-
-  private Optional<StackGresExtensionMetadata> getDefaultExtensionMetadata(
-      InvocationOnMock invocation) {
-    return Optional.of(new StackGresExtensionMetadata(defaultExtensions.stream()
-        .filter(defaultExtension -> defaultExtension.getName()
-            .equals(((StackGresClusterExtension) invocation.getArgument(1)).getName()))
-        .findAny().get()));
   }
 
   @Test
   void clusterWithoutExtensions_shouldNotDoAnything() {
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(defaultExtensions);
+        .addAll(installedExtensions);
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -105,7 +76,7 @@ class ExtensionsMutatorTest {
     assertEquals(1, operations.stream().filter(o -> o instanceof AddOperation).count());
   }
 
-  private StackGresClusterInstalledExtension getDefaultExtension(String name) {
+  private StackGresClusterInstalledExtension getInstalledExtension(String name) {
     final StackGresClusterInstalledExtension installedExtension =
         new StackGresClusterInstalledExtension();
     installedExtension.setName(name);

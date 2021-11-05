@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -17,6 +19,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.patroni.StackGresRandomPasswordKeys;
 import io.stackgres.operator.common.StackGresVersion;
@@ -69,8 +72,20 @@ public class PatroniSecret implements
         .getOrDefault(PGBOUNCER_ADMIN_PASSWORD_KEY, generatePassword()));
     data.put(PGBOUNCER_STATS_PASSWORD_KEY, generatedPasswords
         .getOrDefault(PGBOUNCER_STATS_PASSWORD_KEY, generatePassword()));
+    data.put(PGBOUNCER_STATS_PASSWORD_KEY, generatedPasswords
+        .getOrDefault(PGBOUNCER_STATS_PASSWORD_KEY, generatePassword()));
     data.put(RESTAPI_PASSWORD_KEY, generatedPasswords
         .getOrDefault(RESTAPI_PASSWORD_KEY, generatePassword()));
+
+    if (getPostgresFlavorComponent(context.getSource()) == StackGresComponent.BABELFISH) {
+      data.put(BABELFISH_PASSWORD_KEY, generatedPasswords
+          .getOrDefault(BABELFISH_PASSWORD_KEY, generatePassword()));
+      data.put(BABELFISH_CREATE_USER_SQL_KEY,
+          ResourceUtil.encodeSecret(
+              "CREATE USER " + BABELFISH_USER_NAME + " SUPERUSER"
+                  + " PASSWORD '" + ResourceUtil.dencodeSecret(
+                      data.get(BABELFISH_PASSWORD_KEY)) + "'"));
+    }
 
     return Stream.of(new SecretBuilder()
         .withNewMetadata()

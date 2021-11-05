@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.validation.ValidEnum;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -25,6 +26,11 @@ public class StackGresClusterPostgres {
   @JsonProperty("version")
   @NotBlank(message = "PostgreSQL version is required")
   private String version;
+
+  @JsonProperty("flavor")
+  @ValidEnum(enumClass = StackGresPostgresFlavor.class, allowNulls = true,
+      message = "flavor must be babelfish")
+  private String flavor;
 
   @JsonProperty("ssl")
   @Valid
@@ -40,6 +46,14 @@ public class StackGresClusterPostgres {
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public String getFlavor() {
+    return flavor;
+  }
+
+  public void setFlavor(String flavor) {
+    this.flavor = flavor;
   }
 
   public StackGresClusterSsl getSsl() {
@@ -60,7 +74,7 @@ public class StackGresClusterPostgres {
 
   @Override
   public int hashCode() {
-    return Objects.hash(extensions, ssl, version);
+    return Objects.hash(extensions, flavor, ssl, version);
   }
 
   @Override
@@ -72,8 +86,8 @@ public class StackGresClusterPostgres {
       return false;
     }
     StackGresClusterPostgres other = (StackGresClusterPostgres) obj;
-    return Objects.equals(extensions, other.extensions) && Objects.equals(ssl, other.ssl)
-        && Objects.equals(version, other.version);
+    return Objects.equals(extensions, other.extensions) && Objects.equals(flavor, other.flavor)
+        && Objects.equals(ssl, other.ssl) && Objects.equals(version, other.version);
   }
 
   public String toString() {

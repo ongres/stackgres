@@ -17,6 +17,9 @@ public interface StackGresRandomPasswordKeys {
   String PGBOUNCER_ADMIN_PASSWORD_KEY = "pgbouncer-admin-password";
   String PGBOUNCER_STATS_USER_NAME = "pgbouncer_stats";
   String PGBOUNCER_STATS_PASSWORD_KEY = "pgbouncer-stats-password";
+  String BABELFISH_USER_NAME = "babelfish";
+  String BABELFISH_PASSWORD_KEY = "babelfish-password";
+  String BABELFISH_CREATE_USER_SQL_KEY = "babelfish-create-user-sql";
   String RESTAPI_PASSWORD_KEY = "restapi-password";
 
 }

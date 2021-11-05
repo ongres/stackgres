@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgutils;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
 
 import java.util.Map;
@@ -12,7 +13,6 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
@@ -29,7 +29,7 @@ public abstract class AbstractPostgresUtil
   public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.POSTGRES_VERSION_KEY,
-        StackGresComponent.POSTGRESQL.findVersion(
+        getPostgresFlavorComponent(context.getClusterContext().getCluster()).findVersion(
             context.getClusterContext().getCluster().getSpec().getPostgres().getVersion()));
   }
 

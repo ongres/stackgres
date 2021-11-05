@@ -23,6 +23,7 @@ import io.restassured.http.ContentType;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -63,6 +64,8 @@ class ClusterValidationQuarkusTest {
         StackGresClusterReview.class);
     review.getRequest().getObject().getMetadata().setNamespace("test");
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
+    spec.getPostgres().setExtensions(
+        getExtension("dblink", "pg_stat_statements", "plpgsql", "plpython3u"));
     spec.setToInstallPostgresExtensions(
         getInstalledExtension("dblink", "pg_stat_statements", "plpgsql", "plpython3u"));
     spec.setDistributedLogs(null);
@@ -70,6 +73,16 @@ class ClusterValidationQuarkusTest {
     spec.getPostgres().setVersion("12.8");
 
     return review;
+  }
+
+  private List<StackGresClusterExtension> getExtension(String... names) {
+    var extensionsList = new ArrayList<StackGresClusterExtension>();
+    for (String name : names) {
+      var extension = new StackGresClusterExtension();
+      extension.setName(name);
+      extensionsList.add(extension);
+    }
+    return extensionsList;
   }
 
   private List<StackGresClusterInstalledExtension> getInstalledExtension(String... names) {

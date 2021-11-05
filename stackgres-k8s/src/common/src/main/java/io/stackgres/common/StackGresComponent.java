@@ -24,13 +24,18 @@ import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
 public enum StackGresComponent {
 
-  POSTGRESQL("postgresql", StackGresProperty.SG_IMAGE_POSTGRESQL,
-      "%1$s/ongres/postgresql:v%2$s-build-%3$s"),
+  POSTGRESQL("postgresql", "pg"),
+  BABELFISH("babelfish", "bf"),
   PATRONI("patroni", StackGresProperty.SG_IMAGE_PATRONI,
-      "%1$s/ongres/patroni:v%2$s-pg%4$s-build-%3$s", StackGresComponent.POSTGRESQL),
+      "%1$s/ongres/patroni:v%2$s-%4$s-build-%3$s",
+      new StackGresComponent[] {
+          StackGresComponent.POSTGRESQL,
+          StackGresComponent.BABELFISH,
+      }),
   POSTGRES_UTIL("postgresql", StackGresProperty.SG_IMAGE_POSTGRES_UTIL,
       "%1$s/ongres/postgres-util:v%2$s-build-%3$s"),
   PGBOUNCER("pgbouncer", StackGresProperty.SG_IMAGE_PGBOUNCER,
@@ -52,28 +57,49 @@ public enum StackGresComponent {
   private static final String ARRAY_SPLIT_REGEXP = ",";
 
   final String name;
+  final String prefix;
   final StackGresProperty imageTemplateProperty;
   final String defaultImageTemplate;
   final StackGresProperty componentVersionProperty;
-  final List<StackGresComponent> subComponents;
+  final List<List<StackGresComponent>> subComponents;
 
-  StackGresComponent(String name, StackGresProperty imageTemplateProperty,
-      String defaultImageTemplate, StackGresComponent...subComponents) {
-    this(name, imageTemplateProperty, null, defaultImageTemplate, subComponents);
+  StackGresComponent(String name, String prefix) {
+    this(name, prefix, null, null, null);
   }
 
   StackGresComponent(String name, StackGresProperty imageTemplateProperty,
+      String defaultImageTemplate, StackGresComponent[]...subComponents) {
+    this(name, null, imageTemplateProperty, null, defaultImageTemplate, subComponents);
+  }
+
+  StackGresComponent(String name, String prefix, StackGresProperty imageTemplateProperty,
       StackGresProperty componentVersionProperty,
-      String defaultImageTemplate, StackGresComponent...subComponents) {
+      String defaultImageTemplate, StackGresComponent[]...subComponents) {
     this.name = name;
+    this.prefix = prefix;
     this.imageTemplateProperty = imageTemplateProperty;
     this.defaultImageTemplate = defaultImageTemplate;
     this.componentVersionProperty = componentVersionProperty;
-    this.subComponents = ImmutableList.copyOf(subComponents);
+    this.subComponents = Seq.of(subComponents)
+        .map(subComponentArray -> ImmutableList.copyOf(subComponentArray))
+        .collect(ImmutableList.toImmutableList());
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public List<List<StackGresComponent>> getSubComponents() {
+    return subComponents;
+  }
+
+  public boolean hasImage() {
+    return defaultImageTemplate != null;
   }
 
   private String imageTemplate() {
-    return imageTemplateProperty.get()
+    return Optional.ofNullable(imageTemplateProperty)
+        .flatMap(StackGresProperty::get)
         .map(template -> template.replace("${containerRegistry}", "%1$s"))
         .map(template -> template.replace(
             "${" + name.replaceAll("[^a-z]", "") + "Version}", "%2$s"))
@@ -81,10 +107,10 @@ public enum StackGresComponent {
         .map(template -> Seq.seq(subComponents)
             .zipWithIndex()
             .reduce(template, (templateResult, t) -> templateResult
-                .replace("${" + t.v1.name.replaceAll("[^a-z]", "") + "Version}",
+                .replace("${" + t.v1.get(0).name.replaceAll("[^a-z]", "") + "Version}",
                     "%" + (t.v2 + 4) + "$s"),
                 (u, v) -> v))
-        .orElse(defaultImageTemplate);
+        .orElse(Optional.ofNullable(defaultImageTemplate).orElseThrow());
   }
 
   private ImmutableList<ImageVersion> versions() {
@@ -97,53 +123,75 @@ public enum StackGresComponent {
             .collect(ImmutableList.toImmutableList()));
   }
 
-  private List<ComposedVersion> composedVersions() {
+  public List<ComposedVersion> getComposedVersions() {
     return Seq.seq(this.subComponents)
-        .map(subComponentVersions()::get)
+        .map(alternativeSubComponents -> Seq.seq(alternativeSubComponents)
+            .map(subComponentVersions()::get)
+            .toList())
         .<List<ComposedVersion>>reduce(
             Seq.seq(versions()).map(ComposedVersion::new).toList(),
-            (composedVersions, subVersions) -> Seq.seq(composedVersions)
-                .map(ComposedVersion::getVersions)
-                .innerJoin(Seq.seq(subVersions),
-                    (versions, subVersion) -> subVersion.build.equals(versions.get(0).build))
-                .map(t -> Seq.seq(t.v1).append(t.v2).toList())
-                .map(ComposedVersion::new)
+            (composedVersions, subComponents) -> Seq.seq(subComponents)
+                .zipWithIndex()
+                .flatMap(alternativeSubComponents -> Seq.seq(alternativeSubComponents.v1)
+                    .innerJoin(Seq.seq(composedVersions),
+                      (alternativeSubVersion, composedVersion) -> alternativeSubVersion.build
+                      .equals(composedVersion.getVersion().build))
+                    .map(t -> t.v2.append(alternativeSubComponents.v2.intValue(), t.v1)))
                 .toList(),
-            (u, v) -> v);
+            (u, v) -> v)
+        .stream()
+        .sorted(Comparator.reverseOrder())
+        .collect(ImmutableList.toImmutableList());
   }
 
   private ImmutableMap<StackGresComponent, List<ImageVersion>> subComponentVersions() {
     return Seq.range(0, subComponents.size())
-                .map(subComponent -> Tuple.tuple(subComponent,
-                    Seq.of(VersionReader.INSTANCE.getAsArray(this, subComponent))
+                .flatMap(subComponents -> Seq.range(0, this.subComponents.get(subComponents).size())
+                    .map(subComponent -> Tuple.tuple(subComponents, subComponent)))
+                .map(t -> t.concat(
+                    Seq.of(VersionReader.INSTANCE.getAsArray(this, t.v1, t.v2))
                     .map(ImageVersion::new)
                     .collect(ImmutableList.toImmutableList())))
                 .collect(ImmutableMap.toImmutableMap(
-                    t -> subComponents.get(t.v1),
-                    t -> t.v2));
+                    t -> subComponents.get(t.v1).get(t.v2),
+                    t -> t.v3));
   }
 
-  class ComposedVersion implements Comparable<ComposedVersion> {
-    final List<ImageVersion> versions;
+  public class ComposedVersion implements Comparable<ComposedVersion> {
+    final ImageVersion version;
+    final List<Tuple2<Integer, ImageVersion>> subVersions;
 
     public ComposedVersion(ImageVersion version) {
-      this.versions = ImmutableList.of(version);
+      this.version = version;
+      this.subVersions = ImmutableList.of();
     }
 
-    public ComposedVersion(List<ImageVersion> versions) {
-      this.versions = versions;
+    private ComposedVersion(ComposedVersion composedVersion, Integer alternativeSubComponent,
+        ImageVersion subVersion) {
+      this.version = composedVersion.version;
+      this.subVersions = Seq.seq(composedVersion.subVersions)
+          .append(Tuple.tuple(alternativeSubComponent, subVersion))
+          .collect(ImmutableList.toImmutableList());
     }
 
-    public List<ImageVersion> getVersions() {
-      return versions;
+    public ComposedVersion append(Integer alternativeSubComponent, ImageVersion subVersion) {
+      return new ComposedVersion(this, alternativeSubComponent, subVersion);
+    }
+
+    public ImageVersion getVersion() {
+      return version;
+    }
+
+    public List<Tuple2<Integer, ImageVersion>> getSubVersions() {
+      return subVersions;
     }
 
     @Override
     public int compareTo(ComposedVersion o) {
-      int compare = 0;
+      int compare = version.compareTo(o.version);
       int index = 0;
-      while (compare == 0 && index < versions.size()) {
-        compare = versions.get(index).compareTo(o.versions.get(index));
+      while (compare == 0 && index < subVersions.size()) {
+        compare = subVersions.get(index).compareTo(o.subVersions.get(index));
         index++;
       }
       return compare;
@@ -154,7 +202,7 @@ public enum StackGresComponent {
       final int prime = 31;
       int result = 1;
       result = prime * result + getEnclosingInstance().hashCode();
-      result = prime * result + Objects.hash(versions);
+      result = prime * result + Objects.hash(subVersions, version);
       return result;
     }
 
@@ -170,37 +218,21 @@ public enum StackGresComponent {
       if (!getEnclosingInstance().equals(other.getEnclosingInstance())) {
         return false;
       }
-      return Objects.equals(versions, other.versions);
-    }
-
-    public ImageVersion getVersion() {
-      if (this.versions.isEmpty()) {
-        throw new IllegalArgumentException(
-            StackGresComponent.this.name + " versions not configured");
-      }
-      return this.versions.get(0);
-    }
-
-    public ImageVersion getVersion(StackGresComponent subComponent) {
-      final int subComponentIndex = StackGresComponent.this.subComponents.indexOf(subComponent);
-      if (subComponentIndex < 0) {
-        throw new IllegalArgumentException(
-            "Sub-component " + subComponent.name + " not configured for component "
-                + StackGresComponent.this.name);
-      }
-      if (subComponentIndex >= this.versions.size()) {
-        throw new IllegalArgumentException(
-            "Sub-component " + subComponent.name + " versions not configured for component "
-                + StackGresComponent.this.name);
-      }
-      return this.versions.get(1 + subComponentIndex);
+      return Objects.equals(subVersions, other.subVersions)
+          && Objects.equals(version, other.version);
     }
 
     public String getImageName() {
       return String.format(StackGresComponent.this.imageTemplate(),
           Seq.of(StackGresProperty.SG_CONTAINER_REGISTRY.getString())
           .append(Seq.of(getVersion().getVersion(), getVersion().getBuild())
-            .append(Seq.seq(versions).skip(1).map(ImageVersion::getVersion)))
+            .append(Seq.seq(subVersions).zipWithIndex()
+                .map(t -> Optional.ofNullable(
+                        subComponents
+                        .get(t.v2.intValue())
+                        .get(t.v1.v1)
+                        .prefix)
+                    .orElse("") + t.v1.v2.getVersion())))
           .toArray(Object[]::new));
     }
 
@@ -210,11 +242,11 @@ public enum StackGresComponent {
 
     @Override
     public String toString() {
-      return String.format("%s", versions);
+      return String.format("%s %s", version, subVersions);
     }
   }
 
-  static class ImageVersion implements Comparable<ImageVersion> {
+  public static class ImageVersion implements Comparable<ImageVersion> {
 
     private static final Pattern IMAGE_TAG_PATTERN = Pattern.compile(
         "^(?<version>(?<major>\\d+)"
@@ -364,27 +396,39 @@ public enum StackGresComponent {
       return componentVersions.get(component.name);
     }
 
-    String get(StackGresComponent component, int subComponent) {
+    String get(StackGresComponent component, int subComponent, int alternativeSubComponent) {
       Preconditions.checkArgument(component.subComponents.size() > subComponent,
           "Component " + component.name + " does not delare a"
-              + " subComponent with index " + subComponent);
+              + " sub component with index " + subComponent);
       Preconditions.checkArgument(subComponent >= 0,
-          "Invalid negative subComponent index " + subComponent
+          "Invalid negative sub component index " + subComponent
               + " for component " + component.name);
-      return componentVersions.get(component.subComponents.get(subComponent).name);
+      List<StackGresComponent> alternativeSubComponents =
+          component.subComponents.get(subComponent);
+      Preconditions.checkArgument(alternativeSubComponents.size() > alternativeSubComponent,
+          "Component " + component.name + " does not delare a"
+              + " alternative " + alternativeSubComponent
+              + " under sub component " + subComponent);
+      Preconditions.checkArgument(alternativeSubComponent >= 0,
+          "Invalid negative alternative index " + alternativeSubComponent
+              + " under sub component " + subComponent
+              + " for component " + component.name);
+      return componentVersions.get(alternativeSubComponents.get(alternativeSubComponent).name);
     }
 
     String[] getAsArray(StackGresComponent component) {
       return get(component).split(ARRAY_SPLIT_REGEXP);
     }
 
-    String[] getAsArray(StackGresComponent component, int subComponent) {
-      return get(component, subComponent).split(ARRAY_SPLIT_REGEXP);
+    String[] getAsArray(StackGresComponent component, int subComponent,
+        int alternativeSubComponent) {
+      return get(component, subComponent, alternativeSubComponent).split(ARRAY_SPLIT_REGEXP);
     }
   }
 
   public String findLatestImageName() {
     return findImageName(LATEST, Seq.seq(this.subComponents)
+        .map(alternativeSubComponents -> alternativeSubComponents.get(0))
         .collect(ImmutableMap.toImmutableMap(
             Function.identity(), subComponent -> LATEST)));
   }
@@ -398,8 +442,13 @@ public enum StackGresComponent {
     checkSubComponents(subComponentVersions);
     return orderedComposedVersions()
         .filter(cv -> isVersion(version, cv.getVersion()))
-        .filter(cv -> Seq.seq(subComponentVersions)
-            .allMatch(t -> isVersion(t.v2, cv.getVersion(t.v1))))
+        .filter(cv -> Seq.seq(cv.getSubVersions())
+            .zipWithIndex()
+            .map(subVersion -> Tuple.tuple(
+                subComponents.get(subVersion.v2.intValue()).get(subVersion.v1.v1),
+                subVersion.v1.v2))
+            .allMatch(subVersion -> subComponentVersions.containsKey(subVersion.v1)
+                && isVersion(subComponentVersions.get(subVersion.v1), subVersion.v2)))
         .map(ComposedVersion::getImageName)
         .findFirst()
         .orElseThrow(() -> new IllegalArgumentException(
@@ -438,6 +487,26 @@ public enum StackGresComponent {
             this.name + " version " + version + " not available"));
   }
 
+  public String findBuildVersion(String version,
+      Map<StackGresComponent, String> subComponentVersions) {
+    checkSubComponents(subComponentVersions);
+    return orderedComposedVersions()
+        .filter(cv -> isVersion(version, cv.getVersion()))
+        .filter(cv -> Seq.seq(cv.getSubVersions())
+            .zipWithIndex()
+            .map(subVersion -> Tuple.tuple(
+                subComponents.get(subVersion.v2.intValue()).get(subVersion.v1.v1),
+                subVersion.v1.v2))
+            .allMatch(subVersion -> subComponentVersions.containsKey(subVersion.v1)
+                && isVersion(subComponentVersions.get(subVersion.v1), subVersion.v2)))
+        .map(ComposedVersion::getVersion)
+        .map(ImageVersion::getBuild)
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException(
+            this.name + " version " + version + " and sub-components "
+                + subComponentVersions + " not available"));
+  }
+
   public String findBuildMajorVersion(String version) {
     return latestBuildVersion(version)
         .map(ImageVersion::getBuildMajor)
@@ -447,7 +516,7 @@ public enum StackGresComponent {
   }
 
   private Optional<ImageVersion> latestBuildVersion(String version) {
-    return orderedVersions()
+    return orderedTagVersions()
         .filter(v -> isVersion(version, v))
         .findFirst();
   }
@@ -460,18 +529,22 @@ public enum StackGresComponent {
   }
 
   public Seq<String> getOrderedVersions() {
-    return orderedVersions()
-        .map(ImageVersion::getVersion);
+    return orderedTagVersions()
+        .map(ImageVersion::getVersion)
+        .grouped(Function.identity())
+        .map(t -> t.v1);
   }
 
   public Seq<String> getOrderedVersions(String build) {
-    return orderedVersions()
+    return orderedTagVersions()
         .filter(imageVersion -> imageVersion.getBuild().equals(build))
-        .map(ImageVersion::getVersion);
+        .map(ImageVersion::getVersion)
+        .grouped(Function.identity())
+        .map(t -> t.v1);
   }
 
   public Seq<String> getOrderedMajorVersions() {
-    return orderedVersions()
+    return orderedTagVersions()
         .map(ImageVersion::getMajor)
         .map(Object::toString)
         .grouped(Function.identity())
@@ -479,7 +552,7 @@ public enum StackGresComponent {
   }
 
   public Seq<String> getOrderedMajorVersions(String build) {
-    return orderedVersions()
+    return orderedTagVersions()
         .filter(imageVersion -> imageVersion.getBuild().equals(build))
         .map(ImageVersion::getMajor)
         .map(Object::toString)
@@ -488,7 +561,7 @@ public enum StackGresComponent {
   }
 
   public Seq<String> getOrderedBuildVersions() {
-    return orderedVersions()
+    return orderedTagVersions()
         .map(ImageVersion::getBuild)
         .filter(Objects::nonNull)
         .grouped(Function.identity())
@@ -496,7 +569,7 @@ public enum StackGresComponent {
   }
 
   public Seq<String> getOrderedBuildMajorVersions() {
-    return orderedVersions()
+    return orderedTagVersions()
         .map(ImageVersion::getBuildMajor)
         .map(String::valueOf)
         .grouped(Function.identity())
@@ -508,24 +581,26 @@ public enum StackGresComponent {
         .map(ComposedVersion::getImageName);
   }
 
-  private Seq<ImageVersion> orderedVersions() {
+  public Seq<ImageVersion> orderedTagVersions() {
     return orderedComposedVersions()
         .map(ComposedVersion::getVersion)
         .grouped(Function.identity())
         .map(t -> t.v1);
   }
 
-  private Seq<ComposedVersion> orderedComposedVersions() {
-    return Seq.seq(this.composedVersions())
-        .sorted(Comparator.reverseOrder());
+  public Seq<ComposedVersion> orderedComposedVersions() {
+    return Seq.seq(getComposedVersions());
   }
 
   private void checkSubComponents(Map<StackGresComponent, String> subComponentVersions) {
     Preconditions.checkArgument(Seq.seq(this.subComponents)
-        .allMatch(subComponentVersions::containsKey),
-        "You must specify sub-component versions for "
+        .allMatch(alternativeSubComponents -> alternativeSubComponents.stream()
+            .anyMatch(subComponentVersions::containsKey)),
+        "You must specify sub component versions for "
             + Seq.seq(this.subComponents)
-            .filter(subComponent -> !subComponentVersions.containsKey(subComponent))
+            .filter(alternativeSubComponents -> alternativeSubComponents.stream()
+                .noneMatch(subComponentVersions::containsKey))
+            .map(alternativeSubComponent -> Seq.seq(alternativeSubComponent).toString(" or "))
             .toString(", "));
   }
 }

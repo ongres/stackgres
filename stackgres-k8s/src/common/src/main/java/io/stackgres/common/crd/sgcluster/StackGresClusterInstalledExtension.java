@@ -105,7 +105,8 @@ public class StackGresClusterInstalledExtension {
 
   @Override
   public int hashCode() {
-    return Objects.hash(build, extraMounts, name, postgresVersion, publisher, repository, version);
+    return Objects.hash(build, extraMounts, name, postgresVersion, publisher, repository,
+        version);
   }
 
   @Override

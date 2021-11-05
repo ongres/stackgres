@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.mutation.cluster;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,7 +17,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -25,7 +26,6 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.PostgresConfigurationFactory;
 import io.stackgres.operator.initialization.PostgresDefaultFactoriesProvider;
-import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 
 @ApplicationScoped
 public class DefaultPostgresDelegator implements ClusterMutator {
@@ -52,12 +52,12 @@ public class DefaultPostgresDelegator implements ClusterMutator {
         .stream()
         .collect(Collectors
             .toMap(PostgresConfigurationFactory::getPostgresVersion, Function.identity()));
-    return Optional.ofNullable(review.getRequest())
-        .map(AdmissionRequest::getObject)
+    StackGresCluster cluster = review.getRequest().getObject();
+    return Optional.of(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPostgres)
         .map(StackGresClusterPostgres::getVersion)
-        .map(StackGresComponent.POSTGRESQL::findMajorVersion)
+        .map(getPostgresFlavorComponent(cluster)::findMajorVersion)
         .map(factoryMap::get)
         .map(factory -> {
           try {

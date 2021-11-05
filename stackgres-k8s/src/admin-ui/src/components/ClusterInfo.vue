@@ -109,6 +109,22 @@
 							<td colspan="3">{{ cluster.data.spec.postgres.version }}</td>
 						</tr>
 						<tr>
+							<td class="label" :rowspan="cluster.data.spec.postgres.flavor ? 2 : ''">
+								Postgres Flavor
+								<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgres.flavor')"></span>
+							</td>
+							<td colspan="3" class="capitalize">{{ cluster.data.spec.postgres.flavor ? cluster.data.spec.postgres.flavor : 'Vanilla' }}</td>
+						</tr>
+						<template v-if="cluster.data.spec.postgres.flavor">
+							<tr>
+								<td class="label">
+									Babelfish Flavor Feature
+									<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.enabledFeatureGates')"></span>
+								</td>
+								<td colspan="2">ON</td>
+							</tr>
+						</template>
+						<tr>
 							<td class="label">
 								Instances
 								<span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>

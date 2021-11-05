@@ -8,7 +8,8 @@ cluster:
   restartTimeout: 300
   instances: 1
   postgres:
-    version: '13'
+    version: 'latest'
+    #flavor:
     #extensions:
     #  - name: timescaledb      # The extension name
     #    publisher: com.ongres  # Optional. The extension publisher
@@ -244,3 +245,5 @@ distributedLogs:
 #You should only set following options for non production environment
 nonProductionOptions:
   disableClusterPodAntiAffinity: false
+  # enabledFeatureGates:
+  # - babelfish-flavor

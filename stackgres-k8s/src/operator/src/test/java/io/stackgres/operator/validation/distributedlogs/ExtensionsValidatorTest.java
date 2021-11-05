@@ -42,7 +42,7 @@ class ExtensionsValidatorTest {
 
   private ExtensionsValidator validator;
 
-  private List<StackGresClusterInstalledExtension> defaultExtensions;
+  private List<StackGresClusterInstalledExtension> installedExtensions;
 
   @Mock
   private ClusterExtensionMetadataManager extensionMetadataManager;
@@ -51,19 +51,19 @@ class ExtensionsValidatorTest {
   void setUp() {
     validator = new ExtensionsValidator(extensionMetadataManager);
 
-    defaultExtensions = Seq.of(
+    installedExtensions = Seq.of(
         "plpgsql",
         "pg_stat_statements",
         "dblink",
         "plpython3u",
         "timescaledb")
-        .map(this::getDefaultExtension)
+        .map(this::getInstalledExtension)
         .collect(ImmutableList.toImmutableList());
   }
 
   private List<StackGresExtensionMetadata> getDefaultExtensionMetadatas(
       InvocationOnMock invocation) {
-    return defaultExtensions.stream()
+    return installedExtensions.stream()
         .filter(defaultExtension -> defaultExtension.getName()
             .equals(((StackGresClusterExtension) invocation.getArgument(1)).getName()))
         .map(StackGresExtensionMetadata::new)
@@ -75,7 +75,7 @@ class ExtensionsValidatorTest {
     final StackGresDistributedLogsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(defaultExtensions);
+        .addAll(installedExtensions);
     validator.validate(review);
   }
 
@@ -84,7 +84,7 @@ class ExtensionsValidatorTest {
     final StackGresDistributedLogsReview review = getUpdateReview();
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(defaultExtensions);
+        .addAll(installedExtensions);
     validator.validate(review);
   }
 
@@ -97,9 +97,7 @@ class ExtensionsValidatorTest {
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         ErrorType.EXTENSION_NOT_FOUND,
-        "Some extensions were not found: dblink (available 1.0.0),"
-            + " pg_stat_statements (available 1.0.0), plpgsql (available 1.0.0),"
-            + " plpython3u (available 1.0.0), timescaledb (available 1.0.0)");
+        "Extension was not found: timescaledb (available 1.0.0)");
   }
 
   private StackGresDistributedLogsReview getCreationReview() {
@@ -114,7 +112,7 @@ class ExtensionsValidatorTest {
             StackGresDistributedLogsReview.class);
   }
 
-  private StackGresClusterInstalledExtension getDefaultExtension(String name) {
+  private StackGresClusterInstalledExtension getInstalledExtension(String name) {
     final StackGresClusterInstalledExtension installedExtension =
         new StackGresClusterInstalledExtension();
     installedExtension.setName(name);

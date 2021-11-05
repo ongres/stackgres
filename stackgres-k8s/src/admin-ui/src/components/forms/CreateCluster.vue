@@ -49,6 +49,19 @@
                         There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
                     </span>
 
+                    <label for="spec.postgres.flavor">Postgres Flavor</label>
+                    <select :disabled="editMode" v-model="flavor" required data-field="spec.postgres.flavor" @change="getFlavorExtensions()">
+                        <option selected value="vanilla">Vanilla</option>
+                        <option value="babelfish">Babelfish</option>
+                    </select>
+                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgres.flavor')"></a>
+
+                    <template v-if="flavor === 'babelfish'">
+                        <label for="spec.nonProductionOptions.enabledFeatureGates">Feature Gates</label>  
+                        <label disabled for="featureGates" class="switch yes-no">Babelfish Flavor Feature Enabled<input disabled type="checkbox" id="featureGates" v-model="featureGates" data-switch="NO"></label>
+                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.nonProductionOptions.enabledFeatureGates')"></a>
+                    </template>
+
                     <div class="versionContainer">
                         <label for="spec.postgres.version">Postgres Version <span class="req">*</span></label>
                         <ul class="select" id="postgresVersion" data-field="spec.postgres.version">
@@ -59,13 +72,13 @@
                                 <a @click="setVersion('latest')" data-val="latest" class="active">Latest</a>
                             </li>
 
-                            <li v-for="version in Object.keys(postgresVersionsList).reverse()">
+                            <li v-for="version in Object.keys(postgresVersionsList[flavor]).reverse()">
                                 <strong>Postgres {{ version }}</strong>
                                 <ul>
                                     <li>
                                         <a @click="setVersion(version)" :data-val="version">Postgres {{ version }} (Latest)</a>
                                     </li>
-                                    <li v-for="minorVersion in postgresVersionsList[version]">
+                                    <li v-for="minorVersion in postgresVersionsList[flavor][version]">
                                         <a @click="setVersion(minorVersion)" :data-val="minorVersion">Postgres {{ minorVersion }}</a>
                                     </li>
                                 </ul>
@@ -149,10 +162,10 @@
                     </div>
                     <ul class="extensionsList">
                         <li class="extension notFound">No extensions match your search terms...</li>
-                        <li v-for="(ext, index) in extensionsList" v-if="!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
+                        <li v-for="(ext, index) in extensionsList[flavor][postgresVersion]" v-if="!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
                             <label class="hoverTooltip">
                                 <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length"/>
-                                {{ ext.name }} <span v-if="!ext.versions.length" class="notCompatible" title="This extension is not compatible with the selected Postgres version"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg> </span>
+                                {{ ext.name }} <span v-if="!ext.versions.length" class="notCompatible" data-tooltip="This extension is not compatible with the selected Postgres version"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg> </span>
                             </label>
                             <button class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
 
@@ -224,7 +237,7 @@
                         <label for="spec.configurations.sgPostgresConfig">Postgres Configuration</label>
                         <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig">
                             <option value="" selected>Default</option>
-                            <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortpostgresVersion) )">{{ conf.name }}</option>
+                            <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
                         </select>
                         <a class="help" @click="showTooltip( 'sgcluster', 'spec.configurations.sgPostgresConfig')"></a>
 
@@ -1000,6 +1013,8 @@
                 name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 namespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 postgresVersion: 'latest',
+                flavor: 'vanilla',
+                featureGates: true,
                 instances: 1,
                 resourceProfile: '',
                 pgConfig: '',
@@ -1035,7 +1050,14 @@
                 postgresServicesReplicasType: 'ClusterIP',
                 postgresServicesReplicasAnnotations: [ { annotation: '', value: '' } ],
                 searchExtension: '',
-                extensionsList: [],
+                extensionsList: {
+                    vanilla: {
+                        latest: []
+                    },
+                    babelfish: {
+                        latest: []
+                    }
+                },
                 selectedExtensions: [],
                 viewExtension: -1,
                 extVersion: {
@@ -1097,9 +1119,9 @@
             backups () {
                 return store.state.backups
             },
-            shortpostgresVersion () {
+            shortPostgresVersion () {
                 if (this.postgresVersion == 'latest')
-                    return Object.keys(store.state.postgresVersions).sort().reverse()[0];
+                    return Object.keys(store.state.postgresVersions[this.flavor]).sort().reverse()[0];
                 else
                     return this.postgresVersion.substring(0,2)
             },
@@ -1150,6 +1172,8 @@
                             let volumeUnit = c.data.spec.pods.persistentVolume.size.match(/[a-zA-Z]+/g);
 
                             vm.postgresVersion = c.data.spec.postgres.version;
+                            vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
+                            vm.featureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
                             vm.instances = c.data.spec.instances;
                             vm.resourceProfile = c.data.spec.sgInstanceProfile;
                             vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
@@ -1350,11 +1374,13 @@
                                     }
                                 }) )                    
                             },
-                            "configurations": {
-                                ...(this.pgConfig.length && ( {"sgPostgresConfig": this.pgConfig }) ),
-                                ...(this.backupConfig.length && ( {"sgBackupConfig": this.backupConfig }) ),
-                                ...(this.connectionPoolingConfig.length && ( {"sgPoolingConfig": this.connectionPoolingConfig }) ),
-                            },
+                            ...( (this.pgConfig.length || this.backupConfig.length || this.connectionPoolingConfig.length) && ({
+                                "configurations": {
+                                    ...(this.pgConfig.length && ( {"sgPostgresConfig": this.pgConfig }) ),
+                                    ...(this.backupConfig.length && ( {"sgBackupConfig": this.backupConfig }) ),
+                                    ...(this.connectionPoolingConfig.length && ( {"sgPoolingConfig": this.connectionPoolingConfig }) ),
+                                }
+                            }) ),
                             ...(this.distributedLogs.length && ({
                                 "distributedLogs": {
                                     "sgDistributedLogs": this.distributedLogs
@@ -1385,7 +1411,12 @@
                                 }) 
                             ),
                             ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
-                            ...(this.disableClusterPodAntiAffinity && ( {"nonProductionOptions": { "disableClusterPodAntiAffinity": this.disableClusterPodAntiAffinity } }) ),
+                            ...((this.disableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.featureGates)) && ( {
+                                "nonProductionOptions": { 
+                                    ...(this.disableClusterPodAntiAffinity && ({"disableClusterPodAntiAffinity": this.disableClusterPodAntiAffinity}) ),
+                                    ...((this.flavor == 'babelfish' && this.featureGates) && ({ "enabledFeatureGates": ['babelfish-flavor'] }))
+                                    } 
+                                }) ),
                             ...( (!$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices)) || !$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) || !$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) || !$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) ) && ({
                                 "metadata": {
                                     "annotations": {
@@ -1416,7 +1447,8 @@
                                 "version": this.postgresVersion,
                                 ...(this.selectedExtensions.length && ({
                                     "extensions": this.selectedExtensions
-                                }))
+                                })),
+                                ...( (this.flavor == 'babelfish') && ( {"flavor": this.flavor }) )
                             }
 
                         }
@@ -1467,7 +1499,7 @@
                 let vc = this;
 
                 store.state.pgConfig.forEach(function(item, index){
-                    if( (item.data.spec.postgres.version !== vc.shortpostgresVersion) && (item.data.metadata.namespace == vc.$route.params.namespace) )
+                    if( (item.data.spec.postgres.version !== vc.shortPostgresVersion) && (item.data.metadata.namespace == vc.$route.params.namespace) )
                         configs -= configs;
                 });
 
@@ -1478,10 +1510,13 @@
                 const vc = this
 
                 if( vc.postgresVersion !== version.substring(0,2) ) {
+
+                    vc.postgresVersion = version; 
+
                     axios
-                    .get('/stackgres/extensions/' + ( (version == 'latest') ? 'latest' : version.split('.')[0] ))
+                    .get('/stackgres/extensions/' + vc.postgresVersion + '?flavor=' + vc.flavor)
                     .then(function (response) {
-                        vc.extensionsList = vc.sortExtensions(response.data.extensions)
+                        vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.sortExtensions(response.data.extensions)
                     })
                     .catch(function (error) {
                         console.log(error.response);
@@ -1489,7 +1524,6 @@
                     });
                 }
                 
-                vc.postgresVersion = version;
                 $('#postgresVersion .active, #postgresVersion').removeClass('active');
                 $('#postgresVersion [data-val="'+version+'"]').addClass('active');
             },
@@ -1566,15 +1600,15 @@
                 
                 vc.viewExtension = (vc.viewExtension == index) ? -1 : index
 
-                let ext = vc.selectedExtensions.find(e => (e.name == vc.extensionsList[index].name))
+                let ext = vc.selectedExtensions.find(e => (e.name == vc.extensionsList[vc.flavor][vc.postgresVersion][index].name))
 
                 if(typeof ext !== 'undefined') {
                     vc.extVersion.version = ext.version
                     vc.extVersion.name = ext.name
                 }
                 else {
-                    vc.extVersion.version = vc.extensionsList[index].versions[0]
-                    vc.extVersion.name = vc.extensionsList[index].name
+                    vc.extVersion.version = vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions[0]
+                    vc.extVersion.name = vc.extensionsList[vc.flavor][vc.postgresVersion][index].name
                 }
             },
 
@@ -1583,7 +1617,7 @@
                 let i = -1
                 
                 vc.selectedExtensions.forEach(function(ext, j) {
-                    if(ext.name == vc.extensionsList[index].name) {
+                    if(ext.name == vc.extensionsList[vc.flavor][vc.postgresVersion][index].name) {
                         i = j
                         return false
                     }
@@ -1591,10 +1625,10 @@
                 
                 if( i == -1) // If not included, add extension
                     vc.selectedExtensions.push({
-                        name: vc.extensionsList[index].name,
-                        version: (vc.extensionsList[index].versions.length > 1) ? ( (vc.extVersion.name == vc.extensionsList[index].name) ? vc.extVersion.version : vc.extensionsList[index].versions[0] ) : vc.extensionsList[index].versions[0],
-                        publisher: vc.extensionsList[index].publisher,
-                        repository: vc.extensionsList[index].repository
+                        name: vc.extensionsList[vc.flavor][vc.postgresVersion][index].name,
+                        version: (vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions.length > 1) ? ( (vc.extVersion.name == vc.extensionsList[vc.flavor][vc.postgresVersion][index].name) ? vc.extVersion.version : vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions[0] ) : vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions[0],
+                        publisher: vc.extensionsList[vc.flavor][vc.postgresVersion][index].publisher,
+                        repository: vc.extensionsList[vc.flavor][vc.postgresVersion][index].repository
                     })
                 else // If included, remove
                     vc.selectedExtensions.splice(i, 1);
@@ -1618,9 +1652,9 @@
                 const vc = this
                 let available = false
 
-                vc.extensionsList[index].versions.forEach(function(v) {
+                vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions.forEach(function(v) {
                     v.availableFor.forEach(function(vv) {
-                        if(vc.shortpostgresVersion == vv.postgresVersion) {
+                        if(vc.shortPostgresVersion == vv.postgresVersion) {
                             available = true
                             return false
                         }
@@ -1632,19 +1666,19 @@
 
             setExtVersion(version) {
                 const vc = this
-                let ext = vc.selectedExtensions.find(e => (vc.extensionsList[vc.viewExtension].name == e.name)); 
+                let ext = vc.selectedExtensions.find(e => (vc.extensionsList[vc.flavor][vc.postgresVersion][vc.viewExtension].name == e.name)); 
                 
                 if( typeof ext == 'undefined')
                     vc.selectedExtensions.push({
-                        name: vc.extensionsList[vc.viewExtension].name,
+                        name: vc.extensionsList[vc.flavor][vc.postgresVersion][vc.viewExtension].name,
                         version: version,
-                        publisher: vc.extensionsList[vc.viewExtension].publisher,
-                        repository: vc.extensionsList[vc.viewExtension].repository
+                        publisher: vc.extensionsList[vc.flavor][vc.postgresVersion][vc.viewExtension].publisher,
+                        repository: vc.extensionsList[vc.flavor][vc.postgresVersion][vc.viewExtension].repository
                     })
                 else
                     ext.version = version
                 
-                vc.extVersion.name = vc.extensionsList[vc.viewExtension].name
+                vc.extVersion.name = vc.extensionsList[vc.flavor][vc.postgresVersion][vc.viewExtension].name
                 vc.extVersion.version = version
             },
 
@@ -1805,6 +1839,22 @@
                 return (affinity.length > 0);
             },
 
+            getFlavorExtensions() {
+                const vc = this;
+
+                if(!vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) || (vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) && !vc.extensionsList[vc.flavor][vc.postgresVersion].length )) {
+                    axios
+                    .get('/stackgres/extensions/' + ( (vc.postgresVersion == 'latest') ? 'latest' : vc.postgresVersion ) + '?flavor=' + vc.flavor)
+                    .then(function (response) {
+                        vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.sortExtensions(response.data.extensions)
+                    })
+                    .catch(function (error) {
+                        console.log(error.response);
+                        vc.notify(error.response.data,'error','sgclusters');
+                    });
+                }
+            }
+
         },
 
         created: function() {
@@ -1813,7 +1863,7 @@
             axios
             .get('/stackgres/extensions/latest')
             .then(function (response) {
-                vc.extensionsList =  vc.sortExtensions(response.data.extensions)
+                vc.extensionsList[vc.flavor][vc.postgresVersion] =  vc.sortExtensions(response.data.extensions)
             })
             .catch(function (error) {
                 console.log(error.response);

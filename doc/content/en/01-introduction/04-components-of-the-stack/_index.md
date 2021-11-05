@@ -25,7 +25,7 @@ requirements in each different area required in the Postgres production distribu
 ## Core
 
 The main container used for a Postgres cluster node uses an UBI 8 minimal image as its base to which is added a
-vanilla PostgreSQL v11, v12. It uses a persistent storage configured via StorageClass. Is always deployed with a
+vanilla PostgreSQL. It uses a persistent storage configured via StorageClass. Is always deployed with a
 sidecar util container to allow access for a system/database administrator.
 
 ## Configuration

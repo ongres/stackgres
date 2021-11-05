@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import static io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
 
 import java.util.Map;
@@ -22,6 +23,7 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -195,6 +197,16 @@ public class PatroniServices implements
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
+        .addAllToPorts(Seq.of(
+            new ServicePortBuilder()
+                .withProtocol("TCP")
+                .withName(PatroniConfigMap.BABELFISH_PORT_NAME)
+                .withPort(PatroniUtil.BABELFISH_SERVICE_PORT)
+                .withTargetPort(new IntOrString(PatroniConfigMap.BABELFISH_PORT_NAME))
+                .build())
+            .filter(servicePort -> getPostgresFlavorComponent(cluster)
+                == StackGresComponent.BABELFISH)
+            .toList())
         .withType(serviceType)
         .endSpec()
         .build();
@@ -258,6 +270,16 @@ public class PatroniServices implements
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
+        .addAllToPorts(Seq.of(
+            new ServicePortBuilder()
+                .withProtocol("TCP")
+                .withName(PatroniConfigMap.BABELFISH_PORT_NAME)
+                .withPort(PatroniUtil.BABELFISH_SERVICE_PORT)
+                .withTargetPort(new IntOrString(PatroniConfigMap.BABELFISH_PORT_NAME))
+                .build())
+            .filter(servicePort -> getPostgresFlavorComponent(cluster)
+                == StackGresComponent.BABELFISH)
+            .toList())
         .withType(serviceType)
         .endSpec()
         .build();

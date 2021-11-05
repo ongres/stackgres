@@ -5,12 +5,13 @@
 
 package io.stackgres.operator.conciliation.factory;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -38,24 +39,25 @@ public class ContextUtil {
         .map(majorVersionUpgradeStatus -> {
           String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
           String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
-          String sourceMajorVersion = StackGresComponent.POSTGRESQL.findMajorVersion(sourceVersion);
+          String sourceMajorVersion = getPostgresFlavorComponent(cluster)
+              .findMajorVersion(sourceVersion);
           return ImmutablePostgresContainerContext.builder()
               .from(context)
-              .postgresMajorVersion(StackGresComponent.POSTGRESQL
+              .postgresMajorVersion(getPostgresFlavorComponent(cluster)
                   .findMajorVersion(targetVersion))
               .oldMajorVersion(sourceMajorVersion)
-              .imageBuildMajorVersion(StackGresComponent.POSTGRESQL
+              .imageBuildMajorVersion(getPostgresFlavorComponent(cluster)
                   .findBuildMajorVersion(targetVersion))
-              .oldImageBuildMajorVersion(StackGresComponent.POSTGRESQL
+              .oldImageBuildMajorVersion(getPostgresFlavorComponent(cluster)
                   .findBuildMajorVersion(sourceVersion))
               .postgresVersion(targetVersion)
               .oldPostgresVersion(sourceVersion);
         })
         .orElseGet(() -> {
           final String postgresVersion = cluster.getSpec().getPostgres().getVersion();
-          final String majorVersion = StackGresComponent.POSTGRESQL
+          final String majorVersion = getPostgresFlavorComponent(cluster)
               .findMajorVersion(postgresVersion);
-          final String buildMajorVersion = StackGresComponent.POSTGRESQL
+          final String buildMajorVersion = getPostgresFlavorComponent(cluster)
               .findBuildMajorVersion(postgresVersion);
           return ImmutablePostgresContainerContext.builder()
               .from(context)

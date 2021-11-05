@@ -10,6 +10,7 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.extension.ExtensionsDto;
@@ -54,11 +55,13 @@ public class ExtensionsResource {
   @CommonApiResponses
   @GET
   @Path("{postgresVersion}")
-  public ExtensionsDto get(@PathParam("postgresVersion") String postgresVersion) {
+  public ExtensionsDto get(@PathParam("postgresVersion") String postgresVersion,
+      @QueryParam("flavor") String flavor) {
     StackGresCluster cluster = new StackGresCluster();
     cluster.setSpec(new StackGresClusterSpec());
     cluster.getSpec().setPostgres(new StackGresClusterPostgres());
     cluster.getSpec().getPostgres().setVersion(postgresVersion);
+    cluster.getSpec().getPostgres().setFlavor(flavor);
     var extensionMetadataList = clusterExtensionMetadataManager.getExtensions();
     return extensionsTransformer.toDto(extensionMetadataList, cluster);
   }

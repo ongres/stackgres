@@ -66,7 +66,7 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   @JsonProperty("nonProductionOptions")
   @Valid
-  private StackGresClusterNonProduction nonProduction;
+  private StackGresClusterNonProduction nonProductionOptions;
 
   @JsonProperty("postgresServices")
   @Valid
@@ -150,11 +150,11 @@ public class StackGresClusterSpec implements KubernetesResource {
   }
 
   public StackGresClusterNonProduction getNonProduction() {
-    return nonProduction;
+    return nonProductionOptions;
   }
 
   public void setNonProduction(StackGresClusterNonProduction nonProduction) {
-    this.nonProduction = nonProduction;
+    this.nonProductionOptions = nonProduction;
   }
 
   public StackGresClusterPostgresServices getPostgresServices() {
@@ -176,7 +176,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Override
   public int hashCode() {
     return Objects.hash(configuration, distributedLogs, initData, instances, metadata,
-        nonProduction, pod, postgres, postgresServices, prometheusAutobind,
+        nonProductionOptions, pod, postgres, postgresServices, prometheusAutobind,
         resourceProfile, toInstallPostgresExtensions);
   }
 
@@ -193,7 +193,8 @@ public class StackGresClusterSpec implements KubernetesResource {
         && Objects.equals(distributedLogs, other.distributedLogs)
         && Objects.equals(initData, other.initData) && instances == other.instances
         && Objects.equals(metadata, other.metadata)
-        && Objects.equals(nonProduction, other.nonProduction) && Objects.equals(pod, other.pod)
+        && Objects.equals(nonProductionOptions, other.nonProductionOptions)
+        && Objects.equals(pod, other.pod)
         && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresServices, other.postgresServices)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)

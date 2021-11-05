@@ -493,31 +493,37 @@ export const mixin = {
           });
         }
 
-        if(!store.state.postgresVersions.length) {
+        if(!Object.keys(store.state.postgresVersions).length) {
 
-          /* Postgres versions */
-          axios
-          .get('/stackgres/version/postgresql')
-          .then( function(response){
+          let pgFlavors = {'vanilla': {}, 'babelfish': {}};
 
-            let postgresVersions = {};
+          Object.keys(pgFlavors).forEach(function(flavor) {
+            /* Postgres versions */
+            axios
+            .get('/stackgres/version/postgresql?flavor=' + flavor)
+            .then( function(response){
 
-            response.data.postgresql.forEach(function(version) {
-              let major = version.split('.')[0];
-              
-              if(!postgresVersions.hasOwnProperty(major)) {
-                postgresVersions[major] = [];
-              }
-              
-              postgresVersions[major].push(version);
-            })
+              let postgresVersions = {};
+
+              response.data.postgresql.forEach(function(version) {
+                let major = version.split('.')[0];
+                
+                if(!postgresVersions.hasOwnProperty(major)) {
+                  postgresVersions[major] = [];
+                }
+                
+                postgresVersions[major].push(version);
+              })
   
-            store.commit('setPostgresVersions', postgresVersions);
-  
-          }).catch(function(err) {
-            console.log(err);
-            vc.checkAuthError(err);
+              pgFlavors[flavor] = postgresVersions;
+    
+            }).catch(function(err) {
+              console.log(err);
+              vc.checkAuthError(err);
+            });
           });
+
+          store.commit('setPostgresVersions', pgFlavors);
 
         }
 

@@ -74,6 +74,13 @@ spec:
                         *  The string 'latest', which automatically sets the latest major.minor Postgres version.
                         *  A major version, like '12' or '11', which sets that major version and the latest minor version.
                         *  A specific major.minor version, like '12.2'.
+                    flavor:
+                      type: string
+                      description: |
+                        Postgres flavor used on the cluster. It is either of:
+                        *  `babelfish` will use the [Babelfish for Postgres](https://babelfish-for-postgresql.github.io/babelfish-for-postgresql/).
+                        
+                        If not specified then the vanilla Postgres will be used for the cluster.
                     extensions:
                       type: array
                       description: |
@@ -575,6 +582,16 @@ spec:
                         It is a best practice, on non-containerized environments, when running production workloads, to run each database server on a different server (virtual or physical), i.e., not to co-locate more than one database server per host.
 
                         The same best practice applies to databases on containers. By default, StackGres will not allow to run more than one StackGres pod on a given Kubernetes node. Set this property to true to allow more than one StackGres pod per node.
+                    enabledFeatureGates:
+                      type: array
+                      description: |
+                        A list of StackGres feature gates to enable (not suitable for a production environment).
+                        
+                        Available feature gates are:
+                        * `babelfish-flavor`: Allow to use `babelfish` flavor.
+                      items:
+                        type: string
+                        description: The name of the fature gate to enable.
                 distributedLogs:
                   type: object
                   description: StackGres features a functionality for all pods to send Postgres, Patroni and PgBouncer logs to a central (distributed) location, which is in turn another Postgres database. Logs can then be accessed via SQL interface or from the web UI. This section controls whether to enable this feature or not. If not enabled, logs are send to the pod's standard output.

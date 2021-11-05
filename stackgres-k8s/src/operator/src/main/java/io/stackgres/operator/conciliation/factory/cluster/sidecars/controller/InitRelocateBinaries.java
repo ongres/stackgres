@@ -11,12 +11,11 @@ import static io.stackgres.operator.conciliation.VolumeMountProviderName.SCRIPT_
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -52,10 +51,7 @@ public class InitRelocateBinaries implements ContainerFactory<StackGresClusterCo
   @Override
   public Container getContainer(StackGresClusterContainerContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
-    final String patroniImageName = StackGresComponent.PATRONI.findImageName(
-        StackGresComponent.LATEST,
-        ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            clusterContext.getCluster().getSpec().getPostgres().getVersion()));
+    final String patroniImageName = StackGresUtil.getPatroniImageName(clusterContext.getCluster());
     return new ContainerBuilder()
         .withName("relocate-binaries")
         .withImage(patroniImageName)

@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -19,12 +21,23 @@ public class ClusterNonProduction {
   @JsonProperty("disableClusterPodAntiAffinity")
   public Boolean disableClusterPodAntiAffinity;
 
+  @JsonProperty("enabledFeatureGates")
+  public List<String> enabledFeatureGates;
+
   public Boolean getDisableClusterPodAntiAffinity() {
     return disableClusterPodAntiAffinity;
   }
 
   public void setDisableClusterPodAntiAffinity(Boolean disableClusterPodAntiAffinity) {
     this.disableClusterPodAntiAffinity = disableClusterPodAntiAffinity;
+  }
+
+  public List<String> getEnabledFeatureGates() {
+    return enabledFeatureGates;
+  }
+
+  public void setEnabledFeatureGates(List<String> enabledFeatureGates) {
+    this.enabledFeatureGates = enabledFeatureGates;
   }
 
   @Override

@@ -5,12 +5,13 @@
 
 package io.stackgres.common.extension;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import org.jooq.lambda.Seq;
@@ -20,6 +21,7 @@ public class StackGresExtensionIndexSameMajorBuild {
   private final String name;
   private final String publisher;
   private final String version;
+  private final String flavor;
   private final String postgresVersion;
   private final String postgresExactVersion;
   private final boolean fromIndex;
@@ -33,13 +35,14 @@ public class StackGresExtensionIndexSameMajorBuild {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.version = extension.getVersionOrDefaultChannel();
-    this.postgresVersion = StackGresComponent.POSTGRESQL.findMajorVersion(
+    this.flavor = ExtensionUtil.getFlavorPrefix(cluster);
+    this.postgresVersion = getPostgresFlavorComponent(cluster).findMajorVersion(
         cluster.getSpec().getPostgres().getVersion());
-    this.postgresExactVersion = StackGresComponent.POSTGRESQL.findVersion(
+    this.postgresExactVersion = getPostgresFlavorComponent(cluster).findVersion(
         cluster.getSpec().getPostgres().getVersion());
     this.fromIndex = false;
     this.channels = ImmutableList.of();
-    this.build = StackGresComponent.POSTGRESQL.findBuildMajorVersion(
+    this.build = getPostgresFlavorComponent(cluster).findBuildMajorVersion(
         cluster.getSpec().getPostgres().getVersion());
     this.arch = ExtensionUtil.ARCH_X86_64;
     this.os = ExtensionUtil.OS_LINUX;
@@ -50,6 +53,7 @@ public class StackGresExtensionIndexSameMajorBuild {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.version = version.getVersion();
+    this.flavor = target.getFlavorOrDefault();
     this.postgresVersion = target.getPostgresVersion();
     this.postgresExactVersion = null;
     this.fromIndex = true;
@@ -101,6 +105,7 @@ public class StackGresExtensionIndexSameMajorBuild {
         && Objects.equals(self.arch, other.arch)
         && Objects.equals(self.os, other.os)
         && Objects.equals(self.build, other.build)
+        && Objects.equals(self.flavor, other.flavor)
         && Objects.equals(self.postgresVersion, other.postgresVersion);
   }
 
@@ -108,6 +113,7 @@ public class StackGresExtensionIndexSameMajorBuild {
       StackGresExtensionIndexSameMajorBuild fromIndex) {
     return (fromIndex.version.equals(other.version)
         || fromIndex.channels.stream().anyMatch(other.version::equals))
+        && Objects.equals(fromIndex.flavor, other.flavor)
         && (Objects.equals(fromIndex.postgresVersion, other.postgresVersion) // NOPMD
             || Objects.equals(fromIndex.postgresVersion, other.postgresExactVersion)) // NOPMD
         && (Objects.isNull(fromIndex.build) // NOPMD
@@ -119,9 +125,9 @@ public class StackGresExtensionIndexSameMajorBuild {
   @Override
   public String toString() {
     return String.format(
-        "%s/%s/%s/%s-%s-pg%s%s%s",
+        "%s/%s/%s/%s-%s-%s%s%s%s",
         publisher, arch, os, name, version,
-        postgresExactVersion != null ? postgresExactVersion : postgresVersion,
+        flavor, postgresExactVersion != null ? postgresExactVersion : postgresVersion,
         build != null ? "-build-" + build : "",
             channels.isEmpty() ? "" : " (channels: " + channels.stream()
             .collect(Collectors.joining(", ")) + ")");
