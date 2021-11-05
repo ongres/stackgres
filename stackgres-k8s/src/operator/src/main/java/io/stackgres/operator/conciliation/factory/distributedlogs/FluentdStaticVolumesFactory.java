@@ -17,7 +17,7 @@ import io.stackgres.operator.conciliation.factory.VolumePair;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
 public class FluentdStaticVolumesFactory
     implements StaticVolumeFactory<StackGresDistributedLogsContext> {
 

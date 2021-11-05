@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.tuple.Tuple4;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
 public class PatroniScriptsConfigMap implements
     VolumeFactory<StackGresClusterContext> {
 

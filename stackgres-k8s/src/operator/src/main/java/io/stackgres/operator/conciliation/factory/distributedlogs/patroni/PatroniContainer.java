@@ -56,7 +56,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLog
 import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10B1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V10B1, stopAt = StackGresVersion.V11)
 @RunningContainer(ClusterRunningContainer.PATRONI)
 public class PatroniContainer implements ContainerFactory<DistributedLogsContainerContext> {
 

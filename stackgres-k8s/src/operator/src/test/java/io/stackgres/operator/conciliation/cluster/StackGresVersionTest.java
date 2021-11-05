@@ -34,7 +34,7 @@ class StackGresVersionTest {
 
   @Test
   void givenAValidVersion_shouldReturnTheCorrectStackGresVersion() {
-    setStackGresClusterVersion("1.0");
+    setStackGresClusterVersion("1.0.0");
 
     var version = StackGresVersion.getStackGresVersion(cluster);
 
@@ -43,7 +43,7 @@ class StackGresVersionTest {
 
   @Test
   void givenASnapshotVersion_shouldReturnTheCorrectStackGresVersion() {
-    setStackGresClusterVersion("1.0-SNAPSHOT");
+    setStackGresClusterVersion("1.0.0-SNAPSHOT");
 
     var version = StackGresVersion.getStackGresVersion(cluster);
 

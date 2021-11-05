@@ -20,7 +20,7 @@ import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
 public class PatroniSync implements ResourceGenerator<StackGresClusterContext> {
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;

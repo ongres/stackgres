@@ -34,7 +34,7 @@ import io.stackgres.operator.conciliation.factory.AnnotationDecorator;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
 public class DbOpsAnnotationDecorator extends AnnotationDecorator<StackGresDbOpsContext> {
 
   @Override

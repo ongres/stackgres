@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar(PostgresExporter.NAME)
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
 @RunningContainer(ClusterRunningContainer.POSTGRES_EXPORTER)
 public class PostgresExporter implements ContainerFactory<StackGresClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {

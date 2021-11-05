@@ -16,7 +16,7 @@
     "selfLink": "/apis/stackgres.io/v1/namespaces/distributed-logs/sgdistributedlogs/distributedlogs",
     "uid": "008af052-7fcd-4665-b3b9-6d7dedbc543c",
     "annotations": {
-      "stackgres.io/operatorVersion": "1.0"
+      "stackgres.io/operatorVersion": "1.1.0"
     }
   },
   "spec": {

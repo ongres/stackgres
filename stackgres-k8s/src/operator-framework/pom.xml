@@ -11,7 +11,7 @@
   <parent>
     <groupId>io.stackgres</groupId>
     <artifactId>stackgres-parent</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.1.0-beta1</version>
   </parent>
 
   <artifactId>stackgres-operator-framework</artifactId>

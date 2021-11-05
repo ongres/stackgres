@@ -29,7 +29,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
 public class PatroniSecret implements
     ResourceGenerator<StackGresClusterContext>, StackGresRandomPasswordKeys {
 

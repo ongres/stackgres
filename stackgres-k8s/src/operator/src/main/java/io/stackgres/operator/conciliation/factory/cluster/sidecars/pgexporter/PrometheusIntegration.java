@@ -35,7 +35,7 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
 public class PrometheusIntegration implements ResourceGenerator<StackGresClusterContext> {
 
   public static final String SERVICE = "-pgexp";

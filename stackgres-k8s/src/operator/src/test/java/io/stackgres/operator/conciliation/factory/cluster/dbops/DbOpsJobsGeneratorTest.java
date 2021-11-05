@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 class DbOpsJobsGeneratorTest {
 
   @Inject
-  @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
+  @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
   DbOpsJobsGenerator dbOpsJobsGenerator;
 
   StackGresCluster cluster;

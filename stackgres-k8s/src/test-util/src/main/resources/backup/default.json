@@ -3,7 +3,7 @@
   "kind": "SGBackup",
   "metadata": {
     "annotations": {
-      "stackgres.io/operatorVersion": "1.0"
+      "stackgres.io/operatorVersion": "1.1.0"
     },
     "creationTimestamp": "2020-01-15T09:53:12Z",
     "generation": 1,

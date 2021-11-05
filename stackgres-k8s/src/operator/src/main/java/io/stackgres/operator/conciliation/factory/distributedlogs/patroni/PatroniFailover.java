@@ -20,7 +20,7 @@ import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
 public class PatroniFailover implements ResourceGenerator<StackGresDistributedLogsContext> {
 
   private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;

@@ -28,7 +28,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 
 @Sidecar(StackgresClusterContainers.POSTGRES_UTIL)
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
 @RunningContainer(ClusterRunningContainer.POSTGRES_UTIL)
 public class PostgresUtil extends AbstractPostgresUtil {
 

@@ -33,7 +33,7 @@ import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
 @InitContainer(ClusterInitContainer.SCRIPTS_SET_UP)
 public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerContext> {
 

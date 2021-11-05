@@ -37,7 +37,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.FluentdStaticV
 import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
 @InitContainer(ClusterInitContainer.RECONCILIATION_CYCLE)
 public class InitReconciliationCycle implements ContainerFactory<DistributedLogsContainerContext> {
 
