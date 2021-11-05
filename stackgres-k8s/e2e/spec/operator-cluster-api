@@ -37,6 +37,8 @@ e2e_test() {
 
   run_test "Check that the stats endpoint are returning the master stats" test_cluster_stats_are_loaded
 
+  run_test "Check that the stats endpoint are returning when pods are ready" test_cluster_stats_pods_ready
+
   run_test "Check that the component versions are annotated" test_cluster_component_versions_are_annotated
 
   run_test "Check that the number of pods match with the master and replicas" test_cluster_pod_count
@@ -91,6 +93,10 @@ get_cluster_pod_count() {
   run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.pods | length'
 }
 
+get_cluster_stats_pods_ready() {
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME-stats/stats" | jq -r '.podsReady'
+}
+
 check_cluster_directly() {
   local HTTP_STATUS
 
@@ -130,6 +136,20 @@ test_cluster_stats_are_loaded() {
     echo "Cluster $CLUSTER_NAME stats was returned by the api"
   else
     echo "Cluster $CLUSTER_NAME stats was not returned by the api"
+    return 1
+  fi
+}
+
+test_cluster_stats_pods_ready() {
+  create_or_replace_cluster "$CLUSTER_NAME-stats" "$CLUSTER_NAMESPACE-stats" 1 \
+    --set-string 'cluster.postgres.version=13' \
+    --set-string 'configurations.backupconfig.create=false'
+
+  if ! wait_until -t 60 eval '[ "$(get_cluster_stats_pods_ready)" -eq 1 ]'
+  then
+    echo "Cluster $CLUSTER_NAME stats are ready"
+  else
+    echo "Cluster $CLUSTER_NAME stats are not ready"
     return 1
   fi
 }
