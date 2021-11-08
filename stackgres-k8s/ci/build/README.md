@@ -1,10 +1,10 @@
 # Multiple multi-stage Dockerfile build system
 
-With this system we want to be able to build a hierarchy of modules, where each module depends on
+This tool allows to build a hierarchy of modules, where each module depends on
  another one, that can be built in sequence to generate an image to be used as a dependency in
  following modules in the sequence. Each module define a list of build artifacts (plus all the
  artifacts of the dependant modules if required). Generated images are then tagged using an hash
- that change only when the specified source files or dependenct generated image hash changes. That
+ that change only when the specified source files or dependent generated image hash changes. That
  is we have a different hash every time we modify any source file of the module or dependencies
  modules. The image is then stored in a centralized registry that is used to cache builds. This way
  builds are never repeated as long as the generated image with such hash is available in the
@@ -12,32 +12,33 @@ With this system we want to be able to build a hierarchy of modules, where each 
 
 > EXAMPLE: If I just make a change in the `operator` module (let's say rename a variable) then
 >  `stackgres-parent`, `operator-framework`, `common`, `restapi`, `admin-ui`, `jobs`,
->  `cluster-controller` and `distributedlogs-controller` and all they're respective dependencies
+>  `cluster-controller` and `distributedlogs-controller` and all their respective dependencies
 >  (the `java-image`, `native` and `native-image` module types) will not be rebuilt, only the
 >  `operator`, `operator-java-image`, `operator-native` and `operator-native-image` modules will be
 >  rebuilt.
 
-Module are all configured the same generic way but can be organized in groups using module types.
+Module are all configured the same generic way but can are organized in groups using module types.
  For example in this project we find following module types:
 
 * `java`: A Maven Java module.
-* `web`: A npm Web module.
+* `ui`: A npm Web module.
 * `native`: A Maven Java module to build native image.
 * `jvm-image`: A container image module to run a `java` module using a JVM.
 * `native-image`: A container image module to run a `native` module.
-* `image`: A container image to run another module.
-* `resource`: A resource module.
+* `ui-image`: A container image to run another module.
+* `helm`: A helm module.
+* `documentation`: A documentation module.
 
 ## build.sh
 
 The process is performed by the `build.sh` shell script that accept as parameters a list of modules
  that must be defined in the `config.yml` file under the section `.modules`. The module are then
  built following the sequence that the `.stages` section define as an array of objects where the
- array entry order define the sequence order and each object antry of the array contains exactly
+ array entry order define the sequence order and each object entry of the array contains exactly
  one entry that define a dependency, where the key is the name of the modules that depends on the
  value (when the value is `null` means that the module does not depend on no other module).
 
-If you use the hashes keywork the command will just output the hashes of images and module types.
+If you pass the `hashes` keywork the command will just output the hashes of images and module types.
 
 ## config.yml
 

@@ -21,8 +21,7 @@
         echo "E2E_EXCLUSIVE_JOBS must be between 1 and 6 (was $E2E_EXCLUSIVE_JOBS)"
         exit 1
       fi
-      SHELL_XTRACE="$([ "$E2E_DEBUG" = true ] && echo "-x" || echo "")"
-    - sh $SHELL_XTRACE stackgres-k8s/ci/test/e2e-run-all-tests-gitlab.sh
+    - sh stackgres-k8s/ci/test/e2e-run-all-tests-gitlab.sh
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
