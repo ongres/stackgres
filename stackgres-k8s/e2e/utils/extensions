@@ -1,5 +1,6 @@
 #!/bin/sh
 
+export EXTENSIONS_REPOSITORY_URL="${EXTENSIONS_REPOSITORY_URL:-https://extensions.stackgres.io/postgres/repository}"
 EXTENSIONS_CACHE_PRELOADED_EXTENSIONS="$(
   {
     echo 'dblink-.*-pg(12|13)'

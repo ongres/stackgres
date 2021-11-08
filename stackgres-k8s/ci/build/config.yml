@@ -313,7 +313,7 @@ modules:
     artifacts:
       - stackgres-k8s/install/helm/target/templates
   documentation:
-    type: docs
+    type: documentation
     target_image: alpine:3.13.5
     sources:
       - doc/build.sh

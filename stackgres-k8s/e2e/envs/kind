@@ -28,11 +28,7 @@ update_k8s_config() {
     if docker network ls --format '{{ .Name }}' | grep -q '^kind$'
     then
       local CONTAINER_NAME
-      CONTAINER_NAME="$(docker ps --format '{{ .Names }}' | grep "^$(hostname)")"
-      if [ -z "$CONTAINER_NAME" ]
-      then
-        CONTAINER_NAME="$(docker ps --format '{{ .ID }}' | grep "^$(hostname)")"
-      fi
+      CONTAINER_NAME="$(cat /proc/self/cgroup | grep '^1:name' | cut -d / -f 3)"
       docker inspect "$CONTAINER_NAME" \
         -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
         | grep -q '^kind$' \
@@ -129,7 +125,7 @@ $(
 INNER_INNER_EOF
   fi
   if docker system info 2> /dev/null | grep -q "Backing Filesystem: zfs" \
-    || ([ -n "$KIND_CONTAINERD_CACHE_PATH" ] \
+    || ([ -d "$KIND_CONTAINERD_CACHE_PATH" ] \
       && df -T "$KIND_CONTAINERD_CACHE_PATH" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2 | grep -q '^zfs$')
   then
     cat << INNER_INNER_EOF
@@ -138,7 +134,7 @@ INNER_INNER_EOF
 INNER_INNER_EOF
   fi
   if docker system info 2> /dev/null | grep -q "Backing Filesystem: btrfs" \
-    || ([ -n "$KIND_CONTAINERD_CACHE_PATH" ] \
+    || ([ -d "$KIND_CONTAINERD_CACHE_PATH" ] \
       && df -T "$KIND_CONTAINERD_CACHE_PATH" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2 | grep -q '^btrfs$')
   then
     cat << INNER_INNER_EOF

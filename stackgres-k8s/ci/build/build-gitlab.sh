@@ -15,14 +15,7 @@ mkdir -p "$TEMP_DIR"
 
 echo "Copying project files ..."
 
-if [ "$1" = build ]
-then
-  cp -r . "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-elif [ "$1" = extract ]
-then
-  mkdir -p "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/ci"
-  cp -r stackgres-k8s/ci/build "$TEMP_DIR/stackgres-build-$CI_JOB_ID/stackgres-k8s/ci/build"
-fi
+cp -r . "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
 
 echo "done"
 

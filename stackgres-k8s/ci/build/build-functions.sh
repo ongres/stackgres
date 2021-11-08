@@ -15,8 +15,7 @@ command -v xargs > /dev/null || message_and_exit 'The program `xargs` is require
 command -v ls > /dev/null || message_and_exit 'The program `ls` is required to be in PATH' 8
 command -v jq > /dev/null || message_and_exit 'The program `jq` is required to be in PATH' 8
 command -v yq > /dev/null || message_and_exit 'The program `yq` (https://kislyuk.github.io/yq/) is required to be in PATH' 8
-command -v find > /dev/null || message_and_exit 'The program `find` is required to be in PATH' 8
-command -v java > /dev/null || message_and_exit 'The program `java` is required to be in PATH' 8
+command -v git > /dev/null || message_and_exit 'The program `git` is required to be in PATH' 8
 command -v docker > /dev/null || message_and_exit 'The program `docker` is required to be in PATH' 8
 docker manifest > /dev/null 2>&1 || message_and_exit '`docker manifest` is not working' 9
 
@@ -237,40 +236,41 @@ module_list_of_files() {
   printf '%s' "$MODULE_FILES"
 }
 
+init_hash() {
+  if [ -d stackgres-k8s/ci/build/target/.git ] \
+    && git --git-dir stackgres-k8s/ci/build/target/.git status --porcelain | grep -q .
+  then
+    rm -rf stackgres-k8s/ci/build/target/.git
+  fi
+  if ! [ -d stackgres-k8s/ci/build/target/.git ]
+  then
+    (
+    set +e
+    (
+    set -e
+    git --git-dir stackgres-k8s/ci/build/target/.git init -q
+    git --git-dir stackgres-k8s/ci/build/target/.git add .
+    git --git-dir stackgres-k8s/ci/build/target/.git \
+      -c user.name=ci -c user.email= commit -q -m "build hash" --no-gpg-sign
+    )
+    EXIT_CODE="$?"
+    if [ "$EXIT_CODE" != 0 ]
+    then
+      rm -rf stackgres-k8s/ci/build/target/.git
+    fi
+    exit "$EXIT_CODE"
+    )
+  fi
+}
+
 project_hash() {
-  local MODULES
-  MODULES="$(jq -r '.modules | to_entries[] | .key' \
-    stackgres-k8s/ci/build/target/config.json)"
-  printf '%s' "$MODULES" \
-    | while read -r MODULE
-      do
-        for MODULE_SOURCE in $(module_list_of_files "$MODULE" sources)
-        do
-          echo "$MODULE_SOURCE"
-        done
-      done \
-    | sort \
-    | while read -r MODULE_SOURCE
-      do
-        path_hash "$MODULE_SOURCE"
-      done > "stackgres-k8s/ci/build/target/modules-hash"
-  md5sum "stackgres-k8s/ci/build/target/modules-hash" | cut -d ' ' -f 1
+  git --git-dir stackgres-k8s/ci/build/target/.git rev-parse HEAD:
 }
 
 path_hash() {
   [ "$#" -ge 1 ] || false
   local FILE="$1"
-  if [ -d "$FILE" ]
-  then
-    find "$FILE" -type f -print0 \
-      | sort -z | xargs -r0 md5sum
-  elif [ -h "$FILE" ] || [ -f "$FILE" ]
-  then
-    md5sum "$(realpath --relative-to . "$FILE")" | md5sum
-  else
-    echo "Unsupported file type for $FILE" >&2
-    return 1
-  fi
+  git --git-dir stackgres-k8s/ci/build/target/.git rev-parse HEAD:"$FILE"
 }
 
 docker_inspect() {
@@ -315,11 +315,13 @@ docker_push() {
   )
 }
 
-set_module_functions() {
+module_type() {
   [ "$#" -ge 1 ] || false
   local MODULE="$1"
+  local MODULE_TYPE
   MODULE_TYPE="$(jq -r ".modules | select(has(\"$MODULE\"))[\"$MODULE\"] | select(has(\"type\")).type" stackgres-k8s/ci/build/target/config.json)"
   [ -n "$MODULE_TYPE" ] || message_and_exit "Module $MODULE is not defined or has no type in stackgres-k8s/ci/build/config.yml" 1
+  printf '%s' "$MODULE_TYPE"
 }
 
 source_image_name() {
@@ -353,9 +355,10 @@ image_name() {
 build_image() {
   [ "$#" -ge 1 ] || false
   local MODULE="$1"
+  local MODULE_TYPE
   local IMAGE_NAME
   local SOURCE_IMAGE_NAME
-  set_module_functions "$MODULE"
+  MODULE_TYPE="$(module_type "$MODULE")"
   SOURCE_IMAGE_NAME="$(source_image_name "$MODULE")"
   IMAGE_NAME="$(image_name "$MODULE")"
   echo
@@ -396,15 +399,7 @@ generate_image_hashes() {
 
   yq . stackgres-k8s/ci/build/config.yml > stackgres-k8s/ci/build/target/config.json
 
-  if [ -n "$(git status --porcelain)" ] && [ "$BUILD_SKIP_GIT_STATUS_CHECK" != true ]
-  then
-    echo >&2
-    echo "FATAL: You have uncommited changes that may affect hash calculation" >&2
-    echo >&2
-    echo "Set BUILD_SKIP_GIT_STATUS_CHECK to true to skip this check." >&2
-    echo >&2
-    return 1
-  fi
+  init_hash
 
   if ! test -f stackgres-k8s/ci/build/target/project_hash \
     || [ "$(cat stackgres-k8s/ci/build/target/project_hash)" != "$(project_hash)" ]
@@ -420,7 +415,7 @@ EOF
     rm -f stackgres-k8s/ci/build/target/*-image-hashes
     for MODULE in $(jq -r '.modules | to_entries[] | .key' stackgres-k8s/ci/build/target/config.json)
     do
-      set_module_functions "$MODULE"
+      MODULE_TYPE="$(module_type "$MODULE")"
       SOURCE_IMAGE_NAME="$(source_image_name "$MODULE")"
       IMAGE_NAME="$(module_image_name "$MODULE" "$SOURCE_IMAGE_NAME")"
       cat << EOF >> stackgres-k8s/ci/build/target/junit-build.hashes.xml
@@ -509,7 +504,7 @@ extract() {
   [ "$#" -ge 2 ] || false
   local MODULE="$1"
   shift
-  set_module_functions "$MODULE"
+  MODULE_TYPE="$(module_type "$MODULE")"
   IMAGE_NAME="$(image_name "$MODULE")"
   extract_from_image "$IMAGE_NAME" "$@"
 }

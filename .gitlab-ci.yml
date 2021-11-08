@@ -5,9 +5,6 @@ variables:
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
   SKIP_DEPLOY: "false"
-  E2E_SHELL: sh
-  E2E_ENV: kind
-  E2E_PARALLELISM: 32
   E2E_JOBS: 3
   E2E_EXCLUSIVE_JOBS: 3
   E2E_RETRY: 2
@@ -16,9 +13,6 @@ variables:
   EXECUTOR_JOB_SECTION_ATTEMPTS: 3
   GET_SOURCES_ATTEMPTS: 3
   RESTORE_CACHE_ATTEMPTS: 3
-  K8S_VERSION: 1.16.15
-  K8S_FROM_DIND: "true"
-  K8S_REUSE: "true"
   LATEST: "false"
 
 # Cache downloaded dependencies and plugins between builds.

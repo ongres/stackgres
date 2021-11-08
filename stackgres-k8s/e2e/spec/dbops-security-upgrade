@@ -30,7 +30,7 @@ e2e_test_install() {
   then
     load_component_images_from \
       "$E2E_COMPONENTS_REGISTRY" \
-      "$E2E_COMPONENTS_PATH" \
+      "$E2E_COMPONENTS_REGISTRY_PATH" \
       "$STACKGRES_PREVIOUS_VERSION"
   fi
 
