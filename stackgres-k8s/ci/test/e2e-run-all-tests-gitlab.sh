@@ -15,41 +15,47 @@ E2E_FAILURE_RETRY="${E2E_FAILURE_RETRY:-4}"
   && [ -n "$CI_REGISTRY" ] && [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ] \
   && true || false
 
+SUFFIX="$(echo "-$E2E_SUFFIX-$E2E_RUN_ONLY" | tr -d '\n' | tr -c 'a-z0-9' '-' | sed 's/\(-[0-9]\+\)-[0-9]\+$/\1/')"
+
+export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_TAG_SUFFIX"
+export KIND_NAME="kind$SUFFIX"
+export K8S_REUSE="${K8S_REUSE:-true}"
+export K8S_FROM_DIND=true
+export E2E_BUILD_IMAGES=false
+export E2E_WAIT_OPERATOR=false
+export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images$SUFFIX"
+export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
+export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
+export E2E_FORCE_IMAGE_PULL=true
+export K8S_USE_INTERNAL_REPOSITORY=true
+export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
+export E2E_LOCK_PATH="/tmp/e2e-lock$SUFFIX"
+export E2E_DISABLE_LOGS=true
+export KIND_LOG=true
+export KIND_LOG_PATH="/tmp/kind-log$SUFFIX"
+export KIND_LOG_RESOURCES=true
+export KIND_LOG_RESOURCES_POLICY_PATH="/tmp/kind-log-resource-policy$SUFFIX"
+export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache$SUFFIX"
+
+if [ "$E2E_CLEAN_IMAGE_CACHE" = "true" ]
+then
+  rm -rf "$E2E_PULLED_IMAGES_PATH"
+fi
+
+if "$IS_WEB"
+then
+  E2E_TEST=ui
+fi
+if [ -n "$E2E_TEST" ]
+then
+  export E2E_ONLY_INCLUDES="$E2E_TEST"
+fi
+
 set +e
 while true
 do
   (
   set -e
-  SUFFIX="$(echo "-$E2E_SUFFIX-$E2E_RUN_ONLY" | tr -d '\n' | tr -c 'a-z0-9' '-' | sed 's/\(-[0-9]\+\)-[0-9]\+$/\1/')"
-
-  export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_TAG_SUFFIX"
-  export KIND_NAME="kind$SUFFIX"
-  export K8S_REUSE="${K8S_REUSE:-true}"
-  export K8S_FROM_DIND=true
-  export E2E_BUILD_IMAGES=false
-  export E2E_WAIT_OPERATOR=false
-  export E2E_PULLED_IMAGES_PATH="/tmp/pulled-images$SUFFIX"
-  export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
-  export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
-  export E2E_FORCE_IMAGE_PULL=true
-  export K8S_USE_INTERNAL_REPOSITORY=true
-  export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
-  export E2E_LOCK_PATH="/tmp/e2e-lock$SUFFIX"
-  export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache$SUFFIX"
-
-  if [ "$E2E_CLEAN_IMAGE_CACHE" = "true" ]
-  then
-    rm -rf "$E2E_PULLED_IMAGES_PATH"
-  fi
-
-  if "$IS_WEB"
-  then
-    E2E_TEST=ui
-  fi
-  if [ -n "$E2E_TEST" ]
-  then
-    export E2E_ONLY_INCLUDES="$E2E_TEST"
-  fi
 
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
 
@@ -105,7 +111,14 @@ do
     flock "/tmp/stackgres-integration-test$SUFFIX" \
     flock "$E2E_LOCK_PATH" \
     timeout -s KILL 3600 \
-    "$E2E_SHELL" $SHELL_XTRACE stackgres-k8s/e2e/run-all-tests.sh
+    "$E2E_SHELL" -c $SHELL_XTRACE \
+      "
+      '$E2E_SHELL' $SHELL_XTRACE stackgres-k8s/e2e/run-all-tests.sh
+      EXIT_CODE="$?"
+      rm -rf stackgres-k8s-e2e/target/kind-logs
+      cp -r '$KIND_LOG_PATH' stackgres-k8s-e2e/target/kind-logs
+      exit \"\$EXIT_CODE\"
+      "
   )
   EXIT_CODE="$?"
   if [ "$EXIT_CODE" = 0 ]

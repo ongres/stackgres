@@ -3,6 +3,8 @@
 KIND_NAME="${KIND_NAME:-kind}"
 KIND_NODES="${KIND_NODES:-1}"
 KIND_LOCK_PATH="${KIND_LOCK_PATH:-$TARGET_PATH/kind-lock}"
+KIND_LOG_PATH="${KIND_LOG_PATH:-$TARGET_PATH/kind-logs}"
+KIND_LOG_RESOURCES_POLICY_PATH="${KIND_LOG_RESOURCES_POLICY_PATH:-$TARGET_PATH/kind-apiserver-audit-policy}"
 
 check_kind_version() {
   if ! kind version | grep -q -F 'kind v0.11.1 '
@@ -154,6 +156,31 @@ networking:
 nodes:
 - role: control-plane
 $(
+  if [ "$KIND_LOG_RESOURCES" = true ]
+  then
+    cat << INNER_EOF
+  kubeadmConfigPatches:
+  - |
+    kind: ClusterConfiguration
+    apiServer:
+        # enable auditing flags on the API server
+        extraArgs:
+          audit-log-path: /var/log/kubernetes/kube-apiserver-audit.log
+          audit-policy-file: /etc/kubernetes/policies/audit-policy.yaml
+        # mount new files / directories on the control plane
+        extraVolumes:
+          - name: audit-policies
+            hostPath: /etc/kubernetes/policies
+            mountPath: /etc/kubernetes/policies
+            readOnly: true
+            pathType: "DirectoryOrCreate"
+          - name: "audit-logs"
+            hostPath: "/var/log/kubernetes"
+            mountPath: "/var/log/kubernetes"
+            readOnly: false
+            pathType: DirectoryOrCreate
+INNER_EOF
+  fi
   if [ -n "$K8S_EXTRA_PORT" ]
   then
     cat << INNER_EOF
@@ -164,13 +191,43 @@ $(
     protocol: "$(echo "$K8S_EXTRA_PORT" | cut -d : -f 4)"
 INNER_EOF
   fi
+  if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] \
+    || [ "$KIND_LOG" = true ] \
+    || [ "$KIND_LOG_RESOURCES" = true ]
+  then
+    cat << INNER_EOF
+  extraMounts:
+INNER_EOF
+  fi
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
   then
     mkdir -p "$KIND_CONTAINERD_CACHE_PATH"
     cat << INNER_EOF
-  extraMounts:
   - hostPath: $KIND_CONTAINERD_CACHE_PATH
     containerPath: /containerd-cache
+INNER_EOF
+  fi
+  if [ "$KIND_LOG" = true ]
+  then
+    mkdir -p "$KIND_LOG_PATH"
+    cat << INNER_EOF
+  - hostPath: $KIND_LOG_PATH
+    containerPath: /var/log
+INNER_EOF
+  fi
+  if [ "$KIND_LOG_RESOURCES" = true ]
+  then
+    cat << INNER_EOF > "$KIND_LOG_RESOURCES_POLICY_PATH"
+# Log all requests at the RequestResponse level.
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+- level: RequestResponse
+INNER_EOF
+    cat << INNER_EOF
+  - hostPath: $KIND_LOG_RESOURCES_POLICY_PATH
+    containerPath: /etc/kubernetes/policies/audit-policy.yaml
+    readOnly: true
 INNER_EOF
   fi
   for KIND_NODE in $(seq 2 "$KIND_NODES")
