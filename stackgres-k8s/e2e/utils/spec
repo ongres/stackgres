@@ -113,6 +113,40 @@ get_all_non_exclusive_env_specs() {
       done
 }
 
+to_e2e_test_batch() {
+  local BATCH_INDEX="$1"
+  local BATCH_COUNT="$2"
+  if ! [ "$BATCH_INDEX" -ge 1 ] && [ "$BATCH_INDEX" -le "$BATCH_COUNT" ]
+  then
+    echo 'Batch index must start from 1 and must be less or equal than batch count, but it was '"$BATCH_INDEX/$BATCH_COUNT" >&2
+    return 1
+  fi
+  if ! [ "$BATCH_COUNT" -ge 1 ]
+  then
+    echo 'Batch count must be greather or equal to 1, but it was '"$BATCH_COUNT" >&2
+    return 1
+  fi
+  while IFS="$(printf '\n')" read LINE
+  do
+    if [ -f "$E2E_PATH/test.stats" ] \
+      && grep -q "^${LINE##*spec/}:" "$E2E_PATH/test.stats"
+    then
+      grep "^${LINE##*spec/}:" "$E2E_PATH/test.stats"
+    else
+      SPECS_NO_STATS="$SPECS_NO_STATS ${LINE##*spec/}"
+      echo "${LINE##*spec/}:3600"
+    fi
+  done \
+    | sort | sort -t : -k 2 -n | grep -n '.' \
+    | while IFS="$(printf '\n')" read LINE
+      do
+        if [ "$(( (${LINE%%:*} - 1) % BATCH_COUNT))" -eq "$((BATCH_INDEX - 1))" ]
+        then
+          echo "$LINE" | cut -d : -f 2
+        fi
+      done
+}
+
 spec() {
   local RESULT
   local EXIT_CODE
