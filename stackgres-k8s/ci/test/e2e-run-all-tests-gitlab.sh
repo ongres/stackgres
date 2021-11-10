@@ -228,13 +228,13 @@ store_test_results() {
     stackgres-k8s/e2e/target/e2e-tests-junit-report.xml \
     > stackgres-k8s/ci/test/target/any-test-failed
 
-  cat << EOF > stackgres-k8s/e2e/target/Dockerfile.e2e
+  cat << EOF > stackgres-k8s/ci/test/target/Dockerfile.e2e
 FROM alpine:3.13.5
   COPY . /project
 EOF
 
   # shellcheck disable=SC2046
-  docker build -f stackgres-k8s/e2e/target/Dockerfile.e2e \
+  docker build -f stackgres-k8s/ci/test/target/Dockerfile.e2e \
     -t "$CI_REGISTRY/$CI_PROJECT_PATH/e2e-test-result:$CI_COMMIT_SHORT_SHA" \
     $(
       while read -r TEST_NAME
@@ -354,18 +354,17 @@ do
       docker run --rm -u 0 -v '$KIND_LOG_PATH:/source/kind-logs' \
         -v '$(pwd)/stackgres-k8s/e2e/target:/target' alpine \
         cp -r '/source/kind-logs' /target/kind-logs
+      docker run --rm -u 0 -v '${KIND_LOG_PATH%/*}:/source' alpine \
+        rm -rf '/source/${KIND_LOG_PATH##*/}'
       docker run --rm -u 0 \
         -v '$(pwd)/stackgres-k8s/e2e/target:/target' alpine \
         chown -R '$(id -u):$(id -g)' '/target/kind-logs'
-      docker run --rm -u 0 -v '${KIND_LOG_PATH%/*}:/source' alpine \
-        rm -rf '/source/${KIND_LOG_PATH##*/}'
       tar c --xz \
         -f stackgres-k8s/e2e/target/kind-logs/kubernetes.tar.lzma \
         stackgres-k8s/e2e/target/kind-logs/kubernetes
-      rm -rf stackgres-k8s/e2e/target/kind-logs/
+      rm -rf stackgres-k8s/e2e/target/kind-logs/kubernetes
       exit \"\$EXIT_CODE\"
       "
-
   echo 'done'
 
   echo

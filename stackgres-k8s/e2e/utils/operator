@@ -352,8 +352,8 @@ install_operator() {
   if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
     -a -n "$STACKGRES_PREVIOUS_VERSION" ]
   then
-    install_operator_previous_version "$@"
     echo "Installing operator version $STACKGRES_PREVIOUS_VERSION"
+    install_operator_previous_version "$@"
   fi
 
   if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
