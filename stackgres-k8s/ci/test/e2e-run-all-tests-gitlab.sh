@@ -324,14 +324,18 @@ do
     timeout -s KILL 3600 \
     "$E2E_SHELL" -c $([ "$E2E_DEBUG" != true ] || printf '%s' '-x') \
       "
+      docker run --rm -u 0 -v '$KIND_LOG_PATH:$KIND_LOG_PATH' alpine \
+        rm -rf '$KIND_LOG_PATH'
+      docker run --rm -u 0 -v '$KIND_LOG_PATH:$KIND_LOG_PATH' alpine \
+        mkdir -p '$KIND_LOG_PATH'
       '$E2E_SHELL' $([ "$E2E_DEBUG" != true ] || printf '%s' '-x') stackgres-k8s/e2e/run-all-tests.sh
       EXIT_CODE=\"\$?\"
-      docker run --rm -u 0 -v '$KIND_LOG_PATH:$KIND_LOG_PATH' \
-        -v '$(pwd)/stackgres-k8s/e2e/target:/target' alpine \
-        cp -a '$KIND_LOG_PATH' /target/kind-logs
       docker run --rm -u 0 \
-        -v '$(pwd)/stackgres-k8s/e2e/target/kind-logs:/kind-logs' alpine \
+        -v '$KIND_LOG_PATH:/kind-logs' alpine \
         chown -R '$(id -u):$(id -g)' '/kind-logs'
+      docker run --rm -u 0 -v '$KIND_LOG_PATH:/kind-logs' \
+        -v '$(pwd)/stackgres-k8s/e2e/target:/target' alpine \
+        mv '/kind-logs' /target/kind-logs
       exit \"\$EXIT_CODE\"
       "
 
