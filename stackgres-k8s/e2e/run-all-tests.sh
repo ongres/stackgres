@@ -76,7 +76,7 @@ then
   SPECS="$(echo "$SPECS" | \
     while IFS="$(printf '\n')" read LINE
     do
-      if ! echo " $E2E_EXCLUDES " | tr '\n' ' ' | grep -q "${LINE##*spec/}"
+      if ! echo " $E2E_EXCLUDES " | tr '\n' ' ' | grep -q "/${LINE##*spec/}$"
       then
         echo "$SPEC_PATH/${LINE##*spec/}"
       fi
