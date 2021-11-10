@@ -408,7 +408,12 @@ do
   sleep 10
 done
 
-cp -r stackgres-k8s/e2e/target "$CI_PROJECT_DIR/stackgres-k8s/e2e/target"
+mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target/."
+cp -r stackgres-k8s/e2e/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target/."
+mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target/."
+cp -r stackgres-k8s/e2e/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target/."
+mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/e2e/target"
+cp -r stackgres-k8s/e2e/target/. "$CI_PROJECT_DIR/stackgres-k8s/e2e/target/."
 
 exit "$EXIT_CODE"
 )
