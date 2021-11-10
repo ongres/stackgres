@@ -262,7 +262,6 @@ class PatroniApiHandlerImplTest {
     assertFalse(patroniApiHandler.restartPostgres(leader)
         .await()
         .atMost(Duration.ofSeconds(5)));
-    
 
   }
 
