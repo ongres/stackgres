@@ -30,6 +30,8 @@
     expire_in: 1 week
     when: always
     paths:
+    - stackgres-k8s/ci/build/target
+    - stackgres-k8s/ci/test/target
     - stackgres-k8s/e2e/target
     reports:
       junit:
