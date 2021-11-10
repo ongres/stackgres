@@ -3,7 +3,7 @@
 #
 # Build the image with:
 #
-# docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t registry.gitlab.com/ongresinc/stackgres/ci:1.4 .
+# docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t registry.gitlab.com/ongresinc/stackgres/ci:1.5 .
 #
 ###
 FROM docker.io/docker:20.10
@@ -36,3 +36,4 @@ RUN chmod a+x /bin/yajsv
 RUN pip3 install yamllint yq
 RUN mkdir -p "$HOME/.docker"; echo '{"experimental":"enabled"}' > "$HOME/.docker/config.json"
 RUN apk add git
+RUN apk add xz

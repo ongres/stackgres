@@ -324,18 +324,24 @@ do
     timeout -s KILL 3600 \
     "$E2E_SHELL" -c $([ "$E2E_DEBUG" != true ] || printf '%s' '-x') \
       "
-      docker run --rm -u 0 -v '$KIND_LOG_PATH:$KIND_LOG_PATH' alpine \
-        rm -rf '$KIND_LOG_PATH'
-      docker run --rm -u 0 -v '$KIND_LOG_PATH:$KIND_LOG_PATH' alpine \
-        mkdir -p '$KIND_LOG_PATH'
+      docker run --rm -u 0 -v '${KIND_LOG_PATH%/*}:/source' alpine \
+        rm -rf '/source/${KIND_LOG_PATH##*/}'
+      docker run --rm -u 0 -v '${KIND_LOG_PATH%/*}:/source' alpine \
+        mkdir -p '/source/${KIND_LOG_PATH##*/}'
       '$E2E_SHELL' $([ "$E2E_DEBUG" != true ] || printf '%s' '-x') stackgres-k8s/e2e/run-all-tests.sh
       EXIT_CODE=\"\$?\"
-      docker run --rm -u 0 \
-        -v '$KIND_LOG_PATH:/kind-logs' alpine \
-        chown -R '$(id -u):$(id -g)' '/kind-logs'
-      docker run --rm -u 0 -v '$KIND_LOG_PATH:/kind-logs' \
+      docker run --rm -u 0 -v '$KIND_LOG_PATH:/source/kind-logs' \
         -v '$(pwd)/stackgres-k8s/e2e/target:/target' alpine \
-        mv '/kind-logs' /target/kind-logs
+        cp -r '/source/kind-logs' /target/kind-logs
+      docker run --rm -u 0 \
+        -v 'stackgres-k8s/e2e/target:/target' alpine \
+        chown -R '$(id -u):$(id -g)' '/target/kind-logs'
+      docker run --rm -u 0 -v '${KIND_LOG_PATH%/*}:/source' alpine \
+        rm -rf '/source/${KIND_LOG_PATH##*/}'
+      tar c --lzma \
+        -f stackgres-k8s/e2e/target/kind-logs/kubernetes.tar.lzma \
+        stackgres-k8s/e2e/target/kind-logs/
+      rm -rf stackgres-k8s/e2e/target/kind-logs/
       exit \"\$EXIT_CODE\"
       "
 
