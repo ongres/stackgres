@@ -5,6 +5,11 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import static io.stackgres.jobs.dbops.clusterrestart.RestartEventType.POSTGRES_RESTARTED;
+import static io.stackgres.jobs.dbops.clusterrestart.RestartEventType.POSTGRES_RESTART_FAILED;
+import static java.lang.String.format;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +19,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.subscription.MultiEmitter;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -59,29 +65,8 @@ public class ClusterRestartImpl implements ClusterRestart {
 
       final String clusterName = clusterRestartState.getClusterName();
 
-      if (clusterRestartState.getRestartedInstances().isEmpty()
-          && clusterRestartState.hasToBeRestarted(primaryInstance)) {
-        restartChain = restartChain
-            .invoke(() -> {
-              LOGGER.info("Restarting primary node postgres of cluster {}",
-                  clusterName);
-              em.emit(ImmutableRestartEvent.builder()
-                  .pod(primaryInstance)
-                  .eventType(RestartEventType.RESTARTING_POSTGRES)
-                  .build());
-            })
-            .chain(() -> postgresRestart.restartPostgres(primaryInstanceName,
-                clusterName,
-                clusterRestartState.getNamespace()))
-            .onItem().invoke(() -> {
-              LOGGER.info("Postgres of instance {} restarted", primaryInstanceName);
-              em.emit(ImmutableRestartEvent.builder()
-                  .pod(primaryInstance)
-                  .eventType(RestartEventType.POSTGRES_RESTARTED)
-                  .build());
-            });
-        restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
-      }
+      restartChain = restartPostgres(clusterRestartState, em, restartChain, primaryInstance,
+          primaryInstanceName, clusterName);
 
       if (isReducedImpact(clusterRestartState)
           && hasInstancesNotBeenIncreased(clusterRestartState)) {
@@ -206,6 +191,53 @@ public class ClusterRestartImpl implements ClusterRestart {
 
       restartChain.subscribe().with((x) -> em.complete());
     });
+  }
+
+  private Uni<?> restartPostgres(ClusterRestartState clusterRestartState,
+      MultiEmitter<? super RestartEvent> em, Uni<?> restartChain, Pod primaryInstance,
+      final String primaryInstanceName, final String clusterName) {
+
+    if (clusterRestartState.getRestartedInstances().isEmpty()
+        && clusterRestartState.hasToBeRestarted(primaryInstance)) {
+      restartChain = restartChain
+          .invoke(() -> {
+            LOGGER.info("Restarting primary node postgres of cluster {}",
+                clusterName);
+            em.emit(ImmutableRestartEvent.builder()
+                .pod(primaryInstance)
+                .eventType(RestartEventType.RESTARTING_POSTGRES)
+                .build());
+          })
+          .chain((a) -> postgresRestart.restartPostgres(primaryInstanceName,
+              clusterName,
+              clusterRestartState.getNamespace()))
+          .onItemOrFailure()
+          .invoke((restarted, failure) -> foo(restarted, failure, em, primaryInstance, primaryInstanceName));
+      restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
+    }
+    return restartChain;
+  }
+
+  private Object foo(Boolean isPostgresRestarted, Throwable failure,
+      MultiEmitter<? super RestartEvent> em, Pod primaryInstance, String primaryInstanceName) {
+    {
+      if (isPostgresRestarted) {
+        LOGGER.info(format("Postgres of instance {} restarted", primaryInstanceName));
+        em.emit(ImmutableRestartEvent.builder()
+            .pod(primaryInstance)
+            .eventType(POSTGRES_RESTARTED)
+            .build());
+      } else {
+        LOGGER.info("Postgres of instance {} failed", primaryInstanceName);
+        em.emit(ImmutableRestartEvent.builder()
+            .pod(primaryInstance)
+            .eventType(POSTGRES_RESTART_FAILED)
+            .build());
+        em.fail(new FailedRestartPostgresException(
+            format("Postgres of instance %s failed", primaryInstanceName)));
+      }
+    }
+    return null;
   }
 
   private void logPodRestartReason(Pod pod, ClusterRestartState clusterRestartState) {

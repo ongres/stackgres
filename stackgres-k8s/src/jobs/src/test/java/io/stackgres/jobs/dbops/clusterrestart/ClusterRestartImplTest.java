@@ -141,7 +141,7 @@ class ClusterRestartImplTest {
 
     final String primaryName = primary.getMetadata().getName();
     when(postgresRestart.restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE))
-        .thenReturn(Uni.createFrom().voidItem());
+        .thenReturn(Uni.createFrom().item(true));
 
     when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());
@@ -459,7 +459,7 @@ class ClusterRestartImplTest {
 
     final String primaryName = primary.getMetadata().getName();
     when(postgresRestart.restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE))
-        .thenReturn(Uni.createFrom().voidItem());
+        .thenReturn(Uni.createFrom().item(true));
 
     when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());
@@ -780,7 +780,7 @@ class ClusterRestartImplTest {
     final String primaryName = primary.getMetadata().getName();
 
     when(postgresRestart.restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE))
-        .thenReturn(Uni.createFrom().voidItem());
+        .thenReturn(Uni.createFrom().item(true));
 
     when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());

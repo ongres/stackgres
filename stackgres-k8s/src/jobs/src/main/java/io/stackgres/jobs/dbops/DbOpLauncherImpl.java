@@ -127,6 +127,7 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         databaseOperationEventEmitter.operationTimedOut(dbOpName, namespace);
         throw timeoutEx;
       } catch (Exception e) {
+        LOGGER.info("Unexpected exception for SgDbOp {}", dbOpName);
         updateToFailedConditions(dbOpName, namespace);
         databaseOperationEventEmitter.operationFailed(dbOpName, namespace);
         throw e;

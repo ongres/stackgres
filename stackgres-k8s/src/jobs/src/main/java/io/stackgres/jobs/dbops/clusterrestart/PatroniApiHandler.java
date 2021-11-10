@@ -17,6 +17,6 @@ public interface PatroniApiHandler {
 
   Uni<Void> performSwitchover(ClusterMember leader, ClusterMember candidate);
 
-  Uni<Void> restartPostgres(ClusterMember member);
+  Uni<Boolean> restartPostgres(ClusterMember member);
 
 }

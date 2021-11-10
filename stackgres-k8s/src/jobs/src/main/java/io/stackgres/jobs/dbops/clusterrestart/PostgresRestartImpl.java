@@ -23,7 +23,7 @@ public class PostgresRestartImpl implements PostgresRestart {
   }
 
   @Override
-  public Uni<Void> restartPostgres(String memberName, String clusterName, String namespace) {
+  public Uni<Boolean> restartPostgres(String memberName, String clusterName, String namespace) {
 
     return patroniApi.getClusterMembers(clusterName, namespace)
         .onItem().transform(members -> members.stream()
@@ -33,9 +33,8 @@ public class PostgresRestartImpl implements PostgresRestart {
             .onFailure()
             .retry()
             .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
-            .atMost(50)
+            .atMost(3)
         );
-
   }
 
 }

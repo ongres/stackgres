@@ -190,7 +190,7 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
   }
 
   @Override
-  public Uni<Void> restartPostgres(ClusterMember member) {
+  public Uni<Boolean> restartPostgres(ClusterMember member) {
 
     URL apiUrl = member.getApiUrl()
         .map(url -> {
@@ -213,14 +213,13 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
         .onItem()
         .transform(res -> {
           if (res.statusCode() == 200) {
-            return null;
+            return true;
           } else {
             LOGGER.debug("Failed restart, status {}, body {}",
                 res.statusCode(),
                 res.bodyAsString());
-            throw new RuntimeException(res.body());
+            return false;
           }
         });
-
   }
 }

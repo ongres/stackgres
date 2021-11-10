@@ -19,7 +19,8 @@ public enum RestartEventType implements EventReason {
   SWITCHOVER_INITIATED(Type.NORMAL, "SwitchoverInitiated"),
   SWITCHOVER_FINALIZED(Type.NORMAL, "SwitchoverFinalized"),
   RESTARTING_POSTGRES(Type.NORMAL, "RestartingPostgres"),
-  POSTGRES_RESTARTED(Type.NORMAL, "PostgresRestarted");
+  POSTGRES_RESTARTED(Type.NORMAL, "PostgresRestarted"),
+  POSTGRES_RESTART_FAILED(Type.WARNING, "PostgresRestartFailed");
 
   private final Type type;
   private final String reason;
