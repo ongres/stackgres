@@ -41,7 +41,7 @@
             <label for="spec.postgresVersion">Postgres Version <span class="req">*</span></label>
             <select v-model="pgConfigVersion" :disabled="(editMode)" required data-field="spec.postgresVersion">
                 <option disabled value="">Select Major Postgres Version</option>
-                <option v-for="(versionsList, version) in postgresVersions">{{ version }}</option>
+                <option v-for="version in postgresVersions">{{ version }}</option>
             </select>
             <a class="help" @click="showTooltip( 'sgpostgresconfig', 'spec.postgresVersion')"></a>
 
@@ -145,7 +145,7 @@
             },
 
             postgresVersions() {
-                return store.state.postgresVersions.vanilla
+                return Object.keys(store.state.postgresVersions.vanilla).reverse()
             }
         },
         methods: {
