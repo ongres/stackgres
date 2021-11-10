@@ -15,7 +15,7 @@ docker run -it \
   -v '/var/run/docker.sock:/var/run/docker.sock:rw' \
   -v "$HOME":"$HOME":rw -e PROMPT_COMMAND= \
   -v "$PROJECT_PATH:/project:rw" -w /project \
-  "${IMAGE:-registry.gitlab.com/ongresinc/stackgres/ci:1.4}" sh -ec "$*"
+  "${IMAGE:-registry.gitlab.com/ongresinc/stackgres/ci:1.5}" sh -ec "$*"
 EXIT_CODE="$?"
 rm -f "/tmp/$CONTAINER_NAME.env"
 exit "$EXIT_CODE"
