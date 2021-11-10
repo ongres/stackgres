@@ -45,28 +45,7 @@ then
     echo 'Batch count must be greather or equal to 1, but it was '"$E2E_RUN_ONLY"
     exit 1
   fi
-  BATCH_TESTS="$("$BATCH_LIST_TEST_FUNCTION")"
-  E2E_ONLY_INCLUDES="$(echo "$BATCH_TESTS"  \
-    | while IFS="$(printf '\n')" read LINE
-      do
-        if [ -f "$E2E_PATH/test.stats" ] \
-          && grep -q "^${LINE##*spec/}:" "$E2E_PATH/test.stats"
-        then
-          grep "^${LINE##*spec/}:" "$E2E_PATH/test.stats"
-        else
-          SPECS_NO_STATS="$SPECS_NO_STATS ${LINE##*spec/}"
-          echo "${LINE##*spec/}:3600"
-        fi
-      done \
-    | sort | sort -t : -k 2 -n | grep -n '.' \
-    | while IFS="$(printf '\n')" read LINE
-      do
-        if [ "$(( (${LINE%%:*} - 1) % BATCH_COUNT))" -eq "$((BATCH_INDEX - 1))" ]
-        then
-          echo "$LINE" | cut -d : -f 2
-        fi
-      done
-      )"
+  E2E_ONLY_INCLUDES="$("$BATCH_LIST_TEST_FUNCTION" | to_e2e_test_batch "$BATCH_INDEX" "$BATCH_COUNT")"
 fi
 
 if [ -z "$E2E_ONLY_INCLUDES" ]
