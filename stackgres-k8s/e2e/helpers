@@ -64,12 +64,14 @@ escape_quote() {
   printf '%s' "$1" | sed s/\'/\'\\\\\'\'/g
 }
 
-export SHELL="$(readlink /proc/$$/exe)"
+export SHELL
+export SHELL_XTRACE
+SHELL="$(readlink /proc/$$/exe)"
 if [ "$(basename "$SHELL")" = busybox ]
 then
   SHELL=sh
 fi
-SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
+SHELL_XTRACE="$(! echo $- | grep -q x || printf '%s' "-x")"
 
 if [ "$E2E_TRACE_ALL" = true ] && [ "x" != "x$SHELL_XTRACE" ]
 then

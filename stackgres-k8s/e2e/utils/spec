@@ -284,40 +284,38 @@ e2e_after_run_test() {
 }
 
 calculate_spec_hashes() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" init_hash
   local GLOBAL_SPEC_HASH
-  GLOBAL_SPEC_HASH="$( (
-      ls -1 "$E2E_PATH/e2e" "$E2E_PATH/envs/$E2E_ENV"/* \
-        "$SPEC_PATH/default.values.yaml" "$SPEC_PATH/abstract"/* \
-        "$E2E_PATH/utils"/* 2>/dev/null | sort \
-        | while read FILE
+  GLOBAL_SPEC_HASH="$(
+      ls -1d "$E2E_PATH/e2e" "$E2E_PATH/envs/$E2E_ENV" \
+        "$SPEC_PATH/default.values.yaml" "$SPEC_PATH/abstract" \
+        "$E2E_PATH/utils" | sort \
+        | while read -r FILE
           do
-            if [ -f "$FILE" ]
-            then
-              cat "$FILE"
-            fi
-          done
-    ) \
-      | md5sum | cut -d ' ' -f 1)"
-  (
+            "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+              "$(realpath --relative-to "$PROJECT_PATH" "$FILE")"
+          done \
+        | md5sum | cut -d ' ' -f 1)"
+  {
     get_all_specs
     get_all_env_specs
-  ) \
-    | while read SPEC
+  } | while read SPEC
       do
-        SPEC_HASH="$( (
+        SPEC_HASH="$( {
           echo "$GLOBAL_SPEC_HASH"
-          basename "$SPEC"
-          basename "$(dirname "$SPEC")"
-          ls -1 "$SPEC"* | sort \
-            | while read FILE
+          "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+              "$(realpath --relative-to "$PROJECT_PATH" "$SPEC")"
+          ls -1d "$SPEC".* 2>/dev/null | sort \
+            | while read -r FILE
               do
-                if [ -f "$FILE" ]
+                if ! [ -f "$FILE" ]
                 then
-                  cat "$FILE"
+                  continue
                 fi
+                "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+                  "$(realpath --relative-to "$PROJECT_PATH" "$FILE")"
               done
-        ) \
-          | md5sum | cut -d ' ' -f 1)"
+        } | md5sum | cut -d ' ' -f 1)"
         echo "$SPEC:$SPEC_HASH"
       done
 }

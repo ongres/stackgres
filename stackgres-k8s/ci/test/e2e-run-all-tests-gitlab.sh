@@ -351,9 +351,10 @@ do
         mkdir -p '/source/${KIND_LOG_PATH##*/}'
       '$E2E_SHELL' $([ "$E2E_DEBUG" != true ] || printf '%s' '-x') stackgres-k8s/e2e/run-all-tests.sh
       EXIT_CODE=\"\$?\"
+      mkdir -p stackgres-k8s/e2e/target/kind-logs
       docker run --rm -u 0 -v '$KIND_LOG_PATH:/source/kind-logs' \
         -v '$(pwd)/stackgres-k8s/e2e/target:/target' alpine \
-        cp -r '/source/kind-logs' /target/kind-logs
+        cp -r '/source/kind-logs/.' /target/kind-logs/.
       docker run --rm -u 0 -v '${KIND_LOG_PATH%/*}:/source' alpine \
         rm -rf '/source/${KIND_LOG_PATH##*/}'
       docker run --rm -u 0 \
@@ -409,9 +410,10 @@ do
 done
 
 mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target/."
-cp -r stackgres-k8s/e2e/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target/."
+rm -rf stackgres-k8s/ci/build/target/.git
+cp -r stackgres-k8s/ci/build/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target/."
 mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target/."
-cp -r stackgres-k8s/e2e/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target/."
+cp -r stackgres-k8s/ci/test/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target/."
 mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/e2e/target"
 cp -r stackgres-k8s/e2e/target/. "$CI_PROJECT_DIR/stackgres-k8s/e2e/target/."
 
@@ -424,13 +426,6 @@ echo "Cleaning up ..."
 docker run --rm -u 0 -v "$TEMP_DIR:$TEMP_DIR" alpine rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
 
 echo "done"
-
-while read -r TEST_NAME
-do
-  IMAGE_NAME="$(grep "^$TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
-    | cut -d = -f 2-)"
-  printf '%s %s ' '-t' "$IMAGE_NAME"
-done < stackgres-k8s/ci/test/target/passed-tests
 
 if [ -s stackgres-k8s/ci/test/target/already-passed-tests ]
 then
