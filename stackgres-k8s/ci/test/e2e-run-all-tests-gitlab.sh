@@ -359,7 +359,7 @@ do
         chown -R '$(id -u):$(id -g)' '/target/kind-logs'
       docker run --rm -u 0 -v '${KIND_LOG_PATH%/*}:/source' alpine \
         rm -rf '/source/${KIND_LOG_PATH##*/}'
-      tar c --lzma \
+      tar c --xz \
         -f stackgres-k8s/e2e/target/kind-logs/kubernetes.tar.lzma \
         stackgres-k8s/e2e/target/kind-logs/kubernetes
       rm -rf stackgres-k8s/e2e/target/kind-logs/
