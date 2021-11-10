@@ -85,11 +85,11 @@
                         </div>
                         <div class="col">
                             <label for="spec.sgInstanceProfile">Instance Profile</label>  
-                            <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile" @change="(resourceProfile == 'new') && createNewResource('sginstanceprofiles')">
+                            <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
                                 <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
                                 <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
                                 <option value="" disabled>– OR –</option>
-                                <option value="new">Create new profile</option>
+                                <option value="createNewResource">Create new profile</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.sgInstanceProfile')"></span>
                         </div>
@@ -198,11 +198,11 @@
 
                         <div class="col">
                             <label for="spec.configurations.sgPostgresConfig">Postgres Configuration</label>
-                            <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig == 'new') && createNewResource('sgpgconfigs')">
+                            <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (pgConfig == 'createNewResource') && (pgConfig = '') )">
                                 <option value="" selected>Default</option>
                                 <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
                                 <option value="" disabled>– OR –</option>
-                                <option value="new">Create new configuration</option>
+                                <option value="createNewResource">Create new configuration</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPostgresConfig')"></span>
                         </div>
@@ -242,7 +242,7 @@
                                     <a v-if="ext.hasOwnProperty('url') && ext.url" :href="ext.url" class="newTab" target="_blank"></a>
                                 </span>
                                 <span class="version">
-                                    <select v-model="ext.selectedVersion" class="extVersion" @change="updateExtVersion(ext.name, ext.selectedVersion)">
+                                    <select v-model="ext.selectedVersion" class="extVersion" @change="updateExtVersion(ext.name, ext.selectedVersion)" :set="ext.versions.length && (ext.selectedVersion = ext.versions[0])">
                                         <option v-if="!ext.versions.length" selected>Not available for this postgres version</option>
                                         <option v-for="v in ext.versions">{{ v }}</option>
                                     </select>
@@ -294,13 +294,15 @@
                         <template v-if="( (initializationMethod == 'backup') && ( (editMode && restoreBackup.length) || (!editMode && backups.length) ) )">
                             <div class="col">
                                 <label for="spec.initialData.restore.fromBackup">Backup Selection</label>
-                                <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="initDatepicker()">
+                                <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : initDatepicker()" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
                                     <option value="">Select a Backup</option>
                                     <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && backup.data.status !== null )">
                                         <option v-if="backup.data.status.process.status === 'Completed'" :value="backup.data.metadata.uid">
                                             {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
                                         </option>
                                     </template>
+                                    <option value="" disabled>– OR –</option>
+                                    <option value="createNewResource">Create new backup</option>
                                 </select>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
                             </div>
@@ -431,11 +433,11 @@
 
                         <div class="col">
                             <label for="connectionPoolingConfig">Connection Pooling Configuration</label>
-                            <select v-model="connectionPoolingConfig" class="connectionPoolingConfig" :disabled="!connPooling" @change="(connectionPoolingConfig == 'new') && createNewResource('sgpoolconfigs')">>
+                            <select v-model="connectionPoolingConfig" class="connectionPoolingConfig" :disabled="!connPooling" @change="(connectionPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (connectionPoolingConfig == 'createNewResource') && (connectionPoolingConfig = '') )">
                                 <option value="" selected>Default</option>
                                 <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                                 <option value="" disabled>– OR –</option>
-                                <option value="new">Create new configuration</option>
+                                <option value="createNewResource">Create new configuration</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>
                         </div>
@@ -481,11 +483,11 @@
 
                         <div class="col">
                             <label for="spec.distributedLogs.sgDistributedLogs">Distributed Logs</label>
-                            <select v-model="distributedLogs" class="distributedLogs" data-field="spec.distributedLogs.sgDistributedLogs" @change="(distributedLogs == 'new') && createNewResource('sgdistributedlogs')">
+                            <select v-model="distributedLogs" class="distributedLogs" data-field="spec.distributedLogs.sgDistributedLogs" @change="(distributedLogs == 'createNewResource') && createNewResource('sgdistributedlogs')" :set="( (distributedLogs == 'createNewResource') && (distributedLogs = '') )">
                                 <option disabled value="">Select Logs Cluster</option>
                                 <option v-for="cluster in logsClusters" :value="( (cluster.data.metadata.namespace !== $route.params.namespace) ? cluster.data.metadata.namespace + '.' : '') + cluster.data.metadata.name">{{ cluster.data.metadata.name }}</option>
                                 <option value="" disabled>– OR –</option>
-                                <option value="new">Create new log server</option>
+                                <option value="createNewResource">Create new log server</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.sgDistributedLogs')"></span>
                         </div>
@@ -502,11 +504,11 @@
                     <div class="row-50">
                         <div class="col">
                             <label for="spec.configurations.sgBackupConfig">Automatic Backups</label>
-                            <select v-model="backupConfig" class="backupConfig" data-field="spec.configurations.sgBackupConfig" @change="(backupConfig == 'new') && createNewResource('sgbackupconfigs')">
+                            <select v-model="backupConfig" class="backupConfig" data-field="spec.configurations.sgBackupConfig" @change="(backupConfig == 'createNewResource') && createNewResource('sgbackupconfigs')" :set="( (backupConfig == 'createNewResource') && (backupConfig = '') )">
                                 <option disabled value="">Select Backup Configuration</option>
                                 <option v-for="conf in backupConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                                 <option value="" disabled>– OR –</option>
-                                <option value="new">Create new configuration</option>
+                                <option value="createNewResource">Create new configuration</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgBackupConfig')"></span>
                         </div>
