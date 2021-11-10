@@ -192,8 +192,17 @@ EOF
 }
 
 store_test_results() {
-  PASSED_TEST_PATH="$(realpath stackgres-k8s/ci/test/target/passed-tests)"
-  TEST_RESULT_IMAGES_PATH="$(realpath stackgres-k8s/ci/test/target/test-result-images)"
+  xq -r '
+    select(.testsuites != null
+      and .testsuites.testsuite != null
+      and .testsuites.testsuite.testcase != null)
+    | if (.testsuites.testsuite.testcase | type) == "object"
+      then [.testsuites.testsuite.testcase][]
+      else .testsuites.testsuite.testcase[]
+      end
+    | .["@classname"]' \
+    stackgres-k8s/e2e/target/e2e-tests-junit-report.xml \
+    > stackgres-k8s/ci/test/target/all-tests
 
   xq -r '
     select(.testsuites != null
@@ -205,7 +214,19 @@ store_test_results() {
       end
     | select((has("failure")|not))["@classname"]' \
     stackgres-k8s/e2e/target/e2e-tests-junit-report.xml \
-    > "$PASSED_TEST_PATH"
+    > stackgres-k8s/ci/test/target/passed-tests
+
+  xq -r '
+    select(.testsuites != null
+      and .testsuites.testsuite != null
+      and .testsuites.testsuite.testcase != null)
+    | if (.testsuites.testsuite.testcase | type) == "object"
+      then [.testsuites.testsuite.testcase]
+      else .testsuites.testsuite.testcase
+      end
+    | any((has("failure")))' \
+    stackgres-k8s/e2e/target/e2e-tests-junit-report.xml \
+    > stackgres-k8s/ci/test/target/any-test-failed
 
   cat << EOF > stackgres-k8s/e2e/target/Dockerfile.e2e
 FROM alpine:3.13.5
@@ -218,19 +239,19 @@ EOF
     $(
       while read -r TEST_NAME
       do
-        IMAGE_NAME="$(grep "^$TEST_NAME=" "$TEST_RESULT_IMAGES_PATH" \
+        IMAGE_NAME="$(grep "^$TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
           | cut -d = -f 2-)"
         printf '%s %s ' '-t' "$IMAGE_NAME"
-      done < "$PASSED_TEST_PATH"
+      done < stackgres-k8s/ci/test/target/passed-tests
     ) \
     stackgres-k8s/e2e/target
   docker push "$CI_REGISTRY/$CI_PROJECT_PATH/e2e-test-result:$CI_COMMIT_SHORT_SHA"
   while read -r TEST_NAME
   do
-    IMAGE_NAME="$(grep "^$TEST_NAME=" "$TEST_RESULT_IMAGES_PATH" \
+    IMAGE_NAME="$(grep "^$TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
       | cut -d = -f 2-)"
     printf '%s\n' "$IMAGE_NAME"
-  done < "$PASSED_TEST_PATH" \
+  done < stackgres-k8s/ci/test/target/passed-tests \
     | xargs -I % -P "$E2E_PARALLELISM" docker push %
 }
 
@@ -399,5 +420,51 @@ echo "Cleaning up ..."
 docker run --rm -u 0 -v "$TEMP_DIR:$TEMP_DIR" alpine rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
 
 echo "done"
+
+while read -r TEST_NAME
+do
+  IMAGE_NAME="$(grep "^$TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
+    | cut -d = -f 2-)"
+  printf '%s %s ' '-t' "$IMAGE_NAME"
+done < stackgres-k8s/ci/test/target/passed-tests
+
+if [ -s stackgres-k8s/ci/test/target/already-passed-tests ]
+then
+  echo "Already passed tests:"
+  echo
+  while read -r TEST_NAME
+  do
+    if grep -qxF "$TEST_NAME" stackgres-k8s/ci/test/target/all-tests
+    then
+      printf ' - %s\n' "$TEST_NAME"
+    fi
+  done < stackgres-k8s/ci/test/target/already-passed-tests
+  echo
+fi
+
+if [ -s stackgres-k8s/ci/test/target/passed-tests ]
+then
+  echo "Passed tests:"
+  echo
+  while read -r TEST_NAME
+  do
+    printf ' - %s\n' "$TEST_NAME"
+  done < stackgres-k8s/ci/test/target/passed-tests
+  echo
+fi
+
+if [ "$(cat stackgres-k8s/ci/test/target/any-test-failed)" = true ]
+then
+  echo "Failed tests:"
+  echo
+  while read -r TEST_NAME
+  do
+    if ! grep -qxF "$TEST_NAME" stackgres-k8s/ci/test/target/passed-tests
+    then
+      printf ' - %s\n' "$TEST_NAME"
+    fi
+  done < stackgres-k8s/ci/test/target/all-tests
+  echo
+fi
 
 exit "$EXIT_CODE"
