@@ -6,6 +6,7 @@
 package io.stackgres.jobs.dbops.clusterrestart;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
@@ -1197,6 +1198,41 @@ class ClusterRestartImplTest {
     verify(switchoverHandler, times(0)).performSwitchover(any(), any(), any());
     verify(instanceManager, times(0)).increaseClusterInstances(any(), any());
     verify(instanceManager, times(0)).decreaseClusterInstances(any(), any());
+  }
+  
+  @Test()
+  void givenAFailureOnPostgreRestart_itShouldSetStatusAsFailedPostgresRestart() {
+    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
+        .restartMethod(IN_PLACE_METHOD)
+        .isOnlyPendingRestart(false)
+        .primaryInstance(primary)
+        .addInitialInstances(primary, replica1, replica2)
+        .addTotalInstances(primary, replica1, replica2)
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(),
+            replica1, RestartReasons.of(),
+            replica2, RestartReasons.of()))
+        .isSwitchoverInitiated(false)
+        .isSwitchoverFinalized(false)
+        .build();
+
+    when(podRestart.restartPod(any(Pod.class))).thenAnswer(invocationOnMock -> {
+      Pod pod = invocationOnMock.getArgument(0);
+      return Uni.createFrom().item(pod);
+    });
+
+    final String primaryName = primary.getMetadata().getName();
+    when(postgresRestart.restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(false));
+    
+      assertThrows(FailedRestartPostgresException.class, () -> clusterRestart.restartCluster(clusterState)
+      .subscribe()
+      .asStream()
+      .collect(Collectors.toUnmodifiableList()).stream().findAny().get());
   }
 
 }

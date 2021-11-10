@@ -240,14 +240,14 @@ public class ClusterRestartImpl implements ClusterRestart {
               clusterName,
               clusterRestartState.getNamespace()))
           .onItemOrFailure()
-          .invoke((restarted, failure) -> foo(restarted, em, primaryInstance,
+          .invoke((restarted, failure) -> checkPostgresRestart(restarted, em, primaryInstance,
               primaryInstanceName));
       restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
     }
     return restartChain;
   }
 
-  private Object foo(Boolean isPostgresRestarted, MultiEmitter<? super RestartEvent> em,
+  private Object checkPostgresRestart(Boolean isPostgresRestarted, MultiEmitter<? super RestartEvent> em,
       Pod primaryInstance, String primaryInstanceName) {
     {
       if (isPostgresRestarted) {

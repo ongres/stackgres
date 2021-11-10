@@ -33,7 +33,7 @@ public class PostgresRestartImpl implements PostgresRestart {
             .onFailure()
             .retry()
             .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
-            .atMost(3)
+            .atMost(10)
         );
   }
 
