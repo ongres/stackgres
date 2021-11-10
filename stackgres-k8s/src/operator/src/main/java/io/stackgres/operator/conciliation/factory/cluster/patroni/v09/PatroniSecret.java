@@ -3,9 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
-
-import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+package io.stackgres.operator.conciliation.factory.cluster.patroni.v09;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +17,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.patroni.StackGresRandomPasswordKeys;
 import io.stackgres.operator.common.StackGresVersion;
@@ -29,7 +26,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
 public class PatroniSecret implements
     ResourceGenerator<StackGresClusterContext>, StackGresRandomPasswordKeys {
 
@@ -55,7 +52,7 @@ public class PatroniSecret implements
     final StackGresCluster cluster = context.getSource();
     final String name = cluster.getMetadata().getName();
     final String namespace = cluster.getMetadata().getNamespace();
-    final Map<String, String> labels = factoryFactory.genericLabels(cluster);
+    final Map<String, String> labels = factoryFactory.clusterLabels(cluster);
 
     Map<String, String> generatedPasswords = context.getDatabaseCredentials()
         .map(Secret::getData)
@@ -68,22 +65,8 @@ public class PatroniSecret implements
         .getOrDefault(REPLICATION_PASSWORD_KEY, generatePassword()));
     data.put(AUTHENTICATOR_PASSWORD_KEY, generatedPasswords
         .getOrDefault(AUTHENTICATOR_PASSWORD_KEY, generatePassword()));
-    data.put(PGBOUNCER_ADMIN_PASSWORD_KEY, generatedPasswords
-        .getOrDefault(PGBOUNCER_ADMIN_PASSWORD_KEY, generatePassword()));
-    data.put(PGBOUNCER_STATS_PASSWORD_KEY, generatedPasswords
-        .getOrDefault(PGBOUNCER_STATS_PASSWORD_KEY, generatePassword()));
     data.put(RESTAPI_PASSWORD_KEY, generatedPasswords
         .getOrDefault(RESTAPI_PASSWORD_KEY, generatePassword()));
-
-    if (getPostgresFlavorComponent(context.getSource()) == StackGresComponent.BABELFISH) {
-      data.put(BABELFISH_PASSWORD_KEY, generatedPasswords
-          .getOrDefault(BABELFISH_PASSWORD_KEY, generatePassword()));
-      data.put(BABELFISH_CREATE_USER_SQL_KEY,
-          ResourceUtil.encodeSecret(
-              "CREATE USER " + BABELFISH_USER_NAME + " SUPERUSER"
-                  + " PASSWORD '" + ResourceUtil.dencodeSecret(
-                  data.get(BABELFISH_PASSWORD_KEY)) + "'"));
-    }
 
     return Stream.of(new SecretBuilder()
         .withNewMetadata()

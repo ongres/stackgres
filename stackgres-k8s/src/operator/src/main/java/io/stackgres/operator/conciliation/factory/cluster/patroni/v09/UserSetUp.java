@@ -64,7 +64,6 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContainerCont
                 .withName(PatroniStaticVolume.LOCAL.getVolumeName())
                 .withMountPath("/local/etc")
                 .withSubPath("etc")
-                .withReadOnly(false)
                 .build())
         .build();
   }

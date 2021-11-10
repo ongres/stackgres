@@ -3,9 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.cluster.patroni.v09;
 
-import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import static io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
 
 import java.util.Map;
@@ -23,7 +22,6 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -35,11 +33,12 @@ import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
 public class PatroniServices implements
     ResourceGenerator<StackGresClusterContext> {
 
@@ -81,7 +80,7 @@ public class PatroniServices implements
     final StackGresCluster cluster = context.getSource();
     final String namespace = cluster.getMetadata().getNamespace();
 
-    final Map<String, String> labels = labelFactory.genericLabels(cluster);
+    final Map<String, String> labels = labelFactory.clusterLabels(cluster);
 
     Service config = createConfigService(namespace, configName(context),
         labels);
@@ -119,7 +118,7 @@ public class PatroniServices implements
   }
 
   private Service createConfigService(String namespace, String serviceName,
-      Map<String, String> labels) {
+                                      Map<String, String> labels) {
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
@@ -135,7 +134,7 @@ public class PatroniServices implements
   private Service createPatroniRestService(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
 
-    final Map<String, String> labels = labelFactory.genericLabels(cluster);
+    final Map<String, String> labels = labelFactory.clusterLabels(cluster);
 
     return new ServiceBuilder()
         .withNewMetadata()
@@ -196,16 +195,6 @@ public class PatroniServices implements
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
-        .addAllToPorts(Seq.of(
-            new ServicePortBuilder()
-                .withProtocol("TCP")
-                .withName(PatroniConfigMap.BABELFISH_PORT_NAME)
-                .withPort(PatroniUtil.BABELFISH_SERVICE_PORT)
-                .withTargetPort(new IntOrString(PatroniConfigMap.BABELFISH_PORT_NAME))
-                .build())
-            .filter(servicePort -> getPostgresFlavorComponent(cluster)
-                == StackGresComponent.BABELFISH)
-            .toList())
         .withType(serviceType)
         .endSpec()
         .build();
@@ -214,7 +203,7 @@ public class PatroniServices implements
   private Service createPrimaryService(StackGresClusterContext context) {
     StackGresCluster cluster = context.getSource();
 
-    final Map<String, String> labels = labelFactory.genericLabels(cluster);
+    final Map<String, String> labels = labelFactory.clusterLabels(cluster);
 
     return new ServiceBuilder()
         .withNewMetadata()
@@ -258,27 +247,17 @@ public class PatroniServices implements
         .withNewSpec()
         .withSelector(replicaLabels)
         .withPorts(new ServicePortBuilder()
-            .withProtocol("TCP")
-            .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
-            .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
-            .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_PORT_NAME))
-            .build(),
+                .withProtocol("TCP")
+                .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
+                .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
+                .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_PORT_NAME))
+                .build(),
             new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
-        .addAllToPorts(Seq.of(
-            new ServicePortBuilder()
-                .withProtocol("TCP")
-                .withName(PatroniConfigMap.BABELFISH_PORT_NAME)
-                .withPort(PatroniUtil.BABELFISH_SERVICE_PORT)
-                .withTargetPort(new IntOrString(PatroniConfigMap.BABELFISH_PORT_NAME))
-                .build())
-            .filter(servicePort -> getPostgresFlavorComponent(cluster)
-                == StackGresComponent.BABELFISH)
-            .toList())
         .withType(serviceType)
         .endSpec()
         .build();

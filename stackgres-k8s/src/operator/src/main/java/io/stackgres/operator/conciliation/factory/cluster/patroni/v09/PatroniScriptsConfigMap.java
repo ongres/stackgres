@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.cluster.patroni.v09;
 
 import java.util.List;
 import java.util.Locale;
@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.tuple.Tuple4;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
 public class PatroniScriptsConfigMap implements
     VolumeFactory<StackGresClusterContext> {
 
@@ -105,6 +105,7 @@ public class PatroniScriptsConfigMap implements
                 .withConfigMap(new ConfigMapVolumeSourceBuilder()
                     .withName(name(context, t))
                     .withOptional(false)
+                    .withDefaultMode(420)
                     .build()
                 )
                 .build()
@@ -113,7 +114,7 @@ public class PatroniScriptsConfigMap implements
                     .withNewMetadata()
                     .withNamespace(cluster.getMetadata().getNamespace())
                     .withName(name(context, t))
-                    .withLabels(labelFactory.genericLabels(cluster))
+                    .withLabels(labelFactory.patroniClusterLabels(cluster))
                     .endMetadata()
                     .withData(ImmutableMap.of(scriptName(t), t.v1.getScript()))
                     .build()

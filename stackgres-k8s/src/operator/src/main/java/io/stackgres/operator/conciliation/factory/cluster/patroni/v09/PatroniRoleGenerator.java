@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.cluster.patroni.v09;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -28,18 +28,13 @@ import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
 public class PatroniRoleGenerator implements
     ResourceGenerator<StackGresClusterContext> {
 
@@ -81,7 +76,7 @@ public class PatroniRoleGenerator implements
    */
   private Role createRole(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
-    final Map<String, String> labels = labelFactory.genericLabels(cluster);
+    final Map<String, String> labels = labelFactory.clusterLabels(cluster);
     return new RoleBuilder()
         .withNewMetadata()
         .withName(roleName(context))
@@ -119,32 +114,15 @@ public class PatroniRoleGenerator implements
             .withVerbs("create")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("")
-            .withResources("events")
-            .withVerbs("get", "list", "create", "patch", "update")
-            .build())
-        .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(HasMetadata.getPlural(StackGresBackup.class))
-            .withVerbs("list", "get", "create", "patch", "update", "delete")
+            .withVerbs("list", "get", "create", "patch", "delete")
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(
-                HasMetadata.getPlural(StackGresBackupConfig.class),
-                HasMetadata.getPlural(StackGresCluster.class),
-                HasMetadata.getPlural(StackGresPostgresConfig.class),
-                HasMetadata.getPlural(StackGresPoolingConfig.class),
-                HasMetadata.getPlural(StackGresProfile.class),
-                HasMetadata.getPlural(StackGresDistributedLogs.class),
-                HasMetadata.getPlural(StackGresDbOps.class))
-            .withVerbs("get", "list", "watch", "patch", "update")
-            .build())
-        .addToRules(new PolicyRuleBuilder()
-            .withApiGroups(CommonDefinition.GROUP)
-            .withResources(
-                HasMetadata.getPlural(StackGresCluster.class) + "/status")
-            .withVerbs("update")
+                HasMetadata.getPlural(StackGresBackupConfig.class))
+            .withVerbs("get")
             .build())
         .build();
   }
@@ -154,7 +132,7 @@ public class PatroniRoleGenerator implements
    */
   private RoleBinding createRoleBinding(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
-    final Map<String, String> labels = labelFactory.genericLabels(cluster);
+    final Map<String, String> labels = labelFactory.clusterLabels(cluster);
     return new RoleBindingBuilder()
         .withNewMetadata()
         .withName(roleName(context))

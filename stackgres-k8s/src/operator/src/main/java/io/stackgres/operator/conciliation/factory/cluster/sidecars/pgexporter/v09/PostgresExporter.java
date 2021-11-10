@@ -161,6 +161,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
     return new VolumeBuilder()
         .withName(StatefulSetDynamicVolumes.EXPORTER_QUERIES.getVolumeName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withDefaultMode(420)
             .withName(configName(context))
             .build())
         .build();
