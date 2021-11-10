@@ -355,13 +355,13 @@ do
         -v '$(pwd)/stackgres-k8s/e2e/target:/target' alpine \
         cp -r '/source/kind-logs' /target/kind-logs
       docker run --rm -u 0 \
-        -v 'stackgres-k8s/e2e/target:/target' alpine \
+        -v '$(pwd)/stackgres-k8s/e2e/target:/target' alpine \
         chown -R '$(id -u):$(id -g)' '/target/kind-logs'
       docker run --rm -u 0 -v '${KIND_LOG_PATH%/*}:/source' alpine \
         rm -rf '/source/${KIND_LOG_PATH##*/}'
       tar c --lzma \
         -f stackgres-k8s/e2e/target/kind-logs/kubernetes.tar.lzma \
-        stackgres-k8s/e2e/target/kind-logs/
+        stackgres-k8s/e2e/target/kind-logs/kubernetes
       rm -rf stackgres-k8s/e2e/target/kind-logs/
       exit \"\$EXIT_CODE\"
       "
