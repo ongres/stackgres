@@ -78,16 +78,9 @@ create_or_replace_cluster_for_version() {
   CLUSTER_HELM_URL="$(get_cluster_helm_url "$VERSION")"
 
   local TRANSFORMER="dont_transform"
-  if [ "$(get_version_as_number "$VERSION")" -lt "$(get_version_as_number 1.0.0-alpha3)" \
-      -a "$(get_version_as_number "$VERSION")" -ge "$(get_version_as_number 1.0.0-alpha2)" ]
+  if [ "$(get_version_as_number "$VERSION")" -lt "$(get_version_as_number 1.0.0-alpha1)" ]
   then
-    TRANSFORMER="transform_pre_1_0_0_alpha3_post_1_0_0_alpha2"
-  elif [ "$(get_version_as_number "$VERSION")" -lt "$(get_version_as_number 1.0.0-alpha3)" ]
-  then
-    TRANSFORMER="transform_pre_1_0_0_alpha3"
-  elif [ "$(get_version_as_number "$VERSION")" -lt "$(get_version_as_number 1.0.0-alpha2)" ]
-  then
-    TRANSFORMER="transform_pre_1_0_0_alpha2"
+    TRANSFORMER="transform_to_0_9"
   fi
 
   if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
@@ -105,39 +98,34 @@ create_or_replace_cluster_for_version() {
   fi
 }
 
-transform_pre_1_0_0_alpha3_post_1_0_0_alpha2() {
-  if [ "${1%=*}" = 'cluster.postgres.version' ]
+transform_to_0_9() {
+  if printf '%s' "$1" | grep -q '^cluster\.metadata\.labels\.clusterPods'
+  then
+    printf '%s' "$1" | sed 's/^cluster\.metadata\.labels\.clusterPods\(.*\)/cluster.pods.metadata.labels\1/'
+  elif printf '%s' "$1" | grep -q '^cluster\.metadata\.annotations\.clusterPods'
+  then
+    printf '%s' "$1" | sed 's/^cluster\.metadata\.annotations\.clusterPods\(.*\)/cluster.metadata.annotations.pods\1/'
+  elif printf '%s' "$1" | grep -q '^cluster\.metadata\.annotations\.primaryService'
+  then
+    printf '%s' "$1" | sed 's/^cluster\.metadata\.annotations\.primaryService\(.*\)/cluster.postgresServices.primary.annotations\1/'
+  elif printf '%s' "$1" | grep -q '^cluster\.metadata\.annotations\.replicasService'
+  then
+    printf '%s' "$1" | sed 's/^cluster\.metadata\.annotations\.replicasService\(.*\)/cluster.postgresServices.replicas.annotations\1/'
+  elif [ "${1%=*}" = 'cluster.postgres.version' ]
   then
     printf '%s=%s' 'cluster.postgresVersion' "${1#*=}"
   elif printf '%s' '${1%=*}' | grep -q '^cluster.postgres.extensions'
   then
     printf "%s=%s" "$(printf '%s' "${1%=*}" \
       | sed 's/^cluster\.postgres\.extensions/cluster.postgresExtensions/')"
-  fi
-}
-
-transform_pre_1_0_0_alpha3() {
-  if [ "${1%=*}" = 'cluster.postgres.version' ]
-  then
-    printf '%s=%s' 'cluster.postgresVersion' "${1#*=}"
   elif printf '%s' '${1%=*}' | grep -q '^cluster.postgres.extensions'
   then
     printf "%s=%s" "$(printf '%s' "${1%=*}" \
       | sed 's/^cluster\.postgres\.extensions/cluster.postgresExtensions/')"
-  else
-    transform_pre_1_0_0_alpha2 "$1"
-  fi
-}
-
-transform_pre_1_0_0_alpha2() {
-  if [ "${1%=*}" = "cluster.initialData.restore.fromBackup.uid" ]
+  elif [ "${1%=*}" = "cluster.initialData.restore.fromBackup.uid" ]
   then
     printf "%s=%s" "cluster.initialData.restore.fromBackup" "${1#*=}"
   else
-    dont_transform "$1"
+    printf "%s" "$1"
   fi
-}
-
-dont_transform() {
-  printf "%s" "$1"
 }
