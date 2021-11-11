@@ -119,6 +119,10 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 30
           timeoutSeconds: 2
+        {{- with .Values.operator.resources }}
+        resources:
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
         volumeMounts:
           - name: operator-certs
             mountPath: /etc/operator/certs

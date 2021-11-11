@@ -40,4 +40,8 @@ spec:
           - name: APP_OPTS
             value: '{{ range .Values.developer.extraOpts }}{{ . }} {{ end }}'
           {{- end }}
+        {{- with .Values.jobs.resources }}
+        resources:
+        {{- toYaml . | nindent 10 }}
+        {{- end }}             
       restartPolicy: OnFailure
