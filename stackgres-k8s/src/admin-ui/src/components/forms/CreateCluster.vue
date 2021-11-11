@@ -1,5 +1,5 @@
 <template>
-    <form id="create-cluster" class="noSubmit" v-if="loggedIn && isReady && !notFound" @submit.prevent="createCluster()">
+    <form id="create-cluster" v-if="loggedIn && isReady && !notFound" @submit.prevent>
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
         <header>
@@ -966,13 +966,13 @@
             </template>
 
             <template v-if="editMode">
-                <a class="btn" @click="createCluster">Update Cluster</a>
+                <button class="btn" @click="createCluster">Update Cluster</button>
             </template>
             <template v-else>
-                <a class="btn" @click="createCluster">Create Cluster</a>
+                <button class="btn" @click="createCluster">Create Cluster</button>
             </template>
 
-            <a @click="cancel" class="btn border">Cancel</a>
+            <button @click="cancel" class="btn border">Cancel</button>
         
         </div>
         <div id="help" class="form">
