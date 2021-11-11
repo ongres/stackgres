@@ -145,8 +145,8 @@
                 <div class="fields">
                     <div class="row-50">
                         <div class="col">
-                             <label for="spec.postgres.flavor">Postgres Flavor <span class="req">*</span></label>
-                            <select :disabled="editMode" v-model="flavor" required data-field="spec.postgres.flavor" @change="getFlavorExtensions()">
+                            <label for="spec.postgres.flavor">Postgres Flavor <span class="req">*</span></label>
+                            <select :disabled="editMode" v-model="flavor" required data-field="spec.postgres.flavor" @change="setVersion('latest') && getFlavorExtensions()">
                                 <option selected value="vanilla">Vanilla</option>
                                 <option value="babelfish">Babelfish (experimental)</option>
                             </select>
@@ -236,14 +236,15 @@
                         </li>
                         <li v-for="(ext, index) in extensionsList[flavor][postgresVersion]" v-if="(!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)) && ext.versions.length" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
                             <label class="hoverTooltip">
-                                <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length"/>
+                                <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length || !ext.selectedVersion.length" />
                                 <span class="name">
                                     {{ ext.name }}
                                     <a v-if="ext.hasOwnProperty('url') && ext.url" :href="ext.url" class="newTab" target="_blank"></a>
                                 </span>
                                 <span class="version">
-                                    <select v-model="ext.selectedVersion" class="extVersion" @change="updateExtVersion(ext.name, ext.selectedVersion)" :set="ext.versions.length && (ext.selectedVersion = ext.versions[0])">
+                                    <select v-model="ext.selectedVersion" class="extVersion" @change="updateExtVersion(ext.name, ext.selectedVersion)">
                                         <option v-if="!ext.versions.length" selected>Not available for this postgres version</option>
+                                        <option v-else value="">Select version...</option>
                                         <option v-for="v in ext.versions">{{ v }}</option>
                                     </select>
                                 </span>
@@ -1685,16 +1686,7 @@
                 if( vc.postgresVersion !== version.substring(0,2) ) {
 
                     vc.postgresVersion = version; 
-
-                    axios
-                    .get('/stackgres/extensions/' + vc.postgresVersion + '?flavor=' + vc.flavor)
-                    .then(function (response) {
-                        vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.sortExtensions(response.data.extensions)
-                    })
-                    .catch(function (error) {
-                        console.log(error.response);
-                        vc.notify(error.response.data,'error','sgclusters');
-                    });
+                    vc.getFlavorExtensions()
                 }
                 
                 $('#postgresVersion .active, #postgresVersion').removeClass('active');
@@ -1796,15 +1788,20 @@
                     }
                 })
                 
-                if( i == -1) // If not included, add extension
-                    vc.selectedExtensions.push({
-                        name: vc.extensionsList[vc.flavor][vc.postgresVersion][index].name,
-                        version: (vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions.length > 1) ? ( (vc.extVersion.name == vc.extensionsList[vc.flavor][vc.postgresVersion][index].name) ? vc.extVersion.version : vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions[0] ) : vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions[0],
-                        publisher: vc.extensionsList[vc.flavor][vc.postgresVersion][index].publisher,
-                        repository: vc.extensionsList[vc.flavor][vc.postgresVersion][index].repository
-                    })
-                else // If included, remove
+                if( i == -1) { // If not included, add extension
+                    if(vc.extensionsList[vc.flavor][vc.postgresVersion][index].selectedVersion.length) {
+                        vc.selectedExtensions.push({
+                            name: vc.extensionsList[vc.flavor][vc.postgresVersion][index].name,
+                            version: vc.extensionsList[vc.flavor][vc.postgresVersion][index].selectedVersion,
+                            publisher: vc.extensionsList[vc.flavor][vc.postgresVersion][index].publisher,
+                            repository: vc.extensionsList[vc.flavor][vc.postgresVersion][index].repository
+                        })
+                    } else {
+                        vc.notify('You must firsty select a version for the specified extension in order to enable it.', 'message', 'sgclusters');
+                    }
+                } else { // If included, remove
                     vc.selectedExtensions.splice(i, 1);
+                }
             },
 
             extIsSet(ext) {
@@ -1830,7 +1827,10 @@
                 $('[data-step].active, [data-step="' + step + '"]').toggleClass('active');
             },
 
-            sortExtensions(ext) {
+            parseExtensions(ext) {
+                ext.forEach(function(ext){
+                    ext['selectedVersion'] = ext.versions.length ? ext.versions[0] : ''
+                })
 				return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
 			},
 
@@ -2002,18 +2002,47 @@
             getFlavorExtensions() {
                 const vc = this;
 
-                if(!vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) || (vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) && !vc.extensionsList[vc.flavor][vc.postgresVersion].length )) {
+                if(!vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) || !vc.extensionsList[vc.flavor][vc.postgresVersion].length ) {
                     axios
                     .get('/stackgres/extensions/' + ( (vc.postgresVersion == 'latest') ? 'latest' : vc.postgresVersion ) + '?flavor=' + vc.flavor)
                     .then(function (response) {
-                        vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.sortExtensions(response.data.extensions)
+                        
+                        vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.parseExtensions(response.data.extensions);
+                        vc.validateSelectedExtensions();
                     })
                     .catch(function (error) {
                         console.log(error.response);
                         vc.notify(error.response.data,'error','sgclusters');
                     });
+                } else {
+                    vc.validateSelectedExtensions();
                 }
             },
+
+            validateSelectedExtensions() {
+                const vc = this;
+
+                // Validate if selected extensions are available on the current postgres flavor and version
+                let activeExtensions = [...vc.selectedExtensions];
+                let extNotAvailable = [];
+                
+                activeExtensions.forEach(function(ext) {
+                    let sourceExt = vc.extensionsList[vc.flavor][vc.postgresVersion].find(e => (e.name == ext.name) && (e.versions.includes(ext.version)));
+
+                    if(typeof sourceExt == 'undefined') {
+                        extNotAvailable.push(ext.name);
+                        vc.selectedExtensions = vc.selectedExtensions.filter(function( e ) {
+                            return e.name !== ext.name;
+                        });
+                    }
+                })
+
+                if(extNotAvailable.length) {
+                    setTimeout(function(){
+                        vc.notify('The following extensions are not available on your preferred postgres flavor and version and have then been disabled: <strong>' + extNotAvailable.join(', ') + '.</strong>', 'message', 'sgclusters');
+                    },100)
+                }
+            }
 
         },
 
@@ -2023,7 +2052,7 @@
             axios
             .get('/stackgres/extensions/latest')
             .then(function (response) {
-                vc.extensionsList[vc.flavor][vc.postgresVersion] =  vc.sortExtensions(response.data.extensions)
+                vc.extensionsList[vc.flavor][vc.postgresVersion] =  vc.parseExtensions(response.data.extensions)
             })
             .catch(function (error) {
                 console.log(error.response);
