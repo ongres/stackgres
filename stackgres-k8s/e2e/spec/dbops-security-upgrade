@@ -7,6 +7,7 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  RANDOM_VALUE="$(random_string)"
   CLUSTER_1_NAME="$(get_sgcluster_name "$CLUSTER_NAME-1")"
   CLUSTER_2_NAME="$(get_sgcluster_name "$CLUSTER_NAME-2")"
   CLUSTER_3_NAME="$(get_sgcluster_name "$CLUSTER_NAME-3")"
@@ -125,6 +126,10 @@ EOF
     --set backupconfig.retention=2 \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
     --set-string cluster.initialData.restore.fromBackup.uid="$BACKUP_UID" \
+    --set-string cluster.metadata.labels.clusterPods.pod-label="$RANDOM_VALUE" \
+    --set-string cluster.metadata.annotations.clusterPods.pod-annotation="$RANDOM_VALUE" \
+    --set-string cluster.metadata.annotations.primaryService.primary-service-label="$RANDOM_VALUE" \
+    --set-string cluster.metadata.annotations.replicasService.replicas-service-label="$RANDOM_VALUE" \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
@@ -158,6 +163,7 @@ e2e_test_uninstall() {
 e2e_test() {
   run_test "Check clusters before operator upgrade" check_before_operator_upgrade
   run_test "Check that operator can be upgraded to newer version" check_operator_upgrade
+  run_test "Check that previous CRDs be converted to previous versions" check_previous_versions_conversion_webhooks
   run_test "Check that distributedlogs node can be security upgrade after operator upgrade" check_distributedlogs_security_upgrade
   run_test "Check that cluster with 1 node can start security upgrade after operator upgrade with reduced impact" check_cluster_1_security_upgrade_start
   run_test "Check that cluster with 2 node can start security upgrade after operator upgrade with reduced impact" check_cluster_2_security_upgrade_start
@@ -255,6 +261,35 @@ check_operator_upgrade() {
     echo "New restapi image is $STACKGRES_RESTAPI_IMAGE"
     echo
     echo "Used restapi image is $POD_RESTAPI_IMAGE"
+    return 1
+  fi
+}
+
+check_previous_versions_conversion_webhooks() {
+  kubectl proxy --port=9090 &
+  KUBECTL_PROXY_PID=$!
+  trap_kill "$KUBECTL_PROXY_PID"
+  ANY_CONVERSION_FAILED=false
+  for CRD_NAME in sgclusters sginstanceprofiles \
+    sgpgconfigs sgpoolconfigs sgbackupconfigs \
+    sgbackups sgdbops sgdistributedlogs
+  do
+    for PREVIOUS_API_VERSION in $(kubectl get crd "$CRD_NAME.stackgres.io" \
+      -o=jsonpath='{ .spec.versions[?(@.storage != true)].name }')
+    do
+      if curl -f -s -k -X GET  -H "Accept: application/json" \
+        "http://localhost:9090/apis/stackgres.io/$PREVIOUS_API_VERSION/$CRD_NAME" > /dev/null
+      then
+        echo "SUCCESS. $CRD_NAME.stackgres.io can be converted to $PREVIOUS_API_VERSION"
+      else
+        echo "FAIL. $CRD_NAME.stackgres.io can not be converted to $PREVIOUS_API_VERSION"
+        ANY_CONVERSION_FAILED=true
+      fi
+    done
+  done
+  kill "$KUBECTL_PROXY_PID"
+  if "$ANY_CONVERSION_FAILED"
+  then
     return 1
   fi
 }
