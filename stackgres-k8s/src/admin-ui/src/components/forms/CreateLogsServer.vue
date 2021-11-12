@@ -1,5 +1,5 @@
 <template>
-    <form id="create-logs-server" class="noSubmit" v-if="loggedIn && isReady && !notFound" @submit.prevent="createCluster()">
+    <form id="create-logs-server" v-if="loggedIn && isReady && !notFound" @submit.prevent>
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
 
@@ -316,13 +316,13 @@
                 </template>
                 
                 <template v-if="editMode">
-                    <a class="btn" @click="createCluster">Update Server</a>
+                    <button class="btn" @click="createCluster">Update Server</button>
                 </template>
                 <template v-else>
-                    <a class="btn" @click="createCluster">Create Server</a>
+                    <button class="btn" @click="createCluster">Create Server</button>
                 </template>
 
-                <a @click="cancel" class="btn border">Cancel</a>
+                <button @click="cancel" class="btn border">Cancel</button>
             </div>   
         </div>
         <div id="help" class="form">

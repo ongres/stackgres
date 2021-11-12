@@ -1,5 +1,5 @@
 <template>
-    <form id="create-dbops" class="noSubmit" v-if="loggedIn && isReady && !notFound" @submit.prevent="createDbOps()">
+    <form id="create-dbops" v-if="loggedIn && isReady && !notFound" @submit.prevent>
         <header>
             <ul class="breadcrumbs">
                 <li class="namespace">
@@ -463,8 +463,8 @@
             </fieldset>
 
 
-            <a class="btn" @click="createDbOps">Create Operation</a>
-            <a @click="cancel" class="btn border">Cancel</a>
+            <button class="btn" @click="createDbOps">Create Operation</button>
+            <button @click="cancel" class="btn border">Cancel</button>
         
         </div>
         <div id="help" class="form">

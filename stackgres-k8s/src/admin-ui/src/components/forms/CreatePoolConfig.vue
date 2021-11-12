@@ -1,5 +1,5 @@
 <template>
-    <form id="create-poolConfig" v-if="loggedIn && isReady && !notFound" @submit.prevent="createPoolConfig()">
+    <form id="create-poolConfig" v-if="loggedIn && isReady && !notFound" @submit.prevent>
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
         <header>
@@ -48,13 +48,13 @@
                     <span class="warning">Please, be aware that some changes made to this configuration might require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance on the following {{ (configClusters.length > 1) ? 'clusters' : 'cluster' }}: <strong>{{ configClusters.join(", ") }}</strong> </span>
                 </template>
 
-                <a class="btn" @click="createPoolConfig">Update Configuration</a>
+                <button class="btn" @click="createPoolConfig">Update Configuration</button>
             </template>
             <template v-else>
-                <a class="btn" @click="createPoolConfig">Create Configuration</a>
+                <button class="btn" @click="createPoolConfig">Create Configuration</button>
             </template>
             
-            <a @click="cancel" class="btn border">Cancel</a>
+            <button @click="cancel" class="btn border">Cancel</button>
         </div>
         <div id="help" class="form">
             <div class="header">

@@ -1,5 +1,5 @@
 <template>
-    <form id="create-backup-config" v-if="loggedIn && isReady&& !notFound" @submit.prevent="createBackupConfig()">
+    <form id="create-backup-config" v-if="loggedIn && isReady&& !notFound" @submit.prevent>
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
@@ -293,12 +293,14 @@
             </fieldset>
 
             
-            <a class="btn" @click="createBackupConfig">
-                <template v-if="editMode">Update Configuration</template>
-                <template v-else>Create Configuration</template>
-            </a>
+            <template v-if="editMode">
+                <button class="btn" @click="createBackupConfig">Update Configuration</button>
+            </template>
+            <template v-else>
+                <button class="btn" @click="createBackupConfig">Create Configuration</button>
+            </template>
 
-            <a class="btn border" @click="cancel">Cancel</a>
+            <button class="btn border" @click="cancel">Cancel</button>
         </div>
         <div id="help" class="form">
             <div class="header">

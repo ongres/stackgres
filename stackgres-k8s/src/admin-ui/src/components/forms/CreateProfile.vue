@@ -1,5 +1,5 @@
 <template>
-    <form id="create-profile" v-if="loggedIn && isReady && !notFound" @submit.prevent="createProfile()">
+    <form id="create-profile" v-if="loggedIn && isReady && !notFound" @submit.prevent>
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
@@ -69,13 +69,13 @@
                     <span class="warning">Please, be aware that any changes made to this instance profile will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance on the following {{ (profileClusters.length > 1) ? 'clusters' : 'cluster' }}: <strong>{{ profileClusters.join(", ") }}</strong> </span>
                 </template>
 
-                <a class="btn" @click="createProfile">Update Profile</a>
+                <button class="btn" @click="createProfile">Update Profile</button>
             </template>
             <template v-else>
-                <a class="btn" @click="createProfile">Create Profile</a>
+                <button class="btn" @click="createProfile">Create Profile</button>
             </template>
 
-            <a @click="cancel" class="btn border">Cancel</a>
+            <button @click="cancel" class="btn border">Cancel</button>
         </div>
         <div id="help" class="form">
             <div class="header">

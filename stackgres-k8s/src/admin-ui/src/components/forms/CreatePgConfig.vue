@@ -1,5 +1,5 @@
 <template>
-    <form id="create-pgconfig" class="noSubmit" v-if="loggedIn && isReady && !notFound" @submit.prevent="createPGConfig()">
+    <form id="create-pgconfig" v-if="loggedIn && isReady && !notFound" @submit.prevent>
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
         <header>
@@ -55,13 +55,13 @@
                     <span class="warning">Please, be aware that some changes made to this configuration might require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance on the following {{ (configClusters.length > 1) ? 'clusters' : 'cluster' }}: <strong>{{ configClusters.join(", ") }}</strong> </span>
                 </template>
 
-                <a class="btn" @click="createPGConfig">Update Configuration</a>
+                <button class="btn" @click="createPGConfig">Update Configuration</button>
             </template>
             <template v-else>
-                <a class="btn" @click="createPGConfig">Create Configuration</a>
+                <button class="btn" @click="createPGConfig">Create Configuration</button>
             </template>
             
-            <a class="btn border" @click="cancel">Cancel</a>
+            <button class="btn border" @click="cancel">Cancel</button>
         </div>
         <div id="help" class="form">
             <div class="header">

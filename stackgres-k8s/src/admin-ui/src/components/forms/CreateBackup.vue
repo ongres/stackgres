@@ -1,5 +1,5 @@
 <template>
-    <form id="create-backup" v-if="loggedIn && isReady && !notFound" @submit.prevent="createBackup()">
+    <form id="create-backup" v-if="loggedIn && isReady && !notFound" @submit.prevent>
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(backup).length > 0"></template>
         <header>
@@ -66,13 +66,13 @@
             <a class="help" @click="showTooltip( 'sgbackup', 'spec.managedLifecycle')"></a>
             
             <template v-if="editMode">
-                <a class="btn" @click="createBackup">Update Backup</a>
+                <button class="btn" @click="createBackup">Update Backup</button>
             </template>
             <template v-else>
-                <a class="btn" @click="createBackup">Create Backup</a>
+                <button class="btn" @click="createBackup">Create Backup</button>
             </template>
 
-            <a class="btn border" @click="cancel">Cancel</a>
+            <button class="btn border" @click="cancel">Cancel</button>
         </div>
         <div id="help" class="form">
             <div class="header">
