@@ -29,25 +29,15 @@ public class StatusParserProviderImpl implements StatusParserProvider {
 
   @PostConstruct
   public void init() {
-
-    Optional<Integer> kubernetesVersion = getVersion();
-    if (!kubernetesVersion.isPresent()) {
-      LOGGER.debug("Cannot get k8s version. Using default parser");
-      statusParser = new Kubernetes16StatusParser();
-      return;
-    }
-
-    if (kubernetesVersion.get() < 16) {
-      LOGGER.debug("Using parser for k8s versions lower than 16");
-      statusParser = new Kubernetes12StatusParser();
-      return;
-    }
-
-    LOGGER.debug("Using parser for k8s version 16 or newer");
-    statusParser = new Kubernetes16StatusParser();
+    statusParser = getMinorVersion()
+        .map(this::getStatusParser)
+        .orElseGet(() -> {
+          LOGGER.debug("Cannot get k8s version. Using default parser (1.16+)");
+          return new Kubernetes16StatusParser();
+        });
   }
 
-  public Optional<Integer> getVersion() {
+  private Optional<Integer> getMinorVersion() {
     return Optional.ofNullable(client.getVersion())
         .map(VersionInfo::getMinor)
         .map(VERSION_PATTERN::matcher)
@@ -64,6 +54,16 @@ public class StatusParserProviderImpl implements StatusParserProvider {
   @Override
   public StatusParser getStatusParser() {
     return statusParser;
+  }
+
+  private StatusParser getStatusParser(Integer minorVersion) {
+    if (minorVersion.intValue() < 16) {
+      LOGGER.debug("Using parser for k8s versions lower than 1.16");
+      return new Kubernetes12StatusParser();
+    }
+
+    LOGGER.debug("Using parser for k8s version 1.16 or newer");
+    return new Kubernetes16StatusParser();
   }
 
 }
