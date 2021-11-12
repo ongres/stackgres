@@ -26,16 +26,13 @@ reset_cluster() {
   check_mock_data_replication "$CLUSTER_NAME"
 }
 
-check_restart() {
-  local RESTARTED_PODS="$1"
-  local NOT_RESTARTED_PODS="$2"
-
+check_restart_ran_successfully(){
   if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Running
   then
-    echo "SUCCESS. restart running."
+    echo "SUCCESS. minor version upgrade running."
   else
-    echo "FAILED. restart not running."
+    echo "FAILED. minor version upgrade not running."
     return 1
   fi
 
@@ -54,11 +51,18 @@ check_restart() {
   if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Completed
   then
-    echo "SUCCESS. restart completed."
+    echo "SUCCESS. minor version upgrade completed."
   else
-    echo "FAILED. restart failed."
+    echo "FAILED. minor version upgrade failed."
     return 1
   fi
+}
+
+check_restart() {
+  local RESTARTED_PODS="$1"
+  local NOT_RESTARTED_PODS="$2"
+
+  check_restart_ran_successfully
 
   if [ -z "$RESTARTED_PODS" ]
   then
