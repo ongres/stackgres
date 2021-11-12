@@ -247,7 +247,8 @@ public class ClusterRestartImpl implements ClusterRestart {
     return restartChain;
   }
 
-  private Object checkPostgresRestart(Boolean isPostgresRestarted, MultiEmitter<? super RestartEvent> em,
+  private Object checkPostgresRestart(Boolean isPostgresRestarted,
+      MultiEmitter<? super RestartEvent> em,
       Pod primaryInstance, String primaryInstanceName) {
     {
       if (isPostgresRestarted) {
