@@ -167,7 +167,7 @@
                                 <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length"/>
                                 {{ ext.name }} <span v-if="!ext.versions.length" class="notCompatible" data-tooltip="This extension is not compatible with the selected Postgres version"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg> </span>
                             </label>
-                            <button class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
+                            <button type="button" class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
 
                             <div v-if="(viewExtension == index)" class="extDetails">
                                 <div class="header">
@@ -966,10 +966,10 @@
             </template>
 
             <template v-if="editMode">
-                <button class="btn" @click="createCluster">Update Cluster</button>
+                <button type="submit" class="btn" @click="createCluster">Update Cluster</button>
             </template>
             <template v-else>
-                <button class="btn" @click="createCluster">Create Cluster</button>
+                <button type="submit" class="btn" @click="createCluster">Create Cluster</button>
             </template>
 
             <button @click="cancel" class="btn border">Cancel</button>
@@ -1448,7 +1448,7 @@
                                 ...(this.selectedExtensions.length && ({
                                     "extensions": this.selectedExtensions
                                 })),
-                                ...( (this.flavor == 'babelfish') && ( {"flavor": this.flavor }) )
+                                "flavor": this.flavor
                             }
 
                         }
