@@ -129,7 +129,7 @@
                     <div class="row-50">
                         <h3>Non Production Settings</h3>
                         <div class="col">
-                            <label for="spec.nonProductionOptions.disableClusterPodAntiAffinity" class="switch yes-no">disableClusterPodAntiAffinity <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="disableClusterPodAntiAffinity" data-switch="NO"></label>
+                            <label for="spec.nonProductionOptions.disableClusterPodAntiAffinity" class="switch yes-no">Disable Cluster Pod Anti Affinity <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="disableClusterPodAntiAffinity" data-switch="NO"></label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity')"></span>
                         </div>
                     </div>
@@ -146,7 +146,7 @@
                     <div class="row-50">
                         <div class="col">
                             <label for="spec.postgres.flavor">Postgres Flavor <span class="req">*</span></label>
-                            <select :disabled="editMode" v-model="flavor" required data-field="spec.postgres.flavor" @change="setVersion('latest') && getFlavorExtensions()">
+                            <select :disabled="editMode" v-model="flavor" required data-field="spec.postgres.flavor" @change="getFlavorExtensions()">
                                 <option selected value="vanilla">Vanilla</option>
                                 <option value="babelfish">Babelfish (experimental)</option>
                             </select>
@@ -182,11 +182,6 @@
                                     </li>
                                 </ul>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
-
-                                <div class="warning" v-if="!pgConfigExists">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="18" viewBox="0 0 20 18"><g transform="translate(0 -183)"><path d="M18.994,201H1.006a1,1,0,0,1-.871-.516,1.052,1.052,0,0,1,0-1.031l8.993-15.974a1.033,1.033,0,0,1,1.744,0l8.993,15.974a1.052,1.052,0,0,1,0,1.031A1,1,0,0,1,18.994,201ZM2.75,198.937h14.5L10,186.059Z" fill="#00adb5"/><rect width="2" height="5.378" rx="0.947" transform="translate(9 189.059)" fill="#00adb5"/><rect width="2" height="2" rx="1" transform="translate(9 195.437)" fill="#00adb5"/></g></svg>
-                                    <p>Please notice that <strong>there are no Postgres Configurations available</strong> for this Postgres Version in this Namespace. A <strong>default Postgres Configuration will be created and applied to the cluster</strong> if you continue.</p>
-                                </div>
 
                                 <input v-model="postgresVersion" @change="checkPgConfigVersion" required class="hide">
                             </div>
@@ -1093,7 +1088,7 @@
                                 </fieldset>
 
                                 <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight">Weight</label>
-                                <input v-model="preferredAffinityTerm.weight" autocomplete="off" type="number" min="1" max="100">
+                                <input v-model="preferredAffinityTerm.weight" autocomplete="off" type="number" min="1" max="100" class="affinityWeight">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight')"></span>
                             </div>
                         </fieldset>
@@ -1683,11 +1678,15 @@
             setVersion( version = 'latest') {
                 const vc = this
 
-                if( vc.postgresVersion !== version.substring(0,2) ) {
-
-                    vc.postgresVersion = version; 
-                    vc.getFlavorExtensions()
+                
+                if(version != 'latest') {
+                    vc.postgresVersion = version.includes('.') ? version : vc.postgresVersionsList[vc.flavor][version][0]; 
+                } else {
+                    vc.postgresVersion = 'latest';
                 }
+
+                vc.validateSelectedPgConfig();
+                vc.getFlavorExtensions();
                 
                 $('#postgresVersion .active, #postgresVersion').removeClass('active');
                 $('#postgresVersion [data-val="'+version+'"]').addClass('active');
@@ -2012,11 +2011,22 @@
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        vc.notify(error.response.data,'error','sgclusters');
                     });
                 } else {
                     vc.validateSelectedExtensions();
                 }
+
+                if( (vc.postgresVersion != 'latest') && ( !vc.hasProp(vc.postgresVersionsList[vc.flavor], vc.shortPostgresVersion) || (vc.hasProp(vc.postgresVersionsList[vc.flavor], vc.shortPostgresVersion) && !vc.postgresVersionsList[vc.flavor][vc.shortPostgresVersion].includes(vc.postgresVersion)) ) ) {
+                    vc.postgresVersion = 'latest';
+                    $('#postgresVersion .active, #postgresVersion').removeClass('active');
+                    $('#postgresVersion [data-val="latest"]').addClass('active');
+
+                    setTimeout(function(){
+                        vc.notify('The <strong>postgres flavor</strong> you requested is not available on the <strong>postgres version</strong> you selected. Choose a different version or your cluster will be created with the latest one avalable.', 'message', 'sgclusters', false);
+                    },100);
+                }
+
+                vc.validateSelectedPgConfig();
             },
 
             validateSelectedExtensions() {
@@ -2041,6 +2051,21 @@
                     setTimeout(function(){
                         vc.notify('The following extensions are not available on your preferred postgres flavor and version and have then been disabled: <strong>' + extNotAvailable.join(', ') + '.</strong>', 'message', 'sgclusters');
                     },100)
+                }
+            },
+
+            validateSelectedPgConfig() {
+                const vc = this;
+
+                if(vc.pgConfig.length) {
+                    let config = vc.pgConf.find(c => (c.data.metadata.name == vc.pgConfig) && (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.postgresVersion == vc.shortPostgresVersion))
+
+                    if(typeof config == 'undefined') {
+                        setTimeout(function(){
+                            vc.notify('The  postgres configuration you selected is not available for this postgres version. Choose a new configuration from the list or a default configuration will be created for you.', 'message', 'sgclusters', false);
+                        },100)
+                        vc.pgConfig = '';
+                    }
                 }
             }
 
@@ -2154,7 +2179,7 @@
 
     ul.extensionsList {
         list-style: none;
-        max-height: 300px;
+        max-height: 40vh;
         overflow-y: auto;
         margin-bottom: 20px;
         padding-right: 10px;
@@ -2513,6 +2538,14 @@
 
     .darkmode .warning.babelfish:before {
         background: #361f1b;
+    }
+
+    input.affinityWeight + span {
+        left: -20px;
+    }
+
+    input.affinityWeight {
+        width: calc(100% - 25px);
     }
 
 </style>

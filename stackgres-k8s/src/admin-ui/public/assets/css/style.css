@@ -1351,6 +1351,8 @@ footer .tooltip p {
 
 #notifications.active .tooltip {
     display: block !important;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
 }
 
 #notifications hr {
