@@ -18,7 +18,7 @@ e2e_test_install() {
         "s3:DeleteObject"
       ],
       "Resource": [
-        "arn:aws:s3:::stackgres-e2e/*"
+        "arn:aws:s3:::$K8S_EKS_BUCKET_NAME/*"
       ]
     },
     {
@@ -28,7 +28,7 @@ e2e_test_install() {
         "s3:GetBucketLocation"
       ],
       "Resource": [
-        "arn:aws:s3:::stackgres-e2e"
+        "arn:aws:s3:::$K8S_EKS_BUCKET_NAME"
       ]
     }
   ]
@@ -51,7 +51,8 @@ EOF
     -n "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
-    --set-string cluster.configurations.shBackupConfig=backupconf
+    --set-string cluster.configurations.shBackupConfig=backupconf \
+    --set-string configurations.backupconfig.storage.s3.bucket="$K8S_EKS_BUCKET_NAME"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
@@ -77,7 +78,7 @@ e2e_test_uninstall() {
   aws iam delete-user --region "$K8S_EKS_REGION" --user-name "stackgres-e2e-$CLUSTER_NAME"
   aws iam delete-policy --region "$K8S_EKS_REGION" \
     --policy-arn "arn:aws:iam::$AWS_ACCOUNT:policy/stackgres-e2e-$CLUSTER_NAME"
-  aws s3 rm --recursive "s3://stackgres-e2e/$CLUSTER_NAMESPACE/$CLUSTER_NAME"
+  aws s3 rm --recursive "s3://$K8S_EKS_BUCKET_NAME/$CLUSTER_NAMESPACE/$CLUSTER_NAME"
 }
 
 e2e_test() {

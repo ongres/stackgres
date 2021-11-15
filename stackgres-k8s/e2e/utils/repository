@@ -20,44 +20,40 @@ traceable_setup_cache() {
 }
 
 set_up_private_repository() {
-  if ! aws ecr describe-repositories --repository-name "stackgres/operator" > /dev/null
-  then
-    aws ecr create-repository --repository-name "stackgres/operator" 
-  fi
-
-  if ! aws ecr describe-repositories --repository-name "stackgres/restapi" > /dev/null
-  then
-    aws ecr create-repository --repository-name "stackgres/restapi" 
-  fi
-
-  if ! aws ecr describe-repositories --repository-name "stackgres/admin-ui" > /dev/null
-  then
-    aws ecr create-repository --repository-name "stackgres/admin-ui" 
-  fi
-
-  if ! aws ecr describe-repositories --repository-name "stackgres/admin-ui" > /dev/null
-  then
-    aws ecr create-repository --repository-name "stackgres/admin-ui" 
-  fi  
-
+  local REPOSITORY_NAME
+  for REPOSITORY_NAME in "stackgres/operator" "stackgres/restapi" \
+    "stackgres/jobs" "stackgres/admin-ui" \
+    "stackgres/cluster-controller" "stackgres/distributedlogs-controller"
+  do
+    if ! aws ecr describe-repositories --repository-name "$REPOSITORY_NAME" > /dev/null 2>&1
+    then
+      aws ecr create-repository --repository-name "$REPOSITORY_NAME"
+    fi
+  done
 
   export PRIVATE_REPO_URI="$(get_private_repository_uri)"
-  export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/$OPERATOR_IMAGE_NAME"
-  export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/$RESTAPI_IMAGE_NAME"
-  export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/$JOBS_IMAGE_NAME"
-  export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/$ADMINUI_IMAGE_NAME"
+  export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator:$IMAGE_TAG"
+  export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/restapi:$IMAGE_TAG"
+  export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/jobs:$IMAGE_TAG"
+  export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
+  export PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/cluster-controller:$IMAGE_TAG"
+  export PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/distributedlogs-controller:$IMAGE_TAG"
 
   get_private_repository_password | docker login --username AWS --password-stdin "$PRIVATE_REPO_URI"
-  
+
   docker tag "$OPERATOR_IMAGE_NAME" "$PRIVATE_OPERATOR_IMAGE_NAME"
   docker tag "$RESTAPI_IMAGE_NAME" "$PRIVATE_RESTAPI_IMAGE_NAME"
   docker tag "$JOBS_IMAGE_NAME" "$PRIVATE_JOBS_IMAGE_NAME"
   docker tag "$ADMINUI_IMAGE_NAME" "$PRIVATE_ADMINUI_IMAGE_NAME"
+  docker tag "$CLUSTER_CONTROLLER_IMAGE_NAME" "$PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME"
+  docker tag "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
 
   docker push "$PRIVATE_OPERATOR_IMAGE_NAME"
   docker push "$PRIVATE_RESTAPI_IMAGE_NAME"
-  docker push "$JOBS_IMAGE_NAME"
-  docker push "$PRIVATE_ADMINUI_IMAGE_NAME"  
+  docker push "$PRIVATE_JOBS_IMAGE_NAME"
+  docker push "$PRIVATE_ADMINUI_IMAGE_NAME"
+  docker push "$PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME"
+  docker push "$PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
 
   if kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null
   then  

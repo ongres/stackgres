@@ -190,8 +190,7 @@ setup_operator() {
       && [ "$E2E_REUSE_OPERATOR_PODS" != true ]) \
     || [ "$(get_operator_namespace)" != "$OPERATOR_NAMESPACE" ]
   then
-    if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true \
-        -a "$E2E_SKIP_OPERATOR_LOAD" != true ]
+    if [ "$E2E_SKIP_OPERATOR_LOAD" != true ]
     then
       load_operator_k8s
     fi
@@ -496,6 +495,8 @@ upgrade_operator_from_private_repository() {
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/restapi"
   export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/jobs"
   export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/admin-ui"
+  export PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/cluster-controller"
+  export PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/distributedlogs-controller"
   upgrade_operator_vanilla \
       --set-string operator.image.name="$PRIVATE_OPERATOR_IMAGE_NAME" --set-string operator.image.tag="$IMAGE_TAG" \
       --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
@@ -505,8 +506,9 @@ upgrade_operator_from_private_repository() {
       --set-string "jobs.image.pullPolicy=$(operator_pull_policy)" \
       --set-string adminui.image.name="$PRIVATE_ADMINUI_IMAGE_NAME" --set-string adminui.image.tag="$ADMINUI_IMAGE_TAG" \
       --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
+      --set-string containerRegistry="$PRIVATE_REPO_URI" \
       --set serviceAccount.create=true \
-      --set serviceAccount.repoCredentials='["regcred"]' \
+      --set serviceAccount.repoCredentials[0]=regcred \
       --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
       --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
       --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \

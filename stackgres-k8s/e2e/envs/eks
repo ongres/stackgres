@@ -1,16 +1,11 @@
 #!/bin/sh
 
 K8S_EKS_NAME="${K8S_EKS_NAME:-stackgres-e2e}"
-K8S_VERSION="${K8S_VERSION:-1.15.10}"
-if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
-then
-  >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_K8S_VERSION is not available for eks"
-  K8S_VERSION=1.13.11
-fi
-K8S_EKS_REGION="${K8S_EKS_REGION:-us-west-2}"
+K8S_EKS_REGION="${K8S_EKS_REGION:-us-east-1}"
 K8S_EKS_NODE_TYPE="${K8S_EKS_NODE_TYPE:-m5.large}"
 K8S_EKS_DISK_SIZE="${K8S_EKS_DISK_SIZE:-20}"
 K8S_EKS_OPTS="$K8S_EKS_OPTS"
+K8S_EKS_BUCKET_NAME="${K8S_EKS_BUCKET_NAME:-stackgres-e2e-bucket}"
 E2E_USE_INTERMIDIATE_PRIVATE_REPO=true
 
 export K8S_EKS_NAME K8S_VERSION K8S_EKS_REGION K8S_EKS_NODE_LOCATIONS K8S_EKS_NODE_TYPE K8S_EKS_OPTS E2E_USE_INTERMIDIATE_PRIVATE_REPO
@@ -31,10 +26,18 @@ reuse_k8s() {
   echo "Reusing eks environment $K8S_EKS_NAME"
 
   aws eks update-kubeconfig --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION"
+
+  echo "...done"
 }
 
 reset_k8s() {
   echo "Setting up eks environment $K8S_EKS_NAME..."
+
+  if ! get_k8s_versions | grep -qxF "$K8S_VERSION"
+  then
+    >&2 echo "EKS does not support Kubernetes $K8S_VERSION but only one of: $(get_k8s_versions | tr '\n' ' ')"
+    return 1
+  fi
 
   delete_k8s
   eksctl create cluster --name "$K8S_EKS_NAME" \
@@ -45,7 +48,7 @@ reset_k8s() {
     --version "$(echo "$K8S_VERSION" | cut -d . -f 1-2)" \
     $K8S_EKS_OPTS
 
-  aws s3 mb "s3://stackgres-e2e/"
+  aws s3 mb "s3://$K8S_EKS_BUCKET_NAME/"
 
   echo "...done"
 }
@@ -60,22 +63,36 @@ delete_k8s() {
   fi
   
   aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
-    | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % sh -c "aws ec2 detach-volume --force --region $K8S_EKS_REGION --volume-id % || true"
+    | jq -r '.Volumes[].VolumeId' \
+    | while read -r VOLUME_ID
+      do
+        aws ec2 detach-volume --force --region "$K8S_EKS_REGION" --volume-id "$VOLUME_ID" || true
+      done
   
   aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
-    | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % sh -c "aws ec2 delete-volume --region $K8S_EKS_REGION --volume-id % || true" 
+    | jq -r '.Volumes[].VolumeId' \
+    | while read -r VOLUME_ID
+      do
+        aws ec2 delete-volume --region "$K8S_EKS_REGION" --volume-id "$VOLUME_ID" || true
+      done
 
-  if aws s3 ls | cut -d ' ' -f 3 | grep -q stackgres-e2e
+  if aws s3 ls | cut -d ' ' -f 3 | grep -q "$K8S_EKS_BUCKET_NAME"
   then
-    aws s3 rb "s3://stackgres-e2e/" --force
+    aws s3 rb "s3://$K8S_EKS_BUCKET_NAME/" --force
   fi
+
+  aws cloudformation describe-stacks \
+    | jq -r '.Stacks[]|select(.Tags|any(.Key == "alpha.eksctl.io/cluster-name" and .Value == "$K8S_EKS_NAME")).StackName' \
+    | while read -r STACK_NAME
+      do
+        aws cloudformation delete-stack --stack-name "$STACK_NAME" || true
+      done
 
   echo "...done"
 }
 
 load_image_k8s() {
-  echo "Cannot load images directly to k8s in a eks environment"
-  exit 1
+  echo "Cannot load images directly to k8s in a eks environment, skpping"
 }
 
 operator_pull_policy() {
@@ -84,10 +101,11 @@ operator_pull_policy() {
 
 get_k8s_versions() {
   cat << EOF
-1.16.8
-1.15.11
-1.14.9
-1.13.12
+1.21.2
+1.20.7
+1.19.8
+1.18.16
+1.17.17
 EOF
 }
 

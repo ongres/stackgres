@@ -25,7 +25,9 @@ e2e_test() {
 
   run_test "Checking that backup is working after killing storage provider service" check_backup_after_kill_storage_provider_service
 
-  run_test "Checking that backup is working after a restart" check_backup_after_restart
+  run_test "Checking that automatic backup is working after a restart" check_automatic_backup_after_restart
+
+  run_test "Checking that manual backup is working after a restart" check_manual_backup_after_restart
 
   run_test "Checking that backups aren't being deleted after the cluster is deleted" check_backup_not_deleted_after_cluster
 }
@@ -38,7 +40,6 @@ check_cron_job_security_context() {
 
 
 check_backup_is_working() {
-  # Avoid backups before waiting for pods (since backup pods could biase the wait)
   kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
     --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
 
@@ -46,7 +47,6 @@ check_backup_is_working() {
 }
 
 check_backup_retention_is_working() {
-  # Avoid backups before waiting for pods (since backup pods could biase the wait)
   kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
     --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
 
@@ -54,7 +54,6 @@ check_backup_retention_is_working() {
 }
 
 check_backup_after_kill_storage_provider_service() {
-  # Avoid backups before waiting for pods (since backup pods could biase the wait)
   kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
     --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
 
@@ -69,23 +68,69 @@ check_backup_after_kill_storage_provider_service() {
   check_backup 0
 }
 
-check_backup_after_restart() {
-  # Avoid automatic backups while testing manual backups
+check_automatic_backup_after_restart() {
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"0 5 31 2 *"}]'
+
+  generate_mock_data "$CLUSTER_NAME"
+  check_mock_data_samehost "$CLUSTER_NAME"
+  check_mock_data_replication "$CLUSTER_NAME"
+  run_query -p 5432 -i 0 -d "test" \
+    -q "CREATE TABLE data AS SELECT i, 'this is a long text number ' || i FROM generate_series(1, 100000) as i"
+
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/3 * * * *"}]'
+
+  check_automatic_backup 0
+
+  DBOPS_NAME="$(get_sgdbops_name restart)"
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+EOF
+
+  check_restart
+
+  local PRIMARY_NODE
+  PRIMARY_NODE="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l app=StackGresCluster,cluster-name=backup,role=master -o name)"
+  PRIMARY_NODE="$(printf '%s' "$PRIMARY_NODE" | cut -d - -f 2)"
+
+  check_wal_archive "$PRIMARY_NODE"
+
+  check_automatic_backup "$PRIMARY_NODE"
+
+  check_timelines
+
+  check_control_data
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+}
+
+check_manual_backup_after_restart() {
   kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
     --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"0 5 31 2 *"}]'
 
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
 
   local BACKUP_NAME
-  BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)")"
+  BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
   local BACKUP_2_NAME
-  BACKUP_2_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)")"
+  BACKUP_2_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
 
   generate_mock_data "$CLUSTER_NAME"
   check_mock_data_samehost "$CLUSTER_NAME"
   check_mock_data_replication "$CLUSTER_NAME"
   run_query -p 5432 -i 0 -d "test" \
-    -q "CREATE TABLE data AS SELECT i, 'this is a long text number ' || i FROM generate_series(1, 10000000) as i"
+    -q "CREATE TABLE data AS SELECT i, 'this is a long text number ' || i FROM generate_series(1, 100000) as i"
 
   check_manual_backup_only 0 "$BACKUP_NAME"
 
