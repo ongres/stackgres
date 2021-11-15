@@ -269,30 +269,27 @@
                 </div>
             </fieldset>
 
-            <fieldset class="step" :class="(currentStep == 'initialization') && 'active'">
+            <fieldset class="step" :class="(currentStep == 'initialization') && 'active'" v-if="!editMode || (editMode && (restoreBackup.length || initScripts.length) )">
                 <div class="header">
                     <h2>Cluster Initialization</h2>
                 </div>
 
-                <p>Use this option to either initialize the cluster with the data from an existing backup; or to start with an empty cluster and run some custom SQL scripts.</p><br/><br/>
+                <p>Use this option to initialize the cluster with the data from an existing backup or by running some custom SQL scripts.</p><br/><br/>
 
                 <div class="fields">
-                    <div class="row-50">
-                        <div class="col">
-                            <label>Source</label>
-                            <select v-model="initializationMethod" :disabled="editMode">
-                                <option value="">Choose one...</option>
-                                <option value="backup" v-if="backups.length">Restore from Backup</option>
-                                <option value="script">Initialize from Scripts</option>
-                            </select>
+                    <template v-if="( (editMode && restoreBackup.length) || !editMode )">
+                        <div class="header">
+                            <h3 for="spec.initialData.restore.fromBackup">
+                                Initialization Backup
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
+                            </h3>
                         </div>
-                        
-                        <template v-if="( (initializationMethod == 'backup') && ( (editMode && restoreBackup.length) || (!editMode && backups.length) ) )">
+                        <fieldset class="row-50">
                             <div class="col">
                                 <label for="spec.initialData.restore.fromBackup">Backup Selection</label>
                                 <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : initDatepicker()" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
                                     <option value="">Select a Backup</option>
-                                    <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && backup.data.status !== null )">
+                                    <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
                                         <option v-if="backup.data.status.process.status === 'Completed'" :value="backup.data.metadata.uid">
                                             {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
                                         </option>
@@ -303,28 +300,27 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
                             </div>
 
-                            <div :style="!restoreBackup.length ? 'display: none;' : ''">
-                                <template v-if="!editMode || (editMode && pitr.length)">
-                                    <div class="col">
-                                        <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
-                                        <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone">
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
-                                    </div>
-                                </template>
-
+                            <template v-if="!editMode || (editMode && pitr.length)">
                                 <div class="col">
-                                    <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
-                                    <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="0">
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
+                                    <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
+                                    <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone" :disabled="!restoreBackup.length">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
                                 </div>
-                            </div>
-                        </template>
-                    </div>
+                            </template>
 
-                    <div class="scriptFieldset" v-if="(initializationMethod == 'script')">
+                            <div class="col">
+                                <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
+                                <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="0" :disabled="!restoreBackup.length">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
+                            </div>
+                        </fieldset>
+                        <br/><br/><br/>
+                    </template>
+
+                    <div class="scriptFieldset" v-if="( (editMode && initScripts.length) || !editMode )">
                         <div class="header">
                             <h3 for="spec.initialData.scripts">
-                                Scripts
+                                Initialization Scripts
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts')"></span>
                             </h3>
                             <a class="addRow" @click="pushScript()" v-if="!editMode">Add Script</a>
@@ -334,7 +330,7 @@
                             <div class="script repeater">
                                 <fieldset v-for="(script, index) in initScripts">
                                     <div class="header">
-                                        <h2>Script #{{ index+1 }} <template v-if="script.hasOwnProperty('name')">–</template> <span class="scriptTitle">{{ script.name }}</span></h2>
+                                        <h4>Script #{{ index+1 }} <template v-if="script.hasOwnProperty('name')">–</template> <span class="scriptTitle">{{ script.name }}</span></h4>
                                         <a class="addRow" @click="spliceArray(initScripts, index)" v-if="!editMode">Delete</a>
                                     </div>    
                                     <div class="row">
@@ -1164,7 +1160,6 @@
                 volumeUnit: 'Gi',
                 connPooling: true,
                 connectionPoolingConfig: '',
-                initializationMethod: '',
                 restoreBackup: '',
                 pitr: '',
                 downloadDiskConcurrency: '',
@@ -1351,8 +1346,6 @@
                                 })
                                 
                                 vm.initScripts = c.data.spec.initialData.scripts;
-                                vm.initializationMethod = 'script';
-
                             }
 
                             vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
@@ -1368,12 +1361,6 @@
 
                             vm.restoreBackup = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.uid') ? c.data.spec.initialData.restore.fromBackup.uid : '';
                             vm.pitr = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp') ? c.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp : ''
-                            
-                            if(vm.initScripts.length) {
-                                vm.initializationMethod = 'script';
-                            } else if (vm.restoreBackup.length) {
-                                vm.initializationMethod = 'backup';
-                            }
                             
                             vm.editReady = vm.advancedMode = true
                             return false
@@ -1686,6 +1673,7 @@
                 }
 
                 vc.validateSelectedPgConfig();
+                vc.validateSelectedRestoreBackup();
                 vc.getFlavorExtensions();
                 
                 $('#postgresVersion .active, #postgresVersion').removeClass('active');
@@ -2062,9 +2050,24 @@
 
                     if(typeof config == 'undefined') {
                         setTimeout(function(){
-                            vc.notify('The  postgres configuration you selected is not available for this postgres version. Choose a new configuration from the list or a default configuration will be created for you.', 'message', 'sgclusters', false);
+                            vc.notify('The <strong>postgres configuration</strong> you selected is not available for this <strong>postgres version</strong>. Choose a new configuration from the list or a default configuration will be created for you.', 'message', 'sgclusters', false);
                         },100)
                         vc.pgConfig = '';
+                    }
+                }
+            },
+
+            validateSelectedRestoreBackup() {
+                const vc = this;
+
+                if(vc.restoreBackup.length) {
+                    let bk = vc.backups.find(b => (b.data.metadata.name == vc.restoreBackup) && (b.data.metadata.namespace == vc.$route.params.namespace) && (b.data.status.backupInformation.postgresVersion.substring(0,2) == vc.shortPostgresVersion))
+
+                    if(typeof bk == 'undefined') {
+                        setTimeout(function(){
+                            vc.notify('The <strong>initialization backup</strong> you selected is not available for this postgres version. Choose a new backup from the list or no data will be restored.', 'message', 'sgclusters', false);
+                        },100)
+                        vc.restoreBackup = '';
                     }
                 }
             }
@@ -2393,7 +2396,7 @@
         text-align: center;
         margin: 0 10px;
         text-transform: capitalize;
-        width: 70px;
+        min-width: 70px;
         cursor: pointer;
     }
 
@@ -2434,18 +2437,18 @@
         content: " ";
         display: block;
         position: absolute;
-        width: 90px;
+        width: calc(100% + 20px);
         top: 6px;
         left: -10px;
     }
 
     ul.steps li:first-child:after {
-        width: 45px;
-        left: 45px;
+        width: calc(50% + 10px);
+        left: 50%;
     }
 
     ul.steps li:last-child:after {
-        width: 45px;
+        width: calc(50% + 10px);
     }
 
     .helpTooltip {
