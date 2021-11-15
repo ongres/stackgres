@@ -1,5 +1,5 @@
 {{- if .Values.grafana.autoEmbed }}
-{{if .Values.grafana.preprocess}}#grafana.preprocess.start{{end}}
+{{- if .Values.qutePreprocess }}#grafana.preprocess.start{{- end}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -110,5 +110,5 @@ spec:
             {{- end }}
       {{- end }}
       restartPolicy: OnFailure
-{{if .Values.grafana.preprocess}}#grafana.preprocess.end{{end}}
+{{- if .Values.qutePreprocess }}#grafana.preprocess.end{{- end}}
 {{ end }}

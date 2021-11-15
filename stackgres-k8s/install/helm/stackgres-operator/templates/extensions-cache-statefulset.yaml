@@ -77,12 +77,12 @@ spec:
             mountPath: /opt/app-root/src
             readOnly: true
       - name: "controller"
-      {{- if semverCompare ">=1.21" .Capabilities.KubeVersion.Version }}
+      {{- if semverCompare ">=1.22" .Capabilities.KubeVersion.Version }}
         image: "ongres/kubectl:v1.22.2-build-6.7"
       {{- else if semverCompare ">=1.19" .Capabilities.KubeVersion.Version }}
         image: "ongres/kubectl:v1.20.11-build-6.7"
-      {{- else if semverCompare ">=1.17" .Capabilities.KubeVersion.Version }}
-        image: "ongres/kubectl:v1.18.20-build-6.7"
+      {{- else if semverCompare ">=1.16" .Capabilities.KubeVersion.Version }}
+        image: "ongres/kubectl:v1.17.17-build-6.7"
       {{- else }}
         image: "ongres/kubectl:v1.22.2-build-6.7"
       {{- end }}

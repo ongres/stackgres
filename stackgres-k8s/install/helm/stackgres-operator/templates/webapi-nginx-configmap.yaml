@@ -9,6 +9,7 @@ metadata:
     meta.helm.sh/release-namespace: {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/managed-by: Helm
+{{- if .Values.qutePreprocess }}#comment.preprocess.start{{- end }}
 data:
   nginx.conf: |
     pid        /tmp/nginx.pid;
@@ -98,4 +99,5 @@ data:
         proxy_pass "${GRAFANA_SCHEMA}://${GRAFANA_WEB_HOST}";
       }
     }
+{{- if .Values.qutePreprocess }}#comment.preprocess.end{{- end}}
 {{- end }}
