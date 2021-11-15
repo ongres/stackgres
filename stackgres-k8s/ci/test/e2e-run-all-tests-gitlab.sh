@@ -85,16 +85,13 @@ get_sensible_variables() {
     E2E_OPERATOR_REGISTRY_PATH
     E2E_SET_MAX_LENGTH_NAMES
     E2E_SET_MAX_LENGTH_NAMES_PLUS_ONE
-    E2E_SKIP_OPERATOR_INSTALL
-    E2E_SKIP_SETUP
-    E2E_SKIP_SPEC_INSTALL
     E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR
     E2E_STORAGE_CLASS_REFLINK_ENABLED
     '
   E2E_SENSIBLE_VARIABLES=" $(echo "$E2E_SENSIBLE_VARIABLES" | tr '\n' ' ' | tr -s ' ') "
 
   env | grep '^\(E2E_.*\|K8s_.*\|EXTENSIONS_.*\|STACKGRES_.*\)$' \
-    | cut -d = -f 1 | sort | uniq \
+    | cut -d = -f 1 | sort \
     | while read -r NAME
       do
         if [ "${NAME%%_*}" != E2E ] || echo "$E2E_SENSIBLE_VARIABLES" | grep -qF " $NAME "
@@ -152,7 +149,8 @@ get_already_passed_tests() {
   cut -d = -f 2- stackgres-k8s/ci/test/target/test-result-images \
     > stackgres-k8s/ci/test/target/all-test-result-images
 
-  sh stackgres-k8s/ci/build/build-functions.sh retrieve_image_digests stackgres-k8s/ci/test/target/all-test-result-images \
+  sh stackgres-k8s/ci/build/build-functions.sh retrieve_image_digests \
+    stackgres-k8s/ci/test/target/all-test-result-images \
     > stackgres-k8s/ci/test/target/test-result-image-digests
 
   rm -f stackgres-k8s/ci/test/target/already-passed-tests
@@ -192,42 +190,6 @@ EOF
 }
 
 store_test_results() {
-  xq -r '
-    select(.testsuites != null
-      and .testsuites.testsuite != null
-      and .testsuites.testsuite.testcase != null)
-    | if (.testsuites.testsuite.testcase | type) == "object"
-      then [.testsuites.testsuite.testcase][]
-      else .testsuites.testsuite.testcase[]
-      end
-    | .["@classname"]' \
-    stackgres-k8s/e2e/target/e2e-tests-junit-report.xml \
-    > stackgres-k8s/ci/test/target/all-tests
-
-  xq -r '
-    select(.testsuites != null
-      and .testsuites.testsuite != null
-      and .testsuites.testsuite.testcase != null)
-    | if (.testsuites.testsuite.testcase | type) == "object"
-      then [.testsuites.testsuite.testcase][]
-      else .testsuites.testsuite.testcase[]
-      end
-    | select((has("failure")|not))["@classname"]' \
-    stackgres-k8s/e2e/target/e2e-tests-junit-report.xml \
-    > stackgres-k8s/ci/test/target/passed-tests
-
-  xq -r '
-    select(.testsuites != null
-      and .testsuites.testsuite != null
-      and .testsuites.testsuite.testcase != null)
-    | if (.testsuites.testsuite.testcase | type) == "object"
-      then [.testsuites.testsuite.testcase]
-      else .testsuites.testsuite.testcase
-      end
-    | any((has("failure")))' \
-    stackgres-k8s/e2e/target/e2e-tests-junit-report.xml \
-    > stackgres-k8s/ci/test/target/any-test-failed
-
   cat << EOF > stackgres-k8s/ci/test/target/Dockerfile.e2e
 FROM alpine:3.13.5
   COPY . /project
@@ -242,7 +204,7 @@ EOF
         IMAGE_NAME="$(grep "^$TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
           | cut -d = -f 2-)"
         printf '%s %s ' '-t' "$IMAGE_NAME"
-      done < stackgres-k8s/ci/test/target/passed-tests
+      done < stackgres-k8s/e2e/target/passed-tests
     ) \
     stackgres-k8s/e2e/target
   docker push "$CI_REGISTRY/$CI_PROJECT_PATH/e2e-test-result:$CI_COMMIT_SHORT_SHA"
@@ -251,7 +213,7 @@ EOF
     IMAGE_NAME="$(grep "^$TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
       | cut -d = -f 2-)"
     printf '%s\n' "$IMAGE_NAME"
-  done < stackgres-k8s/ci/test/target/passed-tests \
+  done < stackgres-k8s/e2e/target/passed-tests \
     | xargs -I % -P "$E2E_PARALLELISM" docker push %
 }
 
@@ -360,10 +322,13 @@ do
       docker run --rm -u 0 \
         -v '$(pwd)/stackgres-k8s/e2e/target:/target' alpine \
         chown -R '$(id -u):$(id -g)' '/target/kind-logs'
-      tar c --xz \
-        -f stackgres-k8s/e2e/target/kind-logs/kubernetes.tar.lzma \
-        stackgres-k8s/e2e/target/kind-logs/kubernetes
-      rm -rf stackgres-k8s/e2e/target/kind-logs/kubernetes
+      if [ -d stackgres-k8s/e2e/target/kind-logs/kubernetes ]
+      then
+        tar c --xz \
+          -f stackgres-k8s/e2e/target/kind-logs/kubernetes.tar.lzma \
+          stackgres-k8s/e2e/target/kind-logs/kubernetes
+        rm -rf stackgres-k8s/e2e/target/kind-logs/kubernetes
+      fi
       exit \"\$EXIT_CODE\"
       "
   echo 'done'
@@ -383,6 +348,7 @@ do
   then
     break
   fi
+  echo "Something bad happened, will retry $E2E_FAILURE_RETRY times more in 10 seconds..."
   sleep 10
 done
 
@@ -391,10 +357,7 @@ while true
 do
   (
   set -e
-  if [ -f "stackgres-k8s/e2e/target/e2e-tests-junit-report.xml" ]
-  then
-    store_test_results
-  fi
+  store_test_results
   )
   STORE_RESULTS_EXIT_CODE="$?"
   if [ "$STORE_RESULTS_EXIT_CODE" = 0 ]
@@ -409,10 +372,10 @@ do
   sleep 10
 done
 
-mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target/."
+mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target"
 rm -rf stackgres-k8s/ci/build/target/.git
 cp -r stackgres-k8s/ci/build/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target/."
-mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target/."
+mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target"
 cp -r stackgres-k8s/ci/test/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target/."
 mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/e2e/target"
 cp -r stackgres-k8s/e2e/target/. "$CI_PROJECT_DIR/stackgres-k8s/e2e/target/."
@@ -433,7 +396,7 @@ then
   echo
   while read -r TEST_NAME
   do
-    if grep -qxF "$TEST_NAME" stackgres-k8s/ci/test/target/all-tests
+    if grep -qxF "$TEST_NAME" stackgres-k8s/e2e/target/all-tests
     then
       printf ' - %s\n' "$TEST_NAME"
     fi
@@ -441,28 +404,29 @@ then
   echo
 fi
 
-if [ -s stackgres-k8s/ci/test/target/passed-tests ]
+if [ -s stackgres-k8s/e2e/target/passed-tests ]
 then
   echo "Passed tests:"
   echo
   while read -r TEST_NAME
   do
     printf ' - %s\n' "$TEST_NAME"
-  done < stackgres-k8s/ci/test/target/passed-tests
+  done < stackgres-k8s/e2e/target/passed-tests
   echo
 fi
 
-if [ "$(cat stackgres-k8s/ci/test/target/any-test-failed)" = true ]
+if [ "$(wc -l stackgres-k8s/e2e/target/runned-tests | cut -d ' ' -f 1)" = \
+  "$(wc -l stackgres-k8s/e2e/target/passed-tests | cut -d ' ' -f 1)" ]
 then
   echo "Failed tests:"
   echo
   while read -r TEST_NAME
   do
-    if ! grep -qxF "$TEST_NAME" stackgres-k8s/ci/test/target/passed-tests
+    if ! grep -qxF "$TEST_NAME" stackgres-k8s/e2e/target/passed-tests
     then
       printf ' - %s\n' "$TEST_NAME"
     fi
-  done < stackgres-k8s/ci/test/target/all-tests
+  done < stackgres-k8s/e2e/target/all-tests
   echo
 fi
 

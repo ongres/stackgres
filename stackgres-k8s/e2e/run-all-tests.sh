@@ -54,6 +54,12 @@ else
   SPECS="$(printf '%s' "$E2E_ONLY_INCLUDES" | tr ' ' '\n')"
 fi
 
+printf '%s\n' "$SPECS" | \
+  while IFS="$(printf '\n')" read -r LINE
+  do
+    printf '%s\n' "${LINE##*spec/}"
+  done > "$TARGET_PATH/all-tests"
+
 if [ -n "$E2E_EXCLUDES" ]
 then
   SPECS="$(
@@ -146,9 +152,22 @@ $(printf '%s\n' "$SPECS" | grep -v '^$' \
     done)
 "
 
+rm -f "$TARGET_PATH/runned-tests"
+touch "$TARGET_PATH/runned-tests"
+rm -f "$TARGET_PATH/passed-tests"
+touch "$TARGET_PATH/passed-tests"
+rm -f "$TARGET_PATH/e2e-tests-junit-report.results.xml"
+
 if [ "$(printf '%s\n' "$SPECS" | tr '\n' ' ' | wc -w)" = 0 ]
 then
   echo "Nothing to test!"
+  cat << EOF > "$TARGET_PATH/e2e-tests-junit-report.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites time="0">
+  <testsuite name="e2e tests" tests="0" time="0">
+  </testsuite>
+</testsuites>
+EOF
   exit
 fi
 
@@ -171,8 +190,6 @@ setup_operator
 
 echo "Calculating spec hashes"
 SPEC_HASHES="$(calculate_spec_hashes)"
-
-rm -f "$TARGET_PATH/e2e-tests-junit-report.results.xml"
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 
@@ -261,6 +278,7 @@ do
       then
         continue
       fi
+      printf '%s\n' "$SPEC_NAME" >> "$TARGET_PATH/runned-tests"
       if printf '%s\n' " $SPECS_FAILED " | grep -qF " $SPEC "
       then
         cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
@@ -273,6 +291,7 @@ do
     </testcase>
 EOF
       else
+        printf '%s\n' "$SPEC_NAME" >> "$TARGET_PATH/passed-tests"
         cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
     <testcase classname="$SPEC_NAME" name="$SPEC_HASH" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")" />
 EOF
