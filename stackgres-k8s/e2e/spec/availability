@@ -75,7 +75,7 @@ spec:
         cpu: "500m"    
   initContainers:
   - name: install
-    image: "ongres/kubectl:v1.19.14-build-6.6"
+    image: "ongres/kubectl:v1.20.11-build-6.7"
     command:
     - "/bin/bash"
     - "-ecx"
