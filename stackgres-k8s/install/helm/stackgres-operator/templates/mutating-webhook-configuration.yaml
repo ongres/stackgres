@@ -11,9 +11,7 @@ metadata:
     app.kubernetes.io/managed-by: Helm
 webhooks:
   - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
-    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
@@ -28,9 +26,7 @@ webhooks:
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1beta1"]
   - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
-    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
@@ -45,9 +41,7 @@ webhooks:
       caBundle: {{ .Values.cert.crt }} 
     admissionReviewVersions: ["v1beta1"]
   - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
-    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
@@ -62,9 +56,7 @@ webhooks:
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1beta1"]
   - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
-    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
@@ -79,9 +71,7 @@ webhooks:
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1beta1"]
   - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
-    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
@@ -96,9 +86,7 @@ webhooks:
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1beta1"]
   - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
-    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
@@ -113,9 +101,7 @@ webhooks:
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1beta1"]
   - name: sgdistributedlogs.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
-    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
@@ -130,9 +116,7 @@ webhooks:
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1beta1"]
   - name: sgdbops.{{ .Release.Name }}.{{ .Release.Namespace }}
-    {{- if (semverCompare ">1.12-0" .Capabilities.KubeVersion.GitVersion) }}
     sideEffects: None
-    {{- end }}
     rules:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
