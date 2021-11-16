@@ -304,6 +304,10 @@ $(document).ready(function(){
     $("#backup-btn, #graffana-btn").css("display","none");
   });
 
+  $(document).on('click', '[data-tab]', function(){
+    $('[data-tab].active, [data-tab="' + $(this).data('tab') + '"]').toggleClass('active');
+  })
+
   $(document).on("click", ".box h4", function() {
     
     $(this).parents(".box").toggleClass("show");

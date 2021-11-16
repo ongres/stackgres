@@ -27,6 +27,7 @@
     "express": "^4.17.1",
     "express-http-proxy": "^1.6.0",
     "jquery": "^3.6.0",
+    "js-yaml": "^4.1.0",
     "later": "github:RickCarlino/later",
     "moment": "^2.29.1",
     "prettycron": "^0.10.0",

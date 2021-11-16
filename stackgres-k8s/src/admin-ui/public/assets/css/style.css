@@ -1682,14 +1682,27 @@ ul.tabs {
     margin-bottom: -1px;
 }
 
+#contentTooltip .tabs a {
+    margin-top: 0;
+    padding-top: 0;
+}
+
 .tabs a:hover {
     color: var(--blue);
 }
 
-.tabs a.router-link-exact-active {
+.tabs a.router-link-exact-active, .tabs .active a {
     color: var(--blue);
     border-bottom-color: var(--blue);
     font-weight: bold;
+}
+
+.tabContent > div {
+    display: none;
+}
+
+.tabContent > div.active {
+    display: block;
 }
 
 .subtitle {

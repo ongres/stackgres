@@ -1098,7 +1098,24 @@
             <hr/>
 
             <div id="summary" class="hidden" v-if="previewCluster.hasOwnProperty('data')">
-                <ClusterDetails :cluster="previewCluster" :extensionsList="extensionsList"></ClusterDetails>
+                <ul class="tabs">
+                    <li data-tab="0" class="active">
+                        <a onclick="setDataTab(0)">Summary</a>
+                    </li>
+                    <li data-tab="1">
+                        <a onclick="setDataTab(1)">YAML</a>
+                    </li>
+                </ul>
+                <div class="tabContent">
+                    <div data-tab="0" class="active">
+                        <ClusterDetails :cluster="previewCluster" :extensionsList="extensionsList"></ClusterDetails>
+                    </div>
+                    <div data-tab="1">
+                        <pre class="yaml">
+                            <code>{{ previewClusterYAML }}</code>
+                        </pre>
+                    </div>
+                </div>
             </div>
 
             <template v-if="editMode">
@@ -1123,6 +1140,7 @@
     import axios from 'axios'
     import moment from 'moment'
     import ClusterDetails from '../details/ClusterDetails.vue';
+    import yaml from 'js-yaml'
 
     export default {
         name: 'CreateCluster',
@@ -1139,6 +1157,8 @@
 
             return {
                 previewCluster: {},
+                previewClusterYAML: '',
+                summaryTab: 0,
                 advancedMode: false,
                 formSteps: ['cluster', 'postgres', 'extensions', 'initialization', 'sidecars', 'backups', 'services', 'metadata', 'scheduling'],
                 currentStep: 'cluster',
@@ -1607,6 +1627,7 @@
 
                         vc.previewCluster = {};
                         vc.previewCluster['data'] = cluster;
+                        vc.previewClusterYAML = yaml.dump(cluster);
                         
                         setTimeout(function(){
                             vc.setContentTooltip('#summary');
@@ -2567,6 +2588,15 @@
         position: absolute;
         width: 95px;
         top: 11px;
+    }
+
+    pre.yaml {
+        padding: 15px;
+        border: 1px solid var(--borderColor);
+        margin: 10px 0;
+        background: var(--inputBg);
+        margin-bottom: 0;
+        border-radius: 5px;
     }
 
 </style>
