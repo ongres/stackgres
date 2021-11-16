@@ -11,8 +11,10 @@ resource_watch() {
   local KINDS
   local KIND_PID
   local KIND_PIDS
+  local ALL_KIND_PIDS
+  local EXISTING_KIND_PID
   local KIND_PID_PATH
-  local NEW_KIND_PIDS
+  local RUNNING_KIND_PIDS
   local EXCLUDED_FILTERED_KIND
   EXCLUDED_FILTERED_KIND="^\(bindings\|componentstatuses"
   EXCLUDED_FILTERED_KIND="$EXCLUDED_FILTERED_KIND\|localsubjectaccessreviews\.authorization\.k8s\.io"
@@ -54,28 +56,16 @@ resource_watch() {
         ;;
     esac
   done
-  KINDS="$(kubectl api-resources -o name \
-    | grep -v "$EXCLUDED_FILTERED_KIND" \
-    | ( [ -z "$FILTERED_KIND" ] && cat || grep -xF "$FILTERED_KIND" ))"
-  for KIND in $KINDS
-  do
-    echo "Start watching $KIND..."
-    KIND_PID_PATH="$TARGET_PATH/resource-$KIND-watch.pid"
-    resource_kind_watch_in_trap -k "$KIND" -p "$KIND_PID_PATH" \
-      $([ -z "$NAMESPACE" ] || printf '%s %s' '-n' "$NAMESPACE") \
-      $([ "$LOG_IN_FILES" != true ] || printf '%s' '-F') -P "$LOG_IN_PATH" \
-      $([ -z "$FILTERED_NAME" ] || printf '%s %s' '--name' "$FILTERED_NAME")
-    KIND_PID="$KIND:$(cat "$KIND_PID_PATH")"
-    KIND_PIDS="$KIND_PIDS $KIND_PID"
-  done
+  KIND_PIDS=""
   while true
   do
-    NEW_KIND_PIDS=""
+    RUNNING_KIND_PIDS=""
     for KIND_PID in $KIND_PIDS
     do
       KIND="${KIND_PID%:*}"
-      if ! kill -0 "${KIND_PID#*:}" >/dev/null 2>&1
+      if [ -z "${KIND_PID#*:}" ] || ! kill -0 "${KIND_PID#*:}" >/dev/null 2>&1
       then
+        echo "Start watching $KIND..."
         KIND_PID_PATH="$TARGET_PATH/resource-$KIND-watch.pid"
         resource_kind_watch_in_trap -k "$KIND" -p "$KIND_PID_PATH" \
           $([ -z "$NAMESPACE" ] || printf '-n %s' "$NAMESPACE") \
@@ -83,10 +73,21 @@ resource_watch() {
           $([ -z "$FILTERED_NAME" ] || printf '--name %s' "$FILTERED_NAME")
         KIND_PID="$KIND:$(cat "$KIND_PID_PATH")"
       fi
-      NEW_KIND_PIDS="$NEW_KIND_PIDS $KIND_PID"
+      RUNNING_KIND_PIDS="$RUNNING_KIND_PIDS $KIND_PID"
     done
-    KIND_PIDS="$NEW_KIND_PIDS"
-    sleep 10
+    [ -z "$RUNNING_KIND_PIDS" ] || sleep 10
+    KIND_PIDS="$RUNNING_KIND_PIDS"
+    ALL_KIND_PIDS="$(kubectl api-resources -o name \
+      | grep -v "$EXCLUDED_FILTERED_KIND" \
+      | ( [ -z "$FILTERED_KIND" ] && cat || grep -xF "$FILTERED_KIND" ) \
+      | sed 's/^\(.*\)$/\1/')"
+    for KIND_PID in $ALL_KIND_PIDS
+    do
+      if ! echo "$KIND_PIDS" | tr ' ' '\n' | grep -v '$^' | cut -d : -f 1 | grep -qxF "$KIND_PID"
+      then
+        KIND_PIDS="$KIND_PIDS $KIND_PID:"
+      fi
+    done
   done
 }
 

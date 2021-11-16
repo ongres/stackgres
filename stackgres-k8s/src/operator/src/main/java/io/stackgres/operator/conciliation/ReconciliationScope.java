@@ -12,14 +12,12 @@ import java.lang.annotation.Target;
 
 import javax.inject.Qualifier;
 
-import io.fabric8.kubernetes.client.CustomResource;
-
 @Qualifier
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ReconciliationScope {
 
-  Class<? extends CustomResource<?, ?>> value();
+  Class<?> value();
 
   String kind();
 

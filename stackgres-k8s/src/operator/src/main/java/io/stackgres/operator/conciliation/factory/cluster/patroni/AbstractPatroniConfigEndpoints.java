@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -74,9 +75,13 @@ public abstract class AbstractPatroniConfigEndpoints
   protected abstract Map<String, String> getParameters(StackGresClusterContext context,
       StackGresPostgresConfig pgConfig);
 
-  private String configName(StackGresClusterContext context) {
-    final String scope = labelFactory.clusterScope(context.getSource());
-    return ResourceUtil.nameIsValidDnsSubdomain(scope + PatroniUtil.CONFIG_SERVICE);
+  public static String configName(ClusterContext context) {
+    return configName(context.getCluster());
+  }
+
+  public static String configName(StackGresCluster cluster) {
+    return ResourceUtil.nameIsValidDnsSubdomain(
+        cluster.getMetadata().getName() + PatroniUtil.CONFIG_SERVICE);
   }
 
   protected boolean isBackupConfigurationPresent(StackGresClusterContext context) {

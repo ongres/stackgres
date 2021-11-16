@@ -17,7 +17,7 @@ import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 
 @ReconciliationScope(value = StackGresCluster.class, kind = ServiceMonitor.KIND)
 @ApplicationScoped
-public class ClusterServiceMonitorHandler  implements ReconciliationHandler {
+public class ClusterServiceMonitorHandler  implements ReconciliationHandler<StackGresCluster> {
 
   private final ResourceWriter<ServiceMonitor> serviceMonitorWriter;
 
@@ -34,24 +34,25 @@ public class ClusterServiceMonitorHandler  implements ReconciliationHandler {
   }
 
   @Override
-  public HasMetadata create(HasMetadata resource) {
+  public HasMetadata create(StackGresCluster context, HasMetadata resource) {
     var sm = safeCast(resource);
     return serviceMonitorWriter.create(sm);
   }
 
   @Override
-  public HasMetadata patch(HasMetadata newResource, HasMetadata oldResource) {
+  public HasMetadata patch(StackGresCluster context, HasMetadata newResource,
+      HasMetadata oldResource) {
     var sm = safeCast(newResource);
     return serviceMonitorWriter.update(sm);
   }
 
   @Override
-  public HasMetadata replace(HasMetadata resource) {
+  public HasMetadata replace(StackGresCluster context, HasMetadata resource) {
     return serviceMonitorWriter.update(safeCast(resource));
   }
 
   @Override
-  public void delete(HasMetadata resource) {
+  public void delete(StackGresCluster context, HasMetadata resource) {
     var sm = safeCast(resource);
     serviceMonitorWriter.delete(sm);
   }

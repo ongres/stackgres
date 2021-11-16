@@ -17,30 +17,31 @@ import io.stackgres.operator.conciliation.ReconciliationScope;
 
 @ReconciliationScope(value = StackGresDbOps.class, kind = "ServiceAccount")
 @ApplicationScoped
-public class DbOpsServiceAccountHandler implements ReconciliationHandler {
+public class DbOpsServiceAccountHandler implements ReconciliationHandler<StackGresDbOps> {
 
   @Inject
   ResourceWriter<ServiceAccount> serviceAccountWriter;
 
   @Override
-  public HasMetadata create(HasMetadata resource) {
+  public HasMetadata create(StackGresDbOps context, HasMetadata resource) {
     var serviceAccount = safeCast(resource);
     return serviceAccountWriter.create(serviceAccount);
   }
 
   @Override
-  public HasMetadata patch(HasMetadata newResource, HasMetadata oldResource) {
+  public HasMetadata patch(StackGresDbOps context, HasMetadata newResource,
+      HasMetadata oldResource) {
     oldResource.setMetadata(newResource.getMetadata());
     return serviceAccountWriter.update(safeCast(oldResource));
   }
 
   @Override
-  public HasMetadata replace(HasMetadata resource) {
+  public HasMetadata replace(StackGresDbOps context, HasMetadata resource) {
     return serviceAccountWriter.update(safeCast(resource));
   }
 
   @Override
-  public void delete(HasMetadata resource) {
+  public void delete(StackGresDbOps context, HasMetadata resource) {
     serviceAccountWriter.delete(safeCast(resource));
   }
 

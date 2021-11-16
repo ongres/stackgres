@@ -10,12 +10,12 @@ import io.fabric8.kubernetes.client.CustomResource;
 
 public interface HandlerDelegator<T extends CustomResource<?, ?>> {
 
-  HasMetadata create(HasMetadata resource);
+  HasMetadata create(T context, HasMetadata resource);
 
-  HasMetadata patch(HasMetadata newResource, HasMetadata oldResource);
+  HasMetadata patch(T context, HasMetadata newResource, HasMetadata oldResource);
 
-  HasMetadata replace(HasMetadata resource);
+  HasMetadata replace(T context, HasMetadata resource);
 
-  void delete(HasMetadata resource);
+  void delete(T context, HasMetadata resource);
 
 }

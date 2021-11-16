@@ -1,28 +1,30 @@
 #!/bin/sh
 
 create_mock_table(){
-  NAME="${1:-$CLUSTER_NAME}"
-  run_query -c "$NAME" -p 5432 -i 0 -q "CREATE DATABASE test;"
-  run_query -c "$NAME" -p 5432 -i 0 -d "test" -q "CREATE TABLE fibonacci(num integer);"
+  local NAME="${1:-$CLUSTER_NAME}"
+  local INSTANCE="${2:-0}"
+  run_query -c "$NAME" -p 5432 -i "$INSTANCE" -q "CREATE DATABASE test;"
+  run_query -c "$NAME" -p 5432 -i "$INSTANCE" -d "test" -q "CREATE TABLE fibonacci(num integer);"
 }
 
 insert_mock_data(){
-  NAME="${1:-$CLUSTER_NAME}"
-  run_query -c "$NAME" -p 5432 -i 0 -d "test" -q 'TRUNCATE TABLE fibonacci;'
-  run_query -c "$NAME" -p 5432 -i 0 -d "test" -q 'INSERT INTO fibonacci(num) VALUES (0),(1),(1);'
-  run_query -c "$NAME" -p 5432 -i 0 -d "test" -q 'INSERT INTO fibonacci(num) VALUES (2),(3),(5);'
-  run_query -c "$NAME" -p 5432 -i 0 -d "test" -q 'INSERT INTO fibonacci(num) VALUES (8),(13),(21);'
+  local NAME="${1:-$CLUSTER_NAME}"
+  local INSTANCE="${2:-0}"
+  run_query -c "$NAME" -p 5432 -i "$INSTANCE" -d "test" -q 'TRUNCATE TABLE fibonacci;'
+  run_query -c "$NAME" -p 5432 -i "$INSTANCE" -d "test" -q 'INSERT INTO fibonacci(num) VALUES (0),(1),(1);'
+  run_query -c "$NAME" -p 5432 -i "$INSTANCE" -d "test" -q 'INSERT INTO fibonacci(num) VALUES (2),(3),(5);'
+  run_query -c "$NAME" -p 5432 -i "$INSTANCE" -d "test" -q 'INSERT INTO fibonacci(num) VALUES (8),(13),(21);'
 }
 
 generate_mock_data(){
-  NAME="${1:-$CLUSTER_NAME}"
+  local NAME="${1:-$CLUSTER_NAME}"
   create_mock_table "$NAME"
   insert_mock_data "$NAME"
 }
 
 read_mock_table(){
-  SERVER="${SERVER:-primary}"
-  INSTANCE="${INSTANCE:-1}"
+  local SERVER="${SERVER:-primary}"
+  local INSTANCE="${INSTANCE:-1}"
 
   local opt
   local OPTARG
@@ -46,6 +48,7 @@ read_mock_table(){
 check_mock_data_samehost(){
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
   local INSTANCE="${2:-0}"
+  local RESPONSE
   RESPONSE="$(read_mock_table -i "$INSTANCE")"
   if [ "$RESPONSE" = "54" ]
   then
@@ -57,6 +60,7 @@ check_mock_data_samehost(){
 
 check_mock_data(){
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
+  local RESPONSE
   RESPONSE="$(read_mock_table)"
   if [ "$RESPONSE" = "54" ]
   then
@@ -69,11 +73,15 @@ check_mock_data(){
 check_mock_data_replication(){
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
   local REPLICA_INDEX
+  local SERVER
+  local RESPONSE_PRIMARY
   REPLICA_INDEX="$(get_replica_index)"
   SERVER="primary"
   RESPONSE_PRIMARY="$(read_mock_table -i "$REPLICA_INDEX")"
 
   local PRIMARY_INDEX
+  local SERVER
+  local RESPONSE_PRIMARY
   PRIMARY_INDEX="$(get_primary_index)"
   SERVER="replicas"
   RESPONSE_REPlICA="$(read_mock_table -i "$PRIMARY_INDEX")"

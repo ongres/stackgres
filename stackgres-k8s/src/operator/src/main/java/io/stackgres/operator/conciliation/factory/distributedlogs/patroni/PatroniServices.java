@@ -29,7 +29,6 @@ import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
@@ -59,7 +58,7 @@ public class PatroniServices implements
 
   public String configName(StackGresDistributedLogsContext clusterContext) {
     final StackGresDistributedLogs cluster = clusterContext.getSource();
-    final String scope = labelFactory.clusterScope(cluster);
+    final String scope = PatroniConfigMap.clusterScope(cluster);
     return ResourceUtil.resourceName(
         scope + PatroniUtil.CONFIG_SERVICE);
   }

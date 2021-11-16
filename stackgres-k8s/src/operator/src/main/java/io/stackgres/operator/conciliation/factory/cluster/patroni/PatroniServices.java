@@ -69,9 +69,8 @@ public class PatroniServices implements
 
   public String configName(ClusterContext clusterContext) {
     final StackGresCluster cluster = clusterContext.getCluster();
-    final String scope = labelFactory.clusterScope(cluster);
     return ResourceUtil.resourceName(
-        scope + PatroniUtil.CONFIG_SERVICE);
+        PatroniConfigMap.clusterScope(cluster) + PatroniUtil.CONFIG_SERVICE);
   }
 
   /**

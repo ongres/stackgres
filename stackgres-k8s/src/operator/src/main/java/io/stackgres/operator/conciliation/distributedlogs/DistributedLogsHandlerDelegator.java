@@ -20,41 +20,42 @@ import io.stackgres.operator.conciliation.ReconciliationScopeLiteral;
 @ApplicationScoped
 public class DistributedLogsHandlerDelegator implements HandlerDelegator<StackGresDistributedLogs> {
 
-  private final Instance<ReconciliationHandler> handlers;
+  private final Instance<ReconciliationHandler<StackGresDistributedLogs>> handlers;
 
-  private final ReconciliationHandler defaultHandler;
+  private final ReconciliationHandler<StackGresDistributedLogs> defaultHandler;
 
   @Inject
   public DistributedLogsHandlerDelegator(
-      @Any Instance<ReconciliationHandler> handlers,
+      @Any Instance<ReconciliationHandler<StackGresDistributedLogs>> handlers,
       @ReconciliationScope(value = StackGresDistributedLogs.class, kind = "HasMetadata")
-          ReconciliationHandler defaultHandler) {
+          ReconciliationHandler<StackGresDistributedLogs> defaultHandler) {
     this.handlers = handlers;
     this.defaultHandler = defaultHandler;
   }
 
   @Override
-  public HasMetadata create(HasMetadata resource) {
-    return getHandler(resource).create(resource);
+  public HasMetadata create(StackGresDistributedLogs context, HasMetadata resource) {
+    return getHandler(resource).create(context, resource);
   }
 
   @Override
-  public HasMetadata patch(HasMetadata newResource, HasMetadata oldResource) {
-    return getHandler(newResource).patch(newResource, oldResource);
+  public HasMetadata patch(StackGresDistributedLogs context, HasMetadata newResource,
+      HasMetadata oldResource) {
+    return getHandler(newResource).patch(context, newResource, oldResource);
   }
 
   @Override
-  public HasMetadata replace(HasMetadata resource) {
-    return getHandler(resource).replace(resource);
+  public HasMetadata replace(StackGresDistributedLogs context, HasMetadata resource) {
+    return getHandler(resource).replace(context, resource);
   }
 
   @Override
-  public void delete(HasMetadata resource) {
-    getHandler(resource).delete(resource);
+  public void delete(StackGresDistributedLogs context, HasMetadata resource) {
+    getHandler(resource).delete(context, resource);
   }
 
-  private ReconciliationHandler getHandler(HasMetadata r1) {
-    Instance<ReconciliationHandler> instance = handlers
+  private ReconciliationHandler<StackGresDistributedLogs> getHandler(HasMetadata r1) {
+    Instance<ReconciliationHandler<StackGresDistributedLogs>> instance = handlers
         .select(new ReconciliationScopeLiteral(StackGresDistributedLogs.class, r1.getKind()));
     if (!instance.isResolvable()) {
       return defaultHandler;

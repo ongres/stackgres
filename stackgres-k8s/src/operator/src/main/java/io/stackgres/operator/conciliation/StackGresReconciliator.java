@@ -103,10 +103,10 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
                 LOGGER.info("Creating resource {} of kind: {}",
                     resource.getMetadata().getName(), resource.getKind());
                 try {
-                  handlerDelegator.create(resource);
+                  handlerDelegator.create(customResource, resource);
                 } catch (KubernetesClientException ex) {
                   if (ex.getCode() == 409) {
-                    handlerDelegator.replace(resource);
+                    handlerDelegator.replace(customResource, resource);
                   } else {
                     throw ex;
                   }
@@ -118,14 +118,14 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
                 LOGGER.info("Patching resource {} of kind: {}",
                     resource.v2.getMetadata().getName(),
                     resource.v2.getKind());
-                handlerDelegator.patch(resource.v1, resource.v2);
+                handlerDelegator.patch(customResource, resource.v1, resource.v2);
               });
 
           result.getDeletions()
               .forEach(resource -> {
                 LOGGER.info("Deleting resource {} of kind: {}", resource.getMetadata().getName(),
                     resource.getKind());
-                handlerDelegator.delete(resource);
+                handlerDelegator.delete(customResource, resource);
               });
           if (result.getDeletions().isEmpty() && result.getPatches().isEmpty()) {
             onConfigCreated(customResource, result);

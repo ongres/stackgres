@@ -14,6 +14,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
@@ -24,15 +25,15 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractReconciliationHandler implements ReconciliationHandler,
-    ReconciliationOperations {
+public abstract class AbstractReconciliationHandler<T extends CustomResource<?, ?>>
+    implements ReconciliationHandler<T>, ReconciliationOperations {
 
   private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.reconciliator");
 
   private KubernetesClient client;
 
   @Override
-  public HasMetadata create(HasMetadata resource) {
+  public HasMetadata create(T context, HasMetadata resource) {
     return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
         .withFieldManager(STACKGRES_FIELD_MANAGER)
         .withForce(true)
@@ -40,7 +41,7 @@ public abstract class AbstractReconciliationHandler implements ReconciliationHan
   }
 
   @Override
-  public HasMetadata patch(HasMetadata resource, HasMetadata oldResource) {
+  public HasMetadata patch(T context, HasMetadata resource, HasMetadata oldResource) {
     try {
       return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
           .withFieldManager(STACKGRES_FIELD_MANAGER)
@@ -56,7 +57,7 @@ public abstract class AbstractReconciliationHandler implements ReconciliationHan
   }
 
   @Override
-  public HasMetadata replace(HasMetadata resource) {
+  public HasMetadata replace(T context, HasMetadata resource) {
     return getResourceOperation(client, resource)
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getMetadata().getName())
@@ -65,7 +66,7 @@ public abstract class AbstractReconciliationHandler implements ReconciliationHan
   }
 
   @Override
-  public void delete(HasMetadata resource) {
+  public void delete(T context, HasMetadata resource) {
     client.resource(resource).delete();
   }
 
