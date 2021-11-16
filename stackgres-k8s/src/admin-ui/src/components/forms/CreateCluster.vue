@@ -25,13 +25,14 @@
             </div>
         </header>
         <div class="form">
-            <ul class="steps">
+            <ul class="steps header">
                 <li v-for="(step, index) in formSteps" @click="currentStep = step" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' )]" v-if="( ((index < 3) && !advancedMode) || advancedMode)">
                     {{ step }}
                 </li>
-                <a v-if="!advancedMode" @click="advancedMode = true">
-                    Show Advanced Options
-                </a>
+                <label for="advancedMode">
+                    <input type="checkbox" id="advancedMode" name="advancedMode" v-model="advancedMode"> 
+                    <span> Advanced</span>
+                </label>
             </ul>
 
             <div class="clearfix"></div>
@@ -1433,25 +1434,33 @@
                 }
             },
 
-            cleanupScripts(cluster) {
+            hasScripts(source) {
                 
-                if(this.hasProp(cluster, 'spec.initialData.scripts')){
-                    cluster.spec.initialData.scripts.forEach(function(script, index){
-                        if(script.hasOwnProperty('script') && !script.script.length) {
-                            cluster.spec.initialData.scripts.splice( index, 1 );
-                        } else {
-                            if(!script.name.length)
-                                delete script.name
+                let hasScripts = source.find(s => JSON.stringify(s) != '{"name":"","database":"","script":""}');
 
-                            if(script.hasOwnProperty('database') && !script.database.length)
-                                delete script.database
-                        }
-                    })
+                return (typeof hasScripts != 'undefined')
+            },
 
-                    if(!cluster.spec.initialData.scripts.length) {
-                        delete cluster.spec.initialData.scripts;
+            cleanupScripts(scripts) {
+
+                let nonEmptyScripts = [];
+                
+                scripts.forEach(function(script){
+                    if(script.hasOwnProperty('script') && script.script.length) {
+                        nonEmptyScripts.push({
+                            ...( (script.hasOwnProperty('name') && script.name.length) && ({
+                                "name": script.name
+                            })),
+                            ...( (script.hasOwnProperty('database') && script.database.length) && ({
+                                "database": script.database
+                            })),
+                            "script": script.script
+                        });
                     }
-                }
+                })
+
+                return nonEmptyScripts;
+
             },
 
             pushLabel: function( prop ) {
@@ -1526,7 +1535,7 @@
                                     "sgDistributedLogs": this.distributedLogs
                                 }
                             })),
-                            ...( (this.restoreBackup.length || this.initScripts.length) && ({
+                            ...( (this.restoreBackup.length || vc.hasScripts(this.initScripts)) && ({
                                     "initialData": {
                                         ...( this.restoreBackup.length && ({
                                             "restore": { 
@@ -1544,8 +1553,8 @@
                                                 }) )
                                             },
                                         }) ),
-                                        ...( this.initScripts.length && ({
-                                            "scripts": this.initScripts.slice()
+                                        ...( vc.hasScripts(this.initScripts) && ({
+                                            "scripts": vc.cleanupScripts(this.initScripts)
                                         }) )
                                     }
                                 }) 
@@ -1593,9 +1602,6 @@
 
                         }
                     }
-
-                    // Cleanup object from empty scripts
-                    vc.cleanupScripts(cluster);
 
                     if(preview) {                  
 
@@ -2098,7 +2104,7 @@
 
 <style scoped>
     .form {
-        max-width: none;
+        max-width: 830px;
         width: auto;
     }
 
@@ -2387,6 +2393,7 @@
     ul.steps {
         display: inline-block;
         margin: 10px 0 20px;
+        border: 0;
     }
 
     ul.steps li {
@@ -2549,6 +2556,17 @@
 
     input.affinityWeight {
         width: calc(100% - 25px);
+    }
+
+    #advancedMode + span {
+        position: relative;
+        top: -1px;
+    }
+
+    .steps label {
+        position: absolute;
+        width: 95px;
+        top: 11px;
     }
 
 </style>
