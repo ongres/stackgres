@@ -12,6 +12,7 @@ dbops-minor-version-upgrade:629
 dbops-pgbench:469
 dbops-repack:394
 dbops-restart:896
+dbops-restart-failed:240
 dbops-restart-timeout-and-repeat:446
 dbops-security-upgrade:970
 dbops-vacuum:364

@@ -445,6 +445,8 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         return "Restarting postgres of pod " + podName.orElseThrow();
       case POSTGRES_RESTARTED:
         return "Restarted postgres of pod " + podName.orElseThrow();
+      case POSTGRES_RESTART_FAILED:
+        return String.format("Postgres Restart of pod %s failed", podName.orElseThrow());
       case INCREASING_INSTANCES:
         return "Increasing instances of " + sgCluster + " " + clusterName;
       case INSTANCES_INCREASED:

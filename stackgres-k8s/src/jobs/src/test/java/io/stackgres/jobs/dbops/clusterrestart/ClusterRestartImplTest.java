@@ -6,6 +6,7 @@
 package io.stackgres.jobs.dbops.clusterrestart;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
@@ -141,7 +142,7 @@ class ClusterRestartImplTest {
 
     final String primaryName = primary.getMetadata().getName();
     when(postgresRestart.restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE))
-        .thenReturn(Uni.createFrom().voidItem());
+        .thenReturn(Uni.createFrom().item(true));
 
     when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());
@@ -162,25 +163,25 @@ class ClusterRestartImplTest {
         "it should send an event for every pod restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INCREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INCREASING_INSTANCES)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_INCREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_INCREASED)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.DECREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.DECREASING_INSTANCES)
             .count(),
         "it should not delete a pod in InPlace restart");
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_DECREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_DECREASED)
             .count(),
         "it should not delete a pod in InPlace restart");
 
@@ -197,8 +198,8 @@ class ClusterRestartImplTest {
         "it should finalize a switchover");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.RESTARTING_POSTGRES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.RESTARTING_POSTGRES)
             .count(),
         "it should notify that the primary postgres its been restarted");
     assertEquals(1,
@@ -276,26 +277,26 @@ class ClusterRestartImplTest {
         "it should send an event for every pod restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INCREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INCREASING_INSTANCES)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_INCREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_INCREASED)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.DECREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.DECREASING_INSTANCES)
             .count(),
         "it should not delete a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_DECREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_DECREASED)
             .count(),
         "it should not delete a pod in InPlace restart");
 
@@ -312,8 +313,8 @@ class ClusterRestartImplTest {
         "it should finalize a switchover");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.RESTARTING_POSTGRES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.RESTARTING_POSTGRES)
             .count(),
         "it shouldn't restart the primary postgres");
 
@@ -382,26 +383,26 @@ class ClusterRestartImplTest {
         "it should send an event for every pod restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INCREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INCREASING_INSTANCES)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_INCREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_INCREASED)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.DECREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.DECREASING_INSTANCES)
             .count(),
         "it should not delete a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_DECREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_DECREASED)
             .count(),
         "it should not delete a pod in InPlace restart");
 
@@ -459,7 +460,7 @@ class ClusterRestartImplTest {
 
     final String primaryName = primary.getMetadata().getName();
     when(postgresRestart.restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE))
-        .thenReturn(Uni.createFrom().voidItem());
+        .thenReturn(Uni.createFrom().item(true));
 
     when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());
@@ -480,26 +481,26 @@ class ClusterRestartImplTest {
         "it should send an event for every pod restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INCREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INCREASING_INSTANCES)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_INCREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_INCREASED)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.DECREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.DECREASING_INSTANCES)
             .count(),
         "it should not delete a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_DECREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_DECREASED)
             .count(),
         "it should not delete a pod in InPlace restart");
 
@@ -581,20 +582,20 @@ class ClusterRestartImplTest {
         "it should send an event for every pod restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INCREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INCREASING_INSTANCES)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_INCREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_INCREASED)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_DECREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_DECREASED)
             .count(),
         "it should not delete a pod in InPlace restart");
 
@@ -611,8 +612,8 @@ class ClusterRestartImplTest {
         "it should finalize a switchover");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.RESTARTING_POSTGRES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.RESTARTING_POSTGRES)
             .count(),
         "it shouldn't restart the primary postgres");
 
@@ -681,26 +682,26 @@ class ClusterRestartImplTest {
         "it should send an event for every pod restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INCREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INCREASING_INSTANCES)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_INCREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_INCREASED)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.DECREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.DECREASING_INSTANCES)
             .count(),
         "it should not delete a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_DECREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_DECREASED)
             .count(),
         "it should not delete a pod in InPlace restart");
 
@@ -717,8 +718,8 @@ class ClusterRestartImplTest {
         "it should not finalize a switchover");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.RESTARTING_POSTGRES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.RESTARTING_POSTGRES)
             .count(),
         "it shouldn't restart the primary postgres");
 
@@ -780,7 +781,7 @@ class ClusterRestartImplTest {
     final String primaryName = primary.getMetadata().getName();
 
     when(postgresRestart.restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE))
-        .thenReturn(Uni.createFrom().voidItem());
+        .thenReturn(Uni.createFrom().item(true));
 
     when(switchoverHandler.performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().voidItem());
@@ -801,26 +802,26 @@ class ClusterRestartImplTest {
         "it should send an event for every pod restart");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INCREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INCREASING_INSTANCES)
             .count(),
         "it should send an event for every pod created");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_INCREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_INCREASED)
             .count(),
         "it should send an event for every pod created");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.DECREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.DECREASING_INSTANCES)
             .count(),
         "it should send an event for every pod deleted");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_DECREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_DECREASED)
             .count(),
         "it should send an event for every pod deleted");
 
@@ -837,8 +838,8 @@ class ClusterRestartImplTest {
         "it should finalize a switchover");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.RESTARTING_POSTGRES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.RESTARTING_POSTGRES)
             .count(),
         "it should restart the primary postgres");
 
@@ -925,26 +926,26 @@ class ClusterRestartImplTest {
         "it should send an event for every pod restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INCREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INCREASING_INSTANCES)
             .count(),
         "it should not create a pod if the pod is already created");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_INCREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_INCREASED)
             .count(),
         "it should not create a pod if the pod is already created");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.DECREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.DECREASING_INSTANCES)
             .count(),
         "it should send an event for every pod deletion");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_DECREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_DECREASED)
             .count(),
         "it should send an event for every pod deletion");
 
@@ -961,8 +962,8 @@ class ClusterRestartImplTest {
         "it should finalize a switchover");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.RESTARTING_POSTGRES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.RESTARTING_POSTGRES)
             .count(),
         "it shouldn't restart the primary postgres");
 
@@ -1038,26 +1039,26 @@ class ClusterRestartImplTest {
         "it should send an event for every pod restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INCREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INCREASING_INSTANCES)
             .count(),
         "it should send an event for every pod creation");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_INCREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_INCREASED)
             .count(),
         "it should send an event for every pod creation");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.DECREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.DECREASING_INSTANCES)
             .count(),
         "it should send an event for every pod deleted");
 
     assertEquals(1,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_DECREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_DECREASED)
             .count(),
         "it should send an event for every pod deleted");
 
@@ -1074,8 +1075,8 @@ class ClusterRestartImplTest {
         "it should not finalize a switchover");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.RESTARTING_POSTGRES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.RESTARTING_POSTGRES)
             .count(),
         "it shouldn't restart the primary postgres");
 
@@ -1142,14 +1143,14 @@ class ClusterRestartImplTest {
         "it should not send an event if all pods has been restarted");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INCREASING_INSTANCES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INCREASING_INSTANCES)
             .count(),
         "it should not create a pod in InPlace restart");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.INSTANCES_INCREASED)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.INSTANCES_INCREASED)
             .count(),
         "it should not create a pod in InPlace restart");
 
@@ -1176,8 +1177,8 @@ class ClusterRestartImplTest {
         "it should not finalize a switchover");
 
     assertEquals(0,
-        events.stream().filter(event -> event.getEventType()
-                == RestartEventType.RESTARTING_POSTGRES)
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.RESTARTING_POSTGRES)
             .count(),
         "it shouldn't restart the primary postgres");
 
@@ -1197,6 +1198,45 @@ class ClusterRestartImplTest {
     verify(switchoverHandler, times(0)).performSwitchover(any(), any(), any());
     verify(instanceManager, times(0)).increaseClusterInstances(any(), any());
     verify(instanceManager, times(0)).decreaseClusterInstances(any(), any());
+  }
+
+  @Test()
+  void givenAFailureOnPostgreRestart_itShouldSetStatusAsFailedPostgresRestart() {
+    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(dbOps.getSpec().getOp())
+        .clusterName(dbOps.getSpec().getSgCluster())
+        .restartMethod(IN_PLACE_METHOD)
+        .isOnlyPendingRestart(false)
+        .primaryInstance(primary)
+        .addInitialInstances(primary, replica1, replica2)
+        .addTotalInstances(primary, replica1, replica2)
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(),
+            replica1, RestartReasons.of(),
+            replica2, RestartReasons.of()))
+        .isSwitchoverInitiated(false)
+        .isSwitchoverFinalized(false)
+        .build();
+
+    when(podRestart.restartPod(any(Pod.class))).thenAnswer(invocationOnMock -> {
+      Pod pod = invocationOnMock.getArgument(0);
+      return Uni.createFrom().item(pod);
+    });
+
+    final String primaryName = primary.getMetadata().getName();
+    when(postgresRestart.restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(false));
+
+    var failure = assertThrows(FailedRestartPostgresException.class,
+        () -> clusterRestart.restartCluster(clusterState)
+            .subscribe()
+            .asStream()
+            .collect(Collectors.toUnmodifiableList()).stream().findAny().get());
+
+    assertEquals(String.format("Postgres of instance %s failed", primaryName),
+        failure.getMessage());
   }
 
 }
