@@ -42,3 +42,39 @@ delete_namespace_if_exists() {
     kubectl delete namespace "$NAMESPACE"
   fi
 }
+
+upgrade_kubernetes() {
+  if ! command -v upgrade_k8s > /dev/null 2>&1
+  then
+    >&2 echo "$E2E_ENV does not implement upgrade_k8s"
+    return 1
+  fi
+
+  local K8S_UPGRADE_TO_VERSION="$1"
+  local PODS_COUNT
+  PODS_COUNT="$(kubectl get pod -A -o name | wc -l)"
+  PODS_COUNT="$((2 + (PODS_COUNT * 10 / 100) ))"
+  local UPGRADE_REQUIRED_PODS_FILE="$TARGET_PATH/upgrade-required-pods-$(date +%s).json"
+  local UPGRADE_DEPLOYED_PODS_FILE="$TARGET_PATH/upgrade-deployed-pods-$(date +%s).json"
+  local UPGRADE_MISSING_PODS_FILE="$TARGET_PATH/upgrade-missing-pods-$(date +%s).json"
+  kubectl get pod -A -o json > "$UPGRADE_REQUIRED_PODS_FILE"
+  kubectl drain minikube --ignore-errors --delete-emptydir-data --ignore-daemonsets --force
+  upgrade_k8s "$K8S_UPGRADE_TO_VERSION"
+  kubectl uncordon minikube
+  kubectl get pod -A -o json > "$UPGRADE_DEPLOYED_PODS_FILE"
+  jq -s '
+    .[1].items as $deployed
+    | .[0].items[]
+    | select(. as $required
+        | $deployed | any(
+          $required.metadata.namespace == .metadata.namespace
+          and $required.metadata.name == .metadata.name)
+        | not
+      and $required.metadata.ownerReferences == null)' \
+    "$UPGRADE_REQUIRED_PODS_FILE" \
+    "$UPGRADE_DEPLOYED_PODS_FILE" \
+    > "$UPGRADE_MISSING_PODS_FILE"
+  kubectl create -f "$UPGRADE_MISSING_PODS_FILE"
+  wait_until -t "$((E2E_TIMEOUT * PODS_COUNT))" \
+    kubectl wait -A --for=condition=Ready pod --all --timeout 0
+}

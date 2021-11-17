@@ -185,6 +185,12 @@ setup_operator() {
     fi
   fi
 
+  if [ -n "$K8S_UPGRADE_TO_VERSION" ] \
+    && [ -n "$K8S_UPGRADE_BEFORE_RUN_TEST" ]
+  then
+    E2E_BEFORE_RUN_TEST_FUNCTION="$E2E_BEFORE_RUN_TEST_FUNCTION e2e_before_run_test_upgrade_k8s"
+  fi
+
   if ! is_operator_installed \
     || ([ "$E2E_USE_EXTERNAL_OPERATOR" != true ] \
       && [ "$E2E_REUSE_OPERATOR_PODS" != true ]) \
@@ -230,39 +236,12 @@ load_operator_k8s() {
   then
     if [ "$E2E_SKIP_LOAD_OPERATOR" != true ]
     then
-      if [ -n "$E2E_OPERATOR_REGISTRY" ]
-      then
-        echo "Loading operator images from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
-        for IMAGE_NAME in \
-          "$OPERATOR_IMAGE_NAME" \
-          "$RESTAPI_IMAGE_NAME" \
-          "$JOBS_IMAGE_NAME" \
-          "$CLUSTER_CONTROLLER_IMAGE_NAME" \
-          "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
-          "$ADMINUI_IMAGE_NAME"
-        do
-          echo "$IMAGE_NAME"
-        done | xargs_parallel_shell % "$E2E_PATH/e2e" \
-          pull_image_from "$E2E_OPERATOR_REGISTRY" "${E2E_OPERATOR_REGISTRY_PATH}stackgres/" "%"
-        echo "All operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
-      else
-        echo "Loading operator images from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
-        for IMAGE_NAME in \
-          "$OPERATOR_IMAGE_NAME" \
-          "$RESTAPI_IMAGE_NAME" \
-          "$JOBS_IMAGE_NAME" \
-          "$CLUSTER_CONTROLLER_IMAGE_NAME" \
-          "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" \
-          "$ADMINUI_IMAGE_NAME"
-        do
-          echo "$IMAGE_NAME"
-        done | xargs_parallel_shell % "$E2E_PATH/e2e" \
-          docker_pull "%"
-        echo "All operator images loaded from ${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}"
-      fi
+      echo "Loading operator images from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+      load_operator_images_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH"
+      echo "All operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
     fi
 
-    if [ -n "$E2E_COMPONENTS_REGISTRY" ] && [ "$E2E_SKIP_LOAD_COMPONENTS" != true ]
+    if [ "$E2E_SKIP_LOAD_COMPONENTS" != true ]
     then
       echo "Loading component images from ${E2E_COMPONENTS_REGISTRY}${E2E_COMPONENTS_REGISTRY_PATH}"
       load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_REGISTRY_PATH"
@@ -341,22 +320,21 @@ install_operator() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
-  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
-    -a -n "$STACKGRES_PREVIOUS_VERSION" ]
+  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" ] \
+    && [ -n "$STACKGRES_PREVIOUS_VERSION" ]
   then
     install_operator_previous_version "$@"
     echo "Installing operator version $STACKGRES_PREVIOUS_VERSION"
   fi
 
-  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
-    -a -n "$STACKGRES_PREVIOUS_VERSION" \
-    -a -n "$E2E_UPGRADE_BEFORE_RUN_TEST" ]
+  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" ] \
+    && [ -n "$STACKGRES_PREVIOUS_VERSION" ] \
+    && [ -n "$E2E_UPGRADE_BEFORE_RUN_TEST" ]
   then
-    E2E_BEFORE_RUN_TEST_FUNCTION=e2e_before_run_test_upgrade
-    E2E_BEFORE_RUN_TEST_COUNT=
+    E2E_BEFORE_RUN_TEST_FUNCTION="$E2E_BEFORE_RUN_TEST_FUNCTION e2e_before_run_test_upgrade_operator"
   else
-    if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
-      -a -n "$STACKGRES_PREVIOUS_VERSION" ]
+    if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" ] \
+      && [ -n "$STACKGRES_PREVIOUS_VERSION" ]
     then
       echo "Upgrading operator from version $(get_installed_operator_version) to version $STACKGRES_VERSION"
     else
@@ -364,15 +342,28 @@ install_operator() {
     fi
     install_operator_only "$@"
   fi
+
+  if ! [ -n "$K8S_UPGRADE_TO_VERSION" ] \
+      || ! [ -n "$K8S_UPGRADE_BEFORE_RUN_TEST" ]
+  then
+    echo "Upgrading kubernetes from version $K8S_VERSION to version $K8S_UPGRADE_TO_VERSION"
+    upgrade_kubernetes "$K8S_UPGRADE_TO_VERSION"
+  fi
 }
 
-e2e_before_run_test_upgrade() {
-  E2E_BEFORE_RUN_TEST_COUNT="$((E2E_BEFORE_RUN_TEST_COUNT + 1))"
-  if ! e2e_exclusive_lock \
-    && [ "$E2E_UPGRADE_BEFORE_RUN_TEST" = "$E2E_BEFORE_RUN_TEST_COUNT" ]
+e2e_before_run_test_upgrade_operator() {
+  if [ "$E2E_UPGRADE_BEFORE_RUN_TEST" = "$E2E_BEFORE_RUN_TEST_COUNT" ]
   then
     echo "Upgrading operator from version $(get_installed_operator_version) to version $STACKGRES_VERSION"
     install_operator_only
+  fi
+}
+
+e2e_before_run_test_upgrade_k8s() {
+  if [ "$K8S_UPGRADE_BEFORE_RUN_TEST" = "$E2E_BEFORE_RUN_TEST_COUNT" ]
+  then
+    echo "Upgrading kubernetes from version $K8S_VERSION to version $K8S_UPGRADE_TO_VERSION"
+    upgrade_kubernetes "$K8S_UPGRADE_TO_VERSION"
   fi
 }
 
@@ -590,6 +581,70 @@ reinstall_operator_if_not_as_expected() {
     kubectl create namespace "$OPERATOR_NAMESPACE"
     install_operator_only -f "$TARGET_PATH/operator-values.json"
   fi
+}
+
+load_operator_images_from() {
+  local REPOSITORY="${1:-$OPERATOR_PUBLIC_REGISTRY}"
+  local IMAGE_PATH="${2:-$OPERATOR_PUBLIC_REGISTRY_PATH}"
+  local VERSION="${3:-$STACKGRES_VERSION}"
+  local IMAGES
+  IMAGES="$(get_operator_images "$VERSION")"
+  printf '%s' "$IMAGES" \
+    | xargs_parallel_shell % "$E2E_PATH/e2e" \
+      pull_image_from "$REPOSITORY" "${IMAGE_PATH}stackgres/" "%"
+}
+
+get_operator_images() {
+  [ -n "$1" ]
+  local VERSION="$1"
+  local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1 VERSION_1_0_0_ALPHA2
+  VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
+  VERSION_1_0_0_ALPHA1="$(get_version_as_number 1.0.0-alpha1)"
+  VERSION_1_0_0_ALPHA2="$(get_version_as_number 1.0.0-alpha2)"
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA1" ]
+  then
+    get_operator_images_pre_1_0_0_alpha1 "$VERSION"
+    return
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA2" ]
+  then
+    get_operator_images_pre_1_0_0_alpha2 "$VERSION"
+    return
+  fi
+  local NATIVE_TAG="$VERSION"
+  if [ "$VERSION" = "$STACKGRES_VERSION" ]
+  then
+    NATIVE_TAG="${IMAGE_TAG%-jvm}"
+  fi
+  local TAG="$NATIVE_TAG-jvm"
+  if [ "$VERSION" = "$STACKGRES_VERSION" ] \
+    && [ "${IMAGE_TAG%-jvm}" = "$IMAGE_TAG" ]
+  then
+    TAG="$NATIVE_TAG"
+  fi
+  echo "${OPERATOR_IMAGE_NAME%:*}:$TAG"
+  echo "${RESTAPI_IMAGE_NAME%:*}:$TAG"
+  echo "${JOBS_IMAGE_NAME%:*}:$TAG"
+  echo "${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$TAG"
+  echo "${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$TAG"
+  echo "${ADMINUI_IMAGE_NAME%:*}:$NATIVE_TAG"
+}
+
+get_operator_images_pre_1_0_0_alpha2() {
+  [ -n "$1" ]
+  local VERSION="$1"
+  echo "${OPERATOR_IMAGE_NAME%:*}:$VERSION"
+  echo "${RESTAPI_IMAGE_NAME%:*}:$VERSION"
+  echo "${JOBS_IMAGE_NAME%:*}:$VERSION"
+  echo "${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$VERSION"
+  echo "${ADMINUI_IMAGE_NAME%:*}:$VERSION"
+}
+
+get_operator_images_pre_1_0_0_alpha1() {
+  [ -n "$1" ]
+  local VERSION="$1"
+  echo "${OPERATOR_IMAGE_NAME%:*}:$VERSION"
+  echo "${RESTAPI_IMAGE_NAME%:*}:$VERSION"
+  echo "${ADMINUI_IMAGE_NAME%:*}:$VERSION"
 }
 
 load_component_images_from() {
