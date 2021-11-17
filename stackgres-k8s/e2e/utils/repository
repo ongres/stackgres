@@ -123,6 +123,16 @@ load_cached_images_from_local_repository() {
     touch "$E2E_PULLED_IMAGES_PATH"
   fi
   cat "$E2E_PULLED_IMAGES_PATH" \
+    | grep -v ":$OPERATOR_PUBLIC_REGISTRY$OPERATOR_PUBLIC_REGISTRY_PATH" \
+    | if [ "$OPERATOR_PUBLIC_REGISTRY" = docker.io ]
+      then
+        grep -v ":${OPERATOR_PUBLIC_REGISTRY_PATH#/}"
+      fi \
+    | grep -v ":$COMPONENT_PUBLIC_REGISTRY$COMPONENT_PUBLIC_REGISTRY_PATH" \
+    | if [ "$COMPONENT_PUBLIC_REGISTRY" = docker.io ]
+      then
+        grep -v ":${COMPONENT_PUBLIC_REGISTRY_PATH#/}"
+      fi \
     | cut -d : -f 2-3 | sort | uniq \
     | xargs_parallel_shell % "$E2E_PATH/e2e" load_cached_image_from_local_repository '%'
 }

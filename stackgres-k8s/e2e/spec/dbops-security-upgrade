@@ -31,12 +31,25 @@ e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
 
-  if [ "$E2E_DISABLE_CACHE" != "true" ]
+  if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
   then
-    load_component_images_from \
-      "$E2E_COMPONENTS_REGISTRY" \
-      "$E2E_COMPONENTS_REGISTRY_PATH" \
-      "$STACKGRES_PREVIOUS_VERSION"
+    if [ "$E2E_SKIP_LOAD_OPERATOR" != true ]
+    then
+      load_operator_images_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH" \
+        "$STACKGRES_PREVIOUS_VERSION"
+    fi
+
+    if [ "$E2E_SKIP_LOAD_COMPONENTS" != true ]
+    then
+      load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_REGISTRY_PATH" \
+        "$STACKGRES_PREVIOUS_VERSION"
+    fi
+
+    if [ "$E2E_SKIP_LOAD_EXTENSIONS" != true ]
+    then
+      load_extensions_images_from "$E2E_EXTENSIONS_REGISTRY" "$E2E_EXTENSIONS_REGISTRY_PATH" \
+        "$STACKGRES_PREVIOUS_VERSION"
+    fi
   fi
 
   install_prometheus_operator_for_version 12.8.0
@@ -326,6 +339,7 @@ check_distributedlogs_security_upgrade() {
 }
 
 check_cluster_1_security_upgrade_start() {
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
   check_cluster_security_upgrade_start "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
 }
 
