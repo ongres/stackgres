@@ -3,26 +3,22 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster;
+package io.stackgres.operator.conciliation.factory.cluster.v09;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
-import io.fabric8.kubernetes.api.model.NodeAffinity;
-import io.fabric8.kubernetes.api.model.NodeAffinityBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
 import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
@@ -51,11 +47,12 @@ import io.stackgres.operator.conciliation.factory.ImmutablePodTemplateResult;
 import io.stackgres.operator.conciliation.factory.PodTemplateFactory;
 import io.stackgres.operator.conciliation.factory.PodTemplateResult;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniRoleGenerator;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V09_LAST)
 public class PodTemplateSpecFactory
     implements PodTemplateFactory<StackGresClusterContainerContext> {
 
@@ -91,13 +88,6 @@ public class PodTemplateSpecFactory
     final List<Container> containers = containerFactories.stream()
         .map(f -> f.getContainer(context)).collect(Collectors.toUnmodifiableList());
 
-    Map<String, String> componentVersions = containerFactories.stream()
-        .map(f -> f.getComponentVersions(context))
-        .map(Map::entrySet)
-        .flatMap(Set::stream)
-        .distinct()
-        .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
-
     final List<ContainerFactory<StackGresClusterContainerContext>> initContainerFactories =
         initContainerFactoryDiscoverer.discoverContainers(context);
 
@@ -132,11 +122,9 @@ public class PodTemplateSpecFactory
             .addToLabels(podLabels)
             .addToAnnotations(StackGresContext.VERSION_KEY,
                 StackGresProperty.OPERATOR_VERSION.getString())
-            .addToAnnotations(componentVersions)
             .build())
         .withNewSpec()
         .withAffinity(new AffinityBuilder()
-            .withNodeAffinity(buildPodNodeAffinity(cluster))
             .withPodAntiAffinity(new PodAntiAffinityBuilder()
                 .addAllToRequiredDuringSchedulingIgnoredDuringExecution(Optional.of(
                     new PodAffinityTermBuilder()
@@ -191,19 +179,6 @@ public class PodTemplateSpecFactory
         .spec(podTemplate)
         .claimedVolumes(claimedVolumes)
         .build();
-  }
-
-  public NodeAffinity buildPodNodeAffinity(StackGresCluster cluster) {
-
-    boolean hasNoStackGresClusterPodScheduling = cluster.getSpec() == null
-        || cluster.getSpec().getPod() == null
-        || cluster.getSpec().getPod().getScheduling() == null;
-
-    if (hasNoStackGresClusterPodScheduling) {
-      return new NodeAffinityBuilder().build();
-    }
-
-    return cluster.getSpec().getPod().getScheduling().getNodeAffinity();
   }
 
   public Map<String, String> podsCustomLabels(StackGresCluster cluster) {

@@ -110,6 +110,7 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
     return new VolumeBuilder()
         .withName(AbstractEnvoy.NAME)
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
+            .withDefaultMode(420)
             .withName(StatefulSetDynamicVolumes.ENVOY.getResourceName(clusterName))
             .build())
         .build();

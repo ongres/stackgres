@@ -19,7 +19,7 @@ public enum StatefulSetDynamicVolumes {
   RESTORE_ENV("restore-env", "%s-restore"),
   ENVOY("envoy", "%s-envoy-config"),
   EXPORTER_QUERIES("queries", "%s-prometheus-postgres-exporter-config"),
-  EXPORTER_INIT("postgres-exporter-init", "%s-prometheus-postgresx"),
+  EXPORTER_INIT("postgres-exporter-init", "%s-prometheus-postgres"),
   PGBOUNCER("pgbouncer", "%s-connection-pooling-config"),
   PGBOUNCER_AUTH_FILE("pgbouncer-auth-file"),
   PGBOUNCER_SECRETS("pgbouncer-secrets"),

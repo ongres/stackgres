@@ -217,7 +217,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
                 .withSubPath("usr/local/bin")
                 .build(),
             new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.LOG.getVolumeName())
+                .withName(PatroniStaticVolume.LOCAL.getVolumeName())
                 .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
                 .withSubPath("var/log/postgresql")
                 .build())

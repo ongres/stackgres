@@ -34,7 +34,6 @@ import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.PodTemplateFactory;
 import io.stackgres.operator.conciliation.factory.PodTemplateResult;
 import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
 import io.stackgres.operator.conciliation.factory.VolumePair;
@@ -47,16 +46,18 @@ public class ClusterStatefulSet
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  private final PodTemplateFactory<StackGresClusterContainerContext> podTemplateSpecFactory;
+  private final PodTemplateFactoryDiscoverer<StackGresClusterContainerContext>
+      podTemplateSpecFactoryDiscoverer;
   private final VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
 
   @Inject
   public ClusterStatefulSet(
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      PodTemplateFactory<StackGresClusterContainerContext> podTemplateSpecFactory,
+      PodTemplateFactoryDiscoverer<StackGresClusterContainerContext>
+          podTemplateSpecFactoryDiscoverer,
       VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer) {
     this.labelFactory = labelFactory;
-    this.podTemplateSpecFactory = podTemplateSpecFactory;
+    this.podTemplateSpecFactoryDiscoverer = podTemplateSpecFactoryDiscoverer;
     this.volumeDiscoverer = volumeDiscoverer;
   }
 
@@ -102,13 +103,15 @@ public class ClusterStatefulSet
             vp -> vp.getValue().getVolume()
         ));
 
-    final PodTemplateResult podTemplateSpec = podTemplateSpecFactory.getPodTemplateSpec(
-        ImmutableStackGresClusterContainerContext.builder()
-            .clusterContext(context)
-            .availableVolumes(availableVolumes)
-            .dataVolumeName(dataName(context))
-            .build()
-    );
+    var containerContext = ImmutableStackGresClusterContainerContext.builder()
+        .clusterContext(context)
+        .availableVolumes(availableVolumes)
+        .dataVolumeName(dataName(context))
+        .build();
+    var podTemplateSpecFactory = podTemplateSpecFactoryDiscoverer
+        .discoverPodSpecFactory(containerContext);
+
+    PodTemplateResult podTemplateSpec = podTemplateSpecFactory.getPodTemplateSpec(containerContext);
 
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
         .withNewMetadata()

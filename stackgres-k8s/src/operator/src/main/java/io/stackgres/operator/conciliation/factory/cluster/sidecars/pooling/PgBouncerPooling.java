@@ -20,7 +20,9 @@ import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.EmptyDirVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
@@ -71,6 +73,25 @@ public class PgBouncerPooling extends AbstractPgPooling {
     super(labelFactory);
     this.containerUserOverrideMounts = containerUserOverrideMounts;
     this.postgresSocket = postgresSocket;
+  }
+
+  @Override
+  protected HasMetadata buildSource(@NotNull StackGresClusterContext context) {
+    final StackGresCluster sgCluster = context.getSource();
+
+    Map<String, String> data = getConfigMapData(context);
+
+    String namespace = sgCluster.getMetadata().getNamespace();
+    String configMapName = configName(context);
+
+    return new ConfigMapBuilder()
+        .withNewMetadata()
+        .withNamespace(namespace)
+        .withName(configMapName)
+        .withLabels(labelFactory.genericLabels(sgCluster))
+        .endMetadata()
+        .withData(data)
+        .build();
   }
 
   @Override

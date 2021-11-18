@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
@@ -45,7 +44,7 @@ public abstract class AbstractPgPooling
 
   protected final Map<String, String> defaultParameters = getDefaultParameters();
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
   protected AbstractPgPooling(
@@ -76,9 +75,9 @@ public abstract class AbstractPgPooling
   public @NotNull Stream<VolumePair> buildVolumes(@NotNull StackGresClusterContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
-        .volume(buildVolume(context))
-        .source(buildSource(context))
-        .build());
+            .volume(buildVolume(context))
+            .source(buildSource(context))
+            .build());
   }
 
   protected Volume buildVolume(StackGresClusterContext context) {
@@ -86,27 +85,12 @@ public abstract class AbstractPgPooling
         .withName(StatefulSetDynamicVolumes.PGBOUNCER.getVolumeName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(configName(context))
+            .withDefaultMode(420)
             .build())
         .build();
   }
 
-  protected HasMetadata buildSource(@NotNull StackGresClusterContext context) {
-    final StackGresCluster sgCluster = context.getSource();
-
-    Map<String, String> data = getConfigMapData(context);
-
-    String namespace = sgCluster.getMetadata().getNamespace();
-    String configMapName = configName(context);
-
-    return new ConfigMapBuilder()
-        .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(configMapName)
-        .withLabels(labelFactory.genericLabels(sgCluster))
-        .endMetadata()
-        .withData(data)
-        .build();
-  }
+  protected abstract HasMetadata buildSource(@NotNull StackGresClusterContext context);
 
   protected Map<String, String> getConfigMapData(StackGresClusterContext context) {
     String configFile = getConfigFile(context.getPoolingConfig());

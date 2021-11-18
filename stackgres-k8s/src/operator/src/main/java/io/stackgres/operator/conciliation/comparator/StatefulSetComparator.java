@@ -86,6 +86,9 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
           .compile("/spec/template/spec/volumes/\\d+/secret/defaultMode"),
           "add",
           "420"),
+      new PatchPattern(Pattern
+          .compile("/spec/template/spec/volumes/\\d+$"),
+          "move"),
       new SimpleIgnorePatch("/spec/template/spec/dnsPolicy",
           "add",
           "ClusterFirst"),

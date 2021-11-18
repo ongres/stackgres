@@ -17,7 +17,6 @@ import javax.inject.Singleton;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -52,7 +51,7 @@ import org.jooq.lambda.Seq;
 @RunningContainer(ClusterRunningContainer.ENVOY_V09)
 public class Envoy extends AbstractEnvoy {
 
-  private static final String IMAGE_NAME = "ongres/envoy:v1.17.1-build-6.0";
+  private static final String IMAGE_NAME = "docker.io/ongres/envoy:v1.15.3-build-6.0";
   private final VolumeMountsProvider<ContainerContext> containerLocalOverrideMounts;
 
   @Inject
@@ -89,13 +88,7 @@ public class Envoy extends AbstractEnvoy {
                 .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build())
         .withCommand("/usr/local/bin/envoy")
-        .withArgs(Seq.of("-c", "/etc/envoy/default_envoy.yaml",
-            "--bootstrap-version", "2")
-            .append(Seq.of(ENVOY_LOGGER.isTraceEnabled())
-                .filter(traceEnabled -> traceEnabled)
-                .map(traceEnabled -> ImmutableList.of("-l", "debug"))
-                .flatMap(List::stream))
-            .toArray(String[]::new));
+        .withArgs("-c", "/etc/envoy/default_envoy.yaml", "-l", "debug");
     return container.build();
   }
 

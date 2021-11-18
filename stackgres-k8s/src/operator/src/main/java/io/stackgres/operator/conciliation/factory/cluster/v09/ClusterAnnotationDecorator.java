@@ -30,6 +30,16 @@ public class ClusterAnnotationDecorator extends AbstractClusterAnnotationDecorat
   protected void decorateSts(@NotNull StackGresClusterContext context,
       @NotNull HasMetadata resource) {
     StatefulSet statefulSet = (StatefulSet) resource;
+
+    var allResourceAnnotations = getAllResourcesAnnotations(context);
+
+    var stsAnnotations = Optional
+        .ofNullable(statefulSet.getMetadata().getAnnotations())
+        .orElse(new HashMap<>());
+
+    stsAnnotations.putAll(allResourceAnnotations);
+    resource.getMetadata().setAnnotations(stsAnnotations);
+
     Map<String, String> podTemplateAnnotations = Optional.ofNullable(statefulSet.getSpec())
         .map(StatefulSetSpec::getTemplate)
         .map(PodTemplateSpec::getMetadata)
