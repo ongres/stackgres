@@ -7,21 +7,27 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientTimeoutException;
 import io.smallrye.mutiny.Uni;
+import io.stackgres.common.resource.ResourceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class PodWatcher implements Watcher<Pod> {
 
+  public static final String UNKNOWN_POD_STATUS_PHASE = "Unknown";
+  public static final String FAILED_POD_STATUS_PHASE = "Failed";
+  public static final String RUNNING_POD_STATUS_PHASE = "Running";
+  public static final String PENDING_POD_STATUS_PHASE = "Pending";
   private static final Logger LOGGER = LoggerFactory.getLogger(PodWatcher.class);
   private final KubernetesClient client;
 
@@ -40,17 +46,57 @@ public class PodWatcher implements Watcher<Pod> {
     String podName = pod.getMetadata().getName();
     String namespace = pod.getMetadata().getNamespace();
 
-    final Uni<Pod> podReadyPoll = Uni.createFrom().emitter(em -> {
-      LOGGER.debug("Waiting for pod {} to be ready", podName);
-      try {
-        var readyPod = client.pods().inNamespace(namespace).withName(podName)
-            .waitUntilReady(30, TimeUnit.MINUTES);
-        em.complete(readyPod);
-      } catch (KubernetesClientTimeoutException e) {
-        em.fail(e);
-      }
+    Uni<Pod> podReadyPoll = Uni.createFrom().emitter(em -> {
+      do {
+        var updatedPod = client.pods().inNamespace(namespace).withName(podName).get();
+        String updatedPodPhaseStatus = updatedPod.getStatus().getPhase();
+        LOGGER.info("Waiting for pod {} to be ready. Current state {}", podName,
+            updatedPodPhaseStatus);
+        if (updatedPodPhaseStatus.equals(RUNNING_POD_STATUS_PHASE)) {
+          LOGGER.info("Pod {} ready!", podName);
+          em.complete(pod);
+          break;
+        }
+
+        var warningEvent = checkForPodWarningEvent(pod, namespace);
+        if (warningEvent.isPresent()) {
+          LOGGER.info("Warning event from pod {} found!", podName);
+          em.complete(null);
+          break;
+        }
+
+        if (updatedPodPhaseStatus.equals(FAILED_POD_STATUS_PHASE)
+            || updatedPodPhaseStatus.equals(UNKNOWN_POD_STATUS_PHASE)) {
+          LOGGER.info("Pod {} with status {}", podName, updatedPodPhaseStatus);
+          em.complete(null);
+          break;
+        }
+
+        waitForNextCheck();
+
+      } while (true);
     });
-    return podReadyPoll.onFailure().retry().indefinitely();
+    return podReadyPoll.onFailure().retry()
+        .withBackOff(Duration.ofSeconds(1), Duration.ofSeconds(10)).atMost(5);
+  }
+
+  private void waitForNextCheck() {
+    try {
+      TimeUnit.SECONDS.sleep(5);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private Optional<Event> checkForPodWarningEvent(Pod pod, String namespace) {
+    var warningEvent = client.v1().events().inNamespace(namespace)
+        .withInvolvedObject(ResourceUtil.getObjectReference(pod))
+        .list()
+        .getItems()
+        .stream()
+        .filter(event -> event.getType().equals("Warning"))
+        .findAny();
+    return warningEvent;
   }
 
   protected Uni<Pod> waitUntilIsCreated(String name, String namespace) {

@@ -14,6 +14,7 @@ public enum RestartEventType implements EventReason {
   INSTANCES_INCREASED(Type.NORMAL, "InstancesIncreased"),
   RESTARTING_POD(Type.NORMAL, "RestartingPod"),
   POD_RESTARTED(Type.NORMAL, "PodRestarted"),
+  POD_RESTART_FAILED(Type.WARNING, "PodRestartFailed"),
   DECREASING_INSTANCES(Type.NORMAL, "DecreasingInstances"),
   INSTANCES_DECREASED(Type.NORMAL, "InstancesDecreased"),
   SWITCHOVER_INITIATED(Type.NORMAL, "SwitchoverInitiated"),

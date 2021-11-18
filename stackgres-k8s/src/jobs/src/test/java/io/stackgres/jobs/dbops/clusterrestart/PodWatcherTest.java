@@ -5,6 +5,8 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import static io.stackgres.jobs.dbops.clusterrestart.PodWatcher.RUNNING_POD_STATUS_PHASE;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -16,6 +18,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.PodStatusBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
@@ -23,6 +26,9 @@ import io.smallrye.mutiny.TimeoutException;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.MockitoAnnotations;
 
 @QuarkusTest
 @WithKubernetesTestServer
@@ -36,11 +42,14 @@ class PodWatcherTest {
 
   String namespace;
   String podName;
+  String podUid;
 
   @BeforeEach
   void setUp() {
+    MockitoAnnotations.openMocks(this);
     namespace = StringUtils.getRandomNamespace();
     podName = StringUtils.getRandomClusterName();
+    podUid = StringUtils.getRandomClusterName();
     client.namespaces().withName(namespace).create(
         new NamespaceBuilder().withNewMetadata().withName(namespace).endMetadata().build());
   }
@@ -78,7 +87,6 @@ class PodWatcherTest {
     client.pods().inNamespace(namespace).withName(podName)
         .create(new PodBuilder()
             .withNewMetadata()
-            .withNamespace(namespace)
             .withName(podName)
             .endMetadata()
             .build());
@@ -88,4 +96,34 @@ class PodWatcherTest {
     assertEquals(podName, pod.getMetadata().getName());
 
   }
+
+  @Test
+  void givenPodRestartedSuccessfully_statusShouldFinishWithStatusCompleted() {
+
+    var ready = new PodStatusBuilder().withPhase(RUNNING_POD_STATUS_PHASE).build();
+    var mockedPod = new PodBuilder().withStatus(ready).withNewMetadata().withName(podName)
+        .endMetadata().build();
+    client.pods().inNamespace(namespace).withName(podName)
+        .create(mockedPod);
+
+    Pod pod = podWatcher.waitUntilIsReady(podName, namespace).await().atMost(Duration.ofMillis(3));
+
+    assertEquals(podName, pod.getMetadata().getName());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"Unknown", "Failed"})
+  void givenPodRestartedFailed_statusShouldFinishWithFailureOrUnknown(String status) {
+
+    var ready = new PodStatusBuilder().withPhase(status).build();
+    var mockedPod = new PodBuilder().withStatus(ready).withNewMetadata().withName(podName)
+        .endMetadata().build();
+    client.pods().inNamespace(namespace).withName(podName).create(mockedPod);
+
+    Pod invalidPod = podWatcher.waitUntilIsReady(podName, namespace).await()
+        .atMost(Duration.ofMillis(360 * 1000));
+
+    assertNull(invalidPod);
+  }
+
 }
