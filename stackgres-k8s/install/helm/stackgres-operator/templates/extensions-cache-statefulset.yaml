@@ -77,7 +77,15 @@ spec:
             mountPath: /opt/app-root/src
             readOnly: true
       - name: "controller"
-        image: "ongres/kubectl:v1.19.14-build-6.6"
+      {{- if semverCompare ">=1.22" .Capabilities.KubeVersion.Version }}
+        image: "ongres/kubectl:v1.22.2-build-6.7"
+      {{- else if semverCompare ">=1.19" .Capabilities.KubeVersion.Version }}
+        image: "ongres/kubectl:v1.20.11-build-6.7"
+      {{- else if semverCompare ">=1.16" .Capabilities.KubeVersion.Version }}
+        image: "ongres/kubectl:v1.17.17-build-6.7"
+      {{- else }}
+        image: "ongres/kubectl:v1.22.2-build-6.7"
+      {{- end }}
         env:
           - name: EXTENSIONS_REPOSITORY_URLS
             value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"

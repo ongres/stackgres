@@ -4,6 +4,7 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-nginx
   namespace: {{ .Release.Namespace }}
+{{- if .Values.qutePreprocess }}#comment.preprocess.start{{- end }}
 data:
   stackgres-operator.conf: |
     server {
@@ -23,4 +24,5 @@ data:
         proxy_pass http://{{ .Release.Name }}-api:8080;
       }
     }
+{{- if .Values.qutePreprocess }}#comment.preprocess.end{{- end}}
 {{- end }}

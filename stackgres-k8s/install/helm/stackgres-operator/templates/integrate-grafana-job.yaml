@@ -1,5 +1,5 @@
 {{- if .Values.grafana.autoEmbed }}
-{{if .Values.grafana.preprocess}}#grafana.preprocess.start{{end}}
+{{- if .Values.qutePreprocess }}#grafana.preprocess.start{{- end}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -24,7 +24,15 @@ spec:
       serviceAccountName: {{ .Release.Name }}-init
       containers:
       - name: "integrate-grafana"
-        image: "ongres/kubectl:v1.19.14-build-6.6"
+      {{- if semverCompare ">=1.22" .Capabilities.KubeVersion.Version }}
+        image: "ongres/kubectl:v1.22.2-build-6.7"
+      {{- else if semverCompare ">=1.19" .Capabilities.KubeVersion.Version }}
+        image: "ongres/kubectl:v1.20.11-build-6.7"
+      {{- else if semverCompare ">=1.16" .Capabilities.KubeVersion.Version }}
+        image: "ongres/kubectl:v1.17.17-build-6.7"
+      {{- else }}
+        image: "ongres/kubectl:v1.22.2-build-6.7"
+      {{- end }}
         imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"
@@ -102,5 +110,5 @@ spec:
             {{- end }}
       {{- end }}
       restartPolicy: OnFailure
-{{if .Values.grafana.preprocess}}#grafana.preprocess.end{{end}}
+{{- if .Values.qutePreprocess }}#grafana.preprocess.end{{- end}}
 {{ end }}

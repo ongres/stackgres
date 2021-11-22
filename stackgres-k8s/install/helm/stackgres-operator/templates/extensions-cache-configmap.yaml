@@ -4,6 +4,7 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-extensions-cache
   namespace: {{ .Release.Namespace }}
+{{- if .Values.qutePreprocess }}#comment.preprocess.start{{- end }}
 data:
   nginx.conf: |
     pid             /var/run/nginx.pid;
@@ -41,4 +42,5 @@ data:
     }
   extensions-cache-conciliator.sh: |
 {{ .Files.Get "extensions-cache-conciliator.sh" | indent 4 }}
+{{- if .Values.qutePreprocess }}#comment.preprocess.end{{- end }}
 {{- end }}
