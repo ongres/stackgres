@@ -40,7 +40,7 @@ function initLunr() {
                 // Set version selector URL
                 if(page.uri == window.location.href) {
 
-                    let currentVersion = baseurl.includes('latest') ? 'latest' : $('#sgVersion option:selected').text;
+                    let currentVersion = baseurl.includes('latest') ? 'latest' : $('#sgVersion option:selected').text();
                     $('#sgVersion option:not(:selected)').each(function(index, alt) {
 
                         let altVersion = alt.text.replace(' (development)','');
