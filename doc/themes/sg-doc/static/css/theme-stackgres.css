@@ -1408,13 +1408,12 @@ code.language-bash {
 /* Notifications */
 #lightbox {
     position: fixed;
-    top: 0;
+    top: 90px;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: calc(100vh - 90px);
     left: -100vw;
-    z-index: 10;
-    padding-top: 10vh;
+    z-index: 999999;
     display: flex;
     align-items: center;
     text-align: center;
@@ -1433,7 +1432,7 @@ code.language-bash {
 }
 
 #lightbox .overlay {
-    background: rgba(0,0,0,.8);
+    background: rgba(0,0,0,.3);
     position: absolute;
     top: 0;
     left: 0;
@@ -1447,9 +1446,9 @@ code.language-bash {
     width: 450px;
     max-width: 80vw;
     text-align: center;
-    color: #fff;
+    color: var(--textColor);
     border: 1px solid var(--baseLightColor);
-    background: var(--darkBlue);
+    background: var(--inputBg);
     padding: 40px;
     margin: 0 auto;
     opacity: 0;
@@ -1457,6 +1456,10 @@ code.language-bash {
     border-radius: 10px;
     position: relative;
     z-index: 2;
+}
+
+.message .button {
+    color: var(--bgColor);
 }
 
 /*Light and Darkmode Adjustments*/
