@@ -1333,7 +1333,7 @@ code.language-bash {
     margin: 0;
     vertical-align: middle;
     color: var(--borderColor);
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .versionSelector select {
