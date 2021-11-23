@@ -56,13 +56,14 @@ public class PodWatcher implements Watcher<Pod> {
     String namespace = pod.getMetadata().getNamespace();
 
     return Uni.createFrom().emitter(em -> {
+      Pod readyPod = null;
       do {
         Pod updatedPod = client.pods().inNamespace(namespace).withName(podName).get();
         LOGGER.info("Waiting for pod {} to be ready. Current state {}", podName,
             updatedPod.getStatus().getPhase());
 
         try {
-          Pod readyPod = client.pods().inNamespace(namespace).withName(podName).waitUntilReady(30,
+          readyPod = client.pods().inNamespace(namespace).withName(podName).waitUntilReady(60,
               SECONDS);
           LOGGER.info("Pod {} ready!", podName);
           em.complete(readyPod);
@@ -82,7 +83,7 @@ public class PodWatcher implements Watcher<Pod> {
           }
         }
         waitForNextCheck();
-      } while (true);
+      } while (readyPod == null);
     });
   }
 

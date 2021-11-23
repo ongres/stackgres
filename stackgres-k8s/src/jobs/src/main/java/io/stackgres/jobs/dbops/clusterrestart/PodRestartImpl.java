@@ -41,7 +41,6 @@ public class PodRestartImpl implements PodRestart {
   }
 
   public Uni<Void> deletePod(Pod pod) {
-    LOGGER.info("Restarting pod {}", pod.getMetadata().getName());
     return Uni.createFrom().emitter(em -> {
       podWriter.delete(pod);
       em.complete(null);
