@@ -473,7 +473,7 @@ textarea:focus, input[type="email"]:focus, input[type="number"]:focus, input[typ
 #footer {
     padding: 0;
     color: #b3b3b3;
-    font-size: 13px;
+    font-size: 14px;
     min-height: 150px;
 }
 
@@ -1070,12 +1070,16 @@ p .copy-to-clipboard.tooltipped:after {
     }
 
     #top-bar .toc {
-        width: 100% !important;
-        display: block !important;
+        display: none;
     }
 
     #chapter {
         padding-top: 0;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
     }
 }
 @media only all and (max-width: 47.938em) {
