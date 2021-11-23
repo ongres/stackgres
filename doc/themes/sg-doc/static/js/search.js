@@ -40,24 +40,31 @@ function initLunr() {
                 // Set version selector URL
                 if(page.uri == window.location.href) {
 
-                    if(baseurl.includes('localhost')) { // If testing locally
-                        var vIndex = baseurl.includes('0.9') ? baseurl+'index.json' : baseurl+'index-1.0.json';
-                    } else if(baseurl.includes('stackgres.io')) { // If on Live site 
-                        var vIndex = ( baseurl.includes('/doc/0.9') ? baseurl.replace('/doc/0.9','/doc/latest') : baseurl.replace('/doc/latest','/doc/0.9') ) + 'index.json';
-                    } 
+                    let currentVersion = baseurl.includes('latest') ? 'latest' : $('#sgVersion option:selected').text().replace(' (development)','');
+                    $('#sgVersion option:not(:selected)').each(function(index, alt) {
 
-                    $.ajax({
-                        url: vIndex,
-                    }).done(function(vIndex){
-                        let vPage = vIndex.find(p => (p.title == page.title))
-                        
-                        if(vPage !== undefined) {
-                            $('#sgVersion option:not(:checked)').val(vPage.uri)
-                        } else {
-                            $('#sgVersion option:not(:checked)').val( (baseurl.includes('/doc/0.9') ? baseurl.replace('/doc/0.9','/doc/latest') : baseurl.replace('/doc/latest','/doc/0.9') ) + '?not-found=1');
-                        }
+                        let altVersion = alt.text.replace(' (development)','');
+
+                        if(baseurl.includes('localhost')) { // If testing locally
+                            var altVersionIndex = baseurl+'index-'+altVersion+'.json';
+                        } else { // If on Live site 
+                            var altVersionIndex = baseurl.replace(currentVersion, altVersion) + '/index.json';
+                        } 
+
+                        $.ajax({
+                            url: altVersionIndex,
+                            dataType: 'text'
+                        }).done(function(altVersionIndex){
+                            altVersionIndex = JSON.parse(altVersionIndex.replace(/[\n\r\t]/g,""))
+                            let vPage = altVersionIndex.find(p => (p.title == page.title))
                             
-                    })
+                            if(vPage !== undefined) {
+                                $(alt).val(vPage.uri)
+                            } else {
+                                $(alt).val( baseurl.replace(currentVersion, altVersion) + '?not-found=1');
+                            }
+                        })
+                    });
                 }
                     
             }, this);
