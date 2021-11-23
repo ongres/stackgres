@@ -273,7 +273,7 @@ ul.topics .toggleToc {
     height: 13px;
     width: 13px;
     border-radius: 3px;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 12px;
     text-align: center;
     color: var(--blue);
@@ -1333,7 +1333,7 @@ code.language-bash {
     margin: 0;
     vertical-align: middle;
     color: var(--borderColor);
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .versionSelector select {
@@ -1451,7 +1451,7 @@ code.language-bash {
     }
 
     #header .follow a svg path {
-        fill: var(--darkBlue);
+        fill: #fff;
     }
 
     #header .follow a span {
@@ -1508,6 +1508,9 @@ code.language-bash {
 }
 
 @media screen and (max-width: 920px) { 
+    #body {
+        font-size: 1.1rem;
+    }
 
     #goTop {
         display: none;
@@ -1690,6 +1693,12 @@ code.language-bash {
     .menuOpen #navToggle span:nth-child(2) {
         width: 0;
     }
+
+    #body-inner {
+        margin-top: 0;
+        padding-top: 0;
+    }
+
 }
 
 @media screen and (max-width: 768px) {
