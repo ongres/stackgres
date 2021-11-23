@@ -40,14 +40,14 @@ function initLunr() {
                 // Set version selector URL
                 if(page.uri == window.location.href) {
 
-                    let currentVersion = baseurl.includes('latest') ? 'latest' : $('#sgVersion option:selected').text;
+                    let currentVersion = baseurl.includes('latest') ? 'latest' : $('#sgVersion option:selected').text().replace(' (development)','');
                     $('#sgVersion option:not(:selected)').each(function(index, alt) {
 
                         let altVersion = alt.text.replace(' (development)','');
 
                         if(baseurl.includes('localhost')) { // If testing locally
                             var altVersionIndex = baseurl+'index-'+altVersion+'.json';
-                        } else if(baseurl.includes('stackgres.io')) { // If on Live site 
+                        } else { // If on Live site 
                             var altVersionIndex = baseurl.replace(currentVersion, altVersion) + '/index.json';
                         } 
 
