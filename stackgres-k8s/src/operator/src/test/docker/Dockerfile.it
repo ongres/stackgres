@@ -3,10 +3,10 @@
 #
 # Build the image with:
 #
-# docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t stackgres/it:14.0 .
+# docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t stackgres/it-amd64:15.0 .
 #
 ###
-FROM docker.io/docker:19.03
+FROM docker.io/docker:20.10.6
 
 RUN wget -q -O /bin/kubectl https://dl.k8s.io/release/v1.21.3/bin/linux/amd64/kubectl
 RUN chmod a+x /bin/kubectl

@@ -2,9 +2,6 @@
 .build native executable:
   image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
   stage: native build
-  tags:
-    - stackgres-runner
-    - stackgres-native-build-runner
   dependencies:
     - build
   variables:
@@ -29,6 +26,13 @@
       - stackgres-k8s/src/*/target/stackgres-*-runner
       - stackgres-k8s/src/*/target/lib/
       - stackgres-k8s/src/*/target/stackgres-*-runner.jar
+
+.build native executable amd64:
+  extends: .build native executable
+  tags:
+    - stackgres-runner-v2
+    - stackgres-native-build-runner
+    - linux-amd64
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
@@ -37,32 +41,76 @@
       - $DO_DEPLOY
       - $DO_NATIVE
 
-build operator native executable:
-  extends: .build native executable
+build operator native executable amd64:
+  extends: .build native executable amd64
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-operator"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,operator"
 
-build restapi native executable:
-  extends: .build native executable
+build restapi native executable amd64:
+  extends: .build native executable amd64
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-restapi"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,api-web"
 
-build jobs native executable:
-  extends: .build native executable
+build jobs native executable amd64:
+  extends: .build native executable amd64
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-jobs"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,jobs"
 
-build cluster-controller native executable:
-  extends: .build native executable
+build cluster-controller native executable amd64:
+  extends: .build native executable amd64
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-cluster-controller"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,cluster-controller"
 
-build distributedlogs-controller native executable:
+build distributedlogs-controller native executable amd64:
+  extends: .build native executable amd64
+  variables:
+    NATIVE_IMAGE_EXTRA_PREFIX: "-distributedlogs-controller"
+    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,distributedlogs-controller"
+
+.build native executable arm64:
   extends: .build native executable
+  tags:
+    - stackgres-runner-v2
+    - stackgres-native-build-runner
+    - linux-arm64
+  only:
+    variables:
+      - $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
+      - $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_REF_NAME == "current"
+      - $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+      - $DO_NATIVE && $DO_ARM
+
+build operator native executable arm64:
+  extends: .build native executable arm64
+  variables:
+    NATIVE_IMAGE_EXTRA_PREFIX: "-operator"
+    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,operator"
+
+build restapi native executable arm64:
+  extends: .build native executable arm64
+  variables:
+    NATIVE_IMAGE_EXTRA_PREFIX: "-restapi"
+    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,api-web"
+
+build jobs native executable arm64:
+  extends: .build native executable arm64
+  variables:
+    NATIVE_IMAGE_EXTRA_PREFIX: "-jobs"
+    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,jobs"
+
+build cluster-controller native executable arm64:
+  extends: .build native executable arm64
+  variables:
+    NATIVE_IMAGE_EXTRA_PREFIX: "-cluster-controller"
+    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,cluster-controller"
+
+build distributedlogs-controller native executable arm64:
+  extends: .build native executable arm64
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-distributedlogs-controller"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,distributedlogs-controller"

@@ -3,7 +3,7 @@
   image: quay.io/buildah/stable:v1.20.1
   stage: deploy
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
   variables:
     IMAGE_TAG_SUFFIX: ""
   script:

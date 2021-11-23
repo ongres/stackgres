@@ -216,6 +216,12 @@ EOF
   else
     kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
     kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
+    if [ "$(uname -m)" = aarch64 ]
+    then
+      kubectl patch deployment -n kube-system calico-kube-controllers --type json \
+        -p '[{"op":"replace","path":"/spec/template/spec/containers/0/image",
+          "value":"calico/kube-controllers:v3.8.9@sha256:5bbf629f4903a769abd49c85b21be19e33416986894e898e0a858901f677b0eb"}]'
+    fi
   fi
   echo "...done"
 }

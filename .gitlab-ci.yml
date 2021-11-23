@@ -54,6 +54,7 @@ stages:
   - check-release
   - native build
   - image build
+  - image build multi archs
   - test
   - deploy
 

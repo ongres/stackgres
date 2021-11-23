@@ -2,8 +2,9 @@ build:
   image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
   stage: build
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
     - stackgres-maven-runner
+    - linux-amd64
   script:
     - 'microdnf install python3-pip jq'
     - 'pip3 install yamllint yq'
