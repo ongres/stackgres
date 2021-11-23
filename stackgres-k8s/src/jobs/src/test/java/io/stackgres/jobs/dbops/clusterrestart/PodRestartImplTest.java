@@ -9,11 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.time.Duration;
 
 import javax.inject.Inject;
 
@@ -30,6 +33,8 @@ import org.mockito.Mockito;
 
 @QuarkusTest
 class PodRestartImplTest {
+
+  private static final int MAX_RETRY_ATTEMPTS = 10;
 
   @Inject
   PodRestartImpl podRestart;
@@ -124,10 +129,10 @@ class PodRestartImplTest {
         .when(podWriter).delete(pod);
 
     try {
-      podRestart.restartPod(pod).await().indefinitely();
+      podRestart.restartPod(pod).await().atMost(Duration.ofSeconds(3));
       fail("Exception on delete should be raised");
     } catch (Exception e) {
-      verify(podWriter).delete(pod);
+      verify(podWriter, atLeast(1)).delete(pod);
       verify(podWatcher, never()).waitUntilIsReplaced(any());
       verify(podWatcher, never()).waitUntilIsReady(anyString(), anyString());
     }
@@ -154,9 +159,9 @@ class PodRestartImplTest {
       podRestart.restartPod(pod).await().indefinitely();
       fail("Exceptions raised during wait until create should be raised");
     } catch (Exception e) {
-      verify(podWriter).delete(pod);
-      verify(podWatcher).waitUntilIsReplaced(any());
-      verify(podWatcher).waitUntilIsReady(anyString(), anyString());
+      verify(podWriter, atLeast(MAX_RETRY_ATTEMPTS)).delete(pod);
+      verify(podWatcher, atLeast(MAX_RETRY_ATTEMPTS)).waitUntilIsReplaced(any());
+      verify(podWatcher, atLeast(MAX_RETRY_ATTEMPTS)).waitUntilIsReady(anyString(), anyString());
     }
   }
 }

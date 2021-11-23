@@ -122,35 +122,6 @@ class ClusterWatcherTest {
   }
 
   @Test
-  void givenAClusterWithoutAllPodsReady_shouldFail() {
-    podTestUtil.preparePods(cluster, 1, 2, 3);
-
-    when(patroniApiHandler.getClusterMembers(clusterName, namespace)).thenReturn(
-        Uni.createFrom().item(() -> podTestUtil.getClusterPods(cluster),
-            (pods) -> pods.stream()
-                .map(pod -> ImmutableClusterMember.builder()
-                    .clusterName(clusterName)
-                    .namespace(namespace)
-                    .apiUrl("http://" + pod.getMetadata().getName() + ":8008/patroni")
-                    .name(pod.getMetadata().getName())
-                    .port(5432)
-                    .host(pod.getMetadata().getName())
-                    .state(MemberState.STOPPED)
-                    .role(StackGresContext.PRIMARY_ROLE
-                        .equals(pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY))
-                            ? MemberRole.LEADER
-                            : MemberRole.REPlICA)
-                    .lag(0)
-                    .timeline(1)
-                    .build())
-                .collect(Collectors.toUnmodifiableList())));
-
-    assertThrows(TimeoutException.class,
-        () -> clusterWatcher.waitUntilIsReady(clusterName, namespace)
-            .await().atMost(Duration.ofSeconds(1)));
-  }
-
-  @Test
   void givenAClusterThatLaterBecameReady_shouldPass()
       throws InterruptedException, ExecutionException {
     podTestUtil.preparePods(cluster, 1, 2);

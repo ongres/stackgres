@@ -54,7 +54,7 @@ public class ClusterRestartImpl implements ClusterRestart {
   @Override
   public Multi<RestartEvent> restartCluster(ClusterRestartState clusterRestartState) {
     return Multi.createFrom().emitter(em -> {
-      Uni<?> restartChain = waitForClusterToBeHealthy(clusterRestartState);
+      Uni<?> restartChain = findClusterToBeRestart(clusterRestartState);
 
       Pod primaryInstance = clusterRestartState.getPrimaryInstance();
       final String primaryInstanceName = primaryInstance.getMetadata().getName();
@@ -177,32 +177,18 @@ public class ClusterRestartImpl implements ClusterRestart {
                 .build());
           })
           .chain(() -> podRestart.restartPod(replica))
-          .onItemOrFailure()
-          .invoke((pod, failure) -> checkPodRestartOperation(pod, em, replica));
+          .onItem()
+          .invoke(() -> {
+            LOGGER.info("Pod {} restarted", replica.getMetadata().getName());
+            em.emit(ImmutableRestartEvent.builder()
+                .pod(replica)
+                .eventType(RestartEventType.POD_RESTARTED)
+                .build());
+          }).onFailure().retry().indefinitely();
 
       restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
     }
     return restartChain;
-  }
-
-  private Object checkPodRestartOperation(Pod pod, MultiEmitter<? super RestartEvent> em,
-      Pod replica) {
-    if (pod != null) {
-      LOGGER.info("Pod {} restarted", replica.getMetadata().getName());
-      em.emit(ImmutableRestartEvent.builder()
-          .pod(replica)
-          .eventType(RestartEventType.POD_RESTARTED)
-          .build());
-    } else {
-      LOGGER.info("Restart failed for pod {}", replica.getMetadata().getName());
-      em.emit(ImmutableRestartEvent.builder()
-          .pod(replica)
-          .eventType(RestartEventType.POD_RESTART_FAILED)
-          .build());
-      em.fail(new FailedPodRestartException(
-          format("Restart of pod %s failed", replica.getMetadata().getName())));
-    }
-    return null;
   }
 
   private Uni<?> increaseClusterInstance(ClusterRestartState clusterRestartState,
@@ -310,11 +296,11 @@ public class ClusterRestartImpl implements ClusterRestart {
     }
   }
 
-  private Uni<StackGresCluster> waitForClusterToBeHealthy(ClusterRestartState clusterRestartState) {
+  private Uni<StackGresCluster> findClusterToBeRestart(ClusterRestartState clusterRestartState) {
     String clusterName = clusterRestartState.getClusterName();
-    LOGGER.info("Waiting for cluster {} to be healthy", clusterName);
-    return clusterWatcher.waitUntilIsReady(clusterName, clusterRestartState.getNamespace())
-        .onItem().invoke(() -> LOGGER.info("Cluster {} healthy", clusterName));
+    LOGGER.info("Loading cluster {} info", clusterName);
+    return Uni.createFrom().item(() -> ((ClusterWatcher) clusterWatcher)
+        .findByNameAndNamespace(clusterName, clusterRestartState.getNamespace()));
   }
 
   private Uni<StackGresCluster> waitForClusterToBeHealthy(ClusterRestartState clusterRestartState,

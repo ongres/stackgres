@@ -11,10 +11,13 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.resource.ResourceWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class PodRestartImpl implements PodRestart {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(PodRestartImpl.class);
   private final ResourceWriter<Pod> podWriter;
 
   private final Watcher<Pod> podWatcher;
@@ -33,10 +36,12 @@ public class PodRestartImpl implements PodRestart {
 
     return deletePod(pod)
         .chain(() -> podWatcher.waitUntilIsReplaced(pod))
-        .chain(() -> podWatcher.waitUntilIsReady(podName, podNamespace));
+        .chain(() -> podWatcher.waitUntilIsReady(podName, podNamespace))
+        .onFailure().retry().atMost(10);
   }
 
   public Uni<Void> deletePod(Pod pod) {
+    LOGGER.info("Restarting pod {}", pod.getMetadata().getName());
     return Uni.createFrom().emitter(em -> {
       podWriter.delete(pod);
       em.complete(null);
