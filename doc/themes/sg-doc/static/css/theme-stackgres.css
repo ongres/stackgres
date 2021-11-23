@@ -277,7 +277,7 @@ ul.topics .toggleToc {
     height: 13px;
     width: 13px;
     border-radius: 3px;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 12px;
     text-align: center;
     color: var(--blue);
@@ -1386,7 +1386,7 @@ code.language-bash {
     margin: 0;
     vertical-align: middle;
     color: var(--borderColor);
-    font-size: 14px;
+    font-size: 16px;
 }
 
 .versionSelector select {
@@ -1531,7 +1531,7 @@ code.language-bash {
     }
 
     #header .follow a svg path {
-        fill: var(--darkBlue);
+        fill: #fff;
     }
 
     #header .follow a span {
@@ -1566,14 +1566,14 @@ code.language-bash {
         margin-top: 2rem;
     }
 
-    #body-inner:before {
+    .toc:after {
         content: "";
         display: inline-block;
-        width: 100%;
+        width: calc(100% + 45px);
         height: 1px;
         border-bottom: 1px solid var(--MENU-SECTION-HR-color);
         position: relative;
-        top: -2rem;
+        top: 0;
     }
 
     .is-sticky #top-bar {
@@ -1602,6 +1602,11 @@ code.language-bash {
     #body {
         width: 100%;
         max-width: 100%;
+        font-size: 1.1rem;
+    }
+
+    ul.topics .parent .toggleToc {
+        right: 18px;
     }
 
     #goTop {
@@ -1785,6 +1790,16 @@ code.language-bash {
     .menuOpen #navToggle span:nth-child(2) {
         width: 0;
     }
+
+    #top-bar .toc {
+        display: none;
+    }
+
+    #body-inner {
+        margin-top: 0;
+        padding-top: 0;
+    }
+
 }
 
 @media screen and (max-width: 768px) {
