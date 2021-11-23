@@ -47,7 +47,7 @@ function initLunr() {
 
                         if(baseurl.includes('localhost')) { // If testing locally
                             var altVersionIndex = baseurl+'index-'+altVersion+'.json';
-                        } else if(baseurl.includes('stackgres.io')) { // If on Live site 
+                        } else { // If on Live site 
                             var altVersionIndex = baseurl.replace(currentVersion, altVersion) + '/index.json';
                         } 
 
