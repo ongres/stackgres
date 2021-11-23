@@ -1,129 +1,360 @@
 
-build operator jvm image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+.build image:
+  image: docker:20.10.6
   stage: image build
-  tags:
-    - stackgres-runner
   timeout: 1 hour
   script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
-    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export TARGET_OPERATOR_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$OPERATOR_IMAGE_NAME"'
     - |
-      flock /tmp/stackgres-operator-build-jvm-image \
+      export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_SUFFIX"
+      export IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_BASE_NAME:$IMAGE_TAG"
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      flock "$LOCK_FILE" \
         sh stackgres-k8s/ci/build/build-gitlab.sh build \
           --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
-          operator-jvm-image
-    - HASH_OPERATOR_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.operator-jvm-image)"
-    - docker pull "$HASH_OPERATOR_IMAGE_NAME"
-    - docker tag "$HASH_OPERATOR_IMAGE_NAME" "$TARGET_OPERATOR_IMAGE_NAME"
-    - docker push "$TARGET_OPERATOR_IMAGE_NAME"
+          "$IMAGE_MODULE_NAME"
+      HASH_IMAGE_NAME="$(cat "stackgres-k8s/ci/build/target/image-hashes.$IMAGE_MODULE_NAME")"
+      docker pull "$HASH_IMAGE_NAME"
+      docker tag "$HASH_IMAGE_NAME" "$IMAGE_NAME"
+      docker push "$IMAGE_NAME"
   retry: 2
 
-build restapi jvm image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+.build test image:
+  image: docker:20.10.6
   stage: image build
-  tags:
-    - stackgres-runner
   timeout: 1 hour
   script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
-    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
-    - 'export TARGET_RESTAPI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$RESTAPI_IMAGE_NAME"'
     - |
-      flock /tmp/stackgres-restapi-build-jvm-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
-          restapi-jvm-image
-    - HASH_RESTAPI_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.restapi-jvm-image)"
-    - docker pull "$HASH_RESTAPI_IMAGE_NAME"
-    - docker tag "$HASH_RESTAPI_IMAGE_NAME" "$TARGET_RESTAPI_IMAGE_NAME"
-    - docker push "$TARGET_RESTAPI_IMAGE_NAME"
+      IT_IMAGE_NAME="$(grep -o '<it\.image>\([^<]\+\)</it\.image>' stackgres-k8s/src/pom.xml \
+        | tr '<>' '  ' | cut -d ' ' -f 3)$IMAGE_SUFFIX"
+    - TARGET_IT_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - |
+      if docker manifest inspect "$TARGET_IT_IMAGE_NAME" 2>/dev/null
+      then
+        echo "$TARGET_IT_IMAGE_NAME" already exists
+        exit
+      fi
+      echo Building...
+      if [ "$IMAGE_SUFFIX" = arm64 ]
+      then
+        docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it.arm64 -t "$TARGET_IT_IMAGE_NAME" .
+      else
+        docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$TARGET_IT_IMAGE_NAME" .
+      fi
+      echo ...done
+      echo Pushing...
+      docker push "$TARGET_IT_IMAGE_NAME"
+      echo ...done
   retry: 2
 
-build jobs jvm image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
-  stage: image build
-  tags:
-    - stackgres-runner
+.build image multi archs:
+  image: docker:20.10.6
+  stage: image build multi archs
   timeout: 1 hour
   script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
-    - 'export JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"'
-    - 'export TARGET_JOBS_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$JOBS_IMAGE_NAME"'
+    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_SUFFIX"'
+    - 'export IMAGE_NAME="$IMAGE_BASE_NAME:$IMAGE_TAG"'
+    - 'export TARGET_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME"'
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - cd stackgres-k8s/src
     - |
-      flock /tmp/stackgres-jobs-build-jvm-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
-          jobs-jvm-image
-    - HASH_JOBS_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.jobs-jvm-image)"
-    - docker pull "$HASH_JOBS_IMAGE_NAME"
-    - docker tag "$HASH_JOBS_IMAGE_NAME" "$TARGET_JOBS_IMAGE_NAME"
-    - docker push "$TARGET_JOBS_IMAGE_NAME"
+      ARCH_LIST="amd64 $(
+        if [ "$DO_ARM" = true ] \
+          || { [ "$SKIP_ARM" != true ] && [ -n "$CI_COMMIT_TAG" ]; }
+        then
+          echo arm64
+        fi
+        )"
+      if docker manifest inspect "$TARGET_IMAGE_NAME" >/dev/null 2>&1
+      then
+        docker pull registry.gitlab.com/ongresinc/stackgres/placeholder
+        docker tag registry.gitlab.com/ongresinc/stackgres/placeholder "$TARGET_IMAGE_NAME"
+        docker push "$TARGET_IMAGE_NAME"
+      fi
+      docker manifest rm "$TARGET_IMAGE_NAME" 2>/dev/null || true
+      docker manifest create "$TARGET_IMAGE_NAME" $(
+        for ARCH in $ARCH_LIST
+        do
+          echo "$TARGET_IMAGE_NAME-$ARCH "
+        done)
+      docker manifest push "$TARGET_IMAGE_NAME"
   retry: 2
 
-build cluster-controller jvm image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
-  stage: image build
-  tags:
-    - stackgres-runner
+.build test image multi archs:
+  image: docker:20.10.6
+  stage: image build multi archs
   timeout: 1 hour
   script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
-    - 'export CLUSTER_CONTROLLER_IMAGE_NAME="stackgres/cluster-controller:$IMAGE_TAG"'
-    - 'export TARGET_CLUSTER_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$CLUSTER_CONTROLLER_IMAGE_NAME"'
     - |
-      flock /tmp/stackgres-cluster-controller-build-jvm-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
-          cluster-controller-jvm-image
-    - HASH_CLUSTER_CONTROLLER_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.cluster-controller-jvm-image)"
-    - docker pull "$HASH_CLUSTER_CONTROLLER_IMAGE_NAME"
-    - docker tag "$HASH_CLUSTER_CONTROLLER_IMAGE_NAME" "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
-    - docker push "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
+      IT_IMAGE_NAME="$(grep -o '<it\.image>\([^<]\+\)</it\.image>' stackgres-k8s/src/pom.xml \
+        | tr '<>' '  ' | cut -d ' ' -f 3)"
+    - TARGET_IT_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - |
+      ARCH_LIST="amd64 $(
+        if [ "$DO_ARM" = true ] \
+          || { [ "$SKIP_ARM" != true ] && [ -n "$CI_COMMIT_TAG" ]; }
+        then
+          echo arm64
+        fi
+        )"
+      if ! docker manifest inspect "$TARGET_IT_IMAGE_NAME" >/dev/null 2>&1
+      then
+        docker manifest rm "$TARGET_IT_IMAGE_NAME" 2>/dev/null || true
+        docker manifest create "$TARGET_IT_IMAGE_NAME" $(
+          for ARCH in $ARCH_LIST
+          do
+            echo "$TARGET_IT_IMAGE_NAME-$ARCH "
+          done)
+        docker manifest push "$TARGET_IT_IMAGE_NAME"
+      fi
   retry: 2
 
-build distributedlogs-controller jvm image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
-  stage: image build
+.build jvm image amd64:
+  extends: .build image
   tags:
-    - stackgres-runner
-  timeout: 1 hour
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}-jvm"'
-    - 'export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"'
-    - 'export TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"'
-    - |
-      flock /tmp/stackgres-distributedlogs-controller-build-jvm-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
-          distributedlogs-controller-jvm-image
-    - HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.distributedlogs-controller-jvm-image)"
-    - docker pull "$HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-    - docker tag "$HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-    - docker push "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-  retry: 2
+    - stackgres-runner-v2
+    - linux-amd64
+  variables:
+    IMAGE_SUFFIX: '-jvm-amd64'
 
-build operator native image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
-  stage: image build
+.build native image amd64:
+  extends: .build image
   tags:
-    - stackgres-runner
-  timeout: 1 hour
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"'
-    - 'export TARGET_OPERATOR_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$OPERATOR_IMAGE_NAME"'
-    - |
-      flock /tmp/stackgres-operator-build-native-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
-          operator-native-image
-    - HASH_OPERATOR_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.operator-native-image)"
-    - docker pull "$HASH_OPERATOR_IMAGE_NAME"
-    - docker tag "$HASH_OPERATOR_IMAGE_NAME" "$TARGET_OPERATOR_IMAGE_NAME"
-    - docker push "$TARGET_OPERATOR_IMAGE_NAME"
-  retry: 2
+    - stackgres-runner-v2
+    - linux-amd64
+  variables:
+    IMAGE_SUFFIX: '-amd64'
+  only:
+    variables:
+      - $SKIP_NATIVE != "true"  && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+      - $DO_NATIVE
+
+build operator jvm image amd64:
+  extends: .build jvm image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/operator
+    LOCK_FILE: stackgres-operator-build-jvm-image
+    IMAGE_MODULE_NAME: operator-jvm-image
+
+build restapi jvm image amd64:
+  extends: .build jvm image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/restapi
+    LOCK_FILE: stackgres-restapi-build-jvm-image
+    IMAGE_MODULE_NAME: restapi-jvm-image
+
+build jobs jvm image amd64:
+  extends: .build jvm image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/jobs
+    LOCK_FILE: stackgres-jobs-build-jvm-image
+    IMAGE_MODULE_NAME: jobs-jvm-image
+
+build cluster-controller jvm image amd64:
+  extends: .build jvm image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/cluster-controller
+    LOCK_FILE: stackgres-cluster-controller-build-jvm-image
+    IMAGE_MODULE_NAME: cluster-controller-jvm-image
+
+build distributedlogs-controller jvm image amd64:
+  extends: .build jvm image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/distributedlogs-controller
+    LOCK_FILE: stackgres-distributedlogs-controller-build-jvm-image
+    IMAGE_MODULE_NAME: distributedlogs-controller-jvm-image
+
+build operator native image amd64:
+  extends: .build native image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/operator
+    LOCK_FILE: stackgres-operator-build-native-image
+    IMAGE_MODULE_NAME: operator-native-image
+
+build restapi native image amd64:
+  extends: .build native image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/restapi
+    LOCK_FILE: stackgres-restapi-build-native-image
+    IMAGE_MODULE_NAME: restapi-native-image
+
+build jobs native image amd64:
+  extends: .build native image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/jobs
+    LOCK_FILE: stackgres-jobs-build-native-image
+    IMAGE_MODULE_NAME: jobs-native-image
+
+build cluster-controller native image amd64:
+  extends: .build native image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/cluster-controller
+    LOCK_FILE: stackgres-cluster-controller-build-native-image
+    IMAGE_MODULE_NAME: cluster-controller-native-image
+
+build distributedlogs-controller native image amd64:
+  extends: .build native image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/distributedlogs-controller
+    LOCK_FILE: stackgres-distributedlogs-controller-build-native-image
+    IMAGE_MODULE_NAME: distributedlogs-controller-native-image
+
+build admin-ui image amd64:
+  extends: .build image
+  tags:
+    - stackgres-runner-v2
+    - linux-amd64
+  variables:
+    IMAGE_SUFFIX: '-amd64'
+    IMAGE_BASE_NAME: stackgres/admin-ui
+    LOCK_FILE: stackgres-adminui-build-image
+    IMAGE_MODULE_NAME: admin-ui-image
+
+build test image amd64:
+  extends: .build test image
+  tags:
+    - stackgres-runner-v2
+    - linux-amd64
+  variables:
+    IMAGE_SUFFIX: '-amd64'
+
+.build jvm image arm64:
+  extends: .build image
+  tags:
+    - stackgres-runner-v2
+    - linux-arm64
+  variables:
+    IMAGE_SUFFIX: '-jvm-arm64'
+  only:
+    variables:
+      - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_ARM
+
+.build native image arm64:
+  extends: .build image
+  tags:
+    - stackgres-runner-v2
+    - linux-arm64
+  variables:
+    IMAGE_SUFFIX: '-arm64'
+  only:
+    variables:
+      - $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+      - $DO_NATIVE && $DO_ARM
+
+build operator jvm image arm64:
+  extends: .build jvm image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/operator
+    LOCK_FILE: stackgres-operator-build-jvm-image
+    IMAGE_MODULE_NAME: operator-jvm-image
+
+build restapi jvm image arm64:
+  extends: .build jvm image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/restapi
+    LOCK_FILE: stackgres-restapi-build-jvm-image
+    IMAGE_MODULE_NAME: restapi-jvm-image
+
+build jobs jvm image arm64:
+  extends: .build jvm image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/jobs
+    LOCK_FILE: stackgres-jobs-build-jvm-image
+    IMAGE_MODULE_NAME: jobs-jvm-image
+
+build cluster-controller jvm image arm64:
+  extends: .build jvm image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/cluster-controller
+    LOCK_FILE: stackgres-cluster-controller-build-jvm-image
+    IMAGE_MODULE_NAME: cluster-controller-jvm-image
+
+build distributedlogs-controller jvm image arm64:
+  extends: .build jvm image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/distributedlogs-controller
+    LOCK_FILE: stackgres-distributedlogs-controller-build-jvm-image
+    IMAGE_MODULE_NAME: distributedlogs-controller-jvm-image
+
+build operator native image arm64:
+  extends: .build native image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/operator
+    LOCK_FILE: stackgres-operator-build-native-image
+    IMAGE_MODULE_NAME: operator-native-image
+
+build restapi native image arm64:
+  extends: .build native image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/restapi
+    LOCK_FILE: stackgres-restapi-build-native-image
+    IMAGE_MODULE_NAME: restapi-native-image
+
+build jobs native image arm64:
+  extends: .build native image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/jobs
+    LOCK_FILE: stackgres-jobs-build-native-image
+    IMAGE_MODULE_NAME: jobs-native-image
+
+build cluster-controller native image arm64:
+  extends: .build native image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/cluster-controller
+    LOCK_FILE: stackgres-cluster-controller-build-native-image
+    IMAGE_MODULE_NAME: cluster-controller-native-image
+
+build distributedlogs-controller native image arm64:
+  extends: .build native image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/distributedlogs-controller
+    LOCK_FILE: stackgres-distributedlogs-controller-build-native-image
+    IMAGE_MODULE_NAME: distributedlogs-controller-native-image
+
+build admin-ui image arm64:
+  extends: .build image
+  tags:
+    - stackgres-runner-v2
+    - linux-arm64
+  variables:
+    IMAGE_SUFFIX: '-arm64'
+    IMAGE_BASE_NAME: stackgres/admin-ui
+    LOCK_FILE: stackgres-adminui-build-image
+    IMAGE_MODULE_NAME: admin-ui-image
+  only:
+    variables:
+      - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_ARM
+
+build test image arm64:
+  extends: .build test image
+  tags:
+    - stackgres-runner-v2
+    - linux-arm64
+  variables:
+    IMAGE_SUFFIX: '-arm64'
+  only:
+    variables:
+      - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_ARM
+
+.build jvm image multi archs:
+  extends: .build image multi archs
+  tags:
+    - stackgres-runner-v2
+  variables:
+    IMAGE_SUFFIX: '-jvm'
+
+.build native image multi archs:
+  extends: .build image multi archs
+  tags:
+    - stackgres-runner-v2
+  variables:
+    IMAGE_SUFFIX: ''
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
@@ -132,135 +363,65 @@ build operator native image:
       - $DO_DEPLOY
       - $DO_NATIVE
 
-build restapi native image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
-  stage: image build
-  tags:
-    - stackgres-runner
-  timeout: 1 hour
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"'
-    - 'export TARGET_RESTAPI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$RESTAPI_IMAGE_NAME"'
-    - |
-      flock /tmp/stackgres-restapi-build-native-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
-          restapi-native-image
-    - HASH_RESTAPI_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.restapi-native-image)"
-    - docker pull "$HASH_RESTAPI_IMAGE_NAME"
-    - docker tag "$HASH_RESTAPI_IMAGE_NAME" "$TARGET_RESTAPI_IMAGE_NAME"
-    - docker push "$TARGET_RESTAPI_IMAGE_NAME"
-  retry: 2
-  only:
-    variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "current"
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_NATIVE
+build operator jvm image multi archs:
+  extends: .build jvm image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/operator
 
-build jobs native image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
-  stage: image build
-  tags:
-    - stackgres-runner
-  timeout: 1 hour
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"'
-    - 'export TARGET_JOBS_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$JOBS_IMAGE_NAME"'
-    - |
-      flock /tmp/stackgres-jobs-build-native-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
-          jobs-native-image
-    - HASH_JOBS_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.jobs-native-image)"
-    - docker pull "$HASH_JOBS_IMAGE_NAME"
-    - docker tag "$HASH_JOBS_IMAGE_NAME" "$TARGET_JOBS_IMAGE_NAME"
-    - docker push "$TARGET_JOBS_IMAGE_NAME"
-  retry: 2
-  only:
-    variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "current"
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_NATIVE
+build restapi jvm image multi archs:
+  extends: .build jvm image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/restapi
 
-build cluster-controller native image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
-  stage: image build
-  tags:
-    - stackgres-runner
-  timeout: 1 hour
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export CLUSTER_CONTROLLER_IMAGE_NAME="stackgres/cluster-controller:$IMAGE_TAG"'
-    - 'export TARGET_CLUSTER_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$CLUSTER_CONTROLLER_IMAGE_NAME"'
-    - |
-      flock /tmp/stackgres-cluster-controller-build-native-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
-          cluster-controller-native-image
-    - HASH_CLUSTER_CONTROLLER_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.cluster-controller-native-image)"
-    - docker pull "$HASH_CLUSTER_CONTROLLER_IMAGE_NAME"
-    - docker tag "$HASH_CLUSTER_CONTROLLER_IMAGE_NAME" "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
-    - docker push "$TARGET_CLUSTER_CONTROLLER_IMAGE_NAME"
-  retry: 2
-  only:
-    variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "current"
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_NATIVE
+build jobs jvm image multi archs:
+  extends: .build jvm image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/jobs
 
-build distributedlogs-controller native image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
-  stage: image build
-  tags:
-    - stackgres-runner
-  timeout: 1 hour
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"'
-    - 'export TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"'
-    - |
-      flock /tmp/stackgres-distributedlogs-controller-build-native-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
-          distributedlogs-controller-native-image
-    - HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.distributedlogs-controller-native-image)"
-    - docker pull "$HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-    - docker tag "$HASH_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-    - docker push "$TARGET_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-  retry: 2
-  only:
-    variables:
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "current"
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
-      - $DO_NATIVE
+build cluster-controller jvm image multi archs:
+  extends: .build jvm image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/cluster-controller
 
-build admin-ui image:
-  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
-  stage: image build
+build distributedlogs-controller jvm image multi archs:
+  extends: .build jvm image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/distributedlogs-controller
+
+build operator native image multi archs:
+  extends: .build native image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/operator
+
+build restapi native image multi archs:
+  extends: .build native image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/restapi
+
+build jobs native image multi archs:
+  extends: .build native image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/jobs
+
+build cluster-controller native image multi archs:
+  extends: .build native image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/cluster-controller
+
+build distributedlogs-controller native image multi archs:
+  extends: .build native image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/distributedlogs-controller
+
+build admin-ui image multi archs:
+  extends: .build image multi archs
   tags:
-    - stackgres-runner
-  timeout: 1 hour
-  script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}"'
-    - 'export ADMINUI_IMAGE_NAME="stackgres/admin-ui:$IMAGE_TAG"'
-    - 'export TARGET_ADMINUI_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$ADMINUI_IMAGE_NAME"'
-    - |
-      flock /tmp/stackgres-adminui-build-image \
-        sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
-          admin-ui-image
-    - HASH_ADMINUI_IMAGE_NAME="$(cat stackgres-k8s/ci/build/target/image-hashes.admin-ui-image)"
-    - docker pull "$HASH_ADMINUI_IMAGE_NAME"
-    - docker tag "$HASH_ADMINUI_IMAGE_NAME" "$TARGET_ADMINUI_IMAGE_NAME"
-    - docker push "$TARGET_ADMINUI_IMAGE_NAME"
-  retry: 2
+    - stackgres-runner-v2
+  variables:
+    IMAGE_SUFFIX: ''
+    IMAGE_BASE_NAME: stackgres/admin-ui
+
+build test image multi archs:
+  extends: .build test image multi archs
+  tags:
+    - stackgres-runner-v2

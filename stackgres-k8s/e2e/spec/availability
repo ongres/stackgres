@@ -53,7 +53,7 @@ spec:
     fsGroup: 1000
   containers:
   - name: pgbench
-    image: quay.io/ongres/postgres:v13.4-build-6.6
+    image: postgres
     imagePullPolicy: IfNotPresent
     args:
     - sleep
@@ -76,16 +76,16 @@ spec:
         cpu: "250m"
       limits:
         memory: "256Mi"
-        cpu: "500m"    
+        cpu: "500m"
   initContainers:
   - name: install
-    image: "ongres/kubectl:v1.20.11-build-6.7"
+    image: "ongres/kubectl:v1.22.4-build-6.8-dev"
     command:
     - "/bin/bash"
     - "-ecx"
     - |
       cp /creds/.pgpass /work-dir/.pgpass
-      chmod 600 /work-dir/.pgpass      
+      chmod 600 /work-dir/.pgpass
     volumeMounts:
     - name: creds
       mountPath: "/creds/.pgpass"
@@ -94,7 +94,7 @@ spec:
       mountPath: /work-dir
   volumes:
   - name: workdir
-    emptyDir:   
+    emptyDir:
   - name: creds
     secret:
       secretName: pgbench

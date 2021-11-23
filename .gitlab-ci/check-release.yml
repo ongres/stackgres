@@ -3,7 +3,8 @@ enforce release:
   image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
   stage: check release
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
+    - linux-amd64
   script:
     - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -Dmaven.test.skip=true -Dquarkus.build.skip=true"
     - 'mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots'

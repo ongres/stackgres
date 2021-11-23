@@ -683,6 +683,7 @@ get_component_images() {
   COMPONENT_ENVOY_VERSIONS="$(get_component_versions "$VERSION" envoy)"
   COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions "$VERSION" fluentbit)"
   COMPONENT_FLUENTD_VERSIONS="$(get_component_versions "$VERSION" fluentd)"
+  COMPONENT_KUBECTL_VERSIONS="$(get_component_versions "$VERSION" kubectl)"
   local VERSION
   local SUBVERSION
   for VERSION in $COMPONENT_PATRONI_VERSIONS
@@ -725,6 +726,10 @@ get_component_images() {
   for VERSION in $COMPONENT_FLUENTD_VERSIONS
   do
     echo "docker.io/ongres/fluentd:v$VERSION"
+  done
+  for VERSION in $COMPONENT_KUBECTL_VERSIONS
+  do
+    echo "docker.io/ongres/kubectl:v$VERSION"
   done
 }
 
