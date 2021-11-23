@@ -11,7 +11,7 @@ deploy_curl_pod() {
     namespace: $NAMESPACE
   spec:
     containers:
-    - image: k8spatterns/curl-jq
+    - image: derjohn/kubectl-yq-jq
       command: [ "sh", "-c", "while true; do sleep 300; done" ]
       imagePullPolicy: IfNotPresent
       name: busybox

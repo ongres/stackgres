@@ -1,0 +1,20 @@
+####
+# This Dockerfile is used in order to build a container that runs the StackGres ITs
+#
+# Build the image with:
+#
+# docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t stackgres/it-arm64:15.0 .
+#
+###
+FROM docker.io/docker:20.10.6
+
+RUN wget -q -O /bin/kubectl https://dl.k8s.io/release/v1.21.3/bin/linux/arm64/kubectl
+RUN chmod a+x /bin/kubectl
+RUN wget -q -O /bin/kind https://github.com/kubernetes-sigs/kind/releases/download/v0.11.1/kind-$(uname)-arm64
+RUN chmod a+x /bin/kind
+RUN wget -q -O /bin/k3d https://github.com/rancher/k3d/releases/download/v4.4.7/k3d-linux-arm64
+RUN chmod a+x /bin/k3d
+RUN wget -q https://get.helm.sh/helm-v3.3.4-linux-arm64.tar.gz -O -|tar xz --strip-components=1 -C /bin -f - linux-arm64/helm
+RUN apk add coreutils gnupg openssl jq curl bash zsh sed libc6-compat
+#RUN wget -q -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.0/yajsv.linux.arm64
+#RUN chmod a+x /bin/yajsv

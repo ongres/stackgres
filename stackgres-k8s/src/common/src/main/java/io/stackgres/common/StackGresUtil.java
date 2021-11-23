@@ -273,11 +273,11 @@ public interface StackGresUtil {
     if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
       return ImmutableList.of();
     }
-    if (Objects.equals("6.6",
+    if (StackGresComponent.compareBuildVersions("6.6",
         StackGresComponent.PATRONI.findBuildVersion(
             StackGresComponent.LATEST, ImmutableMap.of(
                 getPostgresFlavorComponent(cluster),
-                cluster.getSpec().getPostgres().getVersion())))) {
+                cluster.getSpec().getPostgres().getVersion()))) <= 0) {
       return ImmutableList.of();
     }
     return Seq.of(

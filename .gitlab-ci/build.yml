@@ -2,8 +2,9 @@ build:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: build 1
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
     - stackgres-maven-runner
+    - linux-amd64
   script:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \

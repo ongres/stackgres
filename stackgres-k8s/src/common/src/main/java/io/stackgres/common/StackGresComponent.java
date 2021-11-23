@@ -603,4 +603,17 @@ public enum StackGresComponent {
             .map(alternativeSubComponent -> Seq.seq(alternativeSubComponent).toString(" or "))
             .toString(", "));
   }
+
+  public static int compareBuildVersions(String leftBuildVersion, String rightBuildVersion) {
+    return buildVersionAsNumber(leftBuildVersion) - buildVersionAsNumber(rightBuildVersion);
+  }
+
+  public static int buildVersionAsNumber(String buildVersion) {
+    String[] buildVersionChunks = buildVersion.split("\\.");
+    return Integer.parseInt(buildVersionChunks[0]) * 1000
+        + Integer.parseInt(
+            buildVersionChunks[1].endsWith("-dev")
+            ? buildVersionChunks[1].substring(0, buildVersionChunks[1].length() - "-dev".length())
+                : buildVersionChunks[1]);
+  }
 }
