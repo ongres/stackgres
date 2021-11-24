@@ -25,34 +25,32 @@
             </div>
         </header>
         <div class="form">
-            <ul class="steps header">
-                <li v-for="(step, index) in formSteps" @click="currentStep = step" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' )]" v-if="( ((index < 3) && !advancedMode) || advancedMode)">
-                    {{ step }}
-                </li>
-                <label for="advancedMode">
-                    <input type="checkbox" id="advancedMode" name="advancedMode" v-model="advancedMode"> 
-                    <span> Advanced</span>
+            <div class="header">
+                <h2>Create Cluster</h2>
+                <label for="advancedMode" class="floatRight">
+                    <span>ADVANCED OPTIONS </span>
+                    <input type="checkbox" id="advancedMode" name="advancedMode" v-model="advancedMode" class="switch">
                 </label>
-            </ul>
+            </div>
+            <div class="stepsContainer">
+                <ul class="steps">
+                    <li v-for="(step, index) in formSteps" @click="currentStep = step" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' )]" v-if="( ((index < 3) && !advancedMode) || advancedMode)">
+                        {{ step }}
+                    </li>
+                </ul>
+            </div>
 
             <div class="clearfix"></div>
 
             <fieldset class="step" :class="(currentStep == 'cluster') && 'active'">
                 <div class="header">
-                    <h2>Cluster</h2>
+                    <h2>Cluster Information</h2>
                 </div>
 
                 <div class="fields">
                     <div class="row-50">
-                        <h3>Basic</h3>
-
                         <div class="col">
-                            <label for="metadata.namespace">Namespace <span class="req">*</span></label>
-                            <input disabled data-field="metadata.namespace" :value="$route.params.namespace">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.namespace')"></span>
-                        </div>
-                        <div class="col">
-                            <label for="metadata.name">Name <span class="req">*</span></label>
+                            <label for="metadata.name">Cluster Name <span class="req">*</span></label>
                             <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
                         </div>
@@ -99,65 +97,28 @@
                     <hr/>
 
                     <div class="row-50">
-                        <h3>Pods Storage</h3>
+                        <h3>Postgres</h3>
 
                         <div class="col">
-                            <div class="unit-select">
-                                <label for="spec.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
-                                <input v-model="volumeSize" class="size" required data-field="spec.pods.persistentVolume.size" type="number">
-                                <select v-model="volumeUnit" class="unit" required data-field="spec.pods.persistentVolume.size" >
-                                    <option disabled value="">Select Unit</option>
-                                    <option value="Mi">MiB</option>
-                                    <option value="Gi">GiB</option>
-                                    <option value="Ti">TiB</option>   
+                            <label for="spec.nonProductionOptions.enabledFeatureGates.babelfish">Babelfish Experimental Feature</label>  
+                            <label for="babelfishFeatureGates" class="switch yes-no">Enable<input type="checkbox" id="babelfishFeatureGates" v-model="babelfishFeatureGates" data-switch="NO" @change="flavor = (babelfishFeatureGates ? 'babelfish' : 'vanilla')"></label>
+                            <span class="helpTooltip" data-tooltip="Enables Babelfish for PostgreSQL project, from <a href='https://babelfishpg.org' target='_blank'>babelfishpg.org</a>, adding a SQL Server compatibility layer"></span>
+                        </div>
+
+                        <template v-if="babelfishFeatureGates">
+                            <div class="col">
+                                <label for="spec.postgres.flavor">Postgres Flavor <span class="req">*</span></label>
+                                <select :disabled="editMode" v-model="flavor" required data-field="spec.postgres.flavor" @change="getFlavorExtensions()">
+                                    <option selected value="vanilla">PostgreSQL Community</option>
+                                    <option value="babelfish">Babelfish (experimental)</option>
                                 </select>
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.size')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.flavor')"></span>
                             </div>
-                        </div>
 
-                        <div class="col">
-                            <label for="spec.pods.persistentVolume.storageClass">Storage Class</label>
-                            <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
-                                <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
-                                <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                            </select>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.storageClass')"></span>
-                        </div>
-                    </div>
-
-                    <hr/>
-
-                    <div class="row-50">
-                        <h3>Non Production Settings</h3>
-                        <div class="col">
-                            <label for="spec.nonProductionOptions.disableClusterPodAntiAffinity" class="switch yes-no">Disable Cluster Pod Anti Affinity <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="disableClusterPodAntiAffinity" data-switch="NO"></label>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity')"></span>
-                        </div>
-                    </div>
-
-                </div>
-            </fieldset>
-
-            <fieldset class="step" :class="(currentStep == 'postgres') && 'active'">
-                <div class="header">
-                    <h2>Postgres</h2>
-                </div>
-
-                <div class="fields">
-                    <div class="row-50">
-                        <div class="col">
-                            <label for="spec.postgres.flavor">Postgres Flavor <span class="req">*</span></label>
-                            <select :disabled="editMode" v-model="flavor" required data-field="spec.postgres.flavor" @change="getFlavorExtensions()">
-                                <option selected value="vanilla">Vanilla</option>
-                                <option value="babelfish">Babelfish (experimental)</option>
-                            </select>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgres.flavor')"></a>
-
-                            <div class="hidden" v-if="flavor === 'babelfish'">
-                                <label for="spec.nonProductionOptions.enabledFeatureGates">Feature Gates</label>  
-                                <label disabled for="featureGates" class="switch yes-no">Babelfish Flavor Feature Enabled<input disabled type="checkbox" id="featureGates" v-model="featureGates" data-switch="NO"></label>
-                            </div>
-                        </div>
+                            <p class="warning orange babelfish">
+                                StackGres packs Babelfish for PostgreSQL as an <strong>experimental feature</strong> which use is <strong>not recommended for production environments.</strong>
+                            </p>
+                        </template>
 
                         <div class="col">                    
                             <div class="versionContainer">
@@ -188,10 +149,6 @@
                             </div>
                         </div>
 
-                        <p class="warning orange babelfish" v-if="flavor == 'babelfish'">
-                            Babelfish is an experimental feature on <strong>preview mode</strong>. Its use is not recommended for production environments.
-                        </p>
-
                         <div class="col">
                             <label for="spec.configurations.sgPostgresConfig">Postgres Configuration</label>
                             <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (pgConfig == 'createNewResource') && (pgConfig = '') )">
@@ -201,6 +158,35 @@
                                 <option value="createNewResource">Create new configuration</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPostgresConfig')"></span>
+                        </div>
+                    </div>
+
+                    <hr/>
+
+                    <div class="row-50">
+                        <h3>Pods Storage</h3>
+
+                        <div class="col">
+                            <div class="unit-select">
+                                <label for="spec.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
+                                <input v-model="volumeSize" class="size" required data-field="spec.pods.persistentVolume.size" type="number">
+                                <select v-model="volumeUnit" class="unit" required data-field="spec.pods.persistentVolume.size" >
+                                    <option disabled value="">Select Unit</option>
+                                    <option value="Mi">MiB</option>
+                                    <option value="Gi">GiB</option>
+                                    <option value="Ti">TiB</option>   
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.size')"></span>
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.pods.persistentVolume.storageClass">Storage Class</label>
+                            <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
+                                <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
+                                <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.storageClass')"></span>
                         </div>
                     </div>
                 </div>
@@ -270,6 +256,27 @@
                 </div>
             </fieldset>
 
+            <fieldset class="step" :class="(currentStep == 'backups') && 'active'">
+                <div class="header">
+                    <h2>Backups</h2>
+                </div>
+
+                <div class="fields">
+                    <div class="row-50">
+                        <div class="col">
+                            <label for="spec.configurations.sgBackupConfig">Automatic Backups</label>
+                            <select v-model="backupConfig" class="backupConfig" data-field="spec.configurations.sgBackupConfig" @change="(backupConfig == 'createNewResource') && createNewResource('sgbackupconfigs')" :set="( (backupConfig == 'createNewResource') && (backupConfig = '') )">
+                                <option disabled value="">Select Backup Configuration</option>
+                                <option v-for="conf in backupConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
+                                <option value="" disabled>– OR –</option>
+                                <option value="createNewResource">Create new configuration</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgBackupConfig')"></span>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
             <fieldset class="step" :class="(currentStep == 'initialization') && 'active'" v-if="!editMode || (editMode && (restoreBackup.length || initScripts.length) )">
                 <div class="header">
                     <h2>Cluster Initialization</h2>
@@ -301,19 +308,21 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
                             </div>
 
-                            <template v-if="!editMode || (editMode && pitr.length)">
+                            <template v-if="restoreBackup.length">
+                                <template v-if="!editMode || (editMode && pitr.length)">
+                                    <div class="col">
+                                        <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
+                                        <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone" :disabled="!restoreBackup.length">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
+                                    </div>
+                                </template>
+
                                 <div class="col">
-                                    <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
-                                    <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone" :disabled="!restoreBackup.length">
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
+                                    <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
+                                    <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="0" :disabled="!restoreBackup.length">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
                                 </div>
                             </template>
-
-                            <div class="col">
-                                <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
-                                <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="0" :disabled="!restoreBackup.length">
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
-                            </div>
                         </fieldset>
                         <br/><br/><br/>
                     </template>
@@ -483,27 +492,6 @@
                                 <option value="createNewResource">Create new log server</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.sgDistributedLogs')"></span>
-                        </div>
-                    </div>
-                </div>
-            </fieldset>
-
-            <fieldset class="step" :class="(currentStep == 'backups') && 'active'">
-                <div class="header">
-                    <h2>Backups</h2>
-                </div>
-
-                <div class="fields">
-                    <div class="row-50">
-                        <div class="col">
-                            <label for="spec.configurations.sgBackupConfig">Automatic Backups</label>
-                            <select v-model="backupConfig" class="backupConfig" data-field="spec.configurations.sgBackupConfig" @change="(backupConfig == 'createNewResource') && createNewResource('sgbackupconfigs')" :set="( (backupConfig == 'createNewResource') && (backupConfig = '') )">
-                                <option disabled value="">Select Backup Configuration</option>
-                                <option v-for="conf in backupConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
-                                <option value="" disabled>– OR –</option>
-                                <option value="createNewResource">Create new configuration</option>
-                            </select>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgBackupConfig')"></span>
                         </div>
                     </div>
                 </div>
@@ -1095,6 +1083,22 @@
                 </div>
             </fieldset>
 
+            <fieldset class="step" :class="(currentStep == 'non-production') && 'active'">
+                <div class="header">
+                    <h2>Non Production Settings</h2>
+                </div>
+
+                <div class="fields">
+                    <div class="row-50">
+                        <div class="col">
+                            <label for="spec.nonProductionOptions.disableClusterPodAntiAffinity">Cluster Pod Anti Affinity</label>  
+                            <label for="disableClusterPodAntiAffinity" class="switch yes-no">Disable <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="disableClusterPodAntiAffinity" data-switch="NO"></label>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity')"></span>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
             <hr/>
 
             <div id="summary" class="hidden" v-if="previewCluster.hasOwnProperty('data')">
@@ -1160,7 +1164,7 @@
                 previewClusterYAML: '',
                 summaryTab: 0,
                 advancedMode: false,
-                formSteps: ['cluster', 'postgres', 'extensions', 'initialization', 'sidecars', 'backups', 'services', 'metadata', 'scheduling'],
+                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'sidecars', 'services', 'metadata', 'scheduling', 'non-production'],
                 currentStep: 'cluster',
                 editMode: (vm.$route.name === 'EditCluster'),
                 editReady: false,
@@ -1169,7 +1173,7 @@
                 name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 namespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 flavor: 'vanilla',
-                featureGates: true,
+                babelfishFeatureGates: false,
                 postgresVersion: 'latest',
                 flavor: 'vanilla',
                 featureGates: true,
@@ -1327,7 +1331,7 @@
                             let volumeUnit = c.data.spec.pods.persistentVolume.size.match(/[a-zA-Z]+/g);
 
                             vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
-                            vm.featureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
+                            vm.babelfishFeatureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
                             vm.postgresVersion = c.data.spec.postgres.version;
                             vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
                             vm.featureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
@@ -1580,10 +1584,10 @@
                                 }) 
                             ),
                             ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
-                            ...((this.disableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.featureGates)) && ( {
+                            ...((this.disableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
                                 "nonProductionOptions": { 
                                     ...(this.disableClusterPodAntiAffinity && ({"disableClusterPodAntiAffinity": this.disableClusterPodAntiAffinity}) ),
-                                    ...((this.flavor == 'babelfish' && this.featureGates) && ({ "enabledFeatureGates": ['babelfish-flavor'] }))
+                                    ...((this.flavor == 'babelfish' && this.babelfishFeatureGates) && ({ "enabledFeatureGates": ['babelfish-flavor'] }))
                                     } 
                                 }) ),
                             ...( (!$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices)) || !$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) || !$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) || !$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) ) && ({
@@ -2125,8 +2129,8 @@
 
 <style scoped>
     .form {
-        max-width: 830px;
-        width: auto;
+        max-width: 870px;
+        width: 870px;
     }
 
     .scriptFieldset:first-child {
@@ -2386,8 +2390,12 @@
         overflow: auto;
     }
 
+    ul#postgresVersion + .helpTooltip {
+        transform: translate(20px, -53px);
+    }
+
     ul#postgresVersion.active + .helpTooltip {
-        transform: translate(20px, 13px);
+        transform: translate(20px, 10px);
     }
 
     ul.select li.selected {
@@ -2411,9 +2419,16 @@
         display: block;
     }
 
+    .stepsContainer {
+        width: 100%;
+        text-align: center;
+        border-bottom: 1px solid var(--borderColor);
+        margin-bottom: 20px;
+    }
+
     ul.steps {
         display: inline-block;
-        margin: 10px 0 20px;
+        margin: 0 0 20px;
         border: 0;
     }
 
@@ -2481,7 +2496,11 @@
 
     .helpTooltip {
         float: right;
-        transform: translate(20px, -50px);
+        transform: translate(20px, -30px);
+    }
+
+    .switch + .helpTooltip {
+        transform: translate(20px, -47px);
     }
 
     .step p {
@@ -2549,7 +2568,7 @@
     }
 
     .warning.babelfish {
-        top: -25px;
+        top: -10px;
         position: relative;
     }
 
