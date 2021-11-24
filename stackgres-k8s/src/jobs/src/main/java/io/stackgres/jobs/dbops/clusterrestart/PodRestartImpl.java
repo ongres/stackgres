@@ -11,13 +11,10 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.resource.ResourceWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class PodRestartImpl implements PodRestart {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(PodRestartImpl.class);
   private final ResourceWriter<Pod> podWriter;
 
   private final Watcher<Pod> podWatcher;
