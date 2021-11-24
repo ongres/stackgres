@@ -294,8 +294,6 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
 
     builder.addQueryParameter("labelSelector", labelSelector);
 
-    labels.forEach((key, value) -> {
-    });
     return builder.build();
   }
 
