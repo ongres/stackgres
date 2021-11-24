@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Status;
@@ -214,11 +215,15 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
       var result = new ArrayList<T>();
       ArrayNode data = (ArrayNode) listObject.get("items");
       for (JsonNode item : data) {
+        final ObjectNode itemObject = (ObjectNode) item;
+        if (!itemObject.has("kind")) {
+          itemObject.set("kind", new TextNode(HasMetadata.getKind(format)));
+        }
         ObjectNode filteredItem;
-        if (ManagedFieldsReader.hasManagedFieldsConfiguration((ObjectNode) item, fieldManager)) {
-          filteredItem = ManagedFieldsReader.readManagedFields((ObjectNode) item, fieldManager);
+        if (ManagedFieldsReader.hasManagedFieldsConfiguration(itemObject, fieldManager)) {
+          filteredItem = ManagedFieldsReader.readManagedFields(itemObject, fieldManager);
         } else {
-          filteredItem = (ObjectNode) item;
+          filteredItem = itemObject;
         }
         result.add(
             Serialization.jsonMapper().treeToValue(filteredItem, format)

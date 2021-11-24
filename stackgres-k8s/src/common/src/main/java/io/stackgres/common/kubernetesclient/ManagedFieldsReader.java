@@ -76,23 +76,28 @@ public class ManagedFieldsReader {
    */
   public static ObjectNode readManagedFields(ObjectNode source, String fieldManager) {
 
-    if (!source.has("metadata")
+    if (!source.has("kind")
+        || !source.has("metadata")
         || (source.has("metadata") && !source.get("metadata").has("name")
         || (source.has("metadata") && !source.get("metadata").has("namespace")))) {
       throw new IllegalArgumentException("Invalid kubernetes source object "
           + source);
     }
+
+    final JsonNode kindNode = source.get("kind");
+    String kind = kindNode.asText();
     ObjectNode managedFields = getManagedFieldConfiguration(source, fieldManager);
 
     ObjectNode rootManagedFieldConfiguration = (ObjectNode) managedFields.get("fieldsV1");
 
-    ObjectNode cleanedUpObject = readOnlyManagedFields(source, rootManagedFieldConfiguration);
+    String path = kind + ":";
+    ObjectNode cleanedUpObject = readOnlyManagedFields(source, rootManagedFieldConfiguration, path);
 
     if (source.has("apiVersion")) {
       cleanedUpObject.set("apiVersion", source.get("apiVersion"));
     }
     if (source.has("kind")) {
-      cleanedUpObject.set("kind", source.get("kind"));
+      cleanedUpObject.set("kind", kindNode);
     }
     ObjectNode cleanedUpMetadata;
     if (cleanedUpObject.has("metadata")) {
@@ -116,7 +121,8 @@ public class ManagedFieldsReader {
    * @return a new json object containing only the managed fields
    */
   protected static ObjectNode readOnlyManagedFields(ObjectNode source,
-                                                    ObjectNode managedFieldConfiguration) {
+                                                    ObjectNode managedFieldConfiguration,
+                                                    String parentPath) {
 
     if (managedFieldConfiguration.size() == 0) {
       return source.deepCopy();
@@ -132,6 +138,7 @@ public class ManagedFieldsReader {
       }
       if (managedField.startsWith("f:")) {
         String fieldName = managedField.substring(2);
+        String fieldPath = parentPath + "." + fieldName;
         JsonNode jsonNode = source.get(fieldName);
         if (jsonNode == null) {
           /*
@@ -141,7 +148,10 @@ public class ManagedFieldsReader {
            * No other kubernetes resource exhibits this behavior, therefore it should
            * suffice by the time being
            */
-          if (fieldName.equals("stringData") && source.has("data")) {
+          if (fieldName.equals("stringData")
+              && source.has("data")
+              && fieldPath.equals("Secret:.stringData")
+          ) {
             jsonNode = source.get("data");
             fieldName = "data";
           } else {
@@ -155,7 +165,8 @@ public class ManagedFieldsReader {
           cleanedUpObject.set(fieldName,
               readOnlyManagedFields(
                   (ObjectNode) jsonNode,
-                  (ObjectNode) managedFieldConfiguration.get(managedField)
+                  (ObjectNode) managedFieldConfiguration.get(managedField),
+                  fieldPath
               )
           );
         } else if (jsonNode.isValueNode()) {
@@ -164,7 +175,8 @@ public class ManagedFieldsReader {
           cleanedUpObject.set(fieldName,
               readOnlyManagedFields(
                   (ArrayNode) jsonNode,
-                  (ObjectNode) managedFieldConfiguration.get(managedField)
+                  (ObjectNode) managedFieldConfiguration.get(managedField),
+                  fieldPath
               )
           );
         } else {
@@ -237,20 +249,24 @@ public class ManagedFieldsReader {
    * &nbsp;&nbsp;&nbsp;}<br>
    * ]<br>
    * </p>
+   *
    * @param source                    the json array to look into
    * @param managedFieldConfiguration the array managed field configuration
    * @return the array items with the managed configuration
    */
   protected static ArrayNode readOnlyManagedFields(ArrayNode source,
-                                                   ObjectNode managedFieldConfiguration) {
+                                                   ObjectNode managedFieldConfiguration,
+                                                   String parentPath) {
     if (managedFieldConfiguration.size() == 0) {
       return source.deepCopy();
     }
 
     ArrayNode cleanedUpArray = MANAGE_FIELDS_JSON_MAPPER.createArrayNode();
 
+    int index = 0;
     for (JsonNode arrayItem : source) {
       ObjectNode item = (ObjectNode) arrayItem;
+      String itemPath = parentPath + "[" + index + "]";
 
       Optional<ObjectNode> managedConfiguration = getManagingConfiguration(
           item,
@@ -258,10 +274,10 @@ public class ManagedFieldsReader {
       );
 
       managedConfiguration.ifPresent(mc -> {
-        ObjectNode cleanedArrayItem = readOnlyManagedFields(item, mc);
+        ObjectNode cleanedArrayItem = readOnlyManagedFields(item, mc, itemPath);
         cleanedUpArray.add(cleanedArrayItem);
       });
-
+      index++;
     }
     return cleanedUpArray;
   }
