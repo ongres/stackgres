@@ -145,7 +145,7 @@ public class ManagedFieldsReader {
             jsonNode = source.get("data");
             fieldName = "data";
           } else {
-            LOGGER.warn("Field {} appears as managed but can't be found in the json object {}",
+            LOGGER.debug("Field {} appears as managed but can't be found in the json object {}",
                 fieldName,
                 source.toPrettyString());
             continue;
