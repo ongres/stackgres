@@ -66,7 +66,6 @@ public class InitPgBouncerAuthFile implements ContainerFactory<StackGresClusterC
             .withName(StatefulSetDynamicVolumes.PGBOUNCER_AUTH_FILE.getVolumeName())
             .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path())
             .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath())
-            .withReadOnly(false)
             .build(),
             new VolumeMountBuilder()
             .withName(StatefulSetDynamicVolumes.PGBOUNCER_SECRETS.getVolumeName())

@@ -18,7 +18,9 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.conciliation.DeployedResourceDecorator;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
@@ -46,15 +48,16 @@ public class ClusterDeployedResourceScanner implements DeployedResourcesScanner<
   public List<HasMetadata> getDeployedResources(StackGresCluster config) {
     final Map<String, String> genericClusterLabels = labelFactory.genericLabels(config);
 
-    Stream<HasMetadata> inNamespace = IN_NAMESPACE_RESOURCE_OPERATIONS
-        .values()
-        .stream()
-        .flatMap(resourceOperationGetter -> resourceOperationGetter.apply(client)
-            .inNamespace(config.getMetadata().getNamespace())
-            .withLabels(genericClusterLabels)
-            .list()
-            .getItems()
-            .stream());
+    StackGresKubernetesClient stackGresClient = (StackGresKubernetesClient) client;
+
+    Stream<HasMetadata> inNamespace = MANAGED_RESOURCE_OPERATIONS
+        .stream().flatMap(clazz -> stackGresClient.findManagedIntents(
+                clazz,
+                ResourceWriter.STACKGRES_FIELD_MANAGER,
+                genericClusterLabels,
+                config.getMetadata().getNamespace()
+            ).stream()
+        );
 
     Stream<HasMetadata> anyNamespace = ANY_NAMESPACE_RESOURCE_OPERATIONS
         .values()

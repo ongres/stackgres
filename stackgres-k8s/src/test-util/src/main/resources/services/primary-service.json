@@ -1,0 +1,46 @@
+{
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+        "annotations": {
+            "allResourceAnnotation": "allResourceValue",
+            "primaryServiceAnnotation": "primaryServiceValue",
+            "servicesAnnotations": "servicesAnnotationsValue"
+        },
+        "labels": {
+            "app": "StackGresCluster",
+            "cluster": "true",
+            "cluster-name": "test",
+            "cluster-uid": "97c221fe-ebcb-4c18-928e-99ea5506482d",
+            "role": "master"
+        },
+        "name": "test",
+        "namespace": "annotations",
+        "ownerReferences": [
+            {
+                "apiVersion": "stackgres.io/v1",
+                "controller": true,
+                "kind": "SGCluster",
+                "name": "test",
+                "uid": "97c221fe-ebcb-4c18-928e-99ea5506482d"
+            }
+        ]
+    },
+    "spec": {
+        "ports": [
+            {
+                "name": "pgport",
+                "port": 5432,
+                "protocol": "TCP",
+                "targetPort": "pgport"
+            },
+            {
+                "name": "pgreplication",
+                "port": 5433,
+                "protocol": "TCP",
+                "targetPort": "pgreplication"
+            }
+        ],
+        "type": "ClusterIP"
+    }
+}

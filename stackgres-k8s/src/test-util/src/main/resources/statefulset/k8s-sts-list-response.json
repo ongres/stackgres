@@ -1,0 +1,2619 @@
+{
+  "kind" : "StatefulSetList",
+  "apiVersion" : "apps/v1",
+  "metadata" : {
+    "resourceVersion" : "65262"
+  },
+  "items" : [ {
+    "metadata" : {
+      "name" : "test",
+      "namespace" : "annotations",
+      "uid" : "f0a2c571-904e-48b3-83fc-2ce19d40170d",
+      "resourceVersion" : "65247",
+      "generation" : 1,
+      "creationTimestamp" : "2021-11-23T19:36:11Z",
+      "labels" : {
+        "app" : "StackGresCluster",
+        "cluster-name" : "test",
+        "cluster-uid" : "85ebc854-094a-4aad-8f90-5c9493faaeda"
+      },
+      "annotations" : {
+        "allResourceAnnotation" : "allResourceValue"
+      },
+      "ownerReferences" : [ {
+        "apiVersion" : "stackgres.io/v1",
+        "kind" : "SGCluster",
+        "name" : "test",
+        "uid" : "85ebc854-094a-4aad-8f90-5c9493faaeda",
+        "controller" : true
+      } ],
+      "managedFields" : [ {
+        "manager" : "StackGres",
+        "operation" : "Apply",
+        "apiVersion" : "apps/v1",
+        "time" : "2021-11-23T19:36:11Z",
+        "fieldsType" : "FieldsV1",
+        "fieldsV1" : {
+          "f:metadata" : {
+            "f:annotations" : {
+              "f:allResourceAnnotation" : { }
+            },
+            "f:labels" : {
+              "f:app" : { },
+              "f:cluster-name" : { },
+              "f:cluster-uid" : { }
+            },
+            "f:ownerReferences" : {
+              "k:{\"uid\":\"85ebc854-094a-4aad-8f90-5c9493faaeda\"}" : {
+                "." : { },
+                "f:apiVersion" : { },
+                "f:controller" : { },
+                "f:kind" : { },
+                "f:name" : { },
+                "f:uid" : { }
+              }
+            }
+          },
+          "f:spec" : {
+            "f:podManagementPolicy" : { },
+            "f:replicas" : { },
+            "f:selector" : { },
+            "f:serviceName" : { },
+            "f:template" : {
+              "f:metadata" : {
+                "f:annotations" : {
+                  "f:allResourceAnnotation" : { },
+                  "f:podsAnnotation" : { },
+                  "f:stackgres.io/cluster-controller-version" : { },
+                  "f:stackgres.io/envoy-version" : { },
+                  "f:stackgres.io/operatorVersion" : { },
+                  "f:stackgres.io/patroni-version" : { },
+                  "f:stackgres.io/pgbouncer-version" : { },
+                  "f:stackgres.io/postgresql-version" : { },
+                  "f:stackgres.io/prometheus-postgres-exporter-version" : { }
+                },
+                "f:labels" : {
+                  "f:app" : { },
+                  "f:cluster" : { },
+                  "f:cluster-name" : { },
+                  "f:cluster-uid" : { },
+                  "f:disruptible" : { }
+                }
+              },
+              "f:spec" : {
+                "f:affinity" : {
+                  "f:nodeAffinity" : { },
+                  "f:podAntiAffinity" : {
+                    "f:requiredDuringSchedulingIgnoredDuringExecution" : { }
+                  }
+                },
+                "f:containers" : {
+                  "k:{\"name\":\"cluster-controller\"}" : {
+                    "." : { },
+                    "f:env" : {
+                      "k:{\"name\":\"APP_OPTS\"}" : {
+                        "." : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_CONTROLLER_LOG_LEVEL\"}" : {
+                        "." : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_CONTROLLER_POD_NAME\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:valueFrom" : {
+                          "f:fieldRef" : {
+                            "f:apiVersion" : { },
+                            "f:fieldPath" : { }
+                          }
+                        }
+                      },
+                      "k:{\"name\":\"CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_CONTROLLER_SHOW_STACK_TRACES\"}" : {
+                        "." : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_NAME\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_NAMESPACE\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"DEBUG_CLUSTER_CONTROLLER\"}" : {
+                        "." : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"name\":\"DEBUG_CLUSTER_CONTROLLER_SUSPEND\"}" : {
+                        "." : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"name\":\"JAVA_OPTS\"}" : {
+                        "." : { },
+                        "f:name" : { }
+                      }
+                    },
+                    "f:image" : { },
+                    "f:imagePullPolicy" : { },
+                    "f:name" : { },
+                    "f:volumeMounts" : {
+                      "k:{\"mountPath\":\"/etc/group\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/gshadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/passwd\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/pgbouncer/auth\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/shadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/var/lib/postgresql\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      }
+                    }
+                  },
+                  "k:{\"name\":\"envoy\"}" : {
+                    "." : { },
+                    "f:args" : { },
+                    "f:command" : { },
+                    "f:image" : { },
+                    "f:imagePullPolicy" : { },
+                    "f:name" : { },
+                    "f:ports" : {
+                      "k:{\"containerPort\":7432,\"protocol\":\"TCP\"}" : {
+                        "." : { },
+                        "f:containerPort" : { },
+                        "f:protocol" : { }
+                      },
+                      "k:{\"containerPort\":7433,\"protocol\":\"TCP\"}" : {
+                        "." : { },
+                        "f:containerPort" : { },
+                        "f:protocol" : { }
+                      }
+                    },
+                    "f:volumeMounts" : {
+                      "k:{\"mountPath\":\"/etc/envoy\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/group\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/gshadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/passwd\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/shadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      }
+                    }
+                  },
+                  "k:{\"name\":\"patroni\"}" : {
+                    "." : { },
+                    "f:command" : { },
+                    "f:env" : {
+                      "k:{\"name\":\"BACKUP_ENV\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"BACKUP_ENV_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"BACKUP_SECRET_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"BASE_SECRET_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"ETC_GROUP_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"ETC_GSHADOW_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"ETC_PASSWD_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"ETC_SHADOW_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"LD_LIBRARY_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"LOCAL_BIN_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PATRONI_CONFIG_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PATRONI_ENV_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PATRONI_KUBERNETES_NAMESPACE\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:valueFrom" : {
+                          "f:fieldRef" : {
+                            "f:fieldPath" : { }
+                          }
+                        }
+                      },
+                      "k:{\"name\":\"PATRONI_KUBERNETES_POD_IP\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:valueFrom" : {
+                          "f:fieldRef" : {
+                            "f:fieldPath" : { }
+                          }
+                        }
+                      },
+                      "k:{\"name\":\"PATRONI_NAME\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:valueFrom" : {
+                          "f:fieldRef" : {
+                            "f:fieldPath" : { }
+                          }
+                        }
+                      },
+                      "k:{\"name\":\"PATRONI_REPLICATION_PASSWORD\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:valueFrom" : {
+                          "f:secretKeyRef" : {
+                            "f:key" : { },
+                            "f:name" : { }
+                          }
+                        }
+                      },
+                      "k:{\"name\":\"PATRONI_RESTAPI_CONNECT_ADDRESS\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PATRONI_RESTAPI_LISTEN\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PATRONI_RESTAPI_PASSWORD\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:valueFrom" : {
+                          "f:secretKeyRef" : {
+                            "f:key" : { },
+                            "f:name" : { }
+                          }
+                        }
+                      },
+                      "k:{\"name\":\"PATRONI_RESTAPI_USERNAME\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PATRONI_SUPERUSER_PASSWORD\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:valueFrom" : {
+                          "f:secretKeyRef" : {
+                            "f:key" : { },
+                            "f:name" : { }
+                          }
+                        }
+                      },
+                      "k:{\"name\":\"PATRONI_authenticator_OPTIONS\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PATRONI_authenticator_PASSWORD\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:valueFrom" : {
+                          "f:secretKeyRef" : {
+                            "f:key" : { },
+                            "f:name" : { }
+                          }
+                        }
+                      },
+                      "k:{\"name\":\"PG_BASE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_BINARIES_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_BIN_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_DATA_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_BASE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_BINARIES_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_BIN_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_EXTENSION_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_LIB64_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_LIB_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_SHARE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSION_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTRA_BIN_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTRA_LIB_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_LIB64_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_LIB_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_BINARIES_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_BIN_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_EXTENSION_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_LIB64_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_LIB_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_SHARE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_SHARE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_UPGRADE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"RESTORE_ENV\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"RESTORE_ENV_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"RESTORE_SECRET_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      }
+                    },
+                    "f:envFrom" : { },
+                    "f:image" : { },
+                    "f:imagePullPolicy" : { },
+                    "f:livenessProbe" : {
+                      "f:failureThreshold" : { },
+                      "f:httpGet" : {
+                        "f:path" : { },
+                        "f:port" : { },
+                        "f:scheme" : { }
+                      },
+                      "f:initialDelaySeconds" : { },
+                      "f:periodSeconds" : { }
+                    },
+                    "f:name" : { },
+                    "f:ports" : {
+                      "k:{\"containerPort\":7432,\"protocol\":\"TCP\"}" : {
+                        "." : { },
+                        "f:containerPort" : { },
+                        "f:name" : { },
+                        "f:protocol" : { }
+                      },
+                      "k:{\"containerPort\":7433,\"protocol\":\"TCP\"}" : {
+                        "." : { },
+                        "f:containerPort" : { },
+                        "f:name" : { },
+                        "f:protocol" : { }
+                      },
+                      "k:{\"containerPort\":8008,\"protocol\":\"TCP\"}" : {
+                        "." : { },
+                        "f:containerPort" : { },
+                        "f:name" : { },
+                        "f:protocol" : { }
+                      }
+                    },
+                    "f:readinessProbe" : {
+                      "f:httpGet" : {
+                        "f:path" : { },
+                        "f:port" : { },
+                        "f:scheme" : { }
+                      },
+                      "f:initialDelaySeconds" : { },
+                      "f:periodSeconds" : { }
+                    },
+                    "f:resources" : {
+                      "f:limits" : {
+                        "f:cpu" : { },
+                        "f:memory" : { }
+                      },
+                      "f:requests" : {
+                        "f:cpu" : { },
+                        "f:memory" : { }
+                      }
+                    },
+                    "f:volumeMounts" : {
+                      "k:{\"mountPath\":\"/dev/shm\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/env/.secret/backup\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/env/backup\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/env/patroni\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/group\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/gshadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/passwd\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/patroni\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/patroni/init-script.d/00000-prometheus-postgres-exporter-init.postgres.sql\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/shadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/usr/lib/postgresql/12.2/bin\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/usr/lib/postgresql/12.2/extra/bin\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/usr/lib/postgresql/12.2/extra/lib\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/usr/lib/postgresql/12.2/lib\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/usr/lib64\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/usr/local/bin\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"mountPath\":\"/usr/share/postgresql/12.2\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/usr/share/postgresql/12.2/extension\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/var/lib/postgresql\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"mountPath\":\"/var/log/postgresql\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"mountPath\":\"/var/run/postgresql\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      }
+                    }
+                  },
+                  "k:{\"name\":\"pgbouncer\"}" : {
+                    "." : { },
+                    "f:image" : { },
+                    "f:imagePullPolicy" : { },
+                    "f:name" : { },
+                    "f:volumeMounts" : {
+                      "k:{\"mountPath\":\"/etc/group\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/gshadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/passwd\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/pgbouncer/auth\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/pgbouncer/pgbouncer.ini\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/shadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/var/run/postgresql\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      }
+                    }
+                  },
+                  "k:{\"name\":\"postgres-util\"}" : {
+                    "." : { },
+                    "f:args" : { },
+                    "f:command" : { },
+                    "f:image" : { },
+                    "f:imagePullPolicy" : { },
+                    "f:name" : { },
+                    "f:stdin" : { },
+                    "f:tty" : { },
+                    "f:volumeMounts" : {
+                      "k:{\"mountPath\":\"/etc/group\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/gshadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/passwd\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/shadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/var/lib/postgresql\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"mountPath\":\"/var/run/postgresql\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      }
+                    }
+                  },
+                  "k:{\"name\":\"prometheus-postgres-exporter\"}" : {
+                    "." : { },
+                    "f:args" : { },
+                    "f:command" : { },
+                    "f:env" : {
+                      "k:{\"name\":\"DATA_SOURCE_NAME\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PGAPPNAME\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXPORTER_CONSTANT_LABELS\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXPORTER_EXTEND_QUERY_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      }
+                    },
+                    "f:image" : { },
+                    "f:imagePullPolicy" : { },
+                    "f:name" : { },
+                    "f:ports" : {
+                      "k:{\"containerPort\":9187,\"protocol\":\"TCP\"}" : {
+                        "." : { },
+                        "f:containerPort" : { },
+                        "f:protocol" : { }
+                      }
+                    },
+                    "f:volumeMounts" : {
+                      "k:{\"mountPath\":\"/etc/group\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/gshadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/passwd\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/shadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/var/opt/postgres-exporter/queries.yaml\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/var/run/postgresql\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      }
+                    }
+                  }
+                },
+                "f:initContainers" : {
+                  "k:{\"name\":\"cluster-reconciliation-cycle\"}" : {
+                    "." : { },
+                    "f:env" : {
+                      "k:{\"name\":\"APP_OPTS\"}" : {
+                        "." : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_CONTROLLER_LOG_LEVEL\"}" : {
+                        "." : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_CONTROLLER_POD_NAME\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:valueFrom" : {
+                          "f:fieldRef" : {
+                            "f:apiVersion" : { },
+                            "f:fieldPath" : { }
+                          }
+                        }
+                      },
+                      "k:{\"name\":\"CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_CONTROLLER_SHOW_STACK_TRACES\"}" : {
+                        "." : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_NAME\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"CLUSTER_NAMESPACE\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"COMMAND\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"DEBUG_CLUSTER_CONTROLLER\"}" : {
+                        "." : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"name\":\"DEBUG_CLUSTER_CONTROLLER_SUSPEND\"}" : {
+                        "." : { },
+                        "f:name" : { }
+                      }
+                    },
+                    "f:image" : { },
+                    "f:imagePullPolicy" : { },
+                    "f:name" : { },
+                    "f:volumeMounts" : {
+                      "k:{\"mountPath\":\"/var/lib/postgresql\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      }
+                    }
+                  },
+                  "k:{\"name\":\"pgbouncer-auth-file\"}" : {
+                    "." : { },
+                    "f:command" : { },
+                    "f:image" : { },
+                    "f:imagePullPolicy" : { },
+                    "f:name" : { },
+                    "f:volumeMounts" : {
+                      "k:{\"mountPath\":\"/etc/pgbouncer/auth\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/pgbouncer/auth/pgbouncer-admin-password\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/pgbouncer/auth/pgbouncer-stats-password\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      }
+                    }
+                  },
+                  "k:{\"name\":\"relocate-binaries\"}" : {
+                    "." : { },
+                    "f:command" : { },
+                    "f:env" : {
+                      "k:{\"name\":\"ETC_GROUP_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"ETC_GSHADOW_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"ETC_PASSWD_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"ETC_SHADOW_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"LD_LIBRARY_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_BASE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_BINARIES_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_BIN_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_DATA_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_BASE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_BINARIES_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_BIN_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_EXTENSION_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_LIB64_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_LIB_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSIONS_SHARE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTENSION_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTRA_BIN_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_EXTRA_LIB_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_LIB64_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_LIB_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_BINARIES_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_BIN_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_EXTENSION_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_LIB64_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_LIB_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_RELOCATED_SHARE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_SHARE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_UPGRADE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      }
+                    },
+                    "f:image" : { },
+                    "f:imagePullPolicy" : { },
+                    "f:name" : { },
+                    "f:volumeMounts" : {
+                      "k:{\"mountPath\":\"/templates\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"mountPath\":\"/var/lib/postgresql\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      }
+                    }
+                  },
+                  "k:{\"name\":\"setup-arbitrary-user\"}" : {
+                    "." : { },
+                    "f:command" : { },
+                    "f:env" : {
+                      "k:{\"name\":\"PG_BASE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_DATA_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"TEMPLATES_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      }
+                    },
+                    "f:image" : { },
+                    "f:imagePullPolicy" : { },
+                    "f:name" : { },
+                    "f:volumeMounts" : {
+                      "k:{\"mountPath\":\"/local/etc\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/templates\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      }
+                    }
+                  },
+                  "k:{\"name\":\"setup-data-paths\"}" : {
+                    "." : { },
+                    "f:command" : { },
+                    "f:env" : {
+                      "k:{\"name\":\"PG_BASE_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"PG_DATA_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      }
+                    },
+                    "f:image" : { },
+                    "f:imagePullPolicy" : { },
+                    "f:name" : { },
+                    "f:volumeMounts" : {
+                      "k:{\"mountPath\":\"/etc/group\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/gshadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/passwd\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/shadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/templates\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"mountPath\":\"/var/lib/postgresql\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      }
+                    }
+                  },
+                  "k:{\"name\":\"setup-scripts\"}" : {
+                    "." : { },
+                    "f:command" : { },
+                    "f:env" : {
+                      "k:{\"name\":\"BASE_ENV_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"BASE_SECRET_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"LOCAL_BIN_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"POSTGRES_PORT\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      },
+                      "k:{\"name\":\"TEMPLATES_PATH\"}" : {
+                        "." : { },
+                        "f:name" : { },
+                        "f:value" : { }
+                      }
+                    },
+                    "f:image" : { },
+                    "f:imagePullPolicy" : { },
+                    "f:name" : { },
+                    "f:volumeMounts" : {
+                      "k:{\"mountPath\":\"/etc/group\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/gshadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/passwd\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/etc/shadow\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { },
+                        "f:readOnly" : { },
+                        "f:subPath" : { }
+                      },
+                      "k:{\"mountPath\":\"/templates\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      },
+                      "k:{\"mountPath\":\"/usr/local/bin\"}" : {
+                        "." : { },
+                        "f:mountPath" : { },
+                        "f:name" : { }
+                      }
+                    }
+                  }
+                },
+                "f:securityContext" : {
+                  "f:fsGroup" : { },
+                  "f:runAsGroup" : { },
+                  "f:runAsNonRoot" : { },
+                  "f:runAsUser" : { }
+                },
+                "f:serviceAccountName" : { },
+                "f:shareProcessNamespace" : { },
+                "f:terminationGracePeriodSeconds" : { },
+                "f:volumes" : {
+                  "k:{\"name\":\"backup-env\"}" : {
+                    "." : { },
+                    "f:configMap" : {
+                      "f:defaultMode" : { },
+                      "f:name" : { }
+                    },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"backup-secret\"}" : {
+                    "." : { },
+                    "f:name" : { },
+                    "f:secret" : {
+                      "f:defaultMode" : { },
+                      "f:secretName" : { }
+                    }
+                  },
+                  "k:{\"name\":\"dshm\"}" : {
+                    "." : { },
+                    "f:emptyDir" : {
+                      "f:medium" : { }
+                    },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"empty-base\"}" : {
+                    "." : { },
+                    "f:emptyDir" : { },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"envoy\"}" : {
+                    "." : { },
+                    "f:configMap" : {
+                      "f:name" : { }
+                    },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"local-bin\"}" : {
+                    "." : { },
+                    "f:emptyDir" : { },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"log\"}" : {
+                    "." : { },
+                    "f:emptyDir" : { },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"patroni-config\"}" : {
+                    "." : { },
+                    "f:emptyDir" : { },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"patroni-env\"}" : {
+                    "." : { },
+                    "f:configMap" : {
+                      "f:defaultMode" : { },
+                      "f:name" : { }
+                    },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"pgbouncer\"}" : {
+                    "." : { },
+                    "f:configMap" : {
+                      "f:name" : { }
+                    },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"pgbouncer-auth-file\"}" : {
+                    "." : { },
+                    "f:emptyDir" : { },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"pgbouncer-secrets\"}" : {
+                    "." : { },
+                    "f:name" : { },
+                    "f:secret" : {
+                      "f:secretName" : { }
+                    }
+                  },
+                  "k:{\"name\":\"queries\"}" : {
+                    "." : { },
+                    "f:configMap" : {
+                      "f:name" : { }
+                    },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"socket\"}" : {
+                    "." : { },
+                    "f:emptyDir" : {
+                      "f:medium" : { }
+                    },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"templates\"}" : {
+                    "." : { },
+                    "f:configMap" : {
+                      "f:defaultMode" : { },
+                      "f:name" : { }
+                    },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"test-internal-00000-prometheus-postgres-exporter-init-postgres\"}" : {
+                    "." : { },
+                    "f:configMap" : {
+                      "f:name" : { },
+                      "f:optional" : { }
+                    },
+                    "f:name" : { }
+                  },
+                  "k:{\"name\":\"user\"}" : {
+                    "." : { },
+                    "f:emptyDir" : { },
+                    "f:name" : { }
+                  }
+                }
+              }
+            },
+            "f:updateStrategy" : {
+              "f:type" : { }
+            }
+          }
+        }
+      }, {
+        "manager" : "kube-controller-manager",
+        "operation" : "Update",
+        "apiVersion" : "apps/v1",
+        "time" : "2021-11-23T19:36:12Z",
+        "fieldsType" : "FieldsV1",
+        "fieldsV1" : {
+          "f:spec" : {
+            "f:volumeClaimTemplates" : { }
+          },
+          "f:status" : {
+            "f:collisionCount" : { },
+            "f:currentReplicas" : { },
+            "f:currentRevision" : { },
+            "f:observedGeneration" : { },
+            "f:replicas" : { },
+            "f:updateRevision" : { },
+            "f:updatedReplicas" : { }
+          }
+        }
+      } ]
+    },
+    "spec" : {
+      "replicas" : 2,
+      "selector" : {
+        "matchLabels" : {
+          "app" : "StackGresCluster",
+          "cluster" : "true",
+          "cluster-name" : "test",
+          "cluster-uid" : "85ebc854-094a-4aad-8f90-5c9493faaeda",
+          "disruptible" : "true"
+        }
+      },
+      "template" : {
+        "metadata" : {
+          "creationTimestamp" : null,
+          "labels" : {
+            "app" : "StackGresCluster",
+            "cluster" : "true",
+            "cluster-name" : "test",
+            "cluster-uid" : "85ebc854-094a-4aad-8f90-5c9493faaeda",
+            "disruptible" : "true"
+          },
+          "annotations" : {
+            "allResourceAnnotation" : "allResourceValue",
+            "podsAnnotation" : "podsAnnotationValue",
+            "stackgres.io/cluster-controller-version" : "main-jvm",
+            "stackgres.io/envoy-version" : "1.19.1",
+            "stackgres.io/operatorVersion" : "1.1.0-SNAPSHOT",
+            "stackgres.io/patroni-version" : "2.1.1",
+            "stackgres.io/pgbouncer-version" : "1.15.0",
+            "stackgres.io/postgresql-version" : "12.2",
+            "stackgres.io/prometheus-postgres-exporter-version" : "0.10.0"
+          }
+        },
+        "spec" : {
+          "volumes" : [ {
+            "name" : "socket",
+            "emptyDir" : {
+              "medium" : "Memory"
+            }
+          }, {
+            "name" : "dshm",
+            "emptyDir" : {
+              "medium" : "Memory"
+            }
+          }, {
+            "name" : "log",
+            "emptyDir" : { }
+          }, {
+            "name" : "local-bin",
+            "emptyDir" : { }
+          }, {
+            "name" : "patroni-env",
+            "configMap" : {
+              "name" : "test",
+              "defaultMode" : 444
+            }
+          }, {
+            "name" : "patroni-config",
+            "emptyDir" : { }
+          }, {
+            "name" : "backup-env",
+            "configMap" : {
+              "name" : "test-backup",
+              "defaultMode" : 444
+            }
+          }, {
+            "name" : "backup-secret",
+            "secret" : {
+              "secretName" : "test-backup",
+              "defaultMode" : 444
+            }
+          }, {
+            "name" : "user",
+            "emptyDir" : { }
+          }, {
+            "name" : "test-internal-00000-prometheus-postgres-exporter-init-postgres",
+            "configMap" : {
+              "name" : "test-internal-00000-prometheus-postgres-exporter-init-postgres",
+              "defaultMode" : 420,
+              "optional" : false
+            }
+          }, {
+            "name" : "envoy",
+            "configMap" : {
+              "name" : "test-envoy-config",
+              "defaultMode" : 420
+            }
+          }, {
+            "name" : "queries",
+            "configMap" : {
+              "name" : "test-prometheus-postgres-exporter-config",
+              "defaultMode" : 420
+            }
+          }, {
+            "name" : "pgbouncer-auth-file",
+            "emptyDir" : { }
+          }, {
+            "name" : "pgbouncer",
+            "configMap" : {
+              "name" : "test-connection-pooling-config",
+              "defaultMode" : 420
+            }
+          }, {
+            "name" : "empty-base",
+            "emptyDir" : { }
+          }, {
+            "name" : "templates",
+            "configMap" : {
+              "name" : "test-templates",
+              "defaultMode" : 444
+            }
+          }, {
+            "name" : "pgbouncer-secrets",
+            "secret" : {
+              "secretName" : "test",
+              "defaultMode" : 420
+            }
+          } ],
+          "initContainers" : [ {
+            "name" : "setup-arbitrary-user",
+            "image" : "docker.io/ongres/kubectl:v1.19.14-build-6.6",
+            "command" : [ "/bin/sh", "-ex", "/templates/setup-arbitrary-user.sh" ],
+            "env" : [ {
+              "name" : "TEMPLATES_PATH",
+              "value" : "/templates"
+            }, {
+              "name" : "PG_BASE_PATH",
+              "value" : "/var/lib/postgresql"
+            }, {
+              "name" : "PG_DATA_PATH",
+              "value" : "/var/lib/postgresql/data"
+            } ],
+            "resources" : { },
+            "volumeMounts" : [ {
+              "name" : "templates",
+              "mountPath" : "/templates"
+            }, {
+              "name" : "user",
+              "mountPath" : "/local/etc",
+              "subPath" : "etc"
+            } ],
+            "terminationMessagePath" : "/dev/termination-log",
+            "terminationMessagePolicy" : "File",
+            "imagePullPolicy" : "IfNotPresent"
+          }, {
+            "name" : "setup-data-paths",
+            "image" : "docker.io/ongres/kubectl:v1.19.14-build-6.6",
+            "command" : [ "/bin/sh", "-ex", "/templates/setup-data-paths.sh" ],
+            "env" : [ {
+              "name" : "PG_BASE_PATH",
+              "value" : "/var/lib/postgresql"
+            }, {
+              "name" : "PG_DATA_PATH",
+              "value" : "/var/lib/postgresql/data"
+            } ],
+            "resources" : { },
+            "volumeMounts" : [ {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/passwd",
+              "subPath" : "etc/passwd"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/group",
+              "subPath" : "etc/group"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/shadow",
+              "subPath" : "etc/shadow"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/gshadow",
+              "subPath" : "etc/gshadow"
+            }, {
+              "name" : "templates",
+              "mountPath" : "/templates"
+            }, {
+              "name" : "test-data",
+              "mountPath" : "/var/lib/postgresql"
+            } ],
+            "terminationMessagePath" : "/dev/termination-log",
+            "terminationMessagePolicy" : "File",
+            "imagePullPolicy" : "IfNotPresent"
+          }, {
+            "name" : "relocate-binaries",
+            "image" : "docker.io/ongres/patroni:v2.1.0-pg12.2-build-6.5",
+            "command" : [ "/bin/sh", "-ex", "/templates/relocate-binaries.sh" ],
+            "env" : [ {
+              "name" : "PG_BASE_PATH",
+              "value" : "/var/lib/postgresql"
+            }, {
+              "name" : "PG_DATA_PATH",
+              "value" : "/var/lib/postgresql/data"
+            }, {
+              "name" : "ETC_PASSWD_PATH",
+              "value" : "/etc/passwd"
+            }, {
+              "name" : "ETC_GROUP_PATH",
+              "value" : "/etc/group"
+            }, {
+              "name" : "ETC_SHADOW_PATH",
+              "value" : "/etc/shadow"
+            }, {
+              "name" : "ETC_GSHADOW_PATH",
+              "value" : "/etc/gshadow"
+            }, {
+              "name" : "PG_EXTENSIONS_BASE_PATH",
+              "value" : "/var/lib/postgresql/extensions"
+            }, {
+              "name" : "PG_EXTENSIONS_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6"
+            }, {
+              "name" : "PG_EXTENSIONS_BINARIES_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6/usr/lib/postgresql/12"
+            }, {
+              "name" : "PG_EXTENSIONS_BIN_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6/usr/lib/postgresql/12/bin"
+            }, {
+              "name" : "PG_EXTENSIONS_LIB_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6/usr/lib/postgresql/12/lib"
+            }, {
+              "name" : "PG_EXTENSIONS_SHARE_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6/usr/share/postgresql/12"
+            }, {
+              "name" : "PG_EXTENSIONS_EXTENSION_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6/usr/share/postgresql/12/extension"
+            }, {
+              "name" : "PG_EXTENSIONS_LIB64_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6/usr/lib64"
+            }, {
+              "name" : "PG_LIB64_PATH",
+              "value" : "/usr/lib64"
+            }, {
+              "name" : "PG_BINARIES_PATH",
+              "value" : "/usr/lib/postgresql/12.2"
+            }, {
+              "name" : "PG_BIN_PATH",
+              "value" : "/usr/lib/postgresql/12.2/bin"
+            }, {
+              "name" : "PG_LIB_PATH",
+              "value" : "/usr/lib/postgresql/12.2/lib"
+            }, {
+              "name" : "PG_EXTRA_BIN_PATH",
+              "value" : "/usr/lib/postgresql/12.2/extra/bin"
+            }, {
+              "name" : "PG_EXTRA_LIB_PATH",
+              "value" : "/usr/lib/postgresql/12.2/extra/lib"
+            }, {
+              "name" : "PG_SHARE_PATH",
+              "value" : "/usr/share/postgresql/12.2"
+            }, {
+              "name" : "PG_EXTENSION_PATH",
+              "value" : "/usr/share/postgresql/12.2/extension"
+            }, {
+              "name" : "PG_RELOCATED_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2"
+            }, {
+              "name" : "PG_RELOCATED_LIB64_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2/usr/lib64"
+            }, {
+              "name" : "PG_RELOCATED_BINARIES_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2/usr/lib/postgresql/12.2"
+            }, {
+              "name" : "PG_RELOCATED_BIN_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2/usr/lib/postgresql/12.2/bin"
+            }, {
+              "name" : "PG_RELOCATED_LIB_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2/usr/lib/postgresql/12.2/lib"
+            }, {
+              "name" : "PG_RELOCATED_SHARE_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2/usr/share/postgresql/12.2"
+            }, {
+              "name" : "PG_RELOCATED_EXTENSION_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2/usr/share/postgresql/12.2/extension"
+            }, {
+              "name" : "PG_UPGRADE_PATH",
+              "value" : "/var/lib/postgresql/upgrade"
+            }, {
+              "name" : "PATH",
+              "value" : "/usr/lib/postgresql/12.2/extra/bin:/usr/lib/postgresql/12.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            }, {
+              "name" : "LD_LIBRARY_PATH",
+              "value" : "/usr/lib/postgresql/12.2/extra/lib"
+            } ],
+            "resources" : { },
+            "volumeMounts" : [ {
+              "name" : "templates",
+              "mountPath" : "/templates"
+            }, {
+              "name" : "test-data",
+              "mountPath" : "/var/lib/postgresql"
+            } ],
+            "terminationMessagePath" : "/dev/termination-log",
+            "terminationMessagePolicy" : "File",
+            "imagePullPolicy" : "IfNotPresent"
+          }, {
+            "name" : "setup-scripts",
+            "image" : "docker.io/ongres/kubectl:v1.19.14-build-6.6",
+            "command" : [ "/bin/sh", "-ex", "/templates/setup-scripts.sh" ],
+            "env" : [ {
+              "name" : "LOCAL_BIN_PATH",
+              "value" : "/usr/local/bin"
+            }, {
+              "name" : "TEMPLATES_PATH",
+              "value" : "/templates"
+            }, {
+              "name" : "BASE_ENV_PATH",
+              "value" : "/etc/env"
+            }, {
+              "name" : "POSTGRES_PORT",
+              "value" : "5432"
+            }, {
+              "name" : "BASE_SECRET_PATH",
+              "value" : "/etc/env/.secret"
+            } ],
+            "resources" : { },
+            "volumeMounts" : [ {
+              "name" : "templates",
+              "mountPath" : "/templates"
+            }, {
+              "name" : "local-bin",
+              "mountPath" : "/usr/local/bin"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/passwd",
+              "subPath" : "etc/passwd"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/group",
+              "subPath" : "etc/group"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/shadow",
+              "subPath" : "etc/shadow"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/gshadow",
+              "subPath" : "etc/gshadow"
+            } ],
+            "terminationMessagePath" : "/dev/termination-log",
+            "terminationMessagePolicy" : "File",
+            "imagePullPolicy" : "IfNotPresent"
+          }, {
+            "name" : "pgbouncer-auth-file",
+            "image" : "docker.io/ongres/kubectl:v1.19.14-build-6.6",
+            "command" : [ "/bin/sh", "-exc", "test -f \"/etc/pgbouncer/auth/pgbouncer-admin-password\"\ntest -f \"/etc/pgbouncer/auth/pgbouncer-stats-password\"\nPGBOUNCER_ADMIN_MD5=\"$({\n  cat \"/etc/pgbouncer/auth/pgbouncer-admin-password\"\n  printf 'pgbouncer_admin'\n  } | md5sum | cut -d ' ' -f 1)\"\nPGBOUNCER_STATS_MD5=\"$({\n  cat \"/etc/pgbouncer/auth/pgbouncer-stats-password\"\n  printf 'pgbouncer_stats'\n  } | md5sum | cut -d ' ' -f 1)\"\n(\necho \"\\\"pgbouncer_admin\\\" \\\"md5$PGBOUNCER_ADMIN_MD5\\\"\"\necho \"\\\"pgbouncer_stats\\\" \\\"md5$PGBOUNCER_STATS_MD5\\\"\"\n) > \"/etc/pgbouncer/auth/users.txt\"" ],
+            "resources" : { },
+            "volumeMounts" : [ {
+              "name" : "pgbouncer-auth-file",
+              "mountPath" : "/etc/pgbouncer/auth",
+              "subPath" : "etc/pgbouncer/auth"
+            }, {
+              "name" : "pgbouncer-secrets",
+              "readOnly" : true,
+              "mountPath" : "/etc/pgbouncer/auth/pgbouncer-admin-password",
+              "subPath" : "pgbouncer-admin-password"
+            }, {
+              "name" : "pgbouncer-secrets",
+              "readOnly" : true,
+              "mountPath" : "/etc/pgbouncer/auth/pgbouncer-stats-password",
+              "subPath" : "pgbouncer-stats-password"
+            } ],
+            "terminationMessagePath" : "/dev/termination-log",
+            "terminationMessagePolicy" : "File",
+            "imagePullPolicy" : "IfNotPresent"
+          }, {
+            "name" : "cluster-reconciliation-cycle",
+            "image" : "docker.io/stackgres/cluster-controller:main-jvm",
+            "env" : [ {
+              "name" : "COMMAND",
+              "value" : "run-reconciliation-cycle"
+            }, {
+              "name" : "CLUSTER_NAME",
+              "value" : "test"
+            }, {
+              "name" : "CLUSTER_NAMESPACE",
+              "value" : "annotations"
+            }, {
+              "name" : "CLUSTER_CONTROLLER_POD_NAME",
+              "valueFrom" : {
+                "fieldRef" : {
+                  "apiVersion" : "v1",
+                  "fieldPath" : "metadata.name"
+                }
+              }
+            }, {
+              "name" : "CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS",
+              "value" : "https://extensions.stackgres.io/postgres/repository"
+            }, {
+              "name" : "CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES",
+              "value" : "false"
+            }, {
+              "name" : "CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER",
+              "value" : "false"
+            }, {
+              "name" : "CLUSTER_CONTROLLER_LOG_LEVEL"
+            }, {
+              "name" : "CLUSTER_CONTROLLER_SHOW_STACK_TRACES"
+            }, {
+              "name" : "APP_OPTS"
+            }, {
+              "name" : "DEBUG_CLUSTER_CONTROLLER"
+            }, {
+              "name" : "DEBUG_CLUSTER_CONTROLLER_SUSPEND"
+            } ],
+            "resources" : { },
+            "volumeMounts" : [ {
+              "name" : "test-data",
+              "mountPath" : "/var/lib/postgresql"
+            } ],
+            "terminationMessagePath" : "/dev/termination-log",
+            "terminationMessagePolicy" : "File",
+            "imagePullPolicy" : "IfNotPresent"
+          } ],
+          "containers" : [ {
+            "name" : "patroni",
+            "image" : "docker.io/ongres/patroni:v2.1.0-pg12.2-build-6.5",
+            "command" : [ "/bin/sh", "-ex", "/usr/local/bin/start-patroni.sh" ],
+            "ports" : [ {
+              "name" : "pgport",
+              "containerPort" : 7432,
+              "protocol" : "TCP"
+            }, {
+              "name" : "pgreplication",
+              "containerPort" : 7433,
+              "protocol" : "TCP"
+            }, {
+              "name" : "patroniport",
+              "containerPort" : 8008,
+              "protocol" : "TCP"
+            } ],
+            "envFrom" : [ {
+              "configMapRef" : {
+                "name" : "test"
+              }
+            } ],
+            "env" : [ {
+              "name" : "LOCAL_BIN_PATH",
+              "value" : "/usr/local/bin"
+            }, {
+              "name" : "PG_BASE_PATH",
+              "value" : "/var/lib/postgresql"
+            }, {
+              "name" : "PG_DATA_PATH",
+              "value" : "/var/lib/postgresql/data"
+            }, {
+              "name" : "ETC_PASSWD_PATH",
+              "value" : "/etc/passwd"
+            }, {
+              "name" : "ETC_GROUP_PATH",
+              "value" : "/etc/group"
+            }, {
+              "name" : "ETC_SHADOW_PATH",
+              "value" : "/etc/shadow"
+            }, {
+              "name" : "ETC_GSHADOW_PATH",
+              "value" : "/etc/gshadow"
+            }, {
+              "name" : "PG_EXTENSIONS_BASE_PATH",
+              "value" : "/var/lib/postgresql/extensions"
+            }, {
+              "name" : "PG_EXTENSIONS_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6"
+            }, {
+              "name" : "PG_EXTENSIONS_BINARIES_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6/usr/lib/postgresql/12"
+            }, {
+              "name" : "PG_EXTENSIONS_BIN_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6/usr/lib/postgresql/12/bin"
+            }, {
+              "name" : "PG_EXTENSIONS_LIB_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6/usr/lib/postgresql/12/lib"
+            }, {
+              "name" : "PG_EXTENSIONS_SHARE_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6/usr/share/postgresql/12"
+            }, {
+              "name" : "PG_EXTENSIONS_EXTENSION_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6/usr/share/postgresql/12/extension"
+            }, {
+              "name" : "PG_EXTENSIONS_LIB64_PATH",
+              "value" : "/var/lib/postgresql/extensions/12/6/usr/lib64"
+            }, {
+              "name" : "PG_LIB64_PATH",
+              "value" : "/usr/lib64"
+            }, {
+              "name" : "PG_BINARIES_PATH",
+              "value" : "/usr/lib/postgresql/12.2"
+            }, {
+              "name" : "PG_BIN_PATH",
+              "value" : "/usr/lib/postgresql/12.2/bin"
+            }, {
+              "name" : "PG_LIB_PATH",
+              "value" : "/usr/lib/postgresql/12.2/lib"
+            }, {
+              "name" : "PG_EXTRA_BIN_PATH",
+              "value" : "/usr/lib/postgresql/12.2/extra/bin"
+            }, {
+              "name" : "PG_EXTRA_LIB_PATH",
+              "value" : "/usr/lib/postgresql/12.2/extra/lib"
+            }, {
+              "name" : "PG_SHARE_PATH",
+              "value" : "/usr/share/postgresql/12.2"
+            }, {
+              "name" : "PG_EXTENSION_PATH",
+              "value" : "/usr/share/postgresql/12.2/extension"
+            }, {
+              "name" : "PG_RELOCATED_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2"
+            }, {
+              "name" : "PG_RELOCATED_LIB64_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2/usr/lib64"
+            }, {
+              "name" : "PG_RELOCATED_BINARIES_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2/usr/lib/postgresql/12.2"
+            }, {
+              "name" : "PG_RELOCATED_BIN_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2/usr/lib/postgresql/12.2/bin"
+            }, {
+              "name" : "PG_RELOCATED_LIB_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2/usr/lib/postgresql/12.2/lib"
+            }, {
+              "name" : "PG_RELOCATED_SHARE_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2/usr/share/postgresql/12.2"
+            }, {
+              "name" : "PG_RELOCATED_EXTENSION_PATH",
+              "value" : "/var/lib/postgresql/relocated/12.2/usr/share/postgresql/12.2/extension"
+            }, {
+              "name" : "PG_UPGRADE_PATH",
+              "value" : "/var/lib/postgresql/upgrade"
+            }, {
+              "name" : "PATH",
+              "value" : "/usr/lib/postgresql/12.2/extra/bin:/usr/lib/postgresql/12.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+            }, {
+              "name" : "LD_LIBRARY_PATH",
+              "value" : "/usr/lib/postgresql/12.2/extra/lib"
+            }, {
+              "name" : "PATRONI_RESTAPI_LISTEN",
+              "value" : "0.0.0.0:8009"
+            }, {
+              "name" : "PATRONI_RESTAPI_CONNECT_ADDRESS",
+              "value" : "${PATRONI_KUBERNETES_POD_IP}:8008"
+            }, {
+              "name" : "PATRONI_RESTAPI_USERNAME",
+              "value" : "superuser"
+            }, {
+              "name" : "PATRONI_RESTAPI_PASSWORD",
+              "valueFrom" : {
+                "secretKeyRef" : {
+                  "name" : "test",
+                  "key" : "restapi-password"
+                }
+              }
+            }, {
+              "name" : "PATRONI_NAME",
+              "valueFrom" : {
+                "fieldRef" : {
+                  "apiVersion" : "v1",
+                  "fieldPath" : "metadata.name"
+                }
+              }
+            }, {
+              "name" : "PATRONI_KUBERNETES_NAMESPACE",
+              "valueFrom" : {
+                "fieldRef" : {
+                  "apiVersion" : "v1",
+                  "fieldPath" : "metadata.namespace"
+                }
+              }
+            }, {
+              "name" : "PATRONI_KUBERNETES_POD_IP",
+              "valueFrom" : {
+                "fieldRef" : {
+                  "apiVersion" : "v1",
+                  "fieldPath" : "status.podIP"
+                }
+              }
+            }, {
+              "name" : "PATRONI_SUPERUSER_PASSWORD",
+              "valueFrom" : {
+                "secretKeyRef" : {
+                  "name" : "test",
+                  "key" : "superuser-password"
+                }
+              }
+            }, {
+              "name" : "PATRONI_REPLICATION_PASSWORD",
+              "valueFrom" : {
+                "secretKeyRef" : {
+                  "name" : "test",
+                  "key" : "replication-password"
+                }
+              }
+            }, {
+              "name" : "PATRONI_authenticator_PASSWORD",
+              "valueFrom" : {
+                "secretKeyRef" : {
+                  "name" : "test",
+                  "key" : "authenticator-password"
+                }
+              }
+            }, {
+              "name" : "PATRONI_authenticator_OPTIONS",
+              "value" : "superuser"
+            }, {
+              "name" : "PATRONI_CONFIG_PATH",
+              "value" : "/etc/patroni"
+            }, {
+              "name" : "PATRONI_ENV_PATH",
+              "value" : "/etc/env/patroni"
+            }, {
+              "name" : "BACKUP_ENV",
+              "value" : "backup"
+            }, {
+              "name" : "BASE_SECRET_PATH",
+              "value" : "/etc/env/.secret"
+            }, {
+              "name" : "BACKUP_ENV_PATH",
+              "value" : "/etc/env/backup"
+            }, {
+              "name" : "BACKUP_SECRET_PATH",
+              "value" : "/etc/env/.secret/backup"
+            }, {
+              "name" : "RESTORE_ENV",
+              "value" : "restore"
+            }, {
+              "name" : "RESTORE_ENV_PATH",
+              "value" : "/etc/env/restore"
+            }, {
+              "name" : "RESTORE_SECRET_PATH",
+              "value" : "/etc/env/.secret/restore"
+            } ],
+            "resources" : {
+              "limits" : {
+                "cpu" : "500m",
+                "memory" : "128Mi"
+              },
+              "requests" : {
+                "cpu" : "500m",
+                "memory" : "128Mi"
+              }
+            },
+            "volumeMounts" : [ {
+              "name" : "socket",
+              "mountPath" : "/var/run/postgresql"
+            }, {
+              "name" : "dshm",
+              "mountPath" : "/dev/shm"
+            }, {
+              "name" : "log",
+              "mountPath" : "/var/log/postgresql"
+            }, {
+              "name" : "local-bin",
+              "mountPath" : "/usr/local/bin"
+            }, {
+              "name" : "patroni-env",
+              "mountPath" : "/etc/env/patroni"
+            }, {
+              "name" : "patroni-config",
+              "mountPath" : "/etc/patroni"
+            }, {
+              "name" : "backup-env",
+              "mountPath" : "/etc/env/backup"
+            }, {
+              "name" : "backup-secret",
+              "mountPath" : "/etc/env/.secret/backup"
+            }, {
+              "name" : "test-data",
+              "mountPath" : "/var/lib/postgresql"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/passwd",
+              "subPath" : "etc/passwd"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/group",
+              "subPath" : "etc/group"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/shadow",
+              "subPath" : "etc/shadow"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/gshadow",
+              "subPath" : "etc/gshadow"
+            }, {
+              "name" : "test-data",
+              "mountPath" : "/usr/lib64",
+              "subPath" : "relocated/12.2/usr/lib64"
+            }, {
+              "name" : "test-data",
+              "mountPath" : "/usr/lib/postgresql/12.2/bin",
+              "subPath" : "relocated/12.2/usr/lib/postgresql/12.2/bin"
+            }, {
+              "name" : "test-data",
+              "mountPath" : "/usr/lib/postgresql/12.2/lib",
+              "subPath" : "relocated/12.2/usr/lib/postgresql/12.2/lib"
+            }, {
+              "name" : "test-data",
+              "mountPath" : "/usr/share/postgresql/12.2",
+              "subPath" : "relocated/12.2/usr/share/postgresql/12.2"
+            }, {
+              "name" : "test-data",
+              "mountPath" : "/usr/share/postgresql/12.2/extension",
+              "subPath" : "extensions/12/6/usr/share/postgresql/12/extension"
+            }, {
+              "name" : "test-data",
+              "mountPath" : "/usr/lib/postgresql/12.2/extra/bin",
+              "subPath" : "extensions/12/6/usr/lib/postgresql/12/bin"
+            }, {
+              "name" : "test-data",
+              "mountPath" : "/usr/lib/postgresql/12.2/extra/lib",
+              "subPath" : "extensions/12/6/usr/lib64"
+            }, {
+              "name" : "test-internal-00000-prometheus-postgres-exporter-init-postgres",
+              "readOnly" : true,
+              "mountPath" : "/etc/patroni/init-script.d/00000-prometheus-postgres-exporter-init.postgres.sql",
+              "subPath" : "00000-prometheus-postgres-exporter-init.postgres.sql"
+            } ],
+            "livenessProbe" : {
+              "httpGet" : {
+                "path" : "/cluster",
+                "port" : 8008,
+                "scheme" : "HTTP"
+              },
+              "initialDelaySeconds" : 15,
+              "timeoutSeconds" : 1,
+              "periodSeconds" : 20,
+              "successThreshold" : 1,
+              "failureThreshold" : 6
+            },
+            "readinessProbe" : {
+              "httpGet" : {
+                "path" : "/read-only",
+                "port" : 8008,
+                "scheme" : "HTTP"
+              },
+              "initialDelaySeconds" : 5,
+              "timeoutSeconds" : 1,
+              "periodSeconds" : 10,
+              "successThreshold" : 1,
+              "failureThreshold" : 3
+            },
+            "terminationMessagePath" : "/dev/termination-log",
+            "terminationMessagePolicy" : "File",
+            "imagePullPolicy" : "IfNotPresent"
+          }, {
+            "name" : "envoy",
+            "image" : "docker.io/ongres/envoy:v1.19.1-build-6.6",
+            "command" : [ "/usr/local/bin/envoy" ],
+            "args" : [ "-c", "/etc/envoy/envoy.json" ],
+            "ports" : [ {
+              "containerPort" : 7432,
+              "protocol" : "TCP"
+            }, {
+              "containerPort" : 7433,
+              "protocol" : "TCP"
+            } ],
+            "resources" : { },
+            "volumeMounts" : [ {
+              "name" : "envoy",
+              "readOnly" : true,
+              "mountPath" : "/etc/envoy"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/passwd",
+              "subPath" : "etc/passwd"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/group",
+              "subPath" : "etc/group"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/shadow",
+              "subPath" : "etc/shadow"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/gshadow",
+              "subPath" : "etc/gshadow"
+            } ],
+            "terminationMessagePath" : "/dev/termination-log",
+            "terminationMessagePolicy" : "File",
+            "imagePullPolicy" : "IfNotPresent"
+          }, {
+            "name" : "prometheus-postgres-exporter",
+            "image" : "docker.io/ongres/prometheus-postgres-exporter:v0.10.0-build-6.6",
+            "command" : [ "/bin/sh", "-exc" ],
+            "args" : [ "run_postgres_exporter() {\n  set -x\n  exec /usr/local/bin/postgres_exporter \\\n    --log.level=info\n}\n\nset +x\nwhile true\ndo\n  if ( [ -z \"$PID\" ] || [ ! -d \"/proc/$PID\" ] ) \\\n    && [ -S '/var/run/postgresql/.s.PGSQL.5432' ]\n  then\n    if [ -n \"$PID\" ]\n    then\n      kill \"$PID\"\n      wait \"$PID\" || true\n    fi\n    run_postgres_exporter &\n    PID=\"$!\"\n  fi\n  sleep 5\ndone\n" ],
+            "ports" : [ {
+              "containerPort" : 9187,
+              "protocol" : "TCP"
+            } ],
+            "env" : [ {
+              "name" : "PGAPPNAME",
+              "value" : "prometheus-postgres-exporter"
+            }, {
+              "name" : "DATA_SOURCE_NAME",
+              "value" : "postgresql://postgres@:5432/postgres?host=/var/run/postgresql&sslmode=disable"
+            }, {
+              "name" : "PG_EXPORTER_EXTEND_QUERY_PATH",
+              "value" : "/var/opt/postgres-exporter/queries.yaml"
+            }, {
+              "name" : "PG_EXPORTER_CONSTANT_LABELS",
+              "value" : "cluster_name=test, namespace=annotations"
+            } ],
+            "resources" : { },
+            "volumeMounts" : [ {
+              "name" : "socket",
+              "mountPath" : "/var/run/postgresql"
+            }, {
+              "name" : "queries",
+              "readOnly" : true,
+              "mountPath" : "/var/opt/postgres-exporter/queries.yaml",
+              "subPath" : "queries.yaml"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/passwd",
+              "subPath" : "etc/passwd"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/group",
+              "subPath" : "etc/group"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/shadow",
+              "subPath" : "etc/shadow"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/gshadow",
+              "subPath" : "etc/gshadow"
+            } ],
+            "terminationMessagePath" : "/dev/termination-log",
+            "terminationMessagePolicy" : "File",
+            "imagePullPolicy" : "IfNotPresent"
+          }, {
+            "name" : "cluster-controller",
+            "image" : "docker.io/stackgres/cluster-controller:main-jvm",
+            "env" : [ {
+              "name" : "CLUSTER_NAME",
+              "value" : "test"
+            }, {
+              "name" : "CLUSTER_NAMESPACE",
+              "value" : "annotations"
+            }, {
+              "name" : "CLUSTER_CONTROLLER_POD_NAME",
+              "valueFrom" : {
+                "fieldRef" : {
+                  "apiVersion" : "v1",
+                  "fieldPath" : "metadata.name"
+                }
+              }
+            }, {
+              "name" : "CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS",
+              "value" : "https://extensions.stackgres.io/postgres/repository"
+            }, {
+              "name" : "CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES",
+              "value" : "true"
+            }, {
+              "name" : "CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER",
+              "value" : "true"
+            }, {
+              "name" : "CLUSTER_CONTROLLER_LOG_LEVEL"
+            }, {
+              "name" : "CLUSTER_CONTROLLER_SHOW_STACK_TRACES"
+            }, {
+              "name" : "APP_OPTS"
+            }, {
+              "name" : "JAVA_OPTS"
+            }, {
+              "name" : "DEBUG_CLUSTER_CONTROLLER"
+            }, {
+              "name" : "DEBUG_CLUSTER_CONTROLLER_SUSPEND"
+            } ],
+            "resources" : { },
+            "volumeMounts" : [ {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/passwd",
+              "subPath" : "etc/passwd"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/group",
+              "subPath" : "etc/group"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/shadow",
+              "subPath" : "etc/shadow"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/gshadow",
+              "subPath" : "etc/gshadow"
+            }, {
+              "name" : "test-data",
+              "mountPath" : "/var/lib/postgresql"
+            }, {
+              "name" : "pgbouncer-auth-file",
+              "mountPath" : "/etc/pgbouncer/auth",
+              "subPath" : "etc/pgbouncer/auth"
+            } ],
+            "terminationMessagePath" : "/dev/termination-log",
+            "terminationMessagePolicy" : "File",
+            "imagePullPolicy" : "IfNotPresent"
+          }, {
+            "name" : "pgbouncer",
+            "image" : "docker.io/ongres/pgbouncer:v1.15.0-build-6.6",
+            "resources" : { },
+            "volumeMounts" : [ {
+              "name" : "socket",
+              "mountPath" : "/var/run/postgresql"
+            }, {
+              "name" : "pgbouncer",
+              "readOnly" : true,
+              "mountPath" : "/etc/pgbouncer/pgbouncer.ini",
+              "subPath" : "pgbouncer.ini"
+            }, {
+              "name" : "pgbouncer-auth-file",
+              "readOnly" : true,
+              "mountPath" : "/etc/pgbouncer/auth",
+              "subPath" : "etc/pgbouncer/auth"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/passwd",
+              "subPath" : "etc/passwd"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/group",
+              "subPath" : "etc/group"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/shadow",
+              "subPath" : "etc/shadow"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/gshadow",
+              "subPath" : "etc/gshadow"
+            } ],
+            "terminationMessagePath" : "/dev/termination-log",
+            "terminationMessagePolicy" : "File",
+            "imagePullPolicy" : "IfNotPresent"
+          }, {
+            "name" : "postgres-util",
+            "image" : "docker.io/ongres/postgres-util:v12.2-build-6.5",
+            "command" : [ "/bin/sh" ],
+            "args" : [ "-c", "while true; do sleep 10; done" ],
+            "resources" : { },
+            "volumeMounts" : [ {
+              "name" : "socket",
+              "mountPath" : "/var/run/postgresql"
+            }, {
+              "name" : "empty-base",
+              "mountPath" : "/var/lib/postgresql"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/passwd",
+              "subPath" : "etc/passwd"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/group",
+              "subPath" : "etc/group"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/shadow",
+              "subPath" : "etc/shadow"
+            }, {
+              "name" : "user",
+              "readOnly" : true,
+              "mountPath" : "/etc/gshadow",
+              "subPath" : "etc/gshadow"
+            } ],
+            "terminationMessagePath" : "/dev/termination-log",
+            "terminationMessagePolicy" : "File",
+            "imagePullPolicy" : "IfNotPresent",
+            "stdin" : true,
+            "tty" : true
+          } ],
+          "restartPolicy" : "Always",
+          "terminationGracePeriodSeconds" : 60,
+          "dnsPolicy" : "ClusterFirst",
+          "serviceAccountName" : "test-patroni",
+          "serviceAccount" : "test-patroni",
+          "shareProcessNamespace" : true,
+          "securityContext" : {
+            "runAsUser" : 999,
+            "runAsGroup" : 999,
+            "runAsNonRoot" : true,
+            "fsGroup" : 999
+          },
+          "affinity" : {
+            "nodeAffinity" : { },
+            "podAntiAffinity" : {
+              "requiredDuringSchedulingIgnoredDuringExecution" : [ {
+                "labelSelector" : {
+                  "matchExpressions" : [ {
+                    "key" : "app",
+                    "operator" : "In",
+                    "values" : [ "StackGresCluster" ]
+                  }, {
+                    "key" : "cluster",
+                    "operator" : "In",
+                    "values" : [ "true" ]
+                  } ]
+                },
+                "topologyKey" : "kubernetes.io/hostname"
+              } ]
+            }
+          },
+          "schedulerName" : "default-scheduler"
+        }
+      },
+      "volumeClaimTemplates" : [ {
+        "kind" : "PersistentVolumeClaim",
+        "apiVersion" : "v1",
+        "metadata" : {
+          "name" : "test-data",
+          "namespace" : "annotations",
+          "creationTimestamp" : null,
+          "labels" : {
+            "app" : "StackGresCluster",
+            "cluster-name" : "test",
+            "cluster-uid" : "85ebc854-094a-4aad-8f90-5c9493faaeda"
+          },
+          "annotations" : {
+            "allResourceAnnotation" : "allResourceValue"
+          },
+          "ownerReferences" : [ {
+            "apiVersion" : "stackgres.io/v1",
+            "kind" : "SGCluster",
+            "name" : "test",
+            "uid" : "85ebc854-094a-4aad-8f90-5c9493faaeda",
+            "controller" : true
+          } ]
+        },
+        "spec" : {
+          "accessModes" : [ "ReadWriteOnce" ],
+          "resources" : {
+            "requests" : {
+              "storage" : "500Mi"
+            }
+          },
+          "volumeMode" : "Filesystem"
+        },
+        "status" : {
+          "phase" : "Pending"
+        }
+      } ],
+      "serviceName" : "test",
+      "podManagementPolicy" : "OrderedReady",
+      "updateStrategy" : {
+        "type" : "OnDelete"
+      },
+      "revisionHistoryLimit" : 10
+    },
+    "status" : {
+      "observedGeneration" : 1,
+      "replicas" : 1,
+      "currentReplicas" : 1,
+      "updatedReplicas" : 1,
+      "currentRevision" : "test-dcf455845",
+      "updateRevision" : "test-dcf455845",
+      "collisionCount" : 0
+    }
+  } ]
+}

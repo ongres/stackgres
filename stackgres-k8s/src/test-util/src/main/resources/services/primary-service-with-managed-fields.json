@@ -1,0 +1,115 @@
+{
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+        "annotations": {
+            "allResourceAnnotation": "allResourceValue",
+            "primaryServiceAnnotation": "primaryServiceValue",
+            "servicesAnnotations": "servicesAnnotationsValue"
+        },
+        "creationTimestamp": "2021-11-18T14:33:14Z",
+        "labels": {
+            "app": "StackGresCluster",
+            "cluster": "true",
+            "cluster-name": "test",
+            "cluster-uid": "97c221fe-ebcb-4c18-928e-99ea5506482d",
+            "role": "master"
+        },
+        "managedFields": [
+            {
+                "apiVersion": "v1",
+                "fieldsType": "FieldsV1",
+                "fieldsV1": {
+                    "f:metadata": {
+                        "f:annotations": {
+                            "f:allResourceAnnotation": {},
+                            "f:primaryServiceAnnotation": {},
+                            "f:servicesAnnotations": {}
+                        },
+                        "f:labels": {
+                            "f:app": {},
+                            "f:cluster": {},
+                            "f:cluster-name": {},
+                            "f:cluster-uid": {},
+                            "f:role": {}
+                        },
+                        "f:ownerReferences": {
+                            "k:{\"uid\":\"97c221fe-ebcb-4c18-928e-99ea5506482d\"}": {
+                                ".": {},
+                                "f:apiVersion": {},
+                                "f:controller": {},
+                                "f:kind": {},
+                                "f:name": {},
+                                "f:uid": {}
+                            }
+                        }
+                    },
+                    "f:spec": {
+                        "f:ports": {
+                            "k:{\"port\":5432,\"protocol\":\"TCP\"}": {
+                                ".": {},
+                                "f:name": {},
+                                "f:port": {},
+                                "f:protocol": {},
+                                "f:targetPort": {}
+                            },
+                            "k:{\"port\":5433,\"protocol\":\"TCP\"}": {
+                                ".": {},
+                                "f:name": {},
+                                "f:port": {},
+                                "f:protocol": {},
+                                "f:targetPort": {}
+                            }
+                        },
+                        "f:type": {}
+                    }
+                },
+                "manager": "StackGres",
+                "operation": "Apply",
+                "time": "2021-11-18T14:33:14Z"
+            }
+        ],
+        "name": "test",
+        "namespace": "annotations",
+        "ownerReferences": [
+            {
+                "apiVersion": "stackgres.io/v1",
+                "controller": true,
+                "kind": "SGCluster",
+                "name": "test",
+                "uid": "97c221fe-ebcb-4c18-928e-99ea5506482d"
+            }
+        ],
+        "resourceVersion": "2887",
+        "uid": "f0b99a61-51f3-4d6a-90a0-a9567fc2d35a"
+    },
+    "spec": {
+        "clusterIP": "10.96.230.98",
+        "clusterIPs": [
+            "10.96.230.98"
+        ],
+        "ipFamilies": [
+            "IPv4"
+        ],
+        "ipFamilyPolicy": "SingleStack",
+        "ports": [
+            {
+                "name": "pgport",
+                "port": 5432,
+                "protocol": "TCP",
+                "targetPort": "pgport"
+            },
+            {
+                "name": "pgreplication",
+                "port": 5433,
+                "protocol": "TCP",
+                "targetPort": "pgreplication"
+            }
+        ],
+        "sessionAffinity": "None",
+        "type": "ClusterIP"
+    },
+    "status": {
+        "loadBalancer": {}
+    }
+}
