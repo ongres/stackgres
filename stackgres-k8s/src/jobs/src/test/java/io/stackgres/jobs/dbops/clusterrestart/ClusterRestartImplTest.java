@@ -746,10 +746,8 @@ class ClusterRestartImplTest {
     final InOrder order =
         inOrder(clusterWatcher, podRestart, postgresRestart, switchoverHandler, instanceManager,
             clusterWatcher);
-    order.verify(clusterWatcher).findByNameAndNamespace(CLUSTER_NAME, NAMESPACE);
     order.verifyNoMoreInteractions();
 
-    verify(clusterWatcher, times(1)).findByNameAndNamespace(any(), any());
     verify(postgresRestart, times(0)).restartPostgres(any(), any(), any());
     verify(podRestart, times(0)).restartPod(any());
     verify(switchoverHandler, times(0)).performSwitchover(any(), any(), any());

@@ -54,11 +54,12 @@ public class ClusterRestartImpl implements ClusterRestart {
   @Override
   public Multi<RestartEvent> restartCluster(ClusterRestartState clusterRestartState) {
     return Multi.createFrom().emitter(em -> {
-      Uni<?> restartChain = findClusterToBeRestart(clusterRestartState);
 
       Pod primaryInstance = clusterRestartState.getPrimaryInstance();
       final String primaryInstanceName = primaryInstance.getMetadata().getName();
       final String clusterName = clusterRestartState.getClusterName();
+
+      Uni<?> restartChain = startRestartChain();
 
       restartChain = restartPostgres(clusterRestartState, em, restartChain, primaryInstance,
           primaryInstanceName, clusterName);
@@ -296,11 +297,8 @@ public class ClusterRestartImpl implements ClusterRestart {
     }
   }
 
-  private Uni<StackGresCluster> findClusterToBeRestart(ClusterRestartState clusterRestartState) {
-    String clusterName = clusterRestartState.getClusterName();
-    LOGGER.info("Loading cluster {} info", clusterName);
-    return Uni.createFrom().item(() -> ((ClusterWatcher) clusterWatcher)
-        .findByNameAndNamespace(clusterName, clusterRestartState.getNamespace()));
+  private Uni<Void> startRestartChain() {
+    return Uni.createFrom().voidItem();
   }
 
   private Uni<StackGresCluster> waitForClusterToBeHealthy(ClusterRestartState clusterRestartState,

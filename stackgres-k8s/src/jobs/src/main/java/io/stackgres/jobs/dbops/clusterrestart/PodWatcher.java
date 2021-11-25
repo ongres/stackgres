@@ -33,10 +33,6 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class PodWatcher implements Watcher<Pod> {
 
-  public static final String UNKNOWN_POD_STATUS_PHASE = "Unknown";
-  public static final String FAILED_POD_STATUS_PHASE = "Failed";
-  public static final String RUNNING_POD_STATUS_PHASE = "Running";
-  public static final String PENDING_POD_STATUS_PHASE = "Pending";
   private static final Logger LOGGER = LoggerFactory.getLogger(PodWatcher.class);
   private final KubernetesClient client;
 
@@ -78,8 +74,9 @@ public class PodWatcher implements Watcher<Pod> {
                   sts, ImmutableList.of(updatedPod));
 
           if (restartReasons.getReasons().contains(RestartReason.STATEFULSET)) {
-            LOGGER.info("Statefulset for pod {} changed!", podName);
-            em.fail(new RuntimeException());
+            String warningMessage = String.format("Statefulset for pod %s changed!", podName);
+            LOGGER.info(warningMessage);
+            em.fail(new RuntimeException(warningMessage));
           }
         }
         waitForNextCheck();

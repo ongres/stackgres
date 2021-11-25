@@ -1,4 +1,3 @@
-
 #!/bin/sh
 
 . "$SPEC_PATH/abstract/dbops-restart"
