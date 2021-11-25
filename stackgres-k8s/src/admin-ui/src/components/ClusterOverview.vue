@@ -72,15 +72,17 @@
 							<template v-for="(cluster, index) in clusters">
 								<template v-if="(index >= pagination.start) && (index < pagination.end)">
 									<tr class="base">
-										<td class="clusterName">
-											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
-												{{ cluster.name }}
-											</router-link>
+										<td class="clusterName hasTooltip">											
 											<template v-if="hasProp(cluster, 'data.status.conditions')">
 												<template v-for="condition in cluster.data.status.conditions" v-if="( (condition.type == 'PendingRestart') && (condition.status == 'True') )">
-													<span class="helpTooltip alert" data-tooltip="A restart operation is pending for this cluster"></span>
+													<div class="helpTooltip alert onHover" data-tooltip="A restart operation is pending for this cluster"></div>
 												</template>
 											</template>
+											<span>
+												<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
+													{{ cluster.name }}
+												</router-link>	
+											</span>
 										</td>
 										<td class="instances textRight">
 											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
@@ -188,11 +190,15 @@
 	}
 
 	.clusterName .helpTooltip.alert {
-		top: 13px;
+		width: 32px;
+		height: 32px;
+		left: auto;
+		right: 0;
 		position: absolute;
-		height: 10px;
-		top: 14px;
-		left: 5px;
+	}
+
+	td.clusterName > div + span {
+		width: calc(100% - 45px);
 	}
 
 	th.actions, td.actions {

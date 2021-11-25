@@ -203,7 +203,7 @@
 							<td>{{ pod.name }}</td>
 							<td class="tag" :class="pod.role"><span>{{ pod.role }}</span></td>
 							<td class="tag" :class="pod.status">
-								<span :data-tooltip="(pod.status == 'Pending') ? getPodLastEvent(pod.name) : ''" :title="( (pod.status == 'Pending') && getPodLastEvent(pod.name).length) ? 'Click for details' : ''">
+								<span class="onHover" :data-tooltip="(pod.status == 'Pending') ? getPodLastEvent(pod.name) : ''" :title="( (pod.status == 'Pending') && getPodLastEvent(pod.name).length) ? 'Click for details' : ''">
 									{{ pod.status }}
 								</span>
 							</td>
@@ -362,12 +362,12 @@
 		content: " ";
 		display: inline-block;
 		position: absolute;
-		width: 13px;
-		height: 13px;
-		background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDIwIDE4Ij48ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xODMpIj48cGF0aCBkPSJNMTguOTk0LDIwMUgxLjAwNmExLDEsMCwwLDEtLjg3MS0uNTE2LDEuMDUyLDEuMDUyLDAsMCwxLDAtMS4wMzFsOC45OTMtMTUuOTc0YTEuMDMzLDEuMDMzLDAsMCwxLDEuNzQ0LDBsOC45OTMsMTUuOTc0YTEuMDUyLDEuMDUyLDAsMCwxLDAsMS4wMzFBMSwxLDAsMCwxLDE4Ljk5NCwyMDFaTTIuNzUsMTk4LjkzN2gxNC41TDEwLDE4Ni4wNTlaIiBmaWxsPSIjMDBhZGI1Ii8+PHJlY3Qgd2lkdGg9IjIiIGhlaWdodD0iNS4zNzgiIHJ4PSIwLjk0NyIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoOSAxODkuMDU5KSIgZmlsbD0iIzAwYWRiNSIvPjxyZWN0IHdpZHRoPSIyIiBoZWlnaHQ9IjIiIHJ4PSIxIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSg5IDE5NS40MzcpIiBmaWxsPSIjMDBhZGI1Ii8+PC9nPjwvc3ZnPg==) center no-repeat;
+		width: 15px;
+		height: 15px;
+		background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PGcgZmlsbD0iIzM2QThGRiI+PHBhdGggZD0iTTE5IDE5SDFjLS40IDAtLjctLjItLjktLjUtLjItLjMtLjItLjcgMC0xbDktMTZjLjMtLjUuOS0uNiAxLjQtLjNsLjMuMyA5IDE2Yy4yLjMuMi43IDAgMS0uMS4zLS40LjUtLjguNXpNMi44IDE2LjloMTQuNUwxMCA0LjEgMi44IDE2Ljl6Ii8+PHBhdGggZD0iTTkuOSA3LjFoLjFjLjYgMCAxIC40IDEgLjl2My41YzAgLjUtLjQuOS0uOS45aC0uMmMtLjUgMC0uOS0uNC0uOS0uOVY4YzAtLjUuNC0uOS45LS45ek0xMCAxMy40Yy42IDAgMSAuNCAxIDFzLS40IDEtMSAxLTEtLjQtMS0xYzAtLjUuNC0xIDEtMXoiLz48L2c+PC9zdmc+) center no-repeat;
 		transform: translateX(15px);
 		background-size: contain;
-		filter: hue-rotate(35deg);
+		margin-left: 5px;
 	}
 
 	.flex-center {

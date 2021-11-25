@@ -22,6 +22,7 @@ var prettyCron = require('prettycron');
 
 // Include ApexCharts
 import VueApexCharts from 'vue-apexcharts'
+import { event } from 'jquery'
 Vue.use(VueApexCharts)
 Vue.component('apexchart', VueApexCharts)
 
@@ -609,33 +610,40 @@ $(document).ready(function(){
     $('#nameTooltip').removeClass('show');
   });
 
-  $(document).on('click','[data-tooltip]', function(e){
-    if( (window.innerWidth - e.clientX) > 420 ) {
-      $('#helpTooltip').css({
-        "top": e.clientY+10, 
-        "right": "auto",
-        "left": e.clientX+10
-      })
-    } else {
-      $('#helpTooltip').css({
-        "top": e.clientY+10, 
-        "left": "auto",
-        "right": window.innerWidth - e.clientX + 10
-      })
+  $(document).on('click mouseover','[data-tooltip]', function(e){
+    if((e.type == 'click') || $(this).hasClass('onHover')) {
+      if( (window.innerWidth - e.clientX) > 420 ) {
+        $('#helpTooltip').css({
+          "top": e.clientY+10, 
+          "right": "auto",
+          "left": e.clientX+10
+        })
+      } else {
+        $('#helpTooltip').css({
+          "top": e.clientY+10, 
+          "left": "auto",
+          "right": window.innerWidth - e.clientX + 10
+        })
+      }
+    
+      if(!$(this).hasClass('show')) {
+        store.commit('setTooltipsText', $(this).data('tooltip'))
+        $('.helpTooltip.show').removeClass('show')
+        $('#helpTooltip').addClass('show').show()
+      } else {
+        store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.')
+        $('#helpTooltip').removeClass('show').hide()
+      }
+
+      $(this).toggleClass('show')  
     }
+  });
 
-    if(!$(this).hasClass('show')) {
-      store.commit('setTooltipsText', $(this).data('tooltip'))
-      $('.helpTooltip.show').removeClass('show')
-      $('#helpTooltip').addClass('show').show()
-    } else {
-      store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.')
-      $('#helpTooltip').removeClass('show').hide()
-    }
-
-    $(this).toggleClass('show')  
-  })
-
+  $(document).on('mouseleave', '[data-tooltip]', function() {
+    store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.')
+    $('#helpTooltip').removeClass('show').hide()
+  });
+  
   $(document).on("click", "#helpTooltip a", function(e) {
     e.preventDefault()
     window.open($(this).prop('href'));
