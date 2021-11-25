@@ -106,12 +106,24 @@ spec:
       {{- if .Values.cluster.postgresServices.primary.type }}
       type:  {{ .Values.cluster.postgresServices.primary.type }}
       {{- end }}
+      {{- if .Values.cluster.postgresServices.primary.externalIPs }}
+      externalIPs:
+        {{-  range .Values.cluster.postgresServices.primary.externalIPs }}
+          - {{ . }}
+        {{- end }}
+      {{- end }}
     {{- end }}    
     {{- if .Values.cluster.postgresServices.replicas }}
     replicas:
       enabled: {{ .Values.cluster.postgresServices.replicas.enabled }}
       {{- if .Values.cluster.postgresServices.replicas.type }}
       type:  {{ .Values.cluster.postgresServices.replicas.type }}
+      {{- end }}
+      {{- if .Values.cluster.postgresServices.replicas.externalIPs }}
+      externalIPs:
+        {{-  range .Values.cluster.postgresServices.replicas.externalIPs }}
+          - {{ . }}
+        {{- end }}
       {{- end }}
       {{- if .Values.cluster.postgresServices.replicas.annotations }}
       annotations:

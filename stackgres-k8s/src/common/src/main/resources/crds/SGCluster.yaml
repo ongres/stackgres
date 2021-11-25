@@ -218,8 +218,8 @@ spec:
                           description: Specifies the type of Kubernetes service.
                         externalIPs:
                           type: array
+                          description: Specify custom external IPs for Postgres primary service
                           items:
-                            description: Custom External IPs for Postgres primary service
                             type: string
                     replicas:
                       type: object
@@ -234,8 +234,8 @@ spec:
                           description: Specifies the type of Kubernetes service.
                         externalIPs:
                           type: array
+                          description: Specify the custom external IPs for Postgres replicas service
                           items:
-                            description: Custom External IPs for Postgres replicas service
                             type: string
                 pods:
                   type: object
