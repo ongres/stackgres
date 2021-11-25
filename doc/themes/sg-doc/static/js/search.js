@@ -48,7 +48,7 @@ function initLunr() {
                         if(baseurl.includes('localhost')) { // If testing locally
                             var altVersionIndex = baseurl+'index-'+altVersion+'.json';
                         } else { // If on Live site 
-                            var altVersionIndex = baseurl.replace(currentVersion, altVersion) + '/index.json';
+                            var altVersionIndex = baseurl.replace(currentVersion, altVersion) + 'index.json';
                         } 
 
                         $.ajax({
