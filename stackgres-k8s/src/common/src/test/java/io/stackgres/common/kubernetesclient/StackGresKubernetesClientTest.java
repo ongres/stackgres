@@ -10,12 +10,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import io.stackgres.common.resource.ResourceWriter;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.Test;
 
@@ -95,6 +101,43 @@ class StackGresKubernetesClientTest {
     assertEquals(expectedUrl, actual);
 
     stackGresKubernetesClient.close();
+
+  }
+
+  @Test
+  void givenAManagedListObject_shouldSuccessfullyParseIt() throws JsonProcessingException {
+    final StackGresDefaultKubernetesClient stackGresKubernetesClient
+        = new StackGresDefaultKubernetesClient();
+
+    ObjectNode list = JsonUtil.readFromJsonAsJson("statefulset/k8s-sts-list-response.json");
+
+    var resources = stackGresKubernetesClient.parseListObject(list,
+        StatefulSet.class,
+        ResourceWriter.STACKGRES_FIELD_MANAGER);
+
+    assertEquals(list.get("items").size(), resources.size());
+
+  }
+
+  @Test
+  void givenAnEmptyListObject_shouldNotFail() throws JsonProcessingException {
+    final StackGresDefaultKubernetesClient stackGresKubernetesClient
+        = new StackGresDefaultKubernetesClient();
+
+    ObjectNode list = (ObjectNode) Serialization.jsonMapper().readTree("{\n"
+        + "  \"kind\" : \"StatefulSetList\",\n"
+        + "  \"apiVersion\" : \"apps/v1\",\n"
+        + "  \"metadata\" : {\n"
+        + "    \"resourceVersion\" : \"52518\"\n"
+        + "  },\n"
+        + "  \"items\" : [ ]\n"
+        + "}\n");
+
+    var sts = stackGresKubernetesClient.parseListObject(list,
+        StatefulSet.class,
+        ResourceWriter.STACKGRES_FIELD_MANAGER);
+
+    assertEquals(0, sts.size());
 
   }
 

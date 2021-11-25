@@ -13,11 +13,19 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Status;
@@ -29,6 +37,7 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.resource.KubernetesClientStatusUpdateException;
 import okhttp3.Call;
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -50,13 +59,33 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
   private static final String SERVER_SIDE_APPLY_GROUP_PATH_FORMAT =
       "/apis/%s/namespaces/%s/%s/%s?fieldManager=%s&force=%b";
 
+  private static final String LIST_DEFAULT_PATH_FORMAT =
+      "/api%s/namespaces/%s/%s";
+
+  private static final String LIST_GROUP_PATH_FORMAT =
+      "/apis/%s/namespaces/%s/%s";
+
   @Override
-  public <T extends HasMetadata> T serverSideApply(PatchContext patchContext, T intent) {
+  public <T extends HasMetadata> T serverSideApply(@NotNull PatchContext patchContext, T intent) {
     intent.getMetadata().setManagedFields(null);
 
     try {
       var applyUrl = getResourceUrl(patchContext, intent);
       return apply(intent, applyUrl);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  @Override
+  public <T extends HasMetadata> List<T> findManagedIntents(Class<T> resource,
+                                                            String fieldManager,
+                                                            Map<String, String> labels,
+                                                            String namespace) {
+    try {
+      var listUrl = getResourceListUrl(resource, namespace);
+      var listHttpUrl = buildHttpUrl(listUrl, labels);
+      return list(listHttpUrl, resource, fieldManager);
     } catch (IOException e) {
       throw new UncheckedIOException(e);
     }
@@ -128,9 +157,26 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
     return executeRequest(intent, call);
   }
 
+  private <T extends HasMetadata> List<T> list(HttpUrl listUrl,
+                                               Class<T> resource,
+                                               String fieldManager) throws IOException {
+    LOGGER.trace("Performing list request to the endpoint: {}", listUrl);
+    Request request = new Request.Builder()
+        .url(listUrl)
+        .get()
+        .build();
+
+    OkHttpClient client = getHttpClient();
+
+    final Call call = client.newCall(request);
+    return executeListRequest(call, resource, fieldManager);
+
+  }
+
   @SuppressWarnings("unchecked")
   private <T extends HasMetadata> T executeRequest(T intent, Call call) throws IOException {
     try (Response response = call.execute()) {
+
       String responseString = response.body().string();
       if (response.isSuccessful()) {
         return (T) Serialization.unmarshal(responseString, intent.getClass());
@@ -138,6 +184,56 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
         var status = Serialization.unmarshal(responseString, Status.class);
         throw new KubernetesClientException(status);
       }
+    }
+  }
+
+  private <T extends HasMetadata> List<T> executeListRequest(
+      Call call,
+      Class<T> format,
+      String fieldManager) throws IOException {
+    try (Response response = call.execute()) {
+
+      String responseString = response.body().string();
+
+      if (response.isSuccessful()) {
+
+        ObjectNode list = (ObjectNode) Serialization.jsonMapper().readTree(responseString);
+        return parseListObject(list, format, fieldManager);
+      } else {
+        var status = Serialization.unmarshal(responseString, Status.class);
+        throw new KubernetesClientException(status);
+      }
+    }
+  }
+
+  protected <T extends HasMetadata> List<T> parseListObject(
+      ObjectNode listObject,
+      Class<T> format,
+      String fieldManager) throws JsonProcessingException {
+
+    if (listObject.has("items")) {
+      var result = new ArrayList<T>();
+      ArrayNode data = (ArrayNode) listObject.get("items");
+      for (JsonNode item : data) {
+        final ObjectNode itemObject = (ObjectNode) item;
+        if (!itemObject.has("kind")) {
+          itemObject.set("kind", new TextNode(HasMetadata.getKind(format)));
+        }
+        ObjectNode filteredItem;
+        if (ManagedFieldsReader.hasManagedFieldsConfiguration(itemObject, fieldManager)) {
+          filteredItem = ManagedFieldsReader.readManagedFields(itemObject, fieldManager);
+        } else {
+          filteredItem = itemObject;
+        }
+        result.add(
+            Serialization.jsonMapper().treeToValue(filteredItem, format)
+        );
+      }
+      return result;
+
+    } else {
+      throw new IllegalArgumentException("not a list object, received "
+          + listObject);
     }
   }
 
@@ -171,6 +267,54 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
           apiVersion, namespace, plural, name, fieldManager, force);
       return new URL(masterUrl, defaultPath);
     }
+  }
+
+  protected <T extends HasMetadata> URL getResourceListUrl(Class<T> resource,
+                                                           String namespace)
+      throws MalformedURLException {
+    var plural = HasMetadata.getPlural(resource);
+
+    var masterUrl = getMasterUrl();
+
+    var group = Optional.ofNullable(HasMetadata.getGroup(resource))
+        .filter(s -> !s.isEmpty());
+
+    var apiVersion = HasMetadata.getApiVersion(resource);
+
+    if (group.isPresent()) {
+      final String groupPath = String.format(LIST_GROUP_PATH_FORMAT,
+          apiVersion, namespace, plural);
+      return new URL(masterUrl, groupPath);
+    } else {
+      final String defaultPath = String.format(LIST_DEFAULT_PATH_FORMAT,
+          apiVersion, namespace, plural);
+      return new URL(masterUrl, defaultPath);
+    }
+  }
+
+  protected HttpUrl buildHttpUrl(@NotNull URL url, @NotNull Map<String, String> labels) {
+    final HttpUrl.Builder builder = HttpUrl.get(url).newBuilder();
+
+    String labelSelector = getLabelSelectorQueryParam(labels);
+
+    builder.addQueryParameter("labelSelector", labelSelector);
+
+    return builder.build();
+  }
+
+  protected String getLabelSelectorQueryParam(Map<String, String> labels) {
+    StringBuilder sb = new StringBuilder();
+    for (Map.Entry<String, String> entry : labels.entrySet()) {
+      if (sb.length() > 0) {
+        sb.append(",");
+      }
+      if (entry.getValue() != null) {
+        sb.append(entry.getKey()).append("=").append(entry.getValue());
+      } else {
+        sb.append(entry.getKey());
+      }
+    }
+    return sb.toString();
   }
 
 }

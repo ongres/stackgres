@@ -33,6 +33,7 @@ import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.cluster.ClusterRequiredResourcesGenerator;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.testutil.GeneratorTestUtil;
 import org.jooq.lambda.Unchecked;
 import org.opentest4j.AssertionFailedError;
 

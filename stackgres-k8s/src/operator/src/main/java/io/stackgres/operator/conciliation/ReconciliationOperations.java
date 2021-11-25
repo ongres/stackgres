@@ -61,6 +61,20 @@ public interface ReconciliationOperations {
           .put(Job.class, client -> client.batch().v1().jobs())
           .build();
 
+  List<Class<? extends HasMetadata>> MANAGED_RESOURCE_OPERATIONS = List.of(
+      StatefulSet.class,
+      Service.class,
+      ServiceAccount.class,
+      Role.class,
+      RoleBinding.class,
+      Secret.class,
+      ConfigMap.class,
+      Endpoints.class,
+      CronJob.class,
+      Pod.class,
+      Job.class
+  );
+
   Map<
       Class<? extends HasMetadata>,
       BiFunction<

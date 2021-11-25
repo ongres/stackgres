@@ -119,10 +119,11 @@ class SecretComparatorTest {
             .withNewMetadata().withNamespace("test")
             .withName("test")
             .endMetadata()
-            .withData(ImmutableMap.of("test", StringUtil.generateRandom()))
+            .withData(ImmutableMap.of(
+                "test", ResourceUtil.encodeSecret(StringUtil.generateRandom())))
             .build());
 
     assertFalse(isTheSameContent);
-
   }
+
 }

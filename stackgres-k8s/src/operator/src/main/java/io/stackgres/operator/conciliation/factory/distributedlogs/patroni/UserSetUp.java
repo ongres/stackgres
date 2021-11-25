@@ -45,7 +45,6 @@ public class UserSetUp implements ContainerFactory<DistributedLogsContainerConte
                 .withName(PatroniStaticVolume.USER.getVolumeName())
                 .withMountPath("/local/etc")
                 .withSubPath("etc")
-                .withReadOnly(false)
                 .build())
         .build();
   }

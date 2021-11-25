@@ -143,7 +143,6 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
             .withName(StatefulSetDynamicVolumes.PGBOUNCER_AUTH_FILE.getVolumeName())
             .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path())
             .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath())
-            .withReadOnly(false)
             .build())
         .build();
   }
