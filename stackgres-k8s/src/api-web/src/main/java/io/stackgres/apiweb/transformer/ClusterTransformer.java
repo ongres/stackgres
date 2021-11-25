@@ -210,6 +210,7 @@ public class ClusterTransformer
             .getPrimary();
         targetPrimaryService.setType(sourcePrimaryService.getType());
         targetPrimaryService.setEnabled(sourcePrimaryService.getEnabled());
+        targetPrimaryService.setExternalIPs(sourcePrimaryService.getExternalIPs());
       }
 
       final PostgresService sourceReplicaService = sourcePostgresServices.getReplicas();
@@ -219,6 +220,7 @@ public class ClusterTransformer
             .getReplicas();
         targetReplicaService.setEnabled(sourceReplicaService.getEnabled());
         targetReplicaService.setType(sourceReplicaService.getType());
+        targetReplicaService.setExternalIPs(sourceReplicaService.getExternalIPs());
       }
     }
 
@@ -460,6 +462,7 @@ public class ClusterTransformer
         targetPostgresService.setPrimary(new PostgresService());
         targetPostgresService.getPrimary().setType(sourcePrimaryService.getType());
         targetPostgresService.getPrimary().setEnabled(sourcePrimaryService.getEnabled());
+        targetPostgresService.getPrimary().setExternalIPs(sourcePrimaryService.getExternalIPs());
       }
 
       final StackGresPostgresService sourceReplicaService = sourcePostgresServices
@@ -468,6 +471,7 @@ public class ClusterTransformer
         targetPostgresService.setReplicas(new PostgresService());
         targetPostgresService.getReplicas().setEnabled(sourceReplicaService.getEnabled());
         targetPostgresService.getReplicas().setType(sourceReplicaService.getType());
+        targetPostgresService.getReplicas().setExternalIPs(sourceReplicaService.getExternalIPs());
       }
     }
 
