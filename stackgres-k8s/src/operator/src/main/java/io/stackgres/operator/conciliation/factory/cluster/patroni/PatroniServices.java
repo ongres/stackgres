@@ -237,8 +237,7 @@ public class PatroniServices implements
         .endMetadata()
         .withNewSpec()
         .withType("ExternalName")
-        .withExternalName(name(context) + "." + cluster.getMetadata().getNamespace()
-            + ".svc.cluster.local")
+        .withExternalName(name(context) + "." + cluster.getMetadata().getNamespace())
         .endSpec()
         .build();
   }

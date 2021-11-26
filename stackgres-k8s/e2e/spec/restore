@@ -9,7 +9,7 @@ e2e_test_install() {
 
   SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
 
-  local ENDPOINT="http://restore-backup-minio.$CLUSTER_NAMESPACE-backup.svc.cluster.local:9000"
+  local ENDPOINT="http://restore-backup-minio.$CLUSTER_NAMESPACE-backup:9000"
   create_or_replace_cluster "$BACKUP_CLUSTER_NAME" "$CLUSTER_NAMESPACE-backup" 1 \
     --set-string "configurations.backupconfig.storage.s3Compatible.endpoint=$ENDPOINT"
 

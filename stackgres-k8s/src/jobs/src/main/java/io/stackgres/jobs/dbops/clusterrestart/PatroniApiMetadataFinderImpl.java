@@ -13,12 +13,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class PatroniApiMetadataFinderImpl implements PatroniApiMetadataFinder {
 
-  private static final String PATRONI_HOST_FORMAT = "%s-rest.%s.svc.cluster.local";
+  private static final String PATRONI_HOST_FORMAT = "%s-rest.%s";
   private static final String RESTAPI_PASSWORD_KEY = "restapi-password";
 
   private final KubernetesClient client;
@@ -29,8 +28,7 @@ public class PatroniApiMetadataFinderImpl implements PatroniApiMetadataFinder {
   }
 
   @Override
-  public PatroniApiMetadata findPatroniRestApi(@NotNull String clusterName,
-      @NotNull String namespace) {
+  public PatroniApiMetadata findPatroniRestApi(String clusterName, String namespace) {
     return ImmutablePatroniApiMetadata.builder()
         .host(getPatroniHost(clusterName, namespace))
         .port(getPatroniPort(clusterName, namespace))

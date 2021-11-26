@@ -9,7 +9,7 @@ import static io.stackgres.common.crd.postgres.service.StackGresPostgresServiceT
 import static io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType.EXTERNAL_NAME;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
@@ -47,7 +47,7 @@ class StackGresDistributedLogsUtilTest {
 
     assertNotNull(postgresServices.getPrimary());
     assertNull(postgresServices.getReplicas());
-    assertTrue(primary.equals(postgresServices.getPrimary()));
+    assertEquals(primary, postgresServices.getPrimary());
   }
 
   @Test
@@ -60,7 +60,7 @@ class StackGresDistributedLogsUtilTest {
 
     assertNull(postgresServices.getPrimary());
     assertNotNull(postgresServices.getReplicas());
-    assertTrue(replicas.equals(postgresServices.getReplicas()));
+    assertEquals(replicas, postgresServices.getReplicas());
   }
 
 }

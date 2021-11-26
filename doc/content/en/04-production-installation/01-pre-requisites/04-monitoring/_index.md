@@ -80,11 +80,11 @@ POD_NAME=$(kubectl get pods --namespace monitoring -l "app=prometheus" -o jsonpa
 kubectl --namespace monitoring port-forward $POD_NAME --address 0.0.0.0 9090
 ```
 
-The Prometheus server serves through port 80 under `prometheus-operator-server.monitoring.svc.cluster.local` DNS name.
+The Prometheus server serves through port 80 under `prometheus-operator-server.monitoring` DNS name.
 
 ### Exposing Alert Manager
 
-Over port 80, Prometheus alertmanager can be accessed through `prometheus-operator-alertmanager.monitoring.svc.cluster.local` DNS name.
+Over port 80, Prometheus alertmanager can be accessed through `prometheus-operator-alertmanager.monitoring` DNS name.
 
 ```
 export POD_NAME=$(kubectl get pods --namespace monitoring -l "app=alertmanager" -o jsonpath="{.items[0].metadata.name}")
@@ -144,14 +144,14 @@ Get the `admin` credential:
 kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 ```
 
-Expose your Grafana service at `grafana.monitoring.svc.cluster.local` (port 80) through your interfaces and port 3000 to login remotely (using above secret):
+Expose your Grafana service at `grafana.monitoring` (port 80) through your interfaces and port 3000 to login remotely (using above secret):
 
 ```bash
 POD_NAME=$(kubectl get pods --namespace monitoring -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}")
 kubectl --namespace monitoring port-forward $POD_NAME --address 0.0.0.0 3000
 ```
 
-> NOTE: take note of the Grafana's URL `grafana.monitoring.svc.cluster.local`, which will be used when configuring StackGres Operator.
+> NOTE: take note of the Grafana's URL `grafana.monitoring`, which will be used when configuring StackGres Operator.
 
 The following script, will create a basic PostgreSQL dashboard against Grafana's API (you can change grafana_host to point to the remote location):
 

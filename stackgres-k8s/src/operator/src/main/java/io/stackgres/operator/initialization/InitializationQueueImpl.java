@@ -41,7 +41,7 @@ public class InitializationQueueImpl implements InitializationQueue {
   private static final Logger LOGGER = LoggerFactory.getLogger(InitializationQueueImpl.class);
 
   private static final String OPERATOR_HEALTH_URL_FORMAT = "http://%s:8080/q/health/ready";
-  private static final String OPERATOR_SERVICE_FORMAT = "%s.%s.svc.cluster.local";
+  private static final String OPERATOR_SERVICE_FORMAT = "%s.%s";
   private static final String LOCALHOST = "localhost";
 
   private final ScheduledExecutorService scheduler =

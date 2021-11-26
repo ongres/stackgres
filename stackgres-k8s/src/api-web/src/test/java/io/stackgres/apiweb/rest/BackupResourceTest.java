@@ -93,7 +93,7 @@ class BackupResourceTest extends AbstractCustomResourceTest
     assertNotNull(dto.getStatus().getBackupConfig().getStorage().getS3Compatible());
     assertNotNull(
         dto.getStatus().getBackupConfig().getStorage().getS3Compatible().getCredentials());
-    assertEquals("http://minio.stackgres.svc:9000",
+    assertEquals("http://minio.stackgres:9000",
         dto.getStatus().getBackupConfig().getStorage().getS3Compatible().getEndpoint());
     assertEquals("stackgres",
         dto.getStatus().getBackupConfig().getStorage().getS3Compatible().getBucket());
@@ -163,7 +163,7 @@ class BackupResourceTest extends AbstractCustomResourceTest
         assertNotNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible());
         assertNotNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible()
             .getAwsCredentials());
-        assertEquals("http://minio.stackgres.svc:9000",
+        assertEquals("http://minio.stackgres:9000",
             resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getEndpoint());
         assertEquals("stackgres",
             resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getBucket());
