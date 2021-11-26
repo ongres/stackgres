@@ -297,8 +297,8 @@
                                 <label for="spec.initialData.restore.fromBackup">Backup Selection</label>
                                 <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : initDatepicker()" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
                                     <option value="">Select a Backup</option>
-                                    <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
-                                        <option v-if="backup.data.status.process.status === 'Completed'" :value="backup.data.metadata.uid">
+                                    <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.process.status === 'Completed') && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
+                                        <option :value="backup.data.metadata.uid">
                                             {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
                                         </option>
                                     </template>
@@ -327,92 +327,92 @@
                         <br/><br/><br/>
                     </template>
 
-                    <div class="scriptFieldset" v-if="( (editMode && initScripts.length) || !editMode )">
+                    <div class="scriptFieldset repeater" v-if="( (editMode && initScripts.length) || !editMode )">
                         <div class="header">
                             <h3 for="spec.initialData.scripts">
                                 Initialization Scripts
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts')"></span>
                             </h3>
-                            <a class="addRow" @click="pushScript()" v-if="!editMode">Add Script</a>
                         </div>
 
-                        <template v-if="initScripts.length">
-                            <div class="script repeater">
-                                <fieldset v-for="(script, index) in initScripts">
-                                    <div class="header">
-                                        <h4>Script #{{ index+1 }} <template v-if="script.hasOwnProperty('name')">–</template> <span class="scriptTitle">{{ script.name }}</span></h4>
-                                        <a class="addRow" @click="spliceArray(initScripts, index)" v-if="!editMode">Delete</a>
-                                    </div>    
-                                    <div class="row">
-                                        <div class="row-50">
-                                            <template v-if="script.hasOwnProperty('name')">
-                                                <div class="col">
-                                                    <label for="spec.initialData.scripts.name">Name</label>
-                                                    <input v-model="script.name" placeholder="Type a name..." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.name')"></span>
-                                                </div>
-                                            </template>
-
-                                            <template v-if="script.hasOwnProperty('database')">
-                                                <div class="col">
-                                                    <label for="spec.initialData.scripts.database">Database</label>
-                                                    <input v-model="script.database" placeholder="Type a database name..." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.database')"></span>
-                                                </div>
-                                            </template>
-                                        </div>
-
-                                        <div class="row-100">
+                        <template v-if="initScripts.length">                            
+                            <fieldset v-for="(script, index) in initScripts">
+                                <div class="header">
+                                    <h4>Script #{{ index+1 }} <template v-if="script.hasOwnProperty('name') && script.name.length">–</template> <span class="scriptTitle">{{ script.name }}</span></h4>
+                                    <a class="addRow" @click="spliceArray(initScripts, index)" v-if="!editMode">Delete</a>
+                                </div>    
+                                <div class="row">
+                                    <div class="row-50">
+                                        <template v-if="script.hasOwnProperty('name')">
                                             <div class="col">
-                                                <label for="spec.initialData.scripts.scriptSource">Script Source</label>
-                                                <select v-model="scriptSource[index]" @change="setScriptSource(index)" :disabled="editMode">
-                                                    <option value="raw">Raw script</option>
-                                                    <option value="secretKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.secretScript')">From Secret</option>
-                                                    <option value="configMapKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.configMapScript')">From ConfigMap</option>
-                                                </select>
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptSource', 'Determines whether the script should be read from a Raw SQL, a Kubernetes Secret or a ConfigMap')"></span>
+                                                <label for="spec.initialData.scripts.name">Name</label>
+                                                <input v-model="script.name" placeholder="Type a name..." :disabled="editMode" autocomplete="off">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.name')"></span>
                                             </div>
-                                            <div class="col">                                                
-                                                <template  v-if="(!editMode && (scriptSource[index] == 'raw') ) || (editMode && ( script.hasOwnProperty('script') || hasProp(script, 'scriptFrom.ConfigMapScript') ) )">
-                                                    <label for="spec.initialData.scripts.script" class="script">Script</label> <span class="uploadScript" v-if="!editMode">or <a @click="getScriptFile(index)" class="uploadLink">upload a file</a></span> 
-                                                    <input :id="'scriptFile'+index" type="file" @change="uploadScript" class="hide">
+                                        </template>
+
+                                        <template v-if="script.hasOwnProperty('database')">
+                                            <div class="col">
+                                                <label for="spec.initialData.scripts.database">Database</label>
+                                                <input v-model="script.database" placeholder="Type a database name..." :disabled="editMode" autocomplete="off">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.database')"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <div class="row-100">
+                                        <div class="col">
+                                            <label for="spec.initialData.scripts.scriptSource">Script Source</label>
+                                            <select v-model="scriptSource[index]" @change="setScriptSource(index)" :disabled="editMode">
+                                                <option value="raw">Raw script</option>
+                                                <option value="secretKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.secretScript')">From Secret</option>
+                                                <option value="configMapKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.configMapScript')">From ConfigMap</option>
+                                            </select>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptSource', 'Determines whether the script should be read from a Raw SQL, a Kubernetes Secret or a ConfigMap')"></span>
+                                        </div>
+                                        <div class="col">                                                
+                                            <template  v-if="(!editMode && (scriptSource[index] == 'raw') ) || (editMode && ( script.hasOwnProperty('script') || hasProp(script, 'scriptFrom.ConfigMapScript') ) )">
+                                                <label for="spec.initialData.scripts.script" class="script">Script</label> <span class="uploadScript" v-if="!editMode">or <a @click="getScriptFile(index)" class="uploadLink">upload a file</a></span> 
+                                                <input :id="'scriptFile'+index" type="file" @change="uploadScript" class="hide">
+                                            
+                                                <textarea v-model="script.script" placeholder="Type a script..." :disabled="editMode"></textarea>
+                                            </template>
+                                            <template v-else-if="(!editMode && (scriptSource[index] == 'configMapKeyRef') )">
+                                                <div class="header">
+                                                    <h3 for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef">Config Map Key Reference</h3>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef')"></span> 
+                                                </div>
                                                 
-                                                    <textarea v-model="script.script" placeholder="Type a script..." :disabled="editMode"></textarea>
-                                                </template>
-                                                <template v-else-if="(!editMode && (scriptSource[index] == 'configMapKeyRef') )">
-                                                    <div class="header">
-                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef">Config Map Key Reference</h3>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef')"></span> 
-                                                    </div>
-                                                    
-                                                    <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name">Name</label>
-                                                    <input v-model="script.scriptFrom.configMapKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
+                                                <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name">Name</label>
+                                                <input v-model="script.scriptFrom.configMapKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
 
-                                                    <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key">Key</label>
-                                                    <input v-model="script.scriptFrom.configMapKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
-                                                </template>
-                                                <template v-else-if="(scriptSource[index] == 'secretKeyRef')">
-                                                    <div class="header">
-                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef">Secret Key Reference</h3>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef')"></span> 
-                                                    </div>
-                                                    
-                                                    <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name">Name</label>
-                                                    <input v-model="script.scriptFrom.secretKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
+                                                <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key">Key</label>
+                                                <input v-model="script.scriptFrom.configMapKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
+                                            </template>
+                                            <template v-else-if="(scriptSource[index] == 'secretKeyRef')">
+                                                <div class="header">
+                                                    <h3 for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef">Secret Key Reference</h3>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef')"></span> 
+                                                </div>
+                                                
+                                                <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name">Name</label>
+                                                <input v-model="script.scriptFrom.secretKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
 
-                                                    <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key">Key</label>
-                                                    <input v-model="script.scriptFrom.secretKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
-                                                </template>
-                                            </div>
+                                                <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key">Key</label>
+                                                <input v-model="script.scriptFrom.secretKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
+                                            </template>
                                         </div>
                                     </div>
-                                </fieldset>
-                            </div>
+                                </div>
+                            </fieldset>
                         </template>
+                        <div class="fieldsetFooter" :class="!initScripts.length && 'topBorder'">
+                            <a class="addRow" @click="pushScript()" v-if="!editMode">Add Script</a>
+                        </div>
                     </div>
                 </div>
             </fieldset>
@@ -561,38 +561,43 @@
                 </div>
 
                 <div class="fields">
-                    <div class="header">
-                        <h3 for="spec.metadata.labels">
-                            Labels
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.labels')"></span> 
-                        </h3>
-                    </div>
-            
-                    <fieldset>
+                    <div class="repeater">
                         <div class="header">
-                            <h3 for="spec.metadata.labels.clusterPods">
-                                Cluster Pods
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.labels.clusterPods')"></span> 
+                            <h3 for="spec.metadata.labels">
+                                Labels
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.labels')"></span> 
                             </h3>
+                        </div>
+
+                        <fieldset>
+                            <div class="header">
+                                <h3 for="spec.metadata.labels.clusterPods">
+                                    Cluster Pods
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.labels.clusterPods')"></span> 
+                                </h3>
+                            </div>
+                            <div class="metadata" v-if="podsMetadata.length">
+                                <div class="row" v-for="(field, index) in podsMetadata">
+                                    <label>Label</label>
+                                    <input class="label" v-model="field.label" autocomplete="off">
+
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="labelValue" v-model="field.value" autocomplete="off">
+
+                                    <a class="addRow" @click="spliceArray(podsMetadata, index)">Delete</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter">
                             <a class="addRow" @click="pushLabel('podsMetadata')">Add Label</a>
                         </div>
-                        <div class="metadata repeater" v-if="podsMetadata.length">
-                            <div class="row" v-for="(field, index) in podsMetadata">
-                                <label>Label</label>
-                                <input class="label" v-model="field.label" autocomplete="off">
-
-                                <span class="eqSign"></span>
-
-                                <label>Value</label>
-                                <input class="labelValue" v-model="field.value" autocomplete="off">
-
-                                <a class="addRow" @click="spliceArray(podsMetadata, index)">Delete</a>
-                            </div>
-                        </div>
-                    </fieldset>
+                    </div>
 
                     <br/><br/>
 
+                    
                     <div class="header">
                         <h3 for="spec.metadata.annotations">
                             Resources Metadata
@@ -600,120 +605,148 @@
                         </h3>
                     </div>
 
-                    <fieldset>
-                        <div class="header">
-                            <h3 for="spec.metadata.annotations.allResources">
-                                All Resources
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.allResources')"></span>
-                            </h3>
+                    <div class="repeater">
+                        <fieldset>
+                            <div class="header">
+                                <h3 for="spec.metadata.annotations.allResources">
+                                    All Resources
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.allResources')"></span>
+                                </h3>
+                            </div>
+                            <div class="annotation" v-if="annotationsAll.length">
+                                <div class="row" v-for="(field, index) in annotationsAll">
+                                    <label>Annotation</label>
+                                    <input class="annotation" v-model="field.annotation" autocomplete="off">
+
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="annotationValue" v-model="field.value" autocomplete="off">
+
+                                    <a class="addRow" @click="spliceArray(annotationsAll, index)">Delete</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter">
                             <a class="addRow" @click="pushAnnotation('annotationsAll')">Add Annotation</a>
                         </div>
-                        <div class="annotation repeater" v-if="annotationsAll.length">
-                            <div class="row" v-for="(field, index) in annotationsAll">
-                                <label>Annotation</label>
-                                <input class="annotation" v-model="field.annotation" autocomplete="off">
-
-                                <span class="eqSign"></span>
-
-                                <label>Value</label>
-                                <input class="annotationValue" v-model="field.value" autocomplete="off">
-
-                                <a class="addRow" @click="spliceArray(annotationsAll, index)">Delete</a>
-                            </div>
-                        </div>
-                    </fieldset>
+                    </div>
                     
-                    <fieldset>
-                        <div class="header">
-                            <h3 for="spec.metadata.annotations.clusterPods">
-                                Cluster Pods
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.sgcluster', 'spec.metadata.annotations.clusterPods')"></span>
-                            </h3>
+                    <br/><br/>
+
+                    <div class="repeater">
+                        <fieldset>
+                            <div class="header">
+                                <h3 for="spec.metadata.annotations.clusterPods">
+                                    Cluster Pods
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.sgcluster', 'spec.metadata.annotations.clusterPods')"></span>
+                                </h3>
+                            </div>
+                            <div class="annotation" v-if="annotationsPods.length">
+                                <div class="row" v-for="(field, index) in annotationsPods">
+                                    <label>Annotation</label>
+                                    <input class="annotation" v-model="field.annotation" autocomplete="off">
+
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="annotationValue" v-model="field.value" autocomplete="off">
+
+                                    <a class="addRow" @click="spliceArray(annotationsPods, index)">Delete</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter">
                             <a class="addRow" @click="pushAnnotation('annotationsPods')">Add Annotation</a>
                         </div>
-                        <div class="annotation repeater" v-if="annotationsPods.length">
-                            <div class="row" v-for="(field, index) in annotationsPods">
-                                <label>Annotation</label>
-                                <input class="annotation" v-model="field.annotation" autocomplete="off">
+                    </div>
 
-                                <span class="eqSign"></span>
+                    <br/><br/>
 
-                                <label>Value</label>
-                                <input class="annotationValue" v-model="field.value" autocomplete="off">
-
-                                <a class="addRow" @click="spliceArray(annotationsPods, index)">Delete</a>
+                    <div class="repeater">
+                        <fieldset>
+                            <div class="header">
+                                <h3 for="spec.metadata.annotations.services">
+                                    Services
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.services')"></span>
+                                </h3>
                             </div>
-                        </div>
-                    </fieldset>
-                
-                    <fieldset>
-                        <div class="header">
-                            <h3 for="spec.metadata.annotations.services">
-                                Services
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.services')"></span>
-                            </h3>
+                            <div class="annotation" v-if="annotationsServices.length">
+                                <div class="row" v-for="(field, index) in annotationsServices">
+                                    <label>Annotation</label>
+                                    <input class="annotation" v-model="field.annotation" autocomplete="off">
+
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="annotationValue" v-model="field.value" autocomplete="off">
+
+                                    <a class="addRow" @click="spliceArray(annotationsServices, index)">Delete</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter">
                             <a class="addRow" @click="pushAnnotation('annotationsServices')">Add Annotation</a>
                         </div>
-                        <div class="annotation repeater" v-if="annotationsServices.length">
-                            <div class="row" v-for="(field, index) in annotationsServices">
-                                <label>Annotation</label>
-                                <input class="annotation" v-model="field.annotation" autocomplete="off">
+                    </div>
 
-                                <span class="eqSign"></span>
+                    <br/><br/>
 
-                                <label>Value</label>
-                                <input class="annotationValue" v-model="field.value" autocomplete="off">
-
-                                <a class="addRow" @click="spliceArray(annotationsServices, index)">Delete</a>
+                    <div class="repeater">
+                        <fieldset>
+                            <div class="header">
+                                <h3 for="spec.metadata.annotations.primaryService">
+                                    Primary Service 
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.primaryService')"></span>
+                                </h3>
                             </div>
-                        </div>
-                    </fieldset>
+                            <div class="annotation" v-if="postgresServicesPrimaryAnnotations.length">
+                                <div class="row" v-for="(field, index) in postgresServicesPrimaryAnnotations">
+                                    <label>Annotation</label>
+                                    <input class="annotation" v-model="field.annotation" autocomplete="off">
 
-                    <fieldset>
-                        <div class="header">
-                            <h3 for="spec.metadata.annotations.primaryService">
-                                Primary Service 
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.primaryService')"></span>
-                            </h3>
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="annotationValue" v-model="field.value" autocomplete="off">
+
+                                    <a class="addRow" @click="spliceArray(postgresServicesPrimaryAnnotations, index)">Delete</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter">
                             <a class="addRow" @click="pushAnnotation('postgresServicesPrimaryAnnotations')">Add Annotation</a>
                         </div>
-                        <div class="annotation repeater" v-if="postgresServicesPrimaryAnnotations.length">
-                            <div class="row" v-for="(field, index) in postgresServicesPrimaryAnnotations">
-                                <label>Annotation</label>
-                                <input class="annotation" v-model="field.annotation" autocomplete="off">
+                    </div>
 
-                                <span class="eqSign"></span>
+                    <br/><br/>
 
-                                <label>Value</label>
-                                <input class="annotationValue" v-model="field.value" autocomplete="off">
-
-                                <a class="addRow" @click="spliceArray('postgresServicesPrimaryAnnotations', index)">Delete</a>
+                    <div class="repeater">
+                        <fieldset>
+                            <div class="header">
+                                <h3 for="spec.metadata.annotations.replicasService">
+                                    Replicas Service
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.replicasService')"></span>
+                                </h3>
                             </div>
-                        </div>
-                    </fieldset>
+                            <div class="annotation repeater" v-if="postgresServicesReplicasAnnotations.length">
+                                <div class="row" v-for="(field, index) in postgresServicesReplicasAnnotations">
+                                    <label>Annotation</label>
+                                    <input class="annotation" v-model="field.annotation" autocomplete="off">
 
-                    <fieldset>
-                        <div class="header">
-                            <h3 for="spec.metadata.annotations.replicasService">
-                                Replicas Service
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.replicasService')"></span>
-                            </h3>
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="annotationValue" v-model="field.value" autocomplete="off">
+
+                                    <a class="addRow" @click="spliceArray(postgresServicesReplicasAnnotations, index)">Delete</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter">
                             <a class="addRow" @click="pushAnnotation('postgresServicesReplicasAnnotations')">Add Annotation</a>
                         </div>
-                        <div class="annotation repeater" v-if="postgresServicesReplicasAnnotations.length">
-                            <div class="row" v-for="(field, index) in postgresServicesReplicasAnnotations">
-                                <label>Annotation</label>
-                                <input class="annotation" v-model="field.annotation" autocomplete="off">
-
-                                <span class="eqSign"></span>
-
-                                <label>Value</label>
-                                <input class="annotationValue" v-model="field.value" autocomplete="off">
-
-                                <a class="addRow" @click="spliceArray(postgresServicesReplicasAnnotations, index)">Delete</a>
-                            </div>
-                        </div>
-                    </fieldset>
+                    </div>
                 </div>
             </fieldset>
 
@@ -721,32 +754,34 @@
                 <div class="header">
                     <h2>Pods Scheduling</h2>
                 </div>
+                
                 <div class="fields">
-                    
-                    
-                    <div class="header">
-                        <h3 for="spec.pods.scheduling.nodeSelector">
-                            Node Selectors
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeSelector')"></span>
-                        </h3>
-                        <a class="addRow" @click="pushLabel('nodeSelector')">Add Node Selector</a>
-                    </div>
-            
-                    <fieldset>
-                        <div class="scheduling repeater" v-if="nodeSelector.length">
-                            <div class="row" v-for="(field, index) in nodeSelector">
-                                <label>Key</label>
-                                <input class="label" v-model="field.label" autocomplete="off">
-
-                                <span class="eqSign"></span>
-
-                                <label>Value</label>
-                                <input class="labelValue" v-model="field.value" autocomplete="off">
-                                
-                                <a class="addRow" @click="spliceArray(nodeSelector, index)">Delete</a>
-                            </div>
+                    <div class="repeater">
+                        <div class="header">
+                            <h3 for="spec.pods.scheduling.nodeSelector">
+                                Node Selectors
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeSelector')"></span>
+                            </h3>
                         </div>
-                    </fieldset>
+                        <fieldset v-if="nodeSelector.length">
+                            <div class="scheduling">
+                                <div class="row" v-for="(field, index) in nodeSelector">
+                                    <label>Key</label>
+                                    <input class="label" v-model="field.label" autocomplete="off">
+
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="labelValue" v-model="field.value" autocomplete="off">
+                                    
+                                    <a class="addRow" @click="spliceArray(nodeSelector, index)">Delete</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter" :class="!nodeSelector.length && 'topBorder'">
+                            <a class="addRow" @click="pushLabel('nodeSelector')">Add Node Selector</a>
+                        </div>
+                    </div>
 
                     <br/><br/>
                 
@@ -755,11 +790,10 @@
                             Node Tolerations
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations')"></span>
                         </h3>
-                        <a class="addRow" @click="pushToleration()">Add Toleration</a>
                     </div>
             
-                    <div class="scheduling repeater" v-if="tolerations.length">
-                        <fieldset>
+                    <div class="scheduling repeater">
+                        <fieldset v-if="tolerations.length">
                             <div class="section" v-for="(field, index) in tolerations">
                                 <div class="header">
                                     <h4 for="spec.pods.scheduling.tolerations">Toleration #{{ index+1 }}</h4>
@@ -807,9 +841,12 @@
                                 </div>
                             </div>
                         </fieldset>
+                        <div class="fieldsetFooter" :class="!tolerations.length && 'topBorder'">
+                            <a class="addRow" @click="pushToleration()">Add Toleration</a>
+                        </div>
                     </div>
 
-                    <br/>
+                    <br/><br/><br/>
 
                     <div class="header">
                         <h3 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution">
@@ -826,7 +863,6 @@
                                 Node Selector Terms
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms')"></span>
                             </h4>
-                            <a class="addRow" @click="addRequiredAffinityTerm()">Add New</a>
                         </div>
                         <fieldset v-if="requiredAffinity.length">
                             <div class="section" v-for="(requiredAffinityTerm, termIndex) in requiredAffinity">
@@ -834,13 +870,12 @@
                                     <h5>Term #{{ termIndex + 1 }}</h5>
                                     <a class="addRow" @click="spliceArray(requiredAffinity, termIndex)">Delete</a>
                                 </div>
-                                <fieldset>
+                                <fieldset class="affinityMatch">
                                     <div class="header">
                                         <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions">
                                             Match Expressions
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions')"></span> 
                                         </label>
-                                        <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchExpressions)">Add Expression</a>
                                     </div>
                                     <fieldset v-if="requiredAffinityTerm.matchExpressions.length">
                                         <div class="section" v-for="(expression, expIndex) in requiredAffinityTerm.matchExpressions">
@@ -861,7 +896,7 @@
 
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator">Operator</label>
-                                                    <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( !expression.hasOwnProperty('values') && (expression['values'] = ['']) ) )">
+                                                    <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( (!expression.hasOwnProperty('values') || (expression.values.length > 1) ) && (expression['values'] = ['']) ) )">
                                                         <option value="" selected>Select an operator</option>
                                                         <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
                                                     </select>
@@ -869,30 +904,37 @@
                                                 </div>
                                             </div>
 
-                                            <div class="section" v-if="!['Exists', 'DoesNotExists'].includes(expression.operator)">
+                                            <fieldset v-if="expression.hasOwnProperty('values') && expression.values.length && !['', 'Exists', 'DoesNotExists'].includes(expression.operator)" :class="(['Gt', 'Lt'].includes(expression.operator)) && 'noRepeater'" class="affinityValues">
                                                 <div class="header">
                                                     <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values">
-                                                        Values
+                                                        {{ !['Gt', 'Lt'].includes(expression.operator) ? 'Values' : 'Value' }}
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values')"></span>
                                                     </label>
-                                                    <a class="addRow" @click="expression.values.push('')" v-if="!['Gt', 'Lt'].includes(expression.operator)">Add Value</a>
                                                 </div>
                                                 <div class="row affinityValues" v-for="(value, valIndex) in expression.values">
-                                                    <label>Value #{{ valIndex + 1 }}</label>
+                                                    <label v-if="!['Gt', 'Lt'].includes(expression.operator)">
+                                                        Value #{{ (valIndex + 1) }}
+                                                    </label>
                                                     <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'">
-                                                    <a class="addRow" @click="spliceArray(expression.values, valIndex)" v-if="expression.values.length > 1">Delete</a>
+                                                    <a class="addRow" @click="spliceArray(expression.values, valIndex)">Delete</a>
                                                 </div>
+                                            </fieldset>
+                                            <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(expression.operator)" :class="!expression.values.length && 'topBorder'">
+                                                <a class="addRow" @click="expression.values.push('')">Add Value</a>
                                             </div>
                                         </div>
                                     </fieldset>
                                 </fieldset>
-                                <fieldset>
+                                <div class="fieldsetFooter" :class="!requiredAffinityTerm.matchExpressions.length && 'topBorder'">
+                                    <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchExpressions)">Add Expression</a>
+                                </div>
+
+                                <fieldset class="affinityMatch">
                                     <div class="header">
                                         <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields">
                                             Match Fields
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields')"></span> 
                                         </label>
-                                        <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchFields)">Add Field</a>
                                     </div>
                                     <fieldset v-if="requiredAffinityTerm.matchFields.length">
                                         <div class="section" v-for="(field, fieldIndex) in requiredAffinityTerm.matchFields">
@@ -913,7 +955,7 @@
 
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator">Operator</label>
-                                                    <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( !field.hasOwnProperty('values') && (field['values'] = ['']) ) )">
+                                                    <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( (!field.hasOwnProperty('values') || (field.values.length > 1) ) && (field['values'] = ['']) ) )">
                                                         <option value="" selected>Select an operator</option>
                                                         <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
                                                     </select>
@@ -921,25 +963,35 @@
                                                 </div>
                                             </div>
 
-                                            <div class="section" v-if="!['Exists', 'DoesNotExists'].includes(field.operator)">
+                                            <fieldset v-if="field.hasOwnProperty('values') && field.values.length && !['', 'Exists', 'DoesNotExists'].includes(field.operator)" :class="(['Gt', 'Lt'].includes(field.operator)) && 'noRepeater'" class="affinityValues">
                                                 <div class="header">
                                                     <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values">
-                                                        Values
+                                                        {{ !['Gt', 'Lt'].includes(field.operator) ? 'Values' : 'Value' }}
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values')"></span> 
                                                     </label>
-                                                    <a class="addRow" @click="field.values.push('')" v-if="!['Gt', 'Lt'].includes(field.operator)">Add Value</a>
                                                 </div>
                                                 <div class="row affinityValues" v-for="(value, valIndex) in field.values">
-                                                    <label>Value #{{ valIndex + 1 }}</label>
+                                                    <label v-if="!['Gt', 'Lt'].includes(field.operator)">
+                                                        Value #{{ (valIndex + 1) }}
+                                                    </label>
                                                     <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'">
-                                                    <a class="addRow" @click="spliceArray(field.values, valIndex)" v-if="field.values.length > 1">Delete</a>
+                                                    <a class="addRow" @click="spliceArray(field.values, valIndex)">Delete</a>
                                                 </div>
+                                            </fieldset>
+                                            <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(field.operator)" :class="!field.values.length && 'topBorder'">
+                                                <a class="addRow" @click="field.values.push('')">Add Value</a>
                                             </div>
                                         </div>
                                     </fieldset>
                                 </fieldset>
+                                <div class="fieldsetFooter" :class="!requiredAffinityTerm.matchFields.length && 'topBorder'">
+                                    <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchFields)">Add Field</a>
+                                </div>
                             </div>
                         </fieldset>
+                        <div class="fieldsetFooter" :class="!requiredAffinity.length && 'topBorder'">
+                            <a class="addRow" @click="addRequiredAffinityTerm()">Add Term</a>
+                        </div>
                     </div>
 
                     <br/><br/>
@@ -959,7 +1011,6 @@
                                 Node Selector Terms
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items')"></span> 
                             </h4>
-                            <a class="addRow" @click="addPreferredAffinityTerm()">Add New</a>
                         </div>
                         <fieldset v-if="preferredAffinity.length">
                             <div class="section" v-for="(preferredAffinityTerm, termIndex) in preferredAffinity">
@@ -967,13 +1018,12 @@
                                     <h5>Term #{{ termIndex + 1 }}</h5>
                                     <a class="addRow" @click="spliceArray(preferredAffinity, termIndex)">Delete</a>
                                 </div>
-                                <fieldset>
+                                <fieldset class="affinityMatch">
                                     <div class="header">
                                         <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions">
                                             Match Expressions
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions')"></span>
                                         </label>
-                                        <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchExpressions)">Add Expression</a>
                                     </div>
                                     <fieldset v-if="preferredAffinityTerm.preference.matchExpressions.length">
                                         <div class="section" v-for="(expression, expIndex) in preferredAffinityTerm.preference.matchExpressions">
@@ -994,7 +1044,7 @@
 
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator">Operator</label>
-                                                    <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( !expression.hasOwnProperty('values') && (expression['values'] = ['']) ) )">
+                                                    <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( (!expression.hasOwnProperty('values') || (expression.values.length > 1) ) && (expression['values'] = ['']) ) )">
                                                         <option value="" selected>Select an operator</option>
                                                         <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
                                                     </select>
@@ -1002,30 +1052,37 @@
                                                 </div>
                                             </div>
 
-                                            <div class="section" v-if="!['Exists', 'DoesNotExists'].includes(expression.operator)">
+                                            <fieldset v-if="expression.hasOwnProperty('values') && expression.values.length && !['', 'Exists', 'DoesNotExists'].includes(expression.operator)" :class="(['Gt', 'Lt'].includes(expression.operator)) && 'noRepeater'" class="affinityValues">
                                                 <div class="header">
                                                     <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values">
-                                                        Values
+                                                        {{ !['Gt', 'Lt'].includes(expression.operator) ? 'Values' : 'Value' }}
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values')"></span>
                                                     </label>
-                                                    <a class="addRow" @click="expression.values.push('')" v-if="!['Gt', 'Lt'].includes(expression.operator)">Add Value</a>
                                                 </div>
                                                 <div class="row affinityValues" v-for="(value, valIndex) in expression.values">
-                                                    <label>Value #{{ valIndex + 1 }}</label>
-                                                    <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'">
-                                                    <a class="addRow" @click="spliceArray(expression.values, valIndex)" v-if="expression.values.length > 1">Delete</a>
+                                                    <label v-if="!['Gt', 'Lt'].includes(expression.operator)">
+                                                        Value #{{ (valIndex + 1) }}
+                                                    </label>
+                                                    <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :preferred="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'">
+                                                    <a class="addRow" @click="spliceArray(expression.values, valIndex)">Delete</a>
                                                 </div>
+                                            </fieldset>
+                                            <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(expression.operator)" :class="!expression.values.length && 'topBorder'">
+                                                <a class="addRow" @click="expression.values.push('')">Add Value</a>
                                             </div>
                                         </div>
                                     </fieldset>
                                 </fieldset>
-                                <fieldset>
+                                <div class="fieldsetFooter" :class="!preferredAffinityTerm.preference.matchExpressions.length && 'topBorder'">
+                                    <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchExpressions)">Add Expression</a>
+                                </div>
+
+                                <fieldset class="affinityMatch">
                                     <div class="header">
                                         <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields">
                                             Match Fields
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields')"></span>
                                         </label>
-                                        <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchFields)">Add Field</a>
                                     </div>
                                     <fieldset v-if="preferredAffinityTerm.preference.matchFields.length">
                                         <div class="section" v-for="(field, fieldIndex) in preferredAffinityTerm.preference.matchFields">
@@ -1046,7 +1103,7 @@
 
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator">Operator</label>
-                                                    <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( !field.hasOwnProperty('values') && (field['values'] = ['']) ) )">
+                                                    <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( (!field.hasOwnProperty('values') || (field.values.length > 1) ) && (field['values'] = ['']) ) )">
                                                         <option value="" selected>Select an operator</option>
                                                         <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
                                                     </select>
@@ -1054,29 +1111,39 @@
                                                 </div>
                                             </div>
 
-                                            <div class="section" v-if="!['Exists', 'DoesNotExists'].includes(field.operator)">
+                                            <fieldset v-if="field.hasOwnProperty('values') && field.values.length && !['', 'Exists', 'DoesNotExists'].includes(field.operator)" :class="(['Gt', 'Lt'].includes(field.operator)) && 'noRepeater'" class="affinityValues">
                                                 <div class="header">
                                                     <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values">
-                                                        Values
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values')"></span>
+                                                        {{ !['Gt', 'Lt'].includes(field.operator) ? 'Values' : 'Value' }}
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values')"></span> 
                                                     </label>
-                                                    <a class="addRow" @click="field.values.push('')" v-if="!['Gt', 'Lt'].includes(field.operator)">Add Value</a>
                                                 </div>
                                                 <div class="row affinityValues" v-for="(value, valIndex) in field.values">
-                                                    <label>Value #{{ valIndex + 1 }}</label>
+                                                    <label v-if="!['Gt', 'Lt'].includes(field.operator)">
+                                                        Value #{{ (valIndex + 1) }}
+                                                    </label>
                                                     <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'">
-                                                    <a class="addRow" @click="spliceArray(field.values, valIndex)" v-if="field.values.length > 1">Delete</a>
+                                                    <a class="addRow" @click="spliceArray(field.values, valIndex)">Delete</a>
                                                 </div>
+                                            </fieldset>
+                                            <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(field.operator)" :class="!field.values.length && 'topBorder'">
+                                                <a class="addRow" @click="field.values.push('')">Add Value</a>
                                             </div>
                                         </div>
                                     </fieldset>
                                 </fieldset>
+                                <div class="fieldsetFooter" :class="!preferredAffinityTerm.preference.matchFields.length && 'topBorder'">
+                                    <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchFields)">Add Field</a>
+                                </div>
 
                                 <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight">Weight</label>
                                 <input v-model="preferredAffinityTerm.weight" autocomplete="off" type="number" min="1" max="100" class="affinityWeight">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight')"></span>
                             </div>
                         </fieldset>
+                        <div class="fieldsetFooter" :class="!preferredAffinity.length && 'topBorder'">
+                            <a class="addRow" @click="addPreferredAffinityTerm()">Add Term</a>
+                        </div>
                     </div>
 
                     <span class="warning" v-if="editMode">Please, be aware that any changes made to the <code>Pods Scheduling</code> will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance of the cluster</span>
@@ -2405,11 +2472,12 @@
 
     .affinityValues a.addRow {
         transform: translateY(-75px);
+        float: right;
     }
 
     .step {
         display: none;
-        width: 820px;
+        width: 870px;
         border: 0;
         padding: 20px 0 0;
         margin-bottom: 0;
@@ -2616,6 +2684,26 @@
         background: var(--inputBg);
         margin-bottom: 0;
         border-radius: 5px;
+    }
+
+    fieldset.noRepeater {
+        padding: 0 0 10px;
+        border: 0;
+        margin-bottom: -10px;
+    }
+
+    #podsMetadata fieldset, #podsScheduling .repeater > fieldset {
+        padding-bottom: 10px;
+    }
+
+    fieldset.affinityValues, fieldset.affinityMatch {
+        margin-bottom: -10px;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .scheduling .fieldsetFooter {
+        margin-bottom: 20px;
     }
 
 </style>

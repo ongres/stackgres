@@ -2342,6 +2342,10 @@ label.switch {
 }
 
 .form select, ul.select {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    padding-right: 20px;
     background-size: 9px;
     background-repeat: no-repeat;
     background-position: 98% center;
@@ -2647,7 +2651,6 @@ span.req {
 a.addRow {
     font-weight: 600;
     text-transform: uppercase;
-    float: right;
     display: inline-block;
     cursor: pointer;
 }
@@ -2659,11 +2662,12 @@ a.addRow {
 
 .repeater .row {
     position: relative;
+    display: inline-block;
 }
 
 .repeater .eqSign ~ a.addRow {
-    position: relative;
-    top: -80px;
+    position: absolute;
+    top: 0;
     right: 0;
 }
 
@@ -2676,6 +2680,10 @@ input.annotation, input.annotationValue, input.label, input.labelValue {
 
 input.annotationValue, input.labelValue {
     top: -15px;
+}
+
+input.label, input.labelValue { 
+    margin-bottom: 0;
 }
 
 span.eqSign {
@@ -4818,10 +4826,14 @@ fieldset .header button {
 
 fieldset .section {
     width: 100%;
-    padding: 0 20px;
+    padding: 5px 25px;
     border-bottom: 1px solid var(--borderColor);
     margin-bottom: 20px;
     display: inline-block;
+}
+
+section .section fieldset {
+    padding: 20px 20px 0;
 }
 
 fieldset fieldset .section {
@@ -4829,6 +4841,10 @@ fieldset fieldset .section {
     margin-left: -25px;
 }
 
+fieldset fieldset .section .section + .fieldsetFooter {
+    margin-top: -20px;
+    border-top: 0;
+}
 
 fieldset .section:last-child {
     border-bottom: 0;
@@ -4860,16 +4876,49 @@ fieldset.accordion .fields {
 }
 
 .fields > fieldset {
-    padding: 20px 20px 0;
+    padding: 20px 20px 10px;
 }
 
-.fields > fieldset:not(:last-of-type) {
+.fields:not(.repeater) > fieldset:not(:last-of-type) {
     border-bottom: 1px solid var(--borderColor);
     margin-bottom: 15px;
 }
 
 .fields > fieldset:last-of-type {
     margin-bottom: 10px;
+}
+
+.fieldsetFooter {
+    padding: 20px 25px;
+    border: 1px solid var(--borderColor);
+    border-top: 0;
+    border-bottom-right-radius: 5px;
+    border-bottom-left-radius: 5px;
+    display: flex;
+}
+
+.fieldsetFooter.topBorder {
+    border-top: 1px solid var(--borderColor);
+    border-radius: 5px;
+}
+
+.section .fieldsetFooter {
+    margin-top: 10px;
+}
+
+.repeater > fieldset {
+    padding-bottom: 25px;
+    margin-bottom: 0;
+    border-radius: 0;
+}
+
+.repeater > fieldset:first-of-type {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.repeater > fieldset + fieldset {
+    border-top: 0;
 }
 
 /*Tables Overflow*/
