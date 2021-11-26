@@ -33,7 +33,8 @@ public class PodRestartImpl implements PodRestart {
 
     return deletePod(pod)
         .chain(() -> podWatcher.waitUntilIsReplaced(pod))
-        .chain(() -> podWatcher.waitUntilIsReady(podName, podNamespace));
+        .chain(() -> podWatcher.waitUntilIsReady(podName, podNamespace))
+        .onFailure().retry().atMost(10);
   }
 
   public Uni<Void> deletePod(Pod pod) {

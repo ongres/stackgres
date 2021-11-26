@@ -1,0 +1,70 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/dbops-restart"
+
+e2e_test_install() {
+  DBOPS_NAME="$(get_sgdbops_name restart)"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  generate_mock_data "$CLUSTER_NAME"
+  check_mock_data_samehost "$CLUSTER_NAME"
+  check_mock_data_replication "$CLUSTER_NAME"
+}
+
+e2e_test() {
+   run_test "Checking that cluster start does not fail if pod failed" check_cluster_start_not_fail_if_pod_failed
+}
+
+check_cluster_start_not_fail_if_pod_failed() {
+
+  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq '.spec.template.spec.volumes += [{name:"fake",secret:{secretName: "fake",optional:false}}]' \
+    | jq '.spec.template.spec.containers[0].volumeMounts += [{name:"fake",mountPath:"/fake"}]' \
+    | kubectl replace sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -f - >/dev/null
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+EOF
+
+  if kubectl wait --timeout 60s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+    --for condition=Completed
+  then
+    echo "FAILED. The restart operator has an unexpected status."
+    return 1
+  else
+    echo "SUCCESS. The restart operator has been failed."
+  fi
+
+kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq 'del(.spec.template.spec.volumes[] | select(.name == "fake"))'  \
+    | jq 'del(.spec.template.spec.containers[0].volumeMounts[] | select(.name == "fake"))' \
+    | kubectl replace sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -f -
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME-1
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+EOF
+
+check_restart
+}

@@ -5,17 +5,28 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientTimeoutException;
 import io.smallrye.mutiny.Uni;
+import io.stackgres.common.ClusterPendingRestartUtil;
+import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
+import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,17 +51,59 @@ public class PodWatcher implements Watcher<Pod> {
     String podName = pod.getMetadata().getName();
     String namespace = pod.getMetadata().getNamespace();
 
-    final Uni<Pod> podReadyPoll = Uni.createFrom().emitter(em -> {
-      LOGGER.debug("Waiting for pod {} to be ready", podName);
-      try {
-        var readyPod = client.pods().inNamespace(namespace).withName(podName)
-            .waitUntilReady(30, TimeUnit.MINUTES);
-        em.complete(readyPod);
-      } catch (KubernetesClientTimeoutException e) {
-        em.fail(e);
-      }
+    return Uni.createFrom().emitter(em -> {
+      Pod readyPod = null;
+      do {
+        Pod updatedPod = client.pods().inNamespace(namespace).withName(podName).get();
+        LOGGER.info("Waiting for pod {} to be ready. Current state {}", podName,
+            updatedPod.getStatus().getPhase());
+
+        try {
+          readyPod = client.pods().inNamespace(namespace).withName(podName).waitUntilReady(60,
+              SECONDS);
+          LOGGER.info("Pod {} ready!", podName);
+          em.complete(readyPod);
+        } catch (KubernetesClientTimeoutException timeoutException) {
+          var clusterName = extractedClusterName(podName);
+          StackGresCluster sgCluster = getSgCluster(clusterName, namespace);
+          Optional<StatefulSet> sts = getStatefulSet(clusterName, namespace);
+          RestartReasons restartReasons =
+              ClusterPendingRestartUtil.getRestartReasons(Optional.ofNullable(sgCluster.getStatus())
+                  .map(StackGresClusterStatus::getPodStatuses)
+                  .orElse(ImmutableList.of()),
+                  sts, ImmutableList.of(updatedPod));
+
+          if (restartReasons.getReasons().contains(RestartReason.STATEFULSET)) {
+            String warningMessage = String.format("Statefulset for pod %s changed!", podName);
+            LOGGER.info(warningMessage);
+            em.fail(new RuntimeException(warningMessage));
+          }
+        }
+        waitForNextCheck();
+      } while (readyPod == null);
     });
-    return podReadyPoll.onFailure().retry().indefinitely();
+  }
+
+  private void waitForNextCheck() {
+    try {
+      TimeUnit.SECONDS.sleep(15);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private StackGresCluster getSgCluster(String clusterName, String namespace) {
+    return client.resources(StackGresCluster.class, StackGresClusterList.class)
+        .inNamespace(namespace).withName(clusterName).get();
+  }
+
+  private Optional<StatefulSet> getStatefulSet(String clusterName, String namespace) {
+    return Optional
+        .of(client.apps().statefulSets().inNamespace(namespace).withName(clusterName).get());
+  }
+
+  private String extractedClusterName(String podName) {
+    return Optional.of(podName.split("-")[0]).orElse(podName);
   }
 
   protected Uni<Pod> waitUntilIsCreated(String name, String namespace) {

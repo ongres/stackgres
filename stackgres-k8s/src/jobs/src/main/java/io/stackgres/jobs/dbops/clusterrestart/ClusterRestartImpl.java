@@ -5,8 +5,6 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
-import static io.stackgres.jobs.dbops.clusterrestart.RestartEventType.POSTGRES_RESTARTED;
-import static io.stackgres.jobs.dbops.clusterrestart.RestartEventType.POSTGRES_RESTART_FAILED;
 import static java.lang.String.format;
 
 import java.util.List;
@@ -56,11 +54,12 @@ public class ClusterRestartImpl implements ClusterRestart {
   @Override
   public Multi<RestartEvent> restartCluster(ClusterRestartState clusterRestartState) {
     return Multi.createFrom().emitter(em -> {
-      Uni<?> restartChain = waitForClusterToBeHealthy(clusterRestartState);
 
       Pod primaryInstance = clusterRestartState.getPrimaryInstance();
       final String primaryInstanceName = primaryInstance.getMetadata().getName();
       final String clusterName = clusterRestartState.getClusterName();
+
+      Uni<?> restartChain = startRestartChain();
 
       restartChain = restartPostgres(clusterRestartState, em, restartChain, primaryInstance,
           primaryInstanceName, clusterName);
@@ -186,7 +185,7 @@ public class ClusterRestartImpl implements ClusterRestart {
                 .pod(replica)
                 .eventType(RestartEventType.POD_RESTARTED)
                 .build());
-          });
+          }).onFailure().retry().indefinitely();
 
       restartChain = waitForClusterToBeHealthy(clusterRestartState, restartChain);
     }
@@ -255,13 +254,13 @@ public class ClusterRestartImpl implements ClusterRestart {
         LOGGER.info(format("Postgres of instance {} restarted", primaryInstanceName));
         em.emit(ImmutableRestartEvent.builder()
             .pod(primaryInstance)
-            .eventType(POSTGRES_RESTARTED)
+            .eventType(RestartEventType.POSTGRES_RESTARTED)
             .build());
       } else {
         LOGGER.info("Postgres of instance {} failed", primaryInstanceName);
         em.emit(ImmutableRestartEvent.builder()
             .pod(primaryInstance)
-            .eventType(POSTGRES_RESTART_FAILED)
+            .eventType(RestartEventType.POSTGRES_RESTART_FAILED)
             .build());
         em.fail(new FailedRestartPostgresException(
             format("Postgres of instance %s failed", primaryInstanceName)));
@@ -298,11 +297,8 @@ public class ClusterRestartImpl implements ClusterRestart {
     }
   }
 
-  private Uni<StackGresCluster> waitForClusterToBeHealthy(ClusterRestartState clusterRestartState) {
-    String clusterName = clusterRestartState.getClusterName();
-    LOGGER.info("Waiting for cluster {} to be healthy", clusterName);
-    return clusterWatcher.waitUntilIsReady(clusterName, clusterRestartState.getNamespace())
-        .onItem().invoke(() -> LOGGER.info("Cluster {} healthy", clusterName));
+  private Uni<Void> startRestartChain() {
+    return Uni.createFrom().voidItem();
   }
 
   private Uni<StackGresCluster> waitForClusterToBeHealthy(ClusterRestartState clusterRestartState,

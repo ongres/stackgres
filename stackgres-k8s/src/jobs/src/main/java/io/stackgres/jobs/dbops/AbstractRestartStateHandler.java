@@ -455,6 +455,8 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         return "Restarting pod " + podName.orElseThrow();
       case POD_RESTARTED:
         return "Pod " + podName.orElseThrow() + " successfully restarted";
+      case POD_RESTART_FAILED:
+        return String.format("Restart of pod %s failed", podName.orElseThrow());
       case SWITCHOVER_INITIATED:
         return "Switchover of " + sgCluster + " " + clusterName + " initiated";
       case SWITCHOVER_FINALIZED:

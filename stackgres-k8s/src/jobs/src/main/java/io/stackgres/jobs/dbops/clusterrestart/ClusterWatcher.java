@@ -36,9 +36,9 @@ public class ClusterWatcher implements Watcher<StackGresCluster> {
 
   @Inject
   public ClusterWatcher(PatroniApiHandler patroniApiHandler,
-                        LabelFactoryForCluster<StackGresCluster> labelFactory,
-                        ResourceScanner<Pod> podScanner,
-                        CustomResourceFinder<StackGresCluster> clusterFinder) {
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      ResourceScanner<Pod> podScanner,
+      CustomResourceFinder<StackGresCluster> clusterFinder) {
     this.patroniApiHandler = patroniApiHandler;
     this.labelFactory = labelFactory;
     this.podScanner = podScanner;
@@ -74,16 +74,19 @@ public class ClusterWatcher implements Watcher<StackGresCluster> {
     }
   }
 
+  public StackGresCluster findByNameAndNamespace(String name, String namespace) {
+    return clusterFinder.findByNameAndNamespace(name, namespace)
+        .orElseThrow(() -> {
+          LOGGER.info("SGCluster {} in namespace {} not found", name, namespace);
+          return new IllegalStateException("cluster not found");
+        });
+  }
+
   @Override
   public Uni<StackGresCluster> waitUntilIsReady(String name, String namespace) {
     return Uni.createFrom().emitter(em -> {
       LOGGER.debug("Looking for SGCluster {} in namespace {}", name, namespace);
-      StackGresCluster cluster = clusterFinder.findByNameAndNamespace(name, namespace)
-          .orElseThrow(() -> {
-            LOGGER.debug("SGCluster {} in namespace {} not found", name, namespace);
-            return new IllegalStateException("cluster not found");
-          });
-
+      StackGresCluster cluster = findByNameAndNamespace(name, namespace);
       scanClusterPods(cluster)
           .chain(() -> getClusterMembers(cluster))
           .onFailure()
@@ -125,7 +128,7 @@ public class ClusterWatcher implements Watcher<StackGresCluster> {
         cluster.getMetadata().getNamespace())
         .onItem().transform(members -> {
           if (isAllMembersReady(members)) {
-            LOGGER.debug("All members members of cluster {} ready", name);
+            LOGGER.debug("All members of cluster {} ready", name);
             return members;
           } else {
             var podsReady = members.stream().filter(ClusterWatcher::isMemberReady)
