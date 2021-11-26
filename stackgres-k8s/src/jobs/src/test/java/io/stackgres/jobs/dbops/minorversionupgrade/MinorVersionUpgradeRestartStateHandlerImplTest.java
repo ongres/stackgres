@@ -25,6 +25,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMinorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMinorVersionUpgradeStatus;
@@ -83,8 +84,8 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
   }
 
   @Override
-  protected String getRestartMethod(StackGresDbOps dbOps) {
-    return dbOps.getSpec().getMinorVersionUpgrade().getMethod();
+  protected DbOpsMethodType getRestartMethod(StackGresDbOps dbOps) {
+    return DbOpsMethodType.fromString(dbOps.getSpec().getMinorVersionUpgrade().getMethod());
   }
 
   @Override

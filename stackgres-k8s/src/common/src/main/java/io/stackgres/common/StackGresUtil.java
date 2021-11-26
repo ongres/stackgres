@@ -390,5 +390,4 @@ public interface StackGresUtil {
     return ".svc.cluster.local";
   }
 
-
 }

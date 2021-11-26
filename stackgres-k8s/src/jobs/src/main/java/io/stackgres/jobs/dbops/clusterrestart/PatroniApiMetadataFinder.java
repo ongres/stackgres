@@ -5,7 +5,9 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface PatroniApiMetadataFinder {
 
-  PatroniApiMetadata findPatroniRestApi(String clusterName, String namespace);
+  PatroniApiMetadata findPatroniRestApi(@NotNull String clusterName, @NotNull String namespace);
 }

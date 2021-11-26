@@ -15,6 +15,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.validation.ValidationType;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @Singleton
@@ -31,14 +32,11 @@ public class ClusterValidator implements DbOpsValidator {
 
   @Override
   public void validate(StackGresDbOpsReview review) throws ValidationFailed {
-    switch (review.getRequest().getOperation()) {
-      case CREATE:
-        String cluster = review.getRequest().getObject().getSpec().getSgCluster();
-        String namespace = review.getRequest().getObject().getMetadata().getNamespace();
-        checkIfClusterExists(cluster, namespace,
-            "SGCluster " + cluster + " not found");
-        break;
-      default:
+    if (review.getRequest().getOperation() == Operation.CREATE) {
+      String cluster = review.getRequest().getObject().getSpec().getSgCluster();
+      String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+      checkIfClusterExists(cluster, namespace,
+          "SGCluster " + cluster + " not found");
     }
   }
 

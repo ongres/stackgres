@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -213,7 +214,8 @@ public class PatroniServices implements
         .endMetadata()
         .withNewSpec()
         .withType("ExternalName")
-        .withExternalName(name(context) + "." + cluster.getMetadata().getNamespace())
+        .withExternalName(name(context) + "." + cluster.getMetadata().getNamespace()
+            + StackGresUtil.domainSearchPath())
         .endSpec()
         .build();
   }

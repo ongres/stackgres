@@ -65,7 +65,7 @@ kubectl_mock() {
             secretAccessKey:
               key: "secretkey"
               name: "minio"
-        endpoint: "http://minio.stackgres.svc:9000"
+        endpoint: "http://minio.stackgres:9000"
         enablePathStyleAddressing: true
         bucket: "stackgres"
         region: "k8s"

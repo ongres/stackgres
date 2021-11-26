@@ -11,6 +11,8 @@ import java.util.Map;
 import com.google.common.base.Preconditions;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
+import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
+import io.stackgres.common.crd.sgdbops.DbOpsOperation;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -18,13 +20,13 @@ public interface ClusterRestartState {
 
   String getDbOpsName();
 
-  String getDbOpsOperation();
+  DbOpsOperation getDbOpsOperation();
 
   String getClusterName();
 
   String getNamespace();
 
-  String getRestartMethod();
+  DbOpsMethodType getRestartMethod();
 
   boolean isOnlyPendingRestart();
 

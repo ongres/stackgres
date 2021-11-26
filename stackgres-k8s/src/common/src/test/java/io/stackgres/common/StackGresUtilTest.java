@@ -5,11 +5,13 @@
 
 package io.stackgres.common;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -118,6 +120,27 @@ class StackGresUtilTest {
         .withNewSpec().withType("ClusterIP").endSpec()
         .build();
     assertThrows(IllegalStateException.class, () -> StackGresUtil.getServiceDnsName(svc));
+  }
+
+  @Test
+  void getSearchPath_shouldReturnParsedSearchPath() {
+    ResolvConfResolverConfig resolver = new ResolvConfResolverConfig();
+
+    var defaultList = resolver.getSearchPath("src/test/resources/default-resolv.conf");
+    assertThat(defaultList)
+        .containsExactlyElementsIn(List.of("default.svc.cluster.local", "svc.cluster.local",
+            "cluster.local"));
+
+    var domainList = resolver.getSearchPath("src/test/resources/domain-resolv.conf");
+    assertThat(domainList)
+        .containsExactlyElementsIn(List.of("default.svc.ongres.com", "svc.ongres.com",
+            "ongres.com"));
+
+    var notFound = resolver.getSearchPath("test-resolv.cof");
+    assertThat(notFound).isEmpty();
+
+    var noSearch = resolver.getSearchPath("src/test/resources/nosearch-resolv.conf");
+    assertThat(notFound).isEmpty();
   }
 
 }

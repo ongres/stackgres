@@ -5,8 +5,10 @@
 
 package io.stackgres.operatorframework.admissionwebhook.validating;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface ValidationPipeline<T> {
 
-  void validate(T review) throws ValidationFailed;
+  void validate(@NotNull T review) throws ValidationFailed;
 
 }

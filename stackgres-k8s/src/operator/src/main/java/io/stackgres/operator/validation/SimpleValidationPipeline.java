@@ -40,7 +40,7 @@ public class SimpleValidationPipeline<T extends AdmissionReview<?>, V extends Va
       } else {
         return v1ValidationType.value().compareTo(v2ValidationType.value());
       }
-    }).collect(Collectors.toList());
+    }).collect(Collectors.toUnmodifiableList());
 
   }
 

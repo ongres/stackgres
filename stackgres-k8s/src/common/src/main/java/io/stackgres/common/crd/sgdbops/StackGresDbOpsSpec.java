@@ -14,18 +14,18 @@ import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
+import io.stackgres.common.validation.ValidEnum;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -35,11 +35,13 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("sgCluster")
-  @NotNull(message = "sgCluster must be provided")
+  @NotEmpty(message = "sgCluster must be provided")
   private String sgCluster;
 
   @JsonProperty("op")
-  @NotNull(message = "op must be provided")
+  @ValidEnum(enumClass = DbOpsOperation.class, allowNulls = false,
+      message = "op must be one of benchmark, vacuum, repack, restart, "
+          + "majorVersionUpgrade, minorVersionUpgrade or securityUpgrade")
   private String op;
 
   @JsonProperty("runAt")
@@ -82,37 +84,55 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   private StackGresDbOpsSecurityUpgrade securityUpgrade;
 
   @ReferencedField("op")
-  interface Op extends FieldReference { }
+  interface Op extends FieldReference {
+  }
 
   @ReferencedField("runAt")
-  interface RunAt extends FieldReference { }
+  interface RunAt extends FieldReference {
+  }
 
   @ReferencedField("timeout")
-  interface Timeout extends FieldReference { }
+  interface Timeout extends FieldReference {
+  }
 
   @ReferencedField("benchmark")
-  interface Benchmark extends FieldReference { }
+  interface Benchmark extends FieldReference {
+  }
 
   @ReferencedField("minorVersionUpgrade")
-  interface MinorVersionUpgrade extends FieldReference { }
+  interface MinorVersionUpgrade extends FieldReference {
+  }
 
   @ReferencedField("majorVersionUpgrade")
-  interface MajorVersionUpgrade extends FieldReference { }
+  interface MajorVersionUpgrade extends FieldReference {
+  }
 
   @JsonIgnore
-  @AssertTrue(message = "op must be one of benchmark, vacuum, repack,"
-      + " majorVersionUpgrade, restart, minorVersionUpgrade or securityUpgrade",
+  @AssertTrue(message = "op must match corresponding section.",
       payload = Op.class)
-  public boolean isOpValid() {
-    return op == null || ImmutableList.of(
-        "benchmark",
-        "vacuum",
-        "repack",
-        "majorVersionUpgrade",
-        "restart",
-        "minorVersionUpgrade",
-        "securityUpgrade"
-        ).contains(op);
+  public boolean isOpMatchSection() {
+    if (op != null) {
+      switch (op) {
+        case "vacuum":
+          return benchmark == null && repack == null && restart == null
+              && majorVersionUpgrade == null && minorVersionUpgrade == null
+              && securityUpgrade == null;
+        case "repack":
+          return benchmark == null && vacuum == null && restart == null
+              && majorVersionUpgrade == null && minorVersionUpgrade == null
+              && securityUpgrade == null;
+        case "restart":
+          return benchmark == null && vacuum == null && repack == null
+              && majorVersionUpgrade == null && minorVersionUpgrade == null
+              && securityUpgrade == null;
+        case "securityUpgrade":
+          return benchmark == null && vacuum == null && repack == null && restart == null
+              && majorVersionUpgrade == null && minorVersionUpgrade == null;
+        default:
+          break;
+      }
+    }
+    return true;
   }
 
   @JsonIgnore
@@ -148,56 +168,65 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   @AssertTrue(message = "benchmark section must be provided.",
       payload = Benchmark.class)
   public boolean isBenchmarkSectionProvided() {
-    return !Objects.equals(op, "benchmark") || benchmark != null;
+    if (Objects.equals(op, DbOpsOperation.BENCHMARK.toString())) {
+      return benchmark != null;
+    }
+    return true;
   }
 
   @JsonIgnore
   @AssertTrue(message = "minorVersionUpgrade section must be provided.",
       payload = MinorVersionUpgrade.class)
   public boolean isMinorVersionUpgradeSectionProvided() {
-    return !Objects.equals(op, "minorVersionUpgrade") || minorVersionUpgrade != null;
+    if (Objects.equals(op, DbOpsOperation.MINOR_VERSION_UPGRADE.toString())) {
+      return minorVersionUpgrade != null;
+    }
+    return true;
   }
 
   @JsonIgnore
   @AssertTrue(message = "majorVersionUpgrade section must be provided.",
       payload = MajorVersionUpgrade.class)
   public boolean isMajorVersionUpgradeSectionProvided() {
-    return !Objects.equals(op, "majorVersionUpgrade") || majorVersionUpgrade != null;
+    if (Objects.equals(op, DbOpsOperation.MAJOR_VERSION_UPGRADE.toString())) {
+      return majorVersionUpgrade != null;
+    }
+    return true;
   }
 
   @JsonIgnore
   public boolean isOpBenchmark() {
-    return Objects.equals(op, "benchmark");
+    return Objects.equals(op, DbOpsOperation.BENCHMARK.toString());
   }
 
   @JsonIgnore
   public boolean isOpVacuum() {
-    return Objects.equals(op, "vacuum");
+    return Objects.equals(op, DbOpsOperation.VACUUM.toString());
   }
 
   @JsonIgnore
   public boolean isOpRepack() {
-    return Objects.equals(op, "repack");
+    return Objects.equals(op, DbOpsOperation.REPACK.toString());
   }
 
   @JsonIgnore
   public boolean isOpMajorVersionUpgrade() {
-    return Objects.equals(op, "majorVersionUpgrade");
+    return Objects.equals(op, DbOpsOperation.MAJOR_VERSION_UPGRADE.toString());
   }
 
   @JsonIgnore
   public boolean isOpRestart() {
-    return Objects.equals(op, "restart");
+    return Objects.equals(op, DbOpsOperation.RESTART.toString());
   }
 
   @JsonIgnore
   public boolean isOpMinorVersionUpgrade() {
-    return Objects.equals(op, "minorVersionUpgrade");
+    return Objects.equals(op, DbOpsOperation.MINOR_VERSION_UPGRADE.toString());
   }
 
   @JsonIgnore
   public boolean isOpSecurityUpgrade() {
-    return Objects.equals(op, "securityUpgrade");
+    return Objects.equals(op, DbOpsOperation.SECURITY_UPGRADE.toString());
   }
 
   public String getSgCluster() {

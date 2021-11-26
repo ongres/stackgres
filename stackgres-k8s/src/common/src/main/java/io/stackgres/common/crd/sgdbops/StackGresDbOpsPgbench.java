@@ -10,7 +10,7 @@ import java.util.Objects;
 
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -30,11 +30,11 @@ public class StackGresDbOpsPgbench implements KubernetesResource {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("databaseSize")
-  @NotNull(message = "databaseSize must be provided")
+  @NotEmpty(message = "databaseSize must be provided")
   private String databaseSize;
 
   @JsonProperty("duration")
-  @NotNull(message = "duration must be provided")
+  @NotEmpty(message = "duration must be provided")
   private String duration;
 
   @JsonProperty("usePreparedStatements")

@@ -38,6 +38,8 @@ import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
+import io.stackgres.common.crd.sgdbops.DbOpsOperation;
 import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.DbOpsEventEmitter;
@@ -312,7 +314,7 @@ public abstract class ClusterStateHandlerTest {
     var expectedClusterState = ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
-        .dbOpsOperation(dbOps.getSpec().getOp())
+        .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
         .clusterName(dbOps.getSpec().getSgCluster())
         .isOnlyPendingRestart(false)
         .restartMethod(getRestartMethod(dbOps))
@@ -334,7 +336,7 @@ public abstract class ClusterStateHandlerTest {
     assertEqualsRestartState(expectedClusterState, clusterRestartState);
   }
 
-  protected abstract String getRestartMethod(StackGresDbOps dbOps);
+  protected abstract DbOpsMethodType getRestartMethod(StackGresDbOps dbOps);
 
   @Test
   void givenACleanCluster_shouldUpdateTheOpStatus() {

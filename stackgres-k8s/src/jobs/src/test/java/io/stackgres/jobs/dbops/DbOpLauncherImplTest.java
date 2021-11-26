@@ -32,6 +32,8 @@ import io.quarkus.test.junit.mockito.InjectSpy;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
+import io.stackgres.common.crd.sgdbops.DbOpsOperation;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
@@ -105,12 +107,12 @@ class DbOpLauncherImplTest {
         ImmutableClusterRestartState.builder()
             .namespace(dbOps.getMetadata().getNamespace())
             .dbOpsName(dbOps.getMetadata().getName())
-            .dbOpsOperation(dbOps.getSpec().getOp())
+            .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
             .clusterName(dbOps.getSpec().getSgCluster())
             .isOnlyPendingRestart(false)
             .isSwitchoverInitiated(false)
             .isSwitchoverFinalized(false)
-            .restartMethod("InPlace")
+            .restartMethod(DbOpsMethodType.IN_PLACE)
             .primaryInstance(primary)
             .initialInstances(ImmutableList.of(primary))
             .totalInstances(ImmutableList.of(primary))

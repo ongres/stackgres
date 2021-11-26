@@ -16,6 +16,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMinorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMinorVersionUpgrade;
@@ -175,10 +176,11 @@ public class MinorVersionUpgradeRestartStateHandlerImpl extends AbstractRestartS
   }
 
   @Override
-  protected Optional<String> getRestartMethod(StackGresDbOps op) {
+  protected Optional<DbOpsMethodType> getRestartMethod(StackGresDbOps op) {
     return Optional.ofNullable(op.getSpec())
         .map(StackGresDbOpsSpec::getMinorVersionUpgrade)
-        .map(StackGresDbOpsMinorVersionUpgrade::getMethod);
+        .map(StackGresDbOpsMinorVersionUpgrade::getMethod)
+        .map(DbOpsMethodType::fromString);
   }
 
 }
