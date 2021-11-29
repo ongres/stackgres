@@ -3,7 +3,7 @@ name: stackgres-cluster
 version: "1.1.0-SNAPSHOT"
 kubeVersion: "1.16.0-0 - 1.22.x-0"
 description: StackGres Cluster
-keyworkds:
+keywords:
   - stackgres
   - postgresql
   - postgres
@@ -17,7 +17,6 @@ maintainers:
   - name: OnGres Inc.
     email: info@ongres.com
     url: https://ongres.com
-engine: gotpl
 icon: https://assets.gitlab-static.net/uploads/-/system/project/avatar/12584701/logo-stackgres.png?width=64
 appVersion: "1.1.0-SNAPSHOT"
 deprecated: false
