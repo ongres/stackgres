@@ -135,12 +135,20 @@ class StackGresUtilTest {
     assertThat(domainList)
         .containsExactlyElementsIn(List.of("default.svc.ongres.com", "svc.ongres.com",
             "ongres.com"));
+  }
+
+  @Test
+  void givenInvalid_searchPath_shouldReturnEmptyList() {
+    ResolvConfResolverConfig resolver = new ResolvConfResolverConfig();
+
+    var noSearch = resolver.getSearchPath("src/test/resources/nosearch-resolv.conf");
+    assertThat(noSearch).isEmpty();
 
     var notFound = resolver.getSearchPath("test-resolv.cof");
     assertThat(notFound).isEmpty();
 
-    var noSearch = resolver.getSearchPath("src/test/resources/nosearch-resolv.conf");
-    assertThat(notFound).isEmpty();
+    var wrongFile = resolver.getSearchPath("src/test/resources/test.tgz");
+    assertThat(wrongFile).isEmpty();
   }
 
 }

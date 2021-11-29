@@ -13,10 +13,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,31 +26,22 @@ public class ResolvConfResolverConfig {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ResolvConfResolverConfig.class);
 
-  private final List<String> searchlist = new ArrayList<>(1);
-
-  public List<String> getSearchPath(String path) {
-    searchlist.clear();
-    if (tryParseResolveConf(path)) {
-      return List.copyOf(searchlist);
+  public @NotNull List<@NotNull String> getSearchPath(@NotNull String path) {
+    Path resolvConf = Paths.get(path);
+    if (Files.exists(resolvConf)) {
+      try (InputStream in = Files.newInputStream(resolvConf, StandardOpenOption.READ)) {
+        List<String> parseResolvConf = parseResolvConf(in);
+        LOGGER.debug("Returning search paths: {}", parseResolvConf);
+        return List.copyOf(parseResolvConf);
+      } catch (IOException e) {
+        LOGGER.warn("Could not parse resolv.conf file.", e);
+      }
     }
     return List.of();
   }
 
-  private boolean tryParseResolveConf(String path) {
-    Path p = Paths.get(path);
-    if (Files.exists(p)) {
-      try (InputStream in = Files.newInputStream(p)) {
-        parseResolvConf(in);
-        return true;
-      } catch (IOException e) {
-        // ignore
-      }
-    }
-
-    return false;
-  }
-
-  private void parseResolvConf(InputStream in) throws IOException {
+  private List<String> parseResolvConf(InputStream in) throws IOException {
+    var searchDomains = new ArrayList<String>(3);
     try (InputStreamReader isr = new InputStreamReader(in, StandardCharsets.UTF_8);
         BufferedReader br = new BufferedReader(isr)) {
       String line;
@@ -59,24 +52,17 @@ public class ResolvConfResolverConfig {
         }
 
         if (st.nextToken().equals("search")) {
-          searchlist.clear();
+          searchDomains.clear();
           while (st.hasMoreTokens()) {
-            addSearchPath(st.nextToken());
+            String nextToken = st.nextToken();
+            if (!searchDomains.contains(nextToken)) {
+              searchDomains.add(nextToken);
+            }
           }
         }
       }
     }
-  }
-
-  private void addSearchPath(String searchPath) {
-    if (searchPath == null || searchPath.isEmpty()) {
-      return;
-    }
-
-    if (!searchlist.contains(searchPath)) {
-      searchlist.add(searchPath);
-      LOGGER.debug("Added {} to search paths", searchPath);
-    }
+    return searchDomains;
   }
 
 }
