@@ -45,11 +45,17 @@
     "postgresServices": {
       "primary": {
         "enabled": true,
-        "type": "ClusterIP"
+        "type": "ClusterIP",
+        "externalIPs": [
+        	"13.33.108.129"
+        ]
       },
       "replicas": {
         "enabled": true,
-        "type": "ClusterIP"
+        "type": "ClusterIP",
+        "externalIPs": [
+        	"13.33.108.129"
+        ]
       }
     },
     "metadata": {

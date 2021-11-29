@@ -89,8 +89,10 @@ You can specify following parameters values:
 |:----------|:------------|:--------|
 | `cluster.postgresServices.primary.enabled` | {{< crd-field-description SGCluster.spec.postgresServices.primary.enabled >}} | true |
 | `cluster.postgresServices.primary.type` | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}} | ClusterIP |
+| `cluster.postgresServices.primary.externalIPs` | {{< crd-field-description SGCluster.spec.postgresServices.primary.externalIPs >}} | |
 | `cluster.postgresServices.replicas.enabled` | {{< crd-field-description SGCluster.spec.postgresServices.replicas.enabled >}} | true |
 | `cluster.postgresServices.replicas.type` | {{< crd-field-description SGCluster.spec.postgresServices.replicas.type >}} | ClusterIP |
+| `cluster.postgresServices.replicas.externalIPs` | {{< crd-field-description SGCluster.spec.postgresServices.replicas.externalIPs >}} | |
 
 ### Pods
 

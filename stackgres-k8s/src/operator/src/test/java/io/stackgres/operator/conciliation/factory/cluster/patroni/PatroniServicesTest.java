@@ -181,7 +181,7 @@ class PatroniServicesTest {
 
   @Test
   void ifReplicaServiceEnabled_shouldBeIncluded() {
-    enableReplicaService(true);
+    resetReplicas(true);
 
     Stream<HasMetadata> services = patroniServices.generateResource(context);
 
@@ -195,7 +195,7 @@ class PatroniServicesTest {
 
   @Test
   void ifReplicaServiceDisabled_shouldNotBeIncluded() {
-    enableReplicaService(false);
+    resetReplicas(false);
 
     Stream<HasMetadata> services = patroniServices.generateResource(context);
 
@@ -209,7 +209,7 @@ class PatroniServicesTest {
 
   @Test
   void ifReplicaServiceIsNotDefined_itShouldDefaultToClusterIp() {
-    enableReplicaService(true);
+    resetReplicas(true);
     defaultCluster.getSpec().getPostgresServices().getReplicas().setType(null);
 
     Stream<HasMetadata> services = patroniServices.generateResource(context);
@@ -222,7 +222,7 @@ class PatroniServicesTest {
 
   @Test
   void ifReplicaServiceTypeIsLoadBalancer_serviceTypeShouldBeLoadBalancer() {
-    enableReplicaService(StackGresPostgresServiceType.LOAD_BALANCER);
+    enableReplicasAndSetServiceTypeAs(StackGresPostgresServiceType.LOAD_BALANCER);
     Stream<HasMetadata> services = patroniServices.generateResource(context);
 
     Service replicaService = getReplicaService(services);
@@ -232,10 +232,35 @@ class PatroniServicesTest {
   }
 
   @Test
+  void ifReplicaServiceHasExternalIPs_serviceShouldHasExternalIPs() {
+    Stream<HasMetadata> services = patroniServices.generateResource(context);
+
+    Service replicaService = getReplicaService(services);
+
+    assertEquals(replicasExternalIP(),
+        replicaService.getSpec().getExternalIPs().stream().findFirst().get());
+  }
+
+  @Test
+  void ifPrimaryServiceHasExternalIPs_patroniShouldHasExternalIPs() {
+    Stream<HasMetadata> services = patroniServices.generateResource(context);
+
+    Service patroniService = getPatroniService(services);
+
+    assertEquals(replicasExternalIP(),
+        patroniService.getSpec().getExternalIPs().stream().findFirst().get());
+  }
+
+  private String replicasExternalIP() {
+    return defaultCluster.getSpec().getPostgresServices().getReplicas().getExternalIPs().stream()
+        .findFirst().get();
+  }
+
+  @Test
   void ifReplicaServiceHasCustomAnnotations_ifShouldBeReflectedOnTheService() {
     String key = StringUtil.generateRandom();
     String annotation = StringUtil.generateRandom();
-    enableReplicaService(ImmutableMap.of(key, annotation));
+    enableReplicasAndSetAnnotations(ImmutableMap.of(key, annotation));
 
     Stream<HasMetadata> services = patroniServices.generateResource(context);
 
@@ -274,7 +299,7 @@ class PatroniServicesTest {
     defaultCluster.getSpec().getMetadata().getAnnotations().setPrimaryService(annotations);
   }
 
-  private void enableReplicaService(boolean enabled) {
+  private void resetReplicas(boolean enabled) {
     StackGresClusterPostgresServices postgresServices = new StackGresClusterPostgresServices();
     StackGresPostgresService replicaService = new StackGresPostgresService();
     replicaService.setEnabled(enabled);
@@ -282,17 +307,17 @@ class PatroniServicesTest {
     defaultCluster.getSpec().setPostgresServices(postgresServices);
   }
 
-  private void enableReplicaService(StackGresPostgresServiceType type) {
-    enableReplicaService(true);
+  private void enableReplicasAndSetServiceTypeAs(StackGresPostgresServiceType serviceType) {
+    resetReplicas(true);
     final StackGresPostgresService primary = defaultCluster
         .getSpec()
         .getPostgresServices()
         .getReplicas();
-    primary.setType(type.toString());
+    primary.setType(serviceType.toString());
   }
 
-  private void enableReplicaService(Map<String, String> annotations) {
-    enableReplicaService(true);
+  private void enableReplicasAndSetAnnotations(Map<String, String> annotations) {
+    resetReplicas(true);
     if (defaultCluster.getSpec().getMetadata() == null) {
       defaultCluster.getSpec().setMetadata(new StackGresClusterSpecMetadata());
     }

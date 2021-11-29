@@ -5,6 +5,9 @@
 
 package io.stackgres.apiweb.app.postgres.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
@@ -22,7 +25,15 @@ public class PostgresService implements KubernetesResource {
 
   private String type;
 
+  private List<String> externalIPs;
+
   public PostgresService() {}
+
+  public PostgresService(Boolean enabled, String type, List<String> externalIPs) {
+    this.enabled = enabled;
+    this.type = type;
+    this.externalIPs = externalIPs;
+  }
 
   public PostgresService(Boolean enabled, String type) {
     this.enabled = enabled;
@@ -45,8 +56,20 @@ public class PostgresService implements KubernetesResource {
     this.type = type;
   }
 
+  public List<String> getExternalIPs() {
+    if (this.externalIPs == null) {
+      this.externalIPs = new ArrayList<String>();
+    }
+    return externalIPs;
+  }
+
+  public void setExternalIPs(List<String> externalIPs) {
+    this.externalIPs = externalIPs;
+  }
+
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
+
 }

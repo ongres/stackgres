@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.postgres.service;
 
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -24,7 +25,15 @@ public class StackGresPostgresService {
       message = "type must be one of ClusterIP, LoadBalancer, NodePort or ExternalName")
   private String type;
 
+  private List<String> externalIPs;
+
   public StackGresPostgresService() {}
+
+  public StackGresPostgresService(Boolean enabled, String type, List<String> externalIPs) {
+    this.enabled = enabled;
+    this.type = type;
+    this.externalIPs = externalIPs;
+  }
 
   public StackGresPostgresService(Boolean enabled, String type) {
     this.enabled = enabled;
@@ -47,6 +56,14 @@ public class StackGresPostgresService {
     this.type = type;
   }
 
+  public List<String> getExternalIPs() {
+    return externalIPs;
+  }
+
+  public void setExternalIPs(List<String> externalIPs) {
+    this.externalIPs = externalIPs;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(enabled, type);
@@ -62,11 +79,13 @@ public class StackGresPostgresService {
     }
     StackGresPostgresService other = (StackGresPostgresService) obj;
     return Objects.equals(enabled, other.enabled)
-        && Objects.equals(type, other.type);
+        && Objects.equals(type, other.type)
+        && Objects.equals(externalIPs, other.externalIPs);
   }
 
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
+
 }

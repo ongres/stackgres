@@ -7,6 +7,8 @@ package io.stackgres.apiweb.app.postgres.service;
 
 import static java.lang.Boolean.TRUE;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class EnabledPostgresService extends PostgresService {
@@ -14,6 +16,10 @@ public class EnabledPostgresService extends PostgresService {
   private static final long serialVersionUID = 1L;
 
   public EnabledPostgresService() {}
+
+  public EnabledPostgresService(String type, List<String> externalIPs) {
+    super(TRUE, type, externalIPs);
+  }
 
   public EnabledPostgresService(String type) {
     super(TRUE, type);
