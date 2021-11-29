@@ -567,9 +567,9 @@ $(document).ready(function(){
   $(document).on('click', '.set > .addnew', function(){
     if(!$(this).parent().hasClass('active')) {
       $('.set.active:not(.conf)').removeClass('active');
-      $('.set ul.show').removeClass('show');
       $(this).parent().addClass('active');
     }
+    $('.set ul.show').removeClass('show');
   });
 
   $('form.noSubmit').on('submit',function(e){
