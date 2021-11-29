@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation.cluster;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.when;
 
@@ -107,7 +108,7 @@ class ExtensionsValidatorTest {
     final StackGresClusterReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(extensions);
     when(extensionMetadataManager.getExtensionsAnyVersion(
-        same(review.getRequest().getObject()), any()))
+        same(review.getRequest().getObject()), any(), anyBoolean()))
         .then(this::getDefaultExtensionMetadatas);
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),

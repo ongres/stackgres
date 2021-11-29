@@ -2,17 +2,13 @@
 
 EXTENSIONS_CACHE_PRELOADED_EXTENSIONS="$(
   {
-    echo 'dblink-.*-pg(12|13)'
-    echo 'pg_stat_statements-.*-pg(12|13)'
-    echo 'plpgsql-.*-pg(12|13)'
-    echo 'plpython3u-.*-pg(12|13)'
-    echo 'timescaledb-1.7.4-pg12'
-    echo 'intagg-.*-pg12'
-    echo 'pageinspect-.*-pg12'
-    echo 'pg_repack-.*-pg(12|13)'
-    echo 'postgis-.*-pg(12|13)'
-    echo 'postgis_raster-.*-pg12(12|13)'
-  } | jq -R . | jq -s .
+    echo 'x86_64/linux/timescaledb-1\.7\.4-pg12'
+    echo 'x86_64/linux/intagg-.*-pg12'
+    echo 'x86_64/linux/pageinspect-.*-pg12'
+    echo 'x86_64/linux/pg_repack-.*-pg(12|13)'
+    echo 'x86_64/linux/postgis-.*-pg(12|13)'
+    echo 'x86_64/linux/postgis_raster-.*-pg12(12|13)'
+  } | jq -R . | jq -s -c .
   )"
 DEFAULT_FLAVOR=pg
 DEFAULT_BUILD_ARCH=x86_64
@@ -97,7 +93,9 @@ get_preloaded_extensions() {
         | $availableForEntry | $result | .[$key] = $availableForEntry) | to_entries | map(.value))
     | .availableFor[] | . as $availableFor
     | select('"$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS"' | any(. as $test
-      | $extension.name + "-" + $version.version + "-"
+      | ($availableFor.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
+        + "/" + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end)
+        + "/" + $extension.name + "-" + $version.version + "-"
         + ($availableFor.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
         + $availableFor.postgresVersion
         + ($availableFor.build | if . != null then "-build-" + . else "" end)

@@ -9,6 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -126,15 +127,15 @@ class ExtensionsResourceTest {
           .map(Tuple2::v2)
           .toList());
     when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
-        any(), eq(getClusterExtension("pgsodium")))).thenReturn(
+        any(), eq(getClusterExtension("pgsodium")), anyBoolean())).thenReturn(
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("pgsodium"))));
     when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
-        any(), eq(getClusterExtension("mysqlcompat")))).thenReturn(
+        any(), eq(getClusterExtension("mysqlcompat")), anyBoolean())).thenReturn(
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("mysqlcompat"))));
     when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
-        any(), eq(getClusterExtension("plpgsql")))).thenReturn(
+        any(), eq(getClusterExtension("plpgsql")), anyBoolean())).thenReturn(
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("plpgsql"))));
 
@@ -153,7 +154,8 @@ class ExtensionsResourceTest {
         .map(Extension::getVersions).flatMap(List::stream).count());
 
     verify(clusterExtensionMetadataManager, times(1)).getExtensions();
-    verify(clusterExtensionMetadataManager, times(3)).getExtensionsAnyVersion(any(), any());
+    verify(clusterExtensionMetadataManager, times(3)).getExtensionsAnyVersion(
+        any(), any(), anyBoolean());
   }
 
   @Test
@@ -176,15 +178,15 @@ class ExtensionsResourceTest {
           .map(Tuple2::v2)
           .toList());
     when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
-        any(), eq(getClusterExtension("pgsodium")))).thenReturn(
+        any(), eq(getClusterExtension("pgsodium")), anyBoolean())).thenReturn(
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("pgsodium"))));
     when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
-        any(), eq(getClusterExtension("mysqlcompat")))).thenReturn(
+        any(), eq(getClusterExtension("mysqlcompat")), anyBoolean())).thenReturn(
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("mysqlcompat"))));
     when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
-        any(), eq(getClusterExtension("plpgsql")))).thenReturn(
+        any(), eq(getClusterExtension("plpgsql")), anyBoolean())).thenReturn(
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("plpgsql"))));
 
@@ -223,7 +225,7 @@ class ExtensionsResourceTest {
     cluster.setSpec(new StackGresClusterSpec());
     cluster.getSpec().setPostgres(new StackGresClusterPostgres());
     cluster.getSpec().getPostgres().setVersion(postgresVersion);
-    return new StackGresExtensionIndexAnyVersion(cluster, clusterExtension);
+    return StackGresExtensionIndexAnyVersion.fromClusterExtension(cluster, clusterExtension, false);
   }
 
 }

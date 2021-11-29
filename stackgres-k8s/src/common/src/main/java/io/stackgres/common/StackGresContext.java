@@ -21,6 +21,7 @@ public interface StackGresContext {
   String DB_OPS_KEY = "db-ops";
   String SCHEDULED_BACKUP_KEY = "scheduled-backup";
   String DISRUPTIBLE_KEY = "disruptible";
+  String INITIALIZE_KEY = "initialize";
   String ROLE_KEY = "role";
   String PRIMARY_ROLE = "master";
   String REPLICA_ROLE = "replica";

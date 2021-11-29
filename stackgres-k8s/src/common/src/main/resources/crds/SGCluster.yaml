@@ -815,3 +815,9 @@ spec:
                           type: string
                           description: |
                             The primary instance that this operation is targetting
+                arch:
+                  type: string
+                  description: The architecture on which the cluster has been initialized.
+                os:
+                  type: string
+                  description: The operative system on which the cluster has been initialized.

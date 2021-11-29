@@ -46,6 +46,12 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
   @JsonProperty("fluentdConfigHash")
   private String fluentdConfigHash;
 
+  @JsonProperty("arch")
+  private String arch;
+
+  @JsonProperty("os")
+  private String os;
+
   public List<StackGresDistributedLogsCondition> getConditions() {
     return conditions;
   }
@@ -86,9 +92,26 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
     this.fluentdConfigHash = fluentdConfigHash;
   }
 
+  public String getArch() {
+    return arch;
+  }
+
+  public void setArch(String arch) {
+    this.arch = arch;
+  }
+
+  public String getOs() {
+    return os;
+  }
+
+  public void setOs(String os) {
+    this.os = os;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(conditions, connectedClusters, databases, fluentdConfigHash, podStatuses);
+    return Objects.hash(arch, conditions, connectedClusters, databases, fluentdConfigHash, os,
+        podStatuses);
   }
 
   @Override
@@ -100,11 +123,11 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
       return false;
     }
     StackGresDistributedLogsStatus other = (StackGresDistributedLogsStatus) obj;
-    return Objects.equals(conditions, other.conditions)
+    return Objects.equals(arch, other.arch) && Objects.equals(conditions, other.conditions)
         && Objects.equals(connectedClusters, other.connectedClusters)
         && Objects.equals(databases, other.databases)
         && Objects.equals(fluentdConfigHash, other.fluentdConfigHash)
-        && Objects.equals(podStatuses, other.podStatuses);
+        && Objects.equals(os, other.os) && Objects.equals(podStatuses, other.podStatuses);
   }
 
   @Override

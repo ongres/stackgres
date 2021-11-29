@@ -9,6 +9,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,6 +17,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.common.base.Preconditions;
@@ -24,6 +26,7 @@ import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 
@@ -33,6 +36,7 @@ public interface ExtensionUtil {
   String DEFAULT_PUBLISHER = "com.ongres";
   String DEFAULT_FLAVOR = "pg";
   String ARCH_X86_64 = "x86_64";
+  String ARCH_AARCH64 = "aarch64";
   String DEFAULT_ARCH = ARCH_X86_64;
   String OS_LINUX = "linux";
   String DEFAULT_OS = OS_LINUX;
@@ -45,6 +49,8 @@ public interface ExtensionUtil {
   String BIN_SUB_PATH = "bin";
   String SHARE_POSTGRESQL_SUB_PATH = "usr/share/postgresql";
   String EXTENSION_SUB_PATH = "extension";
+
+  OsDetector OS_DETECTOR = new OsDetector();
 
   static Map<StackGresExtensionIndex, StackGresExtensionMetadata> toExtensionsMetadataIndex(
       URI repositoryBaseUri, StackGresExtensions currentExtensionsMetadata) {
@@ -182,21 +188,23 @@ public interface ExtensionUtil {
   }
 
   static String getDescription(StackGresCluster cluster,
-      StackGresClusterExtension extension) {
+      StackGresClusterExtension extension, boolean detectOs) {
     final String pgMajorVersion = getPostgresFlavorComponent(cluster).findMajorVersion(
         cluster.getSpec().getPostgres().getVersion());
+    final Optional<OsDetector> osDetector = Optional.of(OS_DETECTOR).filter(od -> detectOs);
     return extension.getPublisherOrDefault() + "/" + extension.getName()
         + " for version " + extension.getVersionOrDefaultChannel()
         + "[" + getFlavorPrefix(cluster) + pgMajorVersion
-        + "/" + ARCH_X86_64 + "/" + OS_LINUX + "]";
+        + osDetector.map(od -> "/" + od.getArch() + "/" + od.getOs()).orElse("") + "]";
   }
 
   static String getDescription(StackGresCluster cluster,
-      StackGresClusterInstalledExtension extension) {
+      StackGresClusterInstalledExtension extension, boolean detectOs) {
+    final Optional<OsDetector> osDetector = Optional.of(OS_DETECTOR).filter(od -> detectOs);
     return extension.getPublisher() + "/" + extension.getName()
       + " for version " + extension.getVersion()
       + "[" + getFlavorPrefix(cluster) + extension.getPostgresVersion()
-      + "/" + ARCH_X86_64 + "/" + OS_LINUX + "]";
+      + osDetector.map(od -> "/" + od.getArch() + "/" + od.getOs()).orElse("") + "]";
   }
 
   static String getDescription(StackGresExtensionMetadata extensionMetadata) {
@@ -230,6 +238,46 @@ public interface ExtensionUtil {
       return null;
     }
     return build.split(Pattern.quote("."))[0];
+  }
+
+  static Optional<String> getClusterArch(@Nullable StackGresCluster cluster,
+      Optional<OsDetector> osDetector) {
+    return Optional.ofNullable(cluster).map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getArch)
+        .or(() -> osDetector.map(OsDetector::getArch));
+  }
+
+  static Optional<String> getClusterOs(@Nullable StackGresCluster cluster,
+      Optional<OsDetector> osDetector) {
+    return Optional.ofNullable(cluster).map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getOs)
+        .or(() -> osDetector.map(OsDetector::getOs));
+  }
+
+  final class OsDetector {
+    public String getArch() {
+      final String arch = System.getProperty("os.arch");
+      if (arch == null) {
+        throw new RuntimeException("Can not detect architecture!");
+      }
+      final String archLowerCase = arch.toLowerCase(Locale.US);
+      switch (archLowerCase) {
+        case "amd64":
+          return ARCH_X86_64;
+        case "arm64":
+          return ARCH_AARCH64;
+        default:
+          return archLowerCase;
+      }
+    }
+
+    public String getOs() {
+      final String os = System.getProperty("os.name");
+      if (os == null) {
+        throw new RuntimeException("Can not detect operative system!");
+      }
+      return os.toLowerCase(Locale.US);
+    }
   }
 
 }

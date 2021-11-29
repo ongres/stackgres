@@ -38,6 +38,12 @@ public class StackGresClusterStatus implements KubernetesResource {
   @Valid
   private StackGresClusterDbOpsStatus dbOps;
 
+  @JsonProperty("arch")
+  private String arch;
+
+  @JsonProperty("os")
+  private String os;
+
   public List<StackGresClusterCondition> getConditions() {
     return conditions;
   }
@@ -62,9 +68,25 @@ public class StackGresClusterStatus implements KubernetesResource {
     this.dbOps = dbOps;
   }
 
+  public String getArch() {
+    return arch;
+  }
+
+  public void setArch(String arch) {
+    this.arch = arch;
+  }
+
+  public String getOs() {
+    return os;
+  }
+
+  public void setOs(String os) {
+    this.os = os;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(conditions, dbOps, podStatuses);
+    return Objects.hash(arch, conditions, dbOps, podStatuses);
   }
 
   @Override
@@ -76,8 +98,8 @@ public class StackGresClusterStatus implements KubernetesResource {
       return false;
     }
     StackGresClusterStatus other = (StackGresClusterStatus) obj;
-    return Objects.equals(conditions, other.conditions) && Objects.equals(dbOps, other.dbOps)
-        && Objects.equals(podStatuses, other.podStatuses);
+    return Objects.equals(arch, other.arch) && Objects.equals(conditions, other.conditions)
+        && Objects.equals(dbOps, other.dbOps) && Objects.equals(podStatuses, other.podStatuses);
   }
 
   @Override

@@ -40,4 +40,9 @@ public interface PatroniUtil {
     return ResourceUtil.nameIsValidService(clusterName + SUFFIX);
   }
 
+  static String configName(StackGresCluster cluster) {
+    return ResourceUtil.nameIsValidDnsSubdomain(
+        cluster.getMetadata().getName() + CONFIG_SERVICE);
+  }
+
 }
