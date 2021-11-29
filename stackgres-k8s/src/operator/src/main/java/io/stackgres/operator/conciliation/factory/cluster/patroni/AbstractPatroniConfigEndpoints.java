@@ -18,7 +18,6 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.patroni.PatroniConfig;
-import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import org.jetbrains.annotations.NotNull;
@@ -76,12 +75,7 @@ public abstract class AbstractPatroniConfigEndpoints
       StackGresPostgresConfig pgConfig);
 
   public static String configName(ClusterContext context) {
-    return configName(context.getCluster());
-  }
-
-  public static String configName(StackGresCluster cluster) {
-    return ResourceUtil.nameIsValidDnsSubdomain(
-        cluster.getMetadata().getName() + PatroniUtil.CONFIG_SERVICE);
+    return PatroniUtil.configName(context.getCluster());
   }
 
   protected boolean isBackupConfigurationPresent(StackGresClusterContext context) {

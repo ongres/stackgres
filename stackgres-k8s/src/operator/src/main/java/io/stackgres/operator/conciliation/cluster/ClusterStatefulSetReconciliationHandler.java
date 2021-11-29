@@ -43,6 +43,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceFinder;
@@ -51,7 +52,6 @@ import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.conciliation.DeployedResourceDecorator;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigEndpoints;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -189,7 +189,7 @@ public class ClusterStatefulSetReconciliationHandler
     final int lastReplicaIndex = desiredReplicas - 1;
 
     var patroniConfigEndpoints = endpointsFinder
-        .findByNameAndNamespace(PatroniConfigEndpoints.configName(context), namespace);
+        .findByNameAndNamespace(PatroniUtil.configName(context), namespace);
     final int latestPrimaryIndexFromPatroni =
         getLatestPrimaryIndexFromPatroni(patroniConfigEndpoints);
     startPrimaryIfRemoved(context, requiredSts, latestPrimaryIndexFromPatroni, writer);

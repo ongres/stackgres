@@ -114,7 +114,8 @@ public abstract class ExtensionManager {
         justification = "False positive")
     public void downloadAndExtract() throws Exception {
       LOGGER.info("Downloading {} from {}",
-          ExtensionUtil.getDescription(context.getCluster(), installedExtension), extensionUri);
+          ExtensionUtil.getDescription(context.getCluster(), installedExtension, true),
+          extensionUri);
       try (WebClient client = webClientFactory.create(extensionsRepositoryUri)) {
         try (InputStream inputStream = client.getInputStream(extensionUri)) {
           extractTar(inputStream);

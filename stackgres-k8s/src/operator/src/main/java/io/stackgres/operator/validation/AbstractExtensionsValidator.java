@@ -74,7 +74,7 @@ public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
                               extension.setName(missingExtension.v1);
                               missingExtension.v2.ifPresent(extension::setVersion);
                               return extension;
-                            }))
+                            }), false)
                         .stream()
                         .map(extensionMetadata -> extensionMetadata.getVersion().getVersion())
                         .collect(ImmutableList.toImmutableList()));

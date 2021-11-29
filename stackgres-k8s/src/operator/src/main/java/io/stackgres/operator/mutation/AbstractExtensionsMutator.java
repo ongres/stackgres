@@ -131,7 +131,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
     StackGresClusterExtension extension = new StackGresClusterExtension();
     extension.setName(extensionName);
     return getExtensionMetadataManager()
-        .findExtensionCandidateAnyVersion(cluster, extension)
+        .findExtensionCandidateAnyVersion(cluster, extension, false)
         .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
             extension, extensionMetadata));
   }
@@ -142,7 +142,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
     extension.setName(extensionName);
     extension.setVersion(extensionVersion);
     return getExtensionMetadataManager()
-        .findExtensionCandidateSameMajorBuild(cluster, extension)
+        .findExtensionCandidateSameMajorBuild(cluster, extension, false)
         .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
             extension, extensionMetadata));
   }
@@ -150,7 +150,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
   private Optional<StackGresClusterInstalledExtension> getToInstallExtension(
       StackGresCluster cluster, StackGresClusterExtension extension) {
     return getExtensionMetadataManager()
-        .findExtensionCandidateSameMajorBuild(cluster, extension)
+        .findExtensionCandidateSameMajorBuild(cluster, extension, false)
         .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
             extension, extensionMetadata));
   }

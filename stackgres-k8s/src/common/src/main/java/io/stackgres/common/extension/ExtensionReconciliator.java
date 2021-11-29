@@ -85,7 +85,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
         if (!skipSharedLibrariesOverwrites) {
           if (extensionUninstaller.isExtensionInstalled()) {
             LOGGER.info("Removing extension {}",
-                ExtensionUtil.getDescription(cluster, installedExtension));
+                ExtensionUtil.getDescription(cluster, installedExtension, true));
             extensionEventEmitter.emitExtensionRemoved(installedExtension);
             extensionUninstaller.uninstallExtension();
           }
@@ -93,7 +93,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
           clusterUpdated = true;
         } else {
           LOGGER.info("Skip uninstallation of extension {}",
-              ExtensionUtil.getDescription(cluster, installedExtension));
+              ExtensionUtil.getDescription(cluster, installedExtension, true));
           if (!Optional.ofNullable(podStatus.getPendingRestart()).orElse(false)) {
             podStatus.setPendingRestart(true);
             clusterUpdated = true;
@@ -102,7 +102,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
       } catch (Exception ex) {
         exceptions.add(ex);
         onUninstallException(client, cluster,
-            ExtensionUtil.getDescription(cluster, installedExtension),
+            ExtensionUtil.getDescription(cluster, installedExtension, true),
             podName, ex);
       }
     }
@@ -111,19 +111,22 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
         final ExtensionInstaller extensionInstaller = Optional.ofNullable(
             extensionManager.getExtensionInstaller(context, extension))
             .orElseThrow(() -> new IllegalStateException(
-                "Can not find extension " + ExtensionUtil.getDescription(cluster, extension)));
+                "Can not find extension "
+                    + ExtensionUtil.getDescription(cluster, extension, true)));
         if (!extensionInstaller.isExtensionInstalled()
             && (!skipSharedLibrariesOverwrites
                 || !extensionInstaller.isExtensionPendingOverwrite())) {
-          LOGGER.info("Download extension {}", ExtensionUtil.getDescription(cluster, extension));
+          LOGGER.info("Download extension {}",
+              ExtensionUtil.getDescription(cluster, extension, true));
           extensionEventEmitter.emitExtensionDownloading(extension);
           extensionInstaller.downloadAndExtract();
-          LOGGER.info("Verify extension {}", ExtensionUtil.getDescription(cluster, extension));
+          LOGGER.info("Verify extension {}",
+              ExtensionUtil.getDescription(cluster, extension, true));
           extensionInstaller.verify();
           if (skipSharedLibrariesOverwrites
               && extensionInstaller.doesInstallOverwriteAnySharedFile()) {
             LOGGER.info("Skip installation of extension {}",
-                ExtensionUtil.getDescription(cluster, extension));
+                ExtensionUtil.getDescription(cluster, extension, true));
             if (!extensionInstaller.isExtensionPendingOverwrite()) {
               extensionInstaller.setExtensionAsPending();
             }
@@ -133,14 +136,15 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
               clusterUpdated = true;
             }
           } else {
-            LOGGER.info("Install extension {}", ExtensionUtil.getDescription(cluster, extension));
+            LOGGER.info("Install extension {}",
+                ExtensionUtil.getDescription(cluster, extension, true));
             extensionInstaller.installExtension();
             extensionEventEmitter.emitExtensionDeployed(extension);
           }
         } else {
           if (!extensionInstaller.areLinksCreated()) {
             LOGGER.info("Create links for extension {}",
-                ExtensionUtil.getDescription(cluster, extension));
+                ExtensionUtil.getDescription(cluster, extension, true));
             extensionInstaller.createExtensionLinks();
           }
         }
@@ -150,8 +154,8 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
           installedExtensions.stream()
               .filter(anInstalledExtension -> anInstalledExtension.same(extension))
               .peek(previousInstalledExtension -> LOGGER.info("Extension upgraded from {} to {}",
-                  ExtensionUtil.getDescription(cluster, previousInstalledExtension),
-                  ExtensionUtil.getDescription(cluster, extension)))
+                  ExtensionUtil.getDescription(cluster, previousInstalledExtension, true),
+                  ExtensionUtil.getDescription(cluster, extension, true)))
               .peek(previousInstalledExtension -> extensionEventEmitter
                   .emitExtensionChanged(previousInstalledExtension, extension))
               .findAny()
@@ -161,7 +165,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
         }
       } catch (Exception ex) {
         exceptions.add(ex);
-        onInstallException(client, cluster, ExtensionUtil.getDescription(cluster, extension),
+        onInstallException(client, cluster, ExtensionUtil.getDescription(cluster, extension, true),
             podName, ex);
       }
     }

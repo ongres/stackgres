@@ -7,6 +7,7 @@ package io.stackgres.operator.mutation.cluster;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.when;
 
@@ -80,7 +81,7 @@ class ExtensionsMutatorTest {
         .map(this::getInstalledExtension)
         .collect(ImmutableList.toImmutableList());
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), any()))
+        same(review.getRequest().getObject()), any(), anyBoolean()))
         .then(this::getDefaultExtensionMetadata);
   }
 
@@ -125,7 +126,7 @@ class ExtensionsMutatorTest {
         .addAll(installedExtensions);
 
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -150,7 +151,7 @@ class ExtensionsMutatorTest {
         .add(installedExtension);
 
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -181,11 +182,11 @@ class ExtensionsMutatorTest {
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(testExtension)))
+        same(review.getRequest().getObject()), same(testExtension), anyBoolean()))
         .thenReturn(Optional.of(extensionTestMetadata));
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -230,7 +231,7 @@ class ExtensionsMutatorTest {
         .add(installedTestExtension);
 
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -261,7 +262,7 @@ class ExtensionsMutatorTest {
         .add(installedTestExtension2);
 
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -290,7 +291,7 @@ class ExtensionsMutatorTest {
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getVersion().setExtraMounts(ImmutableList.of("test"));
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -319,7 +320,7 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -349,7 +350,7 @@ class ExtensionsMutatorTest {
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getVersion().setExtraMounts(ImmutableList.of("test"));
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -378,7 +379,7 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -407,7 +408,7 @@ class ExtensionsMutatorTest {
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getTarget().setBuild(null);
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -433,7 +434,7 @@ class ExtensionsMutatorTest {
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(testExtension)))
+        same(review.getRequest().getObject()), same(testExtension), anyBoolean()))
         .thenReturn(Optional.empty());
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -459,7 +460,7 @@ class ExtensionsMutatorTest {
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(testExtension)))
+        same(review.getRequest().getObject()), same(testExtension), anyBoolean()))
         .thenReturn(Optional.empty());
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
