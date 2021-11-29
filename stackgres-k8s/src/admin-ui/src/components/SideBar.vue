@@ -209,7 +209,78 @@
 		},
 
 		created: function() {
-			
+			$(document).on("click", "#current-namespace , #ns-select a", function(){
+				$("#current-namespace").toggleClass("open");
+				$("#ns-select").slideToggle();
+				$(".set.active:not(.conf)").removeClass('active');
+			});
+
+			$(document).on("mouseover", ".collapsed #ns-set", function(){
+				$("#current-namespace").addClass("open");
+				$("#ns-select").show();
+			});
+
+			$(document).on("mouseleave", ".collapsed #ns-set", function(){
+				$("#current-namespace").removeClass("open");
+				$("#ns-select").hide();
+			});
+
+			$(document).on("mouseover", ".set:not(.active)", function(){
+				let offset = $(this).offset();
+				let submenu = $(this).children("ul");
+				
+				if(window.innerHeight > 700)
+				submenu.css("bottom","auto").css("top",offset.top - window.scrollY).css("max-height",window.innerHeight - (offset.top - window.scrollY))
+				else
+				submenu.css("top", "auto").css("bottom",window.innerHeight - $(this).height() - offset.top)
+				
+				submenu.addClass("show");
+			});
+
+			$(document).on("click", "#sets .nav-item", function(){
+				$("#current-namespace").removeClass('open');
+				$('#ns-select').slideUp();
+				$(".set:not(.active) > ul.show").removeClass("show");    
+			});
+
+			$(document).on("click", ".set .item", function(){    
+				$(".set:not(.active) > ul.show").removeClass("show");
+			});
+
+			$(document).on("mouseleave", ".set:not(.active)", function(){
+				$(this).children("ul.show").removeClass("show");
+			});
+
+			$(document).on("mouseleave", ".set:not(.active) ul.show", function(){
+				$(this).removeClass("show");
+			});
+
+			$(document).on('click', '.set > .addnew', function(){
+				if(!$(this).parent().hasClass('active')) {
+				$('.set.active:not(.conf)').removeClass('active');
+				$(this).parent().addClass('active');
+				}
+				$('.set ul.show').removeClass('show');
+			});
+
+
+
+			$(document).on("mouseover", ".collapsed .set", function(){
+				let offset = $(this).offset();
+				let submenu = $(this).children("ul");
+				
+				if(window.innerHeight > 700)
+				submenu.css("bottom","auto").css("top",offset.top - window.scrollY).css("max-height",window.innerHeight - (offset.top - window.scrollY))
+				else
+				submenu.css("top", "auto").css("bottom",window.innerHeight - $(this).height() - offset.top)
+				
+				submenu.addClass("show");
+			});
+
+			$(document).on("mouseleave", ".collapsed .set", function(){
+				$(this).children("ul").removeClass("show");
+			});
+
 		},
 
 		computed: {
@@ -258,6 +329,177 @@
 </script>
 
 <style scoped>
+	/*Expanded Sidebar*/
+	#ns-select {
+		list-style: none;
+		line-height: 50px;
+		display: none;
+		margin-top: -1px;
+	}
+
+	#ns-select a {
+		padding-left: 50px;
+		display: block;
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	#ns-select li {
+		position: relative;
+	}
+
+	#ns-select li:hover {
+		background: rgba(211, 211, 211, .10);
+		margin-left: -50px;
+		padding-left: 50px;
+	}
+
+	#ns-select li a:hover {
+		background: transparent;
+	} 
+
+	.set {
+		height: auto;
+		font-size: 1.1rem;
+		line-height: 60px;
+		transition: max-height 1s ease-out;
+		position: relative;
+	}
+
+	.set.clu.active {
+		border-top: 0 !important;
+	}
+
+	.set.active:not(.conf) > ul {
+		min-height: 50px;
+		max-height: calc(100vh - 580px) !important;
+		overflow: auto;
+	}
+
+	#sets .item {
+		display: block;
+		cursor: pointer;
+		position: relative;
+		height: 50px;
+		line-height: 50px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.set.active > ul > li > .item:before {
+		display: block;
+		content: " ";
+		position: absolute;
+		width: 9px;
+		height: 2px;
+		border-radius: 2px;
+		background: var(--blue);
+		top: 23px;
+		margin-left: -27px;
+	}
+	
+	.set:not(.active) > ul li {
+		background: #fff;
+	}
+
+	.set li {
+		height: 50px;
+		line-height: 50px;
+	}
+
+	#sets > .active .active > ul > li > a {
+		padding-left: 110px;
+	}
+
+	.set:not(.active) ul, .collapsed .set.active:not(.conf) ul {
+		position: absolute;
+		width: 350px;
+		left: 100%;
+		list-style: none;
+		top: 0;
+		display: none;
+		background: transparent;
+		padding-left: 10px;
+		border-radius: 5px;
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+	}
+
+	.set .set ul {
+		border-radius: 0;
+		list-style: none;
+	}
+
+	.set:not(.active) > ul.show, .collapsed .set.active:not(.conf) > ul.show {
+		display: block;
+		position: fixed;
+		left: 350px;
+		z-index: 2;
+		overflow: auto;
+		padding-left: 0;
+		border: 1px solid var(--borderColor);
+		border-left: none;
+		background-color: var(--bgColor);
+		box-shadow: 2px 2px 5px rgba(0,0,0,.1);
+	}
+
+	.set:not(.active) ul.show:before, .collapsed .set.active:not(.conf) ul.show:before {
+		content: " ";
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		z-index: 0;
+		border: 0;
+	}
+	
+	.nav-item {
+		color: inherit;
+		display: flex;
+		height: 50px;
+		line-height: 50px;
+		font-size: 14px;
+		cursor: pointer;
+	}
+
+	#sets > .active > ul > li > .item, .set.active .set > .nav-item  {
+		padding-left: 80px;
+	}
+
+	#sets > .set > .nav-item {
+		padding-left: 50px;
+	}
+
+	.set:hover > .addnew, .set.active > .addnew {
+		display: block;
+	}
+
+	a.addnew {
+		position: absolute;
+		top: -3px;
+		right: 0;
+		background: transparent !important;
+		display: none;
+		height: 52px;
+	}
+
+	.set > div {
+		padding-left: 30px;
+	}
+
+	.set > .nav-item, .set a {
+		padding: 0 20px;
+	}
+
+	.conf > .item:not(:last-of-type) {
+		padding-bottom: 15px;
+	}
+
+	/*Collapsed Sidebar*/	
 	.collapsed .set.backups a.nav-item:hover .hideCollapsed, .collapsed .set.dbops a.nav-item:hover .hideCollapsed {
 		display: block !important;
 		position: fixed !important;
@@ -282,8 +524,99 @@
 		color: var(--baseColor) !important;
 	}
 
+	.collapsed #ns-select {
+		position: fixed;
+		list-style: none;
+		width: 350px;
+		left: 50px;
+		z-index: 999;
+		top: 50px;
+		height: auto;
+		max-height: calc(100vh - 50px);
+		overflow: auto;
+		padding-left: 0;
+		border: 1px solid var(--borderColor);
+		border-left: none;
+		background-color: var(--bgColor);
+		box-shadow: 2px 2px 5px rgba(0,0,0,.1);
+	}
+
+	.collapsed #ns-select a {
+		padding-left: 40px;
+	}
+
+	.collapsed #ns-select.set:hover:not(.active) li:first-child > a, .collapsed #ns-select.set:hover:not(.active) li:last-child > a, .collapsed #ns-select.set:hover li > a {
+		border: none;
+	}
+
+	.collapsed .set:not(.conf) {
+		height: 50px;
+	}
+
+	.collapsed #sets > .active .active > ul > li > a, .collapsed #sets > .active > ul > li > .item, .collapsed .set.active .set > .nav-item {
+		padding-left: 40px;
+	}
+
+	.collapsed #side .nav-item, .collapsed #side #current-namespace {
+		padding: 15px;
+	}
+
+	.collapsed #side .set svg {
+		width: 18px;
+		height: 18px;
+		margin: 0;
+	}
+
+	.collapsed #side .set.conf .set svg {
+		width: 20px;
+		height: 20px;
+	}
+
+	.collapsed .set:not(.conf) > a.nav-item {
+		border-bottom: 1px solid transparent;
+		border-top: 1px solid transparent;
+	}
+
+	.collapsed .set:not(.conf):hover > a.nav-item {
+		border-bottom: 1px solid var(--borderColor);
+		border-top: 1px solid var(--borderColor);
+	}
+
+	.collapsed .set.clu > a.nav-item {
+		border-top: 0 !important;
+	}
+
+	.collapsed .set.clu ul.show {
+		transform: translateY(-1px);
+	}
+
+	.collapsed .set.conf.active {
+		background: none;
+	}
+
+	.collapsed .set:not(.conf) > ul.show, .collapsed .set.active:not(.conf) > ul.show {
+		left: 50px;
+	}
+
+	.collapsed .set:not(.conf) > ul.show {
+		border: 0;
+	}
+
+	.collapsed .set.active > ul > li > .item:before {
+		display: none;
+	}
+
+	/*Darkmode Adjustments*/
 	.darkmode .collapsed .set.backups .hideCollapsed:hover, .darkmode .collapsed .set.dbops .hideCollapsed:hover {
 		background: #303030 !important;
 	}
-	
+
+	.darkmode #ns-select a:hover {
+		background: transparent !important;
+	}
+
+	.darkmode #side, .darkmode .set:not(.active) > ul li {
+		background: var(--bgColor);
+	}
+
 </style>
