@@ -31,6 +31,7 @@ public class ClusterControllerReconciliator
     extends Reconciliator<StackGresClusterContext> {
 
   private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
+  private final PostgresBootstrapReconciliator postgresBootstrapReconciliator;
   private final ClusterExtensionReconciliator extensionReconciliator;
   private final PgBouncerReconciliator pgbouncerReconciliator;
   private final ClusterControllerPropertyContext propertyContext;
@@ -38,6 +39,7 @@ public class ClusterControllerReconciliator
   @Inject
   public ClusterControllerReconciliator(Parameters parameters) {
     this.clusterScheduler = parameters.clusterScheduler;
+    this.postgresBootstrapReconciliator = parameters.postgresBootstrapReconciliator;
     this.extensionReconciliator = parameters.extensionReconciliator;
     this.pgbouncerReconciliator = parameters.pgbouncerReconciliator;
     this.propertyContext = parameters.propertyContext;
@@ -48,6 +50,7 @@ public class ClusterControllerReconciliator
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.propertyContext = null;
     this.clusterScheduler = null;
+    this.postgresBootstrapReconciliator = null;
     this.extensionReconciliator = null;
     this.pgbouncerReconciliator = null;
   }
@@ -57,6 +60,8 @@ public class ClusterControllerReconciliator
   @Override
   protected ReconciliationResult<?> reconcile(KubernetesClient client,
                                               StackGresClusterContext context) throws Exception {
+    ReconciliationResult<Boolean> postgresBootstrapReconciliatorResult =
+        postgresBootstrapReconciliator.reconcile(client, context);
     ReconciliationResult<Boolean> extensionReconciliationResult =
         extensionReconciliator.reconcile(client, context);
     ReconciliationResult<Boolean> pgbouncerReconciliationResult =
@@ -76,6 +81,8 @@ public class ClusterControllerReconciliator
             if (targetCluster.getStatus() == null) {
               targetCluster.setStatus(new StackGresClusterStatus());
             }
+            targetCluster.getStatus().setArch(status.getArch());
+            targetCluster.getStatus().setOs(status.getOs());
             if (targetCluster.getStatus().getPodStatuses() == null) {
               targetCluster.getStatus().setPodStatuses(new ArrayList<>());
             }
@@ -90,7 +97,8 @@ public class ClusterControllerReconciliator
           });
     }
 
-    return extensionReconciliationResult
+    return postgresBootstrapReconciliatorResult
+        .join(extensionReconciliationResult)
         .join(pgbouncerReconciliationResult);
   }
 
@@ -104,14 +112,11 @@ public class ClusterControllerReconciliator
 
   @Dependent
   public static class Parameters {
-    @Inject
-    CustomResourceScheduler<StackGresCluster> clusterScheduler;
-    @Inject
-    ClusterExtensionReconciliator extensionReconciliator;
-    @Inject
-    PgBouncerReconciliator pgbouncerReconciliator;
-    @Inject
-    ClusterControllerPropertyContext propertyContext;
+    @Inject CustomResourceScheduler<StackGresCluster> clusterScheduler;
+    @Inject PostgresBootstrapReconciliator postgresBootstrapReconciliator;
+    @Inject ClusterExtensionReconciliator extensionReconciliator;
+    @Inject PgBouncerReconciliator pgbouncerReconciliator;
+    @Inject ClusterControllerPropertyContext propertyContext;
   }
 
 }

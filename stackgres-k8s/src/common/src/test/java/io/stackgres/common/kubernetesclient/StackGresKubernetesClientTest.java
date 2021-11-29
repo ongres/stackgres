@@ -106,7 +106,7 @@ class StackGresKubernetesClientTest {
 
   @Test
   void givenAManagedListObject_shouldSuccessfullyParseIt() throws JsonProcessingException {
-    try (StackGresDefaultKubernetesClient stackGresKubernetesClient
+    try (final StackGresDefaultKubernetesClient stackGresKubernetesClient
         = new StackGresDefaultKubernetesClient()) {
       ObjectNode list = JsonUtil.readFromJsonAsJson("statefulset/k8s-sts-list-response.json");
 
@@ -120,7 +120,7 @@ class StackGresKubernetesClientTest {
 
   @Test
   void givenAnEmptyListObject_shouldNotFail() throws JsonProcessingException {
-    try (StackGresDefaultKubernetesClient stackGresKubernetesClient
+    try (final StackGresDefaultKubernetesClient stackGresKubernetesClient
         = new StackGresDefaultKubernetesClient()) {
       ObjectNode list = (ObjectNode) Serialization.jsonMapper().readTree("{\n"
           + "  \"kind\" : \"StatefulSetList\",\n"

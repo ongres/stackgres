@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation.distributedlogs;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -92,7 +93,7 @@ class ExtensionsValidatorTest {
   void givenACreationWithMissingExtensions_shouldFail() {
     final StackGresDistributedLogsReview review = getCreationReview();
     when(extensionMetadataManager.getExtensionsAnyVersion(
-        any(), any()))
+        any(), any(), anyBoolean()))
         .then(this::getDefaultExtensionMetadatas);
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),

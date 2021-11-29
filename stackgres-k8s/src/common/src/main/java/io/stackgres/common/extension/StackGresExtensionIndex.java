@@ -7,6 +7,7 @@ package io.stackgres.common.extension;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
@@ -24,11 +25,18 @@ public class StackGresExtensionIndex {
   private final boolean fromIndex;
   private final List<String> channels;
   private final String build;
-  private final String arch;
-  private final String os;
+  private final Optional<String> arch;
+  private final Optional<String> os;
 
-  public StackGresExtensionIndex(StackGresCluster cluster,
-      StackGresClusterInstalledExtension installedExtension) {
+  public static StackGresExtensionIndex fromClusterInstalledExtension(StackGresCluster cluster,
+      StackGresClusterInstalledExtension installedExtension, boolean detectOs) {
+    return new StackGresExtensionIndex(cluster, installedExtension,
+        Optional.of(ExtensionUtil.OS_DETECTOR).filter(od -> detectOs));
+  }
+
+  private StackGresExtensionIndex(StackGresCluster cluster,
+      StackGresClusterInstalledExtension installedExtension,
+      Optional<ExtensionUtil.OsDetector> osDetector) {
     this.name = installedExtension.getName();
     this.publisher = installedExtension.getPublisher();
     this.version = installedExtension.getVersion();
@@ -37,8 +45,8 @@ public class StackGresExtensionIndex {
     this.fromIndex = false;
     this.channels = ImmutableList.of();
     this.build = installedExtension.getBuild();
-    this.arch = ExtensionUtil.ARCH_X86_64;
-    this.os = ExtensionUtil.OS_LINUX;
+    this.arch = ExtensionUtil.getClusterArch(cluster, osDetector);
+    this.os = ExtensionUtil.getClusterOs(cluster, osDetector);
   }
 
   public StackGresExtensionIndex(StackGresExtension extension, StackGresExtensionVersion version,
@@ -54,8 +62,8 @@ public class StackGresExtensionIndex {
         .map(Tuple2::v1)
         .collect(ImmutableList.toImmutableList());
     this.build = target.getBuild();
-    this.arch = target.getArchOrDefault();
-    this.os = target.getOsOrDefault();
+    this.arch = Optional.of(target.getArchOrDefault());
+    this.os = Optional.of(target.getOsOrDefault());
   }
 
   @Override
@@ -76,10 +84,8 @@ public class StackGresExtensionIndex {
         && Objects.equals(name, other.name)
         && Objects.equals(flavor, other.flavor)
         && Objects.equals(postgresVersion, other.postgresVersion)) {
-      if (fromIndex && other.fromIndex) {
-        return equalsBothFromIndex(this, other);
-      }
-      if (!fromIndex && !other.fromIndex) {
+      if ((fromIndex && other.fromIndex)
+          || (!fromIndex && !other.fromIndex)) {
         return equalsBothFromIndex(this, other);
       }
       if (fromIndex && !other.fromIndex) {
@@ -92,16 +98,6 @@ public class StackGresExtensionIndex {
     return false;
   }
 
-  private boolean equalsWithFromIndex(StackGresExtensionIndex other,
-      StackGresExtensionIndex fromIndex) {
-    return (fromIndex.version.equals(other.version)
-        || fromIndex.channels.stream().anyMatch(other.version::equals))
-        && (Objects.isNull(fromIndex.build)
-            || (Objects.equals(fromIndex.arch, other.arch) // NOPMD
-            && Objects.equals(fromIndex.os, other.os)
-            && Objects.equals(fromIndex.build, other.build)));
-  }
-
   private boolean equalsBothFromIndex(StackGresExtensionIndex self,
       StackGresExtensionIndex other) {
     return Objects.equals(self.channels, other.channels)
@@ -109,6 +105,16 @@ public class StackGresExtensionIndex {
         && Objects.equals(self.arch, other.arch)
         && Objects.equals(self.os, other.os)
         && Objects.equals(self.build, other.build);
+  }
+
+  private boolean equalsWithFromIndex(StackGresExtensionIndex other,
+      StackGresExtensionIndex fromIndex) {
+    return (fromIndex.version.equals(other.version)
+        || fromIndex.channels.stream().anyMatch(other.version::equals))
+        && (Objects.isNull(fromIndex.build)
+            || ((other.arch.isEmpty() || Objects.equals(fromIndex.arch, other.arch)) // NOPMD
+            && (other.os.isEmpty() || Objects.equals(fromIndex.os, other.os))
+            && Objects.equals(fromIndex.build, other.build)));
   }
 
   @Override

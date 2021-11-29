@@ -65,7 +65,7 @@ run () {
     [ "$EXTENSIONS_CACHE_LOG_LEVEL" = TRACE ] || set +x
     get_to_install_extensions > full_to_install_extensions
     sort full_to_install_extensions \
-      | uniq | grep -v '^$' > to_install_extensions
+      | uniq | { grep -v '^$' || true; } > to_install_extensions
     TO_INSTALL_EXTENSIONS_JSON_STRING="$(jq -sR . to_install_extensions)"
     PULLED_TO_INSTALL_EXTENSIONS_JSON_STRING="$(
       jq '.metadata.annotations
@@ -383,6 +383,8 @@ get_to_install_extensions() {
   printf '%s' "$CLUSTER_EXTENSIONS" | jq '.items[]'
   printf '%s' "$DISTRIBUTEDLOGS_EXTENSIONS" | jq '.items[]'
   ) | jq -r -s '.[]
+    | select(has("status") and (.status | has("arch") and has("os")))
+    | .status as $status
     | .spec.toInstallPostgresExtensions
     | if . != null then . else [] end
     | .[]
@@ -392,8 +394,8 @@ get_to_install_extensions() {
         + .version + " "
         + .postgresVersion
         + " " + (.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
-        + " " + (.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
-        + " " + (.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end)
+        + " " + $status.arch
+        + " " + $status.os
         + " " + (.build | if . != null then . else "" end)
         '
   jq -r '
@@ -407,7 +409,9 @@ get_to_install_extensions() {
         | $availableForEntry | $result | .[$key] = $availableForEntry) | to_entries | map(.value))
     | .availableFor[] | . as $availableFor
     | select('"$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS"' | any(. as $test
-      | $extension.name + "-" + $version.version + "-"
+      | ($availableFor.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
+        + "/" + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end)
+        + "/" + $extension.name + "-" + $version.version + "-"
         + ($availableFor.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
         + $availableFor.postgresVersion
         + ($availableFor.build | if . != null then "-build-" + . else "" end)

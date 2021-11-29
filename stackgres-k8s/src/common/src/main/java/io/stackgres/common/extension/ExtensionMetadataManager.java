@@ -65,47 +65,49 @@ public abstract class ExtensionMetadataManager {
   }
 
   public StackGresExtensionMetadata getExtensionCandidateSameMajorBuild(
-      StackGresCluster cluster, StackGresClusterExtension extension) {
-    return findExtensionCandidateSameMajorBuild(cluster, extension)
+      StackGresCluster cluster, StackGresClusterExtension extension, boolean detectOs) {
+    return findExtensionCandidateSameMajorBuild(cluster, extension, detectOs)
         .orElseThrow(
             () -> new IllegalArgumentException("Can not find candidate version of extension "
-                + ExtensionUtil.getDescription(cluster, extension)));
+                + ExtensionUtil.getDescription(cluster, extension, detectOs)));
   }
 
   public Optional<StackGresExtensionMetadata> findExtensionCandidateSameMajorBuild(
-      StackGresCluster cluster, StackGresClusterExtension extension) {
-    return getExtensionsSameMajorBuild(cluster, extension).stream()
+      StackGresCluster cluster, StackGresClusterExtension extension, boolean detectOs) {
+    return getExtensionsSameMajorBuild(cluster, extension, detectOs).stream()
         .findFirst();
   }
 
   public List<StackGresExtensionMetadata> getExtensionsSameMajorBuild(
-      StackGresCluster cluster, StackGresClusterExtension extension) {
+      StackGresCluster cluster, StackGresClusterExtension extension, boolean detectOs) {
     return Optional
         .ofNullable(getExtensionsMetadata().indexSameMajorBuilds
-            .get(new StackGresExtensionIndexSameMajorBuild(cluster, extension)))
+            .get(StackGresExtensionIndexSameMajorBuild
+                .fromClusterExtension(cluster, extension, detectOs)))
         .map(this::extractLatestVersions)
         .orElse(ImmutableList.of());
   }
 
   public StackGresExtensionMetadata getExtensionCandidateAnyVersion(
-      StackGresCluster cluster, StackGresClusterExtension extension) {
-    return findExtensionCandidateAnyVersion(cluster, extension)
+      StackGresCluster cluster, StackGresClusterExtension extension, boolean detectOs) {
+    return findExtensionCandidateAnyVersion(cluster, extension, detectOs)
         .orElseThrow(
             () -> new IllegalArgumentException("Can not find candidate for any version"
-                + " of extension " + ExtensionUtil.getDescription(cluster, extension)));
+                + " of extension " + ExtensionUtil.getDescription(cluster, extension, detectOs)));
   }
 
   public Optional<StackGresExtensionMetadata> findExtensionCandidateAnyVersion(
-      StackGresCluster cluster, StackGresClusterExtension extension) {
-    return getExtensionsAnyVersion(cluster, extension).stream()
+      StackGresCluster cluster, StackGresClusterExtension extension, boolean detectOs) {
+    return getExtensionsAnyVersion(cluster, extension, detectOs).stream()
         .findFirst();
   }
 
   public List<StackGresExtensionMetadata> getExtensionsAnyVersion(
-      StackGresCluster cluster, StackGresClusterExtension extension) {
+      StackGresCluster cluster, StackGresClusterExtension extension, boolean detectOs) {
     return Optional
         .ofNullable(getExtensionsMetadata().indexAnyVersions
-            .get(new StackGresExtensionIndexAnyVersion(cluster, extension)))
+            .get(StackGresExtensionIndexAnyVersion
+                .fromClusterExtension(cluster, extension, detectOs)))
         .map(this::extractLatestVersions)
         .orElse(ImmutableList.of());
   }

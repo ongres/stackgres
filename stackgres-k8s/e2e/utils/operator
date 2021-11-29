@@ -425,8 +425,12 @@ install_operator_only() {
     --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level='"$(
       [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
     --set-string developer.extraOpts[10]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
-    --set-string extensions.cache.enabled="$(
+    --set extensions.cache.enabled="$(
       [ "$EXTENSIONS_CACHE_ENABLED" = true ] && echo true || echo false)" \
+    --set extensions.cache.preloadedExtensions="{$(
+      [ "$EXTENSIONS_CACHE_ENABLED" = true ] \
+        && printf '%s' "$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS" | jq -r 'join(",")' | tr -d '\n' \
+        || true)}" \
     $E2E_OPERATOR_OPTS "$@"
   fi
 }
@@ -488,8 +492,12 @@ upgrade_operator() {
     --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level='"$(
       [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
     --set-string developer.extraOpts[10]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
-    --set-string extensions.cache.enabled="$(
+    --set extensions.cache.enabled="$(
       [ "$EXTENSIONS_CACHE_ENABLED" = true ] && echo true || echo false)" \
+    --set extensions.cache.preloadedExtensions="{$(
+      [ "$EXTENSIONS_CACHE_ENABLED" = true ] \
+        && printf '%s' "$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS" | jq -r 'join(",")' | tr -d '\n' \
+        || true)}" \
     --reuse-values \
     $E2E_OPERATOR_OPTS "$@"
 }
@@ -531,8 +539,12 @@ upgrade_operator_from_private_repository() {
       --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level='"$(
         [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
       --set-string developer.extraOpts[10]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
-      --set-string extensions.cache.enabled="$(
+      --set extensions.cache.enabled="$(
         [ "$EXTENSIONS_CACHE_ENABLED" = true ] && echo true || echo false)" \
+      --set extensions.cache.preloadedExtensions="{$(
+        [ "$EXTENSIONS_CACHE_ENABLED" = true ] \
+          && printf '%s' "$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS" | jq -r 'join(",")' | tr -d '\n' \
+          || true)}" \
       "$@"
 }
 
