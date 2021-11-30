@@ -149,12 +149,12 @@ public interface ExtensionUtil {
   }
 
   static URI getExtensionPackageUri(URI repositoryUri,
-      StackGresCluster cluser,
+      StackGresCluster cluster,
       StackGresClusterInstalledExtension installedExtension) {
     return UriBuilder.fromUri(repositoryUri)
         .path(installedExtension.getPublisher())
-        .path(ARCH_X86_64).path(OS_LINUX)
-        .path(getExtensionPackageName(cluser, installedExtension) + ".tar")
+        .path(getClusterArch(cluster)).path(getClusterOs(cluster))
+        .path(getExtensionPackageName(cluster, installedExtension) + ".tar")
         .build();
   }
 
@@ -240,11 +240,23 @@ public interface ExtensionUtil {
     return build.split(Pattern.quote("."))[0];
   }
 
+  static String getClusterArch(@Nullable StackGresCluster cluster) {
+    return Optional.ofNullable(cluster).map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getArch)
+        .orElseGet(() -> OS_DETECTOR.getArch());
+  }
+
   static Optional<String> getClusterArch(@Nullable StackGresCluster cluster,
       Optional<OsDetector> osDetector) {
     return Optional.ofNullable(cluster).map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getArch)
         .or(() -> osDetector.map(OsDetector::getArch));
+  }
+
+  static String getClusterOs(@Nullable StackGresCluster cluster) {
+    return Optional.ofNullable(cluster).map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getOs)
+        .orElseGet(() -> OS_DETECTOR.getOs());
   }
 
   static Optional<String> getClusterOs(@Nullable StackGresCluster cluster,

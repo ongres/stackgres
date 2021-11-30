@@ -462,14 +462,12 @@ get_extension_from_url() {
     return
   fi
   NOT_FOUND_URL_PATH="${NOT_FOUND_URL#*://}"
-  NOT_FOUND_URL_PATH="${NOT_FOUND_URL_PATH#*/}"
   NOT_FOUND_URL_PATH="${NOT_FOUND_URL_PATH%%\?*}"
   EXTENSIONS_REPOSITORY_URL_PATH="${EXTENSIONS_REPOSITORY_URL%%\?*}"
   EXTENSIONS_REPOSITORY_URL_PATH="${EXTENSIONS_REPOSITORY_URL_PATH#*://}"
-  EXTENSIONS_REPOSITORY_URL_PATH="${EXTENSIONS_REPOSITORY_URL_PATH%%\?*}"
   NOT_FOUND_URL_RESOURCE_PATH="${NOT_FOUND_URL_PATH#${EXTENSIONS_REPOSITORY_URL_PATH}}"
   NOT_FOUND_URL_RESOURCE_PATH="${NOT_FOUND_URL_RESOURCE_PATH#/}"
-  if [ "$(printf '%s' "$NOT_FOUND_URL_RESOURCE_PATH" | fold -n 1 | grep -c /)" -eq 3 ]
+  if [ "$(printf '%s' "$NOT_FOUND_URL_RESOURCE_PATH" | fold -w 1 | grep -c /)" -eq 3 ]
   then
     REPOSITORY="${NOT_FOUND_URL%%$NOT_FOUND_URL_RESOURCE_PATH\?*}"
     PUBLISHER="$(printf '%s' "$NOT_FOUND_URL_RESOURCE_PATH" | cut -d '/' -f 1)"
@@ -499,7 +497,7 @@ get_extension_from_url() {
           + " " + ($availableFor.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
           + " " + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end)
           + " " + ($availableFor.build | if . != null then . else "" end))
-      | last' \
+      | .[]' \
       index.json
   fi
 }
