@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.kubernetesclient;
+package io.stackgres.common.kubernetesclient.workaround;
 
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -76,9 +76,7 @@ public class ServiceOperationsImpl
     return get();
   }
 
-  //CHECKSTYLE:OFF
   public String getURL(String portName) {
-  //CHECKSTYLE:ON
     String clusterIP = getMandatory().getSpec().getClusterIP();
     if ("None".equals(clusterIP)) {
       throw new IllegalStateException("Service: " + getMandatory().getMetadata().getName()

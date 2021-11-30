@@ -46,6 +46,8 @@ import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.stackgres.common.StackGresKubernetesClient;
+import io.stackgres.common.kubernetesclient.workaround.SecretOperationsImpl;
+import io.stackgres.common.kubernetesclient.workaround.ServiceOperationsImpl;
 import io.stackgres.common.resource.KubernetesClientStatusUpdateException;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import okhttp3.Call;
