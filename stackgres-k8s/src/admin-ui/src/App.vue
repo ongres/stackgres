@@ -3,7 +3,7 @@
 		<NavBar></NavBar>
 		<SideBar v-if="!$route.name.includes('GlobalDashboard')"></SideBar>
 		<router-view id="main" :key="$route.path" :class="$route.name.includes('GlobalDashboard') ? 'noSidebar' : ''"></router-view>
-		<div id="contentTooltip">
+		<div class="contentTooltip">
 			<div class="close"></div>
 			<div class="info">
 				<span class="close">CLOSE</span>

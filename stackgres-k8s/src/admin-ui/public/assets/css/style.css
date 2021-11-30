@@ -658,7 +658,7 @@ form#login .warning {
     background-color: #444;
 }
 
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode #contentTooltip .info, .darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode .contentTooltip .info, .darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
     border-color: var(--borderColor);
 }
 
@@ -670,7 +670,7 @@ form#login .warning {
     background-color: rgba(122, 123, 133, .10);
 }
 
-.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode #contentTooltip tr:nth-child(odd), .darkmode #contentTooltip .info {
+.darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode .contentTooltip tr:nth-child(odd), .darkmode .contentTooltip .info {
     background-color: #171717;
 }
 
@@ -691,7 +691,7 @@ form#login .warning {
     color: #cdcdcd;
 }
 
-.darkmode #contentTooltip {
+.darkmode .contentTooltip {
     background: rgba(23, 23, 23, .75);
 }
 
@@ -1682,7 +1682,7 @@ ul.tabs {
     margin-bottom: -1px;
 }
 
-#contentTooltip .tabs a {
+.contentTooltip .tabs a {
     margin-top: 0;
     padding-top: 0;
 }
@@ -2278,8 +2278,10 @@ label.switch {
     right: 4px;
     top: 4px;
     font-size: 11px;
-    border-color: var(--gray3);
+    border: 1px solid var(--gray3);
     cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
 }
 
 .switch input:hover {
@@ -2552,7 +2554,7 @@ fieldset {
     margin-top: 2px;
 }
 
-.form .header label {
+.header label {
     display: inline-block;
     width: auto;
     cursor: pointer;
@@ -2561,7 +2563,7 @@ fieldset {
     user-select: none;
 }
 
-.form .header input[type="checkbox"] {
+.header input[type="checkbox"] {
     width: 14px;
     height: 14px;
     border-radius: 2px;
@@ -2573,11 +2575,11 @@ fieldset {
     top: -2px;
 }
 
-.form .header input[type="checkbox"]:checked {
+.header input[type="checkbox"]:checked {
     border: 1px solid var(--blue);
 }
 
-.form .header input[type="checkbox"]:checked:after {
+.header input[type="checkbox"]:checked:after {
     border: 2px solid var(--blue);
     width: 3px;
     height: 7px;
@@ -2591,22 +2593,22 @@ fieldset {
     left: 4px;
 }
 
-.form .header input[type="checkbox"]:checked + span {
+.header input[type="checkbox"]:checked + span {
     color: var(--blue);
 }
 
-.form .header input[type="checkbox"].switch {
+.header input[type="checkbox"].switch {
     border-radius: 20px;
     width: 25px;
     height: 15px;
     border-color: var(--textColor);
 }
 
-.form .header input[type="checkbox"].switch:checked {
+.header input[type="checkbox"].switch:checked {
     border-color: var(--baseColor);
 }
 
-.form .header input[type="checkbox"].switch:after {
+.header input[type="checkbox"].switch:after {
     display: block;
     content: " ";
     border-radius: 100%;
@@ -2622,7 +2624,7 @@ fieldset {
 }
 
 
-.form .header input[type="checkbox"].switch:checked:after {
+.header input[type="checkbox"].switch:checked:after {
     border-color: var(--baseColor);
     left: 11px;
     background: var(--baseColor);
@@ -3252,7 +3254,7 @@ table.clusterInfo{
     width: 20%;
 }
 
-#contentTooltip #clusterDetails [data-tooltip] {
+.contentTooltip #clusterDetails [data-tooltip] {
     display: none;
 }
 
@@ -4304,7 +4306,7 @@ tr.controlData a {
     cursor: pointer;
     color: var(--blue);
     display: block;
-}}
+}
 
 /* Tooltips for table height */
 table.pgConfig th.postgresVersion {
@@ -4325,21 +4327,7 @@ table.backupConfig th.name {
 
 #backup .storageType {
     width: 125px;
-} */
-
-/* table.backups th.name, table.backups td.name {
-    min-width: 250px;
-    width: 250px;
-}
-
-table.backups td.hasTooltip > span {
-    max-width: 120px;
-}
-
-table.backups .clusterName {
-    padding-left: 15px;
-    min-width: 200px;
-} */
+} 
 
 table.profiles td.inlineList svg, table.backupConfig td.usedOn svg {
     width: 14px;
@@ -4585,7 +4573,7 @@ table.backupConfig tr.details.open td:first-of-type {
 }
 
 /*Tooltips*/
-#contentTooltip {
+.contentTooltip {
     position: fixed;
     top: 50px;
     left: 350px;
@@ -4598,19 +4586,19 @@ table.backupConfig tr.details.open td:first-of-type {
     transition: opacity .2s ease-in;
 }
 
-.collapsed #contentTooltip {
+.collapsed .contentTooltip {
     width: calc(100vw - 50px);
     left: 50px;
 }
 
-#contentTooltip.show {
+.contentTooltip.show {
     display: flex !important;
     opacity: 1;
     z-index: 10;
     transition: opacity .4s ease-out;
 }
 
-#contentTooltip > .close {
+.contentTooltip > .close {
     position: absolute;
     top: 0;
     left: 0;
@@ -4619,7 +4607,7 @@ table.backupConfig tr.details.open td:first-of-type {
     z-index: 1;
 }
 
-#contentTooltip .info {
+.contentTooltip .info {
     display: block;
     float: none;
     margin: 0 auto;
@@ -4634,7 +4622,7 @@ table.backupConfig tr.details.open td:first-of-type {
     min-width: 400px;
 }
 
-#contentTooltip .content {
+.contentTooltip .content {
     max-height: 60vh;
     display: inline-block;
     overflow-y: auto;
@@ -4642,7 +4630,7 @@ table.backupConfig tr.details.open td:first-of-type {
     width: 100%;
 }
 
-#contentTooltip .info span.close {
+.contentTooltip .info span.close {
     position: absolute;
     color: var(--blue);
     font-weight: bold;
@@ -4651,7 +4639,7 @@ table.backupConfig tr.details.open td:first-of-type {
     right: 10px;
 }
 
-#contentTooltip .content pre {
+.contentTooltip .content pre {
     white-space: pre-wrap;
     white-space: -moz-pre-wrap;
     white-space: -pre-wrap;
@@ -4660,28 +4648,28 @@ table.backupConfig tr.details.open td:first-of-type {
     padding-right: 15px;
 }
 
-#contentTooltip .warning svg {
+.contentTooltip .warning svg {
     position: initial;
     margin: 0 0 10px;
     fill: var(--orange);
     width: 25px;
 }
 
-#contentTooltip .warning, .warning.orange {
+.contentTooltip .warning, .warning.orange {
     margin-bottom: 0;
     border-color: var(--orange) !important;
     background: rgb(255 87 34 / 10%);
 }
 
-#contentTooltip .warning p {
+.contentTooltip .warning p {
     padding-left: 0;
 }
 
-#contentTooltip .info.warning span.close {
+.contentTooltip .info.warning span.close {
     color: var(--orange);
 }
 
-#contentTooltip table {
+.contentTooltip table {
     width: 100%;
 }
 

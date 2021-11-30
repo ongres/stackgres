@@ -539,17 +539,17 @@ export const mixin = {
   
       setContentTooltip( el = '', warning = false ) {
         if(warning) {
-          $('#contentTooltip .info').addClass('warning')
+          $('.contentTooltip .info').addClass('warning')
         } else {
-          $('#contentTooltip .info').removeClass('warning');
+          $('.contentTooltip .info').removeClass('warning');
         }
 
         if(el.length) {
-          $('#contentTooltip .info .content').html($(el).html());
-          $('#contentTooltip').addClass('show');
+          $('.contentTooltip .info .content').html($(el).html());
+          $('.contentTooltip').addClass('show');
         } else {
-          $('#contentTooltip .info .content').html('');
-          $('#contentTooltip').removeClass('show');
+          $('.contentTooltip .info .content').html('');
+          $('.contentTooltip').removeClass('show');
         }
       },
   
