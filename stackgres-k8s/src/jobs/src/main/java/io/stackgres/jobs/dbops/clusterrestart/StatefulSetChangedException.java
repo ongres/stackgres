@@ -5,11 +5,11 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
-public class InvalidCluster extends RuntimeException {
+public class StatefulSetChangedException extends RuntimeException {
 
   static final long serialVersionUID = 0L;
 
-  public InvalidCluster(String message) {
+  public StatefulSetChangedException(String message) {
     super(message);
   }
 }

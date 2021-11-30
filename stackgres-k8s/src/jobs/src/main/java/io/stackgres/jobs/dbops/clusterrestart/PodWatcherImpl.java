@@ -5,12 +5,9 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -18,15 +15,12 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientTimeoutException;
+import io.fabric8.kubernetes.client.internal.readiness.Readiness;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterList;
-import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.resource.ResourceFinder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,87 +28,73 @@ import org.slf4j.LoggerFactory;
 public class PodWatcherImpl implements PodWatcher {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PodWatcherImpl.class);
-  private final KubernetesClient client;
 
   @Inject
-  public PodWatcherImpl(KubernetesClient client) {
-    this.client = client;
-  }
+  ResourceFinder<Pod> podFinder;
+
+  @Inject
+  ResourceFinder<StatefulSet> statefulSetFinder;
 
   @Override
-  public Uni<Pod> waitUntilIsReady(String clusterName, String name, String namespace) {
+  public Uni<Pod> waitUntilIsReady(String clusterName, String name, String namespace,
+      boolean checkStatefulSetChanges) {
     return waitUntilIsCreated(name, namespace)
-        .chain(pod -> waitUntilReady(clusterName, pod));
+        .chain(pod -> waitUntilReady(clusterName, pod, checkStatefulSetChanges));
   }
 
-  private Uni<Pod> waitUntilReady(String clusterName, Pod pod) {
+  private Uni<Pod> waitUntilReady(String clusterName, Pod pod, boolean checkStatefulSetChanges) {
     String podName = pod.getMetadata().getName();
     String namespace = pod.getMetadata().getNamespace();
 
-    return Uni.createFrom().emitter(em -> {
-      Pod readyPod = null;
-      do {
-        Pod updatedPod = client.pods().inNamespace(namespace).withName(podName).get();
-        LOGGER.info("Waiting for pod {} to be ready. Current state {}", podName,
-            updatedPod.getStatus().getPhase());
-
-        try {
-          readyPod = client.pods().inNamespace(namespace).withName(podName).waitUntilReady(60,
-              SECONDS);
-          LOGGER.info("Pod {} ready!", podName);
-          em.complete(readyPod);
-        } catch (KubernetesClientTimeoutException timeoutException) {
-          StackGresCluster sgCluster = getSgCluster(clusterName, namespace);
-          if (sgCluster != null) {
-            Optional<StatefulSet> sts = getStatefulSet(clusterName, namespace);
-            RestartReasons restartReasons =
-                ClusterPendingRestartUtil.getRestartReasons(
-                    Optional.ofNullable(sgCluster.getStatus())
-                    .map(StackGresClusterStatus::getPodStatuses)
-                    .orElse(ImmutableList.of()),
-                    sts, ImmutableList.of(updatedPod));
-            if (restartReasons.getReasons().contains(RestartReason.STATEFULSET)) {
-              String warningMessage = String.format("Statefulset for pod %s changed!", podName);
-              LOGGER.info(warningMessage);
-              em.fail(new RuntimeException(warningMessage));
-            }
+    return findPod(podName, namespace)
+        .onItem()
+        .transform(updatedPod -> updatedPod
+            .orElseThrow(() -> new RuntimeException("Pod " + podName + " not found")))
+        .chain(updatedPod -> Uni.createFrom().item(() -> {
+          if (!Readiness.getInstance().isReady(updatedPod)) {
+            throw Optional.of(checkStatefulSetChanges)
+                .filter(check -> check)
+                .flatMap(check -> getStatefulSetChangedException(
+                    clusterName, podName, namespace, updatedPod))
+                .map(RuntimeException.class::cast)
+                .orElse(new RuntimeException("Pod " + podName + " not ready"));
           }
-        }
-        waitForNextCheck();
-      } while (readyPod == null);
-    });
+          LOGGER.info("Pod {} ready!", podName);
+          return updatedPod;
+        }))
+        .onFailure(failure -> !(failure instanceof StatefulSetChangedException))
+        .retry()
+        .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
+        .indefinitely();
   }
 
-  private void waitForNextCheck() {
-    try {
-      TimeUnit.SECONDS.sleep(15);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+  private Optional<StatefulSetChangedException> getStatefulSetChangedException(String clusterName,
+      String podName, String namespace, Pod updatedPod) {
+    Optional<StatefulSet> sts = getStatefulSet(clusterName, namespace);
+    RestartReasons restartReasons =
+        ClusterPendingRestartUtil.getRestartReasons(
+            ImmutableList.of(), sts, ImmutableList.of(updatedPod));
+    if (restartReasons.getReasons().contains(RestartReason.STATEFULSET)) {
+      String warningMessage = String.format(
+          "Statefulset for pod %s changed!", podName);
+      LOGGER.info(warningMessage);
+      return Optional.of(new StatefulSetChangedException(warningMessage));
     }
-  }
-
-  private StackGresCluster getSgCluster(String clusterName, String namespace) {
-    return client.resources(StackGresCluster.class, StackGresClusterList.class)
-        .inNamespace(namespace).withName(clusterName).get();
+    return Optional.empty();
   }
 
   private Optional<StatefulSet> getStatefulSet(String clusterName, String namespace) {
-    return Optional.ofNullable(client.apps().statefulSets()
-        .inNamespace(namespace).withName(clusterName).get());
+    return statefulSetFinder.findByNameAndNamespace(clusterName, namespace);
   }
 
-  protected Uni<Pod> waitUntilIsCreated(String name, String namespace) {
+  @Override
+  public Uni<Pod> waitUntilIsCreated(String name, String namespace) {
     LOGGER.debug("Waiting for pod {} to be created", name);
 
-    return getPod(name, namespace)
+    return findPod(name, namespace)
         .onItem()
-        .transform(pod -> {
-          if (pod != null) {
-            return pod;
-          } else {
-            throw new RuntimeException("Pod " + name + " not found");
-          }
-        })
+        .transform(pod -> pod
+            .orElseThrow(() -> new RuntimeException("Pod " + name + " not found")))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
@@ -123,54 +103,55 @@ public class PodWatcherImpl implements PodWatcher {
 
   @Override
   public Uni<Void> waitUntilIsRemoved(String name, String namespace) {
-    return getPod(name, namespace)
-        .onItem().transformToUni(pod -> {
-          if (pod != null) {
-            return Uni.createFrom().failure(new RuntimeException("Pod " + name + " not removed"));
-          } else {
-            return Uni.createFrom().voidItem();
-          }
-        }).onFailure().retry().withBackOff(Duration.ofSeconds(1), Duration.ofSeconds(5))
-        .indefinitely();
+    return findPod(name, namespace)
+        .onItem()
+        .invoke(removedPod -> removedPod
+            .ifPresent(pod -> {
+              throw new RuntimeException("Pod " + name + " not removed");
+            }))
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
+        .indefinitely()
+        .onItem()
+        .<Void>transform(item -> null);
 
   }
 
   @Override
-  public Uni<Pod> waitUntilIsReplaced(Pod oldPod) {
-    String oldCreationTimestamp = oldPod.getMetadata().getCreationTimestamp();
-    String podName = oldPod.getMetadata().getName();
-    String podNamespace = oldPod.getMetadata().getNamespace();
-    return getPod(podName, podNamespace)
-        .onItem().transform(pod -> {
-          if (pod != null) {
-            return pod;
-          } else {
-            throw new RuntimeException("Pod " + podName + " not found");
-          }
-        })
-        .onItem().transform(newPod -> {
+  public Uni<Pod> waitUntilIsReplaced(Pod pod) {
+    String oldCreationTimestamp = pod.getMetadata().getCreationTimestamp();
+    String name = pod.getMetadata().getName();
+    String namespace = pod.getMetadata().getNamespace();
+    return findPod(name, namespace)
+        .onItem()
+        .transform(newPod -> newPod
+            .orElseThrow(() -> new RuntimeException("Pod " + name + " not found")))
+        .onItem()
+        .transform(newPod -> {
           String newCreationTimestamp = newPod.getMetadata().getCreationTimestamp();
           if (Objects.equals(oldCreationTimestamp, newCreationTimestamp)) {
-            throw new RuntimeException("Pod " + podName + " not replaced");
+            throw new RuntimeException("Pod " + name + " not replaced");
           } else {
             return newPod;
           }
-        }).onFailure()
+        })
+        .onFailure()
         .retry()
-        .withBackOff(Duration.ofSeconds(1), Duration.ofSeconds(5))
+        .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
         .indefinitely();
   }
 
-  private Uni<Pod> getPod(String name, String namespace) {
-    return Uni.createFrom().emitter(em -> {
-      var pod = client.pods().inNamespace(namespace).withName(name).get();
-      if (pod == null) {
-        LOGGER.debug("Pod {} not found in namespace {}", name, namespace);
-      } else {
-        LOGGER.debug("Pod {} found in namespace {}", name, namespace);
-      }
-      em.complete(pod);
-    });
+  private Uni<Optional<Pod>> findPod(String name, String namespace) {
+    return Uni.createFrom().item(() -> podFinder.findByNameAndNamespace(name, namespace))
+        .onItem()
+        .invoke(pod -> {
+          if (pod.isEmpty()) {
+            LOGGER.debug("Pod {} not found in namespace {}", name, namespace);
+          } else {
+            LOGGER.debug("Pod {} found in namespace {}", name, namespace);
+          }
+        });
   }
 
 }

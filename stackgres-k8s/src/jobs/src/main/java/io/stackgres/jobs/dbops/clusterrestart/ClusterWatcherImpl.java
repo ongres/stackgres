@@ -7,12 +7,14 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Predicates;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.LabelFactoryForCluster;
@@ -45,13 +47,13 @@ public class ClusterWatcherImpl implements ClusterWatcher {
     this.clusterFinder = clusterFinder;
   }
 
-  private static boolean isAllMembersReady(List<ClusterMember> members) {
-    return members.stream().allMatch(ClusterWatcherImpl::isMemberReady);
+  private static boolean isPrimaryReady(List<ClusterMember> members) {
+    return members.stream().anyMatch(ClusterWatcherImpl::isPrimaryReady);
   }
 
-  private static boolean isMemberReady(ClusterMember member) {
-    if (member.getRole() == MemberRole.LEADER) {
-      final boolean ready = member.getState() == MemberState.RUNNING
+  private static boolean isPrimaryReady(ClusterMember member) {
+    if (member.getRole().map(MemberRole.LEADER::equals).orElse(false)) {
+      final boolean ready = member.getState().map(MemberState.RUNNING::equals).orElse(false)
           && member.getApiUrl().isPresent()
           && member.getPort().isPresent()
           && member.getTimeline().isPresent()
@@ -61,7 +63,7 @@ public class ClusterWatcherImpl implements ClusterWatcher {
       }
       return ready;
     } else {
-      final boolean ready = member.getState() == MemberState.RUNNING
+      final boolean ready = member.getState().map(MemberState.RUNNING::equals).orElse(false)
           && member.getApiUrl().isPresent()
           && member.getPort().isPresent()
           && member.getTimeline().isPresent()
@@ -70,7 +72,7 @@ public class ClusterWatcherImpl implements ClusterWatcher {
       if (!ready) {
         LOGGER.debug("Non leader pod not ready, state: {}", member);
       }
-      return ready;
+      return false;
     }
   }
 
@@ -112,7 +114,7 @@ public class ClusterWatcherImpl implements ClusterWatcher {
             labelsAsString,
             expectedInstances,
             pods.size());
-        throw new InvalidCluster("No all pods found");
+        throw new InvalidClusterException("No all pods found");
       }
     });
   }
@@ -123,36 +125,37 @@ public class ClusterWatcherImpl implements ClusterWatcher {
     return patroniApiHandler.getClusterMembers(name,
         cluster.getMetadata().getNamespace())
         .onItem().transform(members -> {
-          if (isAllMembersReady(members)) {
-            LOGGER.debug("All members of cluster {} ready", name);
+          if (isPrimaryReady(members)) {
+            LOGGER.debug("Primary of cluster {} ready", name);
             return members;
           } else {
-            var podsReady = members.stream().filter(ClusterWatcherImpl::isMemberReady)
+            var primaryNotReady = members.stream()
+                .filter(Predicates.not(ClusterWatcherImpl::isPrimaryReady))
                 .map(ClusterMember::getName)
                 .collect(Collectors.joining());
-            var podsNotReady = members.stream().filter(m -> !isMemberReady(m))
-                .map(ClusterMember::getName)
-                .collect(Collectors.joining());
-            LOGGER.debug("Not all pods are ready. Pods not ready: {}, Pods ready: {}",
-                podsNotReady, podsReady);
-            throw new InvalidCluster("Not all pods are ready");
+            LOGGER.debug("Primary {} is not ready",
+                primaryNotReady);
+            throw new InvalidClusterException("Primary is not ready");
           }
         });
   }
 
   @Override
-  public Uni<Boolean> isAvailable(String clusterName, String namespace, String podName) {
+  public Uni<Optional<String>> getAvailablePrimary(String clusterName, String namespace) {
     return patroniApiHandler.getClusterMembers(clusterName, namespace)
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
         .atMost(10)
         .onItemOrFailure()
-        .transform((members, failure) -> {
-          return failure != null && members.stream()
-              .anyMatch(member -> member.getName().equals(podName)
-                  && member.getState().equals(MemberState.RUNNING));
-        });
+        .transform((members, failure) -> Optional.ofNullable(members)
+            .filter(m -> failure == null)
+            .stream()
+            .flatMap(List::stream)
+            .filter(member -> member.getRole().map(role -> role == MemberRole.LEADER).orElse(false)
+                && member.getState().map(state -> state == MemberState.RUNNING).orElse(false))
+            .map(ClusterMember::getName)
+            .findAny());
   }
 
 }

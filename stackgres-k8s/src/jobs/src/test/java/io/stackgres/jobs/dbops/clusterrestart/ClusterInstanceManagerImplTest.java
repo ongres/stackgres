@@ -8,6 +8,7 @@ package io.stackgres.jobs.dbops.clusterrestart;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
@@ -102,7 +103,7 @@ class ClusterInstanceManagerImplTest {
     assertEquals(
         initialInstances + 1, actualInstances);
 
-    verify(podWatcher).waitUntilIsReady(clusterName, newPodName, namespace);
+    verify(podWatcher).waitUntilIsReady(clusterName, newPodName, namespace, false);
 
   }
 
@@ -128,7 +129,7 @@ class ClusterInstanceManagerImplTest {
 
     InOrder order = inOrder(podWatcher);
 
-    order.verify(podWatcher).waitUntilIsReady(clusterName, newPodName, namespace);
+    order.verify(podWatcher).waitUntilIsReady(clusterName, newPodName, namespace, false);
 
   }
 
@@ -153,7 +154,7 @@ class ClusterInstanceManagerImplTest {
     assertEquals(
         initialInstances + 1, actualInstances);
 
-    verify(podWatcher).waitUntilIsReady(clusterName, newPodName, namespace);
+    verify(podWatcher).waitUntilIsReady(clusterName, newPodName, namespace, false);
   }
 
   @Test
@@ -379,7 +380,7 @@ class ClusterInstanceManagerImplTest {
   }
 
   private void configureCreationPodWatchers() {
-    when(podWatcher.waitUntilIsReady(eq(clusterName), anyString(), eq(namespace)))
+    when(podWatcher.waitUntilIsReady(eq(clusterName), anyString(), eq(namespace), anyBoolean()))
         .thenAnswer(invocation -> {
           final String podName = invocation.getArgument(1);
           String namespace = invocation.getArgument(2);

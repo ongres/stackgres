@@ -18,9 +18,9 @@ public interface ClusterMember {
 
   String getName();
 
-  MemberRole getRole();
+  Optional<MemberState> getState();
 
-  MemberState getState();
+  Optional<MemberRole> getRole();
 
   Optional<String> getApiUrl();
 
