@@ -47,7 +47,7 @@ public class ClusterServiceAccountHandler implements ReconciliationHandler<Stack
 
   private static ServiceAccount safeCast(HasMetadata resource) {
     if (!(resource instanceof ServiceAccount)) {
-      throw new IllegalArgumentException("Resource must be a ServiceMonitor instance");
+      throw new IllegalArgumentException("Resource must be a ServiceAccount instance");
     }
     return (ServiceAccount) resource;
   }
