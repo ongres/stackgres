@@ -40,20 +40,19 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
   LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
-  Watcher<Pod> podWatcher;
+  PodWatcher podWatcher;
 
   @Inject
   ResourceScanner<Pod> podScanner;
 
   @Override
   public Uni<Pod> increaseClusterInstances(String name, String namespace) {
-
     return increaseInstances(name, namespace)
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
         .indefinitely()
-        .chain(newPodName -> podWatcher.waitUntilIsReady(newPodName, namespace));
+        .chain(newPodName -> podWatcher.waitUntilIsReady(name, newPodName, namespace));
   }
 
   private Uni<String> increaseInstances(String name, String namespace) {
@@ -77,34 +76,30 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
   }
 
   private Uni<StackGresCluster> getCluster(String name, String namespace) {
-    return Uni.createFrom().emitter(em -> {
+    return Uni.createFrom().item(() -> {
       Optional<StackGresCluster> cluster = resourceFinder.findByNameAndNamespace(name, namespace);
-      if (cluster.isPresent()) {
-        em.complete(cluster.get());
-      } else {
-        em.fail(new IllegalArgumentException("SGCluster "
-            + name + " not found in namespace" + namespace));
-      }
+      return cluster.orElseThrow(() -> new IllegalArgumentException(
+          "SGCluster " + name + " not found in namespace" + namespace));
     });
   }
 
   private Uni<String> increaseConfiguredInstances(StackGresCluster cluster) {
-    return Uni.createFrom().emitter(em -> {
+    return Uni.createFrom().item(() -> {
       String newPodName = getPodNameToBeCreated(cluster);
       int currentInstances = cluster.getSpec().getInstances();
       cluster.getSpec().setInstances(currentInstances + 1);
       resourceScheduler.update(cluster);
-      em.complete(newPodName);
+      return newPodName;
     });
   }
 
   private Uni<String> decreaseConfiguredInstances(StackGresCluster cluster) {
-    return Uni.createFrom().emitter(em -> {
+    return Uni.createFrom().item(() -> {
       String podToBeDeleted = getPodToBeDeleted(cluster);
       int currentInstances = cluster.getSpec().getInstances();
       cluster.getSpec().setInstances(currentInstances - 1);
       resourceScheduler.update(cluster);
-      em.complete(podToBeDeleted);
+      return podToBeDeleted;
     });
   }
 

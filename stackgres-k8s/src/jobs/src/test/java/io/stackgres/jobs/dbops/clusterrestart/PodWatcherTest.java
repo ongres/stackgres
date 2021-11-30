@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 class PodWatcherTest {
 
   @Inject
-  PodWatcher podWatcher;
+  PodWatcherImpl podWatcher;
 
   @Inject
   KubernetesClient client;

@@ -336,6 +336,47 @@ public abstract class ClusterStateHandlerTest {
     assertEqualsRestartState(expectedClusterState, clusterRestartState);
   }
 
+  @Test
+  void buildRestartStateWithPodsWithNoRoles_shouldNotFail() {
+    podTestUtil.preparePodsWithNoRoles(cluster, 0, 1, 2);
+
+    var pods = podTestUtil.getClusterPods(cluster);
+
+    final Pod primaryPod = pods.stream()
+        .filter(pod -> pod.getMetadata().getName().endsWith("-0"))
+        .findAny().get();
+
+    final Pod replica1Pod = pods.stream()
+        .filter(pod -> pod.getMetadata().getName().endsWith("-1"))
+        .findAny().get();
+
+    dbOps = kubeDb.addOrReplaceDbOps(dbOps);
+
+    var expectedClusterState = ImmutableClusterRestartState.builder()
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
+        .clusterName(dbOps.getSpec().getSgCluster())
+        .isOnlyPendingRestart(false)
+        .restartMethod(getRestartMethod(dbOps))
+        .isSwitchoverInitiated(Boolean.FALSE)
+        .isSwitchoverFinalized(Boolean.FALSE)
+        .primaryInstance(primaryPod)
+        .addInitialInstances(primaryPod, replica1Pod)
+        .addRestartedInstances(replica1Pod)
+        .addAllTotalInstances(pods)
+        .putAllPodRestartReasonsMap(pods.stream()
+            .collect(ImmutableMap.toImmutableMap(
+                Function.identity(), pod -> RestartReasons.of())))
+        .build();
+
+    var clusterRestartState = getRestartStateHandler().restartCluster(dbOps)
+        .await()
+        .atMost(Duration.ofMillis(50));
+
+    assertEqualsRestartState(expectedClusterState, clusterRestartState);
+  }
+
   protected abstract DbOpsMethodType getRestartMethod(StackGresDbOps dbOps);
 
   @Test

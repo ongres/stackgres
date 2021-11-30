@@ -9,5 +9,6 @@ import io.smallrye.mutiny.Uni;
 
 public interface PostgresRestart {
 
-  Uni<Boolean> restartPostgres(String memberName, String clusterName, String namespace);
+  Uni<Void> restartPostgres(String memberName, String clusterName, String namespace);
+
 }

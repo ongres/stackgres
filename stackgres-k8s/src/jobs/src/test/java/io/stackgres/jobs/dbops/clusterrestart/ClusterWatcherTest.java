@@ -36,7 +36,7 @@ class ClusterWatcherTest {
   PodTestUtil podTestUtil;
 
   @Inject
-  ClusterWatcher clusterWatcher;
+  ClusterWatcherImpl clusterWatcher;
 
   @Inject
   MockKubeDb kubeDb;

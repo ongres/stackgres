@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -55,7 +54,7 @@ public abstract class AbstractPatroniConfigEndpoints
     return Stream.of(new EndpointsBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(configName(context))
+        .withName(PatroniUtil.configName(context))
         .withLabels(labels)
         .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
         .endMetadata()
@@ -73,10 +72,6 @@ public abstract class AbstractPatroniConfigEndpoints
 
   protected abstract Map<String, String> getParameters(StackGresClusterContext context,
       StackGresPostgresConfig pgConfig);
-
-  public static String configName(ClusterContext context) {
-    return PatroniUtil.configName(context.getCluster());
-  }
 
   protected boolean isBackupConfigurationPresent(StackGresClusterContext context) {
     return context.getBackupConfig()

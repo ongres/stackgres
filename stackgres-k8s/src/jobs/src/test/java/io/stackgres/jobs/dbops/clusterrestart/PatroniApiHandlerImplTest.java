@@ -5,7 +5,6 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -259,10 +258,9 @@ class PatroniApiHandlerImplTest {
         .apiUrl("http://127.0.0.1:" + mockServer.actualPort() + "/patroni")
         .build();
 
-    assertFalse(patroniApiHandler.restartPostgres(leader)
+    assertThrows(RuntimeException.class, () -> patroniApiHandler.restartPostgres(leader)
         .await()
         .atMost(Duration.ofSeconds(5)));
-
   }
 
   @AfterEach
