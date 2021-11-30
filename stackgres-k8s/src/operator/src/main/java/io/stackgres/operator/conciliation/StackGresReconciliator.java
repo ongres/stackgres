@@ -125,7 +125,9 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
                     resource.v2.getKind());
                 HasMetadata patchedResource = handlerDelegator
                     .patch(customResource, resource.v1, resource.v2);
-                if (Optional.ofNullable(patchedResource.getMetadata().getManagedFields())
+                if (Optional.ofNullable(patchedResource)
+                    .map(HasMetadata::getMetadata)
+                    .map(ObjectMeta::getManagedFields)
                     .stream()
                     .flatMap(List::stream)
                     .anyMatch(managedFieldsEntry -> Objects.equals(
@@ -141,7 +143,8 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
                   }
                   HasMetadata ownedResourceWithBeforeFirstApply = handlerDelegator
                       .patch(customResource, resource.v2, patchedResource);
-                  Optional.ofNullable(ownedResourceWithBeforeFirstApply.getMetadata())
+                  Optional.ofNullable(ownedResourceWithBeforeFirstApply)
+                      .map(HasMetadata::getMetadata)
                       .map(ObjectMeta::getManagedFields)
                       .stream()
                       .flatMap(List::stream)
