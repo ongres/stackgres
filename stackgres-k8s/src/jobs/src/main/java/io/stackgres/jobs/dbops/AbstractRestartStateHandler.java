@@ -46,7 +46,7 @@ import io.stackgres.jobs.dbops.clusterrestart.ClusterRestart;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartStateHandlerImpl;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableClusterRestartState;
-import io.stackgres.jobs.dbops.clusterrestart.InvalidCluster;
+import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEvent;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -113,7 +113,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         .onItem()
         .call(event -> recordEvent(event, clusterRestartState))
         .onItem()
-        .call(event -> logEvent(clusterRestartState.getClusterName(), event))
+        .call(event -> logEvent(event))
         .onFailure()
         .call(error -> reportFailure(clusterRestartState.getClusterName(), error))
         .collect()
@@ -290,7 +290,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
 
   protected abstract Optional<DbOpsMethodType> getRestartMethod(StackGresDbOps op);
 
-  private Uni<Void> logEvent(String clusterName, RestartEvent event) {
+  private Uni<Void> logEvent(RestartEvent event) {
     var podName = event.getPod().map(Pod::getMetadata).map(ObjectMeta::getName);
     switch (event.getEventType()) {
       case INSTANCES_INCREASED:
@@ -323,8 +323,11 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
       case PRIMARY_AVAILABLE:
         LOGGER.info("Primary pod {} available", podName.orElseThrow());
         break;
+      case PRIMARY_CHANGED:
+        LOGGER.info("Pod {} is no longer the primary", podName.orElseThrow());
+        break;
       case PRIMARY_NOT_AVAILABLE:
-        LOGGER.info("Primary pod {} not available", podName.orElseThrow());
+        LOGGER.info("Primary pod not available");
         break;
       case RESTARTING_POD:
         LOGGER.info("Restarting pod {}", podName.orElseThrow());
@@ -426,7 +429,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
                 .filter(latestPrimaryIndex::equals)
                 .isPresent())
             .findFirst())
-        .orElseThrow(() -> new InvalidCluster("Cluster has no primary pod"));
+        .orElseThrow(() -> new InvalidClusterException("Cluster has no primary pod"));
   }
 
   protected Uni<Void> initClusterDbOpsStatusValues(ClusterRestartState clusterRestartState,

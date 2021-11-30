@@ -5,6 +5,8 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import java.util.Optional;
+
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
@@ -12,6 +14,6 @@ public interface ClusterWatcher {
 
   Uni<StackGresCluster> waitUntilIsReady(String name, String namespace);
 
-  Uni<Boolean> isAvailable(String clusterName, String namespace, String podName);
+  Uni<Optional<String>> getAvailablePrimary(String clusterName, String namespace);
 
 }

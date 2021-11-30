@@ -43,7 +43,7 @@ public class PatroniApiMetadataFinderImpl implements PatroniApiMetadataFinder {
         .withName(name)
         .get());
 
-    var secret = secretOpt.orElseThrow(() -> new InvalidCluster(
+    var secret = secretOpt.orElseThrow(() -> new InvalidClusterException(
         "Could not find secret " + name + " in namespace " + namespace));
 
     if (secret.getData().containsKey(RESTAPI_PASSWORD_KEY)) {
@@ -52,7 +52,8 @@ public class PatroniApiMetadataFinderImpl implements PatroniApiMetadataFinder {
 
       return new String(Base64.getDecoder().decode(encodedPassword), StandardCharsets.UTF_8);
     } else {
-      throw new InvalidCluster("Could not find " + RESTAPI_PASSWORD_KEY + " in secret " + name);
+      throw new InvalidClusterException(
+          "Could not find " + RESTAPI_PASSWORD_KEY + " in secret " + name);
     }
   }
 
@@ -64,7 +65,7 @@ public class PatroniApiMetadataFinderImpl implements PatroniApiMetadataFinder {
         .get());
 
     if (service.isEmpty()) {
-      throw new InvalidCluster("Could not find service "
+      throw new InvalidClusterException("Could not find service "
           + name + "-rest in namespace " + namespace);
     }
 
@@ -72,7 +73,7 @@ public class PatroniApiMetadataFinderImpl implements PatroniApiMetadataFinder {
         .getSpec().getPorts().stream()
         .filter(servicePort -> servicePort.getName().equals("patroniport"))
         .findFirst()
-        .orElseThrow(() -> new InvalidCluster("Could not find patroni port in service "
+        .orElseThrow(() -> new InvalidClusterException("Could not find patroni port in service "
             + patroniServiceName))
         .getPort();
   }

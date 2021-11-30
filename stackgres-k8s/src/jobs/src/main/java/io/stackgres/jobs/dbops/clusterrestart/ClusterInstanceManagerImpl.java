@@ -52,7 +52,7 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
         .retry()
         .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
         .indefinitely()
-        .chain(newPodName -> podWatcher.waitUntilIsReady(name, newPodName, namespace));
+        .chain(newPodName -> podWatcher.waitUntilIsReady(name, newPodName, namespace, false));
   }
 
   private Uni<String> increaseInstances(String name, String namespace) {
@@ -145,7 +145,8 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
       return currentPods.stream().filter(pod -> {
         String role = pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY);
         return PatroniUtil.PRIMARY_ROLE.equals(role);
-      }).findFirst().orElseThrow(() -> new InvalidCluster("Cluster does not have a primary pod"))
+      }).findFirst().orElseThrow(() -> new InvalidClusterException(
+          "Cluster does not have a primary pod"))
           .getMetadata().getName();
     } else {
       List<String> replicaNames = replicas.stream()

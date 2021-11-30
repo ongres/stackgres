@@ -7,5 +7,5 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 public enum MemberState {
 
-  INITIALIZING, RUNNING, STOPPED
+  RUNNING, STOPPED
 }

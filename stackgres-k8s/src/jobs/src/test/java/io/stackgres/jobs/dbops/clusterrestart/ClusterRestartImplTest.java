@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -26,6 +27,7 @@ import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.helpers.test.AssertSubscriber;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.PatroniUtil;
@@ -111,8 +113,8 @@ class ClusterRestartImplTest {
 
   @Test
   void givenACleanState_itShouldRestartAllPods() {
-    when(clusterWatcher.isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME))
-        .thenReturn(Uni.createFrom().item(true));
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
@@ -161,7 +163,7 @@ class ClusterRestartImplTest {
     assertPrimaryAvailableEvent(events, true);
 
     final InOrder order = inOrder(podRestart, switchoverHandler, clusterWatcher, postgresRestart);
-    order.verify(clusterWatcher).isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME);
+    order.verify(clusterWatcher).getAvailablePrimary(CLUSTER_NAME, NAMESPACE);
     order.verify(postgresRestart).restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(any(), eq(replica1));
@@ -184,8 +186,8 @@ class ClusterRestartImplTest {
 
   @Test
   void givenAClusterWithoutPrimary_itShouldRestartLatestPrimaryAndAllOtherPods() {
-    when(clusterWatcher.isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME))
-        .thenReturn(Uni.createFrom().item(false));
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.empty()));
     primary.getMetadata().getLabels().remove(PatroniUtil.ROLE_KEY);
 
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
@@ -236,7 +238,7 @@ class ClusterRestartImplTest {
     assertPrimaryAvailableEvent(events, false);
 
     final InOrder order = inOrder(podRestart, switchoverHandler, clusterWatcher, postgresRestart);
-    order.verify(clusterWatcher).isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME);
+    order.verify(clusterWatcher).getAvailablePrimary(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(any(), eq(primary));
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(any(), eq(replica1));
@@ -254,9 +256,68 @@ class ClusterRestartImplTest {
   }
 
   @Test
+  void givenAClusterWithChangedPrimary_itShouldFail() {
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.of(REPLICA_1_POD_NAME)));
+    primary.getMetadata().getLabels().remove(PatroniUtil.ROLE_KEY);
+    replica1.getMetadata().getLabels().put(PatroniUtil.ROLE_KEY,
+        PatroniUtil.PRIMARY_ROLE);
+
+    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
+        .clusterName(dbOps.getSpec().getSgCluster())
+        .restartMethod(DbOpsMethodType.IN_PLACE)
+        .isOnlyPendingRestart(false)
+        .primaryInstance(primary)
+        .addInitialInstances(primary, replica1, replica2)
+        .addTotalInstances(primary, replica1, replica2)
+        .putAllPodRestartReasonsMap(ImmutableMap.of(
+            primary, RestartReasons.of(),
+            replica1, RestartReasons.of(),
+            replica2, RestartReasons.of()))
+        .isSwitchoverInitiated(false)
+        .isSwitchoverFinalized(false)
+        .build();
+
+    AssertSubscriber<RestartEvent> subscriber = clusterRestart.restartCluster(clusterState)
+        .subscribe()
+        .withSubscriber(AssertSubscriber.create(1))
+        .await()
+        .assertFailedWith(RuntimeException.class,
+            String.format("Primary instance %s changed from %s",
+                REPLICA_1_POD_NAME, PRIMARY_POD_NAME));
+
+    List<RestartEvent> events = subscriber.getItems();
+    assertRestartingPodEventCount(events, 0);
+    assertPodRestartedEventCount(events, 0);
+    assertIncreasingInstanceEvent(events, false);
+    assertInstancesIncreasedEvent(events, false);
+    assertDecreasingInstanceEvent(events, false);
+    assertInstancesDecreasedEvent(events, false);
+    assertSwitchoverInitializedEvent(events, false);
+    assertSwitchoverFinalizedEvent(events, false);
+    assertRestartingPostgresEvent(events, false);
+    assertPostgresRestartedEvent(events, false);
+    assertPrimaryChangedEvent(events);
+
+    final InOrder order = inOrder(podRestart, switchoverHandler, clusterWatcher, postgresRestart);
+    order.verify(clusterWatcher).getAvailablePrimary(CLUSTER_NAME, NAMESPACE);
+    order.verifyNoMoreInteractions();
+
+    verify(clusterWatcher, never()).waitUntilIsReady(any(), any());
+    verify(postgresRestart, never()).restartPostgres(any(), any(), any());
+    verify(podRestart, never()).restartPod(any(), any());
+    verify(switchoverHandler, never()).performSwitchover(any(), any(), any());
+
+    checkFinalSgClusterOnInPlace();
+  }
+
+  @Test
   void givenAClusterWithARestartedPod_shouldNotRestartThatPod() {
-    when(clusterWatcher.isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME))
-        .thenReturn(Uni.createFrom().item(true));
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
@@ -305,7 +366,7 @@ class ClusterRestartImplTest {
     assertPrimaryAvailableEvent(events, true);
 
     final InOrder order = inOrder(podRestart, switchoverHandler, clusterWatcher);
-    order.verify(clusterWatcher).isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME);
+    order.verify(clusterWatcher).getAvailablePrimary(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(any(), eq(replica2));
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(switchoverHandler).performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE);
@@ -324,8 +385,8 @@ class ClusterRestartImplTest {
 
   @Test
   void givenAClusterWithAPodInPendingRestartWithOnlyPendingRestart_shouldOnlyRestartThatPod() {
-    when(clusterWatcher.isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME))
-        .thenReturn(Uni.createFrom().item(true));
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
@@ -365,7 +426,7 @@ class ClusterRestartImplTest {
     assertSwitchoverFinalizedEvent(events, false);
 
     final InOrder order = inOrder(podRestart, postgresRestart, switchoverHandler, clusterWatcher);
-    order.verify(clusterWatcher).isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME);
+    order.verify(clusterWatcher).getAvailablePrimary(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(any(), eq(replica1));
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verifyNoMoreInteractions();
@@ -380,8 +441,8 @@ class ClusterRestartImplTest {
 
   @Test
   void givenAClusterWithPrimaryInPendingRestartWithOnlyPendingRestart_shouldOnlyRestartThatPod() {
-    when(clusterWatcher.isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME))
-        .thenReturn(Uni.createFrom().item(true));
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
@@ -428,7 +489,7 @@ class ClusterRestartImplTest {
     assertSwitchoverFinalizedEvent(events, true);
 
     final InOrder order = inOrder(podRestart, postgresRestart, switchoverHandler, clusterWatcher);
-    order.verify(clusterWatcher).isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME);
+    order.verify(clusterWatcher).getAvailablePrimary(CLUSTER_NAME, NAMESPACE);
     order.verify(postgresRestart).restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(switchoverHandler).performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE);
@@ -447,8 +508,8 @@ class ClusterRestartImplTest {
 
   @Test
   void givenAClusterWithAllReplicasRestarted_shouldRestartOnlyThePrimaryNode() {
-    when(clusterWatcher.isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME))
-        .thenReturn(Uni.createFrom().item(true));
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
@@ -497,7 +558,7 @@ class ClusterRestartImplTest {
     assertPrimaryAvailableEvent(events, true);
 
     final InOrder order = inOrder(podRestart, postgresRestart, switchoverHandler, clusterWatcher);
-    order.verify(clusterWatcher).isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME);
+    order.verify(clusterWatcher).getAvailablePrimary(CLUSTER_NAME, NAMESPACE);
     order.verify(switchoverHandler).performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(any(), eq(primary));
@@ -514,8 +575,8 @@ class ClusterRestartImplTest {
 
   @Test
   void givenAClusterWithAllReplicasRestartedAndSwitchoverInitiated_shouldNotPerformSwitchover() {
-    when(clusterWatcher.isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME))
-        .thenReturn(Uni.createFrom().item(true));
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
@@ -559,7 +620,7 @@ class ClusterRestartImplTest {
     assertPrimaryAvailableEvent(events, true);
 
     final InOrder order = inOrder(podRestart, postgresRestart, switchoverHandler, clusterWatcher);
-    order.verify(clusterWatcher).isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME);
+    order.verify(clusterWatcher).getAvailablePrimary(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(any(), eq(primary));
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verifyNoMoreInteractions();
@@ -579,8 +640,8 @@ class ClusterRestartImplTest {
 
   @Test
   void givenACleanStateWithReduceImpact_itShouldRestartAllPods() {
-    when(clusterWatcher.isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME))
-        .thenReturn(Uni.createFrom().item(true));
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
@@ -637,7 +698,7 @@ class ClusterRestartImplTest {
 
     final InOrder order =
         inOrder(podRestart, switchoverHandler, instanceManager, postgresRestart, clusterWatcher);
-    order.verify(clusterWatcher).isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME);
+    order.verify(clusterWatcher).getAvailablePrimary(CLUSTER_NAME, NAMESPACE);
     order.verify(postgresRestart).restartPostgres(primaryName, CLUSTER_NAME, NAMESPACE);
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(instanceManager).increaseClusterInstances(CLUSTER_NAME, NAMESPACE);
@@ -663,8 +724,8 @@ class ClusterRestartImplTest {
 
   @Test
   void givenAClusterWithARestartedPodAndReducedImpact_shouldNotRestartThatPod() {
-    when(clusterWatcher.isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME))
-        .thenReturn(Uni.createFrom().item(true));
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
@@ -718,7 +779,7 @@ class ClusterRestartImplTest {
 
     final InOrder order =
         inOrder(podRestart, postgresRestart, switchoverHandler, instanceManager, clusterWatcher);
-    order.verify(clusterWatcher).isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME);
+    order.verify(clusterWatcher).getAvailablePrimary(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(any(), eq(replica2));
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(switchoverHandler).performSwitchover(primaryName, CLUSTER_NAME, NAMESPACE);
@@ -740,8 +801,8 @@ class ClusterRestartImplTest {
   @DisplayName("Given Cluster With All Replicas Restarted And Switchover Initiated And Reduced "
       + "Impact Should Not Perform Switchover")
   void givenClusterReplicasRestartedAndSwitchoverReducedImpact_shouldNotPerformSwitchover() {
-    when(clusterWatcher.isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME))
-        .thenReturn(Uni.createFrom().item(true));
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
@@ -788,7 +849,7 @@ class ClusterRestartImplTest {
 
     final InOrder order =
         inOrder(podRestart, postgresRestart, switchoverHandler, instanceManager, clusterWatcher);
-    order.verify(clusterWatcher).isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME);
+    order.verify(clusterWatcher).getAvailablePrimary(CLUSTER_NAME, NAMESPACE);
     order.verify(podRestart).restartPod(any(), eq(primary));
     order.verify(clusterWatcher).waitUntilIsReady(CLUSTER_NAME, NAMESPACE);
     order.verify(instanceManager).decreaseClusterInstances(CLUSTER_NAME, NAMESPACE);
@@ -804,8 +865,8 @@ class ClusterRestartImplTest {
 
   @Test
   void givenAClusterWithAInstancedDecreasedAndReducedImpact_shouldNotDecreaseInstances() {
-    when(clusterWatcher.isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME))
-        .thenReturn(Uni.createFrom().item(true));
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
@@ -850,7 +911,7 @@ class ClusterRestartImplTest {
     final InOrder order =
         inOrder(clusterWatcher, podRestart, postgresRestart, switchoverHandler, instanceManager,
             clusterWatcher);
-    order.verify(clusterWatcher).isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME);
+    order.verify(clusterWatcher).getAvailablePrimary(CLUSTER_NAME, NAMESPACE);
     order.verifyNoMoreInteractions();
 
     verify(postgresRestart, times(0)).restartPostgres(any(), any(), any());
@@ -862,8 +923,8 @@ class ClusterRestartImplTest {
 
   @Test()
   void givenAFailureOnPostgreRestart_itShouldSetStatusAsFailedPostgresRestart() {
-    when(clusterWatcher.isAvailable(CLUSTER_NAME, NAMESPACE, PRIMARY_POD_NAME))
-        .thenReturn(Uni.createFrom().item(true));
+    when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
+        .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
     ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
@@ -992,6 +1053,29 @@ class ClusterRestartImplTest {
             .filter(event -> event.getEventType() == RestartEventType.PRIMARY_NOT_AVAILABLE)
             .count(),
         "it should " + (!expected ? " " : "not ") + "detect primary as unavailable");
+    assertEquals(0,
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.PRIMARY_CHANGED)
+            .count(),
+        "it should not detect primary as changed");
+  }
+
+  private void assertPrimaryChangedEvent(List<RestartEvent> events) {
+    assertEquals(1,
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.PRIMARY_CHANGED)
+            .count(),
+        "it should detect primary as changed");
+    assertEquals(0,
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.PRIMARY_AVAILABLE)
+            .count(),
+        "it should not detect primary as available");
+    assertEquals(0,
+        events.stream()
+            .filter(event -> event.getEventType() == RestartEventType.PRIMARY_NOT_AVAILABLE)
+            .count(),
+        "it should not detect primary as unavailable");
   }
 
 }

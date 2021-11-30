@@ -41,12 +41,12 @@ public class ClusterSwitchoverHandlerImpl implements ClusterSwitchoverHandler {
       return Uni.createFrom().voidItem();
     } else {
       Optional<ClusterMember> leader = members.stream()
-          .filter(member -> member.getRole() == MemberRole.LEADER)
+          .filter(member -> member.getRole().map(MemberRole.LEADER::equals).orElse(false))
           .findFirst();
 
       Optional<ClusterMember> candidate = members.stream()
-          .filter(member -> member.getRole() == MemberRole.REPlICA)
-          .filter(member -> member.getState() == MemberState.RUNNING)
+          .filter(member -> member.getRole().map(MemberRole.REPlICA::equals).orElse(false))
+          .filter(member -> member.getState().map(MemberState.RUNNING::equals).orElse(false))
           .min((m1, m2) -> {
             if (m1.getLag().isPresent() && m2.getLag().isPresent()) {
               return m1.getLag().get().compareTo(m2.getLag().get());

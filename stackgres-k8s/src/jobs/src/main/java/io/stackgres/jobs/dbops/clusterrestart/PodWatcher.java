@@ -10,7 +10,10 @@ import io.smallrye.mutiny.Uni;
 
 public interface PodWatcher {
 
-  Uni<Pod> waitUntilIsReady(String clusterName, String name, String namespace);
+  Uni<Pod> waitUntilIsCreated(String name, String namespace);
+
+  Uni<Pod> waitUntilIsReady(String clusterName, String name, String namespace,
+      boolean checkStatefulSetChanges);
 
   Uni<Void> waitUntilIsRemoved(String name, String namespace);
 

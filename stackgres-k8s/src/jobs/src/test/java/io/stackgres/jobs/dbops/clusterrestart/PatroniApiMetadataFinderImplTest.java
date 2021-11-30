@@ -102,7 +102,7 @@ class PatroniApiMetadataFinderImplTest {
 
   @Test
   void givenAnInvalidCluster_shouldFailToFindPort() {
-    var ex = assertThrows(InvalidCluster.class,
+    var ex = assertThrows(InvalidClusterException.class,
         () -> patroniApiFinder.getPatroniPort("test", namespace));
     assertEquals("Could not find service test-rest in namespace "
         + namespace, ex.getMessage());
@@ -121,7 +121,7 @@ class PatroniApiMetadataFinderImplTest {
     client.services().inNamespace(namespace).withName(patroniService.getMetadata().getName())
         .replace(service);
 
-    var ex = assertThrows(InvalidCluster.class,
+    var ex = assertThrows(InvalidClusterException.class,
         () -> patroniApiFinder.getPatroniPort(clusterName, namespace));
     assertEquals("Could not find patroni port in service " + clusterName + "-rest",
         ex.getMessage());
@@ -129,7 +129,7 @@ class PatroniApiMetadataFinderImplTest {
 
   @Test
   void givenAnInvalidCluster_shouldFailToFindPassword() {
-    var ex = assertThrows(InvalidCluster.class,
+    var ex = assertThrows(InvalidClusterException.class,
         () -> patroniApiFinder.getPatroniPassword("test", namespace));
     assertEquals("Could not find secret test in namespace " + namespace, ex.getMessage());
   }
@@ -142,7 +142,7 @@ class PatroniApiMetadataFinderImplTest {
         .inNamespace(namespace)
         .withName(name)
         .replace(secret);
-    var ex = assertThrows(InvalidCluster.class,
+    var ex = assertThrows(InvalidClusterException.class,
         () -> patroniApiFinder.getPatroniPassword(clusterName, namespace));
     assertEquals("Could not find restapi-password in secret " + name,
         ex.getMessage());

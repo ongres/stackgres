@@ -47,7 +47,7 @@ import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartImpl;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableRestartEvent;
-import io.stackgres.jobs.dbops.clusterrestart.InvalidCluster;
+import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
 import io.stackgres.jobs.dbops.clusterrestart.PodTestUtil;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEventType;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
@@ -163,7 +163,8 @@ public abstract class ClusterStateHandlerTest {
     return pods.stream()
         .filter(pod -> PatroniUtil.PRIMARY_ROLE.equals(
             pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)))
-        .findFirst().orElseThrow(() -> new InvalidCluster("Cluster has no primary pod"));
+        .findFirst().orElseThrow(() -> new InvalidClusterException(
+            "Cluster has no primary pod"));
   }
 
   @Test

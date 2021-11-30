@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -133,7 +134,7 @@ class ClusterSwitchoverHandlerImplTest {
         .name("member-4")
         .clusterName(TEST_CLUSTER_NAME)
         .namespace(TEST_NAMESPACE_NAME)
-        .state(MemberState.INITIALIZING)
+        .state(Optional.empty())
         .role(MemberRole.REPlICA)
         .build();
 

@@ -5,6 +5,8 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import java.time.Duration;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -34,17 +36,23 @@ public class PodRestartImpl implements PodRestart {
     String podName = pod.getMetadata().getName();
     String podNamespace = pod.getMetadata().getNamespace();
 
-    return deletePod(pod)
-        .chain(() -> podWatcher.waitUntilIsReplaced(pod))
-        .chain(() -> podWatcher.waitUntilIsReady(name, podName, podNamespace))
+    return podWatcher.waitUntilIsCreated(podName, podNamespace)
+        .onItem()
+        .invoke(foundPod -> podWriter.delete(foundPod))
+        .chain(foundPod -> podWatcher.waitUntilIsReplaced(foundPod))
+        .chain(() -> podWatcher.waitUntilIsReady(name, podName, podNamespace, true))
+        .onFailure(failure -> failure instanceof StatefulSetChangedException)
+        .retry().indefinitely()
         .onFailure()
-        .invoke(failure -> LOGGER.info("Error while restarting pod {}: {}",
-            pod.getMetadata().getName(), failure.getMessage()))
-        .onFailure().retry().atMost(10);
+        .transform(failure -> {
+          LOGGER.info("Error while restarting pod {}: {}",
+              pod.getMetadata().getName(), failure.getMessage());
+          return failure;
+        })
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
+        .atMost(10);
   }
 
-  public Uni<Void> deletePod(Pod pod) {
-    return Uni.createFrom().voidItem()
-        .invoke(item -> podWriter.delete(pod));
-  }
 }

@@ -23,6 +23,7 @@ public enum RestartEventType implements EventReason {
   POSTGRES_RESTARTED(Type.NORMAL, "PostgresRestarted"),
   POSTGRES_RESTART_FAILED(Type.WARNING, "PostgresRestartFailed"),
   PRIMARY_AVAILABLE(Type.NORMAL, "PrimaryAvailable"),
+  PRIMARY_CHANGED(Type.NORMAL, "PrimaryChanged"),
   PRIMARY_NOT_AVAILABLE(Type.NORMAL, "PrimaryNotAvailable");
 
   private final Type type;
