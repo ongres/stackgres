@@ -13,6 +13,8 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
@@ -58,9 +60,15 @@ public class DbOpLauncherImpl implements DbOpLauncher {
   @Inject
   DatabaseOperationEventEmitter databaseOperationEventEmitter;
 
+  private final ExecutorService jobExecutor;
+
   private static void setTransitionTimes(List<StackGresDbOpsCondition> conditions) {
     String currentDateTime = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
     conditions.forEach(condition -> condition.setLastTransitionTime(currentDateTime));
+  }
+
+  public DbOpLauncherImpl() {
+    this.jobExecutor = Executors.newSingleThreadExecutor(t -> new Thread(t, "JobExecutor"));
   }
 
   @Override
@@ -110,7 +118,7 @@ public class DbOpLauncherImpl implements DbOpLauncher {
               final DatabaseOperationJob databaseOperationJob = jobImpl.get();
 
               Uni<ClusterRestartState> jobUni = databaseOperationJob.runJob(
-                  initializedDbOps, targetCluster);
+                  initializedDbOps, targetCluster).runSubscriptionOn(jobExecutor);
               if (initializedDbOps.getSpec().getTimeout() != null) {
                 jobUni.await()
                     .atMost(Duration.parse(initializedDbOps.getSpec().getTimeout()));
@@ -127,7 +135,7 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         databaseOperationEventEmitter.operationTimedOut(dbOpName, namespace);
         throw timeoutEx;
       } catch (Exception e) {
-        LOGGER.info("Unexpected exception for SgDbOp {}", dbOpName);
+        LOGGER.info("Unexpected exception for SgDbOp {}", dbOpName, e);
         updateToFailedConditions(dbOpName, namespace);
         databaseOperationEventEmitter.operationFailed(dbOpName, namespace);
         throw e;
