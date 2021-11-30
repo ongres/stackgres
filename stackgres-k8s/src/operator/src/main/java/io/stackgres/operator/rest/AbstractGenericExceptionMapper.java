@@ -21,6 +21,7 @@ import io.stackgres.operator.mutation.MutationUtil;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionResponse;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,6 @@ public class AbstractGenericExceptionMapper<T extends Throwable> implements Exce
     if (cause instanceof WebApplicationException) {
       statusCode = WebApplicationException.class.cast(cause).getResponse().getStatus();
     }
-
     if (cause instanceof UnauthorizedException) {
       return new UnauthorizedExceptionMapper().toResponse(UnauthorizedException.class.cast(cause));
     }
@@ -52,12 +52,20 @@ public class AbstractGenericExceptionMapper<T extends Throwable> implements Exce
 
     if (uriInfo != null && (uriInfo.getPath().startsWith(ValidationUtil.VALIDATION_PATH + "/")
         || uriInfo.getPath().startsWith(MutationUtil.MUTATION_PATH + "/"))) {
+
+      io.fabric8.kubernetes.api.model.Status status;
+      if (cause instanceof ValidationFailed) {
+        status = ValidationFailed.class.cast(cause).getResult();
+      } else {
+        status = new StatusBuilder()
+            .withMessage(message)
+            .withCode(statusCode)
+            .build();
+      }
+
       AdmissionResponse admissionResponse = new AdmissionResponse();
       admissionResponse.setAllowed(false);
-      admissionResponse.setStatus(new StatusBuilder()
-          .withMessage(message)
-          .withCode(statusCode)
-          .build());
+      admissionResponse.setStatus(status);
       AdmissionReviewResponse admissionReviewResponse = new AdmissionReviewResponse();
       admissionReviewResponse.setResponse(admissionResponse);
       return Response.ok().type(MediaType.APPLICATION_JSON)

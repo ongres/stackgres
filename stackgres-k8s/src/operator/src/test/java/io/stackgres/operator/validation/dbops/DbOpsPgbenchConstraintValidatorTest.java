@@ -7,7 +7,7 @@ package io.stackgres.operator.validation.dbops;
 
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
@@ -58,7 +58,7 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<Stack
     review.getRequest().getObject().getSpec().getBenchmark().setType(null);
 
     checkErrorCause(StackGresDbOpsBenchmark.class, "spec.benchmark.type",
-        review, NotNull.class);
+        review, NotEmpty.class);
   }
 
   @Test
@@ -88,7 +88,7 @@ class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<Stack
     review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setDatabaseSize(null);
 
     checkErrorCause(StackGresDbOpsPgbench.class, "spec.benchmark.pgbench.databaseSize",
-        review, NotNull.class);
+        review, NotEmpty.class);
   }
 
   @Test

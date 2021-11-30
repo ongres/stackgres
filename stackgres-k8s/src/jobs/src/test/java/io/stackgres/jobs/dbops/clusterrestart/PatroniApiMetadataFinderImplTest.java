@@ -89,7 +89,7 @@ class PatroniApiMetadataFinderImplTest {
   void givenAValidClusterAndNamespace_shouldBeAbleToReturnThePatroniApiInfo() {
 
     PatroniApiMetadata expectedPatroniApiMetadata = ImmutablePatroniApiMetadata.builder()
-        .host(clusterName + "-rest." + namespace + ".svc.cluster.local")
+        .host(clusterName + "-rest." + namespace)
         .port(getExpectedPort())
         .username("superuser")
         .password(getExpectedPassword())

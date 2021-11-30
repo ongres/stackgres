@@ -54,7 +54,6 @@ public interface StackGresUtil {
 
   String DATA_SUFFIX = "-data";
   String BACKUP_SUFFIX = "-backup";
-  String DNS_SERVICE = "svc.cluster.local";
 
   static String statefulSetDataPersistentVolumeName(ClusterContext cluster) {
     return ResourceUtil
@@ -264,8 +263,7 @@ public interface StackGresUtil {
         throw new IllegalStateException(
             "Invalid service definition, name and namespace are required.");
       }
-      serviceDns = metadata.getName() + '.' + metadata.getNamespace()
-          + '.' + DNS_SERVICE;
+      serviceDns = metadata.getName() + '.' + metadata.getNamespace();
     }
     return serviceDns;
   }
@@ -375,6 +373,21 @@ public interface StackGresUtil {
       throw new IllegalArgumentException("Unknown flavor " + flavor);
     }
     return postgresComponentFlavor;
+  }
+
+  /**
+   * This is a best-effort to parse the /etc/resolv.conf file and get the search path of K8s.
+   */
+  static String domainSearchPath() {
+    ResolvConfResolverConfig resolver = new ResolvConfResolverConfig();
+    List<String> searchPath = resolver.getSearchPath("/etc/resolv.conf");
+    for (var sp : searchPath) {
+      if (sp.startsWith("svc.")) {
+        return "." + sp;
+      }
+    }
+    // fallback default value
+    return ".svc.cluster.local";
   }
 
 }

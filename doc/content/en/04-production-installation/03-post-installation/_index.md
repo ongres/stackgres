@@ -9,7 +9,7 @@ showToc: true
 ## Exposing the UI
 
 StackGres publish a Web UI that can be accessed by pointing to port 443 with DNS
-`stackgres-operator.stackgres.svc`. It is not recommended to expose this Web UI to public
+`stackgres-operator.stackgres`. It is not recommended to expose this Web UI to public
 internet without protecting it with some secure access bridge. 
 
 You can expose the UI using the command below:

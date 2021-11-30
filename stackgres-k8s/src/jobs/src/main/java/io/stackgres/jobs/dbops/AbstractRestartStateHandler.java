@@ -5,8 +5,6 @@
 
 package io.stackgres.jobs.dbops;
 
-import static io.stackgres.jobs.dbops.clusterrestart.ClusterRestartImpl.REDUCED_IMPACT_METHOD;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -31,6 +29,8 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
+import io.stackgres.common.crd.sgdbops.DbOpsOperation;
 import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestart;
@@ -274,7 +274,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         cluster.getMetadata().getName(), cluster.getMetadata().getNamespace()));
   }
 
-  protected abstract Optional<String> getRestartMethod(StackGresDbOps op);
+  protected abstract Optional<DbOpsMethodType> getRestartMethod(StackGresDbOps op);
 
   private Uni<Void> logEvent(String clusterName, RestartEvent event) {
     var podName = event.getPod().map(Pod::getMetadata).map(ObjectMeta::getName);
@@ -335,8 +335,8 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
             Function.identity(),
             pod -> getPodRestartReasons(cluster, statefulSet, pod)));
 
-    final String method = getRestartMethod(dbOps)
-        .orElse(REDUCED_IMPACT_METHOD);
+    final DbOpsMethodType method = getRestartMethod(dbOps)
+        .orElse(DbOpsMethodType.REDUCED_IMPACT);
 
     final boolean onlyPendingRestart = Optional.of(dbOps.getSpec())
         .map(StackGresDbOpsSpec::getRestart)
@@ -346,7 +346,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
     return ImmutableClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
-        .dbOpsOperation(dbOps.getSpec().getOp())
+        .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
         .clusterName(cluster.getMetadata().getName())
         .restartMethod(method)
         .isOnlyPendingRestart(onlyPendingRestart)

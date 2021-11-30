@@ -154,10 +154,10 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
             "info.superuserPasswordKey", equalTo("superuser-password"),
             "info.primaryDns",
             equalTo(PatroniUtil.readWriteName(cluster.getMetadata().getName())
-                + ".test.svc.cluster.local"),
+                + ".test"),
             "info.replicasDns",
             equalTo(PatroniUtil.readOnlyName(cluster.getMetadata().getName())
-                + ".test.svc.cluster.local"))
+                + ".test"))
         .statusCode(200);
   }
 
@@ -178,10 +178,10 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
             "[0].info.superuserPasswordKey", equalTo("superuser-password"),
             "[0].info.primaryDns",
             equalTo(PatroniUtil.readWriteName(cluster.getMetadata().getName())
-                + ".test.svc.cluster.local"),
+                + ".test"),
             "[0].info.replicasDns",
             equalTo(PatroniUtil.readOnlyName(cluster.getMetadata().getName())
-                + ".test.svc.cluster.local"))
+                + ".test"))
         .statusCode(200);
   }
 

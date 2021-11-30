@@ -7,6 +7,7 @@ package io.stackgres.operatorframework.admissionwebhook.validating;
 
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
+import org.jetbrains.annotations.NotNull;
 
 public interface Validator<T> {
 
@@ -15,7 +16,7 @@ public interface Validator<T> {
   /**
    * Check value exists and is not empty.
    */
-  default void checkIfProvided(String value, String field) throws ValidationFailed {
+  default void checkIfProvided(String value, @NotNull String field) throws ValidationFailed {
     if (value == null || value.isEmpty()) {
       throw new ValidationFailed(field + " must be provided");
     }

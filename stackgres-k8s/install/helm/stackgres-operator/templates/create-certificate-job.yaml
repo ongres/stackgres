@@ -65,12 +65,12 @@ spec:
                 | while read NUMBER; do printf '%05d' "$NUMBER"; done)" ]
             then
               openssl req -new -nodes -text -keyout /tmp/root.key \
-                  -subj "/CN=system:node:{{ .Release.Name }}.{{ .Release.Namespace }}.svc;/O=system:nodes" \
+                  -subj "/CN=system:node:{{ .Release.Name }}.{{ .Release.Namespace }};/O=system:nodes" \
                   -out /tmp/server.csr \
                   -config /tmp/csr.conf
             else
               openssl req -new -nodes -text -keyout /tmp/root.key \
-                  -subj "/CN={{ .Release.Name }}.{{ .Release.Namespace }}.svc" \
+                  -subj "/CN={{ .Release.Name }}.{{ .Release.Namespace }}" \
                   -out /tmp/server.csr \
                   -config /tmp/csr.conf
             fi
@@ -178,7 +178,7 @@ spec:
             EOF
 
             openssl req -new -nodes -text -keyout /tmp/web.key \
-                -subj "/CN={{ .Values.restapi.name  }}.{{ .Release.Namespace }}.svc" \
+                -subj "/CN={{ .Values.restapi.name  }}.{{ .Release.Namespace }}" \
                 -out /tmp/server-web.csr \
                 -config /tmp/csr-web.conf
             openssl rsa -in /tmp/web.key -pubout -out /tmp/web.pem

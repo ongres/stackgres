@@ -147,7 +147,7 @@ class BackupConfigResourceTest extends AbstractDependencyCustomResourceTest
         .getSecretKeySelectors().getSecretAccessKey().getName());
     assertEquals("secretkey", resource.getSpec().getStorage().getS3Compatible().getCredentials()
         .getSecretKeySelectors().getSecretAccessKey().getKey());
-    assertEquals("http://minio.stackgres.svc:9000",
+    assertEquals("http://minio.stackgres:9000",
         resource.getSpec().getStorage().getS3Compatible().getEndpoint());
     assertEquals("stackgres", resource.getSpec().getStorage().getS3Compatible().getBucket());
     assertNull(resource.getSpec().getStorage().getS3Compatible().getPath());
@@ -197,7 +197,7 @@ class BackupConfigResourceTest extends AbstractDependencyCustomResourceTest
     assertEquals(BackupConfigResourceUtil.S3COMPATIBLE_SECRET_KEY,
         resource.getSpec().getStorage().getS3Compatible().getAwsCredentials()
             .getSecretKeySelectors().getSecretAccessKey().getKey());
-    assertEquals("http://minio.stackgres.svc:9000",
+    assertEquals("http://minio.stackgres:9000",
         resource.getSpec().getStorage().getS3Compatible().getEndpoint());
     assertEquals("stackgres", resource.getSpec().getStorage().getS3Compatible().getBucket());
     assertNull(resource.getSpec().getStorage().getS3Compatible().getPath());

@@ -7,19 +7,16 @@ package io.stackgres.common.crd.sgdbops;
 
 import java.util.Objects;
 
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.validation.FieldReference;
-import io.stackgres.common.validation.FieldReference.ReferencedField;
+import io.stackgres.common.validation.ValidEnum;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -29,26 +26,17 @@ public class StackGresDbOpsMinorVersionUpgrade implements KubernetesResource {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("postgresVersion")
-  @NotNull
+  @NotEmpty(message = "spec.minorVersionUpgrade.postgresVersion must not be empty")
   private String postgresVersion;
 
   @JsonProperty("method")
+  @ValidEnum(enumClass = DbOpsMethodType.class, allowNulls = true,
+      message = "method must be InPlace or ReducedImpact")
   private String method;
-
-  @ReferencedField("method")
-  interface Method extends FieldReference { }
-
-  @JsonIgnore
-  @AssertTrue(message = "method must be InPlace or ReducedImpact",
-      payload = Method.class)
-  public boolean isMethodValid() {
-    return method == null
-        || ImmutableList.of("InPlace", "ReducedImpact").contains(method);
-  }
 
   @JsonIgnore
   public boolean isMethodReducedImpact() {
-    return Objects.equals(method, "ReducedImpact");
+    return Objects.equals(method, DbOpsMethodType.REDUCED_IMPACT.toString());
   }
 
   public String getPostgresVersion() {

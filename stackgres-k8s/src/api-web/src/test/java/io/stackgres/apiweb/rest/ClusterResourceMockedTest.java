@@ -707,7 +707,7 @@ class ClusterResourceMockedTest extends
     }
 
     if (dto.getInfo() != null) {
-      String appendDns = "." + resource.getMetadata().getNamespace() + ".svc.cluster.local";
+      String appendDns = "." + resource.getMetadata().getNamespace();
       String expectedPrimaryDns =
           PatroniUtil.readWriteName(resource.getMetadata().getName()) + appendDns;
       String expectedReplicasDns = "f4611c56942064ed5a468d8ce0a894ec.us-east-1.elb.amazonaws.com";

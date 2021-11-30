@@ -20,13 +20,13 @@ import io.smallrye.mutiny.subscription.MultiEmitter;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ClusterRestartImpl implements ClusterRestart {
 
-  public static final String REDUCED_IMPACT_METHOD = "ReducedImpact";
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterRestartImpl.class);
   private final PodRestart podRestart;
 
@@ -327,7 +327,7 @@ public class ClusterRestartImpl implements ClusterRestart {
   }
 
   private boolean isReducedImpact(ClusterRestartState clusterRestartState) {
-    return clusterRestartState.getRestartMethod().equals(REDUCED_IMPACT_METHOD);
+    return clusterRestartState.getRestartMethod().equals(DbOpsMethodType.REDUCED_IMPACT);
   }
 
   private RestartReasons getRestartReasons(ClusterRestartState clusterRestartState, Pod pod) {

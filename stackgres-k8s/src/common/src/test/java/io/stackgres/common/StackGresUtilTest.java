@@ -5,11 +5,13 @@
 
 package io.stackgres.common;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -22,11 +24,11 @@ class StackGresUtilTest {
   @Test
   void getHostname_shouldReturnTheHostnameOfaUrl() throws URISyntaxException {
 
-    String url = "http://stackgres-cluster-minio.database.svc.cluster.local:9000";
+    String url = "http://stackgres-cluster-minio.database:9000";
 
     String hostname = StackGresUtil.getHostFromUrl(url);
 
-    assertEquals("stackgres-cluster-minio.database.svc.cluster.local", hostname);
+    assertEquals("stackgres-cluster-minio.database", hostname);
 
     url = "http://stackgres-bucket.s3.amazonaws.com/";
     hostname = StackGresUtil.getHostFromUrl(url);
@@ -54,7 +56,7 @@ class StackGresUtilTest {
 
   @Test
   void getPort_shouldReturnThePortNumberThePortIsSpecified() throws MalformedURLException {
-    String url = "http://stackgres-cluster-minio.database.svc.cluster.local:9000";
+    String url = "http://stackgres-cluster-minio.database:9000";
     int port = StackGresUtil.getPortFromUrl(url);
     assertEquals(9000, port);
 
@@ -90,7 +92,7 @@ class StackGresUtilTest {
 
   @Test
   void getServiceDnsName_shouldReturnLocalDns_LoadBalancerWithoutStatus() {
-    final String expected = "demo.testing.svc.cluster.local";
+    final String expected = "demo.testing";
     Service svc = new ServiceBuilder()
         .withNewMetadata().withName("demo").withNamespace("testing").endMetadata()
         .withNewSpec().withType("LoadBalancer").endSpec()
@@ -102,7 +104,7 @@ class StackGresUtilTest {
   @ParameterizedTest
   @ValueSource(strings = {"LoadBalancer", "ClusterIP", "NodePort"})
   void getServiceDnsName_shouldReturnLocalDns(String type) {
-    final String expected = "demo.testing.svc.cluster.local";
+    final String expected = "demo.testing";
     Service svc = new ServiceBuilder()
         .withNewMetadata().withName("demo").withNamespace("testing").endMetadata()
         .withNewSpec().withType(type).endSpec()
@@ -119,4 +121,34 @@ class StackGresUtilTest {
         .build();
     assertThrows(IllegalStateException.class, () -> StackGresUtil.getServiceDnsName(svc));
   }
+
+  @Test
+  void getSearchPath_shouldReturnParsedSearchPath() {
+    ResolvConfResolverConfig resolver = new ResolvConfResolverConfig();
+
+    var defaultList = resolver.getSearchPath("src/test/resources/default-resolv.conf");
+    assertThat(defaultList)
+        .containsExactlyElementsIn(List.of("default.svc.cluster.local", "svc.cluster.local",
+            "cluster.local"));
+
+    var domainList = resolver.getSearchPath("src/test/resources/domain-resolv.conf");
+    assertThat(domainList)
+        .containsExactlyElementsIn(List.of("default.svc.ongres.com", "svc.ongres.com",
+            "ongres.com"));
+  }
+
+  @Test
+  void givenInvalid_searchPath_shouldReturnEmptyList() {
+    ResolvConfResolverConfig resolver = new ResolvConfResolverConfig();
+
+    var noSearch = resolver.getSearchPath("src/test/resources/nosearch-resolv.conf");
+    assertThat(noSearch).isEmpty();
+
+    var notFound = resolver.getSearchPath("test-resolv.cof");
+    assertThat(notFound).isEmpty();
+
+    var wrongFile = resolver.getSearchPath("src/test/resources/test.tgz");
+    assertThat(wrongFile).isEmpty();
+  }
+
 }

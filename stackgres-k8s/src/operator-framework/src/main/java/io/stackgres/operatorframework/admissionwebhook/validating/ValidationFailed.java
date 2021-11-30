@@ -12,38 +12,37 @@ import javax.validation.ConstraintViolation;
 
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
+import org.jetbrains.annotations.NotNull;
 
 public class ValidationFailed extends Exception {
 
   private static final long serialVersionUID = 6127484041987197268L;
 
-  private Status result;
+  private final Status result;
 
-  public ValidationFailed(String message) {
-    super(message);
-    result = new StatusBuilder()
-        .withCode(500)
-        .withMessage(message)
-        .build();
-  }
-
-  public ValidationFailed(Status status) {
+  public ValidationFailed(@NotNull Status status) {
     super(status.getMessage());
     this.result = status;
+  }
+
+  public ValidationFailed(@NotNull String message, int code) {
+    this(new StatusBuilder()
+        .withCode(code)
+        .withMessage(message)
+        .build());
+  }
+
+  public ValidationFailed(@NotNull String message) {
+    this(message, 400);
   }
 
   /**
    * Create a {@code ValidationFailed} instance.
    */
   public ValidationFailed(Set<? extends ConstraintViolation<?>> violations) {
-    super(violations.stream()
+    this(violations.stream()
         .map(ConstraintViolation::getMessage)
         .collect(Collectors.joining(", ")));
-
-    result = new StatusBuilder()
-        .withCode(500)
-        .withMessage(this.getMessage())
-        .build();
   }
 
   public Status getResult() {

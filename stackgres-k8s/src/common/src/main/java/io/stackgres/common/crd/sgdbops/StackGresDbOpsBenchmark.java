@@ -5,17 +5,17 @@
 
 package io.stackgres.common.crd.sgdbops;
 
+import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -30,7 +30,7 @@ public class StackGresDbOpsBenchmark implements KubernetesResource {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("type")
-  @NotNull(message = "type must be provided")
+  @NotEmpty(message = "spec.benchmark.type must be provided")
   private String type;
 
   @JsonProperty("pgbench")
@@ -50,7 +50,7 @@ public class StackGresDbOpsBenchmark implements KubernetesResource {
   @AssertTrue(message = "type must be pgbench.",
       payload = Type.class)
   public boolean isTypeValid() {
-    return type == null || ImmutableList.of("pgbench").contains(type);
+    return type == null || List.of("pgbench").contains(type);
   }
 
   @JsonIgnore
@@ -65,7 +65,7 @@ public class StackGresDbOpsBenchmark implements KubernetesResource {
       payload = Type.class)
   public boolean isConnectionTypeValid() {
     return connectionType == null
-        || ImmutableList.of("primary-service", "replicas-service").contains(connectionType);
+        || List.of("primary-service", "replicas-service").contains(connectionType);
   }
 
   @JsonIgnore

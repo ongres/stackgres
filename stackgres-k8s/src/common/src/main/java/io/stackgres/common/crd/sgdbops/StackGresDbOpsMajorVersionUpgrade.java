@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -29,11 +29,11 @@ public class StackGresDbOpsMajorVersionUpgrade implements KubernetesResource {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("postgresVersion")
-  @NotNull
+  @NotEmpty(message = "spec.majorVersionUpgrade.postgresVersion must not be empty")
   private String postgresVersion;
 
   @JsonProperty("sgPostgresConfig")
-  @NotNull
+  @NotEmpty(message = "spec.majorVersionUpgrade.sgPostgresConfig must not be empty")
   private String sgPostgresConfig;
 
   @JsonProperty("link")

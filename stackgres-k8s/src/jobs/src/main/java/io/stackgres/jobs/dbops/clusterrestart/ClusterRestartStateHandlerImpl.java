@@ -15,6 +15,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestart;
@@ -95,10 +96,11 @@ public class ClusterRestartStateHandlerImpl extends AbstractRestartStateHandler 
   }
 
   @Override
-  protected Optional<String> getRestartMethod(StackGresDbOps op) {
+  protected Optional<DbOpsMethodType> getRestartMethod(StackGresDbOps op) {
     return Optional.ofNullable(op.getSpec())
         .map(StackGresDbOpsSpec::getRestart)
-        .map(StackGresDbOpsRestart::getMethod);
+        .map(StackGresDbOpsRestart::getMethod)
+        .map(DbOpsMethodType::fromString);
   }
 
 }

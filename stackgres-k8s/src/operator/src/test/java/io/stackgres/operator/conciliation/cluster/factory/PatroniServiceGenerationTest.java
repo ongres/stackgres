@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.quarkus.test.junit.QuarkusTest;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GeneratorTest;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +43,7 @@ public class PatroniServiceGenerationTest extends GeneratorTest {
         .withName(CLUSTER_NAME + "-primary")
         .endMetadata()
         .withNewSpec()
-        .withExternalName(CLUSTER_NAME + "." + CLUSTER_NAMESPACE + ".svc.cluster.local")
+        .withExternalName(CLUSTER_NAME + "." + CLUSTER_NAMESPACE + StackGresUtil.domainSearchPath())
         .withType("ExternalName")
         .endSpec()
         .build();
