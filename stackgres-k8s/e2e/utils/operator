@@ -343,8 +343,8 @@ install_operator() {
     install_operator_only "$@"
   fi
 
-  if ! [ -n "$K8S_UPGRADE_TO_VERSION" ] \
-      || ! [ -n "$K8S_UPGRADE_BEFORE_RUN_TEST" ]
+  if [ -n "$K8S_UPGRADE_TO_VERSION" ] \
+      && ! [ -n "$K8S_UPGRADE_BEFORE_RUN_TEST" ]
   then
     echo "Upgrading kubernetes from version $K8S_VERSION to version $K8S_UPGRADE_TO_VERSION"
     upgrade_kubernetes "$K8S_UPGRADE_TO_VERSION"
