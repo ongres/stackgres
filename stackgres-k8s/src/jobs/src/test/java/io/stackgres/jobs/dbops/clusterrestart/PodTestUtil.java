@@ -57,6 +57,21 @@ public class PodTestUtil {
         .forEach(replicaIndex -> createPod(buildReplicaPod(cluster, replicaIndex)));
   }
 
+  public void preparePodsWithNoRoles(StackGresCluster cluster, int primaryIndex,
+      int... replicaIndexes) {
+    Pod primary = buildPrimaryPod(cluster, primaryIndex);
+    primary.getMetadata().getLabels().remove(StackGresContext.ROLE_KEY);
+    createPod(primary);
+    createPod(buildJobPod(cluster, primaryIndex));
+
+    Arrays.stream(replicaIndexes)
+        .forEach(replicaIndex -> {
+          Pod replica = buildReplicaPod(cluster, replicaIndex);
+          replica.getMetadata().getLabels().remove(StackGresContext.ROLE_KEY);
+          createPod(replica);
+        });
+  }
+
   public void createPod(Pod pod) {
     client.pods()
         .inNamespace(pod.getMetadata().getNamespace())

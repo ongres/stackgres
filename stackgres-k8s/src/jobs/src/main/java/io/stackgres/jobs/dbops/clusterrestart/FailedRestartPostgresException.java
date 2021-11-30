@@ -9,8 +9,8 @@ public class FailedRestartPostgresException extends RuntimeException {
 
   private static final long serialVersionUID = 1L;
 
-  public FailedRestartPostgresException(String message) {
-    super(message);
+  public FailedRestartPostgresException(String message, Throwable throwable) {
+    super(message, throwable);
   }
 
 }

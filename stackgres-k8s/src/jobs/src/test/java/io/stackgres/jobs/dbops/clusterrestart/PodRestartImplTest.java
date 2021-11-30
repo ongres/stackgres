@@ -40,19 +40,21 @@ class PodRestartImplTest {
   PodRestartImpl podRestart;
 
   @InjectMock
-  PodWatcher podWatcher;
+  PodWatcherImpl podWatcher;
 
   @InjectMock
   PodWriter podWriter;
 
+  private String clusterName;
   private Pod pod;
 
   @BeforeEach
   void setUp() {
+    clusterName = "pod";
     pod = new PodBuilder()
         .withNewMetadata()
         .withCreationTimestamp("1")
-        .withName("pod")
+        .withName(clusterName + "-0")
         .withNamespace("pod-namespace")
         .endMetadata()
         .build();
@@ -75,7 +77,7 @@ class PodRestartImplTest {
             .endMetadata()
             .build()));
 
-    when(podWatcher.waitUntilIsReady(podName, podNamespace))
+    when(podWatcher.waitUntilIsReady(clusterName, podName, podNamespace))
         .thenReturn(Uni.createFrom().item(new PodBuilder()
             .withNewMetadata()
             .withName(podName)
@@ -83,12 +85,12 @@ class PodRestartImplTest {
             .endMetadata()
             .build()));
 
-    podRestart.restartPod(pod).await().indefinitely();
+    podRestart.restartPod(clusterName, pod).await().indefinitely();
 
     InOrder inOrder = Mockito.inOrder(podWriter, podWatcher);
     inOrder.verify(podWriter).delete(pod);
     inOrder.verify(podWatcher).waitUntilIsReplaced(pod);
-    inOrder.verify(podWatcher).waitUntilIsReady(podName, podNamespace);
+    inOrder.verify(podWatcher).waitUntilIsReady(clusterName, podName, podNamespace);
 
   }
 
@@ -108,7 +110,7 @@ class PodRestartImplTest {
             .endMetadata()
             .build()));
 
-    when(podWatcher.waitUntilIsReady(podName, podNamespace))
+    when(podWatcher.waitUntilIsReady(clusterName, podName, podNamespace))
         .thenReturn(Uni.createFrom().item(new PodBuilder()
             .withNewMetadata()
             .withName(podName)
@@ -117,7 +119,7 @@ class PodRestartImplTest {
             .endMetadata()
             .build()));
 
-    Pod createdPod = podRestart.restartPod(pod).await().indefinitely();
+    Pod createdPod = podRestart.restartPod(clusterName, pod).await().indefinitely();
     assertEquals(podNamespace, createdPod.getMetadata().getNamespace());
     assertEquals(podName, createdPod.getMetadata().getName());
     assertEquals("3", createdPod.getMetadata().getCreationTimestamp());
@@ -129,12 +131,12 @@ class PodRestartImplTest {
         .when(podWriter).delete(pod);
 
     try {
-      podRestart.restartPod(pod).await().atMost(Duration.ofSeconds(3));
+      podRestart.restartPod(clusterName, pod).await().atMost(Duration.ofSeconds(3));
       fail("Exception on delete should be raised");
     } catch (Exception e) {
       verify(podWriter, atLeast(1)).delete(pod);
       verify(podWatcher, never()).waitUntilIsReplaced(any());
-      verify(podWatcher, never()).waitUntilIsReady(anyString(), anyString());
+      verify(podWatcher, never()).waitUntilIsReady(any(), anyString(), anyString());
     }
   }
 
@@ -150,18 +152,19 @@ class PodRestartImplTest {
     when(podWatcher.waitUntilIsRemoved(podName, podNamespace))
         .thenReturn(Uni.createFrom().voidItem());
 
-    when(podWatcher.waitUntilIsReady(podName, podNamespace))
+    when(podWatcher.waitUntilIsReady(clusterName, podName, podNamespace))
         .thenReturn(Uni.createFrom().failure(() -> {
           throw new RuntimeException();
         }));
 
     try {
-      podRestart.restartPod(pod).await().indefinitely();
+      podRestart.restartPod(clusterName, pod).await().indefinitely();
       fail("Exceptions raised during wait until create should be raised");
     } catch (Exception e) {
       verify(podWriter, atLeast(MAX_RETRY_ATTEMPTS)).delete(pod);
       verify(podWatcher, atLeast(MAX_RETRY_ATTEMPTS)).waitUntilIsReplaced(any());
-      verify(podWatcher, atLeast(MAX_RETRY_ATTEMPTS)).waitUntilIsReady(anyString(), anyString());
+      verify(podWatcher, atLeast(MAX_RETRY_ATTEMPTS)).waitUntilIsReady(
+          any(), anyString(), anyString());
     }
   }
 }

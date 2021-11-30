@@ -13,4 +13,5 @@ import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 public interface DatabaseOperationJob {
 
   Uni<ClusterRestartState> runJob(StackGresDbOps dbOps, StackGresCluster cluster);
+
 }

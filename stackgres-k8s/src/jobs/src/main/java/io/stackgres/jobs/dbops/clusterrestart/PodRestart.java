@@ -10,5 +10,5 @@ import io.smallrye.mutiny.Uni;
 
 public interface PodRestart {
 
-  Uni<Pod> restartPod(Pod pod);
+  Uni<Pod> restartPod(String name, Pod pod);
 }
