@@ -48,9 +48,9 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec:
   securityContext:
-    runAsUser: 1000
-    runAsGroup: 1000
-    fsGroup: 1000
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
   containers:
   - name: pgbench
     image: postgres
@@ -109,11 +109,12 @@ e2e_test(){
 }
 
 init_pgbench(){
-  kubectl exec -it pgbench -c pgbench -n "$CLUSTER_NAMESPACE" -- pgbench -i -U pguser pgbench > /dev/null
+  kubectl exec pgbench -c pgbench -n "$CLUSTER_NAMESPACE" -- pgbench -i -U pguser pgbench > /dev/null
 }
 
 run_pgbench(){
-  OUTPUT=$(kubectl exec -it pgbench -c pgbench -n "$CLUSTER_NAMESPACE" -- pgbench -U pguser pgbench -T 20 -C)
+  local OUTPUT
+  OUTPUT="$(kubectl exec pgbench -c pgbench -n "$CLUSTER_NAMESPACE" -- pgbench -U pguser pgbench -T 20 -C)"
   echo "$OUTPUT"
 }
 
