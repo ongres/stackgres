@@ -19,6 +19,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -176,6 +177,7 @@ class DbOpLauncherImplTest {
     doNothing().when(databaseOperationEventEmitter).operationStarted(randomDbOpsName, namespace);
     doNothing().when(databaseOperationEventEmitter).operationCompleted(randomDbOpsName, namespace);
 
+    dbOps.getSpec().setTimeout(Duration.ofMillis(10).toString());
     assertThrows(TimeoutException.class, () -> dbOpLauncher.launchDbOp(randomDbOpsName, namespace));
 
     verify(databaseOperationEventEmitter, atMost(1)).operationStarted(randomDbOpsName, namespace);
