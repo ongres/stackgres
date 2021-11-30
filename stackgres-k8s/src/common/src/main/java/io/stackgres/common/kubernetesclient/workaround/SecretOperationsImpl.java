@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.kubernetesclient;
+package io.stackgres.common.kubernetesclient.workaround;
 
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
