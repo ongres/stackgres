@@ -39,12 +39,12 @@ spec:
     method: InPlace
 EOF
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
     --for condition=Failed
   then
-    echo "SUCCESS. The restart operator has been failed."
+    echo "SUCCESS. The restart operation failed."
   else
-    echo "FAILED. The restart operator has an unexpected status."
+    echo "FAILED. The restart operation did not fail."
     return 1
   fi
 
