@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.Status;
@@ -39,6 +40,7 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.Handlers;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.internal.PatchUtils;
@@ -368,6 +370,11 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
   @Override
   public MixedOperation<Service, ServiceList, ServiceResource<Service>> services() {
     return new ServiceOperationsImpl(httpClient, getConfiguration());
+  }
+
+  @Override
+  public MixedOperation<Secret, SecretList, Resource<Secret>> secrets() {
+    return new SecretOperationsImpl(httpClient, getConfiguration());
   }
 
 }

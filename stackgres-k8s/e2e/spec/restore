@@ -272,15 +272,14 @@ check_restore_using_pitr() {
 
 check_delete_backup_dont_require_restart() {
   kubectl delete sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_NAME"
-  sleep 12
 
-  PENDING_RESTART="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -ojson | jq -r '. | select(.status.conditions[] | select(.type == "PendingRestart" and .status == "True")) | .metadata.name')"
-
-  if [ -z "$PENDING_RESTART" ]
+  if ! wait_until -t 16 eval 'test true = "$(
+    kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+      | jq ".status.conditions | any(.type == \"PendingRestart\" and .status == \"True\")")"'
   then
-    echo "SUCCESS: No cluster with pending restart."
+    echo "SUCCESS: Cluster is not pending restart."
   else
-    echo "FAIL: Cluster with pending restart found."
+    echo "FAIL: Cluster is pending restart."
     return 1
   fi
 
@@ -292,6 +291,27 @@ check_delete_backup_dont_require_restart() {
     echo "SUCCESS: Cluster is still reconciled."
   else
     echo "FAIL: Cluster is not reconciled."
+    return 1
+  fi
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
+
+  local RESULT
+  local EXIT_CODE
+  try_function wait_pods_running "$CLUSTER_NAMESPACE" 1
+  if "$RESULT"
+  then
+    echo "SUCCESS: Cluster can be restarted."
+  else
+    echo "FAIL: Cluster can not be restarted."
+    return 1
+  fi
+  try_function wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  if "$RESULT"
+  then
+    echo "SUCCESS: Cluster primary has been elected."
+  else
+    echo "FAIL: Cluster primary has not been elected."
     return 1
   fi
 }
