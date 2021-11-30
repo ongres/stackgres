@@ -106,39 +106,39 @@ class StackGresKubernetesClientTest {
 
   @Test
   void givenAManagedListObject_shouldSuccessfullyParseIt() throws JsonProcessingException {
-    final StackGresDefaultKubernetesClient stackGresKubernetesClient
-        = new StackGresDefaultKubernetesClient();
+    try (final StackGresDefaultKubernetesClient stackGresKubernetesClient =
+        new StackGresDefaultKubernetesClient()) {
 
-    ObjectNode list = JsonUtil.readFromJsonAsJson("statefulset/k8s-sts-list-response.json");
+      ObjectNode list = JsonUtil.readFromJsonAsJson("statefulset/k8s-sts-list-response.json");
 
-    var resources = stackGresKubernetesClient.parseListObject(list,
-        StatefulSet.class,
-        ResourceWriter.STACKGRES_FIELD_MANAGER);
+      var resources = stackGresKubernetesClient.parseListObject(list,
+          StatefulSet.class,
+          ResourceWriter.STACKGRES_FIELD_MANAGER);
 
-    assertEquals(list.get("items").size(), resources.size());
-
+      assertEquals(list.get("items").size(), resources.size());
+    }
   }
 
   @Test
   void givenAnEmptyListObject_shouldNotFail() throws JsonProcessingException {
-    final StackGresDefaultKubernetesClient stackGresKubernetesClient
-        = new StackGresDefaultKubernetesClient();
+    try (final StackGresDefaultKubernetesClient stackGresKubernetesClient =
+        new StackGresDefaultKubernetesClient()) {
 
-    ObjectNode list = (ObjectNode) Serialization.jsonMapper().readTree("{\n"
-        + "  \"kind\" : \"StatefulSetList\",\n"
-        + "  \"apiVersion\" : \"apps/v1\",\n"
-        + "  \"metadata\" : {\n"
-        + "    \"resourceVersion\" : \"52518\"\n"
-        + "  },\n"
-        + "  \"items\" : [ ]\n"
-        + "}\n");
+      ObjectNode list = (ObjectNode) Serialization.jsonMapper().readTree("{\n"
+          + "  \"kind\" : \"StatefulSetList\",\n"
+          + "  \"apiVersion\" : \"apps/v1\",\n"
+          + "  \"metadata\" : {\n"
+          + "    \"resourceVersion\" : \"52518\"\n"
+          + "  },\n"
+          + "  \"items\" : [ ]\n"
+          + "}\n");
 
-    var sts = stackGresKubernetesClient.parseListObject(list,
-        StatefulSet.class,
-        ResourceWriter.STACKGRES_FIELD_MANAGER);
+      var sts = stackGresKubernetesClient.parseListObject(list,
+          StatefulSet.class,
+          ResourceWriter.STACKGRES_FIELD_MANAGER);
 
-    assertEquals(0, sts.size());
-
+      assertEquals(0, sts.size());
+    }
   }
 
   private String getUrlOptions() {

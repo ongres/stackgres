@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -28,14 +29,23 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.Status;
+import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.Handlers;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.resource.KubernetesClientStatusUpdateException;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import okhttp3.Call;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
@@ -44,11 +54,17 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
     implements StackGresKubernetesClient {
+
+  static {
+    Handlers.register(Secret.class, SecretOperationsImpl::new);
+  }
 
   public static final MediaType APPLY_PATCH = MediaType.get("application/apply-patch+yaml");
   private static final Logger LOGGER = LoggerFactory
@@ -64,6 +80,22 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
 
   private static final String LIST_GROUP_PATH_FORMAT =
       "/apis/%s/namespaces/%s/%s";
+
+  public StackGresDefaultKubernetesClient() {
+    super();
+  }
+
+  public StackGresDefaultKubernetesClient(String masterUrl) {
+    super(masterUrl);
+  }
+
+  public StackGresDefaultKubernetesClient(Config config) {
+    super(config);
+  }
+
+  public StackGresDefaultKubernetesClient(OkHttpClient httpClient, Config config) {
+    super(httpClient, config);
+  }
 
   @Override
   public <T extends HasMetadata> T serverSideApply(@NotNull PatchContext patchContext, T intent) {
@@ -141,8 +173,24 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
     }
   }
 
+  @SuppressWarnings("unchecked")
   private <T extends HasMetadata> T apply(T intent, URL applyUrl) throws IOException {
     LOGGER.trace("Performing Server Side Apply request to the endpoint: {}", applyUrl);
+
+    if (intent instanceof Secret) {
+      Secret secret = (Secret) intent;
+      if (secret.getStringData() != null && !secret.getStringData().isEmpty()) {
+        LOGGER.trace("Convert stringData to data for secret {}.{}",
+            secret.getMetadata().getNamespace(), secret.getMetadata().getName());
+        intent = (T) new SecretBuilder(secret)
+            .withData(secret.getStringData().entrySet().stream()
+                .map(entry -> Tuple.tuple(
+                    entry.getKey(), ResourceUtil.encodeSecret(entry.getValue())))
+                .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2)))
+            .withStringData(null)
+            .build();
+      }
+    }
 
     String content = PatchUtils.patchMapper().valueToTree(intent).toString();
     RequestBody body = RequestBody.create(APPLY_PATCH, content);
@@ -315,6 +363,11 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
       }
     }
     return sb.toString();
+  }
+
+  @Override
+  public MixedOperation<Service, ServiceList, ServiceResource<Service>> services() {
+    return new ServiceOperationsImpl(httpClient, getConfiguration());
   }
 
 }

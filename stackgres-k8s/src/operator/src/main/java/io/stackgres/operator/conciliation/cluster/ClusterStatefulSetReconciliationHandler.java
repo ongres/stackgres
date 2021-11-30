@@ -20,15 +20,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -43,6 +40,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceFinder;
@@ -51,7 +49,6 @@ import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.conciliation.DeployedResourceDecorator;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigEndpoints;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -124,7 +121,7 @@ public class ClusterStatefulSetReconciliationHandler
 
   @Override
   public HasMetadata replace(StackGresCluster context, HasMetadata resource) {
-    return concileSts(context, resource, this::updateStatefulSet);
+    return concileSts(context, resource, this::replaceStatefulSet);
   }
 
   @Override
@@ -158,13 +155,17 @@ public class ClusterStatefulSetReconciliationHandler
       return statefulSetWriter.update(requiredSts);
     } catch (KubernetesClientException ex) {
       if (ex.getCode() == 422) {
-        statefulSetWriter.deleteWithoutCascading(requiredSts);
-        waitStatefulSetToBeDeleted(requiredSts);
-        return statefulSetWriter.create(requiredSts);
+        return replaceStatefulSet(requiredSts);
       } else {
         throw ex;
       }
     }
+  }
+
+  private StatefulSet replaceStatefulSet(StatefulSet requiredSts) {
+    statefulSetWriter.deleteWithoutCascading(requiredSts);
+    waitStatefulSetToBeDeleted(requiredSts);
+    return statefulSetWriter.create(requiredSts);
   }
 
   private void waitStatefulSetToBeDeleted(StatefulSet requiredSts) {
@@ -189,9 +190,9 @@ public class ClusterStatefulSetReconciliationHandler
     final int lastReplicaIndex = desiredReplicas - 1;
 
     var patroniConfigEndpoints = endpointsFinder
-        .findByNameAndNamespace(PatroniConfigEndpoints.configName(context), namespace);
+        .findByNameAndNamespace(PatroniUtil.configName(context), namespace);
     final int latestPrimaryIndexFromPatroni =
-        getLatestPrimaryIndexFromPatroni(patroniConfigEndpoints);
+        PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniConfigEndpoints, objectMapper);
     startPrimaryIfRemoved(context, requiredSts, latestPrimaryIndexFromPatroni, writer);
 
     var pods = podScanner.findByLabelsAndNamespace(namespace, patroniClusterLabels).stream()
@@ -301,26 +302,6 @@ public class ClusterStatefulSetReconciliationHandler
         });
   }
 
-  private int getLatestPrimaryIndexFromPatroni(Optional<Endpoints> patroniConfigEndpoints) {
-    try {
-      return patroniConfigEndpoints.map(Endpoints::getMetadata).map(ObjectMeta::getAnnotations)
-          .filter(annotations -> annotations.containsKey("history"))
-          .map(annotations -> annotations.get("history"))
-          .map(Unchecked.function(history -> objectMapper.readTree(history)))
-          .filter(history -> history instanceof ArrayNode).map(ArrayNode.class::cast)
-          .map(history -> history.get(history.size() - 1))
-          .filter(lastPrimary -> lastPrimary instanceof ArrayNode).map(ArrayNode.class::cast)
-          .filter(lastPrimary -> lastPrimary.size() == 5).map(lastPrimary -> lastPrimary.get(4))
-          .filter(lastPrimary -> lastPrimary instanceof TextNode).map(TextNode.class::cast)
-          .map(TextNode::textValue).map(ResourceUtil.getIndexPattern()::matcher)
-          .filter(Matcher::find).filter(matcher -> matcher.group(1) != null)
-          .map(matcher -> matcher.group(1)).map(Integer::parseInt).orElse(0);
-    } catch (RuntimeException ex) {
-      LOGGER.warn("Unable to parse patroni history to indentify previous primary instance", ex);
-      return 0;
-    }
-  }
-
   private void makePrimaryNonDisruptable(Pod primaryPod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = primaryPod.getMetadata().getNamespace();
@@ -359,7 +340,7 @@ public class ClusterStatefulSetReconciliationHandler
   private List<Pod> fixNonDisruptablePods(
       Optional<Endpoints> patroniConfigEndpoints, List<Pod> pods) {
     final int latestPrimaryIndexFromPatroni =
-        getLatestPrimaryIndexFromPatroni(patroniConfigEndpoints);
+        PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniConfigEndpoints, objectMapper);
     return pods.stream().filter(this::isNonDisruptable).filter(this::hasRoleLabel)
         .filter(Predicates.not(this::isRolePrimary))
         .filter(pod -> getPodIndex(pod) != latestPrimaryIndexFromPatroni)
