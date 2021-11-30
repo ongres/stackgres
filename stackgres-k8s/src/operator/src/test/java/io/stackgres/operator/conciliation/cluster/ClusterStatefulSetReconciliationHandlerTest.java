@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doNothing;
@@ -156,7 +157,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
   void scaleDownStatefulSetWithoutNonDisruptablePods_shouldResultInSameNumberOfDesiredReplicas() {
     final int desiredReplicas = setUpDownscale(0, 0, PrimaryPosition.FIRST);
 
-    StatefulSet sts = (StatefulSet) handler.replace(cluster, requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.patch(
+        cluster, requiredStatefulSet, deployedStatefulSet);
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
@@ -173,7 +175,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
   void scaleUpWithoutNonDisrputablePods_shouldResultInTheSameNumberOfDesiredReplicas() {
     final int desiredReplicas = setUpUpscale(0, 0, PrimaryPosition.FIRST);
 
-    StatefulSet sts = (StatefulSet) handler.replace(cluster, requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.patch(
+        cluster, requiredStatefulSet, deployedStatefulSet);
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
@@ -190,7 +193,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
   void scalingDown_NumberOfDesiredReplicasMinusTheDisruptablePods() {
     final int desiredReplicas = setUpDownscale(1, 0, PrimaryPosition.FIRST);
 
-    StatefulSet sts = (StatefulSet) handler.replace(cluster, requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.patch(
+        cluster, requiredStatefulSet, deployedStatefulSet);
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
@@ -207,7 +211,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
   void scaleUpWithIndexBiggerThanReplicasCount_NumberOfDesiredReplicasMinusTheDisruptablePods() {
     final int desiredReplicas = setUpUpscale(1, 1, PrimaryPosition.FIRST);
 
-    StatefulSet sts = (StatefulSet) handler.replace(cluster, requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.patch(
+        cluster, requiredStatefulSet, deployedStatefulSet);
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
@@ -229,7 +234,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
     lenient().when(podWriter.update(podArgumentCaptor.capture()))
         .then(invocationOnMock -> invocationOnMock.getArgument(0));
 
-    StatefulSet sts = (StatefulSet) handler.replace(cluster, requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.patch(
+        cluster, requiredStatefulSet, deployedStatefulSet);
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
@@ -259,7 +265,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
     when(podWriter.update(any(Pod.class)))
         .then(invocationOnMock -> invocationOnMock.getArgument(0));
 
-    StatefulSet sts = (StatefulSet) handler.replace(cluster, requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.patch(
+        cluster, requiredStatefulSet, deployedStatefulSet);
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
@@ -311,7 +318,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
         })
         .then(invocationOnMock -> invocationOnMock.getArgument(0));
 
-    StatefulSet sts = (StatefulSet) handler.replace(cluster, requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.patch(
+        cluster, requiredStatefulSet, deployedStatefulSet);
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
@@ -342,7 +350,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
             .endMetadata()
             .build()));
 
-    StatefulSet sts = (StatefulSet) handler.replace(cluster, requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.patch(
+        cluster, requiredStatefulSet, deployedStatefulSet);
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
@@ -360,7 +369,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
   void scaleDownNonDisrputablePodsPrimaryPodNonDisruptible_DesiredReplicasMinusDisruptablePods() {
     final int desiredReplicas = setUpDownscale(1, 0, PrimaryPosition.FIRST_NONDISRUPTABLE);
 
-    StatefulSet sts = (StatefulSet) handler.replace(cluster, requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.patch(
+        cluster, requiredStatefulSet, deployedStatefulSet);
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
@@ -378,7 +388,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
   void scaleDownNonDisputPodsPrimaryPodNonDisrupDistBig0_DesiredReplicasMinusTheDisruptablePods() {
     final int desiredReplicas = setUpDownscale(1, 1, PrimaryPosition.FIRST_NONDISRUPTABLE);
 
-    StatefulSet sts = (StatefulSet) handler.replace(cluster, requiredStatefulSet);
+    StatefulSet sts = (StatefulSet) handler.patch(
+        cluster, requiredStatefulSet, deployedStatefulSet);
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
@@ -458,7 +469,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     when(statefulSetWriter.update(any())).thenReturn(requiredStatefulSet);
 
-    handler.replace(cluster, requiredStatefulSet);
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
 
     ArgumentCaptor<StatefulSet> statefulSetArgumentCaptor =
         ArgumentCaptor.forClass(StatefulSet.class);
@@ -492,7 +503,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     when(statefulSetWriter.update(any())).thenReturn(requiredStatefulSet);
 
-    handler.replace(cluster, requiredStatefulSet);
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
 
     ArgumentCaptor<StatefulSet> statefulSetArgumentCaptor =
         ArgumentCaptor.forClass(StatefulSet.class);
@@ -528,7 +539,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .setAnnotations(
             Map.of(StringUtils.getRandomString(), StringUtils.getRandomString())));
 
-    handler.replace(cluster, requiredStatefulSet);
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
 
     ArgumentCaptor<StatefulSet> statefulSetArgumentCaptor =
         ArgumentCaptor.forClass(StatefulSet.class);
@@ -564,7 +575,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     deployedStatefulSet.getSpec().getVolumeClaimTemplates()
         .forEach(pvc -> pvc.getMetadata().setOwnerReferences(null));
 
-    handler.replace(cluster, requiredStatefulSet);
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
 
     ArgumentCaptor<StatefulSet> statefulSetArgumentCaptor =
         ArgumentCaptor.forClass(StatefulSet.class);
@@ -629,12 +640,13 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   private void setStatefulSetMocks(final int desiredReplicas, boolean returnRequiredStatefulSet) {
     lenient().when(statefulSetFinder.findByNameAndNamespace(
-        requiredStatefulSet.getMetadata().getName(),
-        requiredStatefulSet.getMetadata().getNamespace()))
+        eq(requiredStatefulSet.getMetadata().getName()),
+        eq(requiredStatefulSet.getMetadata().getNamespace())))
         .thenReturn(Optional.of(
             returnRequiredStatefulSet ? requiredStatefulSet : deployedStatefulSet));
     requiredStatefulSet.getSpec().setReplicas(desiredReplicas);
-    lenient().when(statefulSetWriter.update(requiredStatefulSet)).thenReturn(requiredStatefulSet);
+    lenient().when(statefulSetWriter.create(any())).thenReturn(requiredStatefulSet);
+    lenient().when(statefulSetWriter.update(any())).thenReturn(requiredStatefulSet);
   }
 
   private int getRandomDesiredReplicas() {
