@@ -258,13 +258,13 @@
 
             <fieldset class="step" :class="(currentStep == 'backups') && 'active'">
                 <div class="header">
-                    <h2>Backups</h2>
+                    <h2>Managed Backups</h2>
                 </div>
 
                 <div class="fields">
                     <div class="row-50">
                         <div class="col">
-                            <label for="spec.configurations.sgBackupConfig">Automatic Backups</label>
+                            <label for="spec.configurations.sgBackupConfig">Backups Configuration</label>
                             <select v-model="backupConfig" class="backupConfig" data-field="spec.configurations.sgBackupConfig" @change="(backupConfig == 'createNewResource') && createNewResource('sgbackupconfigs')" :set="( (backupConfig == 'createNewResource') && (backupConfig = '') )">
                                 <option disabled value="">Select Backup Configuration</option>
                                 <option v-for="conf in backupConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
@@ -308,21 +308,19 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
                             </div>
 
-                            <template v-if="restoreBackup.length">
-                                <template v-if="!editMode || (editMode && pitr.length)">
-                                    <div class="col">
-                                        <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
-                                        <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone" :disabled="!restoreBackup.length">
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
-                                    </div>
-                                </template>
-
-                                <div class="col">
-                                    <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
-                                    <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="0" :disabled="!restoreBackup.length">
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
+                            <template v-if="!editMode || (editMode && pitr.length)">
+                                <div class="col" :class="!restoreBackup.length && 'hidden'">
+                                    <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
+                                    <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone" :disabled="!restoreBackup.length">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
                                 </div>
                             </template>
+
+                            <div class="col" v-if="restoreBackup.length">
+                                <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
+                                <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="0" :disabled="!restoreBackup.length">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
+                            </div>
                         </fieldset>
                         <br/><br/><br/>
                     </template>
@@ -809,16 +807,16 @@
                                     
                                     <div class="col">
                                         <label for="spec.pods.scheduling.tolerations.operator">Operator</label>
-                                        <select v-model="field.operator" @change="(field.operator == 'Exists') ? (field.value = null) : null">
+                                        <select v-model="field.operator" @change="( (field.operator == 'Exists') ? (delete field.value) : (field.value = '') )">
                                             <option>Equal</option>
                                             <option>Exists</option>
                                         </select>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations.operator')"></span>
                                     </div>
 
-                                    <div class="col">
+                                    <div class="col" v-if="field.operator == 'Equal'">
                                         <label for="spec.pods.scheduling.tolerations.value">Value</label>
-                                        <input v-model="field.value" :disabled="(field.operator == 'Exists')" :title="(field.operator == 'Exists') ? 'When the selected operator is Exists, this value must be empty' : ''" autocomplete="off">
+                                        <input v-model="field.value" :disabled="(field.operator == 'Exists')" autocomplete="off">
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations.value')"></span>
                                     </div>
 
@@ -896,7 +894,7 @@
 
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator">Operator</label>
-                                                    <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( (!expression.hasOwnProperty('values') || (expression.values.length > 1) ) && (expression['values'] = ['']) ) )">
+                                                    <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( !expression.hasOwnProperty('values') && (expression['values'] = ['']) ) )">
                                                         <option value="" selected>Select an operator</option>
                                                         <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
                                                     </select>
@@ -955,7 +953,7 @@
 
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator">Operator</label>
-                                                    <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( (!field.hasOwnProperty('values') || (field.values.length > 1) ) && (field['values'] = ['']) ) )">
+                                                    <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( !field.hasOwnProperty('values') && (field['values'] = ['']) ) )">
                                                         <option value="" selected>Select an operator</option>
                                                         <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
                                                     </select>
@@ -1159,19 +1157,15 @@
                     <div class="row-50">
                         <div class="col">
                             <label for="spec.nonProductionOptions.disableClusterPodAntiAffinity">Cluster Pod Anti Affinity</label>  
-                            <label for="disableClusterPodAntiAffinity" class="switch yes-no">Disable <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="disableClusterPodAntiAffinity" data-switch="NO"></label>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity')"></span>
+                            <label for="disableClusterPodAntiAffinity" class="switch yes-no">Enable <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="enableClusterPodAntiAffinity" data-switch="NO"></label>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true','Disable this property')"></span>
                         </div>
                     </div>
                 </div>
             </fieldset>
 
             <hr/>
-
-            <div id="summary" class="hidden" v-if="previewCluster.hasOwnProperty('data')">
-                <ClusterDetails :cluster="previewCluster" :extensionsList="extensionsList"></ClusterDetails>
-            </div>
-
+            
             <template v-if="editMode">
                 <button type="submit" class="btn" @click="createCluster">Update Cluster</button>
             </template>
@@ -1184,6 +1178,7 @@
             <button type="button" @click="cancel" class="btn border">Cancel</button>
         
         </div>
+        <ClusterSummary :cluster="previewCluster" :extensionsList="extensionsList" v-if="showSummary" @closeSummary="showSummary = false"></ClusterSummary>
     </form>
 </template>
 
@@ -1193,7 +1188,7 @@
     import store from '../../store'
     import axios from 'axios'
     import moment from 'moment'
-    import ClusterDetails from '../details/ClusterDetails.vue';
+    import ClusterSummary from './summary/ClusterSummary.vue'
 
     export default {
         name: 'CreateCluster',
@@ -1201,7 +1196,7 @@
         mixins: [mixin],
 
 		components: {
-			ClusterDetails
+			ClusterSummary
 		},
 
         data: function() {
@@ -1210,7 +1205,7 @@
 
             return {
                 previewCluster: {},
-                summaryTab: 0,
+                showSummary: false,
                 advancedMode: false,
                 formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'sidecars', 'services', 'metadata', 'scheduling', 'non-production'],
                 currentStep: 'cluster',
@@ -1239,7 +1234,7 @@
                 backupConfig: '',
                 distributedLogs: '',
                 prometheusAutobind: false,
-                disableClusterPodAntiAffinity: false,
+                enableClusterPodAntiAffinity: true,
                 postgresUtil: true,
                 metricsExporter: true,
                 podsMetadata: [ { label: '', value: ''} ],
@@ -1394,7 +1389,7 @@
                             vm.backupConfig = (typeof c.data.spec.configurations.sgBackupConfig !== 'undefined') ? c.data.spec.configurations.sgBackupConfig : '';
                             vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
                             vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
-                            vm.disableClusterPodAntiAffinity = ( (typeof c.data.spec.nonProductionOptions !== 'undefined') && (typeof c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ) ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false;
+                            vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
                             vm.metricsExporter = vm.hasProp(c, 'data.spec.pods.disableMetricsExporter') ? !c.data.spec.pods.disableMetricsExporter : true ;
                             vm.postgresUtil = vm.hasProp(c, 'data.spec.pods.disablePostgresUtil') ? !c.data.spec.pods.disablePostgresUtil : true ;
                             vm.podsMetadata = vm.hasProp(c, 'data.spec.metadata.labels.clusterPods') ? vm.unparseProps(c.data.spec.metadata.labels.clusterPods, 'label') : [];
@@ -1568,9 +1563,9 @@
                                     "size": this.volumeSize+this.volumeUnit,
                                     ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) )
                                 },
-                                "disableConnectionPooling": !this.connPooling,
-                                "disableMetricsExporter": !this.metricsExporter,
-                                "disablePostgresUtil": !this.postgresUtil,
+                                ...(!this.connPooling && { "disableConnectionPooling": !this.connPooling }),
+                                ...(!this.metricsExporter && { "disableMetricsExporter": !this.metricsExporter }),
+                                ...(!this.postgresUtil && { "disablePostgresUtil": !this.postgresUtil }),
                                 ...(!$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) && ({
                                     "metadata": {
                                         "labels": this.parseProps(this.podsMetadata, 'label')
@@ -1632,9 +1627,9 @@
                                 }) 
                             ),
                             ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
-                            ...((this.disableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
+                            ...((!this.enableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
                                 "nonProductionOptions": { 
-                                    ...(this.disableClusterPodAntiAffinity && ({"disableClusterPodAntiAffinity": this.disableClusterPodAntiAffinity}) ),
+                                    ...(!this.enableClusterPodAntiAffinity && ({"disableClusterPodAntiAffinity": !this.enableClusterPodAntiAffinity}) ),
                                     ...((this.flavor == 'babelfish' && this.babelfishFeatureGates) && ({ "enabledFeatureGates": ['babelfish-flavor'] }))
                                     } 
                                 }) ),
@@ -1654,16 +1649,22 @@
                                     }) )
                                 }
                             }) ),
-                            "postgresServices": {
-                                "primary": {
-                                    "enabled": this.postgresServicesPrimary,
-                                    "type": this.postgresServicesPrimaryType,
-                                },
-                                "replicas": {
-                                    "enabled": this.postgresServicesReplicas,
-                                    "type": this.postgresServicesReplicasType,
+                            ...( ( (!this.postgresServicesPrimary || (this.postgresServicesPrimaryType != 'ClusterIP')) || (!this.postgresServicesReplicas || (this.postgresServicesReplicasType != 'ClusterIP')) ) && {
+                                "postgresServices": {
+                                    ...( (!this.postgresServicesPrimary || (this.postgresServicesPrimaryType != 'ClusterIP')) && {
+                                        "primary": {
+                                            "enabled": this.postgresServicesPrimary,
+                                            "type": this.postgresServicesPrimaryType,
+                                        }
+                                    }),
+                                    ...( (!this.postgresServicesReplicas || (this.postgresServicesReplicasType != 'ClusterIP')) && {
+                                        "replicas": {
+                                            "enabled": this.postgresServicesReplicas,
+                                            "type": this.postgresServicesReplicasType,
+                                        }
+                                    }),
                                 }
-                            },
+                            }),
                             "postgres": {
                                 "version": this.postgresVersion,
                                 ...(this.selectedExtensions.length && ({
@@ -1679,10 +1680,7 @@
 
                         vc.previewCluster = {};
                         vc.previewCluster['data'] = cluster;
-                        
-                        setTimeout(function(){
-                            vc.setContentTooltip('#summary');
-                        }, 100)
+                        vc.showSummary = true;
 
                     } else {
 
@@ -1929,7 +1927,8 @@
                 // Load datepicker
 			    require('daterangepicker');
 
-                $('.daterangepicker').remove()
+                $('.daterangepicker').remove();
+                vc.pitr = '';
                 $(document).find('.datePicker').daterangepicker({
                     "autoApply": true,
                     "singleDatePicker": true,
@@ -2611,7 +2610,7 @@
         filter: brightness(100);
     }
 
-    #contentTooltip #clusterDetails {
+    .contentTooltip #clusterDetails {
         margin-right: 10px;
     }
 

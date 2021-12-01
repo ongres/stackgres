@@ -739,7 +739,6 @@
 <script>
 	import store from '../../store'
 	import { mixin } from '../mixins/mixin'
-	import axios from 'axios'
 
     export default {
         name: 'ClusterDetails',
