@@ -34,9 +34,11 @@
             </div>
             <div class="stepsContainer">
                 <ul class="steps">
-                    <li v-for="(step, index) in formSteps" @click="currentStep = step" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' )]" v-if="( ((index < 3) && !advancedMode) || advancedMode)">
-                        {{ step }}
-                    </li>
+                    <template v-for="(step, index) in formSteps"  v-if="( ((index < 3) && !advancedMode) || advancedMode)">
+                        <li @click="currentStep = step" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' )]" v-if="!( (step == 'initialization') && editMode && !initScripts.length && !restoreBackup.length )">
+                            {{ step }}
+                        </li>
+                    </template>
                 </ul>
             </div>
 
@@ -277,142 +279,148 @@
                 </div>
             </fieldset>
 
-            <fieldset class="step" :class="(currentStep == 'initialization') && 'active'" v-if="!editMode || (editMode && (restoreBackup.length || initScripts.length) )">
+            <fieldset class="step" :class="(currentStep == 'initialization') && 'active'">
                 <div class="header">
                     <h2>Cluster Initialization</h2>
                 </div>
 
-                <p>Use this option to initialize the cluster with the data from an existing backup or by running some custom SQL scripts.</p><br/><br/>
+                <template  v-if="!editMode || (editMode && (restoreBackup.length || initScripts.length) )">
 
-                <div class="fields">
-                    <template v-if="( (editMode && restoreBackup.length) || !editMode )">
-                        <div class="header">
-                            <h3 for="spec.initialData.restore.fromBackup">
-                                Initialization Backup
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
-                            </h3>
-                        </div>
-                        <fieldset class="row-50">
-                            <div class="col">
-                                <label for="spec.initialData.restore.fromBackup">Backup Selection</label>
-                                <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : initDatepicker()" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
-                                    <option value="">Select a Backup</option>
-                                    <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.process.status === 'Completed') && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
-                                        <option :value="backup.data.metadata.uid">
-                                            {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
-                                        </option>
-                                    </template>
-                                    <option value="" disabled>– OR –</option>
-                                    <option value="createNewResource">Create new backup</option>
-                                </select>
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
+                    <p>Use this option to initialize the cluster with the data from an existing backup or by running some custom SQL scripts.</p><br/><br/>
+
+                    <div class="fields">
+                        <template v-if="( (editMode && restoreBackup.length) || !editMode )">
+                            <div class="header">
+                                <h3 for="spec.initialData.restore.fromBackup">
+                                    Initialization Backup
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
+                                </h3>
                             </div>
-
-                            <template v-if="!editMode || (editMode && pitr.length)">
-                                <div class="col" :class="!restoreBackup.length && 'hidden'">
-                                    <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
-                                    <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone" :disabled="!restoreBackup.length">
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
+                            <fieldset class="row-50">
+                                <div class="col">
+                                    <label for="spec.initialData.restore.fromBackup">Backup Selection</label>
+                                    <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : initDatepicker()" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
+                                        <option value="">Select a Backup</option>
+                                        <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.process.status === 'Completed') && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
+                                            <option :value="backup.data.metadata.uid">
+                                                {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
+                                            </option>
+                                        </template>
+                                        <option value="" disabled>– OR –</option>
+                                        <option value="createNewResource">Create new backup</option>
+                                    </select>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
                                 </div>
-                            </template>
 
-                            <div class="col" v-if="restoreBackup.length">
-                                <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
-                                <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="0" :disabled="!restoreBackup.length">
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
-                            </div>
-                        </fieldset>
-                        <br/><br/><br/>
-                    </template>
-
-                    <div class="scriptFieldset repeater" v-if="( (editMode && initScripts.length) || !editMode )">
-                        <div class="header">
-                            <h3 for="spec.initialData.scripts">
-                                Initialization Scripts
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts')"></span>
-                            </h3>
-                        </div>
-
-                        <template v-if="initScripts.length">                            
-                            <fieldset v-for="(script, index) in initScripts">
-                                <div class="header">
-                                    <h4>Script #{{ index+1 }} <template v-if="script.hasOwnProperty('name') && script.name.length">–</template> <span class="scriptTitle">{{ script.name }}</span></h4>
-                                    <a class="addRow" @click="spliceArray(initScripts, index)" v-if="!editMode">Delete</a>
-                                </div>    
-                                <div class="row">
-                                    <div class="row-50">
-                                        <template v-if="script.hasOwnProperty('name')">
-                                            <div class="col">
-                                                <label for="spec.initialData.scripts.name">Name</label>
-                                                <input v-model="script.name" placeholder="Type a name..." :disabled="editMode" autocomplete="off">
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.name')"></span>
-                                            </div>
-                                        </template>
-
-                                        <template v-if="script.hasOwnProperty('database')">
-                                            <div class="col">
-                                                <label for="spec.initialData.scripts.database">Database</label>
-                                                <input v-model="script.database" placeholder="Type a database name..." :disabled="editMode" autocomplete="off">
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.database')"></span>
-                                            </div>
-                                        </template>
+                                <template v-if="!editMode || (editMode && pitr.length)">
+                                    <div class="col" :class="!restoreBackup.length && 'hidden'">
+                                        <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
+                                        <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone" :disabled="!restoreBackup.length">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
                                     </div>
+                                </template>
 
-                                    <div class="row-100">
-                                        <div class="col">
-                                            <label for="spec.initialData.scripts.scriptSource">Script Source</label>
-                                            <select v-model="scriptSource[index]" @change="setScriptSource(index)" :disabled="editMode">
-                                                <option value="raw">Raw script</option>
-                                                <option value="secretKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.secretScript')">From Secret</option>
-                                                <option value="configMapKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.configMapScript')">From ConfigMap</option>
-                                            </select>
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptSource', 'Determines whether the script should be read from a Raw SQL, a Kubernetes Secret or a ConfigMap')"></span>
-                                        </div>
-                                        <div class="col">                                                
-                                            <template  v-if="(!editMode && (scriptSource[index] == 'raw') ) || (editMode && ( script.hasOwnProperty('script') || hasProp(script, 'scriptFrom.ConfigMapScript') ) )">
-                                                <label for="spec.initialData.scripts.script" class="script">Script</label> <span class="uploadScript" v-if="!editMode">or <a @click="getScriptFile(index)" class="uploadLink">upload a file</a></span> 
-                                                <input :id="'scriptFile'+index" type="file" @change="uploadScript" class="hide">
-                                            
-                                                <textarea v-model="script.script" placeholder="Type a script..." :disabled="editMode"></textarea>
-                                            </template>
-                                            <template v-else-if="(!editMode && (scriptSource[index] == 'configMapKeyRef') )">
-                                                <div class="header">
-                                                    <h3 for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef">Config Map Key Reference</h3>
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef')"></span> 
-                                                </div>
-                                                
-                                                <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name">Name</label>
-                                                <input v-model="script.scriptFrom.configMapKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
-
-                                                <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key">Key</label>
-                                                <input v-model="script.scriptFrom.configMapKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
-                                            </template>
-                                            <template v-else-if="(scriptSource[index] == 'secretKeyRef')">
-                                                <div class="header">
-                                                    <h3 for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef">Secret Key Reference</h3>
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef')"></span> 
-                                                </div>
-                                                
-                                                <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name">Name</label>
-                                                <input v-model="script.scriptFrom.secretKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
-
-                                                <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key">Key</label>
-                                                <input v-model="script.scriptFrom.secretKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
-                                            </template>
-                                        </div>
-                                    </div>
+                                <div class="col" v-if="restoreBackup.length">
+                                    <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
+                                    <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="0" :disabled="!restoreBackup.length">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
                                 </div>
                             </fieldset>
+                            <br/><br/><br/>
                         </template>
-                        <div class="fieldsetFooter" :class="!initScripts.length && 'topBorder'">
-                            <a class="addRow" @click="pushScript()" v-if="!editMode">Add Script</a>
+
+                        <div class="scriptFieldset repeater" v-if="( (editMode && initScripts.length) || !editMode )">
+                            <div class="header">
+                                <h3 for="spec.initialData.scripts">
+                                    Initialization Scripts
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts')"></span>
+                                </h3>
+                            </div>
+
+                            <template v-if="initScripts.length">                            
+                                <fieldset v-for="(script, index) in initScripts">
+                                    <div class="header">
+                                        <h4>Script #{{ index+1 }} <template v-if="script.hasOwnProperty('name') && script.name.length">–</template> <span class="scriptTitle">{{ script.name }}</span></h4>
+                                        <a class="addRow" @click="spliceArray(initScripts, index)" v-if="!editMode">Delete</a>
+                                    </div>    
+                                    <div class="row">
+                                        <div class="row-50">
+                                            <template v-if="script.hasOwnProperty('name')">
+                                                <div class="col">
+                                                    <label for="spec.initialData.scripts.name">Name</label>
+                                                    <input v-model="script.name" placeholder="Type a name..." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.name')"></span>
+                                                </div>
+                                            </template>
+
+                                            <template v-if="script.hasOwnProperty('database')">
+                                                <div class="col">
+                                                    <label for="spec.initialData.scripts.database">Database</label>
+                                                    <input v-model="script.database" placeholder="Type a database name..." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.database')"></span>
+                                                </div>
+                                            </template>
+                                        </div>
+
+                                        <div class="row-100">
+                                            <div class="col">
+                                                <label for="spec.initialData.scripts.scriptSource">Script Source</label>
+                                                <select v-model="scriptSource[index]" @change="setScriptSource(index)" :disabled="editMode">
+                                                    <option value="raw">Raw script</option>
+                                                    <option value="secretKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.secretScript')">From Secret</option>
+                                                    <option value="configMapKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.configMapScript')">From ConfigMap</option>
+                                                </select>
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptSource', 'Determines whether the script should be read from a Raw SQL, a Kubernetes Secret or a ConfigMap')"></span>
+                                            </div>
+                                            <div class="col">                                                
+                                                <template  v-if="(!editMode && (scriptSource[index] == 'raw') ) || (editMode && ( script.hasOwnProperty('script') || hasProp(script, 'scriptFrom.ConfigMapScript') ) )">
+                                                    <label for="spec.initialData.scripts.script" class="script">Script</label> <span class="uploadScript" v-if="!editMode">or <a @click="getScriptFile(index)" class="uploadLink">upload a file</a></span> 
+                                                    <input :id="'scriptFile'+index" type="file" @change="uploadScript" class="hide">
+                                                
+                                                    <textarea v-model="script.script" placeholder="Type a script..." :disabled="editMode"></textarea>
+                                                </template>
+                                                <template v-else-if="(!editMode && (scriptSource[index] == 'configMapKeyRef') )">
+                                                    <div class="header">
+                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef">Config Map Key Reference</h3>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef')"></span> 
+                                                    </div>
+                                                    
+                                                    <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name">Name</label>
+                                                    <input v-model="script.scriptFrom.configMapKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
+
+                                                    <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key">Key</label>
+                                                    <input v-model="script.scriptFrom.configMapKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
+                                                </template>
+                                                <template v-else-if="(scriptSource[index] == 'secretKeyRef')">
+                                                    <div class="header">
+                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef">Secret Key Reference</h3>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef')"></span> 
+                                                    </div>
+                                                    
+                                                    <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name">Name</label>
+                                                    <input v-model="script.scriptFrom.secretKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
+
+                                                    <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key">Key</label>
+                                                    <input v-model="script.scriptFrom.secretKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </template>
+                            <div class="fieldsetFooter" :class="!initScripts.length && 'topBorder'">
+                                <a class="addRow" @click="pushScript()" v-if="!editMode">Add Script</a>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </template>
+                <template v-else-if="editMode && !restoreBackup.length && !initScripts.length">
+                    <p class="warning orange">Data initialization is only available on cluster creation</p>
+                </template>
             </fieldset>
 
             <fieldset class="step" :class="(currentStep == 'sidecars') && 'active'">
@@ -1414,6 +1422,8 @@
                                 })
                                 
                                 vm.initScripts = c.data.spec.initialData.scripts;
+                            } else {
+                                vm.initScripts = [];
                             }
 
                             vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
