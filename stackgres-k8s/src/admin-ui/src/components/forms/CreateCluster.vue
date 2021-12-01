@@ -101,7 +101,7 @@
                     <div class="row-50">
                         <h3>Postgres</h3>
 
-                        <div class="col">
+                        <div class="col" v-if="( !editMode || (editMode && (flavor == 'babelfish') ) )">
                             <label for="spec.nonProductionOptions.enabledFeatureGates.babelfish">Babelfish Experimental Feature</label>  
                             <label for="babelfishFeatureGates" class="switch yes-no">Enable<input type="checkbox" id="babelfishFeatureGates" v-model="babelfishFeatureGates" data-switch="NO" @change="flavor = (babelfishFeatureGates ? 'babelfish' : 'vanilla')"></label>
                             <span class="helpTooltip" data-tooltip="Enables Babelfish for PostgreSQL project, from <a href='https://babelfishpg.org' target='_blank'>babelfishpg.org</a>, adding a SQL Server compatibility layer"></span>
@@ -1680,7 +1680,7 @@
                                 ...(this.selectedExtensions.length && ({
                                     "extensions": this.selectedExtensions
                                 })),
-                                "flavor": this.flavor
+                                ...(!this.editMode && { "flavor": this.flavor })
                             }
 
                         }
