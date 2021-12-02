@@ -373,7 +373,7 @@ public class ClusterStatefulSetReconciliationHandler
                 .stream()
                 .map(Map::entrySet)
                 .flatMap(Set::stream)
-                .anyMatch(podAnnotation -> Objects.equals(requiredAnnotation, podAnnotation))))
+                .noneMatch(podAnnotation -> Objects.equals(requiredAnnotation, podAnnotation))))
         .peek(pod -> fixPodAnnotations(requiredPodAnnotations, pod))
         .collect(ImmutableList.toImmutableList());
   }
@@ -387,15 +387,6 @@ public class ClusterStatefulSetReconciliationHandler
           + " to {}", namespace, podName, namespace, name, requiredPodAnnotations);
     }
     pod.getMetadata().setAnnotations(ImmutableMap.<String, String>builder()
-        .putAll(Optional.ofNullable(pod.getMetadata().getAnnotations())
-            .stream()
-            .map(Map::entrySet)
-            .flatMap(Set::stream)
-            .filter(podAnnotation -> requiredPodAnnotations
-                .keySet()
-                .stream()
-                .noneMatch(podAnnotation.getKey()::equals))
-            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)))
         .putAll(requiredPodAnnotations)
         .build());
   }
