@@ -460,12 +460,11 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
             "same-key", "new-value");
     requiredStatefulSet.getSpec().getTemplate().getMetadata().setAnnotations(requiredAnnotations);
-    final var deployedPodAnnotations = Seq.seq(podList).map(pod -> Tuple
+    Seq.seq(podList).map(pod -> Tuple
         .tuple(pod, Map
             .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
                 "same-key", "old-value")))
-        .peek(t -> t.v1.getMetadata().setAnnotations(t.v2))
-        .toList();
+        .forEach(t -> t.v1.getMetadata().setAnnotations(t.v2));
 
     when(statefulSetWriter.update(any())).thenReturn(requiredStatefulSet);
 
@@ -482,11 +481,6 @@ class ClusterStatefulSetReconciliationHandlerTest {
     verify(podWriter, atMost(Integer.MAX_VALUE)).update(podArgumentCaptor.capture());
     podArgumentCaptor.getAllValues().forEach(pod -> {
       assertEquals(ImmutableMap.<String, String>builder()
-          .putAll(deployedPodAnnotations.stream().filter(t -> t.v1.getMetadata().getName()
-              .equals(pod.getMetadata().getName()))
-              .findAny().get().v2.entrySet().stream()
-              .filter(t -> requiredAnnotations.keySet().stream().noneMatch(t.getKey()::equals))
-              .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)))
           .putAll(requiredAnnotations)
           .build(), pod.getMetadata().getAnnotations());
     });
