@@ -2,11 +2,17 @@
 
 e2e_test_install() {
   CLUSTER_NAME="extensions"
-  POSTGIS_VERSION="$(get_latest_version_of_extension postgis 14.0)"
-  POSTGIS_RASTER_VERSION="$(get_latest_version_of_extension postgis_raster 14.0)"
+  POSTGIS_VERSION="$(get_latest_version_of_extension postgis 14.0 || true)"
+  POSTGIS_RASTER_VERSION="$(get_latest_version_of_extension postgis_raster 14.0 || true)"
 }
 
 e2e_test() {
+  if [ -z "$POSTGIS_VERSION" ]
+  then
+    echo "Skipping extensions-extra-mounts-and-overwrite since postgis not available for $(uname -m)"
+    return
+  fi
+
   run_test "Check extension with extra mount is installed and available when booting" check_extension_with_extra_mount_installed_when_booting
 
   run_test "Check extension with same shared library is installed and available when added" check_extension_with_same_shared_library_when_added
