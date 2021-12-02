@@ -51,6 +51,8 @@ public class PodWatcherImpl implements PodWatcher {
         .transform(updatedPod -> updatedPod
             .orElseThrow(() -> new RuntimeException("Pod " + podName + " not found")))
         .chain(updatedPod -> Uni.createFrom().item(() -> {
+          LOGGER.info("Waiting for pod {} to be ready. Current state {}", podName,
+              updatedPod.getStatus().getPhase());
           if (!Readiness.getInstance().isReady(updatedPod)) {
             throw Optional.of(checkStatefulSetChanges)
                 .filter(check -> check)
@@ -64,7 +66,7 @@ public class PodWatcherImpl implements PodWatcher {
         }))
         .onFailure(failure -> !(failure instanceof StatefulSetChangedException))
         .retry()
-        .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
+        .withBackOff(Duration.ofSeconds(2), Duration.ofSeconds(60))
         .indefinitely();
   }
 
