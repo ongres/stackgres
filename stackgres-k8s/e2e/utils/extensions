@@ -34,6 +34,7 @@ get_latest_version_of_extension() {
   PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION%%.*}"
   PATRONI_IMAGE_BUILD_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION##*-build-}"
   PATRONI_IMAGE_BUILD_MAJOR_VERSION="${PATRONI_IMAGE_BUILD_VERSION%%.*}"
+  ARCH="$(uname -m)"
   VERSIONS="$(jq -r "$(cat << EOF
 .extensions[] | select(.name == "$EXTENSION_NAME").versions
   | sort_by(.version|split(".")) | reverse[]
@@ -42,7 +43,8 @@ get_latest_version_of_extension() {
       (.postgresVersion == "$PATRONI_IMAGE_POSTGRES_VERSION"
         or .postgresVersion == "$PATRONI_IMAGE_POSTGRES_MAJOR_VERSION")
       and (if .build == null then true
-        else .build | split(".")[0] == "$PATRONI_IMAGE_BUILD_MAJOR_VERSION" end)))
+        else .build | split(".")[0] == "$PATRONI_IMAGE_BUILD_MAJOR_VERSION" end)
+      and ((.arch == null and "$ARCH" == "x86_64") or (.arch == "$ARCH"))))
       | length) > 0).version
 EOF
       )" "$TARGET_PATH/index.json")"
