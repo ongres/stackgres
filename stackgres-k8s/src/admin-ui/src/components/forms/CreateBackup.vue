@@ -221,13 +221,13 @@
 
                             var urlParams = new URLSearchParams(window.location.search);
                             if(urlParams.has('newtab')) {
-                                opener.fetchParentAPI('sgbackupconfigs');
-                                vc.notify('Backup <strong>"'+config.metadata.name+'"</strong> started successfully! You must wait for the backup to be completed before you can choose it from the list.<br/><br/>You may now close this window.', 'message','sgbackups');
+                                opener.fetchParentAPI('sgbackups');
+                                vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully! You must wait for the backup to be completed before you can choose it from the list.<br/><br/>You may now close this window.', 'message','sgbackups');
                             } else {
                                 vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully.', 'message', 'sgbackups');
                             }
 
-                            vc.fetchAPI('sgbackups');
+                            vc.fetchAPI('sgbackup');
                             router.push('/' + backup.metadata.namespace + '/sgbackups');
                         })
                         .catch(function (error) {
