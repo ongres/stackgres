@@ -85,6 +85,10 @@ public class StackGresExtensionMetadata {
     return majorBuild;
   }
 
+  public int getMinorBuild() {
+    return minorBuild;
+  }
+
   public StackGresExtensionVersionTarget getTarget() {
     return target;
   }

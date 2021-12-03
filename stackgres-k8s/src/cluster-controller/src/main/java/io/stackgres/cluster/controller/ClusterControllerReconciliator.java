@@ -25,6 +25,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.reconciliation.Reconciliator;
+import org.jooq.lambda.tuple.Tuple;
 
 @ApplicationScoped
 public class ClusterControllerReconciliator
@@ -72,6 +73,21 @@ public class ClusterControllerReconciliator
           ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
       final StackGresCluster cluster = context.getCluster();
 
+      clusterScheduler.update(cluster,
+          (targetCluster, sourceCluster) -> {
+            sourceCluster.getSpec().getToInstallPostgresExtensions().stream()
+                .filter(toInstallExtension -> targetCluster.getSpec()
+                    .getToInstallPostgresExtensions()
+                    .stream().noneMatch(toInstallExtension::equals))
+                .map(toInstallExtension -> Tuple.tuple(toInstallExtension,
+                    targetCluster.getSpec().getToInstallPostgresExtensions().stream()
+                    .filter(targetToInstallExtension -> toInstallExtension.getName()
+                        .equals(targetToInstallExtension.getName()))
+                    .findFirst()))
+                .filter(t -> t.v2.isPresent())
+                .map(t -> t.map2(Optional::get))
+                .forEach(t -> t.v1.setBuild(t.v2.getBuild()));
+          });
       clusterScheduler.updateStatus(cluster,
           StackGresCluster::getStatus, (targetCluster, status) -> {
             var podStatus = Optional.ofNullable(status)

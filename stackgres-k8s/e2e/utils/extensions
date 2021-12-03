@@ -1,14 +1,15 @@
 #!/bin/sh
 
 export EXTENSIONS_REPOSITORY_URL="${EXTENSIONS_REPOSITORY_URL:-https://extensions.stackgres.io/postgres/repository}"
+EXTENSIONS_ARCH="$(uname -m)"
 EXTENSIONS_CACHE_PRELOADED_EXTENSIONS="$(
   {
-    echo 'x86_64/linux/timescaledb-1\.7\.4-pg12'
-    echo 'x86_64/linux/intagg-.*-pg12'
-    echo 'x86_64/linux/pageinspect-.*-pg12'
-    echo 'x86_64/linux/pg_repack-.*-pg(12|13)'
-    echo 'x86_64/linux/postgis-.*-pg(12|13)'
-    echo 'x86_64/linux/postgis_raster-.*-pg12(12|13)'
+    echo "$EXTENSIONS_ARCH/linux/timescaledb-1\.7\.4-pg12"
+    echo "$EXTENSIONS_ARCH/linux/intagg-.*-pg12"
+    echo "$EXTENSIONS_ARCH/linux/pageinspect-.*-pg12"
+    echo "$EXTENSIONS_ARCH/linux/pg_repack-.*-pg(12|13)"
+    echo "$EXTENSIONS_ARCH/linux/postgis-.*-pg(12|13)"
+    echo "$EXTENSIONS_ARCH/linux/postgis_raster-.*-pg12(12|13)"
   } | jq -R . | jq -s -c .
   )"
 EXTENSIONS_DEFAULT_FLAVOR=pg
@@ -62,7 +63,7 @@ get_latest_version_of_extension() {
   PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION%%.*}"
   PATRONI_IMAGE_BUILD_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION##*-build-}"
   PATRONI_IMAGE_BUILD_MAJOR_VERSION="${PATRONI_IMAGE_BUILD_VERSION%%.*}"
-  ARCH="$(uname -m)"
+  EXTENSIONS_ARCH="$(uname -m)"
   VERSIONS="$(jq -r "$(cat << EOF
 .extensions[] | select(.name == "$EXTENSION_NAME").versions
   | sort_by(.version|split(".")) | reverse[]
@@ -72,7 +73,7 @@ get_latest_version_of_extension() {
         or .postgresVersion == "$PATRONI_IMAGE_POSTGRES_MAJOR_VERSION")
       and (if .build == null then true
         else .build | split(".")[0] == "$PATRONI_IMAGE_BUILD_MAJOR_VERSION" end)
-      and ((.arch == null and "$ARCH" == "x86_64") or (.arch == "$ARCH"))))
+      and ((.arch == null and "$EXTENSIONS_ARCH" == "x86_64") or (.arch == "$EXTENSIONS_ARCH"))))
       | length) > 0).version
 EOF
       )" "$TARGET_PATH/extensions-index.json")"
