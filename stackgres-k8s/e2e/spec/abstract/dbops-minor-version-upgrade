@@ -48,14 +48,7 @@ check_restart() {
   local RESTARTED_PODS="$1"
   local NOT_RESTARTED_PODS="$2"
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Running
-  then
-    echo "SUCCESS. minor version upgrade running."
-  else
-    echo "FAILED. minor version upgrade not running."
-    return 1
-  fi
+  assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
 
   wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}")" != 0 ]'
@@ -69,14 +62,7 @@ check_restart() {
     echo "SUCCESS. Cluster has not been updated while locked."
   fi
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Completed
-  then
-    echo "SUCCESS. minor version upgrade completed."
-  else
-    echo "FAILED. minor version upgrade failed."
-    return 1
-  fi
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 
   if [ -z "$RESTARTED_PODS" ]
   then

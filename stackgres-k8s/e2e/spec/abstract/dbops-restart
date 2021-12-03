@@ -35,14 +35,7 @@ check_restart_ran_successfully() {
 }
 
 check_restart_is_running() {
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Running
-  then
-    echo "SUCCESS. restart running."
-  else
-    echo "FAILED. restart not running."
-    return 1
-  fi
+  assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
 }
 
 check_restart_prevent_updates_to_cluster() {
@@ -60,14 +53,7 @@ check_restart_prevent_updates_to_cluster() {
 }
 
 check_restart_completed() {
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Completed
-  then
-    echo "SUCCESS. restart completed."
-  else
-    echo "FAILED. restart failed."
-    return 1
-  fi
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 }
 
 check_restart() {

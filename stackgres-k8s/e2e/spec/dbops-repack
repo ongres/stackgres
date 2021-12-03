@@ -186,23 +186,9 @@ EOF
 }
 
 check_repack() {
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Running
-  then
-    echo "SUCCESS. repack running."
-  else
-    echo "FAILED. repack not running."
-    return 1
-  fi
+  assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
 
-  if kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Completed
-  then
-    echo "SUCCESS. repack completed."
-  else
-    echo "FAILED. repack failed."
-    return 1
-  fi
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
     -l "dbops-name=$DBOPS_NAME,db-ops=true" \

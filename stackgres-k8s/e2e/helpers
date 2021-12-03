@@ -18,6 +18,11 @@ try_function() {
 }
 
 notrace_function() {
+  if eval "[ \"\$E2E_LOG_FUNCTION_$1\" = true ]"
+  then
+    "$@"
+    return
+  fi
   local SHELL_XTRACE=""
   local X_UNSET=true
   if echo "$-" | grep -q x

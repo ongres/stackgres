@@ -38,8 +38,7 @@ spec:
   op: vacuum
 EOF
 
-  kubectl wait --timeout "${E2E_TIMEOUT}s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Completed
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
 
   VACUUM_JOB_UID="$(kubectl get job -n "$CLUSTER_NAMESPACE" -l app=StackGresDbOps \
     --template '{{ range .items }}{{ printf "%s" .metadata.uid }}{{ end }}')"
