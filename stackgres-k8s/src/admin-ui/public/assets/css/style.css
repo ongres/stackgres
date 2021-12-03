@@ -4028,10 +4028,11 @@ td.hasTooltip.textRight > span {
 
 .hasTooltip .auxTooltip {
     visibility: hidden;
-    position: absolute;
+    position: fixed;
     white-space: nowrap;
     display: block;
     top: 0;
+    top: 1000vh;
 }
 
 .options label.active span {
