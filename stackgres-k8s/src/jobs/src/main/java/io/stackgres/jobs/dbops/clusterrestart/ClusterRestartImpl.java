@@ -8,6 +8,8 @@ package io.stackgres.jobs.dbops.clusterrestart;
 import static java.lang.String.format;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -39,6 +41,8 @@ public class ClusterRestartImpl implements ClusterRestart {
 
   private final PostgresRestart postgresRestart;
 
+  private final ExecutorService restartExecutor;
+
   @Inject
   public ClusterRestartImpl(PodRestart podRestart,
       ClusterSwitchoverHandler switchoverHandler,
@@ -50,6 +54,7 @@ public class ClusterRestartImpl implements ClusterRestart {
     this.clusterInstanceManager = clusterInstanceManager;
     this.clusterWatcher = clusterWatcher;
     this.postgresRestart = postgresRestart;
+    this.restartExecutor = Executors.newSingleThreadExecutor(t -> new Thread(t, "RestartExecutor"));
   }
 
   @Override
@@ -57,6 +62,7 @@ public class ClusterRestartImpl implements ClusterRestart {
     return Multi.createFrom().emitter(em -> {
       try {
         restartCluster(clusterRestartState, em)
+            .runSubscriptionOn(restartExecutor)
             .await().indefinitely();
         em.complete();
       } catch (Exception ex) {
