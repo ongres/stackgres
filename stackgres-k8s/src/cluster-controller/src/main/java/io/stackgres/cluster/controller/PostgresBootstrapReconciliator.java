@@ -55,6 +55,11 @@ public class PostgresBootstrapReconciliator {
 
   public ReconciliationResult<Boolean> reconcile(KubernetesClient client, ClusterContext context)
       throws Exception {
+    if (context.getCluster().getStatus() != null
+        && context.getCluster().getStatus().getArch() != null
+        && context.getCluster().getStatus().getOs() != null) {
+      return new ReconciliationResult<Boolean>(true);
+    }
     Optional<Endpoints> patroniConfigEndpoints = endpointsFinder
         .findByNameAndNamespace(PatroniUtil.configName(context.getCluster()),
             context.getCluster().getMetadata().getNamespace());

@@ -34,13 +34,22 @@ public class FakeClusterScheduler implements CustomResourceScheduler<StackGresCl
   }
 
   @Override
+  public void delete(@NotNull StackGresCluster resource) {
+    kubeDb.delete(resource);
+  }
+
+  @Override
   public StackGresCluster update(@NotNull StackGresCluster resource) {
     return kubeDb.addOrReplaceCluster(resource);
   }
 
   @Override
-  public void delete(@NotNull StackGresCluster resource) {
-    kubeDb.delete(resource);
+  public StackGresCluster update(@NotNull StackGresCluster resource,
+      @NotNull BiConsumer<StackGresCluster, StackGresCluster> setter) {
+    final ObjectMeta metadata = resource.getMetadata();
+    var cluster = kubeDb.getCluster(metadata.getName(), metadata.getNamespace());
+    setter.accept(cluster, resource);
+    return kubeDb.addOrReplaceCluster(cluster);
   }
 
   @Override
@@ -49,8 +58,8 @@ public class FakeClusterScheduler implements CustomResourceScheduler<StackGresCl
       @NotNull BiConsumer<StackGresCluster, S> statusSetter) {
     final ObjectMeta metadata = resource.getMetadata();
     var cluster = kubeDb.getCluster(metadata.getName(), metadata.getNamespace());
-    cluster.setStatus(resource.getStatus());
-    return kubeDb.addOrReplaceCluster(resource);
+    statusSetter.accept(cluster, statusGetter.apply(resource));
+    return kubeDb.addOrReplaceCluster(cluster);
   }
 
 }

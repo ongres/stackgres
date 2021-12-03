@@ -158,8 +158,9 @@ public interface ExtensionUtil {
         .build();
   }
 
-  static StackGresClusterInstalledExtension getInstalledExtension(
-      StackGresClusterExtension extension, StackGresExtensionMetadata extensionMetadata) {
+  static StackGresClusterInstalledExtension getInstalledExtension(StackGresCluster cluster,
+      StackGresClusterExtension extension, StackGresExtensionMetadata extensionMetadata,
+      boolean detectOs) {
     StackGresClusterInstalledExtension installedExtension =
         new StackGresClusterInstalledExtension();
 
@@ -172,7 +173,10 @@ public interface ExtensionUtil {
             + ExtensionUtil.getDescription(extensionMetadata)))
         .toString());
     installedExtension.setPostgresVersion(extensionMetadata.getTarget().getPostgresVersion());
-    installedExtension.setBuild(extensionMetadata.getTarget().getBuild());
+    if (getClusterArch(cluster, Optional.of(OS_DETECTOR).filter(od -> detectOs)).isPresent()) {
+      installedExtension.setBuild(extensionMetadata.getTarget().getBuild());
+    }
+
     return installedExtension;
   }
 
