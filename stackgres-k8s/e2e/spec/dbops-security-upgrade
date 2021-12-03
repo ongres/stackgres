@@ -371,14 +371,7 @@ spec:
     method: $METHOD
 EOF
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Running
-  then
-    echo "SUCCESS. Cluster $CLUSTER_NAME security upgrade running."
-  else
-    echo "FAILED. Cluster $CLUSTER_NAME security upgrade not running."
-    return 1
-  fi
+  assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
 
   wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}")" != 0 ]'
@@ -399,14 +392,7 @@ check_cluster_security_upgrade() {
   local METHOD="$3"
   shift 3
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Completed
-  then
-    echo "SUCCESS. Cluster $CLUSTER_NAME security upgrade completed."
-  else
-    echo "FAILED. Cluster $CLUSTER_NAME security upgrade failed."
-    return 1
-  fi
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 
   check_cluster_after_security_upgrade
 

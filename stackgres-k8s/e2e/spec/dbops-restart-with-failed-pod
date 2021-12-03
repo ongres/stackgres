@@ -39,14 +39,7 @@ spec:
     method: InPlace
 EOF
 
-  if kubectl wait --timeout 30s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_FAILING_NAME" \
-    --for condition=Completed
-  then
-    echo "FAILED. The restart operation completed."
-    return 1
-  else
-    echo "SUCCESS. The restart operation did not completed."
-  fi
+  assert_dbops_failure "$DBOPS_NAME" "$CLUSTER_NAMESPACE" 30
 
   wait_until kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     -p '[{"op":"remove","path":"/spec/pods/scheduling"}]'
@@ -91,14 +84,7 @@ spec:
     method: InPlace
 EOF
 
-  if kubectl wait --timeout 30s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_FAILING_NAME" \
-    --for condition=Completed
-  then
-    echo "FAILED. The restart operation completed."
-    return 1
-  else
-    echo "SUCCESS. The restart operation did not completed."
-  fi
+  assert_dbops_failure "$DBOPS_NAME" "$CLUSTER_NAMESPACE" 30
 
   wait_until kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     -p '[{"op":"remove","path":"/spec/pods/scheduling"}]'
