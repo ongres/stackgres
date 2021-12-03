@@ -1,5 +1,5 @@
 <template>
-    <form id="create-cluster" v-if="loggedIn && isReady && !notFound" @submit.prevent>
+    <div id="create-cluster" class="createCluster noSubmit" v-if="loggedIn && isReady && !notFound">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
         <header>
@@ -24,7 +24,7 @@
                 <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgcluster/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
             </div>
         </header>
-        <div class="form">
+        <form id="createCluster" class="form" @submit.prevent="createCluster()">
             <div class="header">
                 <h2>Create Cluster</h2>
                 <label for="advancedMode" class="floatRight">
@@ -35,7 +35,7 @@
             <div class="stepsContainer">
                 <ul class="steps">
                     <template v-for="(step, index) in formSteps"  v-if="( ((index < 3) && !advancedMode) || advancedMode)">
-                        <li @click="currentStep = step" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' )]" v-if="!( (step == 'initialization') && editMode && !initScripts.length && !restoreBackup.length )">
+                        <li @click="currentStep = step" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' )]" v-if="!( (step == 'initialization') && editMode && !initScripts.length && !restoreBackup.length )" :data-step="step">
                             {{ step }}
                         </li>
                     </template>
@@ -103,14 +103,16 @@
 
                         <div class="col" v-if="( !editMode || (editMode && (flavor == 'babelfish') ) )">
                             <label for="spec.nonProductionOptions.enabledFeatureGates.babelfish">Babelfish Experimental Feature</label>  
-                            <label for="babelfishFeatureGates" class="switch yes-no">Enable<input type="checkbox" id="babelfishFeatureGates" v-model="babelfishFeatureGates" data-switch="NO" @change="flavor = (babelfishFeatureGates ? 'babelfish' : 'vanilla')"></label>
+                            <label for="babelfishFeatureGates" class="switch yes-no">Enable
+                                <input type="checkbox" id="babelfishFeatureGates" v-model="babelfishFeatureGates" data-switch="NO" @change="( (flavor = (babelfishFeatureGates ? 'babelfish' : 'vanilla') ) && validateSelectedPgVersion() )" data-field="spec.nonProductionOptions.enabledFeatureGates.babelfish">
+                            </label>
                             <span class="helpTooltip" data-tooltip="Enables Babelfish for PostgreSQL project, from <a href='https://babelfishpg.org' target='_blank'>babelfishpg.org</a>, adding a SQL Server compatibility layer"></span>
                         </div>
 
                         <template v-if="babelfishFeatureGates">
                             <div class="col">
                                 <label for="spec.postgres.flavor">Postgres Flavor <span class="req">*</span></label>
-                                <select :disabled="editMode" v-model="flavor" required data-field="spec.postgres.flavor" @change="getFlavorExtensions()">
+                                <select :disabled="editMode" v-model="flavor" required data-field="spec.postgres.flavor" @change="validateSelectedPgVersion() && getFlavorExtensions()">
                                     <option selected value="vanilla">PostgreSQL Community</option>
                                     <option value="babelfish">Babelfish (experimental)</option>
                                 </select>
@@ -220,7 +222,7 @@
                         </li>
                         <li v-for="(ext, index) in extensionsList[flavor][postgresVersion]" v-if="(!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)) && ext.versions.length" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
                             <label class="hoverTooltip">
-                                <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length || !ext.selectedVersion.length" />
+                                <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length || !ext.selectedVersion.length" :data-field="'spec.postgres.extensions.' + ext.name" />
                                 <span class="name">
                                     {{ ext.name }}
                                     <a v-if="ext.hasOwnProperty('url') && ext.url" :href="ext.url" class="newTab" target="_blank"></a>
@@ -478,7 +480,10 @@
 
                         <div class="col">
                             <label for="spec.prometheusAutobind">Prometheus Autobind</label>  
-                            <label for="prometheusAutobind" class="switch" data-field="spec.prometheusAutobind">Prometheus Autobind <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="OFF"></label>
+                            <label for="prometheusAutobind" class="switch">
+                                Prometheus Autobind
+                                <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="OFF" data-field="spec.prometheusAutobind">
+                            </label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.prometheusAutobind')"></span>
                         </div>
                     </div>
@@ -575,7 +580,7 @@
                             </h3>
                         </div>
 
-                        <fieldset>
+                        <fieldset data-field="spec.pods.metadata.labels">
                             <div class="header">
                                 <h3 for="spec.metadata.labels.clusterPods">
                                     Cluster Pods
@@ -612,7 +617,7 @@
                     </div>
 
                     <div class="repeater">
-                        <fieldset>
+                        <fieldset data-field="spec.metadata.annotations.allResources">
                             <div class="header">
                                 <h3 for="spec.metadata.annotations.allResources">
                                     All Resources
@@ -641,7 +646,7 @@
                     <br/><br/>
 
                     <div class="repeater">
-                        <fieldset>
+                        <fieldset data-field="spec.metadata.annotations.clusterPods">
                             <div class="header">
                                 <h3 for="spec.metadata.annotations.clusterPods">
                                     Cluster Pods
@@ -670,7 +675,7 @@
                     <br/><br/>
 
                     <div class="repeater">
-                        <fieldset>
+                        <fieldset data-field="spec.metadata.annotations.services">
                             <div class="header">
                                 <h3 for="spec.metadata.annotations.services">
                                     Services
@@ -699,7 +704,7 @@
                     <br/><br/>
 
                     <div class="repeater">
-                        <fieldset>
+                        <fieldset data-field="spec.metadata.annotations.primaryService">
                             <div class="header">
                                 <h3 for="spec.metadata.annotations.primaryService">
                                     Primary Service 
@@ -728,7 +733,7 @@
                     <br/><br/>
 
                     <div class="repeater">
-                        <fieldset>
+                        <fieldset data-field="spec.metadata.annotations.replicasService">
                             <div class="header">
                                 <h3 for="spec.metadata.annotations.replicasService">
                                     Replicas Service
@@ -769,7 +774,7 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeSelector')"></span>
                             </h3>
                         </div>
-                        <fieldset v-if="nodeSelector.length">
+                        <fieldset v-if="nodeSelector.length" data-field="spec.pods.scheduling.nodeSelector">
                             <div class="scheduling">
                                 <div class="row" v-for="(field, index) in nodeSelector">
                                     <label>Key</label>
@@ -799,7 +804,7 @@
                     </div>
             
                     <div class="scheduling repeater">
-                        <fieldset v-if="tolerations.length">
+                        <fieldset v-if="tolerations.length" data-field="spec.pods.scheduling.tolerations">
                             <div class="section" v-for="(field, index) in tolerations">
                                 <div class="header">
                                     <h4 for="spec.pods.scheduling.tolerations">Toleration #{{ index+1 }}</h4>
@@ -809,13 +814,13 @@
                                 <div class="row-50">
                                     <div class="col">
                                         <label for="spec.pods.scheduling.tolerations.key">Key</label>
-                                        <input v-model="field.key" autocomplete="off">
+                                        <input v-model="field.key" autocomplete="off" data-field="spec.pods.scheduling.tolerations.key">
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations.key')"></span>
                                     </div>
                                     
                                     <div class="col">
                                         <label for="spec.pods.scheduling.tolerations.operator">Operator</label>
-                                        <select v-model="field.operator" @change="( (field.operator == 'Exists') ? (delete field.value) : (field.value = '') )">
+                                        <select v-model="field.operator" @change="( (field.operator == 'Exists') ? (delete field.value) : (field.value = '') )" data-field="spec.pods.scheduling.tolerations.operator">
                                             <option>Equal</option>
                                             <option>Exists</option>
                                         </select>
@@ -824,13 +829,13 @@
 
                                     <div class="col" v-if="field.operator == 'Equal'">
                                         <label for="spec.pods.scheduling.tolerations.value">Value</label>
-                                        <input v-model="field.value" :disabled="(field.operator == 'Exists')" autocomplete="off">
+                                        <input v-model="field.value" :disabled="(field.operator == 'Exists')" autocomplete="off" data-field="spec.pods.scheduling.tolerations.value">
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations.value')"></span>
                                     </div>
 
                                     <div class="col">
                                         <label for="spec.pods.scheduling.tolerations.effect">Effect</label>
-                                        <select v-model="field.effect">
+                                        <select v-model="field.effect" data-field="spec.pods.scheduling.tolerations.effect">>
                                             <option :value="nullVal">MatchAll</option>
                                             <option>NoSchedule</option>
                                             <option>PreferNoSchedule</option>
@@ -896,13 +901,13 @@
                                             <div class="row-50">
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key">Key</label>
-                                                    <input v-model="expression.key" autocomplete="off" placeholder="Type a key...">
+                                                    <input v-model="expression.key" autocomplete="off" placeholder="Type a key..." data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key">
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key')"></span> 
                                                 </div>
 
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator">Operator</label>
-                                                    <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( !expression.hasOwnProperty('values') && (expression['values'] = ['']) ) )">
+                                                    <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( !expression.hasOwnProperty('values') && (expression['values'] = ['']) ) )" data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator">
                                                         <option value="" selected>Select an operator</option>
                                                         <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
                                                     </select>
@@ -921,7 +926,7 @@
                                                     <label v-if="!['Gt', 'Lt'].includes(expression.operator)">
                                                         Value #{{ (valIndex + 1) }}
                                                     </label>
-                                                    <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'">
+                                                    <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'" data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values">
                                                     <a class="addRow" @click="spliceArray(expression.values, valIndex)">Delete</a>
                                                 </div>
                                             </fieldset>
@@ -955,13 +960,13 @@
                                             <div class="row-50">
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key">Key</label>
-                                                    <input v-model="field.key" autocomplete="off" placeholder="Type a key...">
+                                                    <input v-model="field.key" autocomplete="off" placeholder="Type a key..." data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key">
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key')"></span> 
                                                 </div>
 
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator">Operator</label>
-                                                    <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( !field.hasOwnProperty('values') && (field['values'] = ['']) ) )">
+                                                    <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( !field.hasOwnProperty('values') && (field['values'] = ['']) ) )" data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator">
                                                         <option value="" selected>Select an operator</option>
                                                         <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
                                                     </select>
@@ -980,7 +985,7 @@
                                                     <label v-if="!['Gt', 'Lt'].includes(field.operator)">
                                                         Value #{{ (valIndex + 1) }}
                                                     </label>
-                                                    <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'">
+                                                    <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'" data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values">
                                                     <a class="addRow" @click="spliceArray(field.values, valIndex)">Delete</a>
                                                 </div>
                                             </fieldset>
@@ -1044,13 +1049,13 @@
                                             <div class="row-50">
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key">Key</label>
-                                                    <input v-model="expression.key" autocomplete="off" placeholder="Type a key...">
+                                                    <input v-model="expression.key" autocomplete="off" placeholder="Type a key..." data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key">
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key')"></span>
                                                 </div>
 
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator">Operator</label>
-                                                    <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( (!expression.hasOwnProperty('values') || (expression.values.length > 1) ) && (expression['values'] = ['']) ) )">
+                                                    <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( (!expression.hasOwnProperty('values') || (expression.values.length > 1) ) && (expression['values'] = ['']) ) )" data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator">
                                                         <option value="" selected>Select an operator</option>
                                                         <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
                                                     </select>
@@ -1069,7 +1074,7 @@
                                                     <label v-if="!['Gt', 'Lt'].includes(expression.operator)">
                                                         Value #{{ (valIndex + 1) }}
                                                     </label>
-                                                    <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :preferred="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'">
+                                                    <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :preferred="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'" data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values">
                                                     <a class="addRow" @click="spliceArray(expression.values, valIndex)">Delete</a>
                                                 </div>
                                             </fieldset>
@@ -1103,13 +1108,13 @@
                                             <div class="row-50">
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key">Key</label>
-                                                    <input v-model="field.key" autocomplete="off" placeholder="Type a key...">
+                                                    <input v-model="field.key" autocomplete="off" placeholder="Type a key..." data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key">
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key')"></span>
                                                 </div>
 
                                                 <div class="col">
                                                     <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator">Operator</label>
-                                                    <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( (!field.hasOwnProperty('values') || (field.values.length > 1) ) && (field['values'] = ['']) ) )">
+                                                    <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( (!field.hasOwnProperty('values') || (field.values.length > 1) ) && (field['values'] = ['']) ) )" data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator">
                                                         <option value="" selected>Select an operator</option>
                                                         <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
                                                     </select>
@@ -1128,7 +1133,7 @@
                                                     <label v-if="!['Gt', 'Lt'].includes(field.operator)">
                                                         Value #{{ (valIndex + 1) }}
                                                     </label>
-                                                    <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'">
+                                                    <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'" data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values">
                                                     <a class="addRow" @click="spliceArray(field.values, valIndex)">Delete</a>
                                                 </div>
                                             </fieldset>
@@ -1143,7 +1148,7 @@
                                 </div>
 
                                 <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight">Weight</label>
-                                <input v-model="preferredAffinityTerm.weight" autocomplete="off" type="number" min="1" max="100" class="affinityWeight">
+                                <input v-model="preferredAffinityTerm.weight" autocomplete="off" type="number" min="1" max="100" class="affinityWeight" data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight')"></span>
                             </div>
                         </fieldset>
@@ -1165,7 +1170,10 @@
                     <div class="row-50">
                         <div class="col">
                             <label for="spec.nonProductionOptions.disableClusterPodAntiAffinity">Cluster Pod Anti Affinity</label>  
-                            <label for="disableClusterPodAntiAffinity" class="switch yes-no">Enable <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="enableClusterPodAntiAffinity" data-switch="NO"></label>
+                            <label for="disableClusterPodAntiAffinity" class="switch yes-no">
+                                Enable 
+                                <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="enableClusterPodAntiAffinity" data-switch="NO" data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity">
+                            </label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true','Disable this property')"></span>
                         </div>
                     </div>
@@ -1175,19 +1183,19 @@
             <hr/>
             
             <template v-if="editMode">
-                <button type="submit" class="btn" @click="createCluster">Update Cluster</button>
+                <button type="submit" class="btn" @click="createCluster(false)">Update Cluster</button>
             </template>
             <template v-else>
-                <button type="submit" class="btn" @click="createCluster">Create Cluster</button>
+                <button type="submit" class="btn" @click="createCluster(false)">Create Cluster</button>
             </template>
 
             <button type="button" class="btn floatRight" @click="createCluster(true)">View Summary</button>
 
             <button type="button" @click="cancel" class="btn border">Cancel</button>
         
-        </div>
+        </form>
         <ClusterSummary :cluster="previewCluster" :extensionsList="extensionsList" v-if="showSummary" @closeSummary="showSummary = false"></ClusterSummary>
-    </form>
+    </div>
 </template>
 
 <script>
@@ -1758,6 +1766,7 @@
                     vc.postgresVersion = 'latest';
                 }
 
+                vc.validateSelectedPgVersion();
                 vc.validateSelectedPgConfig();
                 vc.validateSelectedRestoreBackup();
                 vc.getFlavorExtensions();
@@ -2157,7 +2166,20 @@
                         vc.restoreBackup = '';
                     }
                 }
-            }
+            },
+
+            validateSelectedPgVersion() {
+                const vc = this;
+
+                if( (vc.postgresVersion != 'latest') && (!Object.keys(vc.postgresVersionsList[vc.flavor]).includes(vc.shortPostgresVersion) || !vc.postgresVersionsList[vc.flavor][vc.shortPostgresVersion].includes(vc.postgresVersion)) ) {
+                    
+                    setTimeout(function(){
+                        vc.notify('The <strong>postgres version</strong> you selected is not available for this <strong>postgres flavor</strong>. Please choose a new version or your cluster will be created with the latest version available', 'message', 'sgclusters', false);
+                    },100)
+                    
+                    vc.postgresVersion = 'latest';
+                }
+            },
 
         },
 
