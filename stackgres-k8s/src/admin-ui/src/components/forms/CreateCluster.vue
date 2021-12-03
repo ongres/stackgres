@@ -2055,40 +2055,6 @@
             getFlavorExtensions() {
                 const vc = this;
 
-                if(!vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) || (vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) && !vc.extensionsList[vc.flavor][vc.postgresVersion].length )) {
-                    axios
-                    .get('/stackgres/extensions/' + ( (vc.postgresVersion == 'latest') ? 'latest' : vc.postgresVersion ) + '?flavor=' + vc.flavor)
-                    .then(function (response) {
-                        vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.sortExtensions(response.data.extensions)
-                    })
-                    .catch(function (error) {
-                        console.log(error.response);
-                        vc.notify(error.response.data,'error','sgclusters');
-                    });
-                }
-                
-                vc.selectedExtensions.forEach(function(ext) {
-                    if(ext.name == name) {
-                        ext.version = version;
-                        return false
-                    }
-                })
-            },
-
-            createNewResource(kind) {
-                const vc = this;
-                window.open(window.location.protocol + '//' + window.location.hostname + (window.location.port.length && (':' + window.location.port) ) + '/admin/' + vc.$route.params.namespace + '/' + kind + '/new?newtab=1', '_blank').focus();
-
-                $('select').each(function(){
-                    if($(this).val() == 'new') {
-                        $(this).val('');
-                    }
-                })
-            },
-
-            getFlavorExtensions() {
-                const vc = this;
-
                 if(!vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) || !vc.extensionsList[vc.flavor][vc.postgresVersion].length ) {
                     axios
                     .get('/stackgres/extensions/' + ( (vc.postgresVersion == 'latest') ? 'latest' : vc.postgresVersion ) + '?flavor=' + vc.flavor)
@@ -2182,6 +2148,7 @@
                     },100)
                     
                     vc.postgresVersion = 'latest';
+                    vc.validateSelectedPgConfig();
                 }
             },
 
