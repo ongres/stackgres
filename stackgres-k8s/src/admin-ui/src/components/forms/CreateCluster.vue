@@ -24,7 +24,7 @@
                 <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgcluster/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
             </div>
         </header>
-        <form id="createCluster" class="form" @submit.prevent="createCluster()">
+        <form id="createCluster" class="form" @submit.prevent>
             <div class="header">
                 <h2>Create Cluster</h2>
                 <label for="advancedMode" class="floatRight">
