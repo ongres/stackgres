@@ -639,7 +639,7 @@ form#login .warning {
     color: #e3e3e3;
 }
 
-.darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param {
+.darkmode h4, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param {
     color: #a5a5a5;
 }
 
@@ -655,7 +655,7 @@ form#login .warning {
     background-color: #1b1b1b;    
 }
 
-.darkmode .set.active, .darkmode .set.active a:hover, .darkmode .set:hover a:hover, .darkmode #keyword, .darkmode ul.select, .darkmode ul.select.active, .darkmode ul.select.active ul, .darkmode .options li.textFilter .search {
+.darkmode .set.active, .darkmode #keyword, .darkmode ul.select, .darkmode ul.select.active, .darkmode ul.select.active ul, .darkmode .options li.textFilter .search {
     background-color: rgba(122, 123, 133, .10);
 }
 
@@ -665,10 +665,6 @@ form#login .warning {
 
 .darkmode ul#postgresVersion a:hover, .darkmode ul.select.active li.selected {
     background: rgba(122, 123, 133, .10);
-}
-
-.darkmode .set.conf.active{
-    background-color: #1e1e1e;
 }
 
 .darkmode .form input[disabled="disabled"], .darkmode .form select[disabled="disabled"], .darkmode .form textarea[disabled="disabled"], .darkmode .form fieldset[disabled="disabled"], .darkmode label.switch[disabled="disabled"] {
@@ -1058,58 +1054,6 @@ ul.zg-ul-select.active li.active:hover {
     overflow-y: auto;
 }
 
-.set.active, .set li a:hover {
-    background-color: rgba(211, 211, 211, .10);
-}
-
-.set.conf.active {
-    background: #fcfcfc;
-}
-
-.set a {
-    color: inherit;
-}
-
-.set.conf > .nav-item, .set.conf > .nav-item h3 {
-    cursor: initial !important;
-}
-
-.set:hover li > a {
-    padding-left: 40px;
-    border-right: 1px solid var(--borderColor);
-}
-
-.set:hover:not(.active) li:first-child > a {
-    border-top: 1px solid var(--borderColor);
-}
-
-.set:hover:not(.active) li:last-child > a {
-    border-bottom: 1px solid var(--borderColor);
-}
-
-#sets h3, #sets h4 {
-    display: inline-block;
-    margin-bottom: 20px;
-    text-transform: uppercase   ;
-    position: relative;
-    cursor: pointer;
-    color: var(--gray5);
-}
-
-#sets h4 {
-    margin-bottom: 10px;
-}
-
-#sets h3 { 
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Old versions of Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome, Opera and Firefox */
-} 
-
 #side svg, .breadcrumbs svg, .card .crdName svg {
     fill: var(--blue);
     width: 20px;
@@ -1140,13 +1084,6 @@ ul.zg-ul-select.active li.active:hover {
 
 #sets > .hide h3:before {
     transform: rotate(180deg);
-}
-
-#side a.router-link-exact-active {
-    /*background: rgba(211,211,214,.15);*/
-    /*color: var(--blue);*/
-    color: #4D4F5C;
-    font-weight: 600;
 }
 
 footer {
