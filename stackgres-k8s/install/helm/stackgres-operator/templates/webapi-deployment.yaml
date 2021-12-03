@@ -107,6 +107,10 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 30
           timeoutSeconds: 2
+        {{- with .Values.restapi.resources }}
+        resources:
+        {{- toYaml . | nindent 10 }}
+        {{- end }}          
         volumeMounts:
           - name: web-certs
             mountPath: /etc/operator/certs
@@ -176,6 +180,10 @@ spec:
         - containerPort: 9080
           name: "http"
           protocol: "TCP"
+        {{- with .Values.adminui.resources }}
+        resources:
+        {{- toYaml . | nindent 10 }}
+        {{- end }}             
         volumeMounts:
           - name: web-certs
             mountPath: /etc/operator/certs

@@ -36,5 +36,9 @@ spec:
             value: "false"
           - name: CONVERSION_WEBHOOKS
             value: "true"
+        {{- with .Values.jobs.resources }}
+        resources:
+        {{- toYaml . | nindent 10 }}
+        {{- end }}   
         
       restartPolicy: OnFailure

@@ -5,24 +5,28 @@ operator:
     name: "stackgres/operator"
     tag: "main-jvm"
     pullPolicy: "IfNotPresent"
+  resources: {}
 restapi:
   name: stackgres-restapi
   image:
     name: "stackgres/restapi"
     tag: "main-jvm"
     pullPolicy: "IfNotPresent"
+  resources: {}
 jobs:
   name: stackgres-jobs
   image:
     name: "stackgres/jobs"
     tag: "main-jvm"
     pullPolicy: "IfNotPresent"
+  resources: {}
 adminui:
   name: stackgres-adminui
   image:
     name: "stackgres/admin-ui"
     tag: "main"
     pullPolicy: "IfNotPresent"
+  resources: {}
   service:
     exposeHTTP: false
     # Set to LoadBalancer to expose admin UI with a load balancer
