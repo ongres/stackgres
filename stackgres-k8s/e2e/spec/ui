@@ -43,6 +43,8 @@ e2e_test_install() {
       env:
       - name: CYPRESS_host
         value: "https://$SERVICE.$OPERATOR_NAMESPACE/admin"
+      - name: CYPRESS_api
+        value: "https://$SERVICE.$OPERATOR_NAMESPACE/stackgres"
       - name: CYPRESS_username
         value: "admin"
       - name: CYPRESS_password
