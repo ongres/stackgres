@@ -330,12 +330,12 @@
                                 <li v-if="hasProp(cluster, 'data.spec.pods.metadata')">
                                     <strong class="sectionTitle">Labels</strong>
                                     <ul>
-                                        <li v-if="hasProp(cluster, 'data.spec.pods.metadata.labels.clusterPods')">
+                                        <li v-if="hasProp(cluster, 'data.spec.pods.metadata.labels')">
                                             <strong class="sectionTitle">Cluster Pods</strong>
                                             <ul>
-                                                <li v-for="label in cluster.data.spec.pods.metadata.labels.clusterPods">
-                                                    <strong class="label">{{ label.label }}:</strong>
-                                                    <span class="value">{{ label.value }}</span>
+                                                <li v-for="(value, label) in cluster.data.spec.pods.metadata.labels">
+                                                    <strong class="label">{{ label }}:</strong>
+                                                    <span class="value">{{ value }}</span>
                                                 </li>
                                             </ul>
                                         </li>
@@ -347,45 +347,45 @@
                                         <li v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')">
                                             <strong class="sectionTitle">All Resources</strong>
                                             <ul>
-                                                <li v-for="annotation in cluster.data.spec.metadata.annotations.allResources">
-                                                    <strong class="label">{{ annotation.annotation }}:</strong>
-                                                    <span class="value">{{ annotation.value }}</span>
+                                                <li v-for="(value, label) in cluster.data.spec.metadata.annotations.allResources">
+                                                    <strong class="label">{{ label }}:</strong>
+                                                    <span class="value">{{ value }}</span>
                                                 </li>
                                             </ul>
                                         </li>
                                         <li v-if="hasProp(cluster, 'data.spec.metadata.annotations.clusterPods')">
                                             <strong class="sectionTitle">Cluster Pods</strong>
                                             <ul>
-                                                <li v-for="annotation in cluster.data.spec.metadata.annotations.clusterPods">
-                                                    <strong class="label">{{ annotation.annotation }}:</strong>
-                                                    <span class="value">{{ annotation.value }}</span>
+                                                <li v-for="(value, label) in cluster.data.spec.metadata.annotations.clusterPods">
+                                                    <strong class="label">{{ label }}:</strong>
+                                                    <span class="value">{{ value }}</span>
                                                 </li>
                                             </ul>
                                         </li>
                                         <li v-if="hasProp(cluster, 'data.spec.metadata.annotations.services')">
                                             <strong class="sectionTitle">Services</strong>
                                             <ul>
-                                                <li v-for="annotation in cluster.data.spec.metadata.annotations.services">
-                                                    <strong class="label">{{ annotation.annotation }}:</strong>
-                                                    <span class="value">{{ annotation.value }}</span>
+                                                <li v-for="(value, label) in cluster.data.spec.metadata.annotations.services">
+                                                    <strong class="label">{{ label }}:</strong>
+                                                    <span class="value">{{ value }}</span>
                                                 </li>
                                             </ul>
                                         </li>
                                         <li v-if="hasProp(cluster, 'data.spec.metadata.annotations.primaryService')">
                                             <strong class="sectionTitle">Primary Service</strong>
                                             <ul>
-                                                <li v-for="annotation in cluster.data.spec.metadata.annotations.primaryService">
-                                                    <strong class="label">{{ annotation.annotation }}:</strong>
-                                                    <span class="value">{{ annotation.value }}</span>
+                                                <li v-for="(value, label) in cluster.data.spec.metadata.annotations.primaryService">
+                                                    <strong class="label">{{ label }}:</strong>
+                                                    <span class="value">{{ value }}</span>
                                                 </li>
                                             </ul>
                                         </li>
                                         <li v-if="hasProp(cluster, 'data.spec.metadata.annotations.replicasService')">
                                             <strong class="sectionTitle">Replicas Service</strong>
                                             <ul>
-                                                <li v-for="annotation in cluster.data.spec.metadata.annotations.replicasService">
-                                                    <strong class="label">{{ annotation.annotation }}:</strong>
-                                                    <span class="value">{{ annotation.value }}</span>
+                                                <li v-for="(value, label) in cluster.data.spec.metadata.annotations.replicasService">
+                                                    <strong class="label">{{ label }}:</strong>
+                                                    <span class="value">{{ value }}</span>
                                                 </li>
                                             </ul>
                                         </li>
