@@ -37,5 +37,5 @@ EOF
   fi
 
   helm install --namespace "$MINIO_NAMESPACE" "$MINIO_NAME" \
-    "$E2E_PATH/helm/minio-7.0.1.tgz" -f "$LOG_PATH/minio.yaml"
+    "$E2E_PATH/helm/minio-8.0.10.tgz" -f "$LOG_PATH/minio.yaml"
 }

@@ -150,7 +150,7 @@ check_replication_after_restore() {
 }
 
 check_backup_pg_version() {
-  ALTERNATIVE_PG_VERSION="12.8"
+  ALTERNATIVE_PG_VERSION="12.9"
   ALTERNATIVE_MAYOR_PG_VERSION="${ALTERNATIVE_PG_VERSION%.*}"
 
   cat << EOF | kubectl apply -f -
