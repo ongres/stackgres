@@ -33,7 +33,7 @@
 
             <label for="metadata.name">Profile Name <span class="req">*</span></label>
             <input v-model="profileName" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
-            <a class="help" @click="showTooltip( 'sgprofile', 'metadata.name')"></a>
+            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgprofile.metadata.name')"></span>
 
             <span class="warning" v-if="nameColission && !editMode">
                 There's already a <strong>SGInstanceProfile</strong> with the same name on this namespace. Please specify a different name or create the profile on another namespace
@@ -48,7 +48,7 @@
                     <option value="Mi">MiB</option>
                     <option value="Gi" selected>GiB</option>
                 </select>
-                <a class="help" @click="showTooltip( 'sgprofile', 'spec.memory')"></a>
+                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgprofile.spec.memory')"></span>
             </div>
 
             <div class="unit-select">
@@ -59,7 +59,7 @@
                     <option selected>CPU</option>
                     <option value="m">millicpu</option>
                 </select>
-                <a class="help" @click="showTooltip( 'sgprofile', 'spec.cpu')"></a>
+                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgprofile.spec.cpu')"></span>
             </div>
                                 
 
@@ -76,16 +76,6 @@
             </template>
 
             <button @click="cancel" class="btn border">Cancel</button>
-        </div>
-        <div id="help" class="form">
-            <div class="header">
-                <h2>Help</h2>
-            </div>
-            
-            <div class="info">
-                <h3 class="title"></h3>
-                <vue-markdown :source=tooltipsText :breaks=false></vue-markdown>
-            </div>
         </div>
     </form>
 </template>

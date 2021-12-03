@@ -32,7 +32,7 @@
             
             <label for="metadata.name">Configuration Name <span class="req">*</span></label>
             <input v-model="poolConfigName" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
-            <a class="help" @click="showTooltip( 'sgpoolingconfig', 'metadata.name')"></a>
+            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpoolingconfig.metadata.name')"></span>
 
             <span class="warning" v-if="nameColission && !editMode">
                 There's already a <strong>SGPoolingConfig</strong> with the same name on this namespace. Please specify a different name or create the configuration on another namespace
@@ -40,7 +40,7 @@
 
             <label for="spec.pgBouncer.pgbouncer.ini">PgBouncer Parameters</label>
             <textarea v-model="poolConfigParams" placeholder="parameter = value" data-field="spec.pgBouncer.pgbouncer.ini"></textarea>
-            <a class="help" @click="showTooltip( 'sgpoolingconfig', 'spec.pgBouncer.pgbouncer.ini')"></a>
+            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpoolingconfig.spec.pgBouncer.pgbouncer.ini')"></span>
 
             <template v-if="editMode">
                 <template v-if="configClusters.length">
@@ -55,16 +55,6 @@
             </template>
             
             <button @click="cancel" class="btn border">Cancel</button>
-        </div>
-        <div id="help" class="form">
-            <div class="header">
-                <h2>Help</h2>
-            </div>
-            
-            <div class="info">
-                <h3 class="title"></h3>
-                <vue-markdown :source=tooltipsText :breaks=false></vue-markdown>
-            </div>
         </div>
     </form>
 </template>

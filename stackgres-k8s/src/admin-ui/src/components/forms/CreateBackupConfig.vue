@@ -37,7 +37,7 @@
             
             <label for="metadata.name">Configuration Name <span class="req">*</span></label>
             <input v-model="backupConfigName" :disabled="(editMode)" required data-dield="metadata.name" autocomplete="off">
-            <a class="help" @click="showTooltip( 'sgbackupconfig', 'metadata.name')"></a>
+            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.metadata.name')"></span>
 
             <span class="warning" v-if="nameColission && !editMode">
                 There's already a <strong>SGBackupConfig</strong> with the same name on this namespace. Please specify a different name or create the configuration on another namespace
@@ -73,7 +73,7 @@
                     <input v-model="backupConfigFullScheduleDOW" required>
                 </div>
 
-                <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.baseBackups.cronSchedule')"></a>
+                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.cronSchedule')"></span>
                 <div class="warning">
                     <strong>That is: </strong>
                     {{ (backupConfigFullScheduleMin+' '+backupConfigFullScheduleHour+' '+backupConfigFullScheduleDOM+' '+backupConfigFullScheduleMonth+' '+backupConfigFullScheduleDOW) | prettyCRON(false) }}
@@ -87,7 +87,7 @@
 
             <label for="spec.baseBackups.retention">Retention Window (max. number of base backups) <span class="req">*</span></label>
             <input v-model="backupConfigRetention" value="" required data-field="spec.baseBackups.retention" type="number">
-            <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.baseBackups.retention')"></a>
+            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.retention')"></span>
 
             <template v-if="advancedMode">
                 <label for="spec.baseBackups.compression">Compression Method</label>
@@ -97,19 +97,19 @@
                     <option value="lzma">LZMA</option>
                     <option value="brotli">Brotli</option>
                 </select>
-                <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.baseBackups.compression')"></a>
+                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.compression')"></span>
             </template>
 
             <template v-if="advancedMode">
                 <label for="spec.baseBackups.performance.maxNetworkBandwitdh">Max Network Bandwitdh</label>
                 <input v-model="backupConfigMaxNetworkBandwitdh" data-field="spec.baseBackups.performance.maxNetworkBandwitdh" type="number" min="0">
-                <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.baseBackups.performance.maxNetworkBandwitdh')"></a>
+                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.maxNetworkBandwitdh')"></span>
             </template>
 
             <template v-if="advancedMode">
                 <label for="spec.baseBackups.performance.maxDiskBandwitdh">Max Disk Bandwitdh</label>
                 <input v-model="backupConfigMaxDiskBandwitdh" data-field="spec.baseBackups.performance.maxDiskBandwitdh" type="number" min="0">
-                <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.baseBackups.performance.maxDiskBandwitdh')"></a>
+                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.maxDiskBandwitdh')"></span>
             </template>
 
             <template v-if="advancedMode">
@@ -131,7 +131,7 @@
             
                 <label for="spec.baseBackups.performance.uploadDiskConcurrency">Upload Disk Concurrency</label>
                 <input v-model="backupConfigUploadDiskConcurrency" value="" data-field="spec.baseBackups.performance.uploadDiskConcurrency" type="number">
-                <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.baseBackups.performance.uploadDiskConcurrency')"></a>
+                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.uploadDiskConcurrency')"></span>
             </template>
 
             <label for="spec.storage.type">Storage Type <span class="req">*</span></label>
@@ -142,7 +142,7 @@
                 <option value="gcs">Google Cloud Storage</option>
                 <option value="azureBlob">Azure Blob Storage</option>
             </select>
-            <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.type')"></a>
+            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.type')"></span>
 
             <fieldset class="fieldset" v-if="backupConfigStorageType.length">
                 <div class="header">
@@ -169,25 +169,25 @@
                 <template v-if="backupConfigStorageType === 's3'">
                     <label for="spec.storage.s3.bucket">Bucket <span class="req">*</span></label>
                     <input v-model="backupS3Bucket" data-field="spec.storage.s3.bucket" required>
-                    <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3.bucket')"></a>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.bucket')"></span>
 
                     <template v-if="advancedModeStorage">
                         <label for="spec.storage.s3.path">Path</label>
                         <input v-model="backupS3Path" data-field="spec.storage.s3.path">
-                        <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3.path')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.path')"></span>
 
                         <label for="spec.storage.s3.region">Region</label>
                         <input v-model="backupS3Region" data-field="spec.storage.s3.region">
-                        <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3.region')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.region')"></span>
                     </template>
 
                     <label for="spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId">API Key <span class="req">*</span></label>
                     <input v-model="backupS3AccessKeyId" required data-field="spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId">
-                    <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId')"></a>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId')"></span>
 
                     <label for="spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey">API Secret <span class="req">*</span></label>
                     <input v-model="backupS3SecretAccessKey" required data-field="spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey" type="password">
-                    <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey')"></a>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
 
                     <template v-if="advancedModeStorage">
                         <label for="spec.storage.s3.storageClass">Storage Class</label>
@@ -197,36 +197,36 @@
                             <option value="STANDARD_IA">Infrequent Access</option>
                             <option value="REDUCED_REDUNDANCY">Reduced Redundancy</option>
                         </select>
-                        <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3.storageClass')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.storageClass')"></span>
                     </template>
                 </template>
 
                 <template v-if="backupConfigStorageType === 's3Compatible'">
                     <label for="spec.storage.s3Compatible.bucket">Bucket <span class="req">*</span></label>
                     <input v-model="backupS3CompatibleBucket" data-field="spec.storage.s3Compatible.bucket" required>
-                    <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3Compatible.bucket')"></a>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.bucket')"></span>
 
                     <template v-if="advancedModeStorage">
                         <label for="spec.storage.s3Compatible.path">Path</label>
                         <input v-model="backupS3CompatiblePath" data-field="spec.storage.s3Compatible.path">
-                        <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3Compatible.path')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.path')"></span>
 
                         <label for="spec.storage.s3Compatible.endpoint">Endpoint</label>
                         <input v-model="backupS3CompatibleEndpoint" data-field="spec.storage.s3Compatible.endpoint">
-                        <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3Compatible.endpoint')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.endpoint')"></span>
 
                         <label for="spec.storage.s3Compatible.region">Region</label>
                         <input v-model="backupS3CompatibleRegion" data-field="spec.storage.s3Compatible.region">
-                        <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3Compatible.region')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.region')"></span>
                     </template>
 
                     <label for="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId">API Key <span class="req">*</span></label>
                     <input v-model="backupS3CompatibleAccessKeyId" required data-field="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId">
-                    <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId')"></a>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId')"></span>
 
                     <label for="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey">API Secret <span class="req">*</span></label>
                     <input v-model="backupS3CompatibleSecretAccessKey" required data-field="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey" type="password">
-                    <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey')"></a>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
 
                     <template v-if="advancedModeStorage">
                         <label for="spec.storage.s3Compatible.enablePathStyleAddressing">Enable Path Style Addressing</label>
@@ -234,7 +234,7 @@
                             Bucket URL Force Path Style
                             <input type="checkbox" id="enablePathStyleAddressing" v-model="backupS3CompatibleEnablePathStyleAddressing" data-switch="OFF" data-field="spec.storage.s3Compatible.enablePathStyleAddressing">
                         </label>
-                        <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3Compatible.enablePathStyleAddressing')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.enablePathStyleAddressing')"></span>
                     
                         <label for="spec.storage.s3Compatible.storageClass">Storage Class</label>
                         <select v-model="backupS3CompatibleStorageClass" data-field="spec.storage.s3Compatible.storageClass">
@@ -243,7 +243,7 @@
                             <option value="STANDARD_IA">Infrequent Access</option>
                             <option value="REDUCED_REDUNDANCY">Reduced Redundancy</option>
                         </select>
-                        <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.s3Compatible.storageClass')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.storageClass')"></span>
                     </template>
 
                 </template>
@@ -251,22 +251,22 @@
                 <template v-if="backupConfigStorageType === 'gcs'">
                     <label for="spec.storage.gcs.bucket">Bucket <span class="req">*</span></label>
                     <input v-model="backupGCSBucket" data-field="spec.storage.gcs.bucket" required>
-                    <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.gcs.bucket')"></a>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.bucket')"></span>
 
                     <template v-if="advancedModeStorage">
                         <label for="spec.storage.gcs.path">Path</label>
                         <input v-model="backupGCSPath" data-field="spec.storage.gcs.path">
-                        <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.gcs.path')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.path')"></span>
                     </template>
 
                     <label for="spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService">Fetch Credentials from Metadata Service</label>  
                     <label for="fetchGCSCredentials" class="switch yes-no">Fetch <input type="checkbox" id="fetchGCSCredentials" v-model="fetchGCSCredentials" data-switch="NO"></label>
-                    <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService')"></a>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService')"></span>
 
                     <template v-if="!fetchGCSCredentials">
                         <label for="spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON">Service Account JSON <span class="req">*</span></label>
                         <input id="uploadJSON" type="file" @change="uploadJSON" :required="!editMode" data-field="spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON">
-                        <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')"></span>
                         <textarea id="textJSON" v-model="backupGCSServiceAccountJSON" data-field="spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON" class="hide"></textarea>
                     </template>
                 </template>
@@ -274,21 +274,21 @@
                 <template v-if="backupConfigStorageType === 'azureBlob'">
                     <label for="spec.storage.azureBlob.bucket">Bucket <span class="req">*</span></label>
                     <input v-model="backupAzureBucket" data-field="spec.storage.azureBlob.bucket" required>
-                    <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.azureBlob.bucket')"></a>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.bucket')"></span>
 
                     <template v-if="advancedModeStorage">
                         <label for="spec.storage.azureBlob.path">Path</label>
                         <input v-model="backupAzurePath" data-field="spec.storage.azureBlob.path">
-                        <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.azureBlob.path')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.path')"></span>
                     </template>
 
                     <label for="spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount">Account Name <span class="req">*</span></label>
                     <input v-model="backupAzureAccount" required data-field="spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount">
-                    <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount')"></a>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount')"></span>
 
                     <label for="spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey">Account Access Key <span class="req">*</span></label>
                     <input v-model="backupAzureAccessKey" required data-field="spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey" type="password">
-                    <a class="help" @click="showTooltip( 'sgbackupconfig', 'spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey')"></a>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey')"></span>
                 </template>
             </fieldset>
 
@@ -301,16 +301,6 @@
             </template>
 
             <button class="btn border" @click="cancel">Cancel</button>
-        </div>
-        <div id="help" class="form">
-            <div class="header">
-                <h2>Help</h2>
-            </div>
-            
-            <div class="info">
-                <h3 class="title"></h3>
-                <vue-markdown :source=tooltipsText :breaks=false></vue-markdown>
-            </div>
         </div>
     </form>
 </template>

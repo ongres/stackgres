@@ -36,7 +36,7 @@
 
             <label for="metadata.name">Server Name <span class="req">*</span></label>
             <input v-model="name" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
-            <a class="help" @click="showTooltip( 'sgdistributedlogs', 'metadata.name')"></a>
+            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.metadata.name')"></span>
 
             <span class="warning" v-if="nameColission && !editMode">
                 There's already a <strong>SGDistributedLogs</strong> with the same name on this namespace. Please specify a different name or create the server on another namespace.
@@ -52,7 +52,7 @@
                         <option value="Gi">GiB</option>
                         <option value="Ti">TiB</option>   
                     </select>
-                    <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.persistentVolume.size')"></a>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.persistentVolume.size')"></span>
                 </div>
 
                 <template v-if="advancedMode">                        
@@ -62,7 +62,7 @@
                             <option value="">Select Storage Class</option>
                             <option v-for="sClass in storageClasses">{{ sClass }}</option>
                         </select>
-                        <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.persistentVolume.storageClass')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.persistentVolume.storageClass')"></span>
                     </template>
                     
                     <fieldset data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity">
@@ -70,7 +70,7 @@
                             <h3>Non Production Settings</h3>  
                         </div>
                         <label for="spec.nonProductionOptions.disableClusterPodAntiAffinity" class="switch yes-no">disableClusterPodAntiAffinity <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="disableClusterPodAntiAffinity" data-switch="NO"></label>
-                        <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.nonProductionOptions.disableClusterPodAntiAffinity')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.nonProductionOptions.disableClusterPodAntiAffinity')"></span>
                     </fieldset>
 
                     <fieldset class="postgresServices">
@@ -81,12 +81,12 @@
                         <fieldset class="postgresServicesPrimary">
                             <div class="header">
                                 <h3 for="spec.postgresServices.primary">Primary</h3>
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.primary')"></a>
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgcluster.spec.postgresServices.primary')"></span>
                             </div>
 
                             <label for="spec.postgresServices.primary.enabled">Primary</label>  
                             <label for="postgresServicesPrimary" class="switch yes-no" data-field="spec.postgresServices.primary.enabled">Enable Primary <input type="checkbox" id="postgresServicesPrimary" v-model="postgresServicesPrimary" data-switch="YES"></label>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.primary.enabled')"></a>
+                            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgcluster.spec.postgresServices.primary.enabled')"></span>
 
                             <label for="spec.postgresServices.primary.type">Type</label>
                             <select v-model="postgresServicesPrimaryType" required data-field="spec.postgresServices.primary.type">    
@@ -94,7 +94,7 @@
                                 <option>LoadBalancer</option>
                                 <option>NodePort</option>
                             </select>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.primary.type')"></a>
+                            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgcluster.spec.postgresServices.primary.type')"></span>
 
                             <!-- TO-DO: Once services annotations are implemented on the backend
                             <fieldset>
@@ -125,12 +125,12 @@
                         <fieldset class="postgresServicesReplicas">
                             <div class="header">
                                 <h3 for="spec.postgresServices.replicas">Replicas</h3>
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.replicas')"></a>
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgcluster.spec.postgresServices.replicas')"></span>
                             </div>
 
                             <label for="spec.postgresServices.replicas.enabled">Replicas</label>  
                             <label for="postgresServicesReplicas" class="switch yes-no" data-field="spec.postgresServices.replicas.enabled">Enable Replicas <input type="checkbox" id="postgresServicesReplicas" v-model="postgresServicesReplicas" data-switch="YES"></label>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.replicas.enabled')"></a>
+                            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgcluster.spec.postgresServices.replicas.enabled')"></span>
 
                             <label for="spec.postgresServices.replicas.type">Type</label>
                             <select v-model="postgresServicesReplicasType" required data-field="spec.postgresServices.replicas.type">    
@@ -138,7 +138,7 @@
                                 <option>LoadBalancer</option>
                                 <option>NodePort</option>
                             </select>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.replicas.type')"></a>
+                            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgcluster.spec.postgresServices.replicas.type')"></span>
 
                             <!-- TO-DO: Once services annotations are implemented on the backend
                             <fieldset>
@@ -170,14 +170,14 @@
                     <fieldset class="podsScheduling" data-field="spec.scheduling">
                         <div class="header">
                             <h3 for="spec.scheduling">Pods Scheduling</h3>
-                            <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.scheduling')"></a> 
+                            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.scheduling')"></span> 
                         </div>
                 
                         <fieldset class="nodeSelectors" data-field="spec.scheduling.nodeSelector">
                             <div class="header">
                                 <h3 for="spec.scheduling.nodeSelector">Node Selectors</h3>
                                 <a class="addRow" @click="pushLabel('nodeSelector')">Add Node Selector</a>
-                                <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.scheduling.nodeSelector')"></a> 
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.scheduling.nodeSelector')"></span> 
                             </div>
                     
                             <div class="scheduling repeater" v-if="nodeSelector.length">
@@ -200,7 +200,7 @@
                             <div class="header">
                                 <h3 for="spec.scheduling.tolerations">Node Tolerations</h3>
                                 <a class="addRow" @click="pushToleration()">Add Toleration</a>
-                                <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.scheduling.tolerations')"></a> 
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.scheduling.tolerations')"></span> 
                             </div>
                     
                             <div class="scheduling repeater" v-if="tolerations.length">
@@ -211,18 +211,18 @@
                                     </div>
                                     <label for="spec.scheduling.tolerations.key">Key</label>
                                     <input v-model="field.key" autocomplete="off">
-                                    <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.scheduling.tolerations.key')"></a>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.scheduling.tolerations.key')"></span>
 
                                     <label for="spec.scheduling.tolerations.operator">Operator</label>
                                     <select v-model="field.operator" @change="(field.operator == 'Exists') ? (field.value = null) : null">
                                         <option>Equal</option>
                                         <option>Exists</option>
                                     </select>
-                                    <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.scheduling.tolerations.operator')"></a>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.scheduling.tolerations.operator')"></span>
 
                                     <label for="spec.scheduling.tolerations.value">Value</label>
                                     <input v-model="field.value" :disabled="(field.operator == 'Exists')" :title="(field.operator == 'Exists') ? 'When the selected operator is Exists, this value must be empty' : ''" autocomplete="off">
-                                    <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.scheduling.tolerations.value')"></a>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.scheduling.tolerations.value')"></span>
 
                                     <label for="spec.scheduling.tolerations.effect">Effect</label>
                                     <select v-model="field.effect">
@@ -231,11 +231,11 @@
                                         <option>PreferNoSchedule</option>
                                         <option>NoExecute</option>
                                     </select>
-                                    <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.scheduling.tolerations.effect')"></a>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.scheduling.tolerations.effect')"></span>
 
                                     <label for="spec.scheduling.tolerations.tolerationSeconds">Toleration Seconds</label>
                                     <input type="number" min="0" v-model="field.tolerationSeconds">
-                                    <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.scheduling.tolerations.tolerationSeconds')"></a>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.scheduling.tolerations.tolerationSeconds')"></span>
                                 </fieldset>
                             </div>
                         </fieldset>
@@ -246,14 +246,14 @@
                     <fieldset class="resourcesMetadata" data-field="spec.metadata.annotations">
                         <div class="header">
                             <h3 for="spec.metadata.annotations">Resources Metadata</h3>
-                            <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.metadata.annotations')"></a> 
+                            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.metadata.annotations')"></span> 
                         </div>
 
                         <fieldset data-field="spec.metadata.annotations.allResources">
                             <div class="header">
                                 <h3 for="spec.metadata.annotations.allResources">All Resources</h3>
                                 <a class="addRow" @click="pushAnnotation('annotationsAll')">Add Annotation</a>
-                                <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.metadata.annotations.allResources')"></a>    
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.metadata.annotations.allResources')"></span>    
                             </div>
                             <div class="annotation repeater" v-if="annotationsAll.length">
                                 <div class="row" v-for="(field, index) in annotationsAll">
@@ -274,7 +274,7 @@
                             <div class="header">
                                 <h3 for="spec.metadata.annotations.pods">Pods</h3>
                                 <a class="addRow" @click="pushAnnotation('annotationsPods')">Add Annotation</a>
-                                <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.metadata.annotations.pods')"></a>    
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.metadata.annotations.pods')"></span>    
                             </div>
                             <div class="annotation repeater" v-if="annotationsPods.length">
                                 <div class="row" v-for="(field, index) in annotationsPods">
@@ -295,7 +295,7 @@
                             <div class="header">
                                 <h3 for="spec.metadata.annotations.services">Services</h3>
                                 <a class="addRow" @click="pushAnnotation('annotationsServices')">Add Annotation</a>
-                                <a class="help" @click="showTooltip( 'sgdistributedlogs', 'spec.metadata.annotations.services')"></a>  
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.metadata.annotations.services')"></span>  
                             </div>
                             <div class="annotation repeater" v-if="annotationsServices.length">
                                 <div class="row" v-for="(field, index) in annotationsServices">
@@ -324,16 +324,6 @@
 
                 <button @click="cancel" class="btn border">Cancel</button>
             </div>   
-        </div>
-        <div id="help" class="form">
-            <div class="header">
-                <h2>Help</h2>
-            </div>
-            
-            <div class="info">
-                <h3 class="title"></h3>
-                <vue-markdown :source=tooltipsText :breaks=false></vue-markdown>
-            </div>
         </div>
     </form>
 </template>
