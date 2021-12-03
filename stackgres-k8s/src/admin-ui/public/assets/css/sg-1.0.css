@@ -103,11 +103,6 @@ body.yellow ::selection {
 a:hover, header .add:hover, tr.controlData a:hover {
     color: var(--baseLightColor);
 }
-
-.set li a:hover {
-    color: var(--baseColor);
-}
-
 .textGradient {
     color: var(--baseColor);
     background-image: var(--baseGradient);
@@ -132,11 +127,7 @@ th, table th, table.clusterConfig td.label, tr.details table .label, .yaml .labe
     font-weight: 600;
 }
 
-#sets h3, #sets h4 {
-    text-transform: capitalize;
-}
-
-body, #sets h4, #sets h3, #side a.router-link-exact-active, th, .tabs a, #keyword, table.clusterConfig td.label, tr.details table .label, .details th, td.timestamp span.ms, span.timestamp span.ms, .yaml .label, #logo h1, #helpTooltip, .form label, .options label, .daterangepicker td.available:not(.off):not(.in-range):not(.active), .form input, .form select, .form textarea, ul.select, .options select, #delete .tooltip form input, .darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param, .darkmode .form label, .darkmode ul.select a {
+body, #sets h4, #sets h3, th, .tabs a, #keyword, table.clusterConfig td.label, tr.details table .label, .details th, td.timestamp span.ms, span.timestamp span.ms, .yaml .label, #logo h1, #helpTooltip, .form label, .options label, .daterangepicker td.available:not(.off):not(.in-range):not(.active), .form input, .form select, .form textarea, ul.select, .options select, #delete .tooltip form input, .darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param, .darkmode .form label, .darkmode ul.select a {
     color: var(--textColor);
 }
 
@@ -226,7 +217,7 @@ td.operationType.securityUpgrade span:before,  .card .operationType.securityUpgr
     background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNSAxNSIgPgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtODIuNzQgLTExMi4wMTEpIj4KCTxwYXRoIGZpbGw9IiMzNkE4RkYiIGQ9Ik05NS44LDEyMy45SDg0LjdjLTAuNywwLTEuMi0wLjYtMS4yLTEuM3YtNi4zYzAtMC43LDAuNS0xLjMsMS4yLTEuM2gxMS4yCgkJYzAuNywwLDEuMiwwLjYsMS4yLDEuM3Y2LjNDOTcsMTIzLjMsOTYuNSwxMjMuOSw5NS44LDEyMy45eiBNODQuNywxMTYuMWMtMC4xLDAtMC4yLDAuMS0wLjIsMC4zdjYuM2MwLDAuMSwwLjEsMC4zLDAuMiwwLjNoMTEuMgoJCWMwLjEsMCwwLjItMC4xLDAuMi0wLjN2LTYuM2MwLTAuMS0wLjEtMC4zLTAuMi0wLjNIODQuN3oiLz4KCTxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDg1LjQ2NyAxMTMuOTU2KSI+CgkJPHBhdGggZmlsbD0iIzM2QThGRiIgZD0iTTEuMiw4QzEsOCwwLjgsNy44LDAuOCw3LjZ2LTRjMC0wLjMsMC4yLTAuNSwwLjUtMC40YzAuMiwwLDAuNCwwLjIsMC40LDAuNHY0CgkJCUMxLjcsNy44LDEuNSw4LDEuMiw4QzEuMiw4LDEuMiw4LDEuMiw4eiIvPgoJCTxwYXRoIGZpbGw9IiMzNkE4RkYiIGQ9Ik0zLjYsOEMzLjMsOCwzLjEsNy44LDMuMSw3LjZ2LTRjMC0wLjMsMC4yLTAuNSwwLjUtMC40QzMuOCwzLjEsNCwzLjMsNCwzLjZ2NAoJCQlDNC4xLDcuOCwzLjgsOCwzLjYsOEMzLjYsOCwzLjYsOCwzLjYsOHoiLz4KCQk8cGF0aCBmaWxsPSIjMzZBOEZGIiBkPSJNNiw4QzUuNyw4LDUuNSw3LjgsNS41LDcuNnYtNGMwLTAuMywwLjItMC41LDAuNS0wLjRjMC4yLDAsMC40LDAuMiwwLjQsMC40djQKCQkJQzYuNCw3LjgsNi4yLDgsNiw4QzYsOCw2LDgsNiw4eiIvPgoJCTxwYXRoIGZpbGw9IiMzNkE4RkYiIGQ9Ik04LjMsOEM4LjEsOCw3LjksNy44LDcuOSw3LjZ2LTRjMC0wLjMsMC4yLTAuNSwwLjQtMC41YzAuMywwLDAuNSwwLjIsMC41LDAuNGMwLDAsMCwwLDAsMAoJCQl2NEM4LjgsNy44LDguNiw4LDguMyw4QzguMyw4LDguMyw4LDguMyw4eiIvPgoJPC9nPgo8L2c+Cjwvc3ZnPg==);
 }
 
-.darkmode #side, .darkmode #nav, .darkmode .set:not(.active) > ul li {
+.darkmode #nav {
     background: var(--bgColor);
 }
 
@@ -242,11 +233,11 @@ td.operationType.securityUpgrade span:before,  .card .operationType.securityUpgr
     border-color: var(--borderColor);
 }
 
-.set.active, .set.active a:hover, .podStatus tr, ul.select.active li.selected, .darkmode .podStatus tr, .darkmode .clusterConfig tr, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode #contentTooltip .info, .darkmode ul.select.active li.selected, .clusterConfig tr:nth-child(odd), .crdDetails tr:nth-child(odd), label.switch {
+.set.active, .podStatus tr, ul.select.active li.selected, .darkmode .podStatus tr, .darkmode .clusterConfig tr, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode ul#postgresVersion, .darkmode ul#postgresVersion ul, .darkmode #contentTooltip .info, .darkmode ul.select.active li.selected, .clusterConfig tr:nth-child(odd), .crdDetails tr:nth-child(odd), label.switch {
     background-color: var(--activeBg);
 }
 
-.form input, ul#postgresVersion, .form select, .form textarea, #keyword, .options label, .options select, #signup form input, #side a.router-link-exact-active, table tr:nth-child(4n+2) + tr.details th, table tr:nth-child(4n+2) + tr.details tr:nth-child(even), .logDetails tr:nth-child(even) {
+.form input, ul#postgresVersion, .form select, .form textarea, #keyword, .options label, .options select, #signup form input, table tr:nth-child(4n+2) + tr.details th, table tr:nth-child(4n+2) + tr.details tr:nth-child(even), .logDetails tr:nth-child(even) {
     background-color: var(--inputBg);
 }
 
@@ -524,10 +515,6 @@ table:not(.fullWidth) td.label {
     margin-left: 25px;
 }
 
-.collapsed #side {
-    width: 50px;
-}
-
 .collapsed .hideCollapsed {
     display: none !important;
 }
@@ -560,98 +547,11 @@ table:not(.fullWidth) td.label {
     background: var(--bgColor) !important;
 }
 
-.collapsed #sets > .active .active > ul > li > a, .collapsed #sets > .active > ul > li > .item, .collapsed .set.active .set > .nav-item {
-    padding-left: 40px;
-}
-
-.collapsed #side .nav-item, .collapsed #side #current-namespace {
-    padding: 15px;
-}
-
-.collapsed #side .set svg {
-    width: 18px;
-    height: 18px;
-    margin: 0;
-}
-
-.collapsed #side .set.conf .set svg {
-    width: 20px;
-    height: 20px;
-}
-
-.collapsed #current-namespace {
-    height: 70px;
-}
-
-.collapsed #current-namespace svg {
-    margin: 0;
-    transform: scale(0.8);
-}
-
-.collapsed #ns-select {
-    position: fixed;
-    list-style: none;
-    width: 350px;
-    left: 50px;
-    z-index: 999;
-    top: 50px;
-    height: auto;
-    max-height: calc(100vh - 50px);
-    overflow: auto;
-    padding-left: 0;
-    border: 1px solid var(--borderColor);
-    border-left: none;
-    background-color: var(--bgColor);
-    box-shadow: 2px 2px 5px rgba(0,0,0,.1);
-}
-
-.collapsed #ns-select a {
-    padding-left: 40px;
-}
-
-.collapsed #ns-select.set:hover:not(.active) li:first-child > a, .collapsed #ns-select.set:hover:not(.active) li:last-child > a, .collapsed #ns-select.set:hover li > a {
-    border: none;
-}
-
-.collapsed .set:not(.conf) {
-    height: 50px;
-}
-
 .collapsed #main {
     margin-left: 50px;
     width: calc(100% - 50px);
 }
 
-.collapsed .set.conf.active {
-    background: none;
-}
-
-.collapsed .set:not(.conf) > ul.show, .collapsed .set.active:not(.conf) > ul.show {
-    left: 50px;
-}
-
-.collapsed .set:not(.conf) > ul.show {
-    border: 0;
-}
-
 .collapsed #topMenu {
     border-right: 1px solid var(--borderColor);
-}
-
-.collapsed .set:not(.conf) > a.nav-item {
-    border-bottom: 1px solid transparent;
-    border-top: 1px solid transparent;
-}
-
-.collapsed .set:not(.conf):hover > a.nav-item {
-    border-bottom: 1px solid var(--borderColor);
-    border-top: 1px solid var(--borderColor);
-}
-
-.collapsed .set.clu > a.nav-item {
-    border-top: 0 !important;
-}
-
-.collapsed .set.clu ul.show {
-    transform: translateY(-1px);
 }
