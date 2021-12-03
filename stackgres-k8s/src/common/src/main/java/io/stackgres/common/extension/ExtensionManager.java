@@ -56,6 +56,10 @@ public abstract class ExtensionManager {
     this.fileSystemHandler = fileSystemHandler;
   }
 
+  public ExtensionMetadataManager getMetadataManager() {
+    return extensionMetadataManager;
+  }
+
   public ExtensionInstaller getExtensionInstaller(ClusterContext context,
       StackGresClusterInstalledExtension installedExtension) throws Exception {
     final StackGresExtensionPublisher extensionPublisher = extensionMetadataManager

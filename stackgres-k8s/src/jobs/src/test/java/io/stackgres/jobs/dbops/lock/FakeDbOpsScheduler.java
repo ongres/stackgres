@@ -10,6 +10,7 @@ import java.util.function.Function;
 
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.test.Mock;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -31,25 +32,32 @@ public class FakeDbOpsScheduler implements CustomResourceScheduler<StackGresDbOp
   }
 
   @Override
+  public void delete(@NotNull StackGresDbOps resource) {
+    kubeDb.delete(resource);
+  }
+
+  @Override
   public StackGresDbOps update(@NotNull StackGresDbOps resource) {
     return kubeDb.addOrReplaceDbOps(resource);
   }
 
   @Override
-  public void delete(@NotNull StackGresDbOps resource) {
-    kubeDb.delete(resource);
+  public StackGresDbOps update(@NotNull StackGresDbOps resource,
+      @NotNull BiConsumer<StackGresDbOps, StackGresDbOps> setter) {
+    final ObjectMeta metadata = resource.getMetadata();
+    var dbOps = kubeDb.getDbOps(metadata.getName(), metadata.getNamespace());
+    setter.accept(dbOps, resource);
+    return kubeDb.addOrReplaceDbOps(dbOps);
   }
 
   @Override
   public <S> StackGresDbOps updateStatus(@NotNull StackGresDbOps resource,
       @NotNull Function<StackGresDbOps, S> statusGetter,
       @NotNull BiConsumer<StackGresDbOps, S> statusSetter) {
-    String name = resource.getMetadata().getName();
-    String namespace = resource.getMetadata().getNamespace();
-
-    StackGresDbOps savedOp = kubeDb.getDbOps(name, namespace);
-    savedOp.setStatus(resource.getStatus());
-    return kubeDb.addOrReplaceDbOps(savedOp);
+    final ObjectMeta metadata = resource.getMetadata();
+    var dbOps = kubeDb.getDbOps(metadata.getName(), metadata.getNamespace());
+    statusSetter.accept(dbOps, statusGetter.apply(resource));
+    return kubeDb.addOrReplaceDbOps(dbOps);
   }
 
 }

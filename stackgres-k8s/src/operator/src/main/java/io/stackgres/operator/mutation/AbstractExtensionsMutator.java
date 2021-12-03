@@ -7,6 +7,7 @@ package io.stackgres.operator.mutation;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -16,6 +17,7 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.github.fge.jsonpatch.ReplaceOperation;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -133,7 +135,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
     return getExtensionMetadataManager()
         .findExtensionCandidateAnyVersion(cluster, extension, false)
         .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
-            extension, extensionMetadata));
+            cluster, extension, extensionMetadata, false));
   }
 
   protected Optional<StackGresClusterInstalledExtension> getExtension(StackGresCluster cluster,
@@ -144,15 +146,25 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
     return getExtensionMetadataManager()
         .findExtensionCandidateSameMajorBuild(cluster, extension, false)
         .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
-            extension, extensionMetadata));
+            cluster, extension, extensionMetadata, false));
   }
 
   private Optional<StackGresClusterInstalledExtension> getToInstallExtension(
       StackGresCluster cluster, StackGresClusterExtension extension) {
     return getExtensionMetadataManager()
         .findExtensionCandidateSameMajorBuild(cluster, extension, false)
+        .or(() -> Optional.of(extension.getVersion() == null)
+            .filter(hasNoVersion -> hasNoVersion)
+            .map(hasNoVersion -> getExtensionMetadataManager()
+                .getExtensionsAnyVersion(cluster, extension, false))
+            .filter(Predicates.not(List::isEmpty))
+            .filter(allExtensionVersions -> Seq.seq(allExtensionVersions)
+                .groupBy(e -> e.getVersion())
+                .size() > 1)
+            .map(List::stream)
+            .flatMap(Stream::findFirst))
         .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
-            extension, extensionMetadata));
+            cluster, extension, extensionMetadata, false));
   }
 
 }

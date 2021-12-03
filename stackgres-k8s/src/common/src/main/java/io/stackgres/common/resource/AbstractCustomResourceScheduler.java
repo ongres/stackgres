@@ -53,6 +53,28 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
   }
 
   @Override
+  public T update(T resource, BiConsumer<T, T> setter) {
+    T resourceOverwrite = getCustomResourceEndpoints(client)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .get();
+    if (resourceOverwrite == null) {
+      throw new RuntimeException("Can not update status of resource "
+          + resource.getKind()
+          + "." + resource.getGroup()
+          + " " + resource.getMetadata().getNamespace()
+          + "." + resource.getMetadata().getName()
+          + ": resource not found");
+    }
+    setter.accept(resourceOverwrite, resource);
+    return getCustomResourceEndpoints(client)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .lockResourceVersion(resourceOverwrite.getMetadata().getResourceVersion())
+        .replace(resourceOverwrite);
+  }
+
+  @Override
   public <S> T updateStatus(T resource, Function<T, S> statusGetter,
       BiConsumer<T, S> statusSetter) {
     return ((StackGresKubernetesClient) client).updateStatus(customResourceClass,
