@@ -72,11 +72,13 @@ e2e_test() {
 }
 
 cypress_chrome_tests(){
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser chrome
+  RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser chrome --env resourcename="$RANDOM_RESOURCE"
 }
 
 cypress_firefox_tests(){
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser firefox
+  RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser firefox --env resourcename="$RANDOM_RESOURCE"
 }
 
 check_index_on_not_found_resource(){

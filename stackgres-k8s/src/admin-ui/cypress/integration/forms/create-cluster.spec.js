@@ -1,6 +1,7 @@
 describe('Create Cluster', () => {
 
     const host = Cypress.env('host')
+    const resourcename = Cypress.env('resourcename')
 
     beforeEach( () => {
         cy.login()
@@ -15,7 +16,7 @@ describe('Create Cluster', () => {
     it('Creating a basic cluster should be possible', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
-            .type('test-basic-cluster')
+            .type('basic-' + resourcename)
 
         // Test Submit form
         cy.get('form#createCluster button[type="submit"]')
@@ -23,7 +24,7 @@ describe('Create Cluster', () => {
         
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Cluster "test-basic-cluster" created successfully')
+                expect($notification).contain('Cluster "basic-' + resourcename + '" created successfully')
             })
     });
 
@@ -31,7 +32,7 @@ describe('Create Cluster', () => {
         
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
-            .type('test-babelfish-cluster')
+            .type('babelfish-' + resourcename)
         
         // Test enabling babelfish
         cy.get('input[data-field="spec.nonProductionOptions.enabledFeatureGates.babelfish"]')
@@ -43,7 +44,7 @@ describe('Create Cluster', () => {
         
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Cluster "test-babelfish-cluster" created successfully')
+                expect($notification).contain('Cluster "babelfish-' + resourcename + '" created successfully')
             })
     });
 
@@ -55,7 +56,7 @@ describe('Create Cluster', () => {
         
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
-            .type('test-advanced-cluster')
+            .type('advanced-' + resourcename)
         
         // Test Volume Size
         cy.get('input[data-field="spec.pods.persistentVolume.size"]')
@@ -191,7 +192,7 @@ describe('Create Cluster', () => {
         
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Cluster "test-advanced-cluster" created successfully')
+                expect($notification).contain('Cluster "advanced-' + resourcename + '" created successfully')
             })
     }); 
     
