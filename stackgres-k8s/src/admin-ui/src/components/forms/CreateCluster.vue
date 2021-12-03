@@ -34,11 +34,15 @@
             </div>
             <div class="stepsContainer">
                 <ul class="steps">
+                    <button type="button" class="btn arrow prev" @click="currentStep = formSteps[(formSteps.indexOf(currentStep) - 1)]" :disabled="( formSteps.indexOf(currentStep) == 0 )"></button>
+            
                     <template v-for="(step, index) in formSteps"  v-if="( ((index < 3) && !advancedMode) || advancedMode)">
                         <li @click="currentStep = step" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' )]" v-if="!( (step == 'initialization') && editMode && !initScripts.length && !restoreBackup.length )" :data-step="step">
                             {{ step }}
                         </li>
                     </template>
+
+                    <button type="button" class="btn arrow next" @click="currentStep = formSteps[(formSteps.indexOf(currentStep) + 1)]" :disabled="(!advancedMode && ( formSteps.indexOf(currentStep) == 2 ) ) || ( (advancedMode && ( formSteps.indexOf(currentStep) == (formSteps.length - 1) )) )"></button>
                 </ul>
             </div>
 
@@ -2207,8 +2211,8 @@
 
 <style scoped>
     .form {
-        max-width: 870px;
-        width: 870px;
+        max-width: 900px;
+        width: 900px;
     }
 
     .scriptFieldset:first-child {
@@ -2507,8 +2511,10 @@
 
     ul.steps {
         display: inline-block;
-        margin: 0 0 20px;
+        margin: 10px 0 20px;
         border: 0;
+        padding: 0 28px;
+        position: relative;
     }
 
     ul.steps li {
@@ -2516,7 +2522,7 @@
         list-style: none;
         position: relative;
         text-align: center;
-        margin: 0 10px;
+        margin: 0 7px;
         text-transform: capitalize;
         min-width: 70px;
         cursor: pointer;
@@ -2706,6 +2712,67 @@
 
     .scheduling .fieldsetFooter {
         margin-bottom: 20px;
+    }
+
+    .steps button.arrow {
+        position: absolute;
+        width: 25px;
+        height: 25px;
+        padding: 0;
+        top: -16px;
+        background: var(--inputBg);
+        border-color: var(--borderColor);
+    }
+
+    .steps button.arrow:hover {
+        border-color: var(--baseColor);
+    }
+
+    .steps button.arrow:after {
+        content: " ";
+        width: 6px;
+        height: 6px;
+        border: 1px solid var(--gray3);
+        display: block;
+        transform: rotate(45deg);
+        position: absolute;
+        top: 8px;
+    }
+
+    .darkmode .steps button.arrow:after {
+        border-color: var(--gray5);
+    }
+
+    .steps button.arrow:hover:after {
+        border-color: var(--baseColor);
+    }
+
+    .steps button.arrow[disabled] {
+        border-color: transparent;
+    }
+
+    .steps button.arrow[disabled]:after {
+        border-color: var(--borderColor);
+    }
+
+    .steps button.prev {
+        left: 0;
+    }
+
+    .steps button.next {
+        right: 0;
+    }
+
+    .steps button.next:after {
+        border-left: 0;
+        border-bottom: 0;
+        left: 6px;
+    }
+
+    .steps button.prev:after {
+        border-right: 0;
+        border-top: 0;
+        left: 10px;
     }
 
 </style>
