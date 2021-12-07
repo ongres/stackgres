@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
@@ -185,15 +186,15 @@ public class BackupCronJob
                             .build(),
                         new EnvVarBuilder()
                             .withName("PATRONI_ROLE_KEY")
-                            .withValue(StackGresContext.ROLE_KEY)
+                            .withValue(PatroniUtil.ROLE_KEY)
                             .build(),
                         new EnvVarBuilder()
                             .withName("PATRONI_PRIMARY_ROLE")
-                            .withValue(StackGresContext.PRIMARY_ROLE)
+                            .withValue(PatroniUtil.PRIMARY_ROLE)
                             .build(),
                         new EnvVarBuilder()
                             .withName("PATRONI_REPLICA_ROLE")
-                            .withValue(StackGresContext.REPLICA_ROLE)
+                            .withValue(PatroniUtil.REPLICA_ROLE)
                             .build(),
                         new EnvVarBuilder()
                             .withName("SCHEDULED_BACKUP_KEY")

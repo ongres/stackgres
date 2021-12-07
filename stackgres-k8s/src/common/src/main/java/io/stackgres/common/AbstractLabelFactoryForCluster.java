@@ -33,14 +33,14 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
   @Override
   public Map<String, String> patroniPrimaryLabels(T resource) {
     return ImmutableMap.<String, String>builder().putAll(patroniClusterLabels(resource))
-        .put(StackGresContext.ROLE_KEY, StackGresContext.PRIMARY_ROLE)
+        .put(PatroniUtil.ROLE_KEY, PatroniUtil.PRIMARY_ROLE)
         .build();
   }
 
   @Override
   public Map<String, String> patroniReplicaLabels(T resource) {
     return ImmutableMap.<String, String>builder().putAll(patroniClusterLabels(resource))
-        .put(StackGresContext.ROLE_KEY, StackGresContext.REPLICA_ROLE)
+        .put(PatroniUtil.ROLE_KEY, PatroniUtil.REPLICA_ROLE)
         .build();
   }
 

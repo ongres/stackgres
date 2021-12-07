@@ -38,7 +38,6 @@ import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
 @Singleton
@@ -53,29 +52,23 @@ public class PatroniServices implements
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   public static String name(ClusterContext clusterContext) {
-    String name = clusterContext.getCluster().getMetadata().getName();
-    return PatroniUtil.name(name);
+    return PatroniUtil.name(clusterContext.getCluster());
   }
 
   public static String restName(ClusterContext clusterContext) {
-    String name = clusterContext.getCluster().getMetadata().getName();
-    return PatroniUtil.name(name + "-rest");
+    return PatroniUtil.restName(clusterContext.getCluster());
   }
 
   public static String readWriteName(ClusterContext clusterContext) {
-    String name = clusterContext.getCluster().getMetadata().getName();
-    return PatroniUtil.readWriteName(name);
+    return PatroniUtil.readWriteName(clusterContext.getCluster());
   }
 
   public static String readOnlyName(ClusterContext clusterContext) {
-    String name = clusterContext.getCluster().getMetadata().getName();
-    return PatroniUtil.readOnlyName(name);
+    return PatroniUtil.readOnlyName(clusterContext.getCluster());
   }
 
   public String configName(ClusterContext clusterContext) {
-    final StackGresCluster cluster = clusterContext.getCluster();
-    return ResourceUtil.resourceName(
-        PatroniConfigMap.clusterScope(cluster) + PatroniUtil.CONFIG_SERVICE);
+    return PatroniUtil.configName(clusterContext.getCluster());
   }
 
   /**

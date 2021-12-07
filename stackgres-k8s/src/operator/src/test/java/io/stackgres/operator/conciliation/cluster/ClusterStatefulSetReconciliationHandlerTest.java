@@ -43,6 +43,7 @@ import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -268,10 +269,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
     String disruptableValue = updatedPod.getMetadata().getLabels()
         .get(StackGresContext.DISRUPTIBLE_KEY);
     String podRole = updatedPod.getMetadata().getLabels()
-        .get(StackGresContext.ROLE_KEY);
+        .get(PatroniUtil.ROLE_KEY);
 
     assertEquals(StackGresContext.WRONG_VALUE, disruptableValue);
-    assertEquals(StackGresContext.PRIMARY_ROLE, podRole);
+    assertEquals(PatroniUtil.PRIMARY_ROLE, podRole);
 
     verify(podScanner, times(3)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(statefulSetWriter).update(any(StatefulSet.class));
@@ -741,8 +742,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
     podLabels.put(StackGresContext.DISRUPTIBLE_KEY,
         nonDisruptible ? StackGresContext.WRONG_VALUE : StackGresContext.RIGHT_VALUE);
     if (!placeholder && setRole) {
-      podLabels.put(StackGresContext.ROLE_KEY,
-          primary ? StackGresContext.PRIMARY_ROLE : StackGresContext.REPLICA_ROLE);
+      podLabels.put(PatroniUtil.ROLE_KEY,
+          primary ? PatroniUtil.PRIMARY_ROLE : PatroniUtil.REPLICA_ROLE);
     }
     podList.add(new PodBuilder()
         .withNewMetadata()

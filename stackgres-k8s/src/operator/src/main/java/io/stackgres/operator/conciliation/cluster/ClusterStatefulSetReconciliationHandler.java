@@ -544,12 +544,12 @@ public class ClusterStatefulSetReconciliationHandler
   }
 
   private boolean hasRoleLabel(Pod pod) {
-    return pod.getMetadata().getLabels().containsKey(StackGresContext.ROLE_KEY);
+    return pod.getMetadata().getLabels().containsKey(PatroniUtil.ROLE_KEY);
   }
 
   private boolean isRolePrimary(Pod pod) {
-    return pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY)
-        .equals(StackGresContext.PRIMARY_ROLE);
+    return pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)
+        .equals(PatroniUtil.PRIMARY_ROLE);
   }
 
   private boolean isNonDisruptable(Pod pod) {

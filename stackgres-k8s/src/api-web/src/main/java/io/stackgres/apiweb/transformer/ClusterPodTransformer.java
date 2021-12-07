@@ -16,7 +16,7 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.dto.cluster.KubernetesPod;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.PatroniUtil;
 
 @ApplicationScoped
 public class ClusterPodTransformer {
@@ -26,7 +26,7 @@ public class ClusterPodTransformer {
     transformation.setNamespace(source.getMetadata().getNamespace());
     transformation.setName(source.getMetadata().getName());
     transformation.setRole(
-        convertRole(source.getMetadata().getLabels().get(StackGresContext.ROLE_KEY)));
+        convertRole(source.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)));
     if (source.getStatus() != null) {
       transformation.setIp(source.getStatus().getPodIP());
       transformation.setStatus(
@@ -55,7 +55,7 @@ public class ClusterPodTransformer {
   }
 
   private String convertRole(String role) {
-    if (StackGresContext.PRIMARY_ROLE.equals(role)) {
+    if (PatroniUtil.PRIMARY_ROLE.equals(role)) {
       return "primary";
     }
 

@@ -21,15 +21,6 @@ public interface StackGresContext {
   String DB_OPS_KEY = "db-ops";
   String SCHEDULED_BACKUP_KEY = "scheduled-backup";
   String DISRUPTIBLE_KEY = "disruptible";
-  String INITIALIZE_KEY = "initialize";
-  String ROLE_KEY = "role";
-  String PRIMARY_ROLE = "master";
-  String REPLICA_ROLE = "replica";
-  String PROMOTED_ROLE = "promoted";
-  String DEMOTED_ROLE = "demoted";
-  String UNINITIALIZED_ROLE = "uninitialized";
-  String STANDBY_LEADER_ROLE = "standby_leader";
-  String SYNC_STANDBY_ROLE = "sync_standby";
   String REST_APIUSER_KEY = "apiUsername";
   String REST_K8SUSER_KEY = "k8sUsername";
   String REST_PASSWORD_KEY = "password";

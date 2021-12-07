@@ -32,7 +32,8 @@ import io.stackgres.operatorframework.reconciliation.Reconciliator;
 public class DistributedLogsControllerReconciliator
     extends Reconciliator<StackGresDistributedLogsContext> {
 
-  private final PostgresBootstrapReconciliator postgresBootstrapReconciliator;
+  private final DistributedLogsControllerPostgresBootstrapReconciliator
+      postgresBootstrapReconciliator;
   private final DistributedLogsExtensionReconciliator extensionReconciliator;
   private final DistributedLogsClusterReconciliator clusterReconciliator;
   private final CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
@@ -40,7 +41,7 @@ public class DistributedLogsControllerReconciliator
 
   @Dependent
   public static class Parameters {
-    @Inject PostgresBootstrapReconciliator postgresBootstrapReconciliator;
+    @Inject DistributedLogsControllerPostgresBootstrapReconciliator postgresBootstrapReconciliator;
     @Inject DistributedLogsExtensionReconciliator extensionReconciliator;
     @Inject DistributedLogsClusterReconciliator clusterReconciliator;
     @Inject CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
