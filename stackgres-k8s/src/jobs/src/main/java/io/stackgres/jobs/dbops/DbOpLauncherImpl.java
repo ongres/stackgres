@@ -36,6 +36,7 @@ import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.lock.ImmutableLockRequest;
 import io.stackgres.jobs.dbops.lock.LockAcquirer;
 import io.stackgres.jobs.dbops.lock.LockRequest;
+import io.stackgres.jobs.mutiny.UniUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -117,14 +118,12 @@ public class DbOpLauncherImpl implements DbOpLauncher {
               databaseOperationEventEmitter.operationStarted(dbOpName, namespace);
               final DatabaseOperationJob databaseOperationJob = jobImpl.get();
 
-              Uni<ClusterRestartState> jobUni = databaseOperationJob.runJob(
-                  initializedDbOps, targetCluster).runSubscriptionOn(jobExecutor);
-              if (initializedDbOps.getSpec().getTimeout() != null) {
-                jobUni.await()
-                    .atMost(Duration.parse(initializedDbOps.getSpec().getTimeout()));
-              } else {
-                jobUni.await().indefinitely();
-              }
+              final Uni<ClusterRestartState> jobUni = databaseOperationJob
+                  .runJob(initializedDbOps, targetCluster)
+                  .runSubscriptionOn(jobExecutor);
+              UniUtil.waitUni(jobUni,
+                  Optional.ofNullable(initializedDbOps.getSpec().getTimeout())
+                  .map(Duration::parse));
               databaseOperationEventEmitter.operationCompleted(dbOpName, namespace);
             });
 
