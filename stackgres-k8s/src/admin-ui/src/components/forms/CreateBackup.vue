@@ -218,7 +218,14 @@
                             backup 
                         )
                         .then(function (response) {
-                            vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully.', 'message', 'sgbackups');
+
+                            var urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.has('newtab')) {
+                                opener.fetchParentAPI('sgbackups');
+                                vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully! You must wait for the backup to be completed before you can choose it from the list.<br/><br/>You may now close this window.', 'message','sgbackups');
+                            } else {
+                                vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully.', 'message', 'sgbackups');
+                            }
 
                             vc.fetchAPI('sgbackup');
                             router.push('/' + backup.metadata.namespace + '/sgbackups');

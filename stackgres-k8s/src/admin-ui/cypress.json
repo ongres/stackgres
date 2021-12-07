@@ -1,3 +1,5 @@
 {
-    "chromeWebSecurity": false
+    "chromeWebSecurity": false,
+    "viewportWidth": 1366,
+    "viewportHeigth": 768
 }

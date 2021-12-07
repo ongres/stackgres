@@ -1,5 +1,5 @@
 <template>
-    <form id="create-cluster" v-if="loggedIn && isReady && !notFound" @submit.prevent>
+    <div id="create-cluster" class="createCluster noSubmit" v-if="loggedIn && isReady && !notFound">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
         <header>
@@ -24,159 +24,229 @@
                 <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgcluster/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
             </div>
         </header>
-        <div class="form">
+        <form id="createCluster" class="form" @submit.prevent>
             <div class="header">
-                <h2>Cluster Details</h2>
-                <label for="advancedMode" :class="(advancedMode) ? 'active' : ''">
-                    <input v-model="advancedMode" type="checkbox" id="advancedMode" name="advancedMode" />
-                    <span>Advanced</span>
+                <h2>Create Cluster</h2>
+                <label for="advancedMode" class="floatRight">
+                    <span>ADVANCED OPTIONS </span>
+                    <input type="checkbox" id="advancedMode" name="advancedMode" v-model="advancedMode" class="switch">
                 </label>
             </div>
+            <div class="stepsContainer">
+                <ul class="steps">
+                    <button type="button" class="btn arrow prev" @click="currentStep = formSteps[(formSteps.indexOf(currentStep) - 1)]" :disabled="( formSteps.indexOf(currentStep) == 0 )"></button>
+            
+                    <template v-for="(step, index) in formSteps"  v-if="( ((index < 3) && !advancedMode) || advancedMode)">
+                        <li @click="currentStep = step" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' )]" v-if="!( (step == 'initialization') && editMode && !initScripts.length && !restoreBackup.length )" :data-step="step">
+                            {{ step }}
+                        </li>
+                    </template>
 
-            <fieldset class="accordion" id="basicSettings">
-                <div class="header open" @click="toggleAccordion('#basicSettings')">
-                    <h3>Basic Cluster Settings</h3>
-                    <button type="button" class="toggleFields textBtn">Collapse</button>
+                    <button type="button" class="btn arrow next" @click="currentStep = formSteps[(formSteps.indexOf(currentStep) + 1)]" :disabled="(!advancedMode && ( formSteps.indexOf(currentStep) == 2 ) ) || ( (advancedMode && ( formSteps.indexOf(currentStep) == (formSteps.length - 1) )) )"></button>
+                </ul>
+            </div>
+
+            <div class="clearfix"></div>
+
+            <fieldset class="step" :class="(currentStep == 'cluster') && 'active'">
+                <div class="header">
+                    <h2>Cluster Information</h2>
                 </div>
 
-                <div class="fields" style="display: block">
-
-                    <label for="metadata.name">Cluster Name <span class="req">*</span></label>
-                    <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
-                    <a class="help" @click="showTooltip( 'sgcluster', 'metadata.name')"></a>
-
-                    <span class="warning" v-if="nameColission && !editMode">
-                        There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
-                    </span>
-
-                    <label for="spec.postgres.flavor">Postgres Flavor</label>
-                    <select :disabled="editMode" v-model="flavor" required data-field="spec.postgres.flavor" @change="getFlavorExtensions()">
-                        <option selected value="vanilla">Vanilla</option>
-                        <option value="babelfish">Babelfish</option>
-                    </select>
-                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgres.flavor')"></a>
-
-                    <template v-if="flavor === 'babelfish'">
-                        <label for="spec.nonProductionOptions.enabledFeatureGates">Feature Gates</label>  
-                        <label disabled for="featureGates" class="switch yes-no">Babelfish Flavor Feature Enabled<input disabled type="checkbox" id="featureGates" v-model="featureGates" data-switch="NO"></label>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.nonProductionOptions.enabledFeatureGates')"></a>
-                    </template>
-
-                    <div class="versionContainer">
-                        <label for="spec.postgres.version">Postgres Version <span class="req">*</span></label>
-                        <ul class="select" id="postgresVersion" data-field="spec.postgres.version">
-                            <li class="selected">
-                                {{ (postgresVersion == 'latest') ? 'Latest' : 'Postgres '+postgresVersion }}
-                            </li>
-                            <li>
-                                <a @click="setVersion('latest')" data-val="latest" class="active">Latest</a>
-                            </li>
-
-                            <li v-for="version in Object.keys(postgresVersionsList[flavor]).reverse()">
-                                <strong>Postgres {{ version }}</strong>
-                                <ul>
-                                    <li>
-                                        <a @click="setVersion(version)" :data-val="version">Postgres {{ version }} (Latest)</a>
-                                    </li>
-                                    <li v-for="minorVersion in postgresVersionsList[flavor][version]">
-                                        <a @click="setVersion(minorVersion)" :data-val="minorVersion">Postgres {{ minorVersion }}</a>
-                                    </li>
-                                </ul>
-                            </li>
-                        </ul>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgres.version')"></a>
-
-                        <div class="warning" v-if="!pgConfigExists">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="18" viewBox="0 0 20 18"><g transform="translate(0 -183)"><path d="M18.994,201H1.006a1,1,0,0,1-.871-.516,1.052,1.052,0,0,1,0-1.031l8.993-15.974a1.033,1.033,0,0,1,1.744,0l8.993,15.974a1.052,1.052,0,0,1,0,1.031A1,1,0,0,1,18.994,201ZM2.75,198.937h14.5L10,186.059Z" fill="#00adb5"/><rect width="2" height="5.378" rx="0.947" transform="translate(9 189.059)" fill="#00adb5"/><rect width="2" height="2" rx="1" transform="translate(9 195.437)" fill="#00adb5"/></g></svg>
-                            <p>Please notice that <strong>there are no Postgres Configurations available</strong> for this Postgres Version in this Namespace. A <strong>default Postgres Configuration will be created and applied to the cluster</strong> if you continue.</p>
+                <div class="fields">
+                    <div class="row-50">
+                        <div class="col">
+                            <label for="metadata.name">Cluster Name <span class="req">*</span></label>
+                            <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
                         </div>
 
-                        <input v-model="postgresVersion" @change="checkPgConfigVersion" required class="hide">
+                        <span class="warning" v-if="nameColission && !editMode">
+                            There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
+                        </span>
                     </div>
 
-                    <label for="spec.instances">Number of Instances <span class="req">*</span></label>
-                    <select v-model="instances" required data-field="spec.instances">    
-                        <option disabled value="">Instances</option>
-                        <option>1</option>
-                        <option>2</option>
-                        <option>3</option>
-                        <option>4</option>
-                        <option>5</option>
-                        <option>6</option>
-                        <option>7</option>
-                        <option>8</option>
-                        <option>9</option>
-                        <option>10</option>
-                    </select>
-                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.instances')"></a>
-                
-                    <label for="spec.sgInstanceProfile">Instance Profile</label>  
-                    <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile">
-                        <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
-                        <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
-                    </select>
-                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.sgInstanceProfile')"></a>
+                    <hr/>
+                    
+                    <div class="row-50">
+                        <h3>Instances</h3>
 
-                    <div class="unit-select">
-                        <label for="spec.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
-                        <input v-model="volumeSize" class="size" required data-field="spec.pods.persistentVolume.size" type="number">
-                        <select v-model="volumeUnit" class="unit" required data-field="spec.pods.persistentVolume.size" >
-                            <option disabled value="">Select Unit</option>
-                            <option value="Mi">MiB</option>
-                            <option value="Gi">GiB</option>
-                            <option value="Ti">TiB</option>   
-                        </select>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.persistentVolume.size')"></a>
+                        <div class="col">
+                            <label for="spec.instances">Number of Instances <span class="req">*</span></label>
+                            <select v-model="instances" required data-field="spec.instances">
+                                <option disabled value="">Instances</option>
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                                <option>5</option>
+                                <option>6</option>
+                                <option>7</option>
+                                <option>8</option>
+                                <option>9</option>
+                                <option>10</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
+                        </div>
+                        <div class="col">
+                            <label for="spec.sgInstanceProfile">Instance Profile</label>  
+                            <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
+                                <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
+                                <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
+                                <option value="" disabled>– OR –</option>
+                                <option value="createNewResource">Create new profile</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.sgInstanceProfile')"></span>
+                        </div>
                     </div>
 
-                    <template v-if="storageClasses.length">
-                        <label for="spec.pods.persistentVolume.storageClass">Storage Class</label>
-                        <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass">
-                            <option value="">Select Storage Class</option>
-                            <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                        </select>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.persistentVolume.storageClass')"></a>
-                    </template>
+                    <hr/>
+
+                    <div class="row-50">
+                        <h3>Postgres</h3>
+
+                        <div class="col" v-if="( !editMode || (editMode && (flavor == 'babelfish') ) )">
+                            <label for="spec.nonProductionOptions.enabledFeatureGates.babelfish">Babelfish Experimental Feature</label>  
+                            <label for="babelfishFeatureGates" class="switch yes-no">Enable
+                                <input type="checkbox" id="babelfishFeatureGates" v-model="babelfishFeatureGates" data-switch="NO" @change="( (flavor = (babelfishFeatureGates ? 'babelfish' : 'vanilla') ) && validateSelectedPgVersion() )" data-field="spec.nonProductionOptions.enabledFeatureGates.babelfish">
+                            </label>
+                            <span class="helpTooltip" data-tooltip="Enables Babelfish for PostgreSQL project, from <a href='https://babelfishpg.org' target='_blank'>babelfishpg.org</a>, adding a SQL Server compatibility layer"></span>
+                        </div>
+
+                        <template v-if="babelfishFeatureGates">
+                            <div class="col">
+                                <label for="spec.postgres.flavor">Postgres Flavor <span class="req">*</span></label>
+                                <select :disabled="editMode" v-model="flavor" required data-field="spec.postgres.flavor" @change="validateSelectedPgVersion() && getFlavorExtensions()">
+                                    <option selected value="vanilla">PostgreSQL Community</option>
+                                    <option value="babelfish">Babelfish (experimental)</option>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.flavor')"></span>
+                            </div>
+
+                            <p class="warning orange babelfish">
+                                StackGres packs Babelfish for PostgreSQL as an <strong>experimental feature</strong> which use is <strong>not recommended for production environments.</strong>
+                            </p>
+                        </template>
+
+                        <div class="col">                    
+                            <div class="versionContainer">
+                                <label for="spec.postgres.version">Postgres Version <span class="req">*</span></label>
+                                <ul class="select" id="postgresVersion" data-field="spec.postgres.version">
+                                    <li class="selected">
+                                        {{ (postgresVersion == 'latest') ? 'Latest' : 'Postgres '+postgresVersion }}
+                                    </li>
+                                    <li>
+                                        <a @click="setVersion('latest')" data-val="latest" class="active">Latest</a>
+                                    </li>
+
+                                    <li v-for="version in Object.keys(postgresVersionsList[flavor]).reverse()">
+                                        <strong>Postgres {{ version }}</strong>
+                                        <ul>
+                                            <li>
+                                                <a @click="setVersion(version)" :data-val="version">Postgres {{ version }} (Latest)</a>
+                                            </li>
+                                            <li v-for="minorVersion in postgresVersionsList[flavor][version]">
+                                                <a @click="setVersion(minorVersion)" :data-val="minorVersion">Postgres {{ minorVersion }}</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
+
+                                <input v-model="postgresVersion" @change="checkPgConfigVersion" required class="hide">
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.configurations.sgPostgresConfig">Postgres Configuration</label>
+                            <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (pgConfig == 'createNewResource') && (pgConfig = '') )">
+                                <option value="" selected>Default</option>
+                                <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
+                                <option value="" disabled>– OR –</option>
+                                <option value="createNewResource">Create new configuration</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPostgresConfig')"></span>
+                        </div>
+                    </div>
+
+                    <hr/>
+
+                    <div class="row-50">
+                        <h3>Pods Storage</h3>
+
+                        <div class="col">
+                            <div class="unit-select">
+                                <label for="spec.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
+                                <input v-model="volumeSize" class="size" required data-field="spec.pods.persistentVolume.size" type="number">
+                                <select v-model="volumeUnit" class="unit" required data-field="spec.pods.persistentVolume.size" >
+                                    <option disabled value="">Select Unit</option>
+                                    <option value="Mi">MiB</option>
+                                    <option value="Gi">GiB</option>
+                                    <option value="Ti">TiB</option>   
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.size')"></span>
+                            </div>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.pods.persistentVolume.storageClass">Storage Class</label>
+                            <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
+                                <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
+                                <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.storageClass')"></span>
+                        </div>
+                    </div>
                 </div>
             </fieldset>
 
-            <fieldset class="accordion" id="postgresExtensions">
-                <div class="header" @click="toggleAccordion('#postgresExtensions')">
-                    <h3>Postgres Extensions</h3>
-                    <button type="button" class="toggleFields textBtn">Expand</button>
+            <fieldset class="step" :class="(currentStep == 'extensions') && 'active'">
+                <div class="header">
+                    <h2>Postgres Extensions</h2>
                 </div>
                 
                 <div class="fields">
                     <div class="toolbar">
                         <div class="searchBar">
-                            <label class="hidden" for="spec.postgres.extensions">Postgres Extensions</label>
                             <input id="keyword" v-model="searchExtension" class="search" placeholder="Search Extension..." autocomplete="off" data-field="spec.postgres.extensions">
                             <a @click="clearExtFilters()" class="btn clear border keyword" v-if="searchExtension.length">CLEAR</a>
                         </div>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgres.extensions')"></a>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.extensions')"></span>
                     </div>
                     
                     <div class="extHead">
                         <span class="install">Install</span>
-                        <span class="name">Extension</span>
+                        <span class="name">Name</span>
+                        <span class="version">Version</span>
+                        <span class="description">Description</span>
                     </div>
                     <ul class="extensionsList">
-                        <li class="extension notFound">No extensions match your search terms...</li>
-                        <li v-for="(ext, index) in extensionsList[flavor][postgresVersion]" v-if="!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
+                        <li class="extension notFound">
+                            No extensions match your search terms.
+                        </li>
+                        <li v-for="(ext, index) in extensionsList[flavor][postgresVersion]" v-if="(!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)) && ext.versions.length" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
                             <label class="hoverTooltip">
-                                <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length"/>
-                                {{ ext.name }} <span v-if="!ext.versions.length" class="notCompatible" data-tooltip="This extension is not compatible with the selected Postgres version"> <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg> </span>
+                                <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length || !ext.selectedVersion.length" :data-field="'spec.postgres.extensions.' + ext.name" />
+                                <span class="name">
+                                    {{ ext.name }}
+                                    <a v-if="ext.hasOwnProperty('url') && ext.url" :href="ext.url" class="newTab" target="_blank"></a>
+                                </span>
+                                <span class="version">
+                                    <select v-model="ext.selectedVersion" class="extVersion" @change="updateExtVersion(ext.name, ext.selectedVersion)">
+                                        <option v-if="!ext.versions.length" selected>Not available for this postgres version</option>
+                                        <option v-else value="">Select version...</option>
+                                        <option v-for="v in ext.versions">{{ v }}</option>
+                                    </select>
+                                </span>
+                                <span class="description firstLetter">
+                                    {{ ext.description }}
+                                </span>
                             </label>
                             <button type="button" class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
 
                             <div v-if="(viewExtension == index)" class="extDetails">
                                 <div class="header">
-                                    <h4>Description</h4>
-                                </div>
-                                <p class="extDesc firstLetter">{{ ext.description }}</p>
-
-                                <div class="header">
-                                    <h4>Tags</h4>
+                                    <h3>Tags</h3>
                                 </div>
                                 <div class="tags" v-if="ext.tags.length">
                                     <span v-for="tag in ext.tags" class="extTag">
@@ -184,287 +254,344 @@
                                     </span>
                                 </div>
 
-                                <template v-if="ext.versions.length">
-                                    <div class="header">
-                                        <h4>Choose Version</h4>
-                                    </div>
-                                    <select v-model="extVersion.version" @change="setExtVersion(extVersion.version)" class="extVersion">
-                                        <option v-if="!ext.versions.length" selected>Not available for this postgres version</option>
-                                        <option v-for="v in ext.versions" :selected="extVersion.version == v">{{ v }}</option>
-                                    </select>
-                                </template>
-                                <template v-else>
-                                        <div class="header">
-                                        <h4>Notes</h4>
-                                    </div>
-                                    <p class="notCompatible">
-                                        <strong class="colorRed">
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16.001"><path class="a" d="M657.435,374.5l6.7,13.363h-13.4l6.7-13.363Zm0-1.45a1.157,1.157,0,0,0-.951.7l-6.83,13.608c-.523.93-.078,1.691.989,1.691h13.583c1.067,0,1.512-.761.989-1.691h0l-6.829-13.61a1.156,1.156,0,0,0-.951-.7Zm1,13a1,1,0,1,1-1-1,1,1,0,0,1,1,1Zm-1-2a1,1,0,0,1-1-1v-3a1,1,0,0,1,2,0v3a1,1,0,0,1-1,1Z" transform="translate(-649.435 -373.043)"/></svg>
-                                            Not Compatible
-                                        </strong><br/>
-                                        This extension is not compatible with the selected Postgres version
-                                    </p>
-                                </template>
-
                                 <div class="header">
-                                    <h4>Additional Links</h4>
+                                    <h3>Source:</h3>
                                 </div>
-                                <ul class="padLeft extLinks">
-                                    <li v-if="ext.hasOwnProperty('url') && ext.url">
-                                        <strong>More info:</strong><br/>
-                                        <a :href="ext.url" target="_blank">{{ ext.url }}</a>
-                                    </li>
-                                    <li>
-                                        <strong>Source:</strong><br/>
-                                        <a :href="ext.source" target="_blank">{{ ext.source }}</a>
-                                    </li>
-                                </ul>
+                                <a :href="ext.source" target="_blank">{{ ext.source }}</a>
                             </div>
                         </li>
                     </ul>
                 </div>
             </fieldset>
 
-            <template v-if="advancedMode">
+            <fieldset class="step" :class="(currentStep == 'backups') && 'active'">
+                <div class="header">
+                    <h2>Managed Backups</h2>
+                </div>
 
-                <fieldset class="accordion" id="customConfig">
-                    <div class="header" @click="toggleAccordion('#customConfig')">
-                        <h3>Customized Configurations</h3>
-                        <button type="button" class="toggleFields textBtn">Expand</button>
+                <div class="fields">
+                    <div class="row-50">
+                        <div class="col">
+                            <label for="spec.configurations.sgBackupConfig">Backups Configuration</label>
+                            <select v-model="backupConfig" class="backupConfig" data-field="spec.configurations.sgBackupConfig" @change="(backupConfig == 'createNewResource') && createNewResource('sgbackupconfigs')" :set="( (backupConfig == 'createNewResource') && (backupConfig = '') )">
+                                <option disabled value="">Select Backup Configuration</option>
+                                <option v-for="conf in backupConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
+                                <option value="" disabled>– OR –</option>
+                                <option value="createNewResource">Create new configuration</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgBackupConfig')"></span>
+                        </div>
                     </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="step" :class="(currentStep == 'initialization') && 'active'">
+                <div class="header">
+                    <h2>Cluster Initialization</h2>
+                </div>
+
+                <template  v-if="!editMode || (editMode && (restoreBackup.length || initScripts.length) )">
+
+                    <p>Use this option to initialize the cluster with the data from an existing backup or by running some custom SQL scripts.</p><br/><br/>
 
                     <div class="fields">
-                        <label for="spec.configurations.sgPostgresConfig">Postgres Configuration</label>
-                        <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig">
-                            <option value="" selected>Default</option>
-                            <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
-                        </select>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.configurations.sgPostgresConfig')"></a>
-
-                        <fieldset data-field="spec.configurations.sgPoolingConfig">
-                            <label for="spec.configurations.sgPoolingConfig">Connection Pooling</label>  
-                            <label for="connPooling" class="switch yes-no">Enable <input type="checkbox" id="connPooling" v-model="connPooling" data-switch="NO"></label>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.configurations.sgPoolingConfig')"></a>
-                            
-                            <label for="connectionPoolingConfig">Connection Pooling Configuration</label>
-                            <select v-model="connectionPoolingConfig" class="connectionPoolingConfig" :disabled="!connPooling" >
-                                <option value="" selected>Default</option>
-                                <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
-                            </select>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.configurations.sgPoolingConfig')"></a>
-                        </fieldset>
-
-                        <label for="spec.configurations.sgBackupConfig">Automatic Backups</label>
-                        <select v-model="backupConfig" class="backupConfig" data-field="spec.configurations.sgBackupConfig">
-                            <option disabled value="">Select Backup Configuration</option>
-                            <option v-for="conf in backupConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
-                        </select>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.configurations.sgBackupConfig')"></a>
-
-                        <label for="spec.distributedLogs.sgDistributedLogs">Distributed Logs</label>
-                        <select v-model="distributedLogs" class="distributedLogs" data-field="spec.distributedLogs.sgDistributedLogs">
-                            <option disabled value="">Select Logs Cluster</option>
-                            <option v-for="cluster in logsClusters" :value="( (cluster.data.metadata.namespace !== $route.params.namespace) ? cluster.data.metadata.namespace + '.' : '') + cluster.data.metadata.name">{{ cluster.data.metadata.name }}</option>
-                        </select>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.distributedLogs.sgDistributedLogs')"></a>
-
-                        <label for="spec.pods.disablePostgresUtil">Postgres Utils</label>  
-                        <label for="postgresUtil" class="switch">Postgres Utils <input type="checkbox" id="postgresUtil" v-model="postgresUtil" data-switch="ON"></label>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.disablePostgresUtil')"></a>
-
-                        <label for="spec.pods.disableMetricsExporter">Metrics Exporter</label>  
-                        <label for="metricsExporter" class="switch">Metrics Exporter <input type="checkbox" id="metricsExporter" v-model="metricsExporter" data-switch="ON"></label>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.disableMetricsExporter')"></a>
-
-                        <label for="spec.prometheusAutobind">Prometheus Autobind</label>  
-                        <label for="prometheusAutobind" class="switch" data-field="spec.prometheusAutobind">Prometheus Autobind <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="OFF"></label>
-                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.prometheusAutobind')"></a>
-
-                        <fieldset data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity">
+                        <template v-if="( (editMode && restoreBackup.length) || !editMode )">
                             <div class="header">
-                                <h3>Non Production Settings</h3>  
+                                <h3 for="spec.initialData.restore.fromBackup">
+                                    Initialization Backup
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
+                                </h3>
                             </div>
-                            <label for="spec.nonProductionOptions.disableClusterPodAntiAffinity" class="switch yes-no">disableClusterPodAntiAffinity <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="disableClusterPodAntiAffinity" data-switch="NO"></label>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.nonProductionOptions.disableClusterPodAntiAffinity')"></a>
-                        </fieldset>
-                    </div>
-                </fieldset>
+                            <fieldset class="row-50">
+                                <div class="col">
+                                    <label for="spec.initialData.restore.fromBackup">Backup Selection</label>
+                                    <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : initDatepicker()" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
+                                        <option value="">Select a Backup</option>
+                                        <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.process.status === 'Completed') && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
+                                            <option :value="backup.data.metadata.uid">
+                                                {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
+                                            </option>
+                                        </template>
+                                        <option value="" disabled>– OR –</option>
+                                        <option value="createNewResource">Create new backup</option>
+                                    </select>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
+                                </div>
 
-                <fieldset class="accordion" v-if="!editMode || (editMode && (restoreBackup.length || initScripts.length) )" id="clusterInit">
-                    <div class="header" @click="toggleAccordion('#clusterInit')">
-                        <h3>Cluster Initialization</h3>
-                        <button type="button" class="toggleFields textBtn">Expand</button>
-                    </div>
-
-                    <div class="fields">
-                        <template v-if="(editMode && restoreBackup.length) || (!editMode && backups.length)">
-                            <label for="spec.initialData.restore.fromBackup">Backup Selection</label>
-                            <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="initDatepicker()">
-                                <option value="">Select a Backup</option>
-                                <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && backup.data.status !== null )">
-                                    <option v-if="backup.data.status.process.status === 'Completed'" :value="backup.data.metadata.uid">
-                                        {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
-                                    </option>
-                                </template>
-                            </select>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.restore.fromBackup')"></a>
-
-                            <div :style="!restoreBackup.length ? 'display: none;' : ''">
                                 <template v-if="!editMode || (editMode && pitr.length)">
-                                    <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
-                                    <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone">
-                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.restore.fromBackup.pointInTimeRecovery')"></a>
+                                    <div class="col" :class="!restoreBackup.length && 'hidden'">
+                                        <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
+                                        <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone" :disabled="!restoreBackup.length">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
+                                    </div>
                                 </template>
 
-                                <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
-                                <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off">
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.restore.downloadDiskConcurrency')"></a>
-                            </div>
+                                <div class="col" v-if="restoreBackup.length">
+                                    <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
+                                    <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="0" :disabled="!restoreBackup.length">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
+                                </div>
+                            </fieldset>
+                            <br/><br/><br/>
                         </template>
 
-                        <div class="scriptFieldset section">
+                        <div class="scriptFieldset repeater" v-if="( (editMode && initScripts.length) || !editMode )">
                             <div class="header">
-                                <h3 for="spec.initialData.scripts">Scripts</h3>
-                                <a class="addRow" @click="pushScript()" v-if="!editMode">Add Script</a>
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts')"></a>   
+                                <h3 for="spec.initialData.scripts">
+                                    Initialization Scripts
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts')"></span>
+                                </h3>
                             </div>
 
-                            <template v-if="initScripts.length">
-                                <div class="script repeater">
-                                    <fieldset v-for="(script, index) in initScripts">
-                                        <div class="header">
-                                            <h3>Script #{{ index+1 }} <template v-if="script.hasOwnProperty('name')">–</template> <span class="scriptTitle">{{ script.name }}</span></h3>
-                                            <a class="addRow" @click="spliceArray(initScripts, index)" v-if="!editMode">Delete</a>
-                                        </div>    
-                                        <div class="row">
+                            <template v-if="initScripts.length">                            
+                                <fieldset v-for="(script, index) in initScripts">
+                                    <div class="header">
+                                        <h4>Script #{{ index+1 }} <template v-if="script.hasOwnProperty('name') && script.name.length">–</template> <span class="scriptTitle">{{ script.name }}</span></h4>
+                                        <a class="addRow" @click="spliceArray(initScripts, index)" v-if="!editMode">Delete</a>
+                                    </div>    
+                                    <div class="row">
+                                        <div class="row-50">
                                             <template v-if="script.hasOwnProperty('name')">
-                                                <label for="spec.initialData.scripts.name">Name</label>
-                                                <input v-model="script.name" placeholder="Type a name..." :disabled="editMode" autocomplete="off">
-                                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.name')"> </a>
+                                                <div class="col">
+                                                    <label for="spec.initialData.scripts.name">Name</label>
+                                                    <input v-model="script.name" placeholder="Type a name..." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.name')"></span>
+                                                </div>
                                             </template>
 
                                             <template v-if="script.hasOwnProperty('database')">
-                                                <label for="spec.initialData.scripts.database">Database</label>
-                                                <input v-model="script.database" placeholder="Type a database name..." :disabled="editMode" autocomplete="off">
-                                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.database')"></a>
-                                            </template>
-
-                                            <label for="spec.initialData.scripts.scriptSource">Script Source</label>
-                                            <select v-model="scriptSource[index]" @change="setScriptSource(index)" :disabled="editMode">
-                                                <option value="raw">Raw script</option>
-                                                <option value="secretKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.secretScript')">From Secret</option>
-                                                <option value="configMapKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.configMapScript')">From ConfigMap</option>
-                                            </select>
-                                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.scriptSource', 'Determines whether the script should be read from a Raw SQL, a Kubernetes Secret or a ConfigMap')"></a>
-                                            
-                                            <template  v-if="(!editMode && (scriptSource[index] == 'raw') ) || (editMode && ( script.hasOwnProperty('script') || hasProp(script, 'scriptFrom.ConfigMapScript') ) )">
-                                                <label for="spec.initialData.scripts.script" class="script">Script</label> <span class="uploadScript" v-if="!editMode">or <a @click="getScriptFile(index)" class="uploadLink">upload a file</a></span> 
-                                                <input :id="'scriptFile'+index" type="file" @change="uploadScript" class="hide">
-                                            
-                                                <textarea v-model="script.script" placeholder="Type a script..." :disabled="editMode"></textarea>
-                                            </template>
-                                            <template v-else-if="(!editMode && (scriptSource[index] == 'configMapKeyRef') )">
-                                                <div class="header">
-                                                    <h3 for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef">Config Map Key Reference</h3>
-                                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.scriptFrom.properties.configMapKeyRef')"></a> 
+                                                <div class="col">
+                                                    <label for="spec.initialData.scripts.database">Database</label>
+                                                    <input v-model="script.database" placeholder="Type a database name..." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.database')"></span>
                                                 </div>
-                                                
-                                                <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name">Name</label>
-                                                <input v-model="script.scriptFrom.configMapKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
-                                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></a>
-
-                                                <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key">Key</label>
-                                                <input v-model="script.scriptFrom.configMapKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
-                                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></a>
-                                            </template>
-                                            <template v-else-if="(scriptSource[index] == 'secretKeyRef')">
-                                                <div class="header">
-                                                    <h3 for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef">Secret Key Reference</h3>
-                                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.scriptFrom.properties.secretKeyRef')"></a> 
-                                                </div>
-                                                
-                                                <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name">Name</label>
-                                                <input v-model="script.scriptFrom.secretKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
-                                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></a>
-
-                                                <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key">Key</label>
-                                                <input v-model="script.scriptFrom.secretKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
-                                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></a>
                                             </template>
                                         </div>
-                                    </fieldset>
-                                </div>
+
+                                        <div class="row-100">
+                                            <div class="col">
+                                                <label for="spec.initialData.scripts.scriptSource">Script Source</label>
+                                                <select v-model="scriptSource[index]" @change="setScriptSource(index)" :disabled="editMode">
+                                                    <option value="raw">Raw script</option>
+                                                    <option value="secretKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.secretScript')">From Secret</option>
+                                                    <option value="configMapKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.configMapScript')">From ConfigMap</option>
+                                                </select>
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptSource', 'Determines whether the script should be read from a Raw SQL, a Kubernetes Secret or a ConfigMap')"></span>
+                                            </div>
+                                            <div class="col">                                                
+                                                <template  v-if="(!editMode && (scriptSource[index] == 'raw') ) || (editMode && ( script.hasOwnProperty('script') || hasProp(script, 'scriptFrom.ConfigMapScript') ) )">
+                                                    <label for="spec.initialData.scripts.script" class="script">Script</label> <span class="uploadScript" v-if="!editMode">or <a @click="getScriptFile(index)" class="uploadLink">upload a file</a></span> 
+                                                    <input :id="'scriptFile'+index" type="file" @change="uploadScript" class="hide">
+                                                
+                                                    <textarea v-model="script.script" placeholder="Type a script..." :disabled="editMode"></textarea>
+                                                </template>
+                                                <template v-else-if="(!editMode && (scriptSource[index] == 'configMapKeyRef') )">
+                                                    <div class="header">
+                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef">Config Map Key Reference</h3>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef')"></span> 
+                                                    </div>
+                                                    
+                                                    <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name">Name</label>
+                                                    <input v-model="script.scriptFrom.configMapKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
+
+                                                    <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key">Key</label>
+                                                    <input v-model="script.scriptFrom.configMapKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
+                                                </template>
+                                                <template v-else-if="(scriptSource[index] == 'secretKeyRef')">
+                                                    <div class="header">
+                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef">Secret Key Reference</h3>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef')"></span> 
+                                                    </div>
+                                                    
+                                                    <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name">Name</label>
+                                                    <input v-model="script.scriptFrom.secretKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
+
+                                                    <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key">Key</label>
+                                                    <input v-model="script.scriptFrom.secretKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
                             </template>
+                            <div class="fieldsetFooter" :class="!initScripts.length && 'topBorder'">
+                                <a class="addRow" @click="pushScript()" v-if="!editMode">Add Script</a>
+                            </div>
                         </div>
                     </div>
-                </fieldset>
+                </template>
+                <template v-else-if="editMode && !restoreBackup.length && !initScripts.length">
+                    <p class="warning orange">Data initialization is only available on cluster creation</p>
+                </template>
+            </fieldset>
 
-                <fieldset class="accordion" id="k8sService">
-                    <div class="header" @click="toggleAccordion('#k8sService')">
-                        <h3>Customize generated Kubernetes service</h3>
-                        <button type="button" class="toggleFields textBtn">Expand</button>
+            <fieldset class="step" :class="(currentStep == 'sidecars') && 'active'">
+                <div class="header">
+                    <h2>Sidecars</h2>
+                </div>
+
+                <div class="fields">
+                    <div class="row-50">
+                        <h3>Connection Pooling</h3>
+                        <p>To solve the Postgres connection fan-in problem (handling large number of incoming connections) StackGres includes by default a connection pooler fronting every Postgres instance. It is deployed as a sidecar. You may opt-out as well as tune the connection pooler configuration.</p>
+
+                        <div class="col">
+                            <label for="spec.configurations.sgPoolingConfig">Connection Pooling</label>  
+                            <label for="connPooling" class="switch yes-no">Enable <input type="checkbox" id="connPooling" v-model="connPooling" data-switch="NO"></label>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>
+                        </div>
+
+                        <div class="col">
+                            <label for="connectionPoolingConfig">Connection Pooling Configuration</label>
+                            <select v-model="connectionPoolingConfig" class="connectionPoolingConfig" :disabled="!connPooling" @change="(connectionPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (connectionPoolingConfig == 'createNewResource') && (connectionPoolingConfig = '') )">
+                                <option value="" selected>Default</option>
+                                <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
+                                <option value="" disabled>– OR –</option>
+                                <option value="createNewResource">Create new configuration</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>
+                        </div>
                     </div>
 
-                    <div class="fields">
-                        <fieldset class="postgresServicesPrimary">
-                            <div class="header">
-                                <h3 for="spec.postgresServices.primary">Primary</h3>
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.primary')"></a>
-                            </div>
+                    <hr/>
 
+                    <div class="row-50">
+                        <h3>Postgres Utils</h3>
+                        <p>Sidecar container with Postgres administration tools. Optional (on by default; recommended for troubleshooting).</p>
+
+                        <div class="col">
+                            <label for="spec.pods.disablePostgresUtil">Postgres Utils</label>  
+                            <label for="postgresUtil" class="switch">Postgres Utils <input type="checkbox" id="postgresUtil" v-model="postgresUtil" data-switch="ON"></label>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disablePostgresUtil')"></span>
+                        </div>
+                    </div>
+
+                    <hr/>
+
+                    <div class="row-50">
+                        <h3>Monitoring</h3>
+                        <p>Enable Prometheus metrics scraping via service monitors. Check the <a href="https://stackgres.io/doc/latest/install/prerequisites/monitoring/" target="_blank">Installation -> Monitoring</a> section for information on how to enable in StackGres Grafana dashboard integration.</p>
+
+                        <div class="col">
+                            <label for="spec.pods.disableMetricsExporter">Metrics Exporter</label>  
+                            <label for="metricsExporter" class="switch">Metrics Exporter <input type="checkbox" id="metricsExporter" v-model="metricsExporter" data-switch="ON"></label>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disableMetricsExporter')"></span>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.prometheusAutobind">Prometheus Autobind</label>  
+                            <label for="prometheusAutobind" class="switch">
+                                Prometheus Autobind
+                                <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="OFF" data-field="spec.prometheusAutobind">
+                            </label>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.prometheusAutobind')"></span>
+                        </div>
+                    </div>
+
+                    <hr/>
+
+                    <div class="row-50">
+                        <h3>Distributed Logs</h3>
+                        <p>Send Postgres and Patroni logs to a central <a href="https://stackgres.io/doc/latest/reference/crd/sgdistributedlogs/" target="_blank">SGDistributedLogs</a> instance. Optional: if not enabled, logs are sent to the standard output.</p>
+
+                        <div class="col">
+                            <label for="spec.distributedLogs.sgDistributedLogs">Distributed Logs</label>
+                            <select v-model="distributedLogs" class="distributedLogs" data-field="spec.distributedLogs.sgDistributedLogs" @change="(distributedLogs == 'createNewResource') && createNewResource('sgdistributedlogs')" :set="( (distributedLogs == 'createNewResource') && (distributedLogs = '') )">
+                                <option disabled value="">Select Logs Cluster</option>
+                                <option v-for="cluster in logsClusters" :value="( (cluster.data.metadata.namespace !== $route.params.namespace) ? cluster.data.metadata.namespace + '.' : '') + cluster.data.metadata.name">{{ cluster.data.metadata.name }}</option>
+                                <option value="" disabled>– OR –</option>
+                                <option value="createNewResource">Create new log server</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.sgDistributedLogs')"></span>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="step" :class="(currentStep == 'services') && 'active'">
+                <div class="header">
+                    <h2>Customize generated Kubernetes service</h2>
+                </div>
+
+                <div class="fields">                    
+                    <div class="header">
+                        <h3 for="spec.postgresServices.primary">
+                            Primary
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary')"></span>
+                        </h3>
+                    </div>
+                    
+                    <div class="row-50">
+                        <div class="col">
                             <label for="spec.postgresServices.primary.enabled">Primary</label>  
                             <label for="postgresServicesPrimary" class="switch yes-no" data-field="spec.postgresServices.primary.enabled">Enable Primary <input type="checkbox" id="postgresServicesPrimary" v-model="postgresServicesPrimary" data-switch="YES"></label>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.primary.enabled')"></a>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.enabled')"></span>
+                        </div>
 
+                        <div class="col">
                             <label for="spec.postgresServices.primary.type">Type</label>
                             <select v-model="postgresServicesPrimaryType" required data-field="spec.postgresServices.primary.type">    
                                 <option selected>ClusterIP</option>
                                 <option>LoadBalancer</option>
                                 <option>NodePort</option>
                             </select>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.primary.type')">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                            </a>
-                        </fieldset>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.type')"></span>
+                        </div>
+                    </div>
 
-                        <fieldset class="postgresServicesReplicas">
-                            <div class="header">
-                                <h3 for="spec.postgresServices.replicas">Replicas</h3>
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.replicas')"></a>
-                            </div>
-
+                    <div class="header">
+                        <h3 for="spec.postgresServices.replicas">
+                            Replicas
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas')"></span>
+                        </h3>
+                    </div>
+                        
+                    <div class="row-50">
+                        <div class="col">
                             <label for="spec.postgresServices.replicas.enabled">Replicas</label>  
                             <label for="postgresServicesReplicas" class="switch yes-no" data-field="spec.postgresServices.replicas.enabled">Enable Replicas <input type="checkbox" id="postgresServicesReplicas" v-model="postgresServicesReplicas" data-switch="YES"></label>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.replicas.enabled')"></a>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.enabled')"></span>
+                        </div>
 
+                        <div class="col">
                             <label for="spec.postgresServices.replicas.type">Type</label>
                             <select v-model="postgresServicesReplicasType" required data-field="spec.postgresServices.replicas.type">    
                                 <option selected>ClusterIP</option>
                                 <option>LoadBalancer</option>
                                 <option>NodePort</option>
                             </select>
-                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.postgresServices.replicas.type')">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14.993" height="14.993" viewBox="0 0 14.993 14.993"><path d="M75.9-30a7.5,7.5,0,0,0-7.5,7.5,7.5,7.5,0,0,0,7.5,7.5,7.5,7.5,0,0,0,7.5-7.5A7.5,7.5,0,0,0,75.9-30Z" transform="translate(-68.4 30)" fill="#7a7b85"/><g transform="translate(4.938 3.739)"><path d="M78.008-17.11a.881.881,0,0,0-.629.248.833.833,0,0,0-.259.612.819.819,0,0,0,.271.653.906.906,0,0,0,.6.224H78a.864.864,0,0,0,.6-.226.813.813,0,0,0,.267-.639.847.847,0,0,0-.25-.621A.9.9,0,0,0,78.008-17.11Z" transform="translate(-75.521 23.034)" fill="#fff"/><path d="M79.751-23.993a2.13,2.13,0,0,0-.882-.749,3.07,3.07,0,0,0-1.281-.27,2.978,2.978,0,0,0-1.376.322,2.4,2.4,0,0,0-.906.822,1.881,1.881,0,0,0-.318,1v.009a.734.734,0,0,0,.231.511.762.762,0,0,0,.549.238h.017a.778.778,0,0,0,.767-.652,1.92,1.92,0,0,1,.375-.706.871.871,0,0,1,.668-.221.891.891,0,0,1,.618.22.687.687,0,0,1,.223.527.572.572,0,0,1-.073.283,1.194,1.194,0,0,1-.2.265c-.088.088-.232.22-.43.394a7.645,7.645,0,0,0-.565.538,1.905,1.905,0,0,0-.356.566,1.893,1.893,0,0,0-.134.739.8.8,0,0,0,.217.607.751.751,0,0,0,.519.206h.046a.689.689,0,0,0,.454-.171.662.662,0,0,0,.229-.452c.031-.149.055-.255.073-.315a.827.827,0,0,1,.061-.153.878.878,0,0,1,.124-.175,3.05,3.05,0,0,1,.246-.247c.39-.345.665-.6.818-.75a2.3,2.3,0,0,0,.42-.565,1.635,1.635,0,0,0,.183-.782A1.859,1.859,0,0,0,79.751-23.993Z" transform="translate(-74.987 25.012)" fill="#fff"/></g></svg>
-                            </a>
-                        </fieldset>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.type')"></span>
+                        </div>
                     </div>
-                </fieldset>
+                </div>
+            </fieldset>
 
-                <fieldset class="accordion podsMetadata" id="podsMetadata">
-                    <div class="header" @click="toggleAccordion('#podsMetadata')">
-                        <h3>Metadata</h3>
-                        <button type="button" class="toggleFields textBtn">Expand</button>
-                    </div>
+            <fieldset class="step podsMetadata" :class="(currentStep == 'metadata') && 'active'" id="podsMetadata">
+                 <div class="header">
+                    <h2>Metadata</h2>
+                </div>
 
-                    <div class="fields">
-                        <fieldset>
+                <div class="fields">
+                    <div class="repeater">
+                        <div class="header">
+                            <h3 for="spec.metadata.labels">
+                                Labels
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.labels')"></span> 
+                            </h3>
+                        </div>
+
+                        <fieldset data-field="spec.pods.metadata.labels">
                             <div class="header">
-                                <h3 for="spec.metadata.labels.clusterPods">Pods Metadata</h3>
-                                <a class="addRow" @click="pushLabel('podsMetadata')">Add Label</a>
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.labels.clusterPods')"></a> 
+                                <h3 for="spec.metadata.labels.clusterPods">
+                                    Cluster Pods
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.labels.clusterPods')"></span> 
+                                </h3>
                             </div>
-                    
-                            <div class="metadata repeater" v-if="podsMetadata.length">
+                            <div class="metadata" v-if="podsMetadata.length">
                                 <div class="row" v-for="(field, index) in podsMetadata">
                                     <label>Label</label>
                                     <input class="label" v-model="field.label" autocomplete="off">
@@ -478,214 +605,181 @@
                                 </div>
                             </div>
                         </fieldset>
-
-                        <fieldset class="podsScheduling">
-                            <div class="header">
-                                <h3 for="spec.pods.scheduling">Pods Scheduling</h3>
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling')"></a> 
-                            </div>
-                    
-                            <fieldset class="nodeSelectors">
-                                <div class="header">
-                                    <h3 for="spec.pods.scheduling.nodeSelector">Node Selectors</h3>
-                                    <a class="addRow" @click="pushLabel('nodeSelector')">Add Node Selector</a>
-                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeSelector')"></a> 
-                                </div>
-                        
-                                <div class="scheduling repeater" v-if="nodeSelector.length">
-                                    <div class="row" v-for="(field, index) in nodeSelector">
-                                        <label>Key</label>
-                                        <input class="label" v-model="field.label" autocomplete="off">
-
-                                        <span class="eqSign"></span>
-
-                                        <label>Value</label>
-                                        <input class="labelValue" v-model="field.value" autocomplete="off">
-                                        
-                                        <a class="addRow" @click="spliceArray('nodeSelector', index)">Delete</a>
-                                    </a>
-                                    </div>
-                                </div>
-                            </fieldset>
-
-                            <fieldset class="nodeTolerations">
-                                <div class="header">
-                                    <h3 for="spec.pods.scheduling.tolerations">Node Tolerations</h3>
-                                    <a class="addRow" @click="pushToleration()">Add Toleration</a>
-                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations')"></a> 
-                                </div>
-                        
-                                <div class="scheduling repeater" v-if="tolerations.length">
-                                    <fieldset v-for="(field, index) in tolerations">
-                                        <div class="header">
-                                            <h3 for="spec.pods.scheduling.tolerations">Toleration #{{ index+1 }}</h3>
-                                            <a class="addRow del" @click="spliceArray('tolerations', index)">Delete</a>
-                                        </div>
-                                        <label for="spec.pods.scheduling.tolerations.key">Key</label>
-                                        <input v-model="field.key" autocomplete="off">
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.key')"></a>
-
-                                        <label for="spec.pods.scheduling.tolerations.operator">Operator</label>
-                                        <select v-model="field.operator" @change="(field.operator == 'Exists') ? (field.value = null) : null">
-                                            <option>Equal</option>
-                                            <option>Exists</option>
-                                        </select>
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.operator')"></a>
-
-                                        <label for="spec.pods.scheduling.tolerations.value">Value</label>
-                                        <input v-model="field.value" :disabled="(field.operator == 'Exists')" :title="(field.operator == 'Exists') ? 'When the selected operator is Exists, this value must be empty' : ''" autocomplete="off">
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.value')"></a>
-
-                                        <label for="spec.pods.scheduling.tolerations.effect">Effect</label>
-                                        <select v-model="field.effect">
-                                            <option :value="nullVal">MatchAll</option>
-                                            <option>NoSchedule</option>
-                                            <option>PreferNoSchedule</option>
-                                            <option>NoExecute</option>
-                                        </select>
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.effect')"></a>
-
-                                        <label for="spec.pods.scheduling.tolerations.tolerationSeconds">Toleration Seconds</label>
-                                        <input type="number" min="0" v-model="field.tolerationSeconds">
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.tolerationSeconds')"></a>
-                                    </fieldset>
-                                </div>
-                            </fieldset>
-
-                            <span class="warning" v-if="editMode">Please, be aware that any changes made to the <code>Pods Scheduling</code> will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance of the cluster</span>
-                        </fieldset>
-
-                        <fieldset class="resourcesMetadata">
-                            <div class="header">
-                                <h3 for="spec.metadata.annotations">Resources Metadata</h3>
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations')"></a> 
-                            </div>
-
-                            <fieldset>
-                                <div class="header">
-                                    <h3 for="spec.metadata.annotations.allResources">All Resources</h3>
-                                    <a class="addRow" @click="pushAnnotation('annotationsAll')">Add Annotation</a>
-                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.allResources')"></a>    
-                                </div>
-                                <div class="annotation repeater" v-if="annotationsAll.length">
-                                    <div class="row" v-for="(field, index) in annotationsAll">
-                                        <label>Annotation</label>
-                                        <input class="annotation" v-model="field.annotation" autocomplete="off">
-
-                                        <span class="eqSign"></span>
-
-                                        <label>Value</label>
-                                        <input class="annotationValue" v-model="field.value" autocomplete="off">
-
-                                        <a class="addRow" @click="spliceArray(annotationsAll, index)">Delete</a>
-                                    </div>
-                                </div>
-                            </fieldset>
-
-                            
-                            <fieldset>
-                                <div class="header">
-                                    <h3 for="spec.metadata.annotations.clusterPods">Cluster Pods</h3>
-                                    <a class="addRow" @click="pushAnnotation('annotationsPods')">Add Annotation</a>
-                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.clusterPods')"></a>    
-                                </div>
-                                <div class="annotation repeater" v-if="annotationsPods.length">
-                                    <div class="row" v-for="(field, index) in annotationsPods">
-                                        <label>Annotation</label>
-                                        <input class="annotation" v-model="field.annotation" autocomplete="off">
-
-                                        <span class="eqSign"></span>
-
-                                        <label>Value</label>
-                                        <input class="annotationValue" v-model="field.value" autocomplete="off">
-
-                                        <a class="addRow" @click="spliceArray(annotationsPods, index)">Delete</a>
-                                    </div>
-                                </div>
-                            </fieldset>
-                        
-                            <fieldset>
-                                <div class="header">
-                                    <h3 for="spec.metadata.annotations.services">Services</h3>
-                                    <a class="addRow" @click="pushAnnotation('annotationsServices')">Add Annotation</a>
-                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.services')"></a>  
-                                </div>
-                                <div class="annotation repeater" v-if="annotationsServices.length">
-                                    <div class="row" v-for="(field, index) in annotationsServices">
-                                        <label>Annotation</label>
-                                        <input class="annotation" v-model="field.annotation" autocomplete="off">
-
-                                        <span class="eqSign"></span>
-
-                                        <label>Value</label>
-                                        <input class="annotationValue" v-model="field.value" autocomplete="off">
-
-                                        <a class="addRow" @click="spliceArray(annotationsServices, index)">Delete</a>
-                                    </div>
-                                </div>
-                            </fieldset>
-
-                            <fieldset>
-                                <div class="header">
-                                    <h3 for="spec.metadata.annotations.primaryService">Primary Service</h3>
-                                    <a class="addRow" @click="pushAnnotation('postgresServicesPrimaryAnnotations')">Add Annotation</a>
-                                    
-                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.primaryService')"></a>
-                                </div>
-                                <div class="annotation repeater" v-if="postgresServicesPrimaryAnnotations.length">
-                                    <div class="row" v-for="(field, index) in postgresServicesPrimaryAnnotations">
-                                        <label>Annotation</label>
-                                        <input class="annotation" v-model="field.annotation" autocomplete="off">
-
-                                        <span class="eqSign"></span>
-
-                                        <label>Value</label>
-                                        <input class="annotationValue" v-model="field.value" autocomplete="off">
-
-                                        <a class="addRow" @click="spliceArray('postgresServicesPrimaryAnnotations', index)">Delete</a>
-                                    </div>
-                                </div>
-                            </fieldset>
-
-                            <fieldset>
-                                <div class="header">
-                                    <h3 for="spec.metadata.annotations.replicasService">Replicas Service</h3>
-                                    <a class="addRow" @click="pushAnnotation('postgresServicesReplicasAnnotations')">Add Annotation</a>
-                                    
-                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.metadata.annotations.replicasService')"></a>
-                                </div>
-                                <div class="annotation repeater" v-if="postgresServicesReplicasAnnotations.length">
-                                    <div class="row" v-for="(field, index) in postgresServicesReplicasAnnotations">
-                                        <label>Annotation</label>
-                                        <input class="annotation" v-model="field.annotation" autocomplete="off">
-
-                                        <span class="eqSign"></span>
-
-                                        <label>Value</label>
-                                        <input class="annotationValue" v-model="field.value" autocomplete="off">
-
-                                        <a class="addRow" @click="spliceArray(postgresServicesReplicasAnnotations, index)">Delete</a>
-                                    </div>
-                                </div>
-                            </fieldset>
-                        </fieldset>
+                        <div class="fieldsetFooter">
+                            <a class="addRow" @click="pushLabel('podsMetadata')">Add Label</a>
+                        </div>
                     </div>
-                </fieldset>
-                <fieldset class="accordion podsMetadata" id="podsScheduling">
-                    <div class="header" @click="toggleAccordion('#podsScheduling')">
-                        <h3>Pods Scheduling</h3>
-                        <button type="button" class="toggleFields textBtn">Expand</button>
-                    </div>
-                    <div class="fields">
-                        
-                        <div class="section">
-                            <div class="header">
-                                <h3 for="spec.pods.scheduling.nodeSelector">Node Selectors</h3>
-                                <a class="addRow" @click="pushLabel('nodeSelector')">Add Node Selector</a>
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeSelector')"></a> 
-                            </div>
+
+                    <br/><br/>
+
                     
-                            <div class="scheduling repeater" v-if="nodeSelector.length">
+                    <div class="header">
+                        <h3 for="spec.metadata.annotations">
+                            Resources Metadata
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations')"></span>
+                        </h3>
+                    </div>
+
+                    <div class="repeater">
+                        <fieldset data-field="spec.metadata.annotations.allResources">
+                            <div class="header">
+                                <h3 for="spec.metadata.annotations.allResources">
+                                    All Resources
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.allResources')"></span>
+                                </h3>
+                            </div>
+                            <div class="annotation" v-if="annotationsAll.length">
+                                <div class="row" v-for="(field, index) in annotationsAll">
+                                    <label>Annotation</label>
+                                    <input class="annotation" v-model="field.annotation" autocomplete="off">
+
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="annotationValue" v-model="field.value" autocomplete="off">
+
+                                    <a class="addRow" @click="spliceArray(annotationsAll, index)">Delete</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter">
+                            <a class="addRow" @click="pushAnnotation('annotationsAll')">Add Annotation</a>
+                        </div>
+                    </div>
+                    
+                    <br/><br/>
+
+                    <div class="repeater">
+                        <fieldset data-field="spec.metadata.annotations.clusterPods">
+                            <div class="header">
+                                <h3 for="spec.metadata.annotations.clusterPods">
+                                    Cluster Pods
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.sgcluster', 'spec.metadata.annotations.clusterPods')"></span>
+                                </h3>
+                            </div>
+                            <div class="annotation" v-if="annotationsPods.length">
+                                <div class="row" v-for="(field, index) in annotationsPods">
+                                    <label>Annotation</label>
+                                    <input class="annotation" v-model="field.annotation" autocomplete="off">
+
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="annotationValue" v-model="field.value" autocomplete="off">
+
+                                    <a class="addRow" @click="spliceArray(annotationsPods, index)">Delete</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter">
+                            <a class="addRow" @click="pushAnnotation('annotationsPods')">Add Annotation</a>
+                        </div>
+                    </div>
+
+                    <br/><br/>
+
+                    <div class="repeater">
+                        <fieldset data-field="spec.metadata.annotations.services">
+                            <div class="header">
+                                <h3 for="spec.metadata.annotations.services">
+                                    Services
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.services')"></span>
+                                </h3>
+                            </div>
+                            <div class="annotation" v-if="annotationsServices.length">
+                                <div class="row" v-for="(field, index) in annotationsServices">
+                                    <label>Annotation</label>
+                                    <input class="annotation" v-model="field.annotation" autocomplete="off">
+
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="annotationValue" v-model="field.value" autocomplete="off">
+
+                                    <a class="addRow" @click="spliceArray(annotationsServices, index)">Delete</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter">
+                            <a class="addRow" @click="pushAnnotation('annotationsServices')">Add Annotation</a>
+                        </div>
+                    </div>
+
+                    <br/><br/>
+
+                    <div class="repeater">
+                        <fieldset data-field="spec.metadata.annotations.primaryService">
+                            <div class="header">
+                                <h3 for="spec.metadata.annotations.primaryService">
+                                    Primary Service 
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.primaryService')"></span>
+                                </h3>
+                            </div>
+                            <div class="annotation" v-if="postgresServicesPrimaryAnnotations.length">
+                                <div class="row" v-for="(field, index) in postgresServicesPrimaryAnnotations">
+                                    <label>Annotation</label>
+                                    <input class="annotation" v-model="field.annotation" autocomplete="off">
+
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="annotationValue" v-model="field.value" autocomplete="off">
+
+                                    <a class="addRow" @click="spliceArray(postgresServicesPrimaryAnnotations, index)">Delete</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter">
+                            <a class="addRow" @click="pushAnnotation('postgresServicesPrimaryAnnotations')">Add Annotation</a>
+                        </div>
+                    </div>
+
+                    <br/><br/>
+
+                    <div class="repeater">
+                        <fieldset data-field="spec.metadata.annotations.replicasService">
+                            <div class="header">
+                                <h3 for="spec.metadata.annotations.replicasService">
+                                    Replicas Service
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.replicasService')"></span>
+                                </h3>
+                            </div>
+                            <div class="annotation repeater" v-if="postgresServicesReplicasAnnotations.length">
+                                <div class="row" v-for="(field, index) in postgresServicesReplicasAnnotations">
+                                    <label>Annotation</label>
+                                    <input class="annotation" v-model="field.annotation" autocomplete="off">
+
+                                    <span class="eqSign"></span>
+
+                                    <label>Value</label>
+                                    <input class="annotationValue" v-model="field.value" autocomplete="off">
+
+                                    <a class="addRow" @click="spliceArray(postgresServicesReplicasAnnotations, index)">Delete</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter">
+                            <a class="addRow" @click="pushAnnotation('postgresServicesReplicasAnnotations')">Add Annotation</a>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="step podsMetadata" :class="(currentStep == 'scheduling') && 'active'" id="podsScheduling">
+                <div class="header">
+                    <h2>Pods Scheduling</h2>
+                </div>
+                
+                <div class="fields">
+                    <div class="repeater">
+                        <div class="header">
+                            <h3 for="spec.pods.scheduling.nodeSelector">
+                                Node Selectors
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeSelector')"></span>
+                            </h3>
+                        </div>
+                        <fieldset v-if="nodeSelector.length" data-field="spec.pods.scheduling.nodeSelector">
+                            <div class="scheduling">
                                 <div class="row" v-for="(field, index) in nodeSelector">
                                     <label>Key</label>
                                     <input class="label" v-model="field.label" autocomplete="off">
@@ -698,294 +792,414 @@
                                     <a class="addRow" @click="spliceArray(nodeSelector, index)">Delete</a>
                                 </div>
                             </div>
+                        </fieldset>
+                        <div class="fieldsetFooter" :class="!nodeSelector.length && 'topBorder'">
+                            <a class="addRow" @click="pushLabel('nodeSelector')">Add Node Selector</a>
                         </div>
+                    </div>
 
-                        <div class="section">
-                            <div class="header">
-                                <h3 for="spec.pods.scheduling.tolerations">Node Tolerations</h3>
-                                <a class="addRow" @click="pushToleration()">Add Toleration</a>
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations')"></a> 
-                            </div>
-                    
-                            <div class="scheduling repeater" v-if="tolerations.length">
-                                <fieldset>
-                                    <div class="section" v-for="(field, index) in tolerations">
-                                        <div class="header">
-                                            <h3 for="spec.pods.scheduling.tolerations">Toleration #{{ index+1 }}</h3>
-                                            <a class="addRow del" @click="spliceArray(tolerations, index)">Delete</a>
-                                        </div>
+                    <br/><br/>
+                
+                    <div class="header">
+                        <h3 for="spec.pods.scheduling.tolerations">
+                            Node Tolerations
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations')"></span>
+                        </h3>
+                    </div>
+            
+                    <div class="scheduling repeater">
+                        <fieldset v-if="tolerations.length" data-field="spec.pods.scheduling.tolerations">
+                            <div class="section" v-for="(field, index) in tolerations">
+                                <div class="header">
+                                    <h4 for="spec.pods.scheduling.tolerations">Toleration #{{ index+1 }}</h4>
+                                    <a class="addRow del" @click="spliceArray(tolerations, index)">Delete</a>
+                                </div>
+
+                                <div class="row-50">
+                                    <div class="col">
                                         <label for="spec.pods.scheduling.tolerations.key">Key</label>
-                                        <input v-model="field.key" autocomplete="off">
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.key')"></a>
-
+                                        <input v-model="field.key" autocomplete="off" data-field="spec.pods.scheduling.tolerations.key">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations.key')"></span>
+                                    </div>
+                                    
+                                    <div class="col">
                                         <label for="spec.pods.scheduling.tolerations.operator">Operator</label>
-                                        <select v-model="field.operator" @change="(field.operator == 'Exists') ? (field.value = null) : null">
+                                        <select v-model="field.operator" @change="( (field.operator == 'Exists') ? (delete field.value) : (field.value = '') )" data-field="spec.pods.scheduling.tolerations.operator">
                                             <option>Equal</option>
                                             <option>Exists</option>
                                         </select>
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.operator')"></a>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations.operator')"></span>
+                                    </div>
 
+                                    <div class="col" v-if="field.operator == 'Equal'">
                                         <label for="spec.pods.scheduling.tolerations.value">Value</label>
-                                        <input v-model="field.value" :disabled="(field.operator == 'Exists')" :title="(field.operator == 'Exists') ? 'When the selected operator is Exists, this value must be empty' : ''" autocomplete="off">
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.value')"> </a>
+                                        <input v-model="field.value" :disabled="(field.operator == 'Exists')" autocomplete="off" data-field="spec.pods.scheduling.tolerations.value">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations.value')"></span>
+                                    </div>
 
+                                    <div class="col">
                                         <label for="spec.pods.scheduling.tolerations.effect">Effect</label>
-                                        <select v-model="field.effect">
+                                        <select v-model="field.effect" data-field="spec.pods.scheduling.tolerations.effect">>
                                             <option :value="nullVal">MatchAll</option>
                                             <option>NoSchedule</option>
                                             <option>PreferNoSchedule</option>
                                             <option>NoExecute</option>
                                         </select>
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.effect')"></a>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations.effect')"></span>
+                                    </div>
 
+                                    <div class="col" v-if="field.effect == 'NoExecute'">
                                         <label for="spec.pods.scheduling.tolerations.tolerationSeconds">Toleration Seconds</label>
                                         <input type="number" min="0" v-model="field.tolerationSeconds">
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.tolerations.tolerationSeconds')"></a>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations.tolerationSeconds')"></span>
                                     </div>
-                                </fieldset>
+                                </div>
                             </div>
+                        </fieldset>
+                        <div class="fieldsetFooter" :class="!tolerations.length && 'topBorder'">
+                            <a class="addRow" @click="pushToleration()">Add Toleration</a>
                         </div>
-
-                        <div class="section">                        
-                            <div class="header">
-                                <h3 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution">Node Affinity: <br><span class="normal">Required During Scheduling Ignored During Execution</span></h3>
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')"></a> 
-                            </div>
-
-                            <div class="scheduling repeater">
-                                <fieldset>
-                                    <div class="header">
-                                        <h3 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">Node Selector Terms</h3>
-                                        <a class="addRow" @click="addRequiredAffinityTerm()">Add New</a>
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms')"></a> 
-                                    </div>
-                                    <fieldset v-if="requiredAffinity.length">
-                                        <div class="section" v-for="(requiredAffinityTerm, termIndex) in requiredAffinity">
-                                            <div class="header">
-                                                <h3>Term #{{ termIndex + 1 }}</h3>
-                                                <a class="addRow" @click="spliceArray(requiredAffinity, termIndex)">Delete</a>
-                                            </div>
-                                            <fieldset>
-                                                <div class="header">
-                                                    <h3 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions">Match Expressions</h3>
-                                                    <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchExpressions)">Add Expression</a>
-                                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions')"></a> 
-                                                </div>
-                                                <fieldset v-if="requiredAffinityTerm.matchExpressions.length">
-                                                    <div class="section" v-for="(expression, expIndex) in requiredAffinityTerm.matchExpressions">
-                                                        <div class="header">
-                                                            <h3 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items">Match Expression #{{ expIndex + 1 }}</h3>
-                                                            <a class="addRow" @click="spliceArray(requiredAffinityTerm.matchExpressions, expIndex)">Delete</a>
-                                                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items')"></a> 
-                                                        </div>
-                                                        
-                                                        <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key">Key</label>
-                                                        <input v-model="expression.key" autocomplete="off" placeholder="Type a key...">
-                                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key')"></a> 
-
-                                                        <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator">Operator</label>
-                                                        <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( !expression.hasOwnProperty('values') && (expression['values'] = ['']) ) )">
-                                                            <option value="" selected>Select an operator</option>
-                                                            <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
-                                                        </select>
-                                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator')"></a> 
-
-                                                        <div class="section" v-if="!['Exists', 'DoesNotExists'].includes(expression.operator)">
-                                                            <div class="header">
-                                                                <h3 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values">Values</h3>
-                                                                <a class="addRow" @click="expression.values.push('')" v-if="!['Gt', 'Lt'].includes(expression.operator)">Add Value</a>
-                                                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values')"></a> 
-                                                            </div>
-                                                            <div class="row affinityValues" v-for="(value, valIndex) in expression.values">
-                                                                <label>Value #{{ valIndex + 1 }}</label>
-                                                                <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'">
-                                                                <a class="addRow" @click="spliceArray(expression.values, valIndex)" v-if="expression.values.length > 1">Delete</a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </fieldset>
-                                            </fieldset>
-                                            <fieldset>
-                                                <div class="header">
-                                                    <h3 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields">Match Fields</h3>
-                                                    <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchFields)">Add Field</a>
-                                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields')"></a> 
-                                                </div>
-                                                <fieldset v-if="requiredAffinityTerm.matchFields.length">
-                                                    <div class="section" v-for="(field, fieldIndex) in requiredAffinityTerm.matchFields">
-                                                        <div class="header">
-                                                            <h3 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items">Match Field #{{ fieldIndex + 1 }}</h3>
-                                                            <a class="addRow" @click="spliceArray(requiredAffinityTerm.matchFields, fieldIndex)">Delete</a>
-                                                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items')"></a> 
-                                                        </div>
-                                                        
-                                                        <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key">Key</label>
-                                                        <input v-model="field.key" autocomplete="off" placeholder="Type a key...">
-                                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key')"></a> 
-
-                                                        <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator">Operator</label>
-                                                        <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( !field.hasOwnProperty('values') && (field['values'] = ['']) ) )">
-                                                            <option value="" selected>Select an operator</option>
-                                                            <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
-                                                        </select>
-                                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator')"></a>
-
-                                                        <div class="section" v-if="!['Exists', 'DoesNotExists'].includes(field.operator)">
-                                                            <div class="header">
-                                                                <h3 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values">Values</h3>
-                                                                <a class="addRow" @click="field.values.push('')" v-if="!['Gt', 'Lt'].includes(field.operator)">Add Value</a>
-                                                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values')"></a> 
-                                                            </div>
-                                                            <div class="row affinityValues" v-for="(value, valIndex) in field.values">
-                                                                <label>Value #{{ valIndex + 1 }}</label>
-                                                                <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'">
-                                                                <a class="addRow" @click="spliceArray(field.values, valIndex)" v-if="field.values.length > 1">Delete</a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </fieldset>
-                                            </fieldset>
-                                        </div>
-                                    </fieldset>
-                                </fieldset>
-                            </div>
-                        </div>
-                        
-                        <div class="section">                        
-                            <div class="header">
-                                <h3 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution">Node Affinity: <br><span class="normal">Preferred During Scheduling Ignored During Execution</span></h3>
-                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')"></a> 
-                            </div>
-
-                            <div class="scheduling repeater">
-                                <fieldset>
-                                    <div class="header">
-                                        <h3 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items">Node Selector Terms</h3>
-                                        <a class="addRow" @click="addPreferredAffinityTerm()">Add New</a>
-                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items')"></a> 
-                                    </div>
-                                    <fieldset v-if="preferredAffinity.length">
-                                        <div class="section" v-for="(preferredAffinityTerm, termIndex) in preferredAffinity">
-                                            <div class="header">
-                                                <h3>Term #{{ termIndex + 1 }}</h3>
-                                                <a class="addRow" @click="spliceArray(preferredAffinity, termIndex)">Delete</a>
-                                            </div>
-                                            <fieldset>
-                                                <div class="header">
-                                                    <h3 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions">Match Expressions</h3>
-                                                    <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchExpressions)">Add Expression</a>
-                                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions')"></a> 
-                                                </div>
-                                                <fieldset v-if="preferredAffinityTerm.preference.matchExpressions.length">
-                                                    <div class="section" v-for="(expression, expIndex) in preferredAffinityTerm.preference.matchExpressions">
-                                                        <div class="header">
-                                                            <h3 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items">Match Expression #{{ expIndex + 1 }}</h3>
-                                                            <a class="addRow" @click="spliceArray(preferredAffinityTerm.preference.matchExpressions, expIndex)">Delete</a>
-                                                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items')"></a>
-                                                        </div>
-                                                        
-                                                        <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key">Key</label>
-                                                        <input v-model="expression.key" autocomplete="off" placeholder="Type a key...">
-                                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key')"></a>
-
-                                                        <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator">Operator</label>
-                                                        <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( !expression.hasOwnProperty('values') && (expression['values'] = ['']) ) )">
-                                                            <option value="" selected>Select an operator</option>
-                                                            <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
-                                                        </select>
-                                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator')"></a>
-
-                                                        <div class="section" v-if="!['Exists', 'DoesNotExists'].includes(expression.operator)">
-                                                            <div class="header">
-                                                                <h3 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values">Values</h3>
-                                                                <a class="addRow" @click="expression.values.push('')" v-if="!['Gt', 'Lt'].includes(expression.operator)">Add Value</a>
-                                                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values')"></a>
-                                                            </div>
-                                                            <div class="row affinityValues" v-for="(value, valIndex) in expression.values">
-                                                                <label>Value #{{ valIndex + 1 }}</label>
-                                                                <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'">
-                                                                <a class="addRow" @click="spliceArray(expression.values, valIndex)" v-if="expression.values.length > 1">Delete</a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </fieldset>
-                                            </fieldset>
-                                            <fieldset>
-                                                <div class="header">
-                                                    <h3 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields">Match Fields</h3>
-                                                    <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchFields)">Add Field</a>
-                                                    <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields')"></a>
-                                                </div>
-                                                <fieldset v-if="preferredAffinityTerm.preference.matchFields.length">
-                                                    <div class="section" v-for="(field, fieldIndex) in preferredAffinityTerm.preference.matchFields">
-                                                        <div class="header">
-                                                            <h3 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items">Match Field #{{ fieldIndex + 1 }}</h3>
-                                                            <a class="addRow" @click="spliceArray(preferredAffinityTerm.preference.matchFields, fieldIndex)">Delete</a>
-                                                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items')"></a>
-                                                        </div>
-                                                        
-                                                        <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key">Key</label>
-                                                        <input v-model="field.key" autocomplete="off" placeholder="Type a key...">
-                                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key')"></a>
-
-                                                        <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator">Operator</label>
-                                                        <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( !field.hasOwnProperty('values') && (field['values'] = ['']) ) )">
-                                                            <option value="" selected>Select an operator</option>
-                                                            <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
-                                                        </select>
-                                                        <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator')"></a>
-
-                                                        <div class="section" v-if="!['Exists', 'DoesNotExists'].includes(field.operator)">
-                                                            <div class="header">
-                                                                <h3 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values">Values</h3>
-                                                                <a class="addRow" @click="field.values.push('')" v-if="!['Gt', 'Lt'].includes(field.operator)">Add Value</a>
-                                                                <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values')"></a>
-                                                            </div>
-                                                            <div class="row affinityValues" v-for="(value, valIndex) in field.values">
-                                                                <label>Value #{{ valIndex + 1 }}</label>
-                                                                <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'">
-                                                                <a class="addRow" @click="spliceArray(field.values, valIndex)" v-if="field.values.length > 1">Delete</a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </fieldset>
-                                            </fieldset>
-
-                                            <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight">Weight</label>
-                                            <input v-model="preferredAffinityTerm.weight" autocomplete="off" type="number" min="1" max="100">
-                                            <a class="help" @click="showTooltip( 'sgcluster', 'spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight')"></a>
-                                        </div>
-                                    </fieldset>
-                                </fieldset>
-                            </div>
-                        </div>
-
-                        <span class="warning" v-if="editMode">Please, be aware that any changes made to the <code>Pods Scheduling</code> will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance of the cluster</span>                       
                     </div>
-                </fieldset>
-            </template>
 
+                    <br/><br/><br/>
+
+                    <div class="header">
+                        <h3 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution">
+                            Node Affinity: <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')"></span><br>
+                            <span class="normal">Required During Scheduling Ignored During Execution</span>
+                        </h3>                            
+                    </div>
+
+                    <br/><br/>
+                    
+                    <div class="scheduling repeater">
+                        <div class="header">
+                            <h4 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
+                                Node Selector Terms
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms')"></span>
+                            </h4>
+                        </div>
+                        <fieldset v-if="requiredAffinity.length">
+                            <div class="section" v-for="(requiredAffinityTerm, termIndex) in requiredAffinity">
+                                <div class="header">
+                                    <h5>Term #{{ termIndex + 1 }}</h5>
+                                    <a class="addRow" @click="spliceArray(requiredAffinity, termIndex)">Delete</a>
+                                </div>
+                                <fieldset class="affinityMatch">
+                                    <div class="header">
+                                        <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions">
+                                            Match Expressions
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions')"></span> 
+                                        </label>
+                                    </div>
+                                    <fieldset v-if="requiredAffinityTerm.matchExpressions.length">
+                                        <div class="section" v-for="(expression, expIndex) in requiredAffinityTerm.matchExpressions">
+                                            <div class="header">
+                                                <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items">
+                                                    Match Expression #{{ expIndex + 1 }}
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items')"></span> 
+                                                </label>
+                                                <a class="addRow" @click="spliceArray(requiredAffinityTerm.matchExpressions, expIndex)">Delete</a>
+                                            </div>
+                                            
+                                            <div class="row-50">
+                                                <div class="col">
+                                                    <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key">Key</label>
+                                                    <input v-model="expression.key" autocomplete="off" placeholder="Type a key..." data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key')"></span> 
+                                                </div>
+
+                                                <div class="col">
+                                                    <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator">Operator</label>
+                                                    <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( !expression.hasOwnProperty('values') && (expression['values'] = ['']) ) )" data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator">
+                                                        <option value="" selected>Select an operator</option>
+                                                        <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
+                                                    </select>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator')"></span> 
+                                                </div>
+                                            </div>
+
+                                            <fieldset v-if="expression.hasOwnProperty('values') && expression.values.length && !['', 'Exists', 'DoesNotExists'].includes(expression.operator)" :class="(['Gt', 'Lt'].includes(expression.operator)) && 'noRepeater'" class="affinityValues">
+                                                <div class="header">
+                                                    <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values">
+                                                        {{ !['Gt', 'Lt'].includes(expression.operator) ? 'Values' : 'Value' }}
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values')"></span>
+                                                    </label>
+                                                </div>
+                                                <div class="row affinityValues" v-for="(value, valIndex) in expression.values">
+                                                    <label v-if="!['Gt', 'Lt'].includes(expression.operator)">
+                                                        Value #{{ (valIndex + 1) }}
+                                                    </label>
+                                                    <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'" data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values">
+                                                    <a class="addRow" @click="spliceArray(expression.values, valIndex)">Delete</a>
+                                                </div>
+                                            </fieldset>
+                                            <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(expression.operator)" :class="!expression.values.length && 'topBorder'">
+                                                <a class="addRow" @click="expression.values.push('')">Add Value</a>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </fieldset>
+                                <div class="fieldsetFooter" :class="!requiredAffinityTerm.matchExpressions.length && 'topBorder'">
+                                    <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchExpressions)">Add Expression</a>
+                                </div>
+
+                                <fieldset class="affinityMatch">
+                                    <div class="header">
+                                        <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields">
+                                            Match Fields
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields')"></span> 
+                                        </label>
+                                    </div>
+                                    <fieldset v-if="requiredAffinityTerm.matchFields.length">
+                                        <div class="section" v-for="(field, fieldIndex) in requiredAffinityTerm.matchFields">
+                                            <div class="header">
+                                                <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items">
+                                                    Match Field #{{ fieldIndex + 1 }}
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items')"></span> 
+                                                </label>
+                                                <a class="addRow" @click="spliceArray(requiredAffinityTerm.matchFields, fieldIndex)">Delete</a>
+                                            </div>
+                                            
+                                            <div class="row-50">
+                                                <div class="col">
+                                                    <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key">Key</label>
+                                                    <input v-model="field.key" autocomplete="off" placeholder="Type a key..." data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key')"></span> 
+                                                </div>
+
+                                                <div class="col">
+                                                    <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator">Operator</label>
+                                                    <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( !field.hasOwnProperty('values') && (field['values'] = ['']) ) )" data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator">
+                                                        <option value="" selected>Select an operator</option>
+                                                        <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
+                                                    </select>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator')"></span>
+                                                </div>
+                                            </div>
+
+                                            <fieldset v-if="field.hasOwnProperty('values') && field.values.length && !['', 'Exists', 'DoesNotExists'].includes(field.operator)" :class="(['Gt', 'Lt'].includes(field.operator)) && 'noRepeater'" class="affinityValues">
+                                                <div class="header">
+                                                    <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values">
+                                                        {{ !['Gt', 'Lt'].includes(field.operator) ? 'Values' : 'Value' }}
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values')"></span> 
+                                                    </label>
+                                                </div>
+                                                <div class="row affinityValues" v-for="(value, valIndex) in field.values">
+                                                    <label v-if="!['Gt', 'Lt'].includes(field.operator)">
+                                                        Value #{{ (valIndex + 1) }}
+                                                    </label>
+                                                    <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'" data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values">
+                                                    <a class="addRow" @click="spliceArray(field.values, valIndex)">Delete</a>
+                                                </div>
+                                            </fieldset>
+                                            <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(field.operator)" :class="!field.values.length && 'topBorder'">
+                                                <a class="addRow" @click="field.values.push('')">Add Value</a>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </fieldset>
+                                <div class="fieldsetFooter" :class="!requiredAffinityTerm.matchFields.length && 'topBorder'">
+                                    <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchFields)">Add Field</a>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter" :class="!requiredAffinity.length && 'topBorder'">
+                            <a class="addRow" @click="addRequiredAffinityTerm()">Add Term</a>
+                        </div>
+                    </div>
+
+                    <br/><br/>
+                
+                    <div class="header">
+                        <h3 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution">
+                            Node Affinity: <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')"></span><br>
+                            <span class="normal">Preferred During Scheduling Ignored During Execution</span>
+                        </h3>
+                    </div>
+
+                    <br/><br/>
+
+                    <div class="scheduling repeater">
+                        <div class="header">
+                            <h4 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items">
+                                Node Selector Terms
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items')"></span> 
+                            </h4>
+                        </div>
+                        <fieldset v-if="preferredAffinity.length">
+                            <div class="section" v-for="(preferredAffinityTerm, termIndex) in preferredAffinity">
+                                <div class="header">
+                                    <h5>Term #{{ termIndex + 1 }}</h5>
+                                    <a class="addRow" @click="spliceArray(preferredAffinity, termIndex)">Delete</a>
+                                </div>
+                                <fieldset class="affinityMatch">
+                                    <div class="header">
+                                        <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions">
+                                            Match Expressions
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions')"></span>
+                                        </label>
+                                    </div>
+                                    <fieldset v-if="preferredAffinityTerm.preference.matchExpressions.length">
+                                        <div class="section" v-for="(expression, expIndex) in preferredAffinityTerm.preference.matchExpressions">
+                                            <div class="header">
+                                                <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items">
+                                                    Match Expression #{{ expIndex + 1 }}
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items')"></span>
+                                                </label>
+                                                <a class="addRow" @click="spliceArray(preferredAffinityTerm.preference.matchExpressions, expIndex)">Delete</a>
+                                            </div>
+
+                                            <div class="row-50">
+                                                <div class="col">
+                                                    <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key">Key</label>
+                                                    <input v-model="expression.key" autocomplete="off" placeholder="Type a key..." data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key')"></span>
+                                                </div>
+
+                                                <div class="col">
+                                                    <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator">Operator</label>
+                                                    <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( (!expression.hasOwnProperty('values') || (expression.values.length > 1) ) && (expression['values'] = ['']) ) )" data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator">
+                                                        <option value="" selected>Select an operator</option>
+                                                        <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
+                                                    </select>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator')"></span>
+                                                </div>
+                                            </div>
+
+                                            <fieldset v-if="expression.hasOwnProperty('values') && expression.values.length && !['', 'Exists', 'DoesNotExists'].includes(expression.operator)" :class="(['Gt', 'Lt'].includes(expression.operator)) && 'noRepeater'" class="affinityValues">
+                                                <div class="header">
+                                                    <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values">
+                                                        {{ !['Gt', 'Lt'].includes(expression.operator) ? 'Values' : 'Value' }}
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values')"></span>
+                                                    </label>
+                                                </div>
+                                                <div class="row affinityValues" v-for="(value, valIndex) in expression.values">
+                                                    <label v-if="!['Gt', 'Lt'].includes(expression.operator)">
+                                                        Value #{{ (valIndex + 1) }}
+                                                    </label>
+                                                    <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :preferred="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'" data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values">
+                                                    <a class="addRow" @click="spliceArray(expression.values, valIndex)">Delete</a>
+                                                </div>
+                                            </fieldset>
+                                            <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(expression.operator)" :class="!expression.values.length && 'topBorder'">
+                                                <a class="addRow" @click="expression.values.push('')">Add Value</a>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </fieldset>
+                                <div class="fieldsetFooter" :class="!preferredAffinityTerm.preference.matchExpressions.length && 'topBorder'">
+                                    <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchExpressions)">Add Expression</a>
+                                </div>
+
+                                <fieldset class="affinityMatch">
+                                    <div class="header">
+                                        <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields">
+                                            Match Fields
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields')"></span>
+                                        </label>
+                                    </div>
+                                    <fieldset v-if="preferredAffinityTerm.preference.matchFields.length">
+                                        <div class="section" v-for="(field, fieldIndex) in preferredAffinityTerm.preference.matchFields">
+                                            <div class="header">
+                                                <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items">
+                                                    Match Field #{{ fieldIndex + 1 }}
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items')"></span>
+                                                </label>
+                                                <a class="addRow" @click="spliceArray(preferredAffinityTerm.preference.matchFields, fieldIndex)">Delete</a>
+                                            </div>
+
+                                            <div class="row-50">
+                                                <div class="col">
+                                                    <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key">Key</label>
+                                                    <input v-model="field.key" autocomplete="off" placeholder="Type a key..." data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key')"></span>
+                                                </div>
+
+                                                <div class="col">
+                                                    <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator">Operator</label>
+                                                    <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( (!field.hasOwnProperty('values') || (field.values.length > 1) ) && (field['values'] = ['']) ) )" data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator">
+                                                        <option value="" selected>Select an operator</option>
+                                                        <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
+                                                    </select>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator')"></span>
+                                                </div>
+                                            </div>
+
+                                            <fieldset v-if="field.hasOwnProperty('values') && field.values.length && !['', 'Exists', 'DoesNotExists'].includes(field.operator)" :class="(['Gt', 'Lt'].includes(field.operator)) && 'noRepeater'" class="affinityValues">
+                                                <div class="header">
+                                                    <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values">
+                                                        {{ !['Gt', 'Lt'].includes(field.operator) ? 'Values' : 'Value' }}
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values')"></span> 
+                                                    </label>
+                                                </div>
+                                                <div class="row affinityValues" v-for="(value, valIndex) in field.values">
+                                                    <label v-if="!['Gt', 'Lt'].includes(field.operator)">
+                                                        Value #{{ (valIndex + 1) }}
+                                                    </label>
+                                                    <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'" data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values">
+                                                    <a class="addRow" @click="spliceArray(field.values, valIndex)">Delete</a>
+                                                </div>
+                                            </fieldset>
+                                            <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(field.operator)" :class="!field.values.length && 'topBorder'">
+                                                <a class="addRow" @click="field.values.push('')">Add Value</a>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </fieldset>
+                                <div class="fieldsetFooter" :class="!preferredAffinityTerm.preference.matchFields.length && 'topBorder'">
+                                    <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchFields)">Add Field</a>
+                                </div>
+
+                                <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight">Weight</label>
+                                <input v-model="preferredAffinityTerm.weight" autocomplete="off" type="number" min="1" max="100" class="affinityWeight" data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight')"></span>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter" :class="!preferredAffinity.length && 'topBorder'">
+                            <a class="addRow" @click="addPreferredAffinityTerm()">Add Term</a>
+                        </div>
+                    </div>
+
+                    <span class="warning" v-if="editMode">Please, be aware that any changes made to the <code>Pods Scheduling</code> will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance of the cluster</span>
+                </div>
+            </fieldset>
+
+            <fieldset class="step" :class="(currentStep == 'non-production') && 'active'">
+                <div class="header">
+                    <h2>Non Production Settings</h2>
+                </div>
+
+                <div class="fields">
+                    <div class="row-50">
+                        <div class="col">
+                            <label for="spec.nonProductionOptions.disableClusterPodAntiAffinity">Cluster Pod Anti Affinity</label>  
+                            <label for="disableClusterPodAntiAffinity" class="switch yes-no">
+                                Enable 
+                                <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="enableClusterPodAntiAffinity" data-switch="NO" data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity">
+                            </label>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true','Disable this property')"></span>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <hr/>
+            
             <template v-if="editMode">
-                <button type="submit" class="btn" @click="createCluster">Update Cluster</button>
+                <button type="submit" class="btn" @click="createCluster(false)">Update Cluster</button>
             </template>
             <template v-else>
-                <button type="submit" class="btn" @click="createCluster">Create Cluster</button>
+                <button type="submit" class="btn" @click="createCluster(false)">Create Cluster</button>
             </template>
 
-            <button @click="cancel" class="btn border">Cancel</button>
+            <button type="button" class="btn floatRight" @click="createCluster(true)">View Summary</button>
+
+            <button type="button" @click="cancel" class="btn border">Cancel</button>
         
-        </div>
-        <div id="help" class="form">
-            <div class="header">
-                <h2>Help</h2>
-            </div>
-            
-            <div class="info">
-                <h3 class="title"></h3>
-                <vue-markdown :source=tooltipsText :breaks=false></vue-markdown>
-            </div>
-        </div>
-    </form>
+        </form>
+        <ClusterSummary :cluster="previewCluster" :extensionsList="extensionsList" v-if="showSummary" @closeSummary="showSummary = false"></ClusterSummary>
+    </div>
 </template>
 
 <script>
@@ -994,24 +1208,35 @@
     import store from '../../store'
     import axios from 'axios'
     import moment from 'moment'
+    import ClusterSummary from './summary/ClusterSummary.vue'
 
     export default {
         name: 'CreateCluster',
 
         mixins: [mixin],
 
+		components: {
+			ClusterSummary
+		},
+
         data: function() {
 
             const vm = this;
 
             return {
+                previewCluster: {},
+                showSummary: false,
+                advancedMode: false,
+                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'sidecars', 'services', 'metadata', 'scheduling', 'non-production'],
+                currentStep: 'cluster',
                 editMode: (vm.$route.name === 'EditCluster'),
                 editReady: false,
                 help: 'Click on a question mark to get help and tips about that field.',
                 nullVal: null,
-                advancedMode: (vm.$route.name === 'EditCluster') ? true : false,
                 name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 namespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
+                flavor: 'vanilla',
+                babelfishFeatureGates: false,
                 postgresVersion: 'latest',
                 flavor: 'vanilla',
                 featureGates: true,
@@ -1029,7 +1254,7 @@
                 backupConfig: '',
                 distributedLogs: '',
                 prometheusAutobind: false,
-                disableClusterPodAntiAffinity: false,
+                enableClusterPodAntiAffinity: true,
                 postgresUtil: true,
                 metricsExporter: true,
                 podsMetadata: [ { label: '', value: ''} ],
@@ -1128,10 +1353,7 @@
             storageClasses() {
                 return store.state.storageClasses
             },
-            tooltipsText() {
-                return store.state.tooltipsText
-            },
-
+            
             logsClusters(){
                 return store.state.logsClusters
             },
@@ -1171,6 +1393,8 @@
                             let volumeSize = c.data.spec.pods.persistentVolume.size.match(/\d+/g);
                             let volumeUnit = c.data.spec.pods.persistentVolume.size.match(/[a-zA-Z]+/g);
 
+                            vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
+                            vm.babelfishFeatureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
                             vm.postgresVersion = c.data.spec.postgres.version;
                             vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
                             vm.featureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
@@ -1185,7 +1409,7 @@
                             vm.backupConfig = (typeof c.data.spec.configurations.sgBackupConfig !== 'undefined') ? c.data.spec.configurations.sgBackupConfig : '';
                             vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
                             vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
-                            vm.disableClusterPodAntiAffinity = ( (typeof c.data.spec.nonProductionOptions !== 'undefined') && (typeof c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined') ) ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : false;
+                            vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
                             vm.metricsExporter = vm.hasProp(c, 'data.spec.pods.disableMetricsExporter') ? !c.data.spec.pods.disableMetricsExporter : true ;
                             vm.postgresUtil = vm.hasProp(c, 'data.spec.pods.disablePostgresUtil') ? !c.data.spec.pods.disablePostgresUtil : true ;
                             vm.podsMetadata = vm.hasProp(c, 'data.spec.metadata.labels.clusterPods') ? vm.unparseProps(c.data.spec.metadata.labels.clusterPods, 'label') : [];
@@ -1210,11 +1434,12 @@
                                 })
                                 
                                 vm.initScripts = c.data.spec.initialData.scripts;
-
+                            } else {
+                                vm.initScripts = [];
                             }
 
                             vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
-                            vm.annotationsPods = vm.hasProp(c, 'data.spec.metadata.annotations.pods') ? vm.unparseProps(c.data.spec.metadata.annotations.pods) : [];
+                            vm.annotationsPods = vm.hasProp(c, 'data.spec.metadata.annotations.clusterPods') ? vm.unparseProps(c.data.spec.metadata.annotations.clusterPods) : [];
                             vm.annotationsServices = vm.hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
                             vm.postgresServicesPrimary = vm.hasProp(c, 'data.spec.postgresServices.primary.enabled') ? c.data.spec.postgresServices.primary.enabled : false;
                             vm.postgresServicesPrimaryType = vm.hasProp(c, 'data.spec.postgresServices.primary.type') ? c.data.spec.postgresServices.primary.type : 'ClusterIP';
@@ -1227,7 +1452,7 @@
                             vm.restoreBackup = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.uid') ? c.data.spec.initialData.restore.fromBackup.uid : '';
                             vm.pitr = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp') ? c.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp : ''
                             
-                            vm.editReady = true
+                            vm.editReady = vm.advancedMode = true
                             return false
                         }
                     });
@@ -1298,21 +1523,33 @@
                 }
             },
 
-            cleanupScripts: function() {
-                var vm = this;
+            hasScripts(source) {
+                
+                let hasScripts = source.find(s => JSON.stringify(s) != '{"name":"","database":"","script":""}');
 
-                if(vm.initScripts.length){
-                    vm.initScripts.forEach(function(script, index){
-                        if(script.hasOwnProperty('script') && !script.script.length)
-                            vm.initScripts.splice( index, 1 )
-                        
-                        if(!script.name.length)
-                            delete script.name
+                return (typeof hasScripts != 'undefined')
+            },
 
-                        if(script.hasOwnProperty('database') && !script.database.length)
-                            delete script.database
-                    })
-                }
+            cleanupScripts(scripts) {
+
+                let nonEmptyScripts = [];
+                
+                scripts.forEach(function(script){
+                    if(script.hasOwnProperty('script') && script.script.length) {
+                        nonEmptyScripts.push({
+                            ...( (script.hasOwnProperty('name') && script.name.length) && ({
+                                "name": script.name
+                            })),
+                            ...( (script.hasOwnProperty('database') && script.database.length) && ({
+                                "database": script.database
+                            })),
+                            "script": script.script
+                        });
+                    }
+                })
+
+                return nonEmptyScripts;
+
             },
 
             pushLabel: function( prop ) {
@@ -1327,13 +1564,14 @@
                 this.tolerations.push({ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null })
             },
 
-            createCluster: function() {
+            createCluster( preview = false) {
                 const vc = this;
 
                 if(vc.checkRequired()) {
 
-                    this.cleanupScripts()
-                    
+                    let requiredAffinity = vc.cleanNodeAffinity(this.requiredAffinity);
+                    let preferredAffinity = vc.cleanNodeAffinity(this.preferredAffinity);
+
                     var cluster = { 
                         "metadata": {
                             "name": this.name,
@@ -1347,27 +1585,27 @@
                                     "size": this.volumeSize+this.volumeUnit,
                                     ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) )
                                 },
-                                "disableConnectionPooling": !this.connPooling,
-                                "disableMetricsExporter": !this.metricsExporter,
-                                "disablePostgresUtil": !this.postgresUtil,
+                                ...(!this.connPooling && { "disableConnectionPooling": !this.connPooling }),
+                                ...(!this.metricsExporter && { "disableMetricsExporter": !this.metricsExporter }),
+                                ...(!this.postgresUtil && { "disablePostgresUtil": !this.postgresUtil }),
                                 ...(!$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) && ({
                                     "metadata": {
                                         "labels": this.parseProps(this.podsMetadata, 'label')
                                     }
                                 }) ),
-                                ...( ( this.hasNodeSelectors() || this.hasTolerations() || this.hasNodeAffinity(this.requiredAffinity) || this.hasNodeAffinity(this.preferredAffinity) ) && ({
+                                ...( ( this.hasNodeSelectors() || this.hasTolerations() || requiredAffinity.length || preferredAffinity.length ) && ({
                                     "scheduling": {
                                         ...(this.hasNodeSelectors() && ({"nodeSelector": this.parseProps(this.nodeSelector, 'label')})),
                                         ...(this.hasTolerations() && ({"tolerations": this.tolerations})),
-                                        ...(this.hasNodeAffinity(this.requiredAffinity) || this.hasNodeAffinity(this.preferredAffinity) ) && {
+                                        ...(requiredAffinity.length || preferredAffinity.length ) && {
                                             "nodeAffinity": {
-                                                ...(this.hasNodeAffinity(this.requiredAffinity) && {
+                                                ...(requiredAffinity.length && {
                                                     "requiredDuringSchedulingIgnoredDuringExecution": {
-                                                        "nodeSelectorTerms": this.requiredAffinity
+                                                        "nodeSelectorTerms": requiredAffinity
                                                     },
                                                 }),
-                                                ...(this.hasNodeAffinity(this.preferredAffinity) && {
-                                                    "preferredDuringSchedulingIgnoredDuringExecution": this.preferredAffinity
+                                                ...(preferredAffinity.length && {
+                                                    "preferredDuringSchedulingIgnoredDuringExecution": preferredAffinity
                                                 })
                                             }
                                         }
@@ -1386,7 +1624,7 @@
                                     "sgDistributedLogs": this.distributedLogs
                                 }
                             })),
-                            ...( (this.restoreBackup.length || this.initScripts.length) && ({
+                            ...( (this.restoreBackup.length || vc.hasScripts(this.initScripts)) && ({
                                     "initialData": {
                                         ...( this.restoreBackup.length && ({
                                             "restore": { 
@@ -1404,17 +1642,17 @@
                                                 }) )
                                             },
                                         }) ),
-                                        ...( this.initScripts.length && ({
-                                            "scripts": this.initScripts.slice()
+                                        ...( vc.hasScripts(this.initScripts) && ({
+                                            "scripts": vc.cleanupScripts(this.initScripts)
                                         }) )
                                     }
                                 }) 
                             ),
                             ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
-                            ...((this.disableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.featureGates)) && ( {
+                            ...((!this.enableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
                                 "nonProductionOptions": { 
-                                    ...(this.disableClusterPodAntiAffinity && ({"disableClusterPodAntiAffinity": this.disableClusterPodAntiAffinity}) ),
-                                    ...((this.flavor == 'babelfish' && this.featureGates) && ({ "enabledFeatureGates": ['babelfish-flavor'] }))
+                                    ...(!this.enableClusterPodAntiAffinity && ({"disableClusterPodAntiAffinity": !this.enableClusterPodAntiAffinity}) ),
+                                    ...((this.flavor == 'babelfish' && this.babelfishFeatureGates) && ({ "enabledFeatureGates": ['babelfish-flavor'] }))
                                     } 
                                 }) ),
                             ...( (!$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices)) || !$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) || !$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) || !$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) ) && ({
@@ -1433,68 +1671,84 @@
                                     }) )
                                 }
                             }) ),
-                            "postgresServices": {
-                                "primary": {
-                                    "enabled": this.postgresServicesPrimary,
-                                    "type": this.postgresServicesPrimaryType,
-                                },
-                                "replicas": {
-                                    "enabled": this.postgresServicesReplicas,
-                                    "type": this.postgresServicesReplicasType,
+                            ...( ( (!this.postgresServicesPrimary || (this.postgresServicesPrimaryType != 'ClusterIP')) || (!this.postgresServicesReplicas || (this.postgresServicesReplicasType != 'ClusterIP')) ) && {
+                                "postgresServices": {
+                                    ...( (!this.postgresServicesPrimary || (this.postgresServicesPrimaryType != 'ClusterIP')) && {
+                                        "primary": {
+                                            "enabled": this.postgresServicesPrimary,
+                                            "type": this.postgresServicesPrimaryType,
+                                        }
+                                    }),
+                                    ...( (!this.postgresServicesReplicas || (this.postgresServicesReplicasType != 'ClusterIP')) && {
+                                        "replicas": {
+                                            "enabled": this.postgresServicesReplicas,
+                                            "type": this.postgresServicesReplicasType,
+                                        }
+                                    }),
                                 }
-                            },
+                            }),
                             "postgres": {
                                 "version": this.postgresVersion,
                                 ...(this.selectedExtensions.length && ({
                                     "extensions": this.selectedExtensions
                                 })),
-                                "flavor": this.flavor
+                                ...(!this.editMode && { "flavor": this.flavor })
                             }
 
                         }
-                    }  
+                    }
 
-                    if(this.editMode) {
-                        const res = axios
-                        .put(
-                            '/stackgres/sgclusters', 
-                            cluster 
-                        )
-                        .then(function (response) {
-                            vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgclusters');
+                    if(preview) {                  
 
-                            vc.fetchAPI('sgcluster');
-                            router.push('/' + cluster.metadata.namespace + '/sgcluster/' + cluster.metadata.name);
-                            
-                        })
-                        .catch(function (error) {
-                            console.log(error.response);
-                            vc.notify(error.response.data,'error', 'sgclusters');
-                        });
+                        vc.previewCluster = {};
+                        vc.previewCluster['data'] = cluster;
+                        vc.showSummary = true;
+
                     } else {
-                        const res = axios
-                        .post(
-                            '/stackgres/sgclusters', 
-                            cluster 
-                        )
-                        .then(function (response) {
-                            vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgclusters');
 
-                            vc.fetchAPI('sgcluster');
-                            router.push('/' + cluster.metadata.namespace + '/sgclusters');
-                            
-                        })
-                        .catch(function (error) {
-                            console.log(error.response);
-                            vc.notify(error.response.data,'error','sgclusters');
-                        });
+                        if(this.editMode) {
+                            const res = axios
+                            .put(
+                                '/stackgres/sgclusters', 
+                                cluster 
+                            )
+                            .then(function (response) {
+                                vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgclusters');
+
+                                vc.fetchAPI('sgcluster');
+                                router.push('/' + cluster.metadata.namespace + '/sgcluster/' + cluster.metadata.name);
+                                
+                            })
+                            .catch(function (error) {
+                                console.log(error.response);
+                                vc.notify(error.response.data,'error', 'sgclusters');
+                            });
+                        } else {
+                            const res = axios
+                            .post(
+                                '/stackgres/sgclusters', 
+                                cluster 
+                            )
+                            .then(function (response) {
+                                vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgclusters');
+
+                                vc.fetchAPI('sgcluster');
+                                router.push('/' + cluster.metadata.namespace + '/sgclusters');
+                                
+                            })
+                            .catch(function (error) {
+                                console.log(error.response);
+                                vc.notify(error.response.data,'error','sgclusters');
+                            });
+                        }
+                        
                     }
 
                 }
 
             }, 
 
-            checkPgConfigVersion: function() {
+            checkPgConfigVersion() {
                 let configs = store.state.pgConfig.length;
                 let vc = this;
 
@@ -1506,23 +1760,20 @@
                 vc.pgConfigExists = (configs > 0);
             },
 
-            setVersion: function( version = 'latest') {
+            setVersion( version = 'latest') {
                 const vc = this
 
-                if( vc.postgresVersion !== version.substring(0,2) ) {
-
-                    vc.postgresVersion = version; 
-
-                    axios
-                    .get('/stackgres/extensions/' + vc.postgresVersion + '?flavor=' + vc.flavor)
-                    .then(function (response) {
-                        vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.sortExtensions(response.data.extensions)
-                    })
-                    .catch(function (error) {
-                        console.log(error.response);
-                        vc.notify(error.response.data,'error','sgclusters');
-                    });
+                
+                if(version != 'latest') {
+                    vc.postgresVersion = version.includes('.') ? version : vc.postgresVersionsList[vc.flavor][version][0]; 
+                } else {
+                    vc.postgresVersion = 'latest';
                 }
+
+                vc.validateSelectedPgVersion();
+                vc.validateSelectedPgConfig();
+                vc.validateSelectedRestoreBackup();
+                vc.getFlavorExtensions();
                 
                 $('#postgresVersion .active, #postgresVersion').removeClass('active');
                 $('#postgresVersion [data-val="'+version+'"]').addClass('active');
@@ -1565,27 +1816,27 @@
                 const vc = this
                 let t = [...vc.tolerations]
 
-                t.forEach(function(item, index) {
+                vc.tolerations.forEach(function(item, index) {
                     if(JSON.stringify(item) == '{"key":"","operator":"Equal","value":null,"effect":null,"tolerationSeconds":null}')
-                        vc.tolerations.splice( index, 1 )
+                        t.splice( index, 1 )
                 })
 
-                return vc.tolerations.length
+                return t.length
             },
 
             hasNodeSelectors () {
                 const vc = this
                 let nS = [...vc.nodeSelector]
 
-                nS.forEach(function(item, index) {
+                vc.nodeSelector.forEach(function(item, index) {
                     if(JSON.stringify(item) == '{"label":"","value":""}')
-                        vc.nodeSelector.splice( index, 1 )
+                        nS.splice( index, 1 )
                 })
 
-                return vc.nodeSelector.length
+                return nS.length
             },
 
-            toggleAccordion(id) {
+            toggleStep(id) {
                 $(id + '> .fields').slideToggle()
                 $(id + '> .header').toggleClass('open')
 
@@ -1623,15 +1874,20 @@
                     }
                 })
                 
-                if( i == -1) // If not included, add extension
-                    vc.selectedExtensions.push({
-                        name: vc.extensionsList[vc.flavor][vc.postgresVersion][index].name,
-                        version: (vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions.length > 1) ? ( (vc.extVersion.name == vc.extensionsList[vc.flavor][vc.postgresVersion][index].name) ? vc.extVersion.version : vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions[0] ) : vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions[0],
-                        publisher: vc.extensionsList[vc.flavor][vc.postgresVersion][index].publisher,
-                        repository: vc.extensionsList[vc.flavor][vc.postgresVersion][index].repository
-                    })
-                else // If included, remove
+                if( i == -1) { // If not included, add extension
+                    if(vc.extensionsList[vc.flavor][vc.postgresVersion][index].selectedVersion.length) {
+                        vc.selectedExtensions.push({
+                            name: vc.extensionsList[vc.flavor][vc.postgresVersion][index].name,
+                            version: vc.extensionsList[vc.flavor][vc.postgresVersion][index].selectedVersion,
+                            publisher: vc.extensionsList[vc.flavor][vc.postgresVersion][index].publisher,
+                            repository: vc.extensionsList[vc.flavor][vc.postgresVersion][index].repository
+                        })
+                    } else {
+                        vc.notify('You must firsty select a version for the specified extension in order to enable it.', 'message', 'sgclusters');
+                    }
+                } else { // If included, remove
                     vc.selectedExtensions.splice(i, 1);
+                }
             },
 
             extIsSet(ext) {
@@ -1648,56 +1904,19 @@
                 return index
             },
 
-            extAvailableFor(index) {
-                const vc = this
-                let available = false
-
-                vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions.forEach(function(v) {
-                    v.availableFor.forEach(function(vv) {
-                        if(vc.shortPostgresVersion == vv.postgresVersion) {
-                            available = true
-                            return false
-                        }
-                    })
-                })
-
-                return available
-            },
-
-            setExtVersion(version) {
-                const vc = this
-                let ext = vc.selectedExtensions.find(e => (vc.extensionsList[vc.flavor][vc.postgresVersion][vc.viewExtension].name == e.name)); 
-                
-                if( typeof ext == 'undefined')
-                    vc.selectedExtensions.push({
-                        name: vc.extensionsList[vc.flavor][vc.postgresVersion][vc.viewExtension].name,
-                        version: version,
-                        publisher: vc.extensionsList[vc.flavor][vc.postgresVersion][vc.viewExtension].publisher,
-                        repository: vc.extensionsList[vc.flavor][vc.postgresVersion][vc.viewExtension].repository
-                    })
-                else
-                    ext.version = version
-                
-                vc.extVersion.name = vc.extensionsList[vc.flavor][vc.postgresVersion][vc.viewExtension].name
-                vc.extVersion.version = version
-            },
-
             clearExtFilters() {
                 this.searchExtension = ''
                 this.viewExtension = -1
             },
 
-            toggleAccordion(id) {
-                $(id + '> .fields').slideToggle()
-                $(id + '> .header').toggleClass('open')
-
-                if($(id + '> .header .toggleFields').text() == 'Expand')
-                    $(id + '> .header .toggleFields').text('Collapse')
-                else
-                    $(id + '> .header .toggleFields').text('Expand')
+            toggleStep(step) {
+                $('[data-step].active, [data-step="' + step + '"]').toggleClass('active');
             },
 
-            sortExtensions(ext) {
+            parseExtensions(ext) {
+                ext.forEach(function(ext){
+                    ext['selectedVersion'] = ext.versions.length ? ext.versions[0] : ''
+                })
 				return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
 			},
 
@@ -1731,7 +1950,8 @@
                 // Load datepicker
 			    require('daterangepicker');
 
-                $('.daterangepicker').remove()
+                $('.daterangepicker').remove();
+                vc.pitr = '';
                 $(document).find('.datePicker').daterangepicker({
                     "autoApply": true,
                     "singleDatePicker": true,
@@ -1781,79 +2001,156 @@
                 })
             },
 
-            hasNodeAffinity (affinity) {
-                let aff = Array.from(affinity);
+            cleanNodeAffinity (affinity) {
                 
-                aff.forEach(function(a, affIndex) {
+                if( !['[{"matchExpressions":[{"key":"","operator":"","values":[""]}],"matchFields":[{"key":"","operator":"","values":[""]}]}]','[{"preference":{"matchExpressions":[{"key":"","operator":"","values":[""]}],"matchFields":[{"key":"","operator":"","values":[""]}]},"weight":1}]'].includes(JSON.stringify(affinity))) {
+                    let aff = JSON.parse(JSON.stringify(affinity));
 
-                    let item = a.hasOwnProperty('preference') ? a.preference : a;
-                    
-                    if(item.hasOwnProperty('matchExpressions')) {
-                        item.matchExpressions.forEach(function(exp, expIndex) {
-                            if(!exp.key.length || !exp.operator.length || (exp.hasOwnProperty('values') && (exp.values == ['']) ) ) {
-                                if(affinity[affIndex].hasOwnProperty('preference')) {
-                                    affinity[affIndex].preference.matchExpressions.splice( expIndex, 1 );
-                                } else {
-                                    affinity[affIndex].matchExpressions.splice( expIndex, 1 );  
+                    aff.forEach(function(a, affIndex) {
+
+                        let item = Object.create(a.hasOwnProperty('preference') ? a.preference : a);
+
+                        Object.keys(item).forEach(function(match) {
+                            if(JSON.stringify(item[match]) == '[{"key":"","operator":"","values":[""]}]') {
+                                delete aff[affIndex][match];
+                            } else {
+                                item[match].forEach(function(exp, expIndex) {
+                                    if(!exp.key.length || !exp.operator.length || (exp.hasOwnProperty('values') && (exp.values == ['']) ) ) {
+                                        if(aff[affIndex].hasOwnProperty('preference')) {
+                                            aff[affIndex].preference[match].splice( expIndex, 1 );
+                                        } else {
+                                            aff[affIndex][match].splice( expIndex, 1 );  
+                                        }
+                                    }
+                                });
+
+                                if(aff[affIndex].hasOwnProperty('preference') && !aff[affIndex].preference[match].length) {
+                                    delete aff[affIndex].preference[match];
+                                } else if(!aff[affIndex].hasOwnProperty('preference') && !aff[affIndex][match].length) {
+                                    delete aff[affIndex][match];
                                 }
                             }
+
                         });
 
-                        if(affinity[affIndex].hasOwnProperty('preference') && !affinity[affIndex].preference.matchExpressions.length) {
-                            delete affinity[affIndex].preference.matchExpressions;
-                        } else if(!affinity[affIndex].hasOwnProperty('preference') && !affinity[affIndex].matchExpressions.length) {
-                            delete affinity[affIndex].matchExpressions;
-                        }
-                    }
-
-                    if(item.hasOwnProperty('matchFields')) {
-                        item.matchFields.forEach(function(exp, expIndex) {
-                            if(!exp.key.length || !exp.operator.length || (exp.hasOwnProperty('values') && (exp.values == ['']) ) ) {
-                                if(affinity[affIndex].hasOwnProperty('preference')) {
-                                    affinity[affIndex].preference.matchFields.splice( expIndex, 1 );
-                                } else {
-                                    affinity[affIndex].matchFields.splice( expIndex, 1 );  
-                                }
+                        if(aff[affIndex].hasOwnProperty('preference')) {
+                            if(!Object.keys(aff[affIndex].preference).length) {
+                                aff.splice( affIndex, 1 );
                             }
-                        });
-
-                        if(affinity[affIndex].hasOwnProperty('preference') && !affinity[affIndex].preference.matchFields.length) {
-                            delete affinity[affIndex].preference.matchFields;
-                        } else if(!affinity[affIndex].hasOwnProperty('preference') && !affinity[affIndex].matchFields.length) {
-                            delete affinity[affIndex].matchFields;
+                        } else {
+                            if(!Object.keys(aff[affIndex]).length) {
+                                aff.splice( affIndex, 1 );
+                            }
                         }
-                    }
 
-                    if(affinity[affIndex].hasOwnProperty('preference')) {
-                        if(!affinity[affIndex].preference.hasOwnProperty('matchExpressions') && !affinity[affIndex].preference.hasOwnProperty('matchFields')) {
-                            affinity.splice( affIndex, 1 );
-                        }
-                    } else {
-                        if(!affinity[affIndex].hasOwnProperty('matchExpressions') && !affinity[affIndex].hasOwnProperty('matchFields')) {
-                            affinity.splice( affIndex, 1 );
-                        }
-                    }
+                    });
 
-                });
+                    return aff;
 
-                return (affinity.length > 0);
+                } else {
+                    return [];
+                }
             },
 
             getFlavorExtensions() {
                 const vc = this;
 
-                if(!vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) || (vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) && !vc.extensionsList[vc.flavor][vc.postgresVersion].length )) {
+                if(!vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) || !vc.extensionsList[vc.flavor][vc.postgresVersion].length ) {
                     axios
                     .get('/stackgres/extensions/' + ( (vc.postgresVersion == 'latest') ? 'latest' : vc.postgresVersion ) + '?flavor=' + vc.flavor)
                     .then(function (response) {
-                        vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.sortExtensions(response.data.extensions)
+                        
+                        vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.parseExtensions(response.data.extensions);
+                        vc.validateSelectedExtensions();
                     })
                     .catch(function (error) {
                         console.log(error.response);
-                        vc.notify(error.response.data,'error','sgclusters');
                     });
+                } else {
+                    vc.validateSelectedExtensions();
                 }
-            }
+
+                if( (vc.postgresVersion != 'latest') && ( !vc.hasProp(vc.postgresVersionsList[vc.flavor], vc.shortPostgresVersion) || (vc.hasProp(vc.postgresVersionsList[vc.flavor], vc.shortPostgresVersion) && !vc.postgresVersionsList[vc.flavor][vc.shortPostgresVersion].includes(vc.postgresVersion)) ) ) {
+                    vc.postgresVersion = 'latest';
+                    $('#postgresVersion .active, #postgresVersion').removeClass('active');
+                    $('#postgresVersion [data-val="latest"]').addClass('active');
+
+                    setTimeout(function(){
+                        vc.notify('The <strong>postgres flavor</strong> you requested is not available on the <strong>postgres version</strong> you selected. Choose a different version or your cluster will be created with the latest one avalable.', 'message', 'sgclusters', false);
+                    },100);
+                }
+
+                vc.validateSelectedPgConfig();
+            },
+
+            validateSelectedExtensions() {
+                const vc = this;
+
+                // Validate if selected extensions are available on the current postgres flavor and version
+                let activeExtensions = [...vc.selectedExtensions];
+                let extNotAvailable = [];
+                
+                activeExtensions.forEach(function(ext) {
+                    let sourceExt = vc.extensionsList[vc.flavor][vc.postgresVersion].find(e => (e.name == ext.name) && (e.versions.includes(ext.version)));
+
+                    if(typeof sourceExt == 'undefined') {
+                        extNotAvailable.push(ext.name);
+                        vc.selectedExtensions = vc.selectedExtensions.filter(function( e ) {
+                            return e.name !== ext.name;
+                        });
+                    }
+                })
+
+                if(extNotAvailable.length) {
+                    setTimeout(function(){
+                        vc.notify('The following extensions are not available on your preferred postgres flavor and version and have then been disabled: <strong>' + extNotAvailable.join(', ') + '.</strong>', 'message', 'sgclusters');
+                    },100)
+                }
+            },
+
+            validateSelectedPgConfig() {
+                const vc = this;
+
+                if(vc.pgConfig.length) {
+                    let config = vc.pgConf.find(c => (c.data.metadata.name == vc.pgConfig) && (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.postgresVersion == vc.shortPostgresVersion))
+
+                    if(typeof config == 'undefined') {
+                        setTimeout(function(){
+                            vc.notify('The <strong>postgres configuration</strong> you selected is not available for this <strong>postgres version</strong>. Choose a new configuration from the list or a default configuration will be created for you.', 'message', 'sgclusters', false);
+                        },100)
+                        vc.pgConfig = '';
+                    }
+                }
+            },
+
+            validateSelectedRestoreBackup() {
+                const vc = this;
+
+                if(vc.restoreBackup.length) {
+                    let bk = vc.backups.find(b => (b.data.metadata.name == vc.restoreBackup) && (b.data.metadata.namespace == vc.$route.params.namespace) && (b.data.status.backupInformation.postgresVersion.substring(0,2) == vc.shortPostgresVersion))
+
+                    if(typeof bk == 'undefined') {
+                        setTimeout(function(){
+                            vc.notify('The <strong>initialization backup</strong> you selected is not available for this postgres version. Choose a new backup from the list or no data will be restored.', 'message', 'sgclusters', false);
+                        },100)
+                        vc.restoreBackup = '';
+                    }
+                }
+            },
+
+            validateSelectedPgVersion() {
+                const vc = this;
+
+                if( (vc.postgresVersion != 'latest') && (!Object.keys(vc.postgresVersionsList[vc.flavor]).includes(vc.shortPostgresVersion) || !vc.postgresVersionsList[vc.flavor][vc.shortPostgresVersion].includes(vc.postgresVersion)) ) {
+                    
+                    setTimeout(function(){
+                        vc.notify('The <strong>postgres version</strong> you selected is not available for this <strong>postgres flavor</strong>. Please choose a new version or your cluster will be created with the latest version available', 'message', 'sgclusters', false);
+                    },100)
+                    
+                    vc.postgresVersion = 'latest';
+                    vc.validateSelectedPgConfig();
+                }
+            },
 
         },
 
@@ -1863,7 +2160,7 @@
             axios
             .get('/stackgres/extensions/latest')
             .then(function (response) {
-                vc.extensionsList[vc.flavor][vc.postgresVersion] =  vc.sortExtensions(response.data.extensions)
+                vc.extensionsList[vc.flavor][vc.postgresVersion] =  vc.parseExtensions(response.data.extensions)
             })
             .catch(function (error) {
                 console.log(error.response);
@@ -1880,6 +2177,11 @@
 </script>
 
 <style scoped>
+    .form {
+        max-width: 900px;
+        width: 900px;
+    }
+
     .scriptFieldset:first-child {
         border-top: 0;
         margin-top: 0;
@@ -1960,7 +2262,7 @@
 
     ul.extensionsList {
         list-style: none;
-        max-height: 300px;
+        max-height: 40vh;
         overflow-y: auto;
         margin-bottom: 20px;
         padding-right: 10px;
@@ -2014,7 +2316,7 @@
     }
     
     li.extension {
-        padding: 8px 0;
+        padding: 3px 0;
         position: relative;
         width: 100%;
         border: 1px solid transparent;
@@ -2067,7 +2369,8 @@
     }
 
     li.extension.show {
-        border-color: var(--borderColor)
+        border-color: var(--borderColor);
+        margin-bottom: 10px;
     }
 
     .darkmode li.extension:nth-child(even).show {
@@ -2118,22 +2421,30 @@
 
     select.extVersion {
         margin-bottom: 0;
+        margin-top: 2px;
+        padding: 7px;
+        height: auto;
+        background-position-x: 90%;
     }
 
     .versionContainer {
-        min-height: 75px;
+        min-height: 95px;
     }
 
     ul#postgresVersion.active {
         position: absolute;
-        width: calc(100% - 42px);
+        width: 100%;
         z-index: 10;
         max-height: 30vh;
         overflow: auto;
     }
 
-    ul#postgresVersion.active + a.help {
-        margin-top: 15px;
+    ul#postgresVersion + .helpTooltip {
+        transform: translate(20px, -53px);
+    }
+
+    ul#postgresVersion.active + .helpTooltip {
+        transform: translate(20px, 10px);
     }
 
     ul.select li.selected {
@@ -2143,5 +2454,292 @@
 
     .affinityValues a.addRow {
         transform: translateY(-75px);
+        float: right;
     }
+
+    .step {
+        display: none;
+        width: 870px;
+        border: 0;
+        padding: 20px 0 0;
+        margin-bottom: 0;
+    }
+
+    .step.active {
+        display: block;
+    }
+
+    .stepsContainer {
+        width: 100%;
+        text-align: center;
+        border-bottom: 1px solid var(--borderColor);
+        margin-bottom: 20px;
+    }
+
+    ul.steps {
+        display: inline-block;
+        margin: 10px 0 20px;
+        border: 0;
+        padding: 0 28px;
+        position: relative;
+    }
+
+    ul.steps li {
+        float: left;
+        list-style: none;
+        position: relative;
+        text-align: center;
+        margin: 0 7px;
+        text-transform: capitalize;
+        min-width: 70px;
+        cursor: pointer;
+    }
+
+    ul.steps li:before {
+        content: " ";
+        display: block;
+        background: var(--bgColor);
+        width: 10px;
+        height: 10px;
+        margin: 0 auto 10px;
+        border-radius: 100%;
+        border: 2px solid var(--borderColor);
+        position: relative;
+        z-index: 2;
+    }
+
+    ul.steps li.basic:before {
+        background: var(--borderColor);
+    }
+
+    ul.steps li.active:before {
+        border-color: var(--baseColor);
+        color: var(--bgColor);
+    }
+
+    ul.steps li.basic.active:before {
+        background: var(--baseColor);
+    }
+
+    ul.steps li.active {
+        color: var(--baseColor);
+        font-weight: bold;
+    }
+
+    ul.steps li:after {
+        height: 2px;
+        background: var(--borderColor);
+        content: " ";
+        display: block;
+        position: absolute;
+        width: calc(100% + 20px);
+        top: 6px;
+        left: -10px;
+    }
+
+    ul.steps li:first-child:after {
+        width: calc(50% + 10px);
+        left: 50%;
+    }
+
+    ul.steps li:last-child:after {
+        width: calc(50% + 10px);
+    }
+
+    .helpTooltip {
+        float: right;
+        transform: translate(20px, -30px);
+    }
+
+    .switch + .helpTooltip {
+        transform: translate(20px, -47px);
+    }
+
+    .step p {
+        display: inline-block;
+        margin: 5px 0 10px;
+    }
+    
+    .step .fields p {
+        margin: 5px 0 30px;
+    }
+
+    .steps a {
+        display: inline-block;
+        margin-left: 10px;
+        font-weight: bold;
+    }
+
+    .extHead span.name, .extensionsList span.name {
+        width: 180px;
+        display: inline-block;
+    }
+
+    .extHead span.version, .extensionsList span.version {
+        width: 75px;
+        display: inline-block;
+    }
+
+    .extensionsList span.version {
+        font-weight: normal;
+    }
+
+    .extHead span.description, .extensionsList span.description {
+        display: inline-block;
+        margin-left: 15px;
+        width: 380px;
+    }
+
+    .extensionsList span.description {
+        font-weight: normal;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        transform: translateY(3px);
+    }
+
+    h2 .helpTooltip, h3 .helpTooltip, h4 .helpTooltip, label .helpTooltip {
+        float: none;
+        transform: none;
+        margin-left: 5px;
+    }
+
+    .extension a.newTab {
+        width: 11px;
+        height: 11px;
+        display: inline-block;
+        transform: translate(4px, 1px);
+    }
+
+    .extension a.newTab:not(:hover) {
+        filter: brightness(100);
+    }
+
+    .contentTooltip #clusterDetails {
+        margin-right: 10px;
+    }
+
+    .warning.babelfish {
+        top: -10px;
+        position: relative;
+    }
+
+    .warning.babelfish:before {
+        content: " ";
+        display: block;
+        position: absolute;
+        border: 1px solid var(--orange);
+        width: 7px;
+        height: 7px;
+        transform: rotate(45deg);
+        border-bottom: 0;
+        border-right: 0;
+        top: -5px;
+        background: #ffefec;
+    }
+
+    .darkmode .warning.babelfish:before {
+        background: #361f1b;
+    }
+
+    input.affinityWeight + span {
+        left: -20px;
+    }
+
+    input.affinityWeight {
+        width: calc(100% - 25px);
+    }
+
+    #advancedMode + span {
+        position: relative;
+        top: -1px;
+    }
+
+    .steps label {
+        position: absolute;
+        width: 95px;
+        top: 11px;
+    }
+
+    fieldset.noRepeater {
+        padding: 0 0 10px;
+        border: 0;
+        margin-bottom: -10px;
+    }
+
+    #podsMetadata fieldset, #podsScheduling .repeater > fieldset {
+        padding-bottom: 10px;
+    }
+
+    fieldset.affinityValues, fieldset.affinityMatch {
+        margin-bottom: -10px;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .scheduling .fieldsetFooter {
+        margin-bottom: 20px;
+    }
+
+    .steps button.arrow {
+        position: absolute;
+        width: 25px;
+        height: 25px;
+        padding: 0;
+        top: -16px;
+        background: var(--inputBg);
+        border-color: var(--borderColor);
+    }
+
+    .steps button.arrow:hover {
+        border-color: var(--baseColor);
+    }
+
+    .steps button.arrow:after {
+        content: " ";
+        width: 6px;
+        height: 6px;
+        border: 1px solid var(--gray3);
+        display: block;
+        transform: rotate(45deg);
+        position: absolute;
+        top: 8px;
+    }
+
+    .darkmode .steps button.arrow:after {
+        border-color: var(--gray5);
+    }
+
+    .steps button.arrow:hover:after {
+        border-color: var(--baseColor);
+    }
+
+    .steps button.arrow[disabled] {
+        border-color: transparent;
+    }
+
+    .steps button.arrow[disabled]:after {
+        border-color: var(--borderColor);
+    }
+
+    .steps button.prev {
+        left: 0;
+    }
+
+    .steps button.next {
+        right: 0;
+    }
+
+    .steps button.next:after {
+        border-left: 0;
+        border-bottom: 0;
+        left: 6px;
+    }
+
+    .steps button.prev:after {
+        border-right: 0;
+        border-top: 0;
+        left: 10px;
+    }
+
 </style>

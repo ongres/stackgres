@@ -28,7 +28,7 @@
         <div class="form">
             <div class="header">
                 <h2>Logs Server Details</h2>
-                <label for="advancedMode" :class="(advancedMode) ? 'active' : ''">
+                <label for="advancedMode" :class="(advancedMode) ? 'active' : ''" class="floatRight">
                     <input v-model="advancedMode" type="checkbox" id="advancedMode" name="advancedMode" />
                     <span>Advanced</span>
                 </label>
@@ -549,7 +549,14 @@
                             cluster 
                         )
                         .then(function (response) {
-                            vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgdistributedlogs');
+                            
+                            var urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.has('newtab')) {
+                                opener.fetchParentAPI('sgdistributedlogs');
+                                vc.notify('Log server <strong>"'+cluster.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your server from the list.', 'message','sgdistributedlogs');
+                            } else {
+                                vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgdistributedlogs');
+                            }
 
                             vc.fetchAPI('sgdistributedlogs');
                             router.push('/' + cluster.metadata.namespace + '/sgdistributedlogs')

@@ -304,6 +304,10 @@ $(document).ready(function(){
     $("#backup-btn, #graffana-btn").css("display","none");
   });
 
+  $(document).on('click', '[data-tab]', function(){
+    $('[data-tab].active, [data-tab="' + $(this).data('tab') + '"]').toggleClass('active');
+  })
+
   $(document).on("click", ".box h4", function() {
     
     $(this).parents(".box").toggleClass("show");
@@ -588,16 +592,16 @@ $(document).ready(function(){
     $(this).addClass('active')
   })
 
-  $('#contentTooltip .close').click(function(){
-    $('#contentTooltip').removeClass('show');
-    $('#contentTooltip .info .content').html('');
+  $('.contentTooltip .close').click(function(){
+    $('.contentTooltip').removeClass('show');
+    $('.contentTooltip .info .content').html('');
   })
 
   $(document).on("click", "#side", function(e) {
 
-    if($('#contentTooltip').hasClass('show')) {
-      $('#contentTooltip').removeClass('show')
-      $('#contentTooltip .content').html('');
+    if($('.contentTooltip').hasClass('show')) {
+      $('.contentTooltip').removeClass('show')
+      $('.contentTooltip .content').html('');
     }
   });
 

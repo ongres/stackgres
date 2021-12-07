@@ -41,7 +41,7 @@
             <label for="spec.postgresVersion">Postgres Version <span class="req">*</span></label>
             <select v-model="pgConfigVersion" :disabled="(editMode)" required data-field="spec.postgresVersion">
                 <option disabled value="">Select Major Postgres Version</option>
-                <option v-for="(versionsList, version) in postgresVersions">{{ version }}</option>
+                <option v-for="version in postgresVersions">{{ version }}</option>
             </select>
             <a class="help" @click="showTooltip( 'sgpostgresconfig', 'spec.postgresVersion')"></a>
 
@@ -145,7 +145,7 @@
             },
 
             postgresVersions() {
-                return store.state.postgresVersions.vanilla
+                return Object.keys(store.state.postgresVersions.vanilla).reverse()
             }
         },
         methods: {
@@ -190,9 +190,16 @@
                             config 
                         )
                         .then(function (response) {
-                            vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfigs');
+                            
+                            var urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.has('newtab')) {
+                                opener.fetchParentAPI('sgpgconfigs');
+                                vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgpgconfigs');
+                            } else {
+                                vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfigs');
+                            }
             
-                            vc.fetchAPI('sgpgconfig');
+                            vc.fetchAPI('sgpgconfigs');
                             router.push('/' + config.metadata.namespace + '/sgpgconfigs');                    
                         })
                         .catch(function (error) {
