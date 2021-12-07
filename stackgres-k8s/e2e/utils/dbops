@@ -152,7 +152,7 @@ traceable_assert_dbops_failure() {
   while true
   do
     if kubectl wait --timeout 1s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-      --for condition=Completed
+      --for condition=Completed 2>/dev/null
     then
       echo "FAILED. $OP operation $CLUSTER_NAMESPACE.$DBOPS_NAME completed."
       echo
@@ -165,7 +165,7 @@ traceable_assert_dbops_failure() {
       return 1
     fi
     if kubectl wait --timeout 1s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-      --for condition=Failed
+      --for condition=Failed 2>/dev/null
     then
       echo "SUCCESS. $OP operation $CLUSTER_NAMESPACE.$DBOPS_NAME failed."
       return
