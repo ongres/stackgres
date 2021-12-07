@@ -25,14 +25,14 @@
             </div>
         </header>
 
-        <div class="form">
+        <div class="form crdForm">
             <div class="header">
                 <h2>Postgres Configuration Details</h2>
             </div>
 
             <label for="metadata.name">Configuration Name <span class="req">*</span></label>
             <input v-model="pgConfigName" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
-            <a class="help" @click="showTooltip( 'sgpostgresconfig', 'metadata.name')"></a>
+            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpostgresconfig.metadata.name')"></span>
 
             <span class="warning" v-if="nameColission && !editMode">
                 There's already a <strong>SGPostgresConfig</strong> with the same name on this namespace. Please specify a different name or create the configuration on another namespace
@@ -43,11 +43,13 @@
                 <option disabled value="">Select Major Postgres Version</option>
                 <option v-for="version in postgresVersions">{{ version }}</option>
             </select>
-            <a class="help" @click="showTooltip( 'sgpostgresconfig', 'spec.postgresVersion')"></a>
+            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpostgresconfig.spec.postgresVersion')"></span>
 
-            <label for="spec.postgresql.conf">Parameters</label>
-            <textarea v-model="pgConfigParams" placeholder="parameter = value" data-field="spec.postgresql.conf"></textarea>
-            <a class="help" @click="showTooltip( 'sgpostgresconfig', 'spec.postgresql.conf')"></a>
+            <fieldset class="textSet">
+                <label for="spec.postgresql.conf">Parameters</label>
+                <textarea v-model="pgConfigParams" placeholder="parameter = value" data-field="spec.postgresql.conf"></textarea>
+                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpostgresconfig.spec.postgresql.conf')"></span>
+            </fieldset>
 
             <template v-if="editMode">
                 <template v-if="configClusters.length">
@@ -62,16 +64,6 @@
             </template>
             
             <button class="btn border" @click="cancel">Cancel</button>
-        </div>
-        <div id="help" class="form">
-            <div class="header">
-                <h2>Help</h2>
-            </div>
-            
-            <div class="info">
-                <h3 class="title"></h3>
-                <vue-markdown :source=tooltipsText :breaks=false></vue-markdown>
-            </div>
         </div>
     </form>
 </template>

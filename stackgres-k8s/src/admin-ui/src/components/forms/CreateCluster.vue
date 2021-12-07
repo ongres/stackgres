@@ -2742,4 +2742,8 @@
         left: 10px;
     }
 
+    .searchBar + .helpTooltip {
+        top: -15px;
+    }
+
 </style>

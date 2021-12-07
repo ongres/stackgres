@@ -39,7 +39,7 @@
             </div>
         </header>
                 
-        <div class="form">
+        <div class="form crdForm">
             <div class="header">
                 <h2>Backup Details</h2>
             </div>
@@ -51,11 +51,11 @@
                     <option v-if="cluster.data.metadata.namespace == backupNamespace">{{ cluster.data.metadata.name }}</option>
                 </template>
             </select>
-            <a class="help" @click="showTooltip( 'sgbackup', 'spec.sgCluster')"></a>
+            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackup.spec.sgCluster')"></span>
 
             <label for="metadata.name">Backup Name <span class="req">*</span></label>
             <input v-model="backupName" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
-            <a class="help" @click="showTooltip( 'sgbackup', 'metadata.name')"></a>
+            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackup.metadata.name')"></span>
 
             <span class="warning" v-if="nameColission && !editMode">
                 There's already a <strong>SGBackup</strong> with the same name on this namespace. Please specify a different name or create the backup on another namespace
@@ -63,7 +63,7 @@
 
             <label for="spec.managedLifecycle">Managed Lifecycle</label>  
             <label for="permanent" class="switch yes-no" data-field="spec.managedLifecycle">Managed <input type="checkbox" id="permanent" v-model="managedLifecycle" data-switch="NO"></label>
-            <a class="help" @click="showTooltip( 'sgbackup', 'spec.managedLifecycle')"></a>
+            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackup.spec.managedLifecycle')"></span>
             
             <template v-if="editMode">
                 <button class="btn" @click="createBackup">Update Backup</button>
@@ -73,16 +73,6 @@
             </template>
 
             <button class="btn border" @click="cancel">Cancel</button>
-        </div>
-        <div id="help" class="form">
-            <div class="header">
-                <h2>Help</h2>
-            </div>
-            
-            <div class="info">
-                <h3 class="title"></h3>
-                <vue-markdown :source=tooltipsText :breaks=false></vue-markdown>
-            </div>
         </div>
     </form>
 </template>
