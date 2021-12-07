@@ -116,18 +116,10 @@ public interface StackGresUtil {
   }
 
   /**
-   * Return true when labels match a patroni primary pod, false otherwise.
+   * Return true when labels match a non-disruptible label, false otherwise.
    */
-  static boolean isPrimary(Map<String, String> labels) {
-    return Objects.equals(labels.get(StackGresContext.ROLE_KEY), StackGresContext.PRIMARY_ROLE);
-  }
-
-  /**
-   * Return true when labels match a patroni primary pod that is also disruptible, false otherwise.
-   */
-  static boolean isNonDisruptiblePrimary(Map<String, String> labels) {
-    return isPrimary(labels)
-        && Objects.equals(labels.get(StackGresContext.DISRUPTIBLE_KEY),
+  static boolean isNonDisruptible(Map<String, String> labels) {
+    return Objects.equals(labels.get(StackGresContext.DISRUPTIBLE_KEY),
             StackGresContext.WRONG_VALUE);
   }
 

@@ -32,7 +32,7 @@ public class ClusterControllerReconciliator
     extends Reconciliator<StackGresClusterContext> {
 
   private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
-  private final PostgresBootstrapReconciliator postgresBootstrapReconciliator;
+  private final ClusterControllerPostgresBootstrapReconciliator postgresBootstrapReconciliator;
   private final ClusterExtensionReconciliator extensionReconciliator;
   private final PgBouncerReconciliator pgbouncerReconciliator;
   private final ClusterControllerPropertyContext propertyContext;
@@ -129,7 +129,7 @@ public class ClusterControllerReconciliator
   @Dependent
   public static class Parameters {
     @Inject CustomResourceScheduler<StackGresCluster> clusterScheduler;
-    @Inject PostgresBootstrapReconciliator postgresBootstrapReconciliator;
+    @Inject ClusterControllerPostgresBootstrapReconciliator postgresBootstrapReconciliator;
     @Inject ClusterExtensionReconciliator extensionReconciliator;
     @Inject PgBouncerReconciliator pgbouncerReconciliator;
     @Inject ClusterControllerPropertyContext propertyContext;

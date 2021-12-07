@@ -20,7 +20,7 @@ import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.JsonUtil;
@@ -77,8 +77,8 @@ class ClusterWatcherTest {
                     .port(5432)
                     .host(pod.getMetadata().getName())
                     .state(MemberState.RUNNING)
-                    .role(StackGresContext.PRIMARY_ROLE
-                        .equals(pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY))
+                    .role(PatroniUtil.PRIMARY_ROLE
+                        .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
                             ? MemberRole.LEADER
                             : MemberRole.REPlICA)
                     .lag(0)
@@ -107,8 +107,8 @@ class ClusterWatcherTest {
                     .port(5432)
                     .host(pod.getMetadata().getName())
                     .state(MemberState.RUNNING)
-                    .role(StackGresContext.PRIMARY_ROLE
-                        .equals(pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY))
+                    .role(PatroniUtil.PRIMARY_ROLE
+                        .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
                             ? MemberRole.LEADER
                             : MemberRole.REPlICA)
                     .lag(0)
@@ -137,8 +137,8 @@ class ClusterWatcherTest {
                     .port(5432)
                     .host(pod.getMetadata().getName())
                     .state(MemberState.RUNNING)
-                    .role(StackGresContext.PRIMARY_ROLE
-                        .equals(pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY))
+                    .role(PatroniUtil.PRIMARY_ROLE
+                        .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
                             ? MemberRole.LEADER
                             : MemberRole.REPlICA)
                     .lag(0)

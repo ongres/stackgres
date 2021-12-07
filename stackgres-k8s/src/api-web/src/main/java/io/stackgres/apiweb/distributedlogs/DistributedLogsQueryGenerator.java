@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.distributedlogs.LogTableFields;
 import io.stackgres.common.distributedlogs.PostgresTableFields;
 import io.stackgres.common.distributedlogs.Tables;
@@ -101,25 +101,25 @@ public class DistributedLogsQueryGenerator {
   public static final Field<String> POSTGRES_LOG_TYPE_FIELD = POSTGRES_LOG_TYPE_VALUE
       .as(LOG_TYPE_FIELD);
   public static final Field<String> MAPPED_ROLE_FIELD = DSL.case_(ROLE_FIELD)
-      .when(StackGresContext.PRIMARY_ROLE, PRIMARY_ROLE_VALUE)
-      .when(StackGresContext.REPLICA_ROLE, REPLICA_ROLE_VALUE)
-      .when(StackGresContext.PROMOTED_ROLE, PROMOTED_ROLE_VALUE)
-      .when(StackGresContext.DEMOTED_ROLE, DEMOTED_ROLE_VALUE)
-      .when(StackGresContext.UNINITIALIZED_ROLE, UNINITIALIZED_ROLE_VALUE)
-      .when(StackGresContext.STANDBY_LEADER_ROLE, REPLICA_LEADER_ROLE_VALUE)
-      .when(StackGresContext.SYNC_STANDBY_ROLE, SYNC_REPLICA_ROLE_VALUE)
+      .when(PatroniUtil.PRIMARY_ROLE, PRIMARY_ROLE_VALUE)
+      .when(PatroniUtil.REPLICA_ROLE, REPLICA_ROLE_VALUE)
+      .when(PatroniUtil.PROMOTED_ROLE, PROMOTED_ROLE_VALUE)
+      .when(PatroniUtil.DEMOTED_ROLE, DEMOTED_ROLE_VALUE)
+      .when(PatroniUtil.UNINITIALIZED_ROLE, UNINITIALIZED_ROLE_VALUE)
+      .when(PatroniUtil.STANDBY_LEADER_ROLE, REPLICA_LEADER_ROLE_VALUE)
+      .when(PatroniUtil.SYNC_STANDBY_ROLE, SYNC_REPLICA_ROLE_VALUE)
       .else_(DSL.castNull(ROLE_FIELD))
       .as(ROLE_FIELD);
 
   public static final ImmutableMap<String, String> REVERSE_ROLE_MAP =
       ImmutableMap.<String, String>builder()
-          .put(PRIMARY_ROLE_VALUE.getValue(), StackGresContext.PRIMARY_ROLE)
-          .put(REPLICA_ROLE_VALUE.getValue(), StackGresContext.REPLICA_ROLE)
-          .put(PROMOTED_ROLE_VALUE.getValue(), StackGresContext.PROMOTED_ROLE)
-          .put(DEMOTED_ROLE_VALUE.getValue(), StackGresContext.DEMOTED_ROLE)
-          .put(UNINITIALIZED_ROLE_VALUE.getValue(), StackGresContext.UNINITIALIZED_ROLE)
-          .put(REPLICA_LEADER_ROLE_VALUE.getValue(), StackGresContext.STANDBY_LEADER_ROLE)
-          .put(SYNC_REPLICA_ROLE_VALUE.getValue(), StackGresContext.SYNC_STANDBY_ROLE)
+          .put(PRIMARY_ROLE_VALUE.getValue(), PatroniUtil.PRIMARY_ROLE)
+          .put(REPLICA_ROLE_VALUE.getValue(), PatroniUtil.REPLICA_ROLE)
+          .put(PROMOTED_ROLE_VALUE.getValue(), PatroniUtil.PROMOTED_ROLE)
+          .put(DEMOTED_ROLE_VALUE.getValue(), PatroniUtil.DEMOTED_ROLE)
+          .put(UNINITIALIZED_ROLE_VALUE.getValue(), PatroniUtil.UNINITIALIZED_ROLE)
+          .put(REPLICA_LEADER_ROLE_VALUE.getValue(), PatroniUtil.STANDBY_LEADER_ROLE)
+          .put(SYNC_REPLICA_ROLE_VALUE.getValue(), PatroniUtil.SYNC_STANDBY_ROLE)
           .build();
 
   public static final ImmutableMap<String, String> FILTER_CONVERSION_MAP =

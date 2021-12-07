@@ -16,7 +16,7 @@ import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterLabelFactory;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.conciliation.ReconciliationScope;
@@ -53,7 +53,7 @@ public class ClusterStatefulSetComparator extends StatefulSetComparator {
 
     Map<String, String> primaryLabels = new ImmutableMap.Builder<String, String>()
         .putAll(ClusterLabelFactory.patroniClusterLabels(clusterUid, clusterName))
-        .put(StackGresContext.ROLE_KEY, StackGresContext.PRIMARY_ROLE)
+        .put(PatroniUtil.ROLE_KEY, PatroniUtil.PRIMARY_ROLE)
         .build();
     var pods = podScanner.findByLabelsAndNamespace(namespace, primaryLabels);
     if (pods.isEmpty()) {
