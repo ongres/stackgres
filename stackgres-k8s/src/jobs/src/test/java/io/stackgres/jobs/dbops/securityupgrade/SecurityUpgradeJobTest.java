@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -136,7 +135,8 @@ class SecurityUpgradeJobTest {
   void givenAFailureToRestartTheCluster_itShouldReportTheFailure() {
 
     final String errorMessage = "restart failure";
-    doThrow(new RuntimeException(errorMessage)).when(clusterRestart).restartCluster(any());
+    doReturn(Uni.createFrom().failure(new RuntimeException(errorMessage)))
+        .when(clusterRestart).restartCluster(any());
 
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, PREVIOUS_OPERATOR_VERSION);

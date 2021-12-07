@@ -19,10 +19,14 @@ import io.stackgres.jobs.dbops.ClusterRestartStateHandler;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.DatabaseOperationJob;
 import io.stackgres.jobs.dbops.StateHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 @DatabaseOperation("restart")
 public class RestartJob implements DatabaseOperationJob {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(RestartJob.class);
 
   @Inject
   CustomResourceFinder<StackGresDbOps> dbOpsFinder;
@@ -36,6 +40,8 @@ public class RestartJob implements DatabaseOperationJob {
 
   @Override
   public Uni<ClusterRestartState> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {
+    LOGGER.info("Starting restart for SGDbOps {}", dbOps.getMetadata().getName());
+
     return restartStateHandler.restartCluster(dbOps)
         .onFailure().invoke(ex -> reportFailure(dbOps, ex));
   }
