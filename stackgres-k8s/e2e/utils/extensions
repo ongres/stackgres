@@ -12,20 +12,26 @@ EXTENSIONS_CACHE_PRELOADED_EXTENSIONS="$(
     echo "$EXTENSIONS_ARCH/linux/postgis_raster-.*-pg12(12|13)"
   } | jq -R . | jq -s -c .
   )"
+EXTENSIONS_METADATA_VERSION=v2
 EXTENSIONS_DEFAULT_FLAVOR=pg
 EXTENSIONS_DEFAULT_BUILD_ARCH=x86_64
 EXTENSIONS_DEFAULT_BUILD_OS=linux
 EXTENSIONS_INDEX_CACHED="${EXTENSIONS_INDEX_CACHED:-false}"
 export EXTENSIONS_INDEX_CACHED
 
+get_extensions_metadata_url() {
+  local NAME="$1"
+  printf '%s' "$(printf '%s' "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/$EXTENSIONS_METADATA_VERSION/$NAME"
+}
+
 cache_extensions_index() {
   if [ "$EXTENSIONS_INDEX_CACHED" != true ] || [ ! -f "$TARGET_PATH/extensions-index.json" ]
   then
-    curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/v2/index.json" \
+    curl -s -f "$(get_extensions_metadata_url index.json)" \
       > "$TARGET_PATH/extensions-index.json"
     if [ ! -f "$TARGET_PATH/extensions-unwrapped-hashes.json" ]
     then
-      curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/hashes.json" \
+      curl -s -f "$(get_extensions_metadata_url hashes.json)" \
         > "$TARGET_PATH/extensions-hashes.json"
       jq '
         .publishers = (.publishers | map(
