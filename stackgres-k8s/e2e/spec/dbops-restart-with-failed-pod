@@ -39,7 +39,7 @@ spec:
     method: InPlace
 EOF
 
-  assert_dbops_failure "$DBOPS_NAME" "$CLUSTER_NAMESPACE" 30
+  assert_dbops_failure "$DBOPS_FAILING_NAME" "$CLUSTER_NAMESPACE" 30
 
   wait_until kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     -p '[{"op":"remove","path":"/spec/pods/scheduling"}]'
@@ -84,7 +84,7 @@ spec:
     method: InPlace
 EOF
 
-  assert_dbops_failure "$DBOPS_NAME" "$CLUSTER_NAMESPACE" 30
+  assert_dbops_failure "$DBOPS_FAILING_NAME" "$CLUSTER_NAMESPACE" 30
 
   wait_until kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     -p '[{"op":"remove","path":"/spec/pods/scheduling"}]'
