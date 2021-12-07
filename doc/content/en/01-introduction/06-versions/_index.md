@@ -6,16 +6,17 @@ description: Details about StackGres versions.
 showToc: true
 ---
 
-## StackGres 1.0.0
+## StackGres 1.1.0
 
 | Component | Versions |
 | ------ | ----------- |
-| PostgreSQL 14 | 14.0 |
-| PostgreSQL 13 | 13.4, 13.3, 13.2, 13.1, 13.0 |
-| PostgreSQL 12 | 12.8, 12.7, 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
-| Patroni | 2.1.1, 2.1.0 |
+| PostgreSQL 14 | 14.0, 14.1 |
+| PostgreSQL 13 | 13.5, 13.4, 13.3, 13.2, 13.1, 13.0 |
+| PostgreSQL 12 | 12.9, 12.8, 12.7, 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
+| PostgreSQL for Babelfish 13 | 13.4 |
+| Patroni | 2.1.2, 2.1.0 |
 | WAL-G | 1.1 |
-| PgBouncer | 1.15.0 |
+| PgBouncer | 1.16.1 |
 | Postgres Exporter | 0.10.0 |
 | Envoy | 1.19.1 |
 | Fluent-Bit | 1.8.1 |
@@ -33,6 +34,25 @@ showToc: true
 | PostgreSQL 13 | 13.4, 13.3, 13.2, 13.1, 13.0 |
 | PostgreSQL 12 | 12.8, 12.7, 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
 | PostgreSQL for Babelfish 13 | 13.4 |
+| Patroni | 2.1.1, 2.1.0 |
+| WAL-G | 1.1 |
+| PgBouncer | 1.15.0 |
+| Postgres Exporter | 0.10.0 |
+| Envoy | 1.19.1 |
+| Fluent-Bit | 1.8.1 |
+| Fluentd | 1.13.2 |
+
+### Additional extensions included on StackGres
+
+* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
+
+## StackGres 1.0.0
+
+| Component | Versions |
+| ------ | ----------- |
+| PostgreSQL 14 | 14.0 |
+| PostgreSQL 13 | 13.4, 13.3, 13.2, 13.1, 13.0 |
+| PostgreSQL 12 | 12.8, 12.7, 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
 | Patroni | 2.1.1, 2.1.0 |
 | WAL-G | 1.1 |
 | PgBouncer | 1.15.0 |
