@@ -25,7 +25,7 @@
             </div>
         </header>
 
-        <div class="form">
+        <div class="form crdForm">
             <div class="header">
                 <h2>Postgres Configuration Details</h2>
             </div>
@@ -45,9 +45,11 @@
             </select>
             <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpostgresconfig.spec.postgresVersion')"></span>
 
-            <label for="spec.postgresql.conf">Parameters</label>
-            <textarea v-model="pgConfigParams" placeholder="parameter = value" data-field="spec.postgresql.conf"></textarea>
-            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpostgresconfig.spec.postgresql.conf')"></span>
+            <fieldset class="textSet">
+                <label for="spec.postgresql.conf">Parameters</label>
+                <textarea v-model="pgConfigParams" placeholder="parameter = value" data-field="spec.postgresql.conf"></textarea>
+                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpostgresconfig.spec.postgresql.conf')"></span>
+            </fieldset>
 
             <template v-if="editMode">
                 <template v-if="configClusters.length">

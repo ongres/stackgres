@@ -25,7 +25,7 @@
                 <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgdistributedlogs/" target="_blank" title="SGDistributedLogs Documentation">SGDistributedLogs Documentation</a>
             </div>
         </header>
-        <div class="form">
+        <div class="form crdForm logsForm">
             <div class="header">
                 <h2>Logs Server Details</h2>
                 <label for="advancedMode" :class="(advancedMode) ? 'active' : ''" class="floatRight">

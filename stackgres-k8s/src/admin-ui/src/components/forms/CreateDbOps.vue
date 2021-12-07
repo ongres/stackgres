@@ -19,7 +19,7 @@
                 <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgdbops/" target="_blank" title="SGDbOps Documentation">SGDbOps Documentation</a>
             </div>
         </header>
-        <div class="form">
+        <div class="form crdForm dbopsForm">
             <div class="header">
                 <h2>Database Operation Details</h2>
             </div>

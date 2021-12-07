@@ -25,7 +25,7 @@
             </div>
         </header>
         
-        <div class="form">
+        <div class="form crdForm">
             <div class="header">
                 <h2>Connection Pooling Configuration Details</h2>
             </div>
@@ -38,9 +38,11 @@
                 There's already a <strong>SGPoolingConfig</strong> with the same name on this namespace. Please specify a different name or create the configuration on another namespace
             </span>
 
-            <label for="spec.pgBouncer.pgbouncer.ini">PgBouncer Parameters</label>
-            <textarea v-model="poolConfigParams" placeholder="parameter = value" data-field="spec.pgBouncer.pgbouncer.ini"></textarea>
-            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpoolingconfig.spec.pgBouncer.pgbouncer.ini')"></span>
+            <fieldset class="textSet">
+                <label for="spec.pgBouncer.pgbouncer.ini">PgBouncer Parameters</label>
+                <textarea v-model="poolConfigParams" placeholder="parameter = value" data-field="spec.pgBouncer.pgbouncer.ini"></textarea>
+                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpoolingconfig.spec.pgBouncer.pgbouncer.ini')"></span>
+            </fieldset>
 
             <template v-if="editMode">
                 <template v-if="configClusters.length">

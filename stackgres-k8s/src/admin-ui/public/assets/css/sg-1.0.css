@@ -555,3 +555,76 @@ table:not(.fullWidth) td.label {
 .collapsed #topMenu {
     border-right: 1px solid var(--borderColor);
 }
+
+/*Form Tooltips Adjustments*/
+
+.crdForm fieldset {
+    width: 100%;
+    position: relative;
+}
+
+.crdForm fieldset .helpTooltip {
+    left: 26px;
+}
+
+.crdForm fieldset fieldset .helpTooltip {
+    left: 52px;
+}
+
+.crdForm fieldset fieldset fieldset .helpTooltip {
+    left: 78px;
+}
+
+.crdForm fieldset.cron .helpTooltip {
+    right: -21px;
+    top: 10px;
+    transform: initial;
+    float: initial;
+    position: absolute;
+    left: initial;
+}
+
+.crdForm .helpTooltip {
+    float: right;
+    transform: translate(20px, -50px);
+}
+
+.crdForm .textSet {
+    position: relative;
+    padding: 0;
+    border: none;
+    margin: 0;
+}
+
+.crdForm .textSet textarea + .helpTooltip {
+    transform: initial;
+    float: initial;
+    position: absolute;
+    top: 30px;
+    right: -20px;
+    left: initial;
+}
+
+.crdForm fieldset .header .helpTooltip {
+    top: 50px;
+}
+
+.logsForm .scheduling fieldset input:last-of-type, .dbopsForm fieldset fieldset fieldset select:last-of-type {
+    margin-bottom: 0;
+}
+
+.logsForm .scheduling fieldset, .dbopsForm fieldset fieldset fieldset {
+    margin-bottom: 25px;
+}
+
+.logsForm .scheduling fieldset input:last-of-type + .helpTooltip, .dbopsForm fieldset fieldset fieldset select:last-of-type + .helpTooltip {
+    top: 25px;
+}
+
+.logsForm .repeater > fieldset + fieldset, .dbopsForm .repeater > fieldset + fieldset {
+    border-top: 1px solid var(--borderColor);
+}
+
+.logsForm .repeater > fieldset, .dbopsForm .repeater > fieldset {
+    border-radius: 5px;
+}

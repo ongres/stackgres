@@ -39,7 +39,7 @@
             </div>
         </header>
                 
-        <div class="form">
+        <div class="form crdForm">
             <div class="header">
                 <h2>Backup Details</h2>
             </div>

@@ -26,7 +26,7 @@
             </div>
         </header>
                 
-        <div class="form">
+        <div class="form crdForm">
             <div class="header">
                 <h2>Backup Configuration Details</h2>
                 <label for="advancedMode" :class="(advancedMode) ? 'active' : ''" class="floatRight">
@@ -688,5 +688,9 @@
 <style scoped>
     .cron a.help {
         margin-top: 0;
+    }
+
+    .cron input {
+        margin-bottom: 20px !important;
     }
 </style>
