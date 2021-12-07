@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -142,14 +142,14 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
     List<Pod> currentPods = geClusterPods(cluster);
 
     List<Pod> replicas = currentPods.stream().filter(pod -> {
-      String role = pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY);
-      return StackGresContext.REPLICA_ROLE.equals(role);
+      String role = pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY);
+      return PatroniUtil.REPLICA_ROLE.equals(role);
     }).collect(Collectors.toUnmodifiableList());
 
     if (replicas.isEmpty()) {
       return currentPods.stream().filter(pod -> {
-        String role = pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY);
-        return StackGresContext.PRIMARY_ROLE.equals(role);
+        String role = pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY);
+        return PatroniUtil.PRIMARY_ROLE.equals(role);
       }).findFirst().orElseThrow(() -> new InvalidCluster("Cluster does not have a primary pod"))
           .getMetadata().getName();
     } else {

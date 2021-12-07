@@ -35,7 +35,7 @@ import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Multi;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
@@ -159,8 +159,8 @@ public abstract class ClusterStateHandlerTest {
 
   protected Pod getPrimaryInstance(List<Pod> pods) {
     return pods.stream()
-        .filter(pod -> StackGresContext.PRIMARY_ROLE.equals(
-            pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY)))
+        .filter(pod -> PatroniUtil.PRIMARY_ROLE.equals(
+            pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)))
         .findFirst().orElseThrow(() -> new InvalidCluster("Cluster has no primary pod"));
   }
 

@@ -34,7 +34,6 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
 @Singleton
@@ -67,9 +66,7 @@ public class PatroniServices implements
   }
 
   public String configName(ClusterContext clusterContext) {
-    final StackGresCluster cluster = clusterContext.getCluster();
-    return ResourceUtil.resourceName(
-        PatroniConfigMap.clusterScope(cluster) + PatroniUtil.CONFIG_SERVICE);
+    return PatroniUtil.configName(clusterContext.getCluster());
   }
 
   /**

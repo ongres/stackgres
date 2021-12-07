@@ -27,7 +27,7 @@ import io.smallrye.mutiny.Uni;
 import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
@@ -372,8 +372,8 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
 
   protected Pod getPrimaryInstance(List<Pod> pods) {
     return pods.stream()
-        .filter(pod -> StackGresContext.PRIMARY_ROLE.equals(
-            pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY)))
+        .filter(pod -> PatroniUtil.PRIMARY_ROLE.equals(
+            pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)))
         .findFirst().orElseThrow(() -> new InvalidCluster("Cluster has no primary pod"));
   }
 
