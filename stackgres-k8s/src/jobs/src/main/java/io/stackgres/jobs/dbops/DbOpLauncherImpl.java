@@ -21,6 +21,7 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
@@ -32,11 +33,9 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.jobs.app.JobsProperty;
-import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.lock.ImmutableLockRequest;
 import io.stackgres.jobs.dbops.lock.LockAcquirer;
 import io.stackgres.jobs.dbops.lock.LockRequest;
-import io.stackgres.jobs.mutiny.UniUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +68,10 @@ public class DbOpLauncherImpl implements DbOpLauncher {
   }
 
   public DbOpLauncherImpl() {
-    this.jobExecutor = Executors.newSingleThreadExecutor(t -> new Thread(t, "JobExecutor"));
+    this.jobExecutor = Executors.newSingleThreadExecutor(
+        new ThreadFactoryBuilder()
+        .setNameFormat("job-executor-%d")
+        .build());
   }
 
   @Override
@@ -116,14 +118,14 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         lockAcquirer
             .lockRun(lockRequest, (targetCluster) -> {
               databaseOperationEventEmitter.operationStarted(dbOpName, namespace);
-              final DatabaseOperationJob databaseOperationJob = jobImpl.get();
-
-              final Uni<ClusterRestartState> jobUni = databaseOperationJob
-                  .runJob(initializedDbOps, targetCluster)
-                  .runSubscriptionOn(jobExecutor);
-              UniUtil.waitUni(jobUni,
-                  Optional.ofNullable(initializedDbOps.getSpec().getTimeout())
-                  .map(Duration::parse));
+              var jobUni = Uni.createFrom().voidItem()
+                  .emitOn(jobExecutor)
+                  .chain(() -> jobImpl.get()
+                      .runJob(initializedDbOps, targetCluster));
+              Optional.ofNullable(initializedDbOps.getSpec().getTimeout())
+                  .map(Duration::parse)
+                  .map(jobTimeout -> jobUni.await().atMost(jobTimeout))
+                  .orElseGet(() -> jobUni.await().indefinitely());
               databaseOperationEventEmitter.operationCompleted(dbOpName, namespace);
             });
 

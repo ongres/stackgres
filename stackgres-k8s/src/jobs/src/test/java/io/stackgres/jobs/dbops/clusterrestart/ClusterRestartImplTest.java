@@ -283,7 +283,7 @@ class ClusterRestartImplTest {
 
     AssertSubscriber<RestartEvent> subscriber = clusterRestart.restartCluster(clusterState)
         .subscribe()
-        .withSubscriber(AssertSubscriber.create(1))
+        .withSubscriber(AssertSubscriber.create(2))
         .await()
         .assertFailedWith(RuntimeException.class,
             String.format("Primary instance %s changed from %s",

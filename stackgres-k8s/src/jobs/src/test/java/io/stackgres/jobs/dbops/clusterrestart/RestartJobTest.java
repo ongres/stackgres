@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.jobs.dbops.minorversionupgrade;
+package io.stackgres.jobs.dbops.clusterrestart;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -30,18 +30,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class MinorVersionUpgradeJobTest {
+class RestartJobTest {
 
   private final AtomicInteger clusterNr = new AtomicInteger(0);
   @Inject
-  @DatabaseOperation("minorVersionUpgrade")
-  MinorVersionUpgradeJob minorVerionUpgradeJob;
+  @DatabaseOperation("restart")
+  RestartJob restartJob;
   @Inject
   MockKubeDb kubeDb;
 
   @InjectMock
-  @StateHandler("minorVersionUpgrade")
-  MinorVersionUpgradeRestartStateHandlerImpl clusterRestart;
+  @StateHandler("restart")
+  ClusterRestartStateHandlerImpl clusterRestart;
 
   private StackGresCluster cluster;
   private StackGresDbOps dbOps;
@@ -59,7 +59,7 @@ class MinorVersionUpgradeJobTest {
     cluster.getMetadata().setNamespace(clusterNamespace);
 
     dbOps =
-        JsonUtil.readFromJson("stackgres_dbops/dbops_minorversionupgrade.json",
+        JsonUtil.readFromJson("stackgres_dbops/dbops_restart.json",
             StackGresDbOps.class);
     dbOps.getMetadata().setNamespace(clusterNamespace);
     dbOps.getMetadata().setName(clusterName);
@@ -73,23 +73,12 @@ class MinorVersionUpgradeJobTest {
   }
 
   @Test
-  void minorVersionUpgradeJob_shouldUpdateThePostgresVersionOfTheTargetCluster() {
-    final String expectedPotgresVersion = dbOps.getSpec().getMinorVersionUpgrade()
-        .getPostgresVersion();
-    cluster = kubeDb.addOrReplaceCluster(cluster);
-    minorVerionUpgradeJob.runJob(dbOps, cluster).await().indefinitely();
-    var storedClusterPostgresVersion = kubeDb.getCluster(clusterName, clusterNamespace)
-        .getSpec().getPostgres().getVersion();
-    assertEquals(expectedPotgresVersion, storedClusterPostgresVersion);
-  }
-
-  @Test
-  void minorVersionUpgradeJob_shouldRestartTheCluster() {
+  void restartJob_shouldRestartTheCluster() {
     doReturn(Uni.createFrom().voidItem()).when(clusterRestart).restartCluster(any());
 
     cluster = kubeDb.addOrReplaceCluster(cluster);
 
-    minorVerionUpgradeJob.runJob(dbOps, cluster).await().indefinitely();
+    restartJob.runJob(dbOps, cluster).await().indefinitely();
 
     verify(clusterRestart).restartCluster(any());
   }
@@ -104,9 +93,9 @@ class MinorVersionUpgradeJobTest {
     dbOps = kubeDb.addOrReplaceDbOps(dbOps);
 
     assertThrows(RuntimeException.class,
-        () -> minorVerionUpgradeJob.runJob(dbOps, cluster).await().indefinitely());
+        () -> restartJob.runJob(dbOps, cluster).await().indefinitely());
 
     assertEquals(errorMessage, kubeDb.getDbOps(clusterName, clusterNamespace)
-        .getStatus().getMinorVersionUpgrade().getFailure());
+        .getStatus().getRestart().getFailure());
   }
 }

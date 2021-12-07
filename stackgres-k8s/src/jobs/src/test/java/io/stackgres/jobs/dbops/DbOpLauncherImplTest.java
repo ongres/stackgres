@@ -173,7 +173,7 @@ class DbOpLauncherImplTest {
   void givenATimeout_itShouldReportTheTimeout() {
     when(securityUpgradeJob.runJob(any(), any()))
         .thenAnswer(invocation -> getClusterRestartStateUni()
-            .invoke(Unchecked.consumer(item -> Thread.sleep(100))));
+            .invoke(Unchecked.consumer(item -> Thread.sleep(10000))));
     doNothing().when(databaseOperationEventEmitter).operationStarted(randomDbOpsName, namespace);
     doNothing().when(databaseOperationEventEmitter).operationCompleted(randomDbOpsName, namespace);
 

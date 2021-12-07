@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -18,8 +20,8 @@ import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -88,7 +90,16 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   @Inject
   EventEmitter<StackGresDbOps> eventEmitter;
 
-  ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
+  private final ExecutorService restartStateHandlerExecutor;
+
+  public AbstractRestartStateHandler() {
+    this.restartStateHandlerExecutor = Executors.newSingleThreadExecutor(
+        new ThreadFactoryBuilder()
+        .setNameFormat("restart-state-handler-executor-%d")
+        .build());
+  }
 
   @Override
   public Uni<ClusterRestartState> restartCluster(StackGresDbOps dbOps) {
@@ -107,17 +118,19 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   }
 
   private Uni<ClusterRestartState> restartCluster(ClusterRestartState clusterRestartState) {
-    return clusterRestart.restartCluster(clusterRestartState)
-        .onItem()
-        .call(event -> updateDbOpsStatus(event, clusterRestartState))
-        .onItem()
-        .call(event -> recordEvent(event, clusterRestartState))
-        .onItem()
-        .call(event -> logEvent(event))
-        .onFailure()
-        .call(error -> reportFailure(clusterRestartState.getClusterName(), error))
-        .collect()
-        .last()
+    return Uni.createFrom().voidItem()
+        .emitOn(restartStateHandlerExecutor)
+        .chain(() -> clusterRestart.restartCluster(clusterRestartState)
+          .onItem()
+          .call(event -> updateDbOpsStatus(event, clusterRestartState))
+          .onItem()
+          .call(event -> recordEvent(event, clusterRestartState))
+          .onItem()
+          .invoke(this::logEvent)
+          .onFailure()
+          .call(error -> reportFailure(clusterRestartState.getClusterName(), error))
+          .collect()
+          .last())
         .call(() -> findSgCluster(clusterRestartState.getClusterName(),
             clusterRestartState.getNamespace())
             .chain(this::cleanCluster)
@@ -290,58 +303,8 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
 
   protected abstract Optional<DbOpsMethodType> getRestartMethod(StackGresDbOps op);
 
-  private Uni<Void> logEvent(RestartEvent event) {
-    var podName = event.getPod().map(Pod::getMetadata).map(ObjectMeta::getName);
-    switch (event.getEventType()) {
-      case INSTANCES_INCREASED:
-        LOGGER.info("Instances increased");
-        break;
-      case SWITCHOVER_INITIATED:
-        LOGGER.info("Switchover initiated");
-        break;
-      case POSTGRES_RESTARTED:
-        LOGGER.info("Postgres of pod {} restarted", podName.orElseThrow());
-        break;
-      case INSTANCES_DECREASED:
-        LOGGER.info("Instances decreased");
-        break;
-      case POD_RESTARTED:
-        LOGGER.info("Pod {} restarted", podName.orElseThrow());
-        break;
-      case DECREASING_INSTANCES:
-        LOGGER.info("Decreasing instances");
-        break;
-      case INCREASING_INSTANCES:
-        LOGGER.info("Increasing instances");
-        break;
-      case POD_RESTART_FAILED:
-        LOGGER.info("Restart of pod {} failed", podName);
-        break;
-      case POSTGRES_RESTART_FAILED:
-        LOGGER.info("Restart of postgres of pod {} failed", podName.orElseThrow());
-        break;
-      case PRIMARY_AVAILABLE:
-        LOGGER.info("Primary pod {} available", podName.orElseThrow());
-        break;
-      case PRIMARY_CHANGED:
-        LOGGER.info("Pod {} is no longer the primary", podName.orElseThrow());
-        break;
-      case PRIMARY_NOT_AVAILABLE:
-        LOGGER.info("Primary pod not available");
-        break;
-      case RESTARTING_POD:
-        LOGGER.info("Restarting pod {}", podName.orElseThrow());
-        break;
-      case RESTARTING_POSTGRES:
-        LOGGER.info("Restarting postgres of pod {}", podName.orElseThrow());
-        break;
-      case SWITCHOVER_FINALIZED:
-        LOGGER.info("Switchover performed");
-        break;
-      default:
-        break;
-    }
-    return Uni.createFrom().voidItem();
+  private void logEvent(RestartEvent event) {
+    LOGGER.info(event.getMessage());
   }
 
   protected Uni<Void> reportFailure(String clusterName, Throwable error) {
@@ -480,48 +443,8 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
 
   protected Uni<?> recordEvent(RestartEvent event, ClusterRestartState restartState) {
     return findDbOps(restartState.getDbOpsName(), restartState.getNamespace())
-        .invoke(dbOps -> {
-          String message = getEventMessage(event, restartState.getClusterName());
-          eventEmitter.sendEvent(event.getEventType(), message, dbOps);
-        });
-  }
-
-  private String getEventMessage(RestartEvent event, String clusterName) {
-    final Optional<String> podName = event.getPod().map(Pod::getMetadata)
-        .map(ObjectMeta::getName);
-    final String sgCluster = HasMetadata.getSingular(StackGresCluster.class);
-    switch (event.getEventType()) {
-      case RESTARTING_POSTGRES:
-        return "Restarting postgres of pod " + podName.orElseThrow();
-      case POSTGRES_RESTARTED:
-        return "Restarted postgres of pod " + podName.orElseThrow();
-      case POSTGRES_RESTART_FAILED:
-        return String.format("Postgres Restart of pod %s failed", podName.orElseThrow());
-      case INCREASING_INSTANCES:
-        return "Increasing instances of " + sgCluster + " " + clusterName;
-      case INSTANCES_INCREASED:
-        return "Increased instances of " + sgCluster + " " + clusterName;
-      case RESTARTING_POD:
-        return "Restarting pod " + podName.orElseThrow();
-      case POD_RESTARTED:
-        return "Pod " + podName.orElseThrow() + " successfully restarted";
-      case POD_RESTART_FAILED:
-        return String.format("Restart of pod %s failed", podName.orElseThrow());
-      case SWITCHOVER_INITIATED:
-        return "Switchover of " + sgCluster + " " + clusterName + " initiated";
-      case SWITCHOVER_FINALIZED:
-        return "Switchover of " + sgCluster + " " + clusterName + " completed";
-      case DECREASING_INSTANCES:
-        return "Decreasing instances of " + sgCluster + " " + clusterName;
-      case INSTANCES_DECREASED:
-        return "Decreased instances of " + sgCluster + " " + clusterName;
-      case PRIMARY_AVAILABLE:
-        return "Primary pod " + podName.orElseThrow() + " available";
-      case PRIMARY_NOT_AVAILABLE:
-        return "Primary pod " + podName.orElseThrow() + " not available";
-      default:
-        throw new IllegalArgumentException("Unrecognized event " + event.getEventType().name());
-    }
+        .invoke(dbOps -> eventEmitter.sendEvent(
+            event.getEventType(), event.getMessage(), dbOps));
   }
 
 }

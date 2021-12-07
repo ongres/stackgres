@@ -10,6 +10,10 @@ import io.stackgres.operatorframework.resource.EventReason;
 
 public enum RestartEventType implements EventReason {
 
+  CHECK_PRIMARY_AVAILABLE(Type.NORMAL, "CheckPrimaryAvailable"),
+  PRIMARY_AVAILABLE(Type.NORMAL, "PrimaryAvailable"),
+  PRIMARY_CHANGED(Type.WARNING, "PrimaryChanged"),
+  PRIMARY_NOT_AVAILABLE(Type.NORMAL, "PrimaryNotAvailable"),
   INCREASING_INSTANCES(Type.NORMAL, "IncreasingInstances"),
   INSTANCES_INCREASED(Type.NORMAL, "InstancesIncreased"),
   RESTARTING_POD(Type.NORMAL, "RestartingPod"),
@@ -21,10 +25,7 @@ public enum RestartEventType implements EventReason {
   SWITCHOVER_FINALIZED(Type.NORMAL, "SwitchoverFinalized"),
   RESTARTING_POSTGRES(Type.NORMAL, "RestartingPostgres"),
   POSTGRES_RESTARTED(Type.NORMAL, "PostgresRestarted"),
-  POSTGRES_RESTART_FAILED(Type.WARNING, "PostgresRestartFailed"),
-  PRIMARY_AVAILABLE(Type.NORMAL, "PrimaryAvailable"),
-  PRIMARY_CHANGED(Type.NORMAL, "PrimaryChanged"),
-  PRIMARY_NOT_AVAILABLE(Type.NORMAL, "PrimaryNotAvailable");
+  POSTGRES_RESTART_FAILED(Type.WARNING, "PostgresRestartFailed");
 
   private final Type type;
   private final String reason;

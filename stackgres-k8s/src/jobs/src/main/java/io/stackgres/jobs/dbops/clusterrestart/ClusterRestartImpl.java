@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -23,7 +24,6 @@ import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
-import io.stackgres.jobs.mutiny.UniUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,137 +55,140 @@ public class ClusterRestartImpl implements ClusterRestart {
     this.clusterInstanceManager = clusterInstanceManager;
     this.clusterWatcher = clusterWatcher;
     this.postgresRestart = postgresRestart;
-    this.restartExecutor = Executors.newSingleThreadExecutor(t -> new Thread(t, "RestartExecutor"));
+    this.restartExecutor = Executors.newSingleThreadExecutor(
+        new ThreadFactoryBuilder()
+        .setNameFormat("restart-executor-%d")
+        .build());
   }
 
   @Override
   public Multi<RestartEvent> restartCluster(ClusterRestartState clusterRestartState) {
-    return Multi.createFrom().emitter(em -> {
-      try {
-        var restartUni = restartCluster(clusterRestartState, em::emit)
-            .runSubscriptionOn(restartExecutor);
-        UniUtil.waitUniIndefinitely(restartUni);
-        em.complete();
-      } catch (Exception ex) {
-        em.fail(ex);
-      }
-    });
+    return Multi.createFrom()
+        .<RestartEvent>emitter(em -> Uni.createFrom().voidItem()
+            .emitOn(restartExecutor)
+            .chain(() -> restartCluster(clusterRestartState, em::emit)
+                .onItem()
+                .invoke(em::complete)
+                .onFailure()
+                .invoke(em::fail))
+            .await()
+            .indefinitely());
   }
 
   private Uni<Object> restartCluster(ClusterRestartState clusterRestartState,
       Consumer<RestartEvent> em) {
-    Pod primaryInstance = clusterRestartState.getPrimaryInstance();
-    final String clusterName = clusterRestartState.getClusterName();
-    final String namespace = clusterRestartState.getNamespace();
-    final String primaryInstanceName = primaryInstance.getMetadata().getName();
-    LOGGER.info("Checking if primary instance {} is available", primaryInstanceName);
-    return clusterWatcher.getAvailablePrimary(clusterName, namespace)
+    em.accept(ImmutableRestartEventInstance.builder()
+        .message(String.format("Checking if primary instance %s is available",
+            clusterRestartState.getPrimaryInstance().getMetadata().getName()))
+        .eventType(RestartEventType.CHECK_PRIMARY_AVAILABLE)
+        .build());
+    return clusterWatcher.getAvailablePrimary(
+            clusterRestartState.getClusterName(),
+            clusterRestartState.getNamespace())
         .chain(foundPrimaryInstanceName -> {
           if (foundPrimaryInstanceName
-              .map(podName -> !primaryInstanceName.equals(podName))
+              .map(podName -> !clusterRestartState.getPrimaryInstance()
+                  .getMetadata().getName().equals(podName))
               .orElse(false)) {
-            String errorMessage = String.format("Primary instance %s changed from %s",
-                foundPrimaryInstanceName.get(), primaryInstanceName);
-            LOGGER.info(errorMessage);
-            em.accept(ImmutableRestartEvent.builder()
-                .pod(primaryInstance)
+            String message = String.format("Primary instance %s changed from %s",
+                foundPrimaryInstanceName.get(),
+                clusterRestartState.getPrimaryInstance().getMetadata().getName());
+            LOGGER.info(message);
+            em.accept(ImmutableRestartEventInstance.builder()
+                .message(message)
                 .eventType(RestartEventType.PRIMARY_CHANGED)
                 .build());
-            return Uni.createFrom().failure(new RuntimeException(errorMessage));
+            return Uni.createFrom().failure(new RuntimeException(message));
           }
           if (foundPrimaryInstanceName.isEmpty()) {
-            LOGGER.info("Primary instance not available");
-            em.accept(ImmutableRestartEvent.builder()
-                .pod(primaryInstance)
+            em.accept(ImmutableRestartEventInstance.builder()
+                .message("Primary instance not available")
                 .eventType(RestartEventType.PRIMARY_NOT_AVAILABLE)
                 .build());
-            return restartPodOfPrimaryInstance(clusterRestartState, em,
-                primaryInstance, primaryInstanceName)
-                .chain(() -> restartPodOfReplicas(clusterRestartState, em, primaryInstance));
+            return restartPodOfPrimaryInstance(clusterRestartState, em)
+                .chain(() -> restartPodOfReplicas(clusterRestartState, em));
           }
-          LOGGER.info("Primary instance {} available", primaryInstanceName);
-          em.accept(ImmutableRestartEvent.builder()
-              .pod(primaryInstance)
+          em.accept(ImmutableRestartEventInstance.builder()
+              .message(String.format("Primary instance %s available",
+                  clusterRestartState.getPrimaryInstance().getMetadata().getName()))
               .eventType(RestartEventType.PRIMARY_AVAILABLE)
               .build());
-          return restartPostgres(clusterRestartState, em, primaryInstance,
-              primaryInstanceName, clusterName)
-              .chain(() -> increaseClusterInstance(clusterRestartState, em, clusterName))
-              .chain(() -> restartPodOfReplicas(clusterRestartState, em, primaryInstance))
+          return restartPostgres(clusterRestartState, em)
+              .chain(() -> increaseClusterInstance(clusterRestartState, em))
+              .chain(() -> restartPodOfReplicas(clusterRestartState, em))
               .chain(() -> performSwitchover(
-                  clusterRestartState, em, primaryInstance, clusterName))
-              .chain(() -> restartPodOfPrimaryInstance(clusterRestartState, em,
-                  primaryInstance, primaryInstanceName))
-              .chain(() -> decreaseClusterInstance(clusterRestartState, em, clusterName));
+                  clusterRestartState, em))
+              .chain(() -> restartPodOfPrimaryInstance(clusterRestartState, em))
+              .chain(() -> decreaseClusterInstance(clusterRestartState, em));
         });
   }
 
   private Uni<?> restartPostgres(ClusterRestartState clusterRestartState,
-      Consumer<RestartEvent> em, Pod primaryInstance,
-      final String primaryInstanceName, final String clusterName) {
+      Consumer<RestartEvent> em) {
     if (clusterRestartState.getRestartedInstances().isEmpty()
-        && clusterRestartState.hasToBeRestarted(primaryInstance)) {
+        && clusterRestartState.hasToBeRestarted(clusterRestartState.getPrimaryInstance())) {
       return Uni.createFrom().voidItem()
           .invoke(() -> {
-            LOGGER.info("Restarting postgres of primary node {} of cluster {}",
-                primaryInstance.getMetadata().getName(),
-                clusterName);
-            em.accept(ImmutableRestartEvent.builder()
-                .pod(primaryInstance)
+            em.accept(ImmutableRestartEventInstance.builder()
+                .message(String.format("Restarting postgres of primary node %s of cluster %s",
+                    clusterRestartState.getPrimaryInstance().getMetadata().getName(),
+                    clusterRestartState.getClusterName()))
                 .eventType(RestartEventType.RESTARTING_POSTGRES)
                 .build());
           })
-          .chain((a) -> postgresRestart.restartPostgres(primaryInstanceName,
-              clusterName,
+          .chain((a) -> postgresRestart.restartPostgres(
+              clusterRestartState.getPrimaryInstance().getMetadata().getName(),
+              clusterRestartState.getClusterName(),
               clusterRestartState.getNamespace()))
           .onItemOrFailure()
-          .invoke((restarted, failure) -> checkPostgresRestart(em, primaryInstance,
-              primaryInstanceName, failure))
+          .invoke((restarted, failure) -> checkPostgresRestart(clusterRestartState, em, failure))
           .onFailure()
           .transform(failure -> new FailedRestartPostgresException(
-              format("Restart of instance %s failed", primaryInstanceName),
+              format("Restart of instance %s failed",
+                  clusterRestartState.getPrimaryInstance().getMetadata().getName()),
                   failure))
           .chain(() -> waitForClusterToBeHealthy(clusterRestartState));
     }
     return Uni.createFrom().voidItem();
   }
 
-  private void checkPostgresRestart(
-      Consumer<RestartEvent> em,
-      Pod primaryInstance, String primaryInstanceName,
-      Throwable failure) {
+  private void checkPostgresRestart(ClusterRestartState clusterRestartState,
+      Consumer<RestartEvent> em, Throwable failure) {
     if (failure == null) {
-      LOGGER.info("Restart of instance {} completed", primaryInstanceName);
-      em.accept(ImmutableRestartEvent.builder()
-          .pod(primaryInstance)
+      em.accept(ImmutableRestartEventInstance.builder()
+          .message(String.format("Restart of instance %s completed",
+              clusterRestartState.getPrimaryInstance().getMetadata().getName()))
           .eventType(RestartEventType.POSTGRES_RESTARTED)
           .build());
     } else {
-      em.accept(ImmutableRestartEvent.builder()
-          .pod(primaryInstance)
+      em.accept(ImmutableRestartEventInstance.builder()
+          .message(String.format("Restart of instance %s failed: %s",
+              clusterRestartState.getPrimaryInstance().getMetadata().getName(),
+              failure.getMessage()))
           .eventType(RestartEventType.POSTGRES_RESTART_FAILED)
           .build());
     }
   }
 
   private Uni<?> increaseClusterInstance(ClusterRestartState clusterRestartState,
-      Consumer<RestartEvent> em, final String clusterName) {
+      Consumer<RestartEvent> em) {
     if (isReducedImpact(clusterRestartState)
         && hasInstancesNotBeenIncreased(clusterRestartState)) {
       return Uni.createFrom().voidItem()
           .onItem()
           .invoke(() -> {
-            LOGGER.info("Increasing instances of cluster {}", clusterName);
-            em.accept(ImmutableRestartEvent.builder()
+            em.accept(ImmutableRestartEventInstance.builder()
+                .message(String.format("Increasing instances"))
                 .eventType(RestartEventType.INCREASING_INSTANCES)
                 .build());
           })
           .chain(() -> clusterInstanceManager.increaseClusterInstances(
-              clusterName,
+              clusterRestartState.getClusterName(),
               clusterRestartState.getNamespace()))
           .onItem().invoke((createdPod) -> {
-            LOGGER.info("Instances of cluster {} increased", clusterName);
-            em.accept(ImmutableRestartEvent.builder()
+            em.accept(ImmutableRestartEventInstance.builder()
+                .message(String.format("Instances of cluster increased, Pod %s created",
+                    createdPod.getMetadata().getName()))
                 .pod(createdPod)
                 .eventType(RestartEventType.INSTANCES_INCREASED)
                 .build());
@@ -196,9 +199,9 @@ public class ClusterRestartImpl implements ClusterRestart {
   }
 
   private Uni<?> restartPodOfReplicas(ClusterRestartState clusterRestartState,
-      Consumer<RestartEvent> em, Pod primaryInstance) {
+      Consumer<RestartEvent> em) {
     List<Pod> replicas = clusterRestartState.getInitialInstances().stream()
-        .filter(pod -> !primaryInstance.equals(pod))
+        .filter(pod -> !clusterRestartState.getPrimaryInstance().equals(pod))
         .filter(clusterRestartState::hasToBeRestarted)
         .collect(Collectors.toUnmodifiableList());
 
@@ -208,17 +211,17 @@ public class ClusterRestartImpl implements ClusterRestart {
           .onItem()
           .invoke(() -> logPodRestartReason(replica, clusterRestartState))
           .invoke(() -> {
-            LOGGER.info("Restarting replica pod {}", replica.getMetadata().getName());
-            em.accept(ImmutableRestartEvent.builder()
-                .pod(replica)
+            em.accept(ImmutableRestartEventInstance.builder()
+                .message(String.format("Restarting replica pod %s",
+                    replica.getMetadata().getName()))
                 .eventType(RestartEventType.RESTARTING_POD)
                 .build());
           })
           .chain(() -> podRestart.restartPod(clusterRestartState.getClusterName(), replica))
           .onItem()
           .invoke(() -> {
-            LOGGER.info("Pod {} restarted", replica.getMetadata().getName());
-            em.accept(ImmutableRestartEvent.builder()
+            em.accept(ImmutableRestartEventInstance.builder()
+                .message(String.format("Pod %s restarted", replica.getMetadata().getName()))
                 .pod(replica)
                 .eventType(RestartEventType.POD_RESTARTED)
                 .build());
@@ -232,24 +235,23 @@ public class ClusterRestartImpl implements ClusterRestart {
   }
 
   private Uni<?> performSwitchover(ClusterRestartState clusterRestartState,
-      Consumer<RestartEvent> em, Pod primaryInstance,
-      final String clusterName) {
+      Consumer<RestartEvent> em) {
     if (!clusterRestartState.isSwitchoverFinalized()
-        && clusterRestartState.hasToBeRestarted(primaryInstance)) {
+        && clusterRestartState.hasToBeRestarted(clusterRestartState.getPrimaryInstance())) {
       return Uni.createFrom().nullItem()
           .onItem()
-          .invoke(() -> em.accept(ImmutableRestartEvent.builder()
-              .pod(primaryInstance)
+          .invoke(() -> em.accept(ImmutableRestartEventInstance.builder()
+              .message(String.format("Performing switchover from Pod %s",
+                  clusterRestartState.getPrimaryInstance().getMetadata().getName()))
               .eventType(RestartEventType.SWITCHOVER_INITIATED)
               .build()))
-          .onItem()
-          .invoke(() -> LOGGER.info("Performing Switchover over cluster {}", clusterName))
           .chain(() -> switchoverHandler.performSwitchover(
               clusterRestartState.getPrimaryInstance().getMetadata().getName(),
-              clusterName, clusterRestartState.getNamespace()))
+              clusterRestartState.getClusterName(), clusterRestartState.getNamespace()))
           .onItem()
-          .invoke(() -> em.accept(ImmutableRestartEvent.builder()
-              .pod(primaryInstance)
+          .invoke(() -> em.accept(ImmutableRestartEventInstance.builder()
+              .message(String.format("Switchover performed from Pod %s",
+                  clusterRestartState.getPrimaryInstance().getMetadata().getName()))
               .eventType(RestartEventType.SWITCHOVER_FINALIZED)
               .build()))
           .chain(() -> waitForClusterToBeHealthy(clusterRestartState));
@@ -258,26 +260,27 @@ public class ClusterRestartImpl implements ClusterRestart {
   }
 
   private Uni<?> restartPodOfPrimaryInstance(ClusterRestartState clusterRestartState,
-      Consumer<RestartEvent> em, Pod primaryInstance,
-      final String primaryInstanceName) {
-    if (clusterRestartState.hasToBeRestarted(primaryInstance)) {
+      Consumer<RestartEvent> em) {
+    if (clusterRestartState.hasToBeRestarted(clusterRestartState.getPrimaryInstance())) {
       return Uni.createFrom().voidItem()
           .onItem()
-          .invoke(() -> logPodRestartReason(primaryInstance, clusterRestartState))
+          .invoke(() -> logPodRestartReason(
+              clusterRestartState.getPrimaryInstance(), clusterRestartState))
           .invoke(() -> {
-            LOGGER.info("Restarting primary pod {}", primaryInstanceName);
-            em.accept(ImmutableRestartEvent.builder()
-                .pod(primaryInstance)
+            em.accept(ImmutableRestartEventInstance.builder()
+                .message(String.format("Restarting primary pod %s",
+                    clusterRestartState.getPrimaryInstance().getMetadata().getName()))
                 .eventType(RestartEventType.RESTARTING_POD)
                 .build());
           })
           .chain(() -> podRestart.restartPod(
-              clusterRestartState.getClusterName(), primaryInstance))
+              clusterRestartState.getClusterName(), clusterRestartState.getPrimaryInstance()))
           .onItem()
           .invoke(() -> {
-            LOGGER.info("Pod {} restarted", primaryInstanceName);
-            em.accept(ImmutableRestartEvent.builder()
-                .pod(primaryInstance)
+            em.accept(ImmutableRestartEventInstance.builder()
+                .message(String.format("Pod %s restarted",
+                    clusterRestartState.getPrimaryInstance().getMetadata().getName()))
+                .pod(clusterRestartState.getPrimaryInstance())
                 .eventType(RestartEventType.POD_RESTARTED)
                 .build());
           })
@@ -287,23 +290,24 @@ public class ClusterRestartImpl implements ClusterRestart {
   }
 
   private Uni<?> decreaseClusterInstance(ClusterRestartState clusterRestartState,
-      Consumer<RestartEvent> em, final String clusterName) {
+      Consumer<RestartEvent> em) {
     if (isReducedImpact(clusterRestartState)
         && hasInstancesNotBeenDecreased(clusterRestartState)) {
       return Uni.createFrom().voidItem()
           .onItem()
           .invoke(() -> {
-            LOGGER.info("Decreasing instances of cluster {}", clusterName);
-            em.accept(ImmutableRestartEvent.builder()
+            em.accept(ImmutableRestartEventInstance.builder()
+                .message(String.format("Decreasing instances"))
                 .eventType(RestartEventType.DECREASING_INSTANCES)
                 .build());
           })
-          .chain(() -> clusterInstanceManager.decreaseClusterInstances(clusterName,
+          .chain(() -> clusterInstanceManager.decreaseClusterInstances(
+              clusterRestartState.getClusterName(),
               clusterRestartState.getNamespace()))
           .onItem()
           .invoke(() -> {
-            LOGGER.info("Instances of cluster {} decreased", clusterName);
-            em.accept(ImmutableRestartEvent.builder()
+            em.accept(ImmutableRestartEventInstance.builder()
+                .message(String.format("Instances decreased"))
                 .eventType(RestartEventType.INSTANCES_DECREASED)
                 .build());
           });

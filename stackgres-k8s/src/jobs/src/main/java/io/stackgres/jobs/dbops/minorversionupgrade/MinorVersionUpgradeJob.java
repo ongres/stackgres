@@ -14,7 +14,7 @@ import javax.inject.Inject;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsSecurityUpgradeStatus;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsMinorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -51,7 +51,7 @@ public class MinorVersionUpgradeJob implements DatabaseOperationJob {
 
   @Override
   public Uni<ClusterRestartState> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {
-    LOGGER.info("Starting MinorVersionUpgrade for SgDbOps {}", dbOps.getMetadata().getName());
+    LOGGER.info("Starting minor version upgrade for SGDbOps {}", dbOps.getMetadata().getName());
 
     return setClusterTargetMinorVersion(dbOps, cluster)
         .chain(() -> restartStateHandler.restartCluster(dbOps))
@@ -102,11 +102,12 @@ public class MinorVersionUpgradeJob implements DatabaseOperationJob {
             savedDbOps.setStatus(new StackGresDbOpsStatus());
           }
 
-          if (savedDbOps.getStatus().getSecurityUpgrade() == null) {
-            savedDbOps.getStatus().setSecurityUpgrade(new StackGresDbOpsSecurityUpgradeStatus());
+          if (savedDbOps.getStatus().getMinorVersionUpgrade() == null) {
+            savedDbOps.getStatus().setMinorVersionUpgrade(
+                new StackGresDbOpsMinorVersionUpgradeStatus());
           }
 
-          savedDbOps.getStatus().getSecurityUpgrade().setFailure(message);
+          savedDbOps.getStatus().getMinorVersionUpgrade().setFailure(message);
 
           dbOpsScheduler.update(savedDbOps);
         });
