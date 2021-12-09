@@ -1,0 +1,14 @@
+####
+# This Dockerfile is used in order to build a container that runs the StackGres builds
+#
+# Build the image with:
+#
+# docker build -f stackgres-k8s/ci/build/Dockerfile.build -t registry.gitlab.com/ongresinc/stackgres/build-amd64:1.2 stackgres-k8s/ci/build/
+#
+###
+
+FROM ghcr.io/graalvm/graalvm-ce:java11-21.0.0.2
+  RUN gu install native-image
+  RUN microdnf install python3-pip jq
+  RUN pip3 install yamllint yq
+  RUN microdnf install util-linux

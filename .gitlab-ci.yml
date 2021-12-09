@@ -13,6 +13,9 @@ variables:
   EXECUTOR_JOB_SECTION_ATTEMPTS: 3
   GET_SOURCES_ATTEMPTS: 3
   RESTORE_CACHE_ATTEMPTS: 3
+  E2E_SHELL: sh
+  E2E_ENV: kind
+  K8S_VERSION: 1.16.15
   LATEST: "false"
 
 # Cache downloaded dependencies and plugins between builds.
@@ -23,6 +26,7 @@ cache:
 
 stages:
   - pre build
+  - pre build multi archs
   - build 1
   - build 2
   - check release

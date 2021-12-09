@@ -1,3 +1,120 @@
+.pre build image:
+  image: docker:20.10.6
+  stage: pre build
+  timeout: 1 hour
+  script:
+    - |
+    - TARGET_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME-$IMAGE_ARCH"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - |
+      if docker manifest inspect "$TARGET_IMAGE_NAME" 2>/dev/null
+      then
+        echo "$TARGET_IMAGE_NAME" already exists
+        exit
+      fi
+      echo Building...
+      docker build -f "$IMAGE_DOCKERFILE" -t "$TARGET_IMAGE_NAME" "$IMAGE_BUILD_PATH"
+      echo ...done
+      echo Pushing...
+      docker push "$TARGET_IMAGE_NAME"
+      echo ...done
+  retry: 2
+
+build builder image amd64:
+  extends: .pre build image
+  tags:
+    - stackgres-runner-v2
+    - linux-amd64
+  variables:
+    IMAGE_NAME: "$BUILD_IMAGE_NAME"
+    IMAGE_ARCH: 'amd64'
+    IMAGE_DOCKERFILE: stackgres-k8s/ci/build/Dockerfile.build
+    IMAGE_BUILD_PATH: stackgres-k8s/ci/build
+
+build builder image arm64:
+  extends: .pre build image
+  tags:
+    - stackgres-runner-v2
+    - linux-arm64
+  variables:
+    IMAGE_NAME: "$BUILD_IMAGE_NAME"
+    IMAGE_ARCH: 'arm64'
+    IMAGE_DOCKERFILE: stackgres-k8s/ci/build/Dockerfile.build
+    IMAGE_BUILD_PATH: stackgres-k8s/ci/build
+  only:
+    variables:
+      - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_ARM
+
+build test image amd64:
+  extends: .pre build image
+  tags:
+    - stackgres-runner-v2
+    - linux-amd64
+  variables:
+    IMAGE_NAME: $IT_IMAGE_NAME
+    IMAGE_ARCH: 'amd64'
+    IMAGE_DOCKERFILE: stackgres-k8s/src/operator/src/test/docker/Dockerfile.it
+    IMAGE_BUILD_PATH: stackgres-k8s/src/operator/src/test/docker
+
+build test image arm64:
+  extends: .pre build image
+  tags:
+    - stackgres-runner-v2
+    - linux-arm64
+  variables:
+    IMAGE_NAME: $IT_IMAGE_NAME
+    IMAGE_ARCH: 'arm64'
+    IMAGE_DOCKERFILE: stackgres-k8s/src/operator/src/test/docker/Dockerfile.it.arm64
+    IMAGE_BUILD_PATH: stackgres-k8s/src/operator/src/test/docker
+  only:
+    variables:
+      - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_ARM
+
+.pre build image multi archs:
+  image: docker:20.10.6
+  tags:
+    - stackgres-runner-v2
+  stage: pre build multi archs
+  timeout: 1 hour
+  script:
+    - TARGET_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - |
+      ARCH_LIST="amd64 $(
+        if [ "$DO_ARM" = true ] \
+          || { [ "$SKIP_ARM" != true ] && [ -n "$CI_COMMIT_TAG" ]; }
+        then
+          echo arm64
+        fi
+        )"
+      if ! docker manifest inspect "$TARGET_IMAGE_NAME" >/dev/null 2>&1
+      then
+        docker manifest rm "$TARGET_IMAGE_NAME" 2>/dev/null || true
+        docker manifest create "$TARGET_IMAGE_NAME" $(
+          for IMAGE_ARCH in $ARCH_LIST
+          do
+            echo "$TARGET_IMAGE_NAME-$IMAGE_ARCH "
+          done)
+        docker manifest push "$TARGET_IMAGE_NAME"
+      fi
+  retry: 2
+
+build builder image multi archs:
+  extends: .pre build image multi archs
+  tags:
+    - stackgres-runner-v2
+  variables:
+    IMAGE_NAME: "$BUILD_IMAGE_NAME"
+
+build test image multi archs:
+  extends: .pre build image multi archs
+  tags:
+    - stackgres-runner-v2
+  variables:
+    IMAGE_NAME: "$IT_IMAGE_NAME"
+
 build ci image:
   image: docker:20.10.6
   stage: pre build
