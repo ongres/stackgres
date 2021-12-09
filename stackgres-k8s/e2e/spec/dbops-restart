@@ -60,7 +60,7 @@ check_restart_only_pending_restart_is_working() {
   reset_cluster
 
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p '[{"op":"add","path":"/spec/pods/disableConnectionPooling","value":"true"}]'
+    -p '[{"op":"add","path":"/spec/pods/disableConnectionPooling","value":true}]'
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
   wait_pods_running "$CLUSTER_NAMESPACE" 3
