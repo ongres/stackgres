@@ -1,6 +1,8 @@
 image: null
 
 variables:
+  BUILD_IMAGE_NAME: 'build:1.2'
+  IT_IMAGE_NAME: 'it:15.0'
   # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
   # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
   MAVEN_OPTS: |
@@ -12,7 +14,6 @@ variables:
   # when running from the command line.
   # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding plugins.
   MAVEN_CLI_OPTS: |
-    -f stackgres-k8s/src/pom.xml
     --batch-mode
     --errors
     --fail-at-end
@@ -49,9 +50,11 @@ cache:
     - .m2/repository
 
 stages:
+  - pre build
+  - pre build multi archs
   - build
-  - post-build
-  - check-release
+  - post build
+  - check release
   - native build
   - image build
   - image build multi archs
@@ -59,6 +62,7 @@ stages:
   - deploy
 
 include:
+  - local: .gitlab-ci/pre-build.yml
   - local: .gitlab-ci/build.yml
   - local: .gitlab-ci/post-build.yml
   - local: .gitlab-ci/native-build.yml

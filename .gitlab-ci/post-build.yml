@@ -1,6 +1,6 @@
 build ui:
   image: node:13.7.0
-  stage: post-build
+  stage: post build
   dependencies:
     - build
   script:
@@ -22,7 +22,7 @@ build documentation:
   image:
     name: klakegg/hugo:0.81.0-ubuntu
     entrypoint: [ "" ]
-  stage: post-build
+  stage: post build
   dependencies:
     - build
   script:
@@ -63,7 +63,7 @@ build documentation:
 
 build helm packages:
   image: dtzar/helm-kubectl:3.3.1
-  stage: post-build
+  stage: post build
   script:
   - sh -x stackgres-k8s/install/helm/build-helm-packages.sh
   - |
@@ -81,7 +81,7 @@ build helm packages:
 
 build helm templates:
   image: dtzar/helm-kubectl:3.3.1
-  stage: post-build
+  stage: post build
   script:
   - sh -x stackgres-k8s/install/helm/build-helm-templates.sh
   - |
