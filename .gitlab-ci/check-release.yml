@@ -1,13 +1,14 @@
 
 enforce release:
-  image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: check release
   tags:
     - stackgres-runner-v2
-    - linux-amd64
   script:
-    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -Dmaven.test.skip=true -Dquarkus.build.skip=true"
-    - 'mvn $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots'
+    - |
+      MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -Dmaven.test.skip=true -Dquarkus.build.skip=true"
+      cd stackgres-k8s/src
+      ./mvnw $MAVEN_CLI_OPTS enforcer:enforce@enforce-no-snapshots
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,

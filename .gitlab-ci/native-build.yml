@@ -1,6 +1,6 @@
 
 .build native executable:
-  image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
+  image: registry.gitlab.com/$CI_PROJECT_PATH/$BUILD_IMAGE_NAME
   stage: native build
   dependencies:
     - build
@@ -11,7 +11,6 @@
   timeout: 12 hour
   script:
     - |
-      MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
       flock "/tmp/stackgres-build$NATIVE_IMAGE_EXTRA_PREFIX-native-executable" \
         timeout -s KILL 3600 \
         sh stackgres-k8s/ci/build/build-gitlab.sh build \

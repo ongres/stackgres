@@ -18,35 +18,6 @@
       docker push "$IMAGE_NAME"
   retry: 2
 
-.build test image:
-  image: docker:20.10.6
-  stage: image build
-  timeout: 1 hour
-  script:
-    - |
-      IT_IMAGE_NAME="$(grep -o '<it\.image>\([^<]\+\)</it\.image>' stackgres-k8s/src/pom.xml \
-        | tr '<>' '  ' | cut -d ' ' -f 3)$IMAGE_SUFFIX"
-    - TARGET_IT_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME"
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - |
-      if docker manifest inspect "$TARGET_IT_IMAGE_NAME" 2>/dev/null
-      then
-        echo "$TARGET_IT_IMAGE_NAME" already exists
-        exit
-      fi
-      echo Building...
-      if [ "$IMAGE_SUFFIX" = arm64 ]
-      then
-        docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it.arm64 -t "$TARGET_IT_IMAGE_NAME" .
-      else
-        docker build -f stackgres-k8s/src/operator/src/test/docker/Dockerfile.it -t "$TARGET_IT_IMAGE_NAME" .
-      fi
-      echo ...done
-      echo Pushing...
-      docker push "$TARGET_IT_IMAGE_NAME"
-      echo ...done
-  retry: 2
-
 .build image multi archs:
   image: docker:20.10.6
   stage: image build multi archs
@@ -78,36 +49,6 @@
           echo "$TARGET_IMAGE_NAME-$ARCH "
         done)
       docker manifest push "$TARGET_IMAGE_NAME"
-  retry: 2
-
-.build test image multi archs:
-  image: docker:20.10.6
-  stage: image build multi archs
-  timeout: 1 hour
-  script:
-    - |
-      IT_IMAGE_NAME="$(grep -o '<it\.image>\([^<]\+\)</it\.image>' stackgres-k8s/src/pom.xml \
-        | tr '<>' '  ' | cut -d ' ' -f 3)"
-    - TARGET_IT_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IT_IMAGE_NAME"
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - |
-      ARCH_LIST="amd64 $(
-        if [ "$DO_ARM" = true ] \
-          || { [ "$SKIP_ARM" != true ] && [ -n "$CI_COMMIT_TAG" ]; }
-        then
-          echo arm64
-        fi
-        )"
-      if ! docker manifest inspect "$TARGET_IT_IMAGE_NAME" >/dev/null 2>&1
-      then
-        docker manifest rm "$TARGET_IT_IMAGE_NAME" 2>/dev/null || true
-        docker manifest create "$TARGET_IT_IMAGE_NAME" $(
-          for ARCH in $ARCH_LIST
-          do
-            echo "$TARGET_IT_IMAGE_NAME-$ARCH "
-          done)
-        docker manifest push "$TARGET_IT_IMAGE_NAME"
-      fi
   retry: 2
 
 .build jvm image amd64:
@@ -211,14 +152,6 @@ build admin-ui image amd64:
     IMAGE_BASE_NAME: stackgres/admin-ui
     LOCK_FILE: stackgres-adminui-build-image
     IMAGE_MODULE_NAME: admin-ui-image
-
-build test image amd64:
-  extends: .build test image
-  tags:
-    - stackgres-runner-v2
-    - linux-amd64
-  variables:
-    IMAGE_SUFFIX: '-amd64'
 
 .build jvm image arm64:
   extends: .build image
@@ -330,18 +263,6 @@ build admin-ui image arm64:
       - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_ARM
 
-build test image arm64:
-  extends: .build test image
-  tags:
-    - stackgres-runner-v2
-    - linux-arm64
-  variables:
-    IMAGE_SUFFIX: '-arm64'
-  only:
-    variables:
-      - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_ARM
-
 .build jvm image multi archs:
   extends: .build image multi archs
   tags:
@@ -420,8 +341,3 @@ build admin-ui image multi archs:
   variables:
     IMAGE_SUFFIX: ''
     IMAGE_BASE_NAME: stackgres/admin-ui
-
-build test image multi archs:
-  extends: .build test image multi archs
-  tags:
-    - stackgres-runner-v2
