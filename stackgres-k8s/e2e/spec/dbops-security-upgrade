@@ -7,6 +7,11 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  if ! can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
+  then
+    return
+  fi
+
   RANDOM_VALUE="$(random_string)"
   CLUSTER_1_NAME="$(get_sgcluster_name "$CLUSTER_NAME-1")"
   CLUSTER_2_NAME="$(get_sgcluster_name "$CLUSTER_NAME-2")"
@@ -161,6 +166,11 @@ e2e_test_uninstall() {
 }
 
 e2e_test() {
+  if ! can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
+  then
+    echo "Skip dbops-security-upgrade since previous version of operator $STACKGRES_PREVIOUS_VERSION can not be installed"
+    return
+  fi
   run_test "Check clusters before operator upgrade" check_before_operator_upgrade
   run_test "Check that operator can be upgraded to newer version" check_operator_upgrade
   run_test "Check that previous CRDs be converted to previous versions" check_previous_versions_conversion_webhooks

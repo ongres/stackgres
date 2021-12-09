@@ -5,6 +5,11 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  if [ "$(uname -m)" != x86_64 ]
+  then
+    return
+  fi
+
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
 
@@ -60,6 +65,12 @@ EOF
 }
 
 e2e_test() {  
+  if [ "$(uname -m)" != x86_64 ]
+  then
+    echo "Skipping ui test since not running in x86_64 architecture"
+    return
+  fi
+
   run_test "Cypress chrome tests should pass" cypress_chrome_tests
 
   run_test "Cypress firefox tests should pass" cypress_firefox_tests
