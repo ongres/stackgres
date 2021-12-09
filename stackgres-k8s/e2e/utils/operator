@@ -1,4 +1,7 @@
 #!/bin/sh
+# shellcheck disable=SC2039
+# shellcheck disable=SC2120
+# shellcheck disable=SC2164
 
 export IMAGE_TAG="${IMAGE_TAG:-main-jvm}"
 export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
@@ -14,8 +17,9 @@ export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERA
 export ADMINUI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}admin-ui:$ADMINUI_IMAGE_TAG"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
-export STACKGRES_VERSION="$(grep '<artifactId>stackgres-parent</artifactId>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
+STACKGRES_VERSION="$(grep '<artifactId>stackgres-parent</artifactId>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
   | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)"
+export STACKGRES_VERSION
 export STACKGRES_IMAGE_BUILDER="${STACKGRES_IMAGE_BUILDER:-docker}"
 export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 export CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
@@ -33,7 +37,7 @@ export E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
 export E2E_INCLUDE_ONLY_POSTGRES_VERSIONS="12.8 13.0 13.4 14.0"
 
 generate_operator_namespace() {
-  echo stackgres-$(printf '%x' "$(date +%s)")
+  echo "stackgres-$(printf '%x' "$(date +%s)")"
 }
 
 export OPERATOR_NAMESPACE="${OPERATOR_NAMESPACE:-$(generate_operator_namespace)}"
@@ -166,7 +170,7 @@ kind: CertificateSigningRequest
 metadata:
   name: stackgres-operator
 spec:
-  request: "$(cat "$TARGET_PATH/server.csr" | base64 | tr -d '\n')"
+  request: "$(base64 "$TARGET_PATH/server.csr" | tr -d '\n')"
   usages:
   - digital signature
   - key encipherment
@@ -179,7 +183,9 @@ EOF
 
 setup_operator() {
   if [ "$E2E_SKIP_SETUP" = true ] \
-    || ([ "$E2E_REUSE_OPERATOR_PODS" = true ] && is_operator_installed)
+    || {
+      [ "$E2E_REUSE_OPERATOR_PODS" = true ] && is_operator_installed
+    }
   then
     if is_operator_installed
     then
@@ -194,12 +200,14 @@ setup_operator() {
   fi
 
   if ! is_operator_installed \
-    || ([ "$E2E_USE_EXTERNAL_OPERATOR" != true ] \
-      && [ "$E2E_REUSE_OPERATOR_PODS" != true ]) \
+    || {
+      [ "$E2E_USE_EXTERNAL_OPERATOR" != true ] \
+      && [ "$E2E_REUSE_OPERATOR_PODS" != true ]
+    } \
     || [ "$(get_operator_namespace)" != "$OPERATOR_NAMESPACE" ]
   then
-    if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true \
-        -a "$E2E_SKIP_OPERATOR_LOAD" != true ]
+    if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true ] \
+        && [ "$E2E_SKIP_OPERATOR_LOAD" != true ]
     then
       load_operator_k8s
     fi
@@ -330,7 +338,7 @@ load_operator_k8s_only() {
 }
 
 pull_image_from() {
-  [ -n "$1" -a -n "$2" -a -n "$3" ]
+  [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]
   local REPOSITORY="$1"
   local IMAGE_PATH="$2"
   local IMAGE="$3"
@@ -349,22 +357,26 @@ install_operator() {
   kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1 \
     || kubectl create namespace "$OPERATOR_NAMESPACE"
 
-  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
-    -a -n "$STACKGRES_PREVIOUS_VERSION" ]
+  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" ] \
+    && [ -n "$STACKGRES_PREVIOUS_VERSION" ] \
+    && can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
   then
     echo "Installing operator version $STACKGRES_PREVIOUS_VERSION"
     install_operator_previous_version "$@"
   fi
 
-  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
-    -a -n "$STACKGRES_PREVIOUS_VERSION" \
-    -a -n "$E2E_UPGRADE_BEFORE_RUN_TEST" ]
+  if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" ] \
+    && [ -n "$STACKGRES_PREVIOUS_VERSION" ] \
+    && [ -n "$E2E_UPGRADE_BEFORE_RUN_TEST" ] \
+    && can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
   then
+    # shellcheck disable=SC2034
     E2E_BEFORE_RUN_TEST_FUNCTION=e2e_before_run_test_upgrade
     E2E_BEFORE_RUN_TEST_COUNT=
   else
-    if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" \
-      -a -n "$STACKGRES_PREVIOUS_VERSION" ]
+    if [ "$E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR" != "true" ] \
+      && [ -n "$STACKGRES_PREVIOUS_VERSION" ] \
+      && can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
     then
       echo "Upgrading operator from version $(get_installed_operator_version) to version $STACKGRES_VERSION"
     else
@@ -423,16 +435,38 @@ install_operator_only() {
     --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \
     --set-string developer.extraOpts[8]='-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE' \
     --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level='"$(
+      # shellcheck disable=SC2015
       [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
     --set-string developer.extraOpts[10]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
     --set extensions.cache.enabled="$(
+      # shellcheck disable=SC2015
       [ "$EXTENSIONS_CACHE_ENABLED" = true ] && echo true || echo false)" \
     --set extensions.cache.preloadedExtensions="{$(
+      # shellcheck disable=SC2015
       [ "$EXTENSIONS_CACHE_ENABLED" = true ] \
         && printf '%s' "$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS" | jq -r 'join(",")' | tr -d '\n' \
         || true)}" \
     $E2E_OPERATOR_OPTS "$@"
   fi
+}
+
+can_install_operator_version() {
+  local VERSION="${1:-$STACKGRES_PREVIOUS_VERSION}"
+  local VERSION_AS_NUMBER VERSION_0_9_5
+  VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
+  VERSION_0_9_5="$(get_version_as_number 0.9.5)"
+  if [ "$VERSION_AS_NUMBER" -le "$VERSION_0_9_5" ]
+  then
+    if {
+        [ "$KUBERNETES_VERSION_NUMBER" -le 117 ] \
+        || [ "$KUBERNETES_VERSION_NUMBER" -ge 111 ]
+      } \
+      || [ "$(uname -m)" != x86_64 ]
+    then
+      return 1
+    fi
+  fi
+  return
 }
 
 install_operator_previous_version() {
@@ -443,7 +477,6 @@ install_operator_previous_version() {
   install_operator_vanilla_from "$OPERATOR_PREVIOUS_VERSION_HELM_URL" \
     $E2E_OPERATOR_OPTS "$@"
 }
-
 
 install_operator_vanilla() {
   install_operator_vanilla_from "$OPERATOR_CHART_PATH" \
@@ -490,11 +523,14 @@ upgrade_operator() {
     --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \
     --set-string developer.extraOpts[8]='-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE' \
     --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level='"$(
+      # shellcheck disable=SC2015
       [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
     --set-string developer.extraOpts[10]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
     --set extensions.cache.enabled="$(
+      # shellcheck disable=SC2015
       [ "$EXTENSIONS_CACHE_ENABLED" = true ] && echo true || echo false)" \
     --set extensions.cache.preloadedExtensions="{$(
+      # shellcheck disable=SC2015
       [ "$EXTENSIONS_CACHE_ENABLED" = true ] \
         && printf '%s' "$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS" | jq -r 'join(",")' | tr -d '\n' \
         || true)}" \
@@ -509,7 +545,8 @@ upgrade_operator_vanilla() {
 }
 
 upgrade_operator_from_private_repository() {
-  export PRIVATE_REPO_URI=$(get_private_repository_uri)
+  PRIVATE_REPO_URI=$(get_private_repository_uri)
+  export PRIVATE_REPO_URI
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/operator"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/restapi"
   export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/jobs"
@@ -537,11 +574,14 @@ upgrade_operator_from_private_repository() {
       --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \
       --set-string developer.extraOpts[8]='-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE' \
       --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level='"$(
+        # shellcheck disable=SC2015
         [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
       --set-string developer.extraOpts[10]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
       --set extensions.cache.enabled="$(
+        # shellcheck disable=SC2015
         [ "$EXTENSIONS_CACHE_ENABLED" = true ] && echo true || echo false)" \
       --set extensions.cache.preloadedExtensions="{$(
+        # shellcheck disable=SC2015
         [ "$EXTENSIONS_CACHE_ENABLED" = true ] \
           && printf '%s' "$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS" | jq -r 'join(",")' | tr -d '\n' \
           || true)}" \
@@ -568,7 +608,7 @@ update_ui_clear_password() {
 }
 
 delete_operator() {
-  delete_operator_only
+  delete_operator_only "$@"
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
 }
 
@@ -644,14 +684,18 @@ load_extensions_images_from() {
   local IMAGE_PATH="$2"
   local EXTENSIONS
   EXTENSIONS="$(get_preloaded_extensions)"
-  EXTENSIONS="$(printf '%s' "$EXTENSIONS" \
-    | while read -r REPOSITORY PUBLISHER NAME VERSION POSTGRES_VERSION FLAVOR BUILD_ARCH BUILD_OS BUILD
-      do
-        get_extension_image "$EXTENSIONS_REPOSITORY_URL" "$PUBLISHER" "$NAME" \
-          "$VERSION" "$POSTGRES_VERSION" "$FLAVOR" "$BUILD_ARCH" "$BUILD_OS" "$BUILD"
-      done)"
+  EXTENSIONS="$(
+    # shellcheck disable=SC2030
+    printf '%s' "$EXTENSIONS" \
+      | while read -r REPOSITORY PUBLISHER NAME VERSION POSTGRES_VERSION FLAVOR BUILD_ARCH BUILD_OS BUILD
+        do
+          get_extension_image "$EXTENSIONS_REPOSITORY_URL" "$PUBLISHER" "$NAME" \
+            "$VERSION" "$POSTGRES_VERSION" "$FLAVOR" "$BUILD_ARCH" "$BUILD_OS" "$BUILD"
+        done)"
+  # shellcheck disable=SC2031
   if [ -n "$REPOSITORY" ] && [ -n "$IMAGE_PATH" ]
   then
+    # shellcheck disable=SC2031
     printf '%s' "$EXTENSIONS" \
       | xargs_parallel_shell % "$E2E_PATH/e2e" \
         load_image_from "$REPOSITORY" "$IMAGE_PATH" '%'
@@ -663,7 +707,7 @@ load_extensions_images_from() {
 }
 
 load_image_from() {
-  [ -n "$1" -a -n "$2" -a -n "$3" ]
+  [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]
   local REPOSITORY="$1"
   local IMAGE_PATH="$2"
   local IMAGE="$3"
@@ -751,7 +795,7 @@ get_pom_url() {
 }
 
 get_component_versions() {
-  [ -n "$1" -a -n "$2" ]
+  [ -n "$1" ] && [ -n "$2" ]
   local VERSION="$1"
   local COMPONENT="$2"
   (
@@ -847,7 +891,7 @@ get_container_build_pre_1_0_0_alpha2() {
 }
 
 get_component_versions_pre_1_0_0_alpha2() {
-  [ -n "$1" -a -n "$2" ]
+  [ -n "$1" ] && [ -n "$2" ]
   local VERSION="$1"
   local COMPONENT="$2"
   (
@@ -888,13 +932,13 @@ get_component_images_pre_0_9_5() {
   do
     echo "$VERSION"
   done | sort -t ' ' -k 1V,1V \
-    | while read VERSION
+    | while read -r VERSION
       do
         for SUBVERSION in $COMPONENT_POSTGRESQL_VERSIONS
         do
           echo "$SUBVERSION"
         done | sort -t ' ' -k 1V,1V \
-          | while read SUBVERSION
+          | while read -r SUBVERSION
             do
               echo "docker.io/ongres/patroni:v$VERSION-pg$SUBVERSION-build-$1"
             done
@@ -903,7 +947,7 @@ get_component_images_pre_0_9_5() {
   do
     echo "$VERSION"
   done | sort -t ' ' -k 1V,1V \
-    | while read VERSION
+    | while read -r VERSION
       do
         echo "docker.io/ongres/postgres-util:v$VERSION-build-$1"
       done
@@ -911,7 +955,7 @@ get_component_images_pre_0_9_5() {
   do
     echo "$VERSION"
   done | sort -t ' ' -k 1V,1V \
-    | while read VERSION
+    | while read -r VERSION
       do
         echo "docker.io/ongres/pgbouncer:v$VERSION-build-$1"
       done
@@ -919,7 +963,7 @@ get_component_images_pre_0_9_5() {
   do
     echo "$VERSION"
   done | sort -t ' ' -k 1V,1V \
-    | while read VERSION
+    | while read -r VERSION
       do
         echo "docker.io/ongres/prometheus-postgres-exporter:v$VERSION-build-$1"
       done
@@ -927,7 +971,7 @@ get_component_images_pre_0_9_5() {
   do
     echo "$VERSION"
   done | sort -t ' ' -k 1V,1V \
-    | while read VERSION
+    | while read -r VERSION
       do
         echo "docker.io/ongres/envoy:v$VERSION-build-$1"
       done
@@ -935,7 +979,7 @@ get_component_images_pre_0_9_5() {
   do
     echo "$VERSION"
   done | sort -t ' ' -k 1V,1V \
-    | while read VERSION
+    | while read -r VERSION
       do
         echo "docker.io/ongres/fluentbit:v$VERSION-build-$1"
       done
@@ -943,7 +987,7 @@ get_component_images_pre_0_9_5() {
   do
     echo "$VERSION"
   done | sort -t ' ' -k 1V,1V \
-    | while read VERSION
+    | while read -r VERSION
       do
         echo "docker.io/ongres/fluentd:v$VERSION-build-$1"
       done
@@ -981,8 +1025,10 @@ get_operator_image_tag() {
   then
     echo "$IMAGE_TAG"
   else
-    if ([ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA2" ] \
-      && [ "$VERSION_AS_NUMBER" -ge "$VERSION_1_0_0_ALPHA1" ]) \
+    if {
+        [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA2" ] \
+        && [ "$VERSION_AS_NUMBER" -ge "$VERSION_1_0_0_ALPHA1" ]
+      } \
       || [ "$VERSION_AS_NUMBER" -lt "$VERSION_0_9_5" ]
     then
       echo "$VERSION-jvm"
@@ -1048,14 +1094,13 @@ traceable_get_version_as_number() {
   [ -n "$VERSION" ]
   local VERSION="$1"
 
-  local CARDINALITY="$(printf '%s' "$VERSION" | tr '.' ' ' | wc -w)"
+  local CARDINALITY
+  CARDINALITY="$(printf '%s' "$VERSION" | tr '.' ' ' | wc -w)"
   local MAJOR=""
   local MINOR
   local PATCH="0"
   local SUFFIX=""
   local SUFFIX_VERSION="0"
-  local VERSION_SUFFIX=""
-  local i
 
   if [ "$CARDINALITY" -gt 3 ]
   then
@@ -1090,7 +1135,7 @@ traceable_get_version_as_number() {
     SUFFIX="${SUFFIX%-SNAPSHOT}"
   fi
 
-  if [ -z "$SUFFIX" -o "$SUFFIX" = "SNAPSHOT" ]
+  if [ -z "$SUFFIX" ] || [ "$SUFFIX" = "SNAPSHOT" ]
   then
     SUFFIX=""
     SUFFIX_VERSION=0
@@ -1125,17 +1170,21 @@ traceable_get_version_as_number() {
   printf "%03d%03d%03d%d%03d\n" "$MAJOR" "$MINOR" "$PATCH" "$SUFFIX_MAJOR_VERSION" "$SUFFIX_VERSION"
 }
 
-export STACKGRES_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_VERSION")"
-export STACKGRES_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_VERSION")"
-export STACKGRES_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_VERSION")"
+STACKGRES_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_VERSION")"
+STACKGRES_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_VERSION")"
+STACKGRES_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_VERSION")"
+export STACKGRES_OPERATOR_IMAGE STACKGRES_RESTAPI_IMAGE STACKGRES_ADMINUI_IMAGE
 
 setup_versions() {
-  export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-0.9.5}"
-  export OPERATOR_PREVIOUS_VERSION_HELM_URL="${OPERATOR_PREVIOUS_VERSION_HELM_URL:-$(get_operator_helm_url "$STACKGRES_PREVIOUS_VERSION")}"
-  export CLUSTER_PREVIOUS_VERSION_HELM_URL="${CLUSTER_PREVIOUS_VERSION_HELM_URL:-$(get_cluster_helm_url "$STACKGRES_PREVIOUS_VERSION")}"
-  export STACKGRES_PREVIOUS_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_PREVIOUS_VERSION")"
-  export STACKGRES_PREVIOUS_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_PREVIOUS_VERSION")"
-  export STACKGRES_PREVIOUS_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_PREVIOUS_VERSION")"
+  STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-0.9.5}"
+  OPERATOR_PREVIOUS_VERSION_HELM_URL="${OPERATOR_PREVIOUS_VERSION_HELM_URL:-$(get_operator_helm_url "$STACKGRES_PREVIOUS_VERSION")}"
+  CLUSTER_PREVIOUS_VERSION_HELM_URL="${CLUSTER_PREVIOUS_VERSION_HELM_URL:-$(get_cluster_helm_url "$STACKGRES_PREVIOUS_VERSION")}"
+  STACKGRES_PREVIOUS_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_PREVIOUS_VERSION")"
+  STACKGRES_PREVIOUS_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_PREVIOUS_VERSION")"
+  STACKGRES_PREVIOUS_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_PREVIOUS_VERSION")"
+  export STACKGRES_PREVIOUS_VERSION OPERATOR_PREVIOUS_VERSION_HELM_URL \
+      CLUSTER_PREVIOUS_VERSION_HELM_URL STACKGRES_PREVIOUS_OPERATOR_IMAGE \
+      STACKGRES_PREVIOUS_RESTAPI_IMAGE STACKGRES_PREVIOUS_ADMINUI_IMAGE
 
   echo "StackGres version used is $STACKGRES_VERSION"
   echo "* StackGres operator image used is $STACKGRES_OPERATOR_IMAGE"
@@ -1164,7 +1213,7 @@ get_sgdbops_name() {
 }
 
 get_cr_name() {
-  [ -n "$1" -a -n "$2" ]
+  [ -n "$1" ] && [ -n "$2" ]
   if [ "$E2E_SET_MAX_LENGTH_NAMES" = true ]
   then
     MAX_LENGTH="$(kubectl get crd "$2" \
@@ -1175,6 +1224,7 @@ get_cr_name() {
     then
       printf '%s' "$1"
       local INDEX
+      # shellcheck disable=SC2034
       for INDEX in $(seq 1 "$((MAX_LENGTH - CURRENT_LENGTH))")
       do
         printf 'x'
