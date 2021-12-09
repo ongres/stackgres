@@ -5,13 +5,22 @@ setup_logs() {
   then
     return
   fi
-  echo "Recording resources"
-  resource_watch --log-in-files > "$TARGET_PATH/all_resources.log" 2>/dev/null &
-  trap_kill "$!"
-  echo "Recording pods logs"
-  pod_logs --log-in-files > "$TARGET_PATH/all_pods.log" 2>/dev/null &
-  trap_kill "$!"
-  echo "Recording events"
-  event_watch -o wide > "$TARGET_PATH/all_events.log" 2>/dev/null &
-  trap_kill "$!"
+  if [ "$E2E_DISABLE_RESOURCE_LOGS" != "true" ]
+  then
+    echo "Recording resources"
+    resource_watch --log-in-files > "$TARGET_PATH/all_resources.log" 2>/dev/null &
+    trap_kill "$!"
+  fi
+  if [ "$E2E_DISABLE_POD_LOGS" != "true" ]
+  then
+    echo "Recording pods logs"
+    pod_logs --log-in-files > "$TARGET_PATH/all_pods.log" 2>/dev/null &
+    trap_kill "$!"
+  fi
+  if [ "$E2E_DISABLE_EVENT_LOGS" != "true" ]
+  then
+    echo "Recording events"
+    event_watch -o wide > "$TARGET_PATH/all_events.log" 2>/dev/null &
+    trap_kill "$!"
+  fi
 }
