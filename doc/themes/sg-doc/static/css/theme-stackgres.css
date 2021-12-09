@@ -1331,10 +1331,14 @@ mark.highlight {
     position: fixed;
     right: 5vw;
     top: 100px;
+    overflow: auto;
+    max-height: calc(100vh - 130px);
+    margin-top: 30px;
 }
 
 .toc h2 {
     margin-bottom: 1rem;
+    margin-top: 10px;
 }
 
 #TableOfContents > ul {
@@ -1560,6 +1564,9 @@ code.language-bash {
         position: relative;
         left: 0;
         top: 1rem;
+        overflow: initial;
+        max-height: initial;
+        margin-top: initial;
     }
 
     #body-inner {
@@ -1574,6 +1581,10 @@ code.language-bash {
         border-bottom: 1px solid var(--MENU-SECTION-HR-color);
         position: relative;
         top: 0;
+    }
+
+    .toc h2 {
+        margin-top: 2.5rem;
     }
 
     .is-sticky #top-bar {
