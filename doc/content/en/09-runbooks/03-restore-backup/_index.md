@@ -58,7 +58,7 @@ spec:
 > Note: The restore process needs to be done in the same namespace as the cluster to be restored.
 
 
-## Get de **UID** from the backups to be restore
+## Get the **UID** from the backups to be restore
 
 ```
 kubectl get sgbackups --namespace ongres-db backup-demo-3 -o jsonpath="{.metadata.uid}"
