@@ -166,26 +166,6 @@ get_already_passed_tests() {
     done < stackgres-k8s/ci/test/target/test-result-images
   fi
 
-  E2E_ALREADY_PASSED_COUNT="$(wc -l stackgres-k8s/ci/test/target/already-passed-tests | cut -d ' ' -f 1)"
-
-  cat << EOF > stackgres-k8s/ci/test/target/already-passed-e2e-tests-junit-report.xml
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites time="0">
-  <testsuite name="e2e tests already passed" tests="$E2E_ALREADY_PASSED_COUNT" time="0">
-    $(
-      while read -r TEST_NAME
-      do
-        TEST_HASH="$(grep "^$TEST_NAME:" stackgres-k8s/ci/test/target/test-hashes)"
-        TEST_HASH="${TEST_HASH#*:}"
-        cat << INNER_EOF
-    <testcase classname="$TEST_NAME" name="$TEST_HASH" time="0" />
-INNER_EOF
-      done < stackgres-k8s/ci/test/target/already-passed-tests
-      )
-  </testsuite>
-</testsuites>
-EOF
-
   tr '\n' ' ' < stackgres-k8s/ci/test/target/already-passed-tests
 }
 
@@ -197,7 +177,7 @@ EOF
 
   # shellcheck disable=SC2046
   docker build -f stackgres-k8s/ci/test/target/Dockerfile.e2e \
-    -t "$CI_REGISTRY/$CI_PROJECT_PATH/e2e-test-result:$CI_COMMIT_SHORT_SHA" \
+    -t "$CI_REGISTRY/$CI_PROJECT_PATH/e2e-test-result$SUFFIX:$CI_COMMIT_SHORT_SHA" \
     $(
       while read -r TEST_NAME
       do
@@ -207,7 +187,7 @@ EOF
       done < stackgres-k8s/e2e/target/passed-tests
     ) \
     stackgres-k8s/e2e/target
-  docker push "$CI_REGISTRY/$CI_PROJECT_PATH/e2e-test-result:$CI_COMMIT_SHORT_SHA"
+  docker push "$CI_REGISTRY/$CI_PROJECT_PATH/e2e-test-result$SUFFIX:$CI_COMMIT_SHORT_SHA"
   while read -r TEST_NAME
   do
     IMAGE_NAME="$(grep "^$TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
@@ -217,25 +197,105 @@ EOF
     | xargs -I % -P "$E2E_PARALLELISM" docker push %
 }
 
-TEMP_DIR="/tmp/$CI_PROJECT_ID"
-mkdir -p "$TEMP_DIR"
+copy_project_to_temp_dir() {
+  echo "Copying project files ..."
 
-echo "Copying project files ..."
+  docker run --rm -i -u 0 -v "$TEMP_DIR:$TEMP_DIR" alpine rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
+  cp -r . "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
 
-docker run --rm -i -u 0 -v "$TEMP_DIR:$TEMP_DIR" alpine rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-cp -r . "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
+  echo "done"
+}
 
-echo "done"
+clean_up_project_temp_dir() {
+  echo "Cleaning up ..."
 
-set +e
+  docker run --rm -u 0 -v "$TEMP_DIR:$TEMP_DIR" alpine rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
 
-(
-cd "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-while true
-do
-  (
-  set -e
+  echo "done"
+}
 
+add_already_passed_tests_to_report() {
+  E2E_ALREADY_PASSED_COUNT="$(wc -l stackgres-k8s/ci/test/target/already-passed-tests | cut -d ' ' -f 1)"
+
+  cat << EOF > stackgres-k8s/ci/test/target/already-passed-e2e-tests-junit-report.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites time="0">
+  <testsuite name="e2e tests already passed" tests="$E2E_ALREADY_PASSED_COUNT" time="0">
+    $(
+      while read -r TEST_NAME
+      do
+        if ! grep -qxF "$TEST_NAME" stackgres-k8s/e2e/target/all-tests
+        then
+          continue
+        fi
+        TEST_HASH="$(grep "^$TEST_NAME:" stackgres-k8s/ci/test/target/test-hashes)"
+        TEST_HASH="${TEST_HASH#*:}"
+        cat << INNER_EOF
+    <testcase classname="$TEST_NAME" name="$TEST_HASH" time="0" />
+INNER_EOF
+      done < stackgres-k8s/ci/test/target/already-passed-tests
+      )
+  </testsuite>
+</testsuites>
+EOF
+}
+
+show_test_result_summary() {
+  if [ -s stackgres-k8s/ci/test/target/already-passed-tests ]
+  then
+    echo "Already passed tests:"
+    echo
+    while read -r TEST_NAME
+    do
+      if grep -qxF "$TEST_NAME" stackgres-k8s/e2e/target/all-tests
+      then
+        printf ' - %s\n' "$TEST_NAME"
+      fi
+    done < stackgres-k8s/ci/test/target/already-passed-tests
+    echo
+  else
+    echo "No test where cached before for this build"
+    echo
+  fi
+
+  if [ -s stackgres-k8s/e2e/target/passed-tests ]
+  then
+    echo "Passed tests:"
+    echo
+    while read -r TEST_NAME
+    do
+      printf ' - %s\n' "$TEST_NAME"
+    done < stackgres-k8s/e2e/target/passed-tests
+    echo
+  elif [ "$(wc -l stackgres-k8s/e2e/target/runned-tests | cut -d ' ' -f 1)" != \
+    "$(wc -l stackgres-k8s/e2e/target/passed-tests | cut -d ' ' -f 1)" ]
+  then
+    echo "Passed tests:"
+    echo
+    echo "None :("
+    echo
+  fi
+
+  if [ "$(wc -l stackgres-k8s/e2e/target/runned-tests | cut -d ' ' -f 1)" != \
+    "$(wc -l stackgres-k8s/e2e/target/passed-tests | cut -d ' ' -f 1)" ]
+  then
+    echo "Failed tests:"
+    echo
+    while read -r TEST_NAME
+    do
+      if ! grep -qxF "$TEST_NAME" stackgres-k8s/e2e/target/passed-tests
+      then
+        printf ' - %s\n' "$TEST_NAME"
+      fi
+    done < stackgres-k8s/e2e/target/all-tests
+    echo
+  else
+    echo "Everything went well! :)"
+    echo
+  fi
+}
+
+run_all_tests_loop() {
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
 
   echo "Variables:"
@@ -324,9 +384,8 @@ do
         chown -R '$(id -u):$(id -g)' '/target/kind-logs'
       if [ -d stackgres-k8s/e2e/target/kind-logs/kubernetes ]
       then
-        tar c --xz \
-          -f stackgres-k8s/e2e/target/kind-logs/kubernetes.tar.lzma \
-          stackgres-k8s/e2e/target/kind-logs/kubernetes
+        tar c stackgres-k8s/e2e/target/kind-logs/kubernetes \
+          | xz -v -c > stackgres-k8s/e2e/target/kind-logs/kubernetes.tar.lzma
         rm -rf stackgres-k8s/e2e/target/kind-logs/kubernetes
       fi
       exit \"\$EXIT_CODE\"
@@ -334,100 +393,83 @@ do
   echo 'done'
 
   echo
+}
+
+run_all_tests() {
+  copy_project_to_temp_dir
+
+  set +e
+
+  (
+  cd "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
+  while true
+  do
+    (
+    set -e
+
+    run_all_tests_loop
+    )
+    EXIT_CODE="$?"
+    if [ "$EXIT_CODE" = 0 ]
+    then
+      break
+    elif [ -f "stackgres-k8s/e2e/target/e2e-tests-junit-report.xml" ]
+    then
+      break
+    fi
+    E2E_FAILURE_RETRY="$((E2E_FAILURE_RETRY - 1))"
+    if [ "$E2E_FAILURE_RETRY" -le 0 ]
+    then
+      break
+    fi
+    echo "Something bad happened, will retry $E2E_FAILURE_RETRY times more in 10 seconds..."
+    sleep 10
+  done
+
+  set +e
+  while true
+  do
+    (
+    set -e
+    store_test_results
+    )
+    STORE_RESULTS_EXIT_CODE="$?"
+    if [ "$STORE_RESULTS_EXIT_CODE" = 0 ]
+    then
+      break
+    fi
+    E2E_STORE_RESULTS_RETRY="$((E2E_STORE_RESULTS_RETRY - 1))"
+    if [ "$E2E_STORE_RESULTS_RETRY" -le 0 ]
+    then
+      break
+    fi
+    sleep 10
+  done
+
+  mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target"
+  rm -rf stackgres-k8s/ci/build/target/.git
+  cp -r stackgres-k8s/ci/build/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target/."
+  mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target"
+  cp -r stackgres-k8s/ci/test/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target/."
+  mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/e2e/target"
+  cp -r stackgres-k8s/e2e/target/. "$CI_PROJECT_DIR/stackgres-k8s/e2e/target/."
+
+  exit "$EXIT_CODE"
   )
   EXIT_CODE="$?"
-  if [ "$EXIT_CODE" = 0 ]
-  then
-    break
-  elif [ -f "stackgres-k8s/e2e/target/e2e-tests-junit-report.xml" ]
-  then
-    break
-  fi
-  E2E_FAILURE_RETRY="$((E2E_FAILURE_RETRY - 1))"
-  if [ "$E2E_FAILURE_RETRY" -le 0 ]
-  then
-    break
-  fi
-  echo "Something bad happened, will retry $E2E_FAILURE_RETRY times more in 10 seconds..."
-  sleep 10
-done
 
-set +e
-while true
-do
-  (
-  set -e
-  store_test_results
-  )
-  STORE_RESULTS_EXIT_CODE="$?"
-  if [ "$STORE_RESULTS_EXIT_CODE" = 0 ]
-  then
-    break
-  fi
-  E2E_STORE_RESULTS_RETRY="$((E2E_STORE_RESULTS_RETRY - 1))"
-  if [ "$E2E_STORE_RESULTS_RETRY" -le 0 ]
-  then
-    break
-  fi
-  sleep 10
-done
+  clean_up_project_temp_dir
 
-mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target"
-rm -rf stackgres-k8s/ci/build/target/.git
-cp -r stackgres-k8s/ci/build/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target/."
-mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target"
-cp -r stackgres-k8s/ci/test/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target/."
-mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/e2e/target"
-cp -r stackgres-k8s/e2e/target/. "$CI_PROJECT_DIR/stackgres-k8s/e2e/target/."
+  add_already_passed_tests_to_report
 
-exit "$EXIT_CODE"
-)
-EXIT_CODE="$?"
+  show_test_result_summary
 
-echo "Cleaning up ..."
+  exit "$EXIT_CODE"
+}
 
-docker run --rm -u 0 -v "$TEMP_DIR:$TEMP_DIR" alpine rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-
-echo "done"
-
-if [ -s stackgres-k8s/ci/test/target/already-passed-tests ]
+if [ "$#" -gt 0 ]
 then
-  echo "Already passed tests:"
-  echo
-  while read -r TEST_NAME
-  do
-    if grep -qxF "$TEST_NAME" stackgres-k8s/e2e/target/all-tests
-    then
-      printf ' - %s\n' "$TEST_NAME"
-    fi
-  done < stackgres-k8s/ci/test/target/already-passed-tests
-  echo
+  "$@"
+else
+  run_all_tests
 fi
-
-if [ -s stackgres-k8s/e2e/target/passed-tests ]
-then
-  echo "Passed tests:"
-  echo
-  while read -r TEST_NAME
-  do
-    printf ' - %s\n' "$TEST_NAME"
-  done < stackgres-k8s/e2e/target/passed-tests
-  echo
-fi
-
-if [ "$(wc -l stackgres-k8s/e2e/target/runned-tests | cut -d ' ' -f 1)" = \
-  "$(wc -l stackgres-k8s/e2e/target/passed-tests | cut -d ' ' -f 1)" ]
-then
-  echo "Failed tests:"
-  echo
-  while read -r TEST_NAME
-  do
-    if ! grep -qxF "$TEST_NAME" stackgres-k8s/e2e/target/passed-tests
-    then
-      printf ' - %s\n' "$TEST_NAME"
-    fi
-  done < stackgres-k8s/e2e/target/all-tests
-  echo
-fi
-
-exit "$EXIT_CODE"
