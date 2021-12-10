@@ -1,15 +1,14 @@
 #!/bin/sh
 
-[ "$DEBUG" != true ] || set -x
-export SHELL_XTRACE
-SHELL_XTRACE="$(! echo $- | grep -q x || echo "-x")"
+# shellcheck disable=SC1090
+. "$(dirname "$0")/e2e-functions.sh"
 
 set -e
 
 # shellcheck disable=SC2015
 { [ "$IS_WEB" = true ] || [ "$IS_WEB" = false ]; } \
   && { [ "$IS_NATIVE" = true ] || [ "$IS_NATIVE" = false ]; } \
-  && [ -n "$E2E_SUFFIX" ] && [ -n "$E2E_RUN_ONLY" ] && [ -n "$IMAGE_TAG_SUFFIX" ] \
+  && [ -n "$E2E_SUFFIX" ] && [ -n "$E2E_RUN_ONLY" ] \
   && [ -n "$CI_JOB_ID" ] && [ -n "$CI_PROJECT_ID" ] && [ -d "$CI_PROJECT_DIR" ] \
   && [ -n "$CI_COMMIT_SHORT_SHA" ] && [ -n "$CI_PROJECT_PATH" ] \
   && [ -n "$CI_REGISTRY" ] && [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ] \
@@ -47,26 +46,26 @@ export KIND_LOG=true
 export KIND_LOG_PATH="/tmp/kind-log$SUFFIX"
 export KIND_LOG_RESOURCES=true
 export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache$SUFFIX"
+export TEMP_DIR="/tmp/$CI_PROJECT_ID"
 
-cd "$(dirname "$0")/../../.."
+copy_project_to_temp_dir() {
+  echo "Copying project files ..."
 
-mkdir -p stackgres-k8s/ci/test/target
-TEMP_DIR="/tmp/$CI_PROJECT_ID"
-mkdir -p "$TEMP_DIR"
+  mkdir -p "$TEMP_DIR"
 
-if [ "$E2E_CLEAN_IMAGE_CACHE" = "true" ]
-then
-  rm -rf "$E2E_PULLED_IMAGES_PATH"
-fi
+  docker run --rm -i -u 0 -v "$TEMP_DIR:$TEMP_DIR" alpine rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
+  cp -r . "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
 
-if "$IS_WEB"
-then
-  E2E_TEST=ui
-fi
-if [ -n "$E2E_TEST" ]
-then
-  export E2E_ONLY_INCLUDES="$E2E_TEST"
-fi
+  echo "done"
+}
+
+clean_up_project_temp_dir() {
+  echo "Cleaning up ..."
+
+  docker run --rm -u 0 -v "$TEMP_DIR:$TEMP_DIR" alpine rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
+
+  echo "done"
+}
 
 get_sensible_variables() {
   # shellcheck disable=SC2039
@@ -114,6 +113,7 @@ get_already_passed_tests() {
     grep '^ui-image=' stackgres-k8s/ci/build/target/image-type-hashes \
       | cut -d = -f 2)"
   VARIABLES="$(get_sensible_variables)"
+  SPEC_PLATFORM="$(sh stackgres-k8s/ci/build/build-functions.sh get_platform)"
   # shellcheck disable=SC2015
   [ -n "$JVM_IMAGE_MODULE_HASH" ] \
     && [ -n "$UI_IMAGE_MODULE_HASH" ] \
@@ -141,15 +141,15 @@ get_already_passed_tests() {
         fi
         printf '%s\n' "$VARIABLES"
       } | md5sum | cut -d ' ' -f 1)"
-    printf '%s=%s/%s/e2e-test-result-%s:%s\n' \
-      "$SPEC_NAME" "$CI_REGISTRY" "$CI_PROJECT_PATH" "$SPEC_NAME" "$SPEC_RESULT_HASH"
+    printf '%s=%s/%s/e2e-test-result-%s:%s-%s\n' \
+      "$SPEC_NAME" "$CI_REGISTRY" "$CI_PROJECT_PATH" "$SPEC_NAME" "$SPEC_RESULT_HASH" "$SPEC_PLATFORM"
   done < stackgres-k8s/ci/test/target/test-hashes \
     > stackgres-k8s/ci/test/target/test-result-images
 
   cut -d = -f 2- stackgres-k8s/ci/test/target/test-result-images \
     > stackgres-k8s/ci/test/target/all-test-result-images
 
-  sh stackgres-k8s/ci/build/build-functions.sh retrieve_image_digests \
+  sh stackgres-k8s/ci/build/build-functions.sh find_image_digests \
     stackgres-k8s/ci/test/target/all-test-result-images \
     > stackgres-k8s/ci/test/target/test-result-image-digests
 
@@ -197,23 +197,6 @@ EOF
     | xargs -I % -P "$E2E_PARALLELISM" docker push %
 }
 
-copy_project_to_temp_dir() {
-  echo "Copying project files ..."
-
-  docker run --rm -i -u 0 -v "$TEMP_DIR:$TEMP_DIR" alpine rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-  cp -r . "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-
-  echo "done"
-}
-
-clean_up_project_temp_dir() {
-  echo "Cleaning up ..."
-
-  docker run --rm -u 0 -v "$TEMP_DIR:$TEMP_DIR" alpine rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-
-  echo "done"
-}
-
 add_already_passed_tests_to_report() {
   E2E_ALREADY_PASSED_COUNT="$(wc -l stackgres-k8s/ci/test/target/already-passed-tests | cut -d ' ' -f 1)"
 
@@ -241,7 +224,19 @@ EOF
 }
 
 show_test_result_summary() {
-  if [ -s stackgres-k8s/ci/test/target/already-passed-tests ]
+  local EXIT_CODE="${1:-0}"
+
+  local TEST_NAME
+  local ANY_TEST_ALREADY_PASSED=false
+  while read -r TEST_NAME
+  do
+    if grep -qxF "$TEST_NAME" stackgres-k8s/e2e/target/all-tests
+    then
+      ANY_TEST_ALREADY_PASSED=true
+      break
+    fi
+  done < stackgres-k8s/ci/test/target/already-passed-tests
+  if [ "$ANY_TEST_ALREADY_PASSED" = true ]
   then
     echo "Already passed tests:"
     echo
@@ -290,7 +285,12 @@ show_test_result_summary() {
     done < stackgres-k8s/e2e/target/all-tests
     echo
   else
-    echo "Everything went well! :)"
+    if [ "$EXIT_CODE" != 0 ]
+    then
+      echo "Something went bad?! :_("
+    else
+      echo "Everything went well! :)"
+    fi
     echo
   fi
 }
@@ -396,6 +396,21 @@ run_all_tests_loop() {
 }
 
 run_all_tests() {
+  if [ "$E2E_CLEAN_IMAGE_CACHE" = "true" ]
+  then
+    rm -rf "$E2E_PULLED_IMAGES_PATH"
+  fi
+
+  if "$IS_WEB"
+  then
+    E2E_TEST=ui
+  fi
+
+  if [ -n "$E2E_TEST" ]
+  then
+    export E2E_ONLY_INCLUDES="$E2E_TEST"
+  fi
+
   copy_project_to_temp_dir
 
   set +e
@@ -462,7 +477,7 @@ run_all_tests() {
 
   add_already_passed_tests_to_report
 
-  show_test_result_summary
+  show_test_result_summary "$EXIT_CODE"
 
   exit "$EXIT_CODE"
 }

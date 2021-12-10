@@ -45,6 +45,3 @@ swagger validations:
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   dependencies:
     - build
-  artifacts:
-    expire_in: 1 week
-    when: always

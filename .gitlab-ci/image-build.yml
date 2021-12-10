@@ -1,34 +1,41 @@
 
 .build image:
-  image: docker:20.10.6
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   timeout: 1 hour
   script:
     - |
+      [ "$DEBUG" != true ] || set -x
       export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_SUFFIX"
       export IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_BASE_NAME:$IMAGE_TAG"
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       flock "$LOCK_FILE" \
         sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy 'stackgres-k8s/ci/build/target/image-hashes.*' \
+          --copy 'stackgres-k8s/ci/build/target/config.json' \
+          --copy 'stackgres-k8s/ci/build/target/image-hashes' \
           "$IMAGE_MODULE_NAME"
-      HASH_IMAGE_NAME="$(cat "stackgres-k8s/ci/build/target/image-hashes.$IMAGE_MODULE_NAME")"
+      HASH_IMAGE_NAME="$(sh stackgres-k8s/ci/build/build-functions.sh image_name "$IMAGE_MODULE_NAME")"
       docker pull "$HASH_IMAGE_NAME"
       docker tag "$HASH_IMAGE_NAME" "$IMAGE_NAME"
       docker push "$IMAGE_NAME"
   retry: 2
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
 
 .build image multi archs:
   image: docker:20.10.6
   stage: image build multi archs
   timeout: 1 hour
   script:
-    - 'export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_SUFFIX"'
-    - 'export IMAGE_NAME="$IMAGE_BASE_NAME:$IMAGE_TAG"'
-    - 'export TARGET_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME"'
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - cd stackgres-k8s/src
     - |
+      [ "$DEBUG" != true ] || set -x
+      export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_SUFFIX"
+      export IMAGE_NAME="$IMAGE_BASE_NAME:$IMAGE_TAG"
+      export TARGET_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME"
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      cd stackgres-k8s/src
       ARCH_LIST="amd64 $(
         if [ "$DO_ARM" = true ] \
           || { [ "$SKIP_ARM" != true ] && [ -n "$CI_COMMIT_TAG" ]; }

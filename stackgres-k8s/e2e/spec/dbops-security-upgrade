@@ -159,6 +159,11 @@ is_backup_phase() {
 }
 
 e2e_test_uninstall() {
+  if ! can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
+  then
+    return
+  fi
+
   uninstall_prometheus_operator
   delete_operator_only
   install_operator_only

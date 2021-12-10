@@ -125,6 +125,10 @@ deploy helm packages and templates:
     - sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-templates stackgres-k8s/install/helm/template/templates
     - aws s3 sync ./stackgres-k8s/install/helm/target/public/ s3://$S3_BUCKET_NAME/
     - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*'
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
   only:
     variables:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
@@ -142,6 +146,10 @@ pages:
     - tar cC doc public | tar x
     - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
   retry: 2
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
   artifacts:
     paths:
     - public

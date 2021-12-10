@@ -1,9 +1,12 @@
+platforms:
+  - linux-x86_64
+  - linux-aarch64
 modules:
   stackgres-parent: &stackgres-parent
     type: java
     path: stackgres-k8s/src/.
     target_image: alpine:3.13.5
-    build_image: &jdk_build_image docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
+    build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.2
     sources:
       - stackgres-k8s/src/pom.xml
       - stackgres-k8s/src/checks
@@ -25,7 +28,7 @@ modules:
         -Dsurefire.useFile=false
         -DtrimStackTrace=false
     build_commands:
-      - 'mvn $MAVEN_CLI_OPTS clean install -P safer -f "$MODULE_PATH/pom.xml" -N'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -P safer -f "$MODULE_PATH/pom.xml" -N'
     cache:
       - stackgres-k8s/src/.mvn
       - .m2/repository
@@ -76,8 +79,6 @@ modules:
       - stackgres-k8s/src/api-web/pom.xml
       - stackgres-k8s/src/api-web/src
     post_build_commands:
-      - 'microdnf install python3-pip jq'
-      - 'pip3 install yamllint yq'
       - 'sh $SHELL_XTRACE stackgres-k8s/src/api-web/src/main/swagger/build.sh'
     artifacts:
       - stackgres-k8s/src/api-web/target
@@ -137,13 +138,14 @@ modules:
       - stackgres-k8s/src/admin-ui/target
   operator-native: &native
     type: native
+    platform_dependent: true
     path: stackgres-k8s/src/operator
     target_image: alpine:3.13.5
     build_image: *jdk_build_image
     build_env:
       <<: *mvn_build_env
     build_commands:
-      - 'mvn $MAVEN_CLI_OPTS package -DskipTests -P native -f "$MODULE_PATH/pom.xml" -N'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS package -DskipTests -P native -f "$MODULE_PATH/pom.xml" -N'
     cache:
       - stackgres-k8s/src/.mvn
       - .m2/repository
@@ -171,6 +173,7 @@ modules:
       - stackgres-k8s/src/distributedlogs-controller/target/stackgres-distributedlogs-controller-runner
   operator-jvm-image: &jvm-image
     type: jvm-image
+    platform_dependent: true
     path: stackgres-k8s/src/operator
     target_image: registry.access.redhat.com/ubi8/openjdk-11:1.3-15
     dockerfile: &jvm-image-args
@@ -225,6 +228,7 @@ modules:
       - stackgres-k8s/src/distributedlogs-controller/target/lib
   admin-ui-image:
     type: ui-image
+    platform_dependent: true
     path: stackgres-k8s/src/admin-ui
     target_image: registry.access.redhat.com/ubi8/nginx-118:1-42
     dockerfile:
@@ -237,6 +241,7 @@ modules:
       - stackgres-k8s/src/admin-ui/target/public
   operator-native-image: &native-image
     type: native-image
+    platform_dependent: true
     path: stackgres-k8s/src/operator
     target_image: registry.access.redhat.com/ubi8-minimal:8.4-210
     dockerfile: &native-image-args
@@ -292,7 +297,7 @@ modules:
       - stackgres-k8s/install/helm/stackgres-cluster
       - stackgres-k8s/install/helm/build-helm-packages.sh
       - stackgres-k8s/src/pom.xml
-    build_image: dtzar/helm-kubectl:3.3.1
+    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.6
     build_commands:
       - export HOME=/project
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-packages.sh
@@ -306,7 +311,7 @@ modules:
       - stackgres-k8s/install/helm/stackgres-cluster
       - stackgres-k8s/install/helm/build-helm-templates.sh
       - stackgres-k8s/src/pom.xml
-    build_image: dtzar/helm-kubectl:3.3.1
+    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.6
     build_commands:
       - export HOME=/project
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-templates.sh
