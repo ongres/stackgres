@@ -24,6 +24,12 @@ spec:
   op: restart
 EOF
 
+  wait_until eval '[ "$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --template "{{ .status.opRetries }}")" = "0" ]'
+  kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" -o yaml > "$LOG_PATH/sgdbops.yaml"
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+  kubectl create -f "$LOG_PATH/sgdbops.yaml"
+
   check_restart
 
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
