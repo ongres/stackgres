@@ -1,7 +1,8 @@
 image: null
 
 variables:
-  SG_CI_IMAGE_NAME: "ci:1.5"
+  SG_CI_IMAGE_NAME: "ci:1.10"
+  BUILDER_IMAGE_NAME: "builder:1.2"
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
   SKIP_DEPLOY: "false"
@@ -29,7 +30,6 @@ stages:
   - pre build multi archs
   - build 1
   - build 2
-  - check release
   - image build
   - image build multi archs
   - test
@@ -42,5 +42,4 @@ include:
   - local: .gitlab-ci/image-build.yml
   - local: .gitlab-ci/test.yml
   - local: .gitlab-ci/e2e-test.yml
-  - local: .gitlab-ci/check-release.yml
   - local: .gitlab-ci/deploy.yml

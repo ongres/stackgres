@@ -69,6 +69,7 @@ run_curl() {
   then
     JWT="$(kubectl exec -i -n "$NAMESPACE" "$POD" -- \
       curl -d "$AUTHORIZATION" -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/stackgres/auth/login" \
+      --retry 5 --retry-delay 2 --retry-connrefused \
       -H "Content-Type: $CONTENT_TYPE" \
       -H "Accept: $ACCEPT" -s | jq -r .access_token)"
   fi
@@ -80,6 +81,7 @@ run_curl() {
     # shellcheck disable=SC2086
     kubectl exec -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
+      --retry 5 --retry-delay 2 --retry-connrefused \
       -H "Authorization: Bearer $JWT" \
       -H "Content-Type: $CONTENT_TYPE" \
       -H "Accept: $ACCEPT"  \
@@ -88,6 +90,7 @@ run_curl() {
     # shellcheck disable=SC2086
     kubectl exec -n "$NAMESPACE" "$POD" -- \
       curl -k "https://$SERVICE.$SERVICE_NAMESPACE.svc.cluster.local/$RESOURCE_PATH" \
+      --retry 5 --retry-delay 2 --retry-connrefused \
       -H "Authorization: Bearer $JWT" \
       -H "Content-Type: $CONTENT_TYPE" \
       -H "Accept: $ACCEPT" \

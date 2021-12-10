@@ -16,7 +16,7 @@ else
   MODULES="$(jq -r '.modules | to_entries[] | .key' stackgres-k8s/ci/build/target/config.json)"
 fi
 
-retrieve_image_digests stackgres-k8s/ci/build/target/all-images \
+find_image_digests stackgres-k8s/ci/build/target/all-images \
   > stackgres-k8s/ci/build/target/image-digests
 
 echo "Retrieved image digests:"

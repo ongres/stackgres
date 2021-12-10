@@ -26,7 +26,11 @@ build:
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   cache:
-    paths:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
+    - key: java
+      paths:
       - stackgres-k8s/src/.mvn
       - .m2/repository
   artifacts:
@@ -38,6 +42,7 @@ build:
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
     paths:
         - stackgres-k8s/src/api-web/target/swagger*
+        - stackgres-k8s/ci/build/target
 
 build ui:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
@@ -51,7 +56,11 @@ build ui:
         admin-ui
   retry: 2
   cache:
-    paths:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
+    - key: node
+      paths:
       - stackgres-k8s/src/admin-ui/node_modules
 
 build documentation:
@@ -61,6 +70,7 @@ build documentation:
     - stackgres-runner
   script:
     - |
+      [ "$DEBUG" != true ] || set -x
       export DOCUMENTATION_BASE_URL="https://stackgres.io/doc"
       export DOCUMENTATION_EXTRA_PATH=""
       if [ -z "$CI_COMMIT_TAG" ] || echo "$CI_COMMIT_TAG" | grep -q '^latest-.*$'
@@ -71,11 +81,14 @@ build documentation:
           DOCUMENTATION_EXTRA_PATH="$CI_COMMIT_REF_NAME/"
         fi
       fi
-    - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
         --extract documentation:doc/public \
         documentation
   retry: 2
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
   artifacts:
     expire_in: 1 week
     when: always
@@ -93,6 +106,10 @@ build helm packages:
         --extract helm-packages:stackgres-k8s/install/helm/target/packages \
         helm-packages
   retry: 2
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
   artifacts:
     expire_in: 1 week
     when: always
@@ -110,6 +127,10 @@ build helm templates:
         --extract helm-templates:stackgres-k8s/install/helm/target/templates \
         helm-templates
   retry: 2
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
   artifacts:
     expire_in: 1 week
     when: always
