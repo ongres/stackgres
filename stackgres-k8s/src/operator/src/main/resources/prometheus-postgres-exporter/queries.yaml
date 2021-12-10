@@ -167,33 +167,6 @@ pg_database:
         usage: "GAUGE"
         description: "Disk space used by the database"
 
-pg_archiver:
-  master: true
-  query: |
-    WITH
-      current_wal_file AS (
-         SELECT CASE WHEN NOT pg_is_in_recovery() THEN pg_walfile_name(pg_last_wal_replay_lsn()) ELSE NULL END pg_walfile_name
-      ),
-      current_wal AS (
-        SELECT
-          ('x'||substring(pg_walfile_name,9,8))::bit(32)::int log,
-          ('x'||substring(pg_walfile_name,17,8))::bit(32)::int seg,
-          pg_walfile_name
-        FROM current_wal_file
-      ),
-      archive_wal AS(
-        SELECT
-          ('x'||substring(last_archived_wal,9,8))::bit(32)::int log,
-          ('x'||substring(last_archived_wal,17,8))::bit(32)::int seg,
-          last_archived_wal
-        FROM pg_catalog.pg_stat_archiver
-      )
-    SELECT coalesce(((cw.log - aw.log) * 256) + (cw.seg-aw.seg),'NaN'::float) as pending_wal_count FROM current_wal cw, archive_wal aw 
-  metrics:
-    - pending_wal_count:
-        usage: "GAUGE"
-        description: "No. of pending WAL files to be archived"
-
 pg_stat_user_indexes:
   master: true
   query: |
@@ -542,27 +515,6 @@ pg_replication_slots:
         usage: "GAUGE"
         description: "Amount of data on in xlog that must be this replica has not yet received"
 
-pg_stat_ssl:
-  master: true
-  query: |
-    SELECT pid, bits,
-           CASE WHEN ssl THEN 1.0 ELSE 0.0 END AS active,
-           CASE WHEN compression THEN 1.0 ELSE 0.0 END AS compression
-           FROM pg_catalog.pg_stat_ssl
-  metrics:
-    - pid:
-        usage: "LABEL"
-        description: "Process ID of a backend or WAL sender process"
-    - active:
-        usage: "GAUGE"
-        description: "Boolean flag indicating if SSL is used on this connection"
-    - bits:
-        usage: "GAUGE"
-        description: "Number of bits in the encryption algorithm is in use"
-    - compression:
-        usage: "GAUGE"
-        description: "Boolean flag indicating if SSL compression is in use"
-
 pg_table_bloat:
   master: true
   query: |
@@ -824,6 +776,61 @@ pg_replication_status:
     - lag_size_bytes:
         usage: "GAUGE"
         description: "Replication lag size in bytes"
+
+pg_vaccuum_wraparound:
+  master: true
+  query: |
+    SET max_parallel_workers_per_gather = 0;
+    WITH databases AS (
+    SELECT datname FROM pg_database
+    WHERE datname NOT IN ('template0', 'template1')
+    )
+    SELECT datname, ss.* FROM databases,
+    LATERAL (SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        '
+        WITH tabfreeze AS (
+            SELECT pg_class.oid::regclass AS full_table_name,
+            greatest(age(pg_class.relfrozenxid), age(toast.relfrozenxid)) as freeze_age,
+            pg_total_relation_size(pg_class.oid),
+            case
+                    when array_to_string(pg_class.reloptions, '''') like ''%autovacuum_freeze_max_age%'' then regexp_replace(array_to_string(pg_class.reloptions, ''''), ''.*autovacuum_freeze_max_age=([0-9.]+).*'', E''\\1'')::int8
+                    else current_setting(''autovacuum_freeze_max_age'')::int8
+                end as autovacuum_freeze_max_age
+        FROM pg_class JOIN pg_namespace ON pg_class.relnamespace = pg_namespace.oid
+            LEFT OUTER JOIN pg_class as toast
+                ON pg_class.reltoastrelid = toast.oid
+        WHERE nspname not in (''pg_catalog'', ''information_schema'')
+            AND nspname NOT LIKE ''pg_temp%''
+            AND pg_class.relkind = ''r''
+        )
+        SELECT full_table_name,  pg_total_relation_size,freeze_age,autovacuum_freeze_max_age, (freeze_age*1)::bigint/(autovacuum_freeze_max_age/100) as "percent"
+        FROM tabfreeze
+        WHERE pg_total_relation_size >=  10000000000 -- size of table 10 GB
+        AND (freeze_age*1)::bigint/(autovacuum_freeze_max_age/100)>=90 --percent of txid
+        ORDER BY 5 DESC;
+
+        ')
+        AS (full_table_name name, table_size bigint, freeze_age bigint, autovacuum_freeze_max_age bigint, percent integer)) AS ss;
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - full_table_name:
+        usage: "LABEL"
+        description: "Full table name"
+    - table_size:
+        usage: "GAUGE"
+        description: "Table size"
+    - freeze_age:
+        usage: "GAUGE"
+        description: "Freeze age"
+    - autovacuum_freeze_max_age:
+        usage: "GAUGE"
+        description: "Autovacuum freeze max age"
+    - percent:
+        usage: "GAUGE"
+        description: "Percentage"
 
 # PGBOUNCER QUERIES
 
