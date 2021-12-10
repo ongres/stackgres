@@ -2052,6 +2052,28 @@
                 }
             },
 
+            updateExtVersion(name, version) {
+                const vc = this;
+                
+                vc.selectedExtensions.forEach(function(ext) {
+                    if(ext.name == name) {
+                        ext.version = version;
+                        return false
+                    }
+                })
+            },
+
+            createNewResource(kind) {
+                const vc = this;
+                window.open(window.location.protocol + '//' + window.location.hostname + (window.location.port.length && (':' + window.location.port) ) + '/admin/' + vc.$route.params.namespace + '/' + kind + '/new?newtab=1', '_blank').focus();
+
+                $('select').each(function(){
+                    if($(this).val() == 'new') {
+                        $(this).val('');
+                    }
+                })
+            },
+
             getFlavorExtensions() {
                 const vc = this;
 
