@@ -26,6 +26,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
+import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -48,7 +49,22 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
   }
 
   @Override
-  protected Map<String, String> getParameters(StackGresClusterContext context,
+  protected PatroniConfig getPatroniConfig(StackGresClusterContext context) {
+    PatroniConfig patroniConf = new PatroniConfig();
+    patroniConf.setTtl(30);
+    patroniConf.setLoopWait(10);
+    patroniConf.setRetryTimeout(10);
+    if (getPostgresFlavorComponent(context.getSource()) != StackGresComponent.BABELFISH) {
+      patroniConf.setCheckTimeline(true);
+    }
+    patroniConf.setPostgresql(new PatroniConfig.PostgreSql());
+    patroniConf.getPostgresql().setUsePgRewind(true);
+    patroniConf.getPostgresql().setParameters(getPostgresConfigValues(context));
+    return patroniConf;
+  }
+
+  @Override
+  protected Map<String, String> getPostgresParameters(StackGresClusterContext context,
       StackGresPostgresConfig pgConfig) {
     final String version = pgConfig.getSpec().getPostgresVersion();
     Map<String, String> params = Optional.ofNullable(pgConfig.getStatus())

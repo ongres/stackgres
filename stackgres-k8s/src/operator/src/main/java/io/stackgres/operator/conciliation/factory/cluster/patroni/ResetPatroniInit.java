@@ -88,13 +88,13 @@ public class ResetPatroniInit implements ContainerFactory<StackGresClusterContai
 
     return
         new ContainerBuilder()
-            .withName("reset-patroni-initialize")
+            .withName("reset-patroni")
             .withImage(StackGresComponent.KUBECTL.findLatestImageName())
             .withImagePullPolicy("IfNotPresent")
             .withCommand("/bin/sh", "-ex",
                 ClusterStatefulSetPath.TEMPLATES_PATH.path()
                     + "/"
-                    + ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH.filename())
+                    + ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_SH_PATH.filename())
             .addToEnv(
                 new EnvVarBuilder()
                     .withName("PRIMARY_INSTANCE")
@@ -125,8 +125,8 @@ public class ResetPatroniInit implements ContainerFactory<StackGresClusterContai
             .addToVolumeMounts(new VolumeMountBuilder()
                 .withName(PatroniStaticVolume.LOCAL_BIN.getVolumeName())
                 .withMountPath(
-                    "/usr/local/bin/dbops/major-version-upgrade/reset-patroni-initialize.sh")
-                .withSubPath("reset-patroni-initialize.sh")
+                    "/usr/local/bin/dbops/major-version-upgrade/reset-patroni.sh")
+                .withSubPath("reset-patroni.sh")
                 .withReadOnly(true)
                 .build())
             .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))

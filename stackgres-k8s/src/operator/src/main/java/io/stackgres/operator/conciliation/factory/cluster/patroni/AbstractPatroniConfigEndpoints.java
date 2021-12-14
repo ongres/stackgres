@@ -40,13 +40,7 @@ public abstract class AbstractPatroniConfigEndpoints
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    PatroniConfig patroniConf = new PatroniConfig();
-    patroniConf.setTtl(30);
-    patroniConf.setLoopWait(10);
-    patroniConf.setRetryTimeout(10);
-    patroniConf.setPostgresql(new PatroniConfig.PostgreSql());
-    patroniConf.getPostgresql().setUsePgRewind(true);
-    patroniConf.getPostgresql().setParameters(getPostgresConfigValues(context));
+    PatroniConfig patroniConf = getPatroniConfig(context);
 
     final String patroniConfigJson = objectMapper.valueToTree(patroniConf).toString();
 
@@ -63,16 +57,18 @@ public abstract class AbstractPatroniConfigEndpoints
         .build());
   }
 
+  protected abstract PatroniConfig getPatroniConfig(StackGresClusterContext context);
+
   @NotNull
   public Map<String, String> getPostgresConfigValues(StackGresClusterContext context) {
     StackGresPostgresConfig pgConfig = context.getPostgresConfig();
 
-    Map<String, String> params = getParameters(context, pgConfig);
+    Map<String, String> params = getPostgresParameters(context, pgConfig);
 
     return params;
   }
 
-  protected abstract Map<String, String> getParameters(StackGresClusterContext context,
+  protected abstract Map<String, String> getPostgresParameters(StackGresClusterContext context,
       StackGresPostgresConfig pgConfig);
 
   public static String configName(ClusterContext context) {
