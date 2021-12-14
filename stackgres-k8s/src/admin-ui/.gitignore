@@ -20,3 +20,6 @@ pnpm-debug.log*
 
 # SG Info
 /public/info
+
+# Cypress local tests
+/cypress/screenshots
