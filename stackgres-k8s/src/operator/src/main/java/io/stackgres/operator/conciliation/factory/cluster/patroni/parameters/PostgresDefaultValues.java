@@ -17,7 +17,8 @@ public class PostgresDefaultValues {
 
   private enum PostgresVersion {
     PG_DEFAULT_VALUES("/postgresql-default-values.properties"),
-    PG_13_VALUES("/postgresql-default-values-pg13.properties");
+    PG_13_VALUES("/postgresql-default-values-pg13.properties"),
+    PG_14_VALUES("/postgresql-default-values-pg14.properties");
 
     private final @NotNull Properties propFile;
 
@@ -30,8 +31,10 @@ public class PostgresDefaultValues {
   public static @NotNull Properties getProperties(@NotNull String pgVersion) {
     Objects.requireNonNull(pgVersion, "pgVersion parameter is null");
     int majorVersion = Integer.parseInt(pgVersion.split("\\.")[0]);
-    if (majorVersion >= 13) {
+    if (majorVersion == 13) {
       return PostgresVersion.PG_13_VALUES.propFile;
+    } else if (majorVersion >= 14) {
+      return PostgresVersion.PG_14_VALUES.propFile;
     }
     return PostgresVersion.PG_DEFAULT_VALUES.propFile;
   }

@@ -26,6 +26,7 @@ class PostgresDefaultValuesTest {
     assertEquals("96", defaultValues.get("wal_keep_segments"));
     assertEquals("logical", defaultValues.get("wal_level"));
     assertNull(defaultValues.get("wal_keep_size"));
+    assertNull(defaultValues.get("default_toast_compression"));
   }
 
   @ParameterizedTest
@@ -36,6 +37,13 @@ class PostgresDefaultValuesTest {
     assertEquals("1536MB", defaultValues.get("wal_keep_size"));
     assertEquals("logical", defaultValues.get("wal_level"));
     assertNull(defaultValues.get("wal_keep_segments"));
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"14", "14.0", "14.1", "14.5", "14.99999999", "14.9.9.7"})
+  void defaultToastCompression_Postgres14_shouldNotFail(String version) {
+    Map<String, String> defaultValues = PostgresDefaultValues.getDefaultValues(version);
+    assertEquals("lz4", defaultValues.get("default_toast_compression"));
   }
 
   @Test
