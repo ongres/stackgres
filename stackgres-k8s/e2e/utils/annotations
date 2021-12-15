@@ -6,7 +6,7 @@ check_sts_annotation(){
   local POD_ANNOTATION="${POD_ANNOTATION:-"test-annotation"}"
 
   local ACTUAL_ANNOTATION
-  ACTUAL_ANNOTATION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath="{.spec.template.metadata.annotations.$POD_ANNOTATION}")"
+  ACTUAL_ANNOTATION="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath="{.spec.template.metadata.annotations.$POD_ANNOTATION}")"
 
   if assert_string_equal "$EXPECTED_ANNOTATION_VALUE" "$ACTUAL_ANNOTATION"
   then 
