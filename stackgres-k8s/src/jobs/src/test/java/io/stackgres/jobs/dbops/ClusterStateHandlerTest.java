@@ -329,7 +329,7 @@ public abstract class ClusterStateHandlerTest {
 
     var clusterRestartState = getRestartStateHandler().restartCluster(dbOps)
         .await()
-        .atMost(Duration.ofMillis(50));
+        .atMost(Duration.ofMillis(1000));
 
     assertEqualsRestartState(expectedClusterState, clusterRestartState);
   }
@@ -446,7 +446,7 @@ public abstract class ClusterStateHandlerTest {
     kubeDb.watchDbOps(dbOpsName, namespace, storedDbOps::add);
 
     getRestartStateHandler().restartCluster(dbOps)
-        .await().atMost(Duration.ofMillis(50));
+        .await().atMost(Duration.ofMillis(1000));
 
     verifyDbOpsRestartStatus(pods, Seq.seq(storedDbOps).findLast().get());
 
