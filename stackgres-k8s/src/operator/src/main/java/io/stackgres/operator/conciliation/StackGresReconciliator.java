@@ -5,25 +5,19 @@
 
 package io.stackgres.operator.conciliation;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.resource.CustomResourceScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -107,15 +101,7 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
               .forEach(resource -> {
                 LOGGER.info("Creating resource {} of kind: {}",
                     resource.getMetadata().getName(), resource.getKind());
-                try {
-                  handlerDelegator.create(customResource, resource);
-                } catch (KubernetesClientException ex) {
-                  if (ex.getCode() == 409) {
-                    handlerDelegator.replace(customResource, resource);
-                  } else {
-                    throw ex;
-                  }
-                }
+                handlerDelegator.create(customResource, resource);
               });
 
           result.getPatches()
@@ -123,53 +109,7 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
                 LOGGER.info("Patching resource {} of kind: {}",
                     resource.v2.getMetadata().getName(),
                     resource.v2.getKind());
-                HasMetadata patchedResource = handlerDelegator
-                    .patch(customResource, resource.v1, resource.v2);
-                if (Optional.ofNullable(patchedResource)
-                    .map(HasMetadata::getMetadata)
-                    .map(ObjectMeta::getManagedFields)
-                    .stream()
-                    .flatMap(List::stream)
-                    .anyMatch(managedFieldsEntry -> Objects.equals(
-                        managedFieldsEntry.getManager(), "before-first-apply"))) {
-                  LOGGER.info("Owning resource {} of kind: {}",
-                      resource.v2.getMetadata().getName(),
-                      resource.v2.getKind());
-                  if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Before owning the resource was:\n{}",
-                        StackGresUtil.toPrettyYaml(resource.v2));
-                    LOGGER.debug("After patching the resource was:\n{}",
-                        StackGresUtil.toPrettyYaml(patchedResource));
-                  }
-                  HasMetadata ownedResourceWithBeforeFirstApply = handlerDelegator
-                      .patch(customResource, resource.v2, patchedResource);
-                  Optional.ofNullable(ownedResourceWithBeforeFirstApply)
-                      .map(HasMetadata::getMetadata)
-                      .map(ObjectMeta::getManagedFields)
-                      .stream()
-                      .flatMap(List::stream)
-                      .filter(managedFieldsEntry -> Objects.equals(
-                          managedFieldsEntry.getManager(), "before-first-apply"))
-                      .collect(Collectors.toList())
-                      .forEach(ownedResourceWithBeforeFirstApply
-                          .getMetadata().getManagedFields()::remove);
-                  if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("To own the resource has been changed to:\n{}",
-                        StackGresUtil.toPrettyYaml(ownedResourceWithBeforeFirstApply));
-                  }
-                  HasMetadata ownedResourceWithoutBeforeFirstApply = handlerDelegator.replace(
-                      customResource, ownedResourceWithBeforeFirstApply);
-                  if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("After removing before-first-apply the resource is:\n{}",
-                        StackGresUtil.toPrettyYaml(ownedResourceWithoutBeforeFirstApply));
-                  }
-                  HasMetadata ownedAndPatchedResource = handlerDelegator
-                      .patch(customResource, resource.v1, ownedResourceWithoutBeforeFirstApply);
-                  if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("After owning the resource is:\n{}",
-                        StackGresUtil.toPrettyYaml(ownedAndPatchedResource));
-                  }
-                }
+                handlerDelegator.patch(customResource, resource.v1, resource.v2);
               });
 
           result.getDeletions()

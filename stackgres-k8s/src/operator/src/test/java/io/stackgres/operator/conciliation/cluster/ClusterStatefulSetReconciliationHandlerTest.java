@@ -409,49 +409,6 @@ class ClusterStatefulSetReconciliationHandlerTest {
   }
 
   @Test
-  void givenDisruptablePods_decorateShouldFixReplicasValue() {
-    final Map<String, String> commonPodLabels = requiredStatefulSet.getSpec().getSelector()
-        .getMatchLabels();
-    Map<String, String> nonDisruptablePodLabels = new HashMap<>(commonPodLabels);
-    nonDisruptablePodLabels.put(StackGresContext.DISRUPTIBLE_KEY, StackGresContext.WRONG_VALUE);
-
-    final String namespace = requiredStatefulSet.getMetadata().getNamespace();
-    final String name = requiredStatefulSet.getMetadata().getName();
-    when(podScanner.findByLabelsAndNamespace(namespace, nonDisruptablePodLabels))
-        .thenReturn(ImmutableList.of(new PodBuilder()
-            .withNewMetadata()
-            .withNamespace(namespace)
-            .withName(name)
-            .withLabels(nonDisruptablePodLabels)
-            .endMetadata()
-            .build()));
-
-    int replicas = deployedStatefulSet.getSpec().getReplicas();
-
-    handler.decorate(deployedStatefulSet);
-
-    assertEquals(replicas + 1, deployedStatefulSet.getSpec().getReplicas());
-  }
-
-  @Test
-  void givenAnyDisruptablePods_decorateShouldNotUpdateReplicasValue() {
-    final Map<String, String> commonPodLabels = requiredStatefulSet.getSpec().getSelector()
-        .getMatchLabels();
-    Map<String, String> nonDisruptablePodLabels = new HashMap<>(commonPodLabels);
-    nonDisruptablePodLabels.put(StackGresContext.DISRUPTIBLE_KEY, StackGresContext.WRONG_VALUE);
-
-    final String namespace = requiredStatefulSet.getMetadata().getNamespace();
-    when(podScanner.findByLabelsAndNamespace(namespace, nonDisruptablePodLabels))
-        .thenReturn(ImmutableList.of());
-
-    int replicas = deployedStatefulSet.getSpec().getReplicas();
-
-    handler.decorate(deployedStatefulSet);
-
-    assertEquals(replicas, deployedStatefulSet.getSpec().getReplicas());
-  }
-
-  @Test
   void givenPodAnnotationChanges_shouldBeAppliedDirectlyToPods() {
     setUpUpscale(0, 0, PrimaryPosition.FIRST);
 
