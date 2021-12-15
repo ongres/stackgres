@@ -10,7 +10,6 @@ import static io.stackgres.common.StackGresContext.ANNOTATIONS_TO_COMPONENT;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -46,7 +45,6 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceWriter;
-import io.stackgres.operator.conciliation.DeployedResourceDecorator;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -61,7 +59,7 @@ import org.slf4j.LoggerFactory;
 @ReconciliationScope(value = StackGresCluster.class, kind = "StatefulSet")
 @ApplicationScoped
 public class ClusterStatefulSetReconciliationHandler
-    implements ReconciliationHandler<StackGresCluster>, DeployedResourceDecorator {
+    implements ReconciliationHandler<StackGresCluster> {
 
   protected static final Logger LOGGER =
       LoggerFactory.getLogger(ClusterStatefulSetReconciliationHandler.class);
@@ -134,20 +132,6 @@ public class ClusterStatefulSetReconciliationHandler
       throw new IllegalArgumentException("Resource must be a StatefulSet instance");
     }
     return (StatefulSet) resource;
-  }
-
-  @Override
-  public void decorate(HasMetadata resource) {
-    StatefulSet sts = safeCast(resource);
-
-    int actualReplicas = sts.getSpec().getReplicas();
-    Map<String, String> stsSelectorLabels = sts.getSpec().getSelector().getMatchLabels();
-    Map<String, String> nonDisruptingLabels = new HashMap<>(stsSelectorLabels);
-    nonDisruptingLabels.put(StackGresContext.DISRUPTIBLE_KEY, StackGresContext.WRONG_VALUE);
-    var pods =
-        podScanner.findByLabelsAndNamespace(sts.getMetadata().getNamespace(), nonDisruptingLabels);
-    actualReplicas += pods.size();
-    sts.getSpec().setReplicas(actualReplicas);
   }
 
   private StatefulSet updateStatefulSet(StatefulSet requiredSts) {

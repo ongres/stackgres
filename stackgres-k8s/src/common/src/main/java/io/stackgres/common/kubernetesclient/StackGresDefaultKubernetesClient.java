@@ -14,6 +14,7 @@ import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -45,6 +46,7 @@ import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.kubernetesclient.workaround.SecretOperationsImpl;
 import io.stackgres.common.kubernetesclient.workaround.ServiceOperationsImpl;
@@ -85,6 +87,12 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
   private static final String LIST_GROUP_PATH_FORMAT =
       "/apis/%s/namespaces/%s/%s";
 
+  private static final String LIST_ANY_DEFAULT_PATH_FORMAT =
+      "/api%s/%s";
+
+  private static final String LIST_ANY_GROUP_PATH_FORMAT =
+      "/apis/%s/%s";
+
   public StackGresDefaultKubernetesClient() {
     super();
   }
@@ -105,6 +113,18 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
   public <T extends HasMetadata> T serverSideApply(@NotNull PatchContext patchContext, T intent) {
     intent.getMetadata().setManagedFields(null);
 
+    if (!Optional.ofNullable(intent.getMetadata().getAnnotations())
+        .map(annotations -> annotations.containsKey(StackGresContext.MANAGED_KEY))
+        .orElse(false)) {
+      if (intent.getMetadata().getAnnotations() == null) {
+        intent.getMetadata().setAnnotations(new HashMap<>());
+      }
+      intent.getMetadata().setAnnotations(new HashMap<>(
+          intent.getMetadata().getAnnotations()));
+      intent.getMetadata().getAnnotations().put(
+          StackGresContext.MANAGED_KEY, StackGresContext.RIGHT_VALUE);
+    }
+
     try {
       var applyUrl = getResourceUrl(patchContext, intent);
       return apply(intent, applyUrl);
@@ -120,6 +140,19 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
                                                             String namespace) {
     try {
       var listUrl = getResourceListUrl(resource, namespace);
+      var listHttpUrl = buildHttpUrl(listUrl, labels);
+      return list(listHttpUrl, resource, fieldManager);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+
+  @Override
+  public <T extends HasMetadata> List<T> findManagedIntents(Class<T> resource,
+                                                            String fieldManager,
+                                                            Map<String, String> labels) {
+    try {
+      var listUrl = getResourceListUrl(resource);
       var listHttpUrl = buildHttpUrl(listUrl, labels);
       return list(listHttpUrl, resource, fieldManager);
     } catch (IOException e) {
@@ -252,8 +285,15 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
         ObjectNode list = (ObjectNode) Serialization.jsonMapper().readTree(responseString);
         return parseListObject(list, format, fieldManager);
       } else {
-        var status = Serialization.unmarshal(responseString, Status.class);
-        throw new KubernetesClientException(status);
+        if (response.code() == 404) {
+          return List.of();
+        }
+        try {
+          var status = Serialization.unmarshal(responseString, Status.class);
+          throw new KubernetesClientException(status);
+        } catch (Exception ex) {
+          throw new KubernetesClientException(responseString);
+        }
       }
     }
   }
@@ -340,6 +380,28 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
     } else {
       final String defaultPath = String.format(LIST_DEFAULT_PATH_FORMAT,
           apiVersion, namespace, plural);
+      return new URL(masterUrl, defaultPath);
+    }
+  }
+
+  protected <T extends HasMetadata> URL getResourceListUrl(Class<T> resource)
+      throws MalformedURLException {
+    var plural = HasMetadata.getPlural(resource);
+
+    var masterUrl = getMasterUrl();
+
+    var group = Optional.ofNullable(HasMetadata.getGroup(resource))
+        .filter(s -> !s.isEmpty());
+
+    var apiVersion = HasMetadata.getApiVersion(resource);
+
+    if (group.isPresent()) {
+      final String groupPath = String.format(LIST_ANY_GROUP_PATH_FORMAT,
+          apiVersion, plural);
+      return new URL(masterUrl, groupPath);
+    } else {
+      final String defaultPath = String.format(LIST_ANY_DEFAULT_PATH_FORMAT,
+          apiVersion, plural);
       return new URL(masterUrl, defaultPath);
     }
   }

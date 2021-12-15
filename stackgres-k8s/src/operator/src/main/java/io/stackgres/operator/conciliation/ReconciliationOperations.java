@@ -5,12 +5,8 @@
 
 package io.stackgres.operator.conciliation;
 
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
@@ -25,13 +21,11 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
 import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public interface ReconciliationOperations {
 
@@ -61,37 +55,21 @@ public interface ReconciliationOperations {
           .put(Job.class, client -> client.batch().v1().jobs())
           .build();
 
-  List<Class<? extends HasMetadata>> MANAGED_RESOURCE_OPERATIONS = List.of(
-      StatefulSet.class,
-      Service.class,
-      ServiceAccount.class,
-      Role.class,
-      RoleBinding.class,
-      Secret.class,
-      ConfigMap.class,
-      Endpoints.class,
-      CronJob.class,
-      Pod.class,
-      Job.class
-  );
-
-  Map<
+  ImmutableMap<
       Class<? extends HasMetadata>,
-      BiFunction<
+      Function<
           KubernetesClient,
-          Map<String, String>,
-          List<HasMetadata>>> ANY_NAMESPACE_RESOURCE_OPERATIONS =
-      Map.of(ServiceMonitor.class, (client, labels) -> {
-        final String crdName = CustomResource.getCRDName(ServiceMonitor.class);
-        var resources = ImmutableList.<HasMetadata>builder();
-        if (ResourceUtil.getCustomResource(client, crdName).isPresent()) {
-          resources.addAll(client.resources(ServiceMonitor.class, ServiceMonitorList.class)
-              .inAnyNamespace()
-              .withLabels(labels)
-              .list()
-              .getItems());
-        }
-        return resources.build();
-      });
+          MixedOperation<
+              ? extends HasMetadata,
+              ? extends KubernetesResourceList<? extends HasMetadata>,
+              ? extends Resource<? extends HasMetadata>>>>
+      ANY_NAMESPACE_RESOURCE_OPERATIONS =
+      ImmutableMap.<Class<? extends HasMetadata>, Function<KubernetesClient,
+          MixedOperation<? extends HasMetadata,
+              ? extends KubernetesResourceList<? extends HasMetadata>,
+              ? extends Resource<? extends HasMetadata>>>>builder()
+          .put(ServiceMonitor.class, client -> client
+              .resources(ServiceMonitor.class, ServiceMonitorList.class))
+          .build();
 
 }

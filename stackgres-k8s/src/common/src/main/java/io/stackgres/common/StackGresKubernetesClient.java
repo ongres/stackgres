@@ -25,6 +25,10 @@ public interface StackGresKubernetesClient extends KubernetesClient {
                                                      Map<String, String> labels,
                                                      String namespace);
 
+  <T extends HasMetadata> List<T> findManagedIntents(Class<T> resource,
+                                                     String fieldManager,
+                                                     Map<String, String> labels);
+
   <T extends HasMetadata, S, L extends KubernetesResourceList<T>> T updateStatus(
       @NotNull Class<T> resourceClass, @NotNull Class<L> resourceListClass, @NotNull T intent,
       @NotNull Function<T, S> statusGetter, @NotNull BiConsumer<T, S> statusSettes);
