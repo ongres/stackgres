@@ -100,7 +100,7 @@ public class PodWatcherImpl implements PodWatcher {
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
-        .atMost(10);
+        .indefinitely();
   }
 
   @Override
