@@ -79,14 +79,15 @@ node_port_services(){
     --set cluster.postgresServices.replicas.type="NodePort"
 
   wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
-  wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary"
+  wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary"
+  wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replicas"
 
   local PRIMARY_SERVICE_TYPE
   PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.type}')"
   local OLD_PRIMARY_SERVICE_TYPE
-  OLD_PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary" -o jsonpath='{.spec.type}')"
+  OLD_PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" -o jsonpath='{.spec.type}')"
   local REPLICA_SERVICE_TYPE
-  REPLICA_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"replicas" -o jsonpath='{.spec.type}')"
+  REPLICA_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replicas" -o jsonpath='{.spec.type}')"
 
   assert_string_equal "NodePort" "$PRIMARY_SERVICE_TYPE"
   assert_string_equal "ExternalName" "$OLD_PRIMARY_SERVICE_TYPE"
@@ -104,15 +105,15 @@ load_balancer_services(){
     --set cluster.postgresServices.replicas.type="LoadBalancer"
 
   wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
-  wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary"
-  wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"replicas"
+  wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary"
+  wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replicas"
 
   local PRIMARY_SERVICE_TYPE
   PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.type}')"
   local OLD_PRIMARY_SERVICE_TYPE
-  OLD_PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary" -o jsonpath='{.spec.type}')"
+  OLD_PRIMARY_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" -o jsonpath='{.spec.type}')"
   local REPLICA_SERVICE_TYPE
-  REPLICA_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"replicas" -o jsonpath='{.spec.type}')"
+  REPLICA_SERVICE_TYPE="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replicas" -o jsonpath='{.spec.type}')"
 
   assert_string_equal "LoadBalancer" "$PRIMARY_SERVICE_TYPE"
   assert_string_equal "ExternalName" "$OLD_PRIMARY_SERVICE_TYPE"
@@ -132,14 +133,15 @@ using_external_IPS(){
     --set cluster.postgresServices.replicas.externalIPs[0]="$REPLICA_EXTERNAL_IP"
 
   wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
-  wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"replicas"
+  wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary"
+  wait_until kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replicas"
 
   local PATRONI_SERVICE_EXTERNAL_IP
   PATRONI_SERVICE_EXTERNAL_IP="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.externalIPs[0]}')"
   local PRIMARY_SERVICE_EXTERNAL_IP
-  PRIMARY_SERVICE_EXTERNAL_IP="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"primary" -o jsonpath='{.spec.externalIPs[0]}')"
+  PRIMARY_SERVICE_EXTERNAL_IP="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" -o jsonpath='{.spec.externalIPs[0]}')"
   local REPLICA_SERVICE_EXTERNAL_IP
-  REPLICA_SERVICE_EXTERNAL_IP="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"replicas" -o jsonpath='{.spec.externalIPs[0]}')"
+  REPLICA_SERVICE_EXTERNAL_IP="$(kubectl get services -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replicas" -o jsonpath='{.spec.externalIPs[0]}')"
 
   assert_string_equal "$PRIMARY_EXTERNAL_IP" "$PATRONI_SERVICE_EXTERNAL_IP"
   assert_string_equal "$REPLICA_EXTERNAL_IP" "$REPLICA_SERVICE_EXTERNAL_IP"
@@ -147,3 +149,4 @@ using_external_IPS(){
 
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
+

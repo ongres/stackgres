@@ -444,7 +444,7 @@ check_cluster_after_security_upgrade() {
   fi
 
   local STS_UPDATE_REVISION
-  STS_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
+  STS_UPDATE_REVISION="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
   local POD_CONTROLLER_REVISION_HASH
   local POD_CONTROLLER_REVISION_HASHES
   POD_CONTROLLER_REVISION_HASHES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
@@ -508,7 +508,7 @@ check_sts_is_not_altered() {
   local TARGET_CLUSTER="$1"
 
   local STS_PATRONI_IMAGE
-  STS_PATRONI_IMAGE="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')"
+  STS_PATRONI_IMAGE="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')"
 
   if assert_string_equal "$PREVIOUS_PATRONI_IMAGE" "$STS_PATRONI_IMAGE"
   then
