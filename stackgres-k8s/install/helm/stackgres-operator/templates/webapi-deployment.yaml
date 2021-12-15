@@ -207,6 +207,10 @@ spec:
             subPath: var/run
             mountPath: /var/run
             readOnly: false
+          - name: operator-nginx-etc
+            subPath: var/log/nginx
+            mountPath: /var/log/nginx
+            readOnly: false
       volumes:
         - name: web-certs
           secret:
