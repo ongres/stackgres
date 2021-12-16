@@ -58,9 +58,9 @@ public class DbOpsDeployedResourceScanner extends DeployedResourcesScanner<Stack
   }
 
   protected ImmutableMap<Class<? extends HasMetadata>,
-  Function<KubernetesClient, MixedOperation<? extends HasMetadata,
-      ? extends KubernetesResourceList<? extends HasMetadata>,
-          ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations() {
+      Function<KubernetesClient, MixedOperation<? extends HasMetadata,
+          ? extends KubernetesResourceList<? extends HasMetadata>,
+              ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations() {
     return IN_NAMESPACE_RESOURCE_OPERATIONS;
   }
 

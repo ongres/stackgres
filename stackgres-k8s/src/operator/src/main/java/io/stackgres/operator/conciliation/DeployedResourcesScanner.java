@@ -25,7 +25,6 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresKubernetesClient;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceWriter;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -37,6 +36,7 @@ public abstract class DeployedResourcesScanner<T extends CustomResource<?, ?>> {
       DeployedResourcesScanner.class.getPackage().getName());
 
   public List<HasMetadata> getDeployedResources(T config) {
+    final String kind = HasMetadata.getKind(config.getClass());
     final Map<String, String> genericClusterLabels = getGenericLabels(config);
 
     StackGresKubernetesClient stackGresClient = getClient();
@@ -64,7 +64,7 @@ public abstract class DeployedResourcesScanner<T extends CustomResource<?, ?>> {
     List<HasMetadata> deployedResources = Stream.concat(inNamespace, anyNamespace)
         .filter(resource -> resource.getMetadata().getOwnerReferences()
             .stream().anyMatch(ownerReference -> ownerReference.getKind()
-                .equals(StackGresCluster.KIND)
+                .equals(kind)
                 && ownerReference.getName().equals(config.getMetadata().getName())
                 && ownerReference.getUid().equals(config.getMetadata().getUid())))
         .collect(Collectors.toUnmodifiableList());
