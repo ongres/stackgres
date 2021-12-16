@@ -29,12 +29,12 @@
                 <h2>Create Cluster</h2>
                 <label for="advancedMode" class="floatRight">
                     <span>ADVANCED OPTIONS </span>
-                    <input type="checkbox" id="advancedMode" name="advancedMode" v-model="advancedMode" class="switch">
+                    <input type="checkbox" id="advancedMode" name="advancedMode" v-model="advancedMode" class="switch" @change="( (!advancedMode && (currentStepIndex > 2)) && (currentStep = formSteps[0]))">
                 </label>
             </div>
             <div class="stepsContainer">
                 <ul class="steps">
-                    <button type="button" class="btn arrow prev" @click="currentStep = formSteps[(formSteps.indexOf(currentStep) - 1)]" :disabled="( formSteps.indexOf(currentStep) == 0 )"></button>
+                    <button type="button" class="btn arrow prev" @click="currentStep = formSteps[(currentStepIndex - 1)]" :disabled="( currentStepIndex == 0 )"></button>
             
                     <template v-for="(step, index) in formSteps"  v-if="( ((index < 3) && !advancedMode) || advancedMode)">
                         <li @click="currentStep = step" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' )]" v-if="!( (step == 'initialization') && editMode && !initScripts.length && !restoreBackup.length )" :data-step="step">
@@ -42,7 +42,7 @@
                         </li>
                     </template>
 
-                    <button type="button" class="btn arrow next" @click="currentStep = formSteps[(formSteps.indexOf(currentStep) + 1)]" :disabled="(!advancedMode && ( formSteps.indexOf(currentStep) == 2 ) ) || ( (advancedMode && ( formSteps.indexOf(currentStep) == (formSteps.length - 1) )) )"></button>
+                    <button type="button" class="btn arrow next" @click="currentStep = formSteps[(currentStepIndex + 1)]" :disabled="(!advancedMode && ( currentStepIndex == 2 ) ) || ( (advancedMode && ( currentStepIndex == (formSteps.length - 1) )) )"></button>
                 </ul>
             </div>
 
@@ -1463,6 +1463,10 @@
 
             pitrTimezone () {
                 return this.pitr.length ? ( (store.state.timezone == 'local') ? moment.utc(this.pitr).local().format('YYYY-MM-DD HH:mm:ss') : moment.utc(this.pitr).format('YYYY-MM-DD HH:mm:ss') ) : '';
+            },
+
+            currentStepIndex() {
+                return this.formSteps.indexOf(this.currentStep)
             }
 
         },
