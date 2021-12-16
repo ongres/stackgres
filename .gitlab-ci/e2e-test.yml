@@ -318,7 +318,7 @@ e2e ex tests native 6 amd64:
       - $E2E_TEST
       - $E2E_EXCLUSIVE_JOBS =~ /^[12345]$/
 
-e2e ui tests native:
+e2e ui tests native amd64:
   extends: .e2e tests native amd64
   variables:
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -597,7 +597,7 @@ e2e ex tests native 6 arm64:
       - $E2E_TEST
       - $E2E_EXCLUSIVE_JOBS =~ /^[12345]$/
 
-e2e ui tests native:
+e2e ui tests native arm64:
   extends: .e2e tests native arm64
   variables:
     E2E_SKIP_OPERATOR_INSTALL: "true"
