@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2039
 
 # shellcheck disable=SC1090
 . "$(dirname "$0")/e2e-functions.sh"
@@ -262,8 +263,8 @@ show_test_result_summary() {
       printf ' - %s\n' "$TEST_NAME"
     done < stackgres-k8s/e2e/target/passed-tests
     echo
-  elif [ "$(wc -l stackgres-k8s/e2e/target/runned-tests | cut -d ' ' -f 1)" != \
-    "$(wc -l stackgres-k8s/e2e/target/passed-tests | cut -d ' ' -f 1)" ]
+  elif [ "$({ wc -l stackgres-k8s/e2e/target/runned-tests 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
+    "$({ wc -l stackgres-k8s/e2e/target/passed-tests 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
   then
     echo "Passed tests:"
     echo
@@ -271,8 +272,8 @@ show_test_result_summary() {
     echo
   fi
 
-  if [ "$(wc -l stackgres-k8s/e2e/target/runned-tests | cut -d ' ' -f 1)" != \
-    "$(wc -l stackgres-k8s/e2e/target/passed-tests | cut -d ' ' -f 1)" ]
+  if [ "$({ wc -l stackgres-k8s/e2e/target/runned-tests 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
+    "$({ wc -l stackgres-k8s/e2e/target/passed-tests 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
   then
     echo "Failed tests:"
     echo
