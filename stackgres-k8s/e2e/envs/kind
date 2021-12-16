@@ -235,19 +235,14 @@ INNER_EOF
 )
 EOF
 
-  local EXIT_CODE RESULT
   try_function flock "$KIND_LOCK_PATH" \
     kind create cluster --name "$KIND_NAME" --config "$TARGET_PATH/kind-config.yaml" \
     --image "kindest/node:v$(get_kind_image "${K8S_VERSION}")"
-  if ! "$RESULT"
+  if ! "$RESULT" && [ -n "$KIND_CONTAINERD_CACHE_PATH" ] && [ "$KIND_CONTAINERD_CACHE_RESET" != true ]
   then
-    if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] && [ "$KIND_CONTAINERD_CACHE_RESET" != true ]
-    then
-      echo "Kind failed to create cluster with cache enabled. Resetting cache and retrying!"
-      KIND_CONTAINERD_CACHE_RESET=true reset_k8s
-      return
-    fi
-    return "$EXIT_CODE"
+    echo "Kind failed to create cluster with cache enabled. Resetting cache and retrying!"
+    KIND_CONTAINERD_CACHE_RESET=true reset_k8s
+    return
   fi
 
   if [ "$KIND_INSTALL_NFS" = "true" ]
