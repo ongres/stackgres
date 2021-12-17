@@ -736,7 +736,8 @@
 
                         case 'benchmark':
                             let benchmark = {
-                                type: vc.benchmark.type
+                                type: vc.benchmark.type,
+                                connectionType: vc.benchmark.connectionType
                             }
 
                             benchmark[vc.benchmark.type] = {
