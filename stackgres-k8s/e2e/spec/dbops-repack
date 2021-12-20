@@ -1,5 +1,9 @@
 #!/bin/sh
 
+e2e_use_extensions() {
+  true
+}
+
 e2e_test_install() {
   DBOPS_NAME=repack
 

@@ -1,5 +1,9 @@
 #!/bin/sh
 
+e2e_use_extensions() {
+  true
+}
+
 e2e_test_install() {
   INTAGG_VERSION="$(get_latest_version_of_extension intagg 13.5)"
   PAGEINSPECT_VERSION="$(get_latest_version_of_extension pageinspect 13.5)"
