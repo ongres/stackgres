@@ -71,13 +71,13 @@ spec:
       containers:
       - name: "{{ .Release.Name }}-fix-deployment-selector"
       {{- if semverCompare ">=1.22" .Capabilities.KubeVersion.Version }}
-        image: "ongres/kubectl:v1.22.2-build-6.8-dev"
+        image: "ongres/kubectl:v1.22.2-build-6.8"
       {{- else if semverCompare ">=1.19" .Capabilities.KubeVersion.Version }}
-        image: "ongres/kubectl:v1.20.11-build-6.8-dev"
+        image: "ongres/kubectl:v1.20.11-build-6.8"
       {{- else if semverCompare ">=1.16" .Capabilities.KubeVersion.Version }}
-        image: "ongres/kubectl:v1.17.17-build-6.8-dev"
+        image: "ongres/kubectl:v1.17.17-build-6.8"
       {{- else }}
-        image: "ongres/kubectl:v1.22.2-build-6.8-dev"
+        image: "ongres/kubectl:v1.22.2-build-6.8"
       {{- end }}
         imagePullPolicy: "IfNotPresent"
         command:
