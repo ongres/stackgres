@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
@@ -31,18 +33,16 @@ class PgConfigUpdateValidatorTest {
   }
 
   @Test
-  void ifNoUpdatesOfPgVersion_shouldPass() throws ValidationFailed {
-
+  void ifNoUpdatesOfPgVersion_shouldPass() {
     final AdmissionRequest<StackGresPostgresConfig> request = review.getRequest();
     request.getObject().getSpec().setPostgresVersion("12");
     request.getOldObject().getSpec().setPostgresVersion("12");
 
-    validator.validate(review);
+    assertDoesNotThrow(() -> validator.validate(review));
   }
 
   @Test
   void updatesOfPgVersion_shouldFail() {
-
     final AdmissionRequest<StackGresPostgresConfig> request = review.getRequest();
     request.getObject().getSpec().setPostgresVersion("12");
     request.getOldObject().getSpec().setPostgresVersion("11");
@@ -54,6 +54,5 @@ class PgConfigUpdateValidatorTest {
         "spec.postgresVersion",
         "postgresVersion is not updatable",
         "FieldNotUpdatable");
-
   }
 }

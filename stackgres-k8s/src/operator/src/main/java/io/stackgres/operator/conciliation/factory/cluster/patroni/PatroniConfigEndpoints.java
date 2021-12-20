@@ -75,9 +75,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     for (String bl : PostgresBlocklist.getBlocklistParameters()) {
       userParams.remove(bl);
     }
-    for (Map.Entry<String, String> userParam : userParams.entrySet()) {
-      params.put(userParam.getKey(), userParam.getValue());
-    }
+    params.putAll(userParams);
 
     params.put("port", String.valueOf(EnvoyUtil.PG_PORT));
 
@@ -99,7 +97,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
       params.put("log_directory", ClusterStatefulSetPath.PG_LOG_PATH.path());
       params.put("log_filename", "postgres-%M.log");
       params.put("log_rotation_age", "30min");
-      params.put("log_rotation_size", "0");
+      params.put("log_rotation_size", "0kB");
       params.put("log_truncate_on_rotation", "on");
     }
 
@@ -113,6 +111,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     params.put("wal_level", "logical");
     params.put("wal_log_hints", "on");
     params.put("archive_mode", "on");
+
     return params;
   }
 

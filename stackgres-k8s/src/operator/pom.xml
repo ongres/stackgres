@@ -31,6 +31,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.ongres.pgconfig</groupId>
+      <artifactId>pgconfig-validator</artifactId>
+      <version>${pgconfig-validator.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-properties</artifactId>
     </dependency>

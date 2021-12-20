@@ -38,6 +38,7 @@ That means that all of error messages follows the following structure:
 | [invalid-secret](#invalid-secret) | You are trying to create a cluster using a secret that doesn't exists |
 | [extension-not-found](#extension-not-found) | Any of the default or configured extensions can not be found in extensions repository |
 | [already-exists](#already-exists) | The resource already exists |
+| [postgres-parameter](#postgres-parameter) | The postgres configuration contains invalid parameters |
 
 ## Postgres Blocklist
 
@@ -72,7 +73,7 @@ For example:
 
 Supose that we are trying to create a StackGres cluster with the following json.
 
-``` json
+```json
 {
   "metadata": {
     "name": "StackGres"
@@ -123,7 +124,7 @@ uri: /stackgres/pgconfig
 method: POST
 payload:
 ```
-``` json
+```json
 {
   "metadata": {
     "name": "postgresconf"
@@ -145,7 +146,7 @@ uri: /stackgres/cluster
 method: POST
 payload:
 ```
-``` json
+```json
 {
   "metadata": {
     "name": "StackGres"
@@ -224,7 +225,7 @@ uri: /stackgres/pgconfig
 method: POST
 payload:
 ```
-``` json
+```json
 {
   "metadata": {
     "name": "postgresconf"
@@ -242,7 +243,7 @@ Notice that the postgresVersion property says "12". This means that this configu
 In order to use that postgres configuration, your StackGres cluster should have postgres version 12,
  like the following:
 
-``` json
+```json
 {
   "metadata": {
     "name": "StackGres"
@@ -271,7 +272,7 @@ uri: /stackgres/cluster
 method: POST
 payload:
 ```
-``` json
+```json
 {
   "metadata": {
     "name": "StackGres"
@@ -318,3 +319,29 @@ If you specify an extension than can not be found in any repository you will get
 # Already Exists
 
 A resource of same type in the same namespace and with the same name as the one you are trying to create already exists.
+
+# Postgres Parameter
+
+There are some invalid parameters in the configuration for the corresponding version of PostgreSQL.
+
+For example, assume the following configuration:
+
+```yml
+apiVersion: stackgres.io/v1
+kind: SGPostgresConfig
+metadata:
+  name: postgresconf
+spec:
+  postgresVersion: "13"
+  postgresql.conf:
+    password_encryption: 'scram-sha-256'
+    default_toast_compression: 'lz4'
+    shared_buffers: '256MB'
+    checkpoint_timeout: '15s'
+```
+
+This configuration has two subtle invalid parameters, the first one is `default_toast_compression`, while the name and
+ value (`lz4`) of the parameter is correct for PostgreSQL 14, this config targets PostgreSQL 13.
+ The second issue is that `checkpoint_timeout` min value is `30s`, setting this value lower creates an invalid setting.
+
+StackGres validates this kind of issues using a small library that comes from https://postgresqlco.nf/.
