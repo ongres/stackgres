@@ -1,5 +1,9 @@
 #!/bin/sh
 
+e2e_use_extensions() {
+  true
+}
+
 e2e_test_install() {
   COPY_CLUSTER_NAME="$(get_sgcluster_name "$CLUSTER_NAME-copy")"
   DISTRIBUTED_LOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"

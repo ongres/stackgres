@@ -24,6 +24,11 @@ get_extensions_metadata_url() {
   printf '%s' "$(printf '%s' "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/$EXTENSIONS_METADATA_VERSION/$NAME"
 }
 
+get_extensions_index_hash() {
+  cache_extensions_index
+  md5sum "$TARGET_PATH/extensions-index.json" | cut -d ' ' -f 1
+}
+
 cache_extensions_index() {
   if [ "$EXTENSIONS_INDEX_CACHED" != true ] || [ ! -f "$TARGET_PATH/extensions-index.json" ]
   then

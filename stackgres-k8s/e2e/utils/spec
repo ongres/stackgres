@@ -44,6 +44,10 @@ e2e_exclusive_lock() {
   false
 }
 
+e2e_use_extensions() {
+  false
+}
+
 get_all_specs() {
   find "$SPEC_PATH" -maxdepth 1 -type f | grep '^.*/[^\.]\+$'
 }
@@ -315,7 +319,15 @@ calculate_spec_hashes() {
                 "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
                   "$(realpath --relative-to "$PROJECT_PATH" "$FILE")"
               done
-        } | md5sum | cut -d ' ' -f 1)"
+          (
+          . "$SPEC"
+          if e2e_use_extensions
+          then
+            get_extensions_index_hash
+          fi
+          )
+        })"
+        SPEC_HASH="$(printf '%s' "$SPEC_HASH" | md5sum | cut -d ' ' -f 1)"
         echo "$SPEC:$SPEC_HASH"
       done
 }
