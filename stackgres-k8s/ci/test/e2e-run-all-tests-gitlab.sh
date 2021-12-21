@@ -283,7 +283,7 @@ show_test_result_summary() {
       then
         printf ' - %s\n' "$TEST_NAME"
       fi
-    done < stackgres-k8s/e2e/target/all-tests
+    done < stackgres-k8s/e2e/target/runned-tests
     echo
   else
     if [ "$EXIT_CODE" != 0 ]
