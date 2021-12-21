@@ -24,13 +24,13 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatusC
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.resource.DistributedLogsScheduler;
+import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
-import io.stackgres.operator.conciliation.StackGresReconciliator;
 import io.stackgres.operator.conciliation.StatusManager;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
-public class DistributedLogsReconciliator extends StackGresReconciliator<StackGresDistributedLogs> {
+public class DistributedLogsReconciliator extends AbstractReconciliator<StackGresDistributedLogs> {
 
   private ConnectedClustersScanner connectedClustersScanner;
 

@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.backup;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.StackGresAbstractComparator;
@@ -17,6 +18,9 @@ public class BackupDefaultComparator extends StackGresAbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
       new SimpleIgnorePatch("/metadata/managedFields",
+          "add"),
+      new SimpleIgnorePatch("/metadata/annotations/"
+          + StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY,
           "add"),
   };
 

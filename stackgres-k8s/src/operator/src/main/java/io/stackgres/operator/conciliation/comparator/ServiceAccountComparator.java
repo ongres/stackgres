@@ -11,11 +11,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.zjsonpatch.JsonDiff;
+import io.stackgres.common.StackGresContext;
 
 public class ServiceAccountComparator extends StackGresAbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
       new StackGresAbstractComparator.SimpleIgnorePatch("/managedFields",
+          "add"),
+      new StackGresAbstractComparator.SimpleIgnorePatch("/secrets",
+          "add"),
+      new SimpleIgnorePatch("/metadata/annotations/"
+          + StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY,
           "add"),
   };
 

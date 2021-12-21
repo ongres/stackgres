@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -93,12 +94,12 @@ public interface PatroniUtil {
     return configName(context.getCluster());
   }
 
-  static String configName(StackGresCluster cluster) {
+  static String configName(CustomResource<?, ?> cluster) {
     return ResourceUtil.nameIsValidDnsSubdomain(
         clusterScope(cluster) + CONFIG_SERVICE);
   }
 
-  static String clusterScope(StackGresCluster cluster) {
+  static String clusterScope(CustomResource<?, ?> cluster) {
     return cluster.getMetadata().getName();
   }
 

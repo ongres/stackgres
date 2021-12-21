@@ -17,15 +17,17 @@ import javax.inject.Inject;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.resource.CustomResourceScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
+public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(
-      StackGresReconciliator.class.getPackage().getName());
+      AbstractReconciliator.class.getPackage().getName());
 
   private static final String STACKGRES_IO_RECONCILIATION = StackGresContext
       .RECONCILIATION_PAUSE_KEY;
@@ -36,13 +38,15 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
   private HandlerDelegator<T> handlerDelegator;
 
+  private KubernetesClient client;
+
   private final ExecutorService executorService;
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
 
   private final CompletableFuture<Void> stopped = new CompletableFuture<>();
   private boolean close = false;
 
-  public StackGresReconciliator() {
+  public AbstractReconciliator() {
     this.executorService = Executors.newSingleThreadExecutor(
         r -> new Thread(r, getReconciliationName() + "-ReconciliationLoop"));
   }
@@ -99,14 +103,17 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
           result.getCreations()
               .forEach(resource -> {
-                LOGGER.info("Creating resource {} of kind: {}",
-                    resource.getMetadata().getName(), resource.getKind());
+                LOGGER.info("Creating resource {}.{} of kind: {}",
+                    resource.getMetadata().getNamespace(),
+                    resource.getMetadata().getName(),
+                    resource.getKind());
                 handlerDelegator.create(customResource, resource);
               });
 
           result.getPatches()
               .forEach(resource -> {
-                LOGGER.info("Patching resource {} of kind: {}",
+                LOGGER.info("Patching resource {}.{} of kind: {}",
+                    resource.v2.getMetadata().getNamespace(),
                     resource.v2.getMetadata().getName(),
                     resource.v2.getKind());
                 handlerDelegator.patch(customResource, resource.v1, resource.v2);
@@ -114,7 +121,9 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
 
           result.getDeletions()
               .forEach(resource -> {
-                LOGGER.info("Deleting resource {} of kind: {}", resource.getMetadata().getName(),
+                LOGGER.info("Deleting resource {}.{} of kind: {}",
+                    resource.getMetadata().getNamespace(),
+                    resource.getMetadata().getName(),
                     resource.getKind());
                 handlerDelegator.delete(customResource, resource);
               });
@@ -177,6 +186,15 @@ public abstract class StackGresReconciliator<T extends CustomResource<?, ?>> {
   @Inject
   public void setHandlerDelegator(HandlerDelegator<T> handlerDelegator) {
     this.handlerDelegator = handlerDelegator;
+  }
+
+  public StackGresKubernetesClient getClient() {
+    return (StackGresKubernetesClient) client;
+  }
+
+  @Inject
+  public void setClient(KubernetesClient client) {
+    this.client = client;
   }
 
 }

@@ -24,8 +24,8 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
+import io.stackgres.common.prometheus.ServiceMonitor;
+import io.stackgres.common.prometheus.ServiceMonitorList;
 
 public interface ReconciliationOperations {
 

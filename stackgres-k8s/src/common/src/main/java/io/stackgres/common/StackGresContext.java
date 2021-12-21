@@ -40,7 +40,7 @@ public interface StackGresContext {
   String BACKUP_NAMESPACE_KEY = "backup-namespace";
 
   String STACKGRES_KEY_PREFIX = "stackgres.io/";
-  String MANAGED_KEY = "managed";
+  String MANAGED_BY_SERVER_SIDE_APPLY_KEY = STACKGRES_KEY_PREFIX + "managed-by-server-side-apply";
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
   String RECONCILIATION_PAUSE_UNTIL_RESTART_KEY =

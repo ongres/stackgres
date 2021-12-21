@@ -1,0 +1,131 @@
+{
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "Role",
+    "metadata": {
+        "creationTimestamp": "2021-12-17T11:01:30Z",
+        "labels": {
+            "app": "StackGresCluster",
+            "cluster-name": "dbops-security-upgrade-2",
+            "cluster-uid": "ec24196f-3ea2-4e0c-863a-7bbd2241d302"
+        },
+        "name": "dbops-security-upgrade-2-patroni",
+        "namespace": "dbops-security-upgrade-61bc6d8a",
+        "ownerReferences": [
+            {
+                "apiVersion": "stackgres.io/v1beta1",
+                "controller": true,
+                "kind": "SGCluster",
+                "name": "dbops-security-upgrade-2",
+                "uid": "ec24196f-3ea2-4e0c-863a-7bbd2241d302"
+            }
+        ],
+        "resourceVersion": "277682",
+        "selfLink": "/apis/rbac.authorization.k8s.io/v1/namespaces/dbops-security-upgrade-61bc6d8a/roles/dbops-security-upgrade-2-patroni",
+        "uid": "94c54e24-cd89-45ad-bd0c-eaf217e927b9"
+    },
+    "rules": [
+        {
+            "apiGroups": [
+                ""
+            ],
+            "resources": [
+                "endpoints",
+                "configmaps"
+            ],
+            "verbs": [
+                "create",
+                "get",
+                "list",
+                "patch",
+                "update",
+                "watch"
+            ]
+        },
+        {
+            "apiGroups": [
+                ""
+            ],
+            "resources": [
+                "secrets"
+            ],
+            "verbs": [
+                "get"
+            ]
+        },
+        {
+            "apiGroups": [
+                ""
+            ],
+            "resources": [
+                "pods"
+            ],
+            "verbs": [
+                "get",
+                "list",
+                "patch",
+                "update",
+                "watch"
+            ]
+        },
+        {
+            "apiGroups": [
+                ""
+            ],
+            "resources": [
+                "pods/exec"
+            ],
+            "verbs": [
+                "create"
+            ]
+        },
+        {
+            "apiGroups": [
+                "batch"
+            ],
+            "resources": [
+                "cronjobs"
+            ],
+            "verbs": [
+                "get",
+                "patch"
+            ]
+        },
+        {
+            "apiGroups": [
+                ""
+            ],
+            "resources": [
+                "services"
+            ],
+            "verbs": [
+                "create"
+            ]
+        },
+        {
+            "apiGroups": [
+                "stackgres.io"
+            ],
+            "resources": [
+                "sgbackups"
+            ],
+            "verbs": [
+                "list",
+                "get",
+                "create",
+                "patch",
+                "delete"
+            ]
+        },
+        {
+            "apiGroups": [
+                "stackgres.io"
+            ],
+            "resources": [
+                "sgbackupconfigs"
+            ],
+            "verbs": [
+                "get"
+            ]
+        }
+    ]
+}

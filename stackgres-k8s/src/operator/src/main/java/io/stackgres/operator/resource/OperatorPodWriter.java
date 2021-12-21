@@ -12,8 +12,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.base.PatchContext;
-import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.resource.ResourceWriter;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,18 +29,19 @@ public class OperatorPodWriter implements ResourceWriter<Pod> {
 
   @Override
   public Pod create(@NotNull Pod resource) {
-    return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
-        .withFieldManager(STACKGRES_FIELD_MANAGER)
-        .withForce(true)
-        .build(), resource);
+    return client.pods()
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .create(resource);
   }
 
   @Override
   public Pod update(@NotNull Pod resource) {
-    return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
-        .withFieldManager(STACKGRES_FIELD_MANAGER)
-        .withForce(true)
-        .build(), resource);
+    return client.pods()
+        .inNamespace(resource.getMetadata().getNamespace())
+        .withName(resource.getMetadata().getName())
+        .lockResourceVersion(resource.getMetadata().getResourceVersion())
+        .replace(resource);
   }
 
   @Override
