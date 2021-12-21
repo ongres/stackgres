@@ -20,12 +20,12 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.CharStreams;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.tukaani.xz.XZInputStream;
 
 public class JsonUtil {
 
@@ -78,6 +78,23 @@ public class JsonUtil {
   }
 
   @SuppressWarnings("unchecked")
+  public static <T extends JsonNode> T readFromJsonXzAsJson(String resource) {
+    Objects.requireNonNull(resource, "resource");
+    try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)) {
+      if (is == null) {
+        throw new IllegalArgumentException("resource " + resource + " not found");
+      }
+      try (XZInputStream xzIs = new XZInputStream(is)) {
+        try (Reader reader = new InputStreamReader(xzIs, StandardCharsets.UTF_8)) {
+          return (T) JSON_MAPPER.readTree(CharStreams.toString(reader));
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalArgumentException("could not open resource " + resource, e);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
   public static <T extends JsonNode> T readFromJsonAsJson(String resource) {
     Objects.requireNonNull(resource, "resource");
     try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)) {
@@ -113,10 +130,14 @@ public class JsonUtil {
     }
   }
 
-  public static void assertJsonEquals(ObjectNode expected, ObjectNode actual) {
+  public static void assertJsonEquals(JsonNode expected, JsonNode actual) {
+    assertJsonEquals(expected.toString(), actual.toString());
+  }
+
+  public static void assertJsonEquals(String expected, String actual) {
     try {
       JSONAssert.assertEquals(
-          expected.toString(), actual.toString(), JSONCompareMode.NON_EXTENSIBLE);
+          expected, actual, JSONCompareMode.NON_EXTENSIBLE);
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
     }

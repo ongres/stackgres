@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.resource;
 
+import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -13,9 +15,9 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.stackgres.common.StackGresKubernetesClient;
+import io.stackgres.common.prometheus.ServiceMonitor;
+import io.stackgres.common.prometheus.ServiceMonitorList;
 import io.stackgres.common.resource.ResourceWriter;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitorList;
 
 @ApplicationScoped
 public class ServiceMonitorWriter implements ResourceWriter<ServiceMonitor> {
@@ -33,7 +35,7 @@ public class ServiceMonitorWriter implements ResourceWriter<ServiceMonitor> {
         .withFieldManager(STACKGRES_FIELD_MANAGER)
         .withForce(true)
         .build(),
-        resource);
+        resource, Optional.empty());
   }
 
   @Override
@@ -42,14 +44,18 @@ public class ServiceMonitorWriter implements ResourceWriter<ServiceMonitor> {
         .withFieldManager(STACKGRES_FIELD_MANAGER)
         .withForce(true)
         .build(),
-        resource);
+        resource, Optional.ofNullable(getServiceMonitorClient()
+            .inNamespace(resource.getMetadata().getNamespace())
+            .withName(resource.getMetadata().getName())
+            .get()));
   }
 
   @Override
   public void delete(ServiceMonitor resource) {
     getServiceMonitorClient()
         .inNamespace(resource.getMetadata().getNamespace())
-        .delete(resource);
+        .withName(resource.getMetadata().getName())
+        .delete();
   }
 
   private MixedOperation<ServiceMonitor, ServiceMonitorList,

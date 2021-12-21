@@ -10,9 +10,9 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.prometheus.PrometheusConfig;
+import io.stackgres.common.prometheus.PrometheusConfigList;
 import io.stackgres.common.resource.AbstractCustomResourceScanner;
-import io.stackgres.operator.customresource.prometheus.PrometheusConfig;
-import io.stackgres.operator.customresource.prometheus.PrometheusConfigList;
 
 @ApplicationScoped
 public class PrometheusScanner

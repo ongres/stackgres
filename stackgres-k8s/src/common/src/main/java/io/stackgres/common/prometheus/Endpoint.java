@@ -3,9 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.customresource.prometheus;
-
-import java.util.List;
+package io.stackgres.common.prometheus;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -15,33 +13,33 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @RegisterForReflection
-public class NamespaceSelector {
+public class Endpoint {
 
-  private Boolean any;
-  private List<String> matchNames;
+  private String port;
+  private String path;
 
-  public Boolean getAny() {
-    return any;
+  public String getPort() {
+    return port;
   }
 
-  public void setAny(Boolean any) {
-    this.any = any;
+  public void setPort(String port) {
+    this.port = port;
   }
 
-  public List<String> getMatchNames() {
-    return matchNames;
+  public String getPath() {
+    return path;
   }
 
-  public void setMatchNames(List<String> matchNames) {
-    this.matchNames = matchNames;
+  public void setPath(String path) {
+    this.path = path;
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .omitNullValues()
-        .add("any", any)
-        .add("matchNames", matchNames)
+        .add("port", port)
+        .add("path", path)
         .toString();
   }
 }

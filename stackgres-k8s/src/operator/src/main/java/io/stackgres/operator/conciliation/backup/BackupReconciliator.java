@@ -28,14 +28,14 @@ import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.PatchResumer;
+import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
-import io.stackgres.operator.conciliation.StackGresReconciliator;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
 public class BackupReconciliator
-    extends StackGresReconciliator<StackGresBackup> {
+    extends AbstractReconciliator<StackGresBackup> {
 
   private EventEmitter<StackGresBackup> eventController;
 

@@ -24,14 +24,14 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.prometheus.Endpoint;
+import io.stackgres.common.prometheus.NamespaceSelector;
+import io.stackgres.common.prometheus.ServiceMonitor;
+import io.stackgres.common.prometheus.ServiceMonitorSpec;
 import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.customresource.prometheus.Endpoint;
-import io.stackgres.operator.customresource.prometheus.NamespaceSelector;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitor;
-import io.stackgres.operator.customresource.prometheus.ServiceMonitorSpec;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @Singleton

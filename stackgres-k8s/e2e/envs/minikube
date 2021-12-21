@@ -50,6 +50,15 @@ reset_k8s() {
 
     docker run --rm -v "$K8S_CACHE_PATH:/containerd-cache" alpine \
       sh -ec 'mkdir -p "/containerd-cache/volume"'
+    if docker volume inspect minikube >/dev/null 2>&1 \
+      && [ "$(docker volume inspect minikube 2>/dev/null \
+        | jq '.[0]
+          |  .Options.device == "'"$K8S_CACHE_PATH"'/volume"
+             and .Options.o == "bind"
+             and .Options.type == "none"')" != true ]
+    then
+      docker volume rm minikube
+    fi
     if ! docker volume inspect minikube >/dev/null 2>&1
     then
       docker volume create --name minikube \

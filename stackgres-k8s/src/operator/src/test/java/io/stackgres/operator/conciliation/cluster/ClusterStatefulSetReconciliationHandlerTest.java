@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import static io.stackgres.operator.conciliation.cluster.ClusterStatefulSetReconciliationHandler.PLACEHOLDER_NODE_SELECTOR;
+import static io.stackgres.operator.conciliation.AbstractStatefulSetReconciliationHandler.PLACEHOLDER_NODE_SELECTOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,6 +55,7 @@ import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -410,17 +411,19 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   @Test
   void givenPodAnnotationChanges_shouldBeAppliedDirectlyToPods() {
-    setUpUpscale(0, 0, PrimaryPosition.FIRST);
+    final int replicas = setUpNoScale(0, 0, PrimaryPosition.FIRST);
 
     final Map<String, String> requiredAnnotations = Map
         .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
             "same-key", "new-value");
     requiredStatefulSet.getSpec().getTemplate().getMetadata().setAnnotations(requiredAnnotations);
-    Seq.seq(podList).map(pod -> Tuple
+    final var deployedAnnotations = Seq.seq(podList).map(pod -> Tuple
         .tuple(pod, Map
             .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
                 "same-key", "old-value")))
-        .forEach(t -> t.v1.getMetadata().setAnnotations(t.v2));
+        .peek(t -> t.v1.getMetadata().setAnnotations(t.v2))
+        .map(t -> t.map1(pod -> pod.getMetadata().getName()))
+        .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
 
     when(statefulSetWriter.update(any())).thenReturn(requiredStatefulSet);
 
@@ -434,11 +437,13 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .getMetadata().getAnnotations());
 
     ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
-    verify(podWriter, atMost(Integer.MAX_VALUE)).update(podArgumentCaptor.capture());
+    verify(podWriter, times(replicas)).update(podArgumentCaptor.capture());
     podArgumentCaptor.getAllValues().forEach(pod -> {
-      assertEquals(ImmutableMap.<String, String>builder()
-          .putAll(requiredAnnotations)
-          .build(), pod.getMetadata().getAnnotations());
+      assertEquals(Seq.seq(deployedAnnotations.get(pod.getMetadata().getName()))
+          .filter(annotation -> !requiredAnnotations.containsKey(annotation.v1))
+          .append(Seq.seq(requiredAnnotations))
+          .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)),
+          pod.getMetadata().getAnnotations());
     });
   }
 
@@ -475,15 +480,16 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
             "same-key", "new-value");
 
-    setUpUpscale(0, 0, PrimaryPosition.FIRST);
+    final int desiredReplicas = setUpNoScale(0, 0, PrimaryPosition.FIRST);
     requiredStatefulSet.getSpec().getVolumeClaimTemplates().forEach(pvc -> pvc
         .getMetadata().setAnnotations(requiredAnnotations));
-    final var deployedPvcAnnotations = Seq.seq(pvcList).map(pvc -> Tuple
+    final var deployedAnnotations = Seq.seq(pvcList).map(pvc -> Tuple
         .tuple(pvc, Map
             .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
                 "same-key", "old-value")))
         .peek(t -> t.v1.getMetadata().setAnnotations(t.v2))
-        .toList();
+        .map(t -> t.map1(pvc -> pvc.getMetadata().getName()))
+        .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
 
     deployedStatefulSet.getSpec().getVolumeClaimTemplates().forEach(pvc -> pvc.getMetadata()
         .setAnnotations(
@@ -499,70 +505,37 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     ArgumentCaptor<PersistentVolumeClaim> pvcArgumentCaptor =
         ArgumentCaptor.forClass(PersistentVolumeClaim.class);
-    verify(pvcWriter, atMost(Integer.MAX_VALUE)).update(pvcArgumentCaptor.capture());
+    verify(pvcWriter, times(desiredReplicas)).update(pvcArgumentCaptor.capture());
     pvcArgumentCaptor.getAllValues().forEach(pvc -> {
-      assertEquals(ImmutableMap.<String, String>builder()
-          .putAll(deployedPvcAnnotations.stream().filter(t -> t.v1.getMetadata().getName()
-              .equals(pvc.getMetadata().getName()))
-              .findAny().get().v2.entrySet().stream()
-              .filter(t -> requiredAnnotations.keySet().stream().noneMatch(t.getKey()::equals))
-              .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue)))
-          .putAll(requiredAnnotations)
-          .build(), pvc.getMetadata().getAnnotations());
-    });
-  }
-
-  @Test
-  void givenPvcOwnerReferenceChanges_shouldBeAppliedDirectlyToPvcs() {
-    setUpUpscale(0, 0, PrimaryPosition.FIRST);
-
-    requiredStatefulSet.getSpec().getVolumeClaimTemplates()
-        .forEach(pvc -> pvc.getMetadata().setUid("test"));
-    final List<OwnerReference> requiredOwnerReferences = getOwnerReferences(requiredStatefulSet);
-    requiredStatefulSet.getSpec().getVolumeClaimTemplates().forEach(pvc -> pvc
-        .getMetadata().setOwnerReferences(requiredOwnerReferences));
-
-    deployedStatefulSet.getSpec().getVolumeClaimTemplates()
-        .forEach(pvc -> pvc.getMetadata().setOwnerReferences(null));
-
-    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
-
-    ArgumentCaptor<StatefulSet> statefulSetArgumentCaptor =
-        ArgumentCaptor.forClass(StatefulSet.class);
-    verify(statefulSetWriter).update(statefulSetArgumentCaptor.capture());
-    statefulSetArgumentCaptor.getValue().getSpec().getVolumeClaimTemplates()
-        .forEach(pvc -> assertEquals(requiredOwnerReferences,
-            pvc.getMetadata().getOwnerReferences()));
-
-    ArgumentCaptor<PersistentVolumeClaim> pvcArgumentCaptor =
-        ArgumentCaptor.forClass(PersistentVolumeClaim.class);
-    verify(pvcWriter, atMost(Integer.MAX_VALUE)).update(pvcArgumentCaptor.capture());
-    pvcArgumentCaptor.getAllValues().forEach(pvc -> {
-      assertEquals(requiredOwnerReferences, pvc.getMetadata().getOwnerReferences());
+      assertEquals(Seq.seq(deployedAnnotations.get(pvc.getMetadata().getName()))
+          .filter(annotation -> !requiredAnnotations.containsKey(annotation.v1))
+          .append(Seq.seq(requiredAnnotations))
+          .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)),
+          pvc.getMetadata().getAnnotations());
     });
   }
 
   private int setUpNoScale(int nonDisruptiblePods, int distance, PrimaryPosition primaryPosition) {
-    final int desiredReplicas = getRandomDesiredReplicas();
+    final int replicas = getRandomDesiredReplicas();
 
-    setUpPods(desiredReplicas, desiredReplicas, nonDisruptiblePods, true, distance, primaryPosition,
+    setUpPods(replicas, replicas, nonDisruptiblePods, true, distance, primaryPosition,
         false);
 
-    setStatefulSetMocks(desiredReplicas, true);
+    setStatefulSetMocks(replicas, true);
 
-    return desiredReplicas;
+    return replicas;
   }
 
   private int setUpNoScaleWithPlaceholders(int afterDistancePods, int distance,
       PrimaryPosition primaryPosition) {
-    final int desiredReplicas = getRandomDesiredReplicas();
+    final int replicas = getRandomDesiredReplicas();
 
-    setUpPods(desiredReplicas, desiredReplicas + 2, afterDistancePods, false, distance,
+    setUpPods(replicas, replicas + 2, afterDistancePods, false, distance,
         primaryPosition, true);
 
-    setStatefulSetMocks(desiredReplicas, false);
+    setStatefulSetMocks(replicas, false);
 
-    return desiredReplicas;
+    return replicas;
   }
 
   private int setUpDownscale(int nonDisruptiblePods, int distance,
@@ -734,7 +707,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .withNewMetadata()
         .withNamespace(requiredStatefulSet.getMetadata().getNamespace())
         .withName(pvcMetadata.getName() + "-"
-            + requiredStatefulSet.getMetadata().getName() + podIndex)
+            + requiredStatefulSet.getMetadata().getName() + "-" + podIndex)
         .withLabels(ImmutableMap.<String, String>builder()
             .putAll(pvcMetadata.getLabels())
             .build())

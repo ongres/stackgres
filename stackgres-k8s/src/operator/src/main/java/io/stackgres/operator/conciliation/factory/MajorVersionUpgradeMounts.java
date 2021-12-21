@@ -107,10 +107,6 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<PostgresC
             new EnvVarBuilder()
                 .withName("SOURCE_PG_EXTRA_LIB_PATH")
                 .withValue(String.format(PG_EXTRA_LIB_PATH_FORMAT, oldPostgresVersion))
-                .build(),
-            new EnvVarBuilder()
-                .withName("LD_LIBRARY_PATH")
-                .withValue(String.format(PG_EXTRA_LIB_PATH_FORMAT, postgresVersion))
                 .build())
         .build();
   }

@@ -1,0 +1,46 @@
+{
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+        "creationTimestamp": "2021-12-17T11:01:30Z",
+        "labels": {
+            "app": "StackGresCluster",
+            "cluster": "true",
+            "cluster-name": "dbops-security-upgrade-2",
+            "cluster-uid": "ec24196f-3ea2-4e0c-863a-7bbd2241d302",
+            "role": "master"
+        },
+        "name": "dbops-security-upgrade-2",
+        "namespace": "dbops-security-upgrade-61bc6d8a",
+        "ownerReferences": [
+            {
+                "apiVersion": "stackgres.io/v1beta1",
+                "controller": true,
+                "kind": "SGCluster",
+                "name": "dbops-security-upgrade-2",
+                "uid": "ec24196f-3ea2-4e0c-863a-7bbd2241d302"
+            }
+        ],
+        "resourceVersion": "277695",
+        "selfLink": "/api/v1/namespaces/dbops-security-upgrade-61bc6d8a/services/dbops-security-upgrade-2",
+        "uid": "c5848ede-ef99-48b9-9662-3871861efbc0"
+    },
+    "spec": {
+        "ports": [
+            {
+                "name": "pgport",
+                "port": 5432,
+                "protocol": "TCP",
+                "targetPort": "pgport"
+            },
+            {
+                "name": "pgreplication",
+                "port": 5433,
+                "protocol": "TCP",
+                "targetPort": "pgreplication"
+            }
+        ],
+        "sessionAffinity": "None",
+        "type": "ClusterIP"
+    }
+}

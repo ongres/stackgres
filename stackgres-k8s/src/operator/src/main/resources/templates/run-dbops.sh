@@ -24,10 +24,10 @@ run() {
     (set -e; acquire_lock) > "$SHARED_PATH/try-lock" 2>&1 &
     ACQUIRE_LOCK_PID=$!
     (
-    while (kill -0 "$TIMEOUT_PID" \
-      && kill -0 "$ACQUIRE_LOCK_PID") 2>/dev/null
+    while { kill -0 "$TIMEOUT_PID" \
+      && kill -0 "$ACQUIRE_LOCK_PID"; } 2>/dev/null
     do
-      true
+      { sleep 1; } 2>/dev/null
     done
     )
     if ! kill -0 "$TIMEOUT_PID" 2>/dev/null

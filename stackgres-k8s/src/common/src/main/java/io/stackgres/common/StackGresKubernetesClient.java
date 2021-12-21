@@ -7,9 +7,11 @@ package io.stackgres.common;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -18,7 +20,12 @@ import org.jetbrains.annotations.NotNull;
 
 public interface StackGresKubernetesClient extends KubernetesClient {
 
-  <T extends HasMetadata> T serverSideApply(@NotNull PatchContext patchContext, @NotNull T intent);
+  <T extends HasMetadata> T serverSideApply(@NotNull PatchContext patchContext, @NotNull T intent,
+      Optional<T> deployed);
+
+  <T extends HasMetadata> T sanitizeForServerSideApply(T intent);
+
+  void setManagedByServerSideApplyAnnotation(HasMetadata intent);
 
   <T extends HasMetadata> List<T> findManagedIntents(Class<T> resource,
                                                      String fieldManager,
@@ -32,5 +39,7 @@ public interface StackGresKubernetesClient extends KubernetesClient {
   <T extends HasMetadata, S, L extends KubernetesResourceList<T>> T updateStatus(
       @NotNull Class<T> resourceClass, @NotNull Class<L> resourceListClass, @NotNull T intent,
       @NotNull Function<T, S> statusGetter, @NotNull BiConsumer<T, S> statusSettes);
+
+  ObjectNode getOpenApi();
 
 }
