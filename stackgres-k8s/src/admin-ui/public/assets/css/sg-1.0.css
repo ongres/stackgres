@@ -556,75 +556,208 @@ table:not(.fullWidth) td.label {
     border-right: 1px solid var(--borderColor);
 }
 
-/*Form Tooltips Adjustments*/
+/* Forms */
 
-.crdForm fieldset {
-    width: 100%;
-    position: relative;
+form.form { 
+    max-width: 900px;
+    width: 900px;
 }
 
-.crdForm fieldset .helpTooltip {
-    left: 26px;
-}
-
-.crdForm fieldset fieldset .helpTooltip {
-    left: 52px;
-}
-
-.crdForm fieldset fieldset fieldset .helpTooltip {
-    left: 78px;
-}
-
-.crdForm fieldset.cron .helpTooltip {
-    right: -21px;
-    top: 10px;
-    transform: initial;
-    float: initial;
-    position: absolute;
-    left: initial;
-}
-
-.crdForm .helpTooltip {
+form.form .helpTooltip {
     float: right;
-    transform: translate(20px, -50px);
+    transform: translate(20px, -30px);
 }
 
-.crdForm .textSet {
-    position: relative;
-    padding: 0;
-    border: none;
-    margin: 0;
-}
-
-.crdForm .textSet textarea + .helpTooltip {
-    transform: initial;
-    float: initial;
-    position: absolute;
-    top: 30px;
-    right: -20px;
-    left: initial;
-}
-
-.crdForm fieldset .header .helpTooltip {
-    top: 50px;
-}
-
-.logsForm .scheduling fieldset input:last-of-type, .dbopsForm fieldset fieldset fieldset select:last-of-type {
+.step {
+    display: none;
+    width: 100%;
+    border: 0;
+    padding: 20px 0 0;
     margin-bottom: 0;
 }
 
-.logsForm .scheduling fieldset, .dbopsForm fieldset fieldset fieldset {
-    margin-bottom: 25px;
+.step.active {
+    display: block;
 }
 
-.logsForm .scheduling fieldset input:last-of-type + .helpTooltip, .dbopsForm fieldset fieldset fieldset select:last-of-type + .helpTooltip {
-    top: 25px;
+.stepsContainer {
+    width: 100%;
+    text-align: center;
+    border-bottom: 1px solid var(--borderColor);
+    margin-bottom: 20px;
 }
 
-.logsForm .repeater > fieldset + fieldset, .dbopsForm .repeater > fieldset + fieldset {
-    border-top: 1px solid var(--borderColor);
+ul.steps {
+    display: inline-block;
+    margin: 10px 0 20px;
+    border: 0;
+    padding: 0 28px;
+    position: relative;
 }
 
-.logsForm .repeater > fieldset, .dbopsForm .repeater > fieldset {
-    border-radius: 5px;
+ul.steps li {
+    float: left;
+    list-style: none;
+    position: relative;
+    text-align: center;
+    margin: 0 7px;
+    text-transform: capitalize;
+    min-width: 70px;
+    cursor: pointer;
+}
+
+ul.steps li:before {
+    content: " ";
+    display: block;
+    background: var(--bgColor);
+    width: 10px;
+    height: 10px;
+    margin: 0 auto 10px;
+    border-radius: 100%;
+    border: 2px solid var(--borderColor);
+    position: relative;
+    z-index: 2;
+}
+
+ul.steps li.basic:before {
+    background: var(--borderColor);
+}
+
+ul.steps li.active:before {
+    border-color: var(--baseColor);
+    color: var(--bgColor);
+}
+
+ul.steps li.basic.active:before {
+    background: var(--baseColor);
+}
+
+ul.steps li.active {
+    color: var(--baseColor);
+    font-weight: bold;
+}
+
+ul.steps li:after {
+    height: 2px;
+    background: var(--borderColor);
+    content: " ";
+    display: block;
+    position: absolute;
+    width: calc(100% + 20px);
+    top: 6px;
+    left: -10px;
+}
+
+ul.steps li:first-child:after {
+    width: calc(50% + 10px);
+    left: 50%;
+}
+
+ul.steps li:last-child:after {
+    width: calc(50% + 10px);
+}
+
+.switch + .helpTooltip {
+    transform: translate(20px, -47px);
+}
+
+.step p {
+    display: inline-block;
+    margin: 5px 0 10px;
+}
+
+.step .fields p {
+    margin: 5px 0 30px;
+}
+
+.steps a {
+    display: inline-block;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+#advancedMode + span {
+    position: relative;
+    top: -1px;
+}
+
+.steps label {
+    position: absolute;
+    width: 95px;
+    top: 11px;
+}
+
+.steps button.arrow {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    padding: 0;
+    top: -16px;
+    background: var(--inputBg);
+    border-color: var(--borderColor);
+}
+
+.steps button.arrow:hover {
+    border-color: var(--baseColor);
+}
+
+.steps button.arrow:after {
+    content: " ";
+    width: 6px;
+    height: 6px;
+    border: 1px solid var(--gray3);
+    display: block;
+    transform: rotate(45deg);
+    position: absolute;
+    top: 8px;
+}
+
+.darkmode .steps button.arrow:after {
+    border-color: var(--gray5);
+}
+
+.steps button.arrow:hover:after {
+    border-color: var(--baseColor);
+}
+
+.steps button.arrow[disabled] {
+    border-color: transparent;
+}
+
+.steps button.arrow[disabled]:after {
+    border-color: var(--borderColor);
+}
+
+.steps button.prev {
+    left: 0;
+}
+
+.steps button.next {
+    right: 0;
+}
+
+.steps button.next:after {
+    border-left: 0;
+    border-bottom: 0;
+    left: 6px;
+}
+
+.steps button.prev:after {
+    border-right: 0;
+    border-top: 0;
+    left: 10px;
+}
+
+h2 .helpTooltip, h3 .helpTooltip, h4 .helpTooltip, label .helpTooltip {
+    float: none !important;
+    transform: none !important;
+    margin-left: 5px;
+}
+
+form.form label.switch + .helpTooltip {
+    transform: translate(20px, -47px);
+}
+
+form.form .row-50 .col {
+    margin-bottom: 10px;
 }

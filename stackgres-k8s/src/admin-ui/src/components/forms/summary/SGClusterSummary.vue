@@ -89,7 +89,7 @@
                                             <strong class="label">Volume Size:</strong>
                                             <span class="value">{{ cluster.data.spec.pods.persistentVolume.size }}B</span>
                                         </li>
-                                        <li v-if="showDefaults || hasProp(cluster, 'data.spec.pods.persistentVolume.storageClass')">
+                                        <li v-if="hasProp(cluster, 'data.spec.pods.persistentVolume.storageClass')">
                                             <strong class="label">Storage Class:</strong>
                                             <span class="value">{{ cluster.data.spec.pods.persistentVolume.storageClass }}</span>
                                         </li>
@@ -579,7 +579,7 @@
 	import { mixin } from '../../mixins/mixin'
 
     export default {
-        name: 'ClusterSummary',
+        name: 'SGClusterSummary',
 
 		mixins: [mixin],
 
@@ -593,11 +593,7 @@
 
 		computed: {
 
-			tooltips () {
-				return store.state.tooltips
-			},
-
-			profiles () {
+            profiles () {
 				return store.state.profiles
 			},
 

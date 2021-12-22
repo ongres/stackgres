@@ -224,7 +224,7 @@
 							</template>	
 							<template v-for="(back, index) in backups">
 								<template v-if="(index >= pagination.start) && (index < pagination.end)">
-									<template v-if="back.data.hasOwnProperty('status') && (back.data.status.process.status !== 'Pending')">
+									<template v-if="( hasProp(back, 'data.status.process.status') && (back.data.status.process.status !== 'Pending') )">
 										<tr class="base">
 											<td class="timestamp hasTooltip" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.process.timing.stored.substr(0,19).replace('T',' ') : ''">
 												<span>
@@ -599,7 +599,7 @@
 							</tbody>
 						</table>
 					</template>
-					<template v-else-if="back.data.status.process.status === 'Failed'">
+					<template v-else-if="( hasProp(back, 'data.status.process.status') && (back.data.status.process.status === 'Failed') )">
 						<table class="crdDetails">
 							<tbody>
 								<tr>
