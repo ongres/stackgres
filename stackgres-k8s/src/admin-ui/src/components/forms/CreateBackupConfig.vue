@@ -123,14 +123,14 @@
                     <h3>Performance Details</h3>
 
                     <div class="col">
-                        <label for="spec.baseBackups.performance.maxNetworkBandwitdh">Max Network Bandwitdh</label>
-                        <input v-model="backupConfigMaxNetworkBandwitdh" data-field="spec.baseBackups.performance.maxNetworkBandwitdh" type="number" min="0">
+                        <label for="spec.baseBackups.performance.maxNetworkBandwitdh">Max Network Bandwidth</label>
+                        <input v-model="backupConfigMaxNetworkBandwidth" data-field="spec.baseBackups.performance.maxNetworkBandwitdh" type="number" min="0">
                         <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.maxNetworkBandwitdh')"></span>
                     </div>
 
                     <div class="col">
-                        <label for="spec.baseBackups.performance.maxDiskBandwitdh">Max Disk Bandwitdh</label>
-                        <input v-model="backupConfigMaxDiskBandwitdh" data-field="spec.baseBackups.performance.maxDiskBandwitdh" type="number" min="0">
+                        <label for="spec.baseBackups.performance.maxDiskBandwitdh">Max Disk Bandwidth</label>
+                        <input v-model="backupConfigMaxDiskBandwidth" data-field="spec.baseBackups.performance.maxDiskBandwitdh" type="number" min="0">
                         <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.maxDiskBandwitdh')"></span>
                     </div>
 
@@ -423,8 +423,8 @@
                 backupConfigFullScheduleMonth: '*',
                 backupConfigFullScheduleDOW: '*',
                 backupConfigRetention: 5,
-                backupConfigMaxNetworkBandwitdh: '',
-                backupConfigMaxDiskBandwitdh: '',
+                backupConfigMaxNetworkBandwidth: '',
+                backupConfigMaxDiskBandwidth: '',
                 backupConfigUploadDiskConcurrency: 1,
                 backupConfigStorageType: '',
                 backupS3Bucket: '',
@@ -489,8 +489,8 @@
                             vm.backupConfigFullScheduleDOW = cron[4];
                             //backupConfigFullWindow = config.data.spec.fullWindow;
                             vm.backupConfigRetention = config.data.spec.baseBackups.retention;
-                            vm.backupConfigMaxNetworkBandwitdh = vm.hasProp(config, 'data.spec.baseBackups.performance.maxNetworkBandwitdh') ? config.data.spec.baseBackups.performance.maxNetworkBandwitdh : '';
-                            vm.backupConfigMaxDiskBandwitdh = vm.hasProp(config, 'data.spec.baseBackups.performance.maxDiskBandwitdh') ? config.data.spec.baseBackups.performance.maxDiskBandwitdh : ''; 
+                            vm.backupConfigMaxNetworkBandwidth = vm.hasProp(config, 'data.spec.baseBackups.performance.maxNetworkBandwitdh') ? config.data.spec.baseBackups.performance.maxNetworkBandwitdh : '';
+                            vm.backupConfigMaxDiskBandwidth = vm.hasProp(config, 'data.spec.baseBackups.performance.maxDiskBandwitdh') ? config.data.spec.baseBackups.performance.maxDiskBandwitdh : ''; 
                             vm.backupConfigUploadDiskConcurrency = vm.hasProp(config, 'data.spec.baseBackups.performance.uploadDiskConcurrency') ? config.data.spec.baseBackups.performance.uploadDiskConcurrency : 1;
                             vm.backupConfigStorageType = config.data.spec.storage.type;
         
@@ -640,11 +640,13 @@
                                 "cronSchedule": this.tzCrontab(this.backupConfigFullScheduleMin+' '+this.backupConfigFullScheduleHour+' '+this.backupConfigFullScheduleDOM+' '+this.backupConfigFullScheduleMonth+' '+this.backupConfigFullScheduleDOW, false),
                                 "retention": this.backupConfigRetention,
                                 ...( ((typeof this.backupConfigCompressionMethod !== 'undefined') && this.backupConfigCompressionMethod.length ) && ( {"compression": this.backupConfigCompressionMethod }) ),
-                                "performance": {
-                                    "uploadDiskConcurrency": this.backupConfigUploadDiskConcurrency,
-                                    "maxNetworkBandwitdh": this.backupConfigMaxNetworkBandwitdh,
-                                    "maxDiskBandwitdh": this.backupConfigMaxDiskBandwitdh
-                                }
+                                ...( (this.backupConfigUploadDiskConcurrency.length || this.backupConfigMaxNetworkBandwidth.length || this.backupConfigMaxDiskBandwidth.length ) && ({
+                                    "performance": {
+                                        ...( this.backupConfigUploadDiskConcurrency.length && { "uploadDiskConcurrency": this.backupConfigUploadDiskConcurrency } ),
+                                        ...( this.backupConfigMaxNetworkBandwidth.length && { "maxNetworkBandwitdh": this.backupConfigMaxNetworkBandwidth }),
+                                        ...( this.backupConfigMaxDiskBandwidth.length && { "maxDiskBandwidth": this.backupConfigMaxDiskBandwidth } )
+                                    }
+                                }) )
                             },
                             "storage": storage
                         }
