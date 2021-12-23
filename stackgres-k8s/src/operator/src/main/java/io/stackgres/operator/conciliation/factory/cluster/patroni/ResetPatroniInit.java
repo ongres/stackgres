@@ -79,12 +79,16 @@ public class ResetPatroniInit implements ContainerFactory<StackGresClusterContai
   public Container getContainer(StackGresClusterContainerContext context) {
 
     final StackGresClusterContext clusterContext = context.getClusterContext();
-    String primaryInstance = Optional.of(clusterContext.getSource())
-        .map(StackGresCluster::getStatus)
-        .map(StackGresClusterStatus::getDbOps)
-        .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
-        .map(StackGresClusterDbOpsMajorVersionUpgradeStatus::getPrimaryInstance)
-        .orElseThrow();
+    StackGresClusterDbOpsMajorVersionUpgradeStatus majorVersionUpgradeStatus =
+        Optional.of(clusterContext.getSource())
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getDbOps)
+            .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+            .orElseThrow();
+    String postgresVersion = clusterContext.getSource().getSpec().getPostgres().getVersion();
+    String primaryInstance = majorVersionUpgradeStatus.getPrimaryInstance();
+    String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
+    String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
 
     return
         new ContainerBuilder()
@@ -100,6 +104,19 @@ public class ResetPatroniInit implements ContainerFactory<StackGresClusterContai
                     .withName("PRIMARY_INSTANCE")
                     .withValue(primaryInstance)
                     .build(),
+                new EnvVarBuilder()
+                    .withName("POSTGRES_VERSION")
+                    .withValue(postgresVersion)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("TARGET_VERSION")
+                    .withValue(targetVersion)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("SOURCE_VERSION")
+                    .withValue(sourceVersion)
+                    .build(),
+                ClusterStatefulSetPath.PG_UPGRADE_PATH.envVar(),
                 new EnvVarBuilder()
                     .withName("POD_NAME")
                     .withValueFrom(new EnvVarSourceBuilder()
