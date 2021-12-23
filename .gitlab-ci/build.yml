@@ -4,6 +4,7 @@ build:
   tags:
     - stackgres-runner-v2
     - stackgres-maven-runner
+    - linux-amd64
   script:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
