@@ -53,7 +53,7 @@ public abstract class AbstractPatroniTemplatesConfigMap<T>
         ClusterStatefulSetPath.LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_RUN_RESTART_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH.filename(),
-        ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_SH_PATH.filename(),
     }) {
       data.put(resource, Unchecked.supplier(() -> Resources
           .asCharSource(Objects.requireNonNull(AbstractPatroniTemplatesConfigMap.class

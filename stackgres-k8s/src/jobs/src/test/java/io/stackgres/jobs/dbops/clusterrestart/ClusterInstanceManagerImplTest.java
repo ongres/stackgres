@@ -8,6 +8,7 @@ package io.stackgres.jobs.dbops.clusterrestart;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
@@ -49,7 +50,7 @@ class ClusterInstanceManagerImplTest {
   KubernetesServer mockServer;
 
   @InjectMock
-  PodWatcher podWatcher;
+  PodWatcherImpl podWatcher;
 
   @Inject
   ClusterInstanceManagerImpl clusterInstanceManager;
@@ -102,7 +103,7 @@ class ClusterInstanceManagerImplTest {
     assertEquals(
         initialInstances + 1, actualInstances);
 
-    verify(podWatcher).waitUntilIsReady(newPodName, namespace);
+    verify(podWatcher).waitUntilIsReady(clusterName, newPodName, namespace, false);
 
   }
 
@@ -128,7 +129,7 @@ class ClusterInstanceManagerImplTest {
 
     InOrder order = inOrder(podWatcher);
 
-    order.verify(podWatcher).waitUntilIsReady(newPodName, namespace);
+    order.verify(podWatcher).waitUntilIsReady(clusterName, newPodName, namespace, false);
 
   }
 
@@ -153,7 +154,7 @@ class ClusterInstanceManagerImplTest {
     assertEquals(
         initialInstances + 1, actualInstances);
 
-    verify(podWatcher).waitUntilIsReady(newPodName, namespace);
+    verify(podWatcher).waitUntilIsReady(clusterName, newPodName, namespace, false);
   }
 
   @Test
@@ -379,32 +380,30 @@ class ClusterInstanceManagerImplTest {
   }
 
   private void configureCreationPodWatchers() {
-
-    when(podWatcher.waitUntilIsReady(anyString(), eq(namespace))).thenAnswer(invocation -> {
-      final String podName = invocation.getArgument(0);
-      String namespace = invocation.getArgument(1);
-      Pod pod = mockServer.getClient().pods().inNamespace(namespace)
-          .withName(podName).get();
-      int retries = 0;
-      while (pod == null) {
-        Thread.sleep(100);
-        pod = mockServer.getClient().pods().inNamespace(namespace)
-            .withName(podName).get();
-        retries++;
-        if (retries > 10) {
-          fail("Pod " + podName + " not created available pods "
-              + mockServer.getClient().pods().inNamespace(namespace)
-                  .list().getItems()
-                  .stream()
-                  .map(Pod::getMetadata)
-                  .map(ObjectMeta::getName)
-                  .collect(Collectors.toUnmodifiableList()));
-        }
-      }
-      return Uni.createFrom().item(pod);
-
-    });
-
+    when(podWatcher.waitUntilIsReady(eq(clusterName), anyString(), eq(namespace), anyBoolean()))
+        .thenAnswer(invocation -> {
+          final String podName = invocation.getArgument(1);
+          String namespace = invocation.getArgument(2);
+          Pod pod = mockServer.getClient().pods().inNamespace(namespace)
+              .withName(podName).get();
+          int retries = 0;
+          while (pod == null) {
+            Thread.sleep(100);
+            pod = mockServer.getClient().pods().inNamespace(namespace)
+                .withName(podName).get();
+            retries++;
+            if (retries > 10) {
+              fail("Pod " + podName + " not created. Available pods "
+                  + mockServer.getClient().pods().inNamespace(namespace)
+                      .list().getItems()
+                      .stream()
+                      .map(Pod::getMetadata)
+                      .map(ObjectMeta::getName)
+                      .collect(Collectors.toUnmodifiableList()));
+            }
+          }
+          return Uni.createFrom().item(pod);
+        });
   }
 
 }

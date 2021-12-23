@@ -10,4 +10,5 @@ import org.jetbrains.annotations.NotNull;
 public interface PatroniApiMetadataFinder {
 
   PatroniApiMetadata findPatroniRestApi(@NotNull String clusterName, @NotNull String namespace);
+
 }

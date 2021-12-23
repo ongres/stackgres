@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -55,6 +56,21 @@ public class PodTestUtil {
 
     Arrays.stream(replicaIndexes)
         .forEach(replicaIndex -> createPod(buildReplicaPod(cluster, replicaIndex)));
+  }
+
+  public void preparePodsWithNoRoles(StackGresCluster cluster, int primaryIndex,
+      int... replicaIndexes) {
+    Pod primary = buildPrimaryPod(cluster, primaryIndex);
+    primary.getMetadata().getLabels().remove(PatroniUtil.ROLE_KEY);
+    createPod(primary);
+    createPod(buildJobPod(cluster, primaryIndex));
+
+    Arrays.stream(replicaIndexes)
+        .forEach(replicaIndex -> {
+          Pod replica = buildReplicaPod(cluster, replicaIndex);
+          replica.getMetadata().getLabels().remove(PatroniUtil.ROLE_KEY);
+          createPod(replica);
+        });
   }
 
   public void createPod(Pod pod) {

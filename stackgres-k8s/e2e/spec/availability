@@ -5,6 +5,7 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  E2E_SKIP_OPERATOR_INSTALL=false reinstall_operator_if_not_as_expected
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -13,7 +14,6 @@ e2e_test_install() {
   
   wait_pods_running "$CLUSTER_NAMESPACE" 3
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-
 }
 
 install_pgbench() {
@@ -49,9 +49,9 @@ spec:
     fsGroup: 1000
   containers:
   - name: pgbench
-    image: quay.io/ongres/postgres:v13.4-build-6.6
+    image: "ongres/postgres-util:v14.1-build-6.8"
     imagePullPolicy: IfNotPresent
-    args:
+    command:
     - sleep
     - "1000000"
     env:
@@ -72,16 +72,16 @@ spec:
         cpu: "250m"
       limits:
         memory: "256Mi"
-        cpu: "500m"    
+        cpu: "500m"
   initContainers:
   - name: install
-    image: "ongres/kubectl:v1.20.11-build-6.7"
+    image: "ongres/kubectl:v1.22.4-build-6.8"
     command:
     - "/bin/bash"
     - "-ecx"
     - |
       cp /creds/.pgpass /work-dir/.pgpass
-      chmod 600 /work-dir/.pgpass      
+      chmod 600 /work-dir/.pgpass
     volumeMounts:
     - name: creds
       mountPath: "/creds/.pgpass"
@@ -90,7 +90,7 @@ spec:
       mountPath: /work-dir
   volumes:
   - name: workdir
-    emptyDir:   
+    emptyDir:
   - name: creds
     secret:
       secretName: pgbench
@@ -105,11 +105,12 @@ e2e_test(){
 }
 
 init_pgbench(){
-  kubectl exec -it pgbench -c pgbench -n "$CLUSTER_NAMESPACE" -- pgbench -i -U pguser pgbench > /dev/null
+  kubectl exec pgbench -c pgbench -n "$CLUSTER_NAMESPACE" -- pgbench -i -U pguser pgbench > /dev/null
 }
 
 run_pgbench(){
-  OUTPUT=$(kubectl exec -it pgbench -c pgbench -n "$CLUSTER_NAMESPACE" -- pgbench -U pguser pgbench -T 20 -C)
+  local OUTPUT
+  OUTPUT="$(kubectl exec pgbench -c pgbench -n "$CLUSTER_NAMESPACE" -- pgbench -U pguser pgbench -T 20 -C)"
   echo "$OUTPUT"
 }
 

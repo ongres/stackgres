@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -98,7 +97,8 @@ class MinorVersionUpgradeJobTest {
   @Test
   void givenAFailureToRestartTheCluster_itShouldReportTheFailure() {
     final String errorMessage = "restart failure";
-    doThrow(new RuntimeException(errorMessage)).when(clusterRestart).restartCluster(any());
+    doReturn(Uni.createFrom().failure(new RuntimeException(errorMessage)))
+        .when(clusterRestart).restartCluster(any());
 
     cluster = kubeDb.addOrReplaceCluster(cluster);
     dbOps = kubeDb.addOrReplaceDbOps(dbOps);
@@ -107,6 +107,6 @@ class MinorVersionUpgradeJobTest {
         () -> minorVerionUpgradeJob.runJob(dbOps, cluster).await().indefinitely());
 
     assertEquals(errorMessage, kubeDb.getDbOps(clusterName, clusterNamespace)
-        .getStatus().getSecurityUpgrade().getFailure());
+        .getStatus().getMinorVersionUpgrade().getFailure());
   }
 }

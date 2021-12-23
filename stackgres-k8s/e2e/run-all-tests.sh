@@ -3,9 +3,9 @@
 . "$(dirname "$0")/e2e"
 
 echo "Utils loaded:"
-e2e_list_utils | while read UTIL_PATH
+e2e_list_utils | while read -r UTIL_PATH
   do
-    echo " - $UTIL_PATH"
+    printf '%s\n' " - $UTIL_PATH"
   done
 echo
 
@@ -14,7 +14,6 @@ if [ -z "$E2E_ONLY_INCLUDES" ]
 then
   E2E_ONLY_INCLUDES="$*"
 fi
-E2E_EXCLUDES="${E2E_EXCLUDES}"
 SPECS_NO_STATS=""
 
 if [ -n "$E2E_RUN_ONLY" ] && [ -z "$E2E_ONLY_INCLUDES" ]
@@ -26,7 +25,7 @@ then
     echo 'E2E_RUN_ONLY must follow pattern `(exclusive|non_exclusive)[:<batch index>/<batch count>]`, but it was '"$E2E_RUN_ONLY"
     exit 1
   fi
-  if echo "$E2E_RUN_ONLY" | grep -q ":"
+  if printf '%s' "$E2E_RUN_ONLY" | grep -q ":"
   then
     BATCH_CONFIG="${E2E_RUN_ONLY##*:}"
     BATCH_INDEX="${BATCH_CONFIG%/*}"
@@ -45,99 +44,80 @@ then
     echo 'Batch count must be greather or equal to 1, but it was '"$E2E_RUN_ONLY"
     exit 1
   fi
-  BATCH_TESTS="$("$BATCH_LIST_TEST_FUNCTION")"
-  E2E_ONLY_INCLUDES="$(echo "$BATCH_TESTS"  \
-    | while IFS="$(printf '\n')" read LINE
-      do
-        if [ -f "$E2E_PATH/test.stats" ] \
-          && grep -q "^${LINE##*spec/}:" "$E2E_PATH/test.stats"
-        then
-          grep "^${LINE##*spec/}:" "$E2E_PATH/test.stats"
-        else
-          SPECS_NO_STATS="$SPECS_NO_STATS ${LINE##*spec/}"
-          echo "${LINE##*spec/}:3600"
-        fi
-      done \
-    | sort | sort -t : -k 2 -n | grep -n '.' \
-    | while IFS="$(printf '\n')" read LINE
-      do
-        if [ "$(( (${LINE%%:*} - 1) % BATCH_COUNT))" -eq "$((BATCH_INDEX - 1))" ]
-        then
-          echo "$LINE" | cut -d : -f 2
-        fi
-      done
-      )"
+  E2E_ONLY_INCLUDES="$("$BATCH_LIST_TEST_FUNCTION" | to_e2e_test_batch "$BATCH_INDEX" "$BATCH_COUNT")"
 fi
 
 if [ -z "$E2E_ONLY_INCLUDES" ]
 then
   SPECS="$(printf "%s\n%s" "$(get_all_specs)" "$(get_all_env_specs)")"
 else
-  SPECS="$(echo_raw "$E2E_ONLY_INCLUDES" | tr ' ' '\n')"
+  SPECS="$(printf '%s' "$E2E_ONLY_INCLUDES" | tr ' ' '\n')"
 fi
+
+printf '%s\n' "$SPECS" | \
+  while IFS="$(printf '\n')" read -r LINE
+  do
+    printf '%s\n' "${LINE##*spec/}"
+  done > "$TARGET_PATH/all-tests"
 
 if [ -n "$E2E_EXCLUDES" ]
 then
-  E2E_EXCLUDES="$(
-    echo "$E2E_EXCLUDES" | tr ' ' '\n' | grep -v '^$' | \
-      while IFS="$(printf '\n')" read LINE
+  SPECS="$(
+    printf '%s\n' "$SPECS" | \
+      while IFS="$(printf '\n')" read -r LINE
       do
-        if echo "$SPECS" \
-          | while IFS="$(printf '\n')" read SPEC
-            do
-              echo "${SPEC##*spec/}"
-            done \
-          | grep -q "^${LINE##*spec/}$"
-        then
-          echo "${LINE##*spec/}"
-        fi
+        printf '%s\n' "$SPEC_PATH/${LINE##*spec/}"
       done
     )"
 
-  SPECS="$(echo "$SPECS" | \
-    while IFS="$(printf '\n')" read LINE
-    do
-      if ! echo " $E2E_EXCLUDES " | tr '\n' ' ' | grep -q "${LINE##*spec/}"
-      then
-        echo "$SPEC_PATH/${LINE##*spec/}"
-      fi
-    done
+  E2E_EXCLUDES="$(
+    printf '%s\n' "$E2E_EXCLUDES" | tr ' ' '\n' | grep -v '^$' \
+      | while IFS="$(printf '\n')" read -r LINE
+        do
+          printf '%s\n' "$SPECS" | grep "/${LINE##*spec/}$" || true
+        done
+    )"
+
+  SPECS="$(printf '%s\n' "$SPECS" \
+    | while IFS="$(printf '\n')" read -r LINE
+      do
+        if ! printf '%s\n' "$E2E_EXCLUDES" | grep -q "/${LINE##*spec/}$"
+        then
+          printf '%s\n' "$SPEC_PATH/${LINE##*spec/}"
+        fi
+      done
     )"
 else
   SPECS="$(
-    echo "$SPECS" | \
-      while IFS="$(printf '\n')" read LINE
+    printf '%s\n' "$SPECS" | \
+      while IFS="$(printf '\n')" read -r LINE
       do
-        echo "$SPEC_PATH/${LINE##*spec/}"
+        printf '%s\n' "$SPEC_PATH/${LINE##*spec/}"
       done
     )"
 fi
 
 SPECS_NO_STATS="$(
-  SPEC_COUNT="$(echo "$SPECS" | tr ' ' '\n' | wc -l)"
-  BATCH_COUNT="$(( (SPEC_COUNT + E2E_PARALLELISM - 1) / E2E_PARALLELISM ))"
-  for BATCH_INDEX in $(seq 1 $BATCH_COUNT)
-  do
-    echo "$SPECS"  \
-      | while IFS="$(printf '\n')" read LINE
-        do
-          if ! [ -f "$E2E_PATH/test.stats" ] \
-            || ! cat "$E2E_PATH/test.stats" | cut -d : -f 1 | grep -qxF "${LINE##*spec/}"
-          then
-            echo "${LINE##*spec/}"
-          fi
-        done
-  done)"
+  printf '%s\n' "$SPECS" \
+    | while IFS="$(printf '\n')" read -r LINE
+      do
+        if ! [ -f "$E2E_PATH/test.stats" ] \
+          || ! cat "$E2E_PATH/test.stats" | cut -d : -f 1 | grep -qxF "${LINE##*spec/}"
+        then
+          printf '%s\n' "${LINE##*spec/}"
+        fi
+      done
+  )"
 
 if [ -n "$SPECS_NO_STATS" ]
 then
-  echo_raw "Tests without stats:
+  printf '%s' "Tests without stats:
 
-$(echo "$SPECS_NO_STATS" \
+$(printf '%s\n' "$SPECS_NO_STATS" \
   | sort | uniq \
-  | while IFS="$(printf '\n')" read LINE
+  | while IFS="$(printf '\n')" read -r LINE
     do
-      echo " - ${LINE##*spec/}"
+      printf '%s\n' " - ${LINE##*spec/}"
     done)
 
 Please, to improve performance add a duration estimation in seconds for each test in file
@@ -151,30 +131,43 @@ fi
 
 if [ -n "$E2E_EXCLUDES" ]
 then
-  echo_raw "Excluded tests:
+  printf '%s' "Excluded tests:
 
 $(
-    echo "$E2E_EXCLUDES" | tr ' ' '\n' | grep -v '^$' | \
-      while IFS="$(printf '\n')" read LINE
+    printf '%s\n' "$E2E_EXCLUDES" | tr ' ' '\n' | grep -v '^$' | \
+      while IFS="$(printf '\n')" read -r LINE
       do
-        echo " - ${LINE##*spec/}"
+        printf '%s\n' " - ${LINE##*spec/}"
       done
   )
 "
 fi
 
-echo_raw "Running tests:
+printf '%s' "Running tests:
 
-$(echo "$SPECS" | grep -v '^$' \
-    | while IFS="$(printf '\n')" read LINE
+$(printf '%s\n' "$SPECS" | grep -v '^$' \
+    | while IFS="$(printf '\n')" read -r LINE
     do
-      echo " - ${LINE##*spec/}"
+      printf '%s\n' " - ${LINE##*spec/}"
     done)
 "
 
-if [ "$(echo "$SPECS" | tr '\n' ' ' | wc -w)" = 0 ]
+rm -f "$TARGET_PATH/runned-tests"
+touch "$TARGET_PATH/runned-tests"
+rm -f "$TARGET_PATH/passed-tests"
+touch "$TARGET_PATH/passed-tests"
+rm -f "$TARGET_PATH/e2e-tests-junit-report.results.xml"
+
+if [ "$(printf '%s\n' "$SPECS" | tr '\n' ' ' | wc -w)" = 0 ]
 then
   echo "Nothing to test!"
+  cat << EOF > "$TARGET_PATH/e2e-tests-junit-report.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites time="0">
+  <testsuite name="e2e tests" tests="0" time="0">
+  </testsuite>
+</testsuites>
+EOF
   exit
 fi
 
@@ -195,7 +188,8 @@ setup_logs
 echo "Setup operator"
 setup_operator
 
-rm -f "$TARGET_PATH/e2e-tests-junit-report.results.xml"
+echo "Calculating spec hashes"
+SPEC_HASHES="$(calculate_spec_hashes)"
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 
@@ -211,14 +205,13 @@ CLEANUP=false
 find "$TARGET_PATH" -maxdepth 1 -type f -name '*.retries' -delete
 while true
 do
-  SPEC_COUNT="$(echo "$SPECS" | tr '\n' ' ' | wc -w)"
+  SPEC_COUNT="$(printf '%s\n' "$SPECS" | tr '\n' ' ' | wc -w)"
   if [ "$COUNT" -ge "$SPEC_COUNT" ]
   then
     break
   fi
   COUNT="$((COUNT+1))"
-  SPEC="$(echo "$SPECS" | tr ' ' '\n' | tail -n+"$COUNT" | head -n 1)"
-  SPEC_NAME="$(basename "$SPEC")"
+  SPEC="$(printf '%s\n' "$SPECS" | tr ' ' '\n' | tail -n+"$COUNT" | head -n 1)"
   SPECS_TO_RUN="$SPECS_TO_RUN $SPEC"
   SPECS_TO_RUN="${SPECS_TO_RUN# *}"
   if [ "$((COUNT%E2E_PARALLELISM))" -eq 0 ] || [ "$COUNT" -eq "$SPEC_COUNT" ]
@@ -229,7 +222,7 @@ do
       setup_k8s
     fi
     SPECS_FAILED=""
-    if echo "$SPECS_TO_RUN" | tr ' ' '\n' \
+    if printf '%s\n' "$SPECS_TO_RUN" | tr ' ' '\n' \
       | xargs_parallel_shell % -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'"
     then
       BATCH_FAILED=false
@@ -252,16 +245,17 @@ do
           continue
         fi
         NONE_FAILED=false
-        SPEC_NAME="$(basename "$FAILED"|sed 's/\.failed$//')"
+        SPEC="$(cat "$FAILED")"
+        SPEC_NAME="$(basename "$FAILED" | sed 's/\.failed$//')"
         RETRIES="$([ -f "$TARGET_PATH/$SPEC_NAME.retries" ] && cat "$TARGET_PATH/$SPEC_NAME.retries" || echo 0)"
         RETRIES="$((RETRIES + 1))"
         if [ "$RETRIES" -lt "$E2E_RETRY" ]
         then
-          echo "$RETRIES" > "$TARGET_PATH/$SPEC_NAME.retries"
+          printf '%s\n' "$RETRIES" > "$TARGET_PATH/$SPEC_NAME.retries"
           rm "$FAILED"
           SPECS="$SPECS $SPEC_PATH/$SPEC_NAME"
         else
-          SPECS_FAILED="$SPECS_FAILED $SPEC_NAME"
+          SPECS_FAILED="$SPECS_FAILED $SPEC"
           SPECS_FAILED="${SPECS_FAILED# *}"
           OVERALL_RESULT=false
         fi
@@ -274,15 +268,21 @@ do
       fi
     fi
     RUNNED_COUNT=0
-    while [ "$RUNNED_COUNT" -lt "$(echo "$SPECS_TO_RUN" | tr '\n' ' ' | wc -w)" ]
+    while [ "$RUNNED_COUNT" -lt "$(printf '%s\n' "$SPECS_TO_RUN" | tr '\n' ' ' | wc -w)" ]
     do
       RUNNED_COUNT="$((RUNNED_COUNT+1))"
-      SPEC="$(echo "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n+"$RUNNED_COUNT" | head -n 1)"
+      SPEC="$(printf '%s\n' "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n+"$RUNNED_COUNT" | head -n 1)"
       SPEC_NAME="$(basename "$SPEC")"
-      if echo " $SPECS_FAILED " | grep -q -F " $SPEC_NAME "
+      SPEC_HASH="$(printf '%s\n' "$SPEC_HASHES" | grep "^$SPEC:" | cut -d : -f 2)"
+      if printf '%s\n' " $(printf '%s\n' "$SPECS" | tr ' ' '\n' | tail -n+"$((COUNT+1))" | tr '\n' ' ') " | grep -qF " $SPEC "
+      then
+        continue
+      fi
+      printf '%s\n' "$SPEC_NAME" >> "$TARGET_PATH/runned-tests"
+      if printf '%s\n' " $SPECS_FAILED " | grep -qF " $SPEC "
       then
         cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
-    <testcase classname="$SPEC_NAME" name="$SPEC_NAME" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")">
+    <testcase classname="$SPEC_NAME" name="$SPEC_HASH" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")">
       <failure message="$SPEC_NAME failed" type="ERROR">
       <![CDATA[
       $(show_logs "$SPEC_NAME")
@@ -291,8 +291,9 @@ do
     </testcase>
 EOF
       else
+        printf '%s\n' "$SPEC_NAME" >> "$TARGET_PATH/passed-tests"
         cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
-    <testcase classname="$SPEC_NAME" name="$SPEC_NAME" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")" />
+    <testcase classname="$SPEC_NAME" name="$SPEC_HASH" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")" />
 EOF
       fi
     done
@@ -303,7 +304,7 @@ done
 cat << EOF > "$TARGET_PATH/e2e-tests-junit-report.xml"
 <?xml version="1.0" encoding="UTF-8"?>
 <testsuites time="$(($(date +%s) - START))">
-  <testsuite name="e2e tests" tests="$(echo "$SPECS" | tr ' ' '\n' | wc -l)" time="$(($(date +%s) - START))">
+  <testsuite name="e2e tests" tests="$(printf '%s\n' "$SPECS" | tr '\n' ' ' | wc -w)" time="$(($(date +%s) - START))">
 $(cat "$TARGET_PATH/e2e-tests-junit-report.results.xml")
   </testsuite>
 </testsuites>

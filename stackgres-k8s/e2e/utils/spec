@@ -7,6 +7,7 @@ export E2E_BEFORE_RUN_TEST_FUNCTION="${E2E_BEFORE_RUN_TEST_FUNCTION:-e2e_before_
 export E2E_AFTER_RUN_TEST_FUNCTION="${E2E_AFTER_RUN_TEST_FUNCTION:-e2e_after_run_test}"
 export E2E_TEST_UNINSTALL_FUNCTION="${E2E_TEST_UNINSTALL_FUNCTION:-e2e_test_uninstall}"
 export E2E_TEST_AFTER_ALL_FUNCTION="${E2E_TEST_AFTER_ALL_FUNCTION:-e2e_test_after_all}"
+export E2E_BEFORE_RUN_TEST_COUNT=0
 export SPEC_PATH="$E2E_PATH/spec"
 export E2E_LOCK
 
@@ -26,7 +27,7 @@ e2e_test_install_pods() {
 }
 
 e2e_test() {
-  echo "You should define a test function"
+  echo "Please, define a test function"
   false
 }
 
@@ -41,6 +42,10 @@ e2e_test_after_all() {
 }
 
 e2e_exclusive_lock() {
+  false
+}
+
+e2e_use_extensions() {
   false
 }
 
@@ -113,12 +118,44 @@ get_all_non_exclusive_env_specs() {
       done
 }
 
+to_e2e_test_batch() {
+  local BATCH_INDEX="$1"
+  local BATCH_COUNT="$2"
+  if ! [ "$BATCH_INDEX" -ge 1 ] && [ "$BATCH_INDEX" -le "$BATCH_COUNT" ]
+  then
+    echo 'Batch index must start from 1 and must be less or equal than batch count, but it was '"$BATCH_INDEX/$BATCH_COUNT" >&2
+    return 1
+  fi
+  if ! [ "$BATCH_COUNT" -ge 1 ]
+  then
+    echo 'Batch count must be greather or equal to 1, but it was '"$BATCH_COUNT" >&2
+    return 1
+  fi
+  while IFS="$(printf '\n')" read LINE
+  do
+    if [ -f "$E2E_PATH/test.stats" ] \
+      && grep -q "^${LINE##*spec/}:" "$E2E_PATH/test.stats"
+    then
+      grep "^${LINE##*spec/}:" "$E2E_PATH/test.stats"
+    else
+      SPECS_NO_STATS="$SPECS_NO_STATS ${LINE##*spec/}"
+      echo "${LINE##*spec/}:3600"
+    fi
+  done \
+    | sort | sort -t : -k 2 -n | grep -n '.' \
+    | while IFS="$(printf '\n')" read LINE
+      do
+        if [ "$(( (${LINE%%:*} - 1) % BATCH_COUNT))" -eq "$((BATCH_INDEX - 1))" ]
+        then
+          echo "$LINE" | cut -d : -f 2
+        fi
+      done
+}
+
 spec() {
   local RESULT
   local EXIT_CODE
   local SPEC_FILE="$1"
-  local SPEC_BEFORE_FILE="$SPEC_FILE.before"
-  local SPEC_AFTER_FILE="$SPEC_FILE.after"
   local SPEC_VALUES_FILE="$1.values.yaml"
   local SPEC_PATH="$(dirname "$SPEC_FILE")"
   local SPEC_NAME="$(basename "$SPEC_FILE")"
@@ -187,7 +224,7 @@ spec() {
   echo "$SPEC_TIME" > "$TARGET_PATH/$SPEC_NAME.duration"
   if ! "$RESULT"
   then
-    echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" > "$TARGET_PATH/$SPEC_NAME.failed"
+    echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.failed"
     echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"
     if [ "$E2E_SPEC_TRY_UNINSTALL_ON_FAILURE" = "true" ]
     then
@@ -199,32 +236,53 @@ spec() {
 }
 
 run_spec() {
+  local FUNCTION
   if [ "$E2E_SKIP_SPEC_BEFORE_ALL" != true ]
   then
-    "$E2E_TEST_BEFORE_ALL_FUNCTION"
+    for FUNCTION in $E2E_TEST_BEFORE_ALL_FUNCTION
+    do
+      "$FUNCTION"
+    done
   fi
 
   if [ "$E2E_SKIP_SPEC_INSTALL" != true ]
   then
-    "$E2E_TEST_INSTALL_FUNCTION"
+    for FUNCTION in $E2E_TEST_INSTALL_FUNCTION
+    do
+      "$FUNCTION"
+    done
   fi
 
-  "$E2E_TEST_FUNCTION"
+  for FUNCTION in $E2E_TEST_FUNCTION
+  do
+    "$FUNCTION"
+  done
 
   cleanup_spec
 }
 
 cleanup_spec(){
+  local FUNCTION
   if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ]
   then
-    "$E2E_TEST_UNINSTALL_FUNCTION"
+    for FUNCTION in $E2E_TEST_UNINSTALL_FUNCTION
+    do
+      "$FUNCTION"
+    done
   fi
 
-  "$E2E_TEST_AFTER_ALL_FUNCTION"
+  for FUNCTION in $E2E_TEST_AFTER_ALL_FUNCTION
+  do
+    "$FUNCTION"
+  done
 }
 
 run_test() {
-  "$E2E_BEFORE_RUN_TEST_FUNCTION"
+  local FUNCTION
+  for FUNCTION in $E2E_BEFORE_RUN_TEST_FUNCTION
+  do
+    "$FUNCTION"
+  done
   local TEST_NAME="$1"
   shift
   echo
@@ -240,13 +298,61 @@ run_test() {
     return "$EXIT_CODE"
   fi
   echo "$TEST_NAME. SUCCESS."
-  "$E2E_AFTER_RUN_TEST_FUNCTION"
+  for FUNCTION in $E2E_AFTER_RUN_TEST_FUNCTION
+  do
+    "$FUNCTION"
+  done
 }
 
 e2e_before_run_test() {
-  true
+  E2E_BEFORE_RUN_TEST_COUNT="$((E2E_BEFORE_RUN_TEST_COUNT + 1))"
 }
 
 e2e_after_run_test() {
   true
+}
+
+calculate_spec_hashes() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" init_hash
+  local GLOBAL_SPEC_HASH
+  GLOBAL_SPEC_HASH="$(
+      ls -1d "$E2E_PATH/e2e" "$E2E_PATH/envs/$E2E_ENV" \
+        "$SPEC_PATH/default.values.yaml" "$SPEC_PATH/abstract" \
+        "$E2E_PATH/utils" | sort \
+        | while read -r FILE
+          do
+            "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+              "$(realpath --relative-to "$PROJECT_PATH" "$FILE")"
+          done \
+        | md5sum | cut -d ' ' -f 1)"
+  {
+    get_all_specs
+    get_all_env_specs
+  } | while read SPEC
+      do
+        SPEC_HASH="$( {
+          echo "$GLOBAL_SPEC_HASH"
+          "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+              "$(realpath --relative-to "$PROJECT_PATH" "$SPEC")"
+          ls -1d "$SPEC".* 2>/dev/null | sort \
+            | while read -r FILE
+              do
+                if ! [ -f "$FILE" ]
+                then
+                  continue
+                fi
+                "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+                  "$(realpath --relative-to "$PROJECT_PATH" "$FILE")"
+              done
+          (
+          . "$SPEC"
+          if e2e_use_extensions
+          then
+            get_extensions_index_hash
+          fi
+          )
+        })"
+        SPEC_HASH="$(printf '%s' "$SPEC_HASH" | md5sum | cut -d ' ' -f 1)"
+        echo "$SPEC:$SPEC_HASH"
+      done
 }

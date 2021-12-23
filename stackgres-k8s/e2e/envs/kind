@@ -3,6 +3,10 @@
 KIND_NAME="${KIND_NAME:-kind}"
 KIND_NODES="${KIND_NODES:-1}"
 KIND_LOCK_PATH="${KIND_LOCK_PATH:-$TARGET_PATH/kind-lock}"
+KIND_CONTAINERD_CACHE_PATH="${K8S_CACHE_PATH:-$KIND_CONTAINERD_CACHE_PATH}"
+KIND_CONTAINERD_CACHE_RESET="${K8S_CACHE_RESET:-$KIND_CONTAINERD_CACHE_RESET}"
+KIND_LOG_PATH="${KIND_LOG_PATH:-$TARGET_PATH/kind-logs}"
+KIND_LOG_RESOURCES_POLICY_PATH="${KIND_LOG_RESOURCES_POLICY_PATH:-$TARGET_PATH/kind-apiserver-audit-policy}"
 
 check_kind_version() {
   if ! kind version | grep -q -F 'kind v0.11.1 '
@@ -26,11 +30,7 @@ update_k8s_config() {
     if docker network ls --format '{{ .Name }}' | grep -q '^kind$'
     then
       local CONTAINER_NAME
-      CONTAINER_NAME="$(docker ps --format '{{ .Names }}' | grep "^$(hostname)")"
-      if [ -z "$CONTAINER_NAME" ]
-      then
-        CONTAINER_NAME="$(docker ps --format '{{ .ID }}' | grep "^$(hostname)")"
-      fi
+      CONTAINER_NAME="$(cat /proc/self/cgroup | grep '^1:name' | cut -d / -f 3)"
       docker inspect "$CONTAINER_NAME" \
         -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
         | grep -q '^kind$' \
@@ -94,7 +94,7 @@ reset_k8s() {
 
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
   then
-    echo "Setting up kind containerd cache for $KIND_CONTAINERD_CACHE_PATH..."
+    echo "Setting up kind containerd cache in $KIND_CONTAINERD_CACHE_PATH..."
     if [ "$KIND_CONTAINERD_CACHE_RESET" = true ]
     then
       docker run --rm -v "$KIND_CONTAINERD_CACHE_PATH:/containerd-cache" alpine \
@@ -107,13 +107,13 @@ reset_k8s() {
     echo "Setting up kind port $K8S_EXTRA_PORT..."
   fi
 
-  kind delete cluster --name "$KIND_NAME" || true
+  delete_k8s
   cat << EOF > "$TARGET_PATH/kind-config.yaml"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 $(
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] || \
-    docker system info 2> /dev/null | grep -q "Backing Filesystem: zfs"
+    docker system info 2> /dev/null | grep -q "Backing Filesystem: \(zfs\|btrfs\)"
   then
     cat << INNER_EOF
 containerdConfigPatches:
@@ -126,11 +126,22 @@ $(
  root = "/containerd-cache"
 INNER_INNER_EOF
   fi
-  if docker system info 2> /dev/null | grep -q "Backing Filesystem: zfs"
+  if docker system info 2> /dev/null | grep -q "Backing Filesystem: zfs" \
+    || ([ -d "$KIND_CONTAINERD_CACHE_PATH" ] \
+      && df -T "$KIND_CONTAINERD_CACHE_PATH" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2 | grep -q '^zfs$')
   then
     cat << INNER_INNER_EOF
  [plugins."io.containerd.grpc.v1.cri".containerd]
- snapshotter = "native"
+ snapshotter = "zfs"
+INNER_INNER_EOF
+  fi
+  if docker system info 2> /dev/null | grep -q "Backing Filesystem: btrfs" \
+    || ([ -d "$KIND_CONTAINERD_CACHE_PATH" ] \
+      && df -T "$KIND_CONTAINERD_CACHE_PATH" | tail -n 1 | tr -s ' ' | cut -d ' ' -f 2 | grep -q '^btrfs$')
+  then
+    cat << INNER_INNER_EOF
+ [plugins."io.containerd.grpc.v1.cri".containerd]
+ snapshotter = "btrfs"
 INNER_INNER_EOF
   fi
 )
@@ -143,6 +154,31 @@ networking:
 nodes:
 - role: control-plane
 $(
+  if [ "$KIND_LOG_RESOURCES" = true ]
+  then
+    cat << INNER_EOF
+  kubeadmConfigPatches:
+  - |
+    kind: ClusterConfiguration
+    apiServer:
+        # enable auditing flags on the API server
+        extraArgs:
+          audit-log-path: /var/log/kubernetes/kube-apiserver-audit.log
+          audit-policy-file: /etc/kubernetes/policies/audit-policy.yaml
+        # mount new files / directories on the control plane
+        extraVolumes:
+          - name: audit-policies
+            hostPath: /etc/kubernetes/policies
+            mountPath: /etc/kubernetes/policies
+            readOnly: true
+            pathType: "DirectoryOrCreate"
+          - name: "audit-logs"
+            hostPath: "/var/log/kubernetes"
+            mountPath: "/var/log/kubernetes"
+            readOnly: false
+            pathType: DirectoryOrCreate
+INNER_EOF
+  fi
   if [ -n "$K8S_EXTRA_PORT" ]
   then
     cat << INNER_EOF
@@ -153,13 +189,43 @@ $(
     protocol: "$(echo "$K8S_EXTRA_PORT" | cut -d : -f 4)"
 INNER_EOF
   fi
+  if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] \
+    || [ "$KIND_LOG" = true ] \
+    || [ "$KIND_LOG_RESOURCES" = true ]
+  then
+    cat << INNER_EOF
+  extraMounts:
+INNER_EOF
+  fi
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
   then
     mkdir -p "$KIND_CONTAINERD_CACHE_PATH"
     cat << INNER_EOF
-  extraMounts:
   - hostPath: $KIND_CONTAINERD_CACHE_PATH
     containerPath: /containerd-cache
+INNER_EOF
+  fi
+  if [ "$KIND_LOG" = true ]
+  then
+    mkdir -p "$KIND_LOG_PATH"
+    cat << INNER_EOF
+  - hostPath: $KIND_LOG_PATH
+    containerPath: /var/log
+INNER_EOF
+  fi
+  if [ "$KIND_LOG_RESOURCES" = true ]
+  then
+    cat << INNER_EOF > "$KIND_LOG_RESOURCES_POLICY_PATH"
+# Log all requests at the RequestResponse level.
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+- level: RequestResponse
+INNER_EOF
+    cat << INNER_EOF
+  - hostPath: $KIND_LOG_RESOURCES_POLICY_PATH
+    containerPath: /etc/kubernetes/policies/audit-policy.yaml
+    readOnly: true
 INNER_EOF
   fi
   for KIND_NODE in $(seq 2 "$KIND_NODES")
@@ -214,7 +280,7 @@ EOF
     kubectl patch installations.operator.tigera.io default --type json \
       -p '[{"op":"replace","path":"/spec/calicoNetwork/ipPools/0/cidr","value":"'"$K8S_POD_CIDR"'"}]'
   else
-    kubectl apply -f https://docs.projectcalico.org/v3.8/manifests/calico.yaml
+    kubectl apply -f https://docs.projectcalico.org/v3.12/manifests/calico.yaml
     kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
   fi
   echo "...done"
@@ -223,11 +289,14 @@ EOF
 delete_k8s() {
   check_kind_version
 
-  echo "Deleting kind environment $KIND_NAME..."
+  if kind get clusters | grep -q "^$KIND_NAME$"
+  then
+    echo "Deleting kind environment $KIND_NAME..."
 
-  kind delete cluster --name "$KIND_NAME" || true
+    kind delete cluster --name "$KIND_NAME" || true
 
-  echo "...done"
+    echo "...done"
+  fi
 }
 
 load_image_k8s() {
@@ -284,7 +353,7 @@ load_certificate_k8s() {
   kind get nodes --name "$KIND_NAME" \
     | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "
     docker cp '$1' '%':/usr/local/share/ca-certificates/validator.crt
-    docker exec '%' sh -c "update-ca-certificates"
+    docker exec '%' sh -c update-ca-certificates
     "
 
   echo "...done"
@@ -340,7 +409,7 @@ check_kind_image_exists() {
   then
     echo "Kind image for k8s version ${K8S_VERSION} not found."
     echo "Available images exists only for versions: $(get_k8s_versions | tr '\n' ' ' | sed 's/ /, /g')"
-    exit 1
+    return 1
   fi
 }
 
@@ -350,6 +419,7 @@ get_kind_image() {
 
 get_kind_images() {
   cat << EOF
+v1.23.0@sha256:49824ab1727c04e56a21a5d8372a402fcd32ea51ac96a2706a12af38934f81ac
 v1.22.0@sha256:b8bda84bb3a190e6e028b1760d277454a72267a5454b57db34437c34a588d047
 v1.21.1@sha256:69860bda5563ac81e3c0057d654b5253219618a22ec3a346306239bba8cfa1a6
 v1.20.7@sha256:cbeaf907fc78ac97ce7b625e4bf0de16e3ea725daf6b04f930bd14c67c671ff9
@@ -361,4 +431,3 @@ v1.15.12@sha256:b920920e1eda689d9936dfcf7332701e80be12566999152626b2c9d730397a95
 v1.14.10@sha256:f8a66ef82822ab4f7569e91a5bccaf27bceee135c1457c512e54de8c6f7219f8
 EOF
 }
-

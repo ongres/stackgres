@@ -64,7 +64,7 @@ check_persistent_volume_claim_is_updated() {
 
 check_persistent_volume_claim() {
   local EXPECTED_CAPACITY="$1"
-  VOLUME_CLAIM_CAPACITY="$(kubectl get sts -n "$CLUSTER_NAMESPACE" \
+  VOLUME_CLAIM_CAPACITY="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" \
     "$CLUSTER_NAME" \
     -o jsonpath='{.spec.volumeClaimTemplates[0].spec.resources.requests.storage}')"
 

@@ -1,12 +1,18 @@
 #!/bin/sh
 
-export E2E_MAJOR_SOURCE_POSTGRES_VERSION="${E2E_MAJOR_SOURCE_POSTGRES_VERSION:-12.8}"
-export E2E_MAJOR_TARGET_POSTGRES_VERSION="${E2E_MAJOR_TARGET_POSTGRES_VERSION:-13.4}"
+export E2E_MAJOR_SOURCE_POSTGRES_VERSION="${E2E_MAJOR_SOURCE_POSTGRES_VERSION:-12.9}"
+export E2E_MAJOR_TARGET_POSTGRES_VERSION="${E2E_MAJOR_TARGET_POSTGRES_VERSION:-13.5}"
 export E2E_STORAGE_CLASS_REFLINK_ENABLED="${E2E_STORAGE_CLASS_REFLINK_ENABLED:-false}"
+
+e2e_use_extensions() {
+  true
+}
 
 e2e_test_install() {
   CLUSTER_NAME="$(get_sgcluster_name dbops-major-version-upgrade)"
   DBOPS_NAME="$(get_sgdbops_name major-version-upgrade)"
+
+  POSTGIS_VERSION="$(get_latest_version_of_extension postgis 12 || true)"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -23,20 +29,32 @@ reset_cluster() {
 
   wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
-    --set-string cluster.postgres.extensions[0].name=postgis \
-    "$@"
+  if [ -n "$POSTGIS_VERSION" ]
+  then
+    create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+      --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
+      --set-string cluster.postgres.extensions[0].name=postgis \
+      --set-string cluster.postgres.extensions[0].version="$POSTGIS_VERSION" \
+      "$@"
+  else
+    echo "Extension postgis not found for $(uname -m)"
+    create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+      --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
+      "$@"
+  fi
 
   wait_pods_running "$CLUSTER_NAMESPACE" "$PODS_RUNNING"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -c "$(cat << 'EOF'
+  if [ -n "$POSTGIS_VERSION" ]
+  then
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -c "$(cat << 'EOF'
 CREATE EXTENSION postgis;
 CREATE MATERIALIZED VIEW test AS
  SELECT 'mpoint_7', ST_AsEWKT(ST_GeomFromGML('<gml:MultiPoint srsName="EPSG:27582"><gml:pointMember><gml:Point><gml:coordinates>1,2</gml:coordinates></gml:Point></gml:pointMember><gml:pointMember><gml:Point srsName="EPSG:27562"><gml:coordinates>400000,5000000</gml:coordinates></gml:Point></gml:pointMember></gml:MultiPoint>'));
 EOF
-    )"
+      )"
+  fi
 
   create_or_replace_cluster "$CLUSTER_NAME-for-major-version-upgrade" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
@@ -66,14 +84,7 @@ EOF
 }
 
 check_major_version_upgrade() {
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Running
-  then
-    echo "SUCCESS. major version upgrade running."
-  else
-    echo "FAILED. major version upgrade not running."
-    return 1
-  fi
+  assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
 
   wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}")" != 0 ]'
@@ -87,14 +98,7 @@ check_major_version_upgrade() {
     echo "SUCCESS. Cluster has not been updated while locked."
   fi
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Completed
-  then
-    echo "SUCCESS. major version upgrade completed."
-  else
-    echo "FAILED. major version upgrade failed."
-    return 1
-  fi
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
     -l "dbops-name=$DBOPS_NAME,db-ops=true" \

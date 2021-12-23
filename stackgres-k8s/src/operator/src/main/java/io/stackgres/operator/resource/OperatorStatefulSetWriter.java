@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.resource;
 
+import java.util.Optional;
+
 import javax.annotation.Priority;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Alternative;
@@ -13,20 +15,15 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.resource.ResourceWriter;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Priority(1)
 @Alternative
 @ApplicationScoped
 public class OperatorStatefulSetWriter implements ResourceWriter<StatefulSet> {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(OperatorStatefulSetWriter.class);
 
   private final KubernetesClient client;
 
@@ -37,26 +34,25 @@ public class OperatorStatefulSetWriter implements ResourceWriter<StatefulSet> {
 
   @Override
   public StatefulSet create(@NotNull StatefulSet resource) {
-    return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
+    return getClient().serverSideApply(new PatchContext.Builder()
         .withFieldManager(STACKGRES_FIELD_MANAGER)
         .withForce(true)
-        .build(), resource);
+        .build(), resource, Optional.empty());
   }
 
   @Override
   public StatefulSet update(@NotNull StatefulSet resource) {
-    try {
-      return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
-          .withFieldManager(STACKGRES_FIELD_MANAGER)
-          .withForce(true)
-          .build(), resource);
-    } catch (KubernetesClientException ex) {
-      LOGGER.warn("Server side apply failed, switching back to JSON merge", ex);
-      return client.apps().statefulSets()
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .patch(resource);
-    }
+    return getClient().serverSideApply(new PatchContext.Builder()
+        .withFieldManager(STACKGRES_FIELD_MANAGER)
+        .withForce(true)
+        .build(), resource, Optional.ofNullable(client.apps().statefulSets()
+            .inNamespace(resource.getMetadata().getNamespace())
+            .withName(resource.getMetadata().getName())
+            .get()));
+  }
+
+  private StackGresKubernetesClient getClient() {
+    return (StackGresKubernetesClient) client;
   }
 
   @Override

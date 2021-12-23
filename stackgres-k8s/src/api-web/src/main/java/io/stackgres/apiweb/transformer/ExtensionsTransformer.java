@@ -65,7 +65,7 @@ public class ExtensionsTransformer {
     extension.setName(source.getName());
     extension.setRepository(source.getRepository());
     transformation.setVersions(
-        Seq.seq(clusterExtensionMetadataManager.getExtensionsAnyVersion(cluster, extension))
+        Seq.seq(clusterExtensionMetadataManager.getExtensionsAnyVersion(cluster, extension, false))
         .map(StackGresExtensionMetadata::getVersion)
         .map(StackGresExtensionVersion::getVersion)
         .grouped(Function.identity())

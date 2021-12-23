@@ -12,6 +12,8 @@ remove_cluster() {
   helm uninstall "$RELEASE" --namespace "$NAMESPACE"
   kubectl wait sts --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --all --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
   kubectl wait pvc --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --all --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl wait pod --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --all --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl delete endpoints --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --all --ignore-not-found 2>/dev/null || true
 }
 
 remove_cluster_if_exists() {
@@ -76,6 +78,26 @@ create_or_replace_cluster_for_version() {
 
   local CLUSTER_HELM_URL
   CLUSTER_HELM_URL="$(get_cluster_helm_url "$VERSION")"
+  local CLUSTER_HELM_TAR_PATH="$LOG_PATH/${CLUSTER_HELM_URL##*/}"
+  if ! [ -f "$CLUSTER_HELM_TAR_PATH" ]
+  then
+    curl -f -s -L "$CLUSTER_HELM_URL" -o "$CLUSTER_HELM_TAR_PATH"
+  fi
+  local CLUSTER_HELM_PATH
+  tar tzvf "$CLUSTER_HELM_TAR_PATH" > "$CLUSTER_HELM_TAR_PATH.log"
+  CLUSTER_HELM_PATH="$(tr -s ' ' < "$CLUSTER_HELM_TAR_PATH.log" \
+    | cut -d ' ' -f 6 | cut -d / -f 1 | head -n 1)"
+  CLUSTER_HELM_PATH="$LOG_PATH/$CLUSTER_HELM_PATH"
+  if ! [ -f "$CLUSTER_HELM_PATH/Chart.yaml" ]
+  then
+    rm -rf "$CLUSTER_HELM_PATH"
+    tar xzf "$CLUSTER_HELM_TAR_PATH" -C "$LOG_PATH"
+    if ! sed -i '/^kubeVersion:/d' "$CLUSTER_HELM_PATH/Chart.yaml"
+    then
+      rm -rf "$CLUSTER_HELM_PATH"
+      return 1
+    fi
+  fi
 
   local TRANSFORMER="dont_transform"
   if [ "$(get_version_as_number "$VERSION")" -lt "$(get_version_as_number 1.0.0-alpha1)" ]
@@ -85,13 +107,13 @@ create_or_replace_cluster_for_version() {
 
   if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
   then
-    eval "$(transform_params "$TRANSFORMER" helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_HELM_URL" \
+    eval "$(transform_params "$TRANSFORMER" helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_HELM_PATH" \
         --reuse-values \
         $E2E_CLUSTER_OPTS \
         --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
   else
     create_namespace_if_not_exists "$NAMESPACE"
-    eval "$(transform_params "$TRANSFORMER" helm install "$RELEASE" "$CLUSTER_HELM_URL" \
+    eval "$(transform_params "$TRANSFORMER" helm install "$RELEASE" "$CLUSTER_HELM_PATH" \
         --namespace "$NAMESPACE" \
         $E2E_CLUSTER_OPTS \
         --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
@@ -126,6 +148,10 @@ transform_to_0_9() {
   then
     printf "%s=%s" "cluster.initialData.restore.fromBackup" "${1#*=}"
   else
-    printf "%s" "$1"
+    dont_transform "$1"
   fi
+}
+
+dont_transform() {
+  printf "%s" "$1"
 }

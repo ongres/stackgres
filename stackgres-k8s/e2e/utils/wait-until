@@ -15,6 +15,8 @@ traceable_wait_until() {
   local ID="$(shuf -i 0-65535 -n 1)"
   local SUFFIX="$(printf '%s' "$*" | head -c 192 | tr -c '[A-Z][a-z][0-9]_-' ' ' | tr -s ' ')"
   local OUTPUT_PATH="$LOG_PATH/wait-until-$START-$ID-$SUFFIX.log"
+  local LAST_OUTPUT_PATH="$LOG_PATH/wait-until-$START-$ID-$SUFFIX-last.log"
+  local LAST_ERROR_PATH="$LOG_PATH/wait-until-$START-$ID-$SUFFIX-last.err.log"
   while echo_raw "$1" | grep -q '^-'
   do
     if [ "$1" = "-t" ]
@@ -33,9 +35,11 @@ traceable_wait_until() {
   echo -n >"$OUTPUT_PATH"
   while [ "$((START + TIMEOUT))" -gt "$(date +%s)" ]
   do
-    try_function "$@" >>"$OUTPUT_PATH" 2>&1
+    try_function "$@" > "$LAST_OUTPUT_PATH" 2> "$LAST_ERROR_PATH"
+    cat "$LAST_OUTPUT_PATH" "$LAST_ERROR_PATH" >> "$OUTPUT_PATH"
     if "$RESULT"
     then
+      cat "$LAST_OUTPUT_PATH"
       return
     fi
     sleep "$INTERVAL"

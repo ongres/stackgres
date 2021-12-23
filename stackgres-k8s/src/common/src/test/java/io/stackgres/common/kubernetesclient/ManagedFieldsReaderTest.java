@@ -5,8 +5,6 @@
 
 package io.stackgres.common.kubernetesclient;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -46,12 +44,12 @@ class ManagedFieldsReaderTest {
     var actualReturn = ManagedFieldsReader.readManagedFields(managedFieldsService,
         ResourceWriter.STACKGRES_FIELD_MANAGER);
 
-    assertEquals(cleanedUpService, actualReturn);
+    JsonUtil.assertJsonEquals(cleanedUpService, actualReturn);
 
     var actualSecret = ManagedFieldsReader.readManagedFields(managedFieldsSecret,
         ResourceWriter.STACKGRES_FIELD_MANAGER);
 
-    assertEquals(cleanedUpSecret, actualSecret);
+    JsonUtil.assertJsonEquals(cleanedUpSecret, actualSecret);
 
     var actualSts = ManagedFieldsReader.readManagedFields(managedFieldsSts,
         ResourceWriter.STACKGRES_FIELD_MANAGER);
@@ -77,7 +75,7 @@ class ManagedFieldsReaderTest {
     var expectedManagedFieldConfiguration = (ObjectNode) managedFieldsService.get("metadata")
         .get("managedFields").get(0);
 
-    assertEquals(expectedManagedFieldConfiguration, managedFieldConfiguration);
+    JsonUtil.assertJsonEquals(expectedManagedFieldConfiguration, managedFieldConfiguration);
   }
 
   @Test
@@ -116,7 +114,7 @@ class ManagedFieldsReaderTest {
             + "}"
     );
 
-    assertEquals(expectedItem, ManagedFieldsReader.findMatchingItem(arrayNode, key));
+    JsonUtil.assertJsonEquals(expectedItem, ManagedFieldsReader.findMatchingItem(arrayNode, key));
 
   }
 }

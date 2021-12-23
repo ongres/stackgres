@@ -41,7 +41,7 @@ class StackGresConciliatorTest {
 
   private CustomResource<Object, Object> customResource;
 
-  private StackGresReconciliator<CustomResource<Object, Object>> reconciliator;
+  private AbstractReconciliator<CustomResource<Object, Object>> reconciliator;
 
   @BeforeEach
   void setUp() {
@@ -254,8 +254,8 @@ class StackGresConciliatorTest {
     verify(reconciliator, times(1)).onConfigUpdated(any(), any());
   }
 
-  private StackGresReconciliator<CustomResource<Object, Object>> buildConciliator() {
-    final StackGresReconciliator<CustomResource<Object, Object>> reconciliator =
+  private AbstractReconciliator<CustomResource<Object, Object>> buildConciliator() {
+    final AbstractReconciliator<CustomResource<Object, Object>> reconciliator =
         new TestReconciliator();
     reconciliator.setConciliator(conciliator);
     reconciliator.setScanner(scanner);
@@ -264,7 +264,7 @@ class StackGresConciliatorTest {
   }
 
   public static class TestReconciliator
-      extends StackGresReconciliator<CustomResource<Object, Object>> {
+      extends AbstractReconciliator<CustomResource<Object, Object>> {
     @Override
     protected String getReconciliationName() {
       return "Test";

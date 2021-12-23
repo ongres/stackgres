@@ -3,28 +3,46 @@
 . "$SPEC_PATH/abstract/dbops-restart"
 
 e2e_test_install() {
+  DBOPS_FAILING_NAME="$(get_sgdbops_name failing-restart)"
   DBOPS_NAME="$(get_sgdbops_name restart)"
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  wait_pods_running "$CLUSTER_NAMESPACE" 1
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   generate_mock_data "$CLUSTER_NAME"
   check_mock_data_samehost "$CLUSTER_NAME"
-  check_mock_data_replication "$CLUSTER_NAME"
 }
 
 e2e_test() {
-   run_test "Checking that cluster start does not fail if pod failed" check_cluster_start_not_fail_if_pod_failed
+   run_test "Checking that cluster restart does not fail if cluster failed" check_cluster_start_not_fail_if_cluster_failed
+
+   run_test "Checking that cluster restart does not fail if pod failed" check_cluster_start_not_fail_if_pod_failed
 }
 
-check_cluster_start_not_fail_if_pod_failed() {
+check_cluster_start_not_fail_if_cluster_failed() {
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    -p '[{"op":"add","path":"/spec/pods/scheduling","value":{"nodeSelector":{"test":"test"}}}]'
 
-  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq '.spec.template.spec.volumes += [{name:"fake",secret:{secretName: "fake",optional:false}}]' \
-    | jq '.spec.template.spec.containers[0].volumeMounts += [{name:"fake",mountPath:"/fake"}]' \
-    | kubectl replace sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -f - >/dev/null
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_FAILING_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  timeout: PT30S
+  restart:
+    method: InPlace
+EOF
+
+  assert_dbops_failure "$DBOPS_FAILING_NAME" "$CLUSTER_NAMESPACE" 30
+
+  wait_until kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    -p '[{"op":"remove","path":"/spec/pods/scheduling"}]'
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -39,25 +57,43 @@ spec:
     method: InPlace
 EOF
 
-  if kubectl wait --timeout 60s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Completed
-  then
-    echo "FAILED. The restart operator has an unexpected status."
-    return 1
-  else
-    echo "SUCCESS. The restart operator has been failed."
-  fi
+  check_restart
+}
 
-kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq 'del(.spec.template.spec.volumes[] | select(.name == "fake"))'  \
-    | jq 'del(.spec.template.spec.containers[0].volumeMounts[] | select(.name == "fake"))' \
-    | kubectl replace sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -f -
+check_cluster_start_not_fail_if_pod_failed() {
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" --all
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    -p '[{"op":"add","path":"/spec/pods/scheduling","value":{"nodeSelector":{"test":"test"}}}]'
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
-  name: $DBOPS_NAME-1
+  name: $DBOPS_FAILING_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  timeout: PT30S
+  restart:
+    method: InPlace
+EOF
+
+  assert_dbops_failure "$DBOPS_FAILING_NAME" "$CLUSTER_NAMESPACE" 30
+
+  wait_until kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    -p '[{"op":"remove","path":"/spec/pods/scheduling"}]'
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
   namespace: $CLUSTER_NAMESPACE
 spec:
   sgCluster: $CLUSTER_NAME
@@ -66,5 +102,5 @@ spec:
     method: InPlace
 EOF
 
-check_restart
+  check_restart
 }

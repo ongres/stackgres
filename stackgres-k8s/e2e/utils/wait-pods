@@ -8,10 +8,7 @@ traceable_wait_pods_running() {
   local NAMESPACE_OPT="$([ -z "$1" ] && printf "%s" "--all-namespaces" || printf "%s" "--namespace=$1")"
   local EXPECTED_RUNNING_PODS="${2:-1}"
   local EXPECTED_RUNNING_PODS_REGEXP="$3"
-  if [ -z "$EXPECTED_RUNNING_PODS_REGEXP" ]
-  then
-    EXPECTED_RUNNING_PODS_REGEXP='[^[:space:]]*'
-  fi
+  local PODS_REGEXP="^${3:-[^[:space:]]\+}[[:space:]]"
   if [ "$EXPECTED_RUNNING_PODS" -lt 1 ]
   then
     >&2 echo "Must specify a number of expected running pods of 1 or more"
@@ -25,24 +22,53 @@ traceable_wait_pods_running() {
   while [ "$(date +%s)" -lt "$END" ]
   do
     PODS="$(kubectl get pods --no-headers "$NAMESPACE_OPT" 2>/dev/null)"
-    RUNNING_PODS="$(printf "%s" "$PODS" | grep "^$EXPECTED_RUNNING_PODS_REGEXP[[:space:]]" \
+    RUNNING_PODS="$(printf "%s" "$PODS" | grep "$PODS_REGEXP" \
       | grep "Running" | tr '\n[:blank:]' ' -' | wc -w)"
-    RUNNING_CONTAINERS="$(printf "%s" "$PODS" | grep "Running" \
-      | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 1 | tr '\n' ' ')"
-    EXPECTED_CONTAINERS="$(printf "%s" "$PODS" | grep "Running" \
-      | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 2 | tr '\n' ' ')"
+    RUNNING_CONTAINERS="$(printf "%s" "$PODS" | grep "$PODS_REGEXP" \
+      | grep "Running" | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 1 | tr '\n' ' ')"
+    EXPECTED_CONTAINERS="$(printf "%s" "$PODS"  | grep "$PODS_REGEXP" \
+      | grep "Running" | grep '[0-9]\+/[0-9]\+' -o | cut -d '/' -f 2 | tr '\n' ' ')"
     if [ "$RUNNING_PODS" -ge "$EXPECTED_RUNNING_PODS" ] \
       && [ "$RUNNING_CONTAINERS" = "$EXPECTED_CONTAINERS" ]
     then
-      echo "$([ -z "$1" ] && echo "All pods running" || echo "All pods running in namespace $1")"
+      if [ -z "$1" ]
+      then
+        if [ -z "$EXPECTED_RUNNING_PODS_REGEXP" ]
+        then
+          echo "Found $EXPECTED_RUNNING_PODS pods running"
+        else
+          echo "Found $EXPECTED_RUNNING_PODS pods running with regexp $EXPECTED_RUNNING_PODS_REGEXP"
+        fi
+      else
+        if [ -z "$EXPECTED_RUNNING_PODS_REGEXP" ]
+        then
+          echo "Found $EXPECTED_RUNNING_PODS pods running in namespace $1"
+        else
+          echo "Found $EXPECTED_RUNNING_PODS pods running in namespace $1 with regexp $EXPECTED_RUNNING_PODS_REGEXP"
+        fi
+      fi
       return
     fi
     sleep 2
   done
-  echo "$([ -z "$1" ] && echo "Timeout while waiting for $EXPECTED_RUNNING_PODS pods to become running" \
-    || echo "Timeout while waiting for $EXPECTED_RUNNING_PODS pods to become running in namespace $1")"
+  if [ -z "$1" ]
+  then
+    if [ -z "$EXPECTED_RUNNING_PODS_REGEXP" ]
+    then
+      echo "Timeout while waiting for $EXPECTED_RUNNING_PODS pods to become running"
+    else
+      echo "Timeout while waiting for $EXPECTED_RUNNING_PODS pods to become running with regexp $EXPECTED_RUNNING_PODS_REGEXP"
+    fi
+  else
+    if [ -z "$EXPECTED_RUNNING_PODS_REGEXP" ]
+    then
+      echo "Timeout while waiting for $EXPECTED_RUNNING_PODS pods to become running in namespace $1"
+    else
+      echo "Timeout while waiting for $EXPECTED_RUNNING_PODS pods to become running in namespace $1 with regexp $EXPECTED_RUNNING_PODS_REGEXP"
+    fi
+  fi
   echo
-  kubectl get pods "$NAMESPACE_OPT" | grep "^$EXPECTED_RUNNING_PODS_REGEXP[[:space:]]"
+  kubectl get pods "$NAMESPACE_OPT" | grep "$PODS_REGEXP"
   return 1
 }
 
@@ -54,10 +80,7 @@ traceable_wait_pods_terminated() {
   local NAMESPACE_OPT="$([ -z "$1" ] && printf "%s" "--all-namespaces" || printf "%s" "--namespace=$1")"
   local EXPECTED_REMAINING_PODS="${2:-0}"
   local EXPECTED_REMAINING_PODS_REGEXP="$3"
-  if [ -z "$EXPECTED_REMAINING_PODS_REGEXP" ]
-  then
-    EXPECTED_REMAINING_PODS_REGEXP='[^[:space:]]\+'
-  fi
+  local PODS_REGEXP="^${3:-[^[:space:]]\+}[[:space:]]"
   if [ "$EXPECTED_REMAINING_PODS" -lt 0 ]
   then
     >&2 echo "Must specify a number of expected remaining pods of 0 or more"
@@ -75,18 +98,47 @@ traceable_wait_pods_terminated() {
   while [ "$(date +%s)" -lt "$END" ]
   do
     PODS="$(kubectl get pods --no-headers "$NAMESPACE_OPT" 2>/dev/null)"
-    REMAINING_PODS="$(printf "%s" "$PODS" | grep "^$EXPECTED_REMAINING_PODS_REGEXP[[:space:]]" \
+    REMAINING_PODS="$(printf "%s" "$PODS" | grep "$PODS_REGEXP" \
       | tr '\n[:blank:]' ' -' | wc -w)"
     if [ "$REMAINING_PODS" -le "$EXPECTED_REMAINING_PODS" ]
     then
-      echo "$([ -z "$1" ] && echo "All pods terminated" || echo "All pods terminated in namespace $1")"
+      if [ -z "$1" ]
+      then
+        if [ -z "$EXPECTED_REMAINING_PODS_REGEXP" ]
+        then
+          echo "Found $EXPECTED_REMAINING_PODS pods remaining running"
+        else
+          echo "Found $EXPECTED_REMAINING_PODS pods remaining running with regexp $EXPECTED_REMAINING_PODS_REGEXP"
+        fi
+      else
+        if [ -z "$EXPECTED_REMAINING_PODS_REGEXP" ]
+        then
+          echo "Found $EXPECTED_REMAINING_PODS pods remaining running in namespace $1"
+        else
+          echo "Found $EXPECTED_REMAINING_PODS pods remaining running in namespace $1 with regexp $EXPECTED_REMAINING_PODS_REGEXP"
+        fi
+      fi
       return
     fi
     sleep 2
   done
-  echo "$([ -z "$1" ] && echo "Timeout while waiting for $EXPECTED_REMAINING_PODS pods to remain running" \
-    || echo "Timeout while waiting for $EXPECTED_REMAINING_PODS pods to remain running in namespace $1")"
+  if [ -z "$1" ]
+  then
+    if [ -z "$EXPECTED_REMAINING_PODS_REGEXP" ]
+    then
+      echo "Timeout while waiting for $EXPECTED_REMAINING_PODS pods to remaining running"
+    else
+      echo "Timeout while waiting for $EXPECTED_REMAINING_PODS pods to remaining running with regexp $EXPECTED_REMAINING_PODS_REGEXP"
+    fi
+  else
+    if [ -z "$EXPECTED_REMAINING_PODS_REGEXP" ]
+    then
+      echo "Timeout while waiting for $EXPECTED_REMAINING_PODS pods to remaining running in namespace $1"
+    else
+      echo "Timeout while waiting for $EXPECTED_REMAINING_PODS pods to remaining running in namespace $1 with regexp $EXPECTED_REMAINING_PODS_REGEXP"
+    fi
+  fi
   echo
-  kubectl get pods "$NAMESPACE_OPT" | grep "^$EXPECTED_REMAINING_PODS_REGEXP[[:space:]]"
+  kubectl get pods "$NAMESPACE_OPT" | grep "$PODS_REGEXP"
   return 1
 }

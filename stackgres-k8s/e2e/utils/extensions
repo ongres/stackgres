@@ -1,22 +1,61 @@
 #!/bin/sh
 
+export EXTENSIONS_REPOSITORY_URL="${EXTENSIONS_REPOSITORY_URL:-https://extensions.stackgres.io/postgres/repository}"
+EXTENSIONS_ARCH="$(uname -m)"
 EXTENSIONS_CACHE_PRELOADED_EXTENSIONS="$(
   {
-    echo 'dblink-.*-pg(12|13)'
-    echo 'pg_stat_statements-.*-pg(12|13)'
-    echo 'plpgsql-.*-pg(12|13)'
-    echo 'plpython3u-.*-pg(12|13)'
-    echo 'timescaledb-1.7.4-pg12'
-    echo 'intagg-.*-pg12'
-    echo 'pageinspect-.*-pg12'
-    echo 'pg_repack-.*-pg(12|13)'
-    echo 'postgis-.*-pg(12|13)'
-    echo 'postgis_raster-.*-pg12(12|13)'
-  } | jq -R . | jq -s .
+    echo "$EXTENSIONS_ARCH/linux/timescaledb-1\.7\.4-pg12"
+    echo "$EXTENSIONS_ARCH/linux/intagg-.*-pg12"
+    echo "$EXTENSIONS_ARCH/linux/pageinspect-.*-pg12"
+    echo "$EXTENSIONS_ARCH/linux/pg_repack-.*-pg(12|13)"
+    echo "$EXTENSIONS_ARCH/linux/postgis-.*-pg(12|13)"
+    echo "$EXTENSIONS_ARCH/linux/postgis_raster-.*-pg12(12|13)"
+  } | jq -R . | jq -s -c .
   )"
-DEFAULT_FLAVOR=pg
-DEFAULT_BUILD_ARCH=x86_64
-DEFAULT_BUILD_OS=linux
+EXTENSIONS_METADATA_VERSION=v2
+EXTENSIONS_DEFAULT_FLAVOR=pg
+EXTENSIONS_DEFAULT_BUILD_ARCH=x86_64
+EXTENSIONS_DEFAULT_BUILD_OS=linux
+EXTENSIONS_INDEX_CACHED="${EXTENSIONS_INDEX_CACHED:-false}"
+export EXTENSIONS_INDEX_CACHED
+
+get_extensions_metadata_url() {
+  local NAME="$1"
+  printf '%s' "$(printf '%s' "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/$EXTENSIONS_METADATA_VERSION/$NAME"
+}
+
+get_extensions_index_hash() {
+  cache_extensions_index
+  md5sum "$TARGET_PATH/extensions-index.json" | cut -d ' ' -f 1
+}
+
+cache_extensions_index() {
+  if [ "$EXTENSIONS_INDEX_CACHED" != true ] || [ ! -f "$TARGET_PATH/extensions-index.json" ]
+  then
+    curl -s -f "$(get_extensions_metadata_url index.json)" \
+      > "$TARGET_PATH/extensions-index.json"
+    if [ ! -f "$TARGET_PATH/extensions-unwrapped-hashes.json" ]
+    then
+      curl -s -f "$(get_extensions_metadata_url hashes.json)" \
+        > "$TARGET_PATH/extensions-hashes.json"
+      jq '
+        .publishers = (.publishers | map(
+          {
+            key: .id,
+            value: .
+          }
+          ) | from_entries)
+        | .extensions = (.extensions | map(
+          {
+            key: .name,
+            value: .
+          }
+          ) | from_entries)
+        ' "$TARGET_PATH/extensions-hashes.json" > "$TARGET_PATH/extensions-unwrapped-hashes.json"
+    fi
+    EXTENSIONS_INDEX_CACHED=true
+  fi
+}
 
 get_latest_version_of_extension() {
   local EXTENSION_NAME="$1"
@@ -24,10 +63,7 @@ get_latest_version_of_extension() {
   local FLAVOR="${3:-pg}"
   local VERSIONS
 
-  if [ ! -f "$TARGET_PATH/index.json" ]
-  then
-    curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/v2/index.json" > "$TARGET_PATH/index.json"
-  fi
+  cache_extensions_index
 
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION")"
   PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | grep "/patroni:.*-$FLAVOR$POSTGRES_VERSION")"
@@ -38,6 +74,7 @@ get_latest_version_of_extension() {
   PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION%%.*}"
   PATRONI_IMAGE_BUILD_VERSION="${PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION##*-build-}"
   PATRONI_IMAGE_BUILD_MAJOR_VERSION="${PATRONI_IMAGE_BUILD_VERSION%%.*}"
+  EXTENSIONS_ARCH="$(uname -m)"
   VERSIONS="$(jq -r "$(cat << EOF
 .extensions[] | select(.name == "$EXTENSION_NAME").versions
   | sort_by(.version|split(".")) | reverse[]
@@ -46,10 +83,11 @@ get_latest_version_of_extension() {
       (.postgresVersion == "$PATRONI_IMAGE_POSTGRES_VERSION"
         or .postgresVersion == "$PATRONI_IMAGE_POSTGRES_MAJOR_VERSION")
       and (if .build == null then true
-        else .build | split(".")[0] == "$PATRONI_IMAGE_BUILD_MAJOR_VERSION" end)))
+        else .build | split(".")[0] == "$PATRONI_IMAGE_BUILD_MAJOR_VERSION" end)
+      and ((.arch == null and "$EXTENSIONS_ARCH" == "x86_64") or (.arch == "$EXTENSIONS_ARCH"))))
       | length) > 0).version
 EOF
-      )" "$TARGET_PATH/index.json")"
+      )" "$TARGET_PATH/extensions-index.json")"
   if [ -z "$VERSIONS" ]
   then
     echo "Can not find any compatible version of extension $EXTENSION_NAME for postgres $PATRONI_IMAGE_POSTGRES_VERSION build $PATRONI_IMAGE_BUILD_MAJOR_VERSION" >&2
@@ -64,28 +102,9 @@ get_preloaded_extensions() {
   then
     return
   fi
-  if [ ! -f "$TARGET_PATH/index.json" ]
-  then
-    curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/v2/index.json" > "$TARGET_PATH/index.json"
-  fi
-  if [ ! -f "$TARGET_PATH/unwrapped-hashes.json" ]
-  then
-    curl -s -f "$(echo "${EXTENSIONS_REPOSITORY_URL%%\?*}" | sed 's#/\+$##')/hashes.json" > "$TARGET_PATH/hashes.json"
-    jq '
-      .publishers = (.publishers | map(
-        {
-          key: .id,
-          value: .
-        }
-        ) | from_entries)
-      | .extensions = (.extensions | map(
-        {
-          key: .name,
-          value: .
-        }
-        ) | from_entries)
-      ' "$TARGET_PATH/hashes.json" > "$TARGET_PATH/unwrapped-hashes.json"
-  fi
+
+  cache_extensions_index
+
   if ! jq -r '
     .extensions[] | . as $extension
     | .versions[] | . as $version
@@ -97,8 +116,10 @@ get_preloaded_extensions() {
         | $availableForEntry | $result | .[$key] = $availableForEntry) | to_entries | map(.value))
     | .availableFor[] | . as $availableFor
     | select('"$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS"' | any(. as $test
-      | $extension.name + "-" + $version.version + "-"
-        + ($availableFor.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
+      | ($availableFor.arch | if . != null then . else "'"$EXTENSIONS_DEFAULT_BUILD_ARCH"'" end)
+        + "/" + ($availableFor.os | if . != null then . else "'"$EXTENSIONS_DEFAULT_BUILD_OS"'" end)
+        + "/" + $extension.name + "-" + $version.version + "-"
+        + ($availableFor.flavor | if . != null then . else "'"$EXTENSIONS_DEFAULT_FLAVOR"'" end)
         + $availableFor.postgresVersion
         + ($availableFor.build | if . != null then "-build-" + . else "" end)
       | test($test; "")))
@@ -108,11 +129,11 @@ get_preloaded_extensions() {
       + $extension.name + " "
       + $version.version + " "
       + $availableFor.postgresVersion
-      + " " + ($availableFor.flavor | if . != null then . else "'"$DEFAULT_FLAVOR"'" end)
-      + " " + ($availableFor.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
-      + " " + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end)
+      + " " + ($availableFor.flavor | if . != null then . else "'"$EXTENSIONS_DEFAULT_FLAVOR"'" end)
+      + " " + ($availableFor.arch | if . != null then . else "'"$EXTENSIONS_DEFAULT_BUILD_ARCH"'" end)
+      + " " + ($availableFor.os | if . != null then . else "'"$EXTENSIONS_DEFAULT_BUILD_OS"'" end)
       + " " + ($availableFor.build | if . != null then . else "" end)' \
-    "$TARGET_PATH/index.json"
+    "$TARGET_PATH/extensions-index.json"
   then
     echo "Error while applying filter $EXTENSIONS_CACHE_PRELOADED_EXTENSIONS to preload extensions" >&2
     return 1
@@ -134,11 +155,11 @@ get_extension_image() {
   local IMAGE_TEMPLATE COMPONENT COMPONENT_VERSION HASH IMAGE_NAME CONTAINER STATEFULSET
   IMAGE_TEMPLATE="$(get_image_template_from_url "$EXTENSIONS_REPOSITORY_URL")"
   COMPONENT="$(jq -r ".extensions[\"$NAME\"]
-    | .component" "$TARGET_PATH/unwrapped-hashes.json")"
+    | .component" "$TARGET_PATH/extensions-unwrapped-hashes.json")"
   # shellcheck disable=SC2034
   COMPONENT_VERSION="$(jq -r ".extensions[\"$NAME\"]
     | .versions[] | select(.version == \"$VERSION\")
-    | .componentVersion | if . != null then . else \"\" end" "$TARGET_PATH/unwrapped-hashes.json")"
+    | .componentVersion | if . != null then . else \"\" end" "$TARGET_PATH/extensions-unwrapped-hashes.json")"
   if [ -z "$COMPONENT_VERSION" ]
   then
     # TODO: this is a mock that have to be fixed
@@ -168,9 +189,9 @@ get_extension_image() {
   HASH="$(jq -r ".extensions[\"$NAME\"]
     | .versions[] | select(.version == \"$VERSION\")
     | .availableFor[] | select(.postgresVersion == \"$POSTGRES_VERSION\"
-      and (.flavor == \"$FLAVOR\" or (.flavor == null and \"$FLAVOR\" == \"$DEFAULT_FLAVOR\")))
+      and (.flavor == \"$FLAVOR\" or (.flavor == null and \"$FLAVOR\" == \"$EXTENSIONS_DEFAULT_FLAVOR\")))
       and (.build == \"$BUILD\" or (.build == null and \"$BUILD\" == \"\")))
-    | .buildHash" "$TARGET_PATH/unwrapped-hashes.json")"
+    | .buildHash" "$TARGET_PATH/extensions-unwrapped-hashes.json")"
   if [ -z "$HASH" ]
   then
     echo "Can not retrieve hash for extension $REPOSITORY $PUBLISHER $NAME $VERSION $FLAVOR$POSTGRES_VERSION $BUILD $BUILD_ARCH $BUILD_OS"
@@ -180,9 +201,9 @@ get_extension_image() {
   POSTGRES_EXACT_VERSION="$(jq -r ".extensions[\"plpgsql\"]
     | .versions[]
     | .availableFor[] | select(.postgresVersion == \"$POSTGRES_VERSION\"
-      and (.flavor == \"$FLAVOR\" or (.flavor == null and \"$FLAVOR\" == \"$DEFAULT_FLAVOR\")))
+      and (.flavor == \"$FLAVOR\" or (.flavor == null and \"$FLAVOR\" == \"$EXTENSIONS_DEFAULT_FLAVOR\")))
       and (.build == \"$BUILD\" or (.build == null and \"$BUILD\" == \"\")))
-    | .postgresVersion" "$TARGET_PATH/unwrapped-hashes.json")"
+    | .postgresVersion" "$TARGET_PATH/extensions-unwrapped-hashes.json")"
   if [ -z "$POSTGRES_EXACT_VERSION" ]
   then
     # TODO: this is a mock that have to be fixed

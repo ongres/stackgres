@@ -219,11 +219,11 @@
                   <skip>${it.skipBuildContainer}</skip>
                   <images>
                     <image>
-                      <name>${it.image}</name>
+                      <name>${ci.image}</name>
                       <build>
                         <cleanup>remove</cleanup>
                         <optimise>true</optimise>
-                        <dockerFile>${project.basedir}/src/test/docker/Dockerfile.it</dockerFile>
+                        <dockerFile>${project.basedir}/../../ci/build/Dockerfile-ci</dockerFile>
                       </build>
                     </image>
                   </images>
@@ -418,7 +418,7 @@
                   <images>
                     <image>
                       <alias>kind-load</alias>
-                      <name>${it.image}</name>
+                      <name>${ci.image}</name>
                       <run>
                         <entrypoint>
                           <arg>/bin/sh</arg>
@@ -481,7 +481,7 @@
                   <images>
                     <image>
                       <alias>kind-load</alias>
-                      <name>${it.image}</name>
+                      <name>${ci.image}</name>
                       <run>
                         <entrypoint>
                           <arg>/bin/sh</arg>

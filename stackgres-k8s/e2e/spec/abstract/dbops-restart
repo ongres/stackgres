@@ -35,14 +35,7 @@ check_restart_ran_successfully() {
 }
 
 check_restart_is_running() {
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Running
-  then
-    echo "SUCCESS. restart running."
-  else
-    echo "FAILED. restart not running."
-    return 1
-  fi
+  assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
 }
 
 check_restart_prevent_updates_to_cluster() {
@@ -60,14 +53,7 @@ check_restart_prevent_updates_to_cluster() {
 }
 
 check_restart_completed() {
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Completed
-  then
-    echo "SUCCESS. restart completed."
-  else
-    echo "FAILED. restart failed."
-    return 1
-  fi
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 }
 
 check_restart() {
@@ -89,7 +75,10 @@ check_restart() {
      RESTARTED_PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" \
       --template '{{ range .items }}{{ printf "%s " .metadata.name }}{{ end }}')"
   fi
-  printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w | grep -q '^2$'
+  local INITIAL_INSTANCES
+  INITIAL_INSTANCES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" -o json)"
+  INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | jq '.status.restart.initialInstances | length')"
+  printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w | grep -q "^$INITIAL_INSTANCES$"
 
   local DBOPS_CREATION_TIMESTAMP
   DBOPS_CREATION_TIMESTAMP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --template='{{ .metadata.creationTimestamp }}')"
@@ -143,5 +132,8 @@ check_restart() {
   fi
 
   check_mock_data_samehost "$CLUSTER_NAME"
-  check_mock_data_replication "$CLUSTER_NAME"
+  if [ "$INITIAL_INSTANCES" -ge 2 ]
+  then
+    check_mock_data_replication "$CLUSTER_NAME"
+  fi
 }

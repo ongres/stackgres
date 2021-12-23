@@ -116,18 +116,10 @@ public interface StackGresUtil {
   }
 
   /**
-   * Return true when labels match a patroni primary pod, false otherwise.
+   * Return true when labels match a non-disruptible label, false otherwise.
    */
-  static boolean isPrimary(Map<String, String> labels) {
-    return Objects.equals(labels.get(StackGresContext.ROLE_KEY), StackGresContext.PRIMARY_ROLE);
-  }
-
-  /**
-   * Return true when labels match a patroni primary pod that is also disruptible, false otherwise.
-   */
-  static boolean isNonDisruptiblePrimary(Map<String, String> labels) {
-    return isPrimary(labels)
-        && Objects.equals(labels.get(StackGresContext.DISRUPTIBLE_KEY),
+  static boolean isNonDisruptible(Map<String, String> labels) {
+    return Objects.equals(labels.get(StackGresContext.DISRUPTIBLE_KEY),
             StackGresContext.WRONG_VALUE);
   }
 
@@ -273,11 +265,11 @@ public interface StackGresUtil {
     if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
       return ImmutableList.of();
     }
-    if (Objects.equals("6.6",
+    if (StackGresComponent.compareBuildVersions("6.6",
         StackGresComponent.PATRONI.findBuildVersion(
             StackGresComponent.LATEST, ImmutableMap.of(
                 getPostgresFlavorComponent(cluster),
-                cluster.getSpec().getPostgres().getVersion())))) {
+                cluster.getSpec().getPostgres().getVersion()))) <= 0) {
       return ImmutableList.of();
     }
     return Seq.of(

@@ -4,6 +4,7 @@ export E2E_ENV="${E2E_ENV:-kind}"
 export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
 export DEFAULT_K8S_VERSION="1.16.15"
 export K8S_VERSION="${K8S_VERSION:-$DEFAULT_K8S_VERSION}"
+export KUBERNETES_VERSION_NUMBER
 
 e2e_add_source "envs/$E2E_ENV"
 
@@ -25,6 +26,10 @@ setup_k8s() {
   echo "Kubernetes version set is $K8S_VERSION (on $E2E_ENV environment) [kubectl:$(kubectl version | head -n 1 | cut -d , -f 3 | cut -d '"' -f 2) kubernetes:$(kubectl version | tail -n 1 | cut -d , -f 3 | cut -d '"' -f 2)]."
   echo
   get_k8s_env_version
+
+  KUBERNETES_VERSION_NUMBER="$(kubectl version -o json 2>/dev/null)"
+  KUBERNETES_VERSION_NUMBER="$(printf '%s' "$KUBERNETES_VERSION_NUMBER" \
+    | jq '(.serverVersion.major | tonumber) * 100 + (.serverVersion.minor | tonumber)')"
 }
 
 create_namespace_if_not_exists() {
@@ -41,4 +46,40 @@ delete_namespace_if_exists() {
   then
     kubectl delete namespace "$NAMESPACE"
   fi
+}
+
+upgrade_kubernetes() {
+  if ! command -v upgrade_k8s > /dev/null 2>&1
+  then
+    >&2 echo "$E2E_ENV does not implement upgrade_k8s"
+    return 1
+  fi
+
+  local K8S_UPGRADE_TO_VERSION="$1"
+  local PODS_COUNT
+  PODS_COUNT="$(kubectl get pod -A -o name | wc -l)"
+  PODS_COUNT="$((2 + (PODS_COUNT * 10 / 100) ))"
+  local UPGRADE_REQUIRED_PODS_FILE="$TARGET_PATH/upgrade-required-pods-$(date +%s).json"
+  local UPGRADE_DEPLOYED_PODS_FILE="$TARGET_PATH/upgrade-deployed-pods-$(date +%s).json"
+  local UPGRADE_MISSING_PODS_FILE="$TARGET_PATH/upgrade-missing-pods-$(date +%s).json"
+  kubectl get pod -A -o json > "$UPGRADE_REQUIRED_PODS_FILE"
+  kubectl drain minikube --ignore-errors --delete-emptydir-data --ignore-daemonsets --force
+  upgrade_k8s "$K8S_UPGRADE_TO_VERSION"
+  kubectl uncordon minikube
+  kubectl get pod -A -o json > "$UPGRADE_DEPLOYED_PODS_FILE"
+  jq -s '
+    .[1].items as $deployed
+    | .[0].items[]
+    | select(. as $required
+        | $deployed | any(
+          $required.metadata.namespace == .metadata.namespace
+          and $required.metadata.name == .metadata.name)
+        | not
+      and $required.metadata.ownerReferences == null)' \
+    "$UPGRADE_REQUIRED_PODS_FILE" \
+    "$UPGRADE_DEPLOYED_PODS_FILE" \
+    > "$UPGRADE_MISSING_PODS_FILE"
+  kubectl create -f "$UPGRADE_MISSING_PODS_FILE"
+  wait_until -t "$((E2E_TIMEOUT * PODS_COUNT))" \
+    kubectl wait -A --for=condition=Ready pod --all --timeout 0
 }

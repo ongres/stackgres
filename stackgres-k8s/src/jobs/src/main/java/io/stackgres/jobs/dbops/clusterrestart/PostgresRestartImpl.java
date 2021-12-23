@@ -23,10 +23,10 @@ public class PostgresRestartImpl implements PostgresRestart {
   }
 
   @Override
-  public Uni<Boolean> restartPostgres(String memberName, String clusterName, String namespace) {
-
+  public Uni<Void> restartPostgres(String memberName, String clusterName, String namespace) {
     return patroniApi.getClusterMembers(clusterName, namespace)
-        .onItem().transform(members -> members.stream()
+        .onItem()
+        .transform(members -> members.stream()
             .filter(member -> member.getName().equals(memberName))
             .findFirst().orElseThrow())
         .chain((member) -> patroniApi.restartPostgres(member)

@@ -13,12 +13,15 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
@@ -30,7 +33,6 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.jobs.app.JobsProperty;
-import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.lock.ImmutableLockRequest;
 import io.stackgres.jobs.dbops.lock.LockAcquirer;
 import io.stackgres.jobs.dbops.lock.LockRequest;
@@ -58,9 +60,18 @@ public class DbOpLauncherImpl implements DbOpLauncher {
   @Inject
   DatabaseOperationEventEmitter databaseOperationEventEmitter;
 
+  private final ExecutorService jobExecutor;
+
   private static void setTransitionTimes(List<StackGresDbOpsCondition> conditions) {
     String currentDateTime = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
     conditions.forEach(condition -> condition.setLastTransitionTime(currentDateTime));
+  }
+
+  public DbOpLauncherImpl() {
+    this.jobExecutor = Executors.newSingleThreadExecutor(
+        new ThreadFactoryBuilder()
+        .setNameFormat("job-executor-%d")
+        .build());
   }
 
   @Override
@@ -107,16 +118,14 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         lockAcquirer
             .lockRun(lockRequest, (targetCluster) -> {
               databaseOperationEventEmitter.operationStarted(dbOpName, namespace);
-              final DatabaseOperationJob databaseOperationJob = jobImpl.get();
-
-              Uni<ClusterRestartState> jobUni = databaseOperationJob.runJob(
-                  initializedDbOps, targetCluster);
-              if (initializedDbOps.getSpec().getTimeout() != null) {
-                jobUni.await()
-                    .atMost(Duration.parse(initializedDbOps.getSpec().getTimeout()));
-              } else {
-                jobUni.await().indefinitely();
-              }
+              var jobUni = Uni.createFrom().voidItem()
+                  .emitOn(jobExecutor)
+                  .chain(() -> jobImpl.get()
+                      .runJob(initializedDbOps, targetCluster));
+              Optional.ofNullable(initializedDbOps.getSpec().getTimeout())
+                  .map(Duration::parse)
+                  .map(jobTimeout -> jobUni.await().atMost(jobTimeout))
+                  .orElseGet(() -> jobUni.await().indefinitely());
               databaseOperationEventEmitter.operationCompleted(dbOpName, namespace);
             });
 
@@ -127,7 +136,7 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         databaseOperationEventEmitter.operationTimedOut(dbOpName, namespace);
         throw timeoutEx;
       } catch (Exception e) {
-        LOGGER.info("Unexpected exception for SgDbOp {}", dbOpName);
+        LOGGER.info("Unexpected exception for SgDbOp {}", dbOpName, e);
         updateToFailedConditions(dbOpName, namespace);
         databaseOperationEventEmitter.operationFailed(dbOpName, namespace);
         throw e;

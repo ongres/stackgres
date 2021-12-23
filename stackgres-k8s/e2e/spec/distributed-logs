@@ -1,19 +1,32 @@
 #!/bin/sh
 
+e2e_use_extensions() {
+  true
+}
+
 e2e_test_install() {
   COPY_CLUSTER_NAME="$(get_sgcluster_name "$CLUSTER_NAME-copy")"
   DISTRIBUTED_LOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
 
-  TIMESCALE_VERSION="$(get_latest_version_of_extension timescaledb 13)"
+  TIMESCALE_VERSION="$(get_latest_version_of_extension timescaledb 13 || true)"
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
-    --set distributedLogs.enabled=false \
-    --set distributedLogs.create=false \
-    --set-string 'cluster.postgres.version=13' \
-    --set-string 'cluster.postgres.extensions[0].name=timescaledb' \
-    --set-string 'cluster.postgres.extensions[0].version='"$TIMESCALE_VERSION" \
-    --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=timescaledb \
-    --set-string 'cluster.initialData.scripts[0].script=CREATE EXTENSION timescaledb;'
+  if [ -n "$TIMESCALE_VERSION" ]
+  then
+    create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+      --set distributedLogs.enabled=false \
+      --set distributedLogs.create=false \
+      --set-string 'cluster.postgres.version=13' \
+      --set-string 'cluster.postgres.extensions[0].name=timescaledb' \
+      --set-string 'cluster.postgres.extensions[0].version='"$TIMESCALE_VERSION" \
+      --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=timescaledb \
+      --set-string 'cluster.initialData.scripts[0].script=CREATE EXTENSION timescaledb;'
+  else
+    echo "Extension timescaledb not found [$(uname -m)]"
+    create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+      --set distributedLogs.enabled=false \
+      --set distributedLogs.create=false \
+      --set-string 'cluster.postgres.version=13'
+  fi
 
   wait_pods_running "$CLUSTER_NAMESPACE" "1"
 
@@ -41,7 +54,10 @@ e2e_test_install() {
 }
 
 e2e_test() {
-  run_test "Checking that latest timescaledb version has been installed" check_latest_timescaledb_version_is_installed
+  if [ -n "$TIMESCALE_VERSION" ]
+  then
+    run_test "Checking that latest timescaledb version has been installed" check_latest_timescaledb_version_is_installed
+  fi
 
   run_test "Checking that default annotations where created" default_annotations
 
@@ -81,16 +97,29 @@ default_annotations(){
 }
 
 check_distributed_logs_attach_to_clusters() {
-  create_or_replace_cluster "$COPY_CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
-    --set distributedLogs.enabled=true \
-    --set distributedLogs.create=false \
-    --set instanceProfiles=null \
-    --set configurations.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME" \
-    --set-string 'cluster.postgres.extensions[0].name=timescaledb' \
-    --set-string 'cluster.postgres.extensions[0].version='"$TIMESCALE_VERSION" \
-    --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=timescaledb \
-    --set-string 'cluster.initialData.scripts[0].script=CREATE EXTENSION timescaledb;'
+
+  if [ -n "$TIMESCALE_VERSION" ]
+  then
+     create_or_replace_cluster "$COPY_CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+      --set distributedLogs.enabled=true \
+      --set distributedLogs.create=false \
+      --set instanceProfiles=null \
+      --set configurations.create=false \
+      --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME" \
+      --set-string 'cluster.postgres.version=13' \
+      --set-string 'cluster.postgres.extensions[0].name=timescaledb' \
+      --set-string 'cluster.postgres.extensions[0].version='"$TIMESCALE_VERSION" \
+      --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=timescaledb \
+      --set-string 'cluster.initialData.scripts[0].script=CREATE EXTENSION timescaledb;'
+  else
+     create_or_replace_cluster "$COPY_CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
+      --set distributedLogs.enabled=true \
+      --set distributedLogs.create=false \
+      --set instanceProfiles=null \
+      --set configurations.create=false \
+      --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME" \
+      --set-string 'cluster.postgres.version=13'
+  fi
 
   wait_pods_running "$CLUSTER_NAMESPACE" "5"
   wait_services_available "$CLUSTER_NAMESPACE" "1" "$CLUSTER_NAME$"

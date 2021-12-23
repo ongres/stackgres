@@ -46,6 +46,10 @@
       <artifactId>smallrye-mutiny-vertx-web-client</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-junit5</artifactId>
       <scope>test</scope>
@@ -334,7 +338,7 @@
                   <images>
                     <image>
                       <alias>kind-load</alias>
-                      <name>${it.image}</name>
+                      <name>${ci.image}</name>
                       <run>
                         <entrypoint>
                           <arg>/bin/sh</arg>
@@ -399,7 +403,7 @@
                   <images>
                     <image>
                       <alias>kind-load</alias>
-                      <name>${it.image}</name>
+                      <name>${ci.image}</name>
                       <run>
                         <entrypoint>
                           <arg>/bin/sh</arg>

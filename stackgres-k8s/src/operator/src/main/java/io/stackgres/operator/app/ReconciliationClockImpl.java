@@ -11,21 +11,21 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.common.app.AbstractReconciliationClock;
-import io.stackgres.operator.conciliation.StackGresReconciliator;
+import io.stackgres.operator.conciliation.AbstractReconciliator;
 
 @ApplicationScoped
 public class ReconciliationClockImpl extends AbstractReconciliationClock {
 
-  private final Instance<StackGresReconciliator<?>> reconciliators;
+  private final Instance<AbstractReconciliator<?>> reconciliators;
 
   @Inject
-  public ReconciliationClockImpl(@Any Instance<StackGresReconciliator<?>> reconciliators) {
+  public ReconciliationClockImpl(@Any Instance<AbstractReconciliator<?>> reconciliators) {
     this.reconciliators = reconciliators;
   }
 
   @Override
   protected void reconcile() {
-    reconciliators.forEach(StackGresReconciliator::reconcile);
+    reconciliators.forEach(AbstractReconciliator::reconcile);
   }
 
 }

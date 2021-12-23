@@ -56,6 +56,10 @@ public abstract class ExtensionManager {
     this.fileSystemHandler = fileSystemHandler;
   }
 
+  public ExtensionMetadataManager getMetadataManager() {
+    return extensionMetadataManager;
+  }
+
   public ExtensionInstaller getExtensionInstaller(ClusterContext context,
       StackGresClusterInstalledExtension installedExtension) throws Exception {
     final StackGresExtensionPublisher extensionPublisher = extensionMetadataManager
@@ -114,7 +118,8 @@ public abstract class ExtensionManager {
         justification = "False positive")
     public void downloadAndExtract() throws Exception {
       LOGGER.info("Downloading {} from {}",
-          ExtensionUtil.getDescription(context.getCluster(), installedExtension), extensionUri);
+          ExtensionUtil.getDescription(context.getCluster(), installedExtension, true),
+          extensionUri);
       try (WebClient client = webClientFactory.create(extensionsRepositoryUri)) {
         try (InputStream inputStream = client.getInputStream(extensionUri)) {
           extractTar(inputStream);

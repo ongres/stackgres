@@ -36,7 +36,6 @@ ports_check() {
 
   if [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_6432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ]
   then
-
     RESPONSE_5432="$(run_query -i 1 -p 5432)"
     RESPONSE_6432="$(run_query -i 1 -p 6432)"
     RESPONSE_7432="$(run_query -i 1 -p 7432)"

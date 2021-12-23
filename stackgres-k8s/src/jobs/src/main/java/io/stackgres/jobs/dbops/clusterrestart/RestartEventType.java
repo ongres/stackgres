@@ -10,6 +10,10 @@ import io.stackgres.operatorframework.resource.EventReason;
 
 public enum RestartEventType implements EventReason {
 
+  CHECK_PRIMARY_AVAILABLE(Type.NORMAL, "CheckPrimaryAvailable"),
+  PRIMARY_AVAILABLE(Type.NORMAL, "PrimaryAvailable"),
+  PRIMARY_CHANGED(Type.WARNING, "PrimaryChanged"),
+  PRIMARY_NOT_AVAILABLE(Type.NORMAL, "PrimaryNotAvailable"),
   INCREASING_INSTANCES(Type.NORMAL, "IncreasingInstances"),
   INSTANCES_INCREASED(Type.NORMAL, "InstancesIncreased"),
   RESTARTING_POD(Type.NORMAL, "RestartingPod"),

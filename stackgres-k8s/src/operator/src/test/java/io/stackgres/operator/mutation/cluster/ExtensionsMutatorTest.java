@@ -7,6 +7,7 @@ package io.stackgres.operator.mutation.cluster;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +56,9 @@ class ExtensionsMutatorTest {
 
   private List<StackGresClusterExtension> extensions;
 
-  private List<StackGresClusterInstalledExtension> installedExtensions;
+  private List<StackGresClusterInstalledExtension> existingExtensions;
+
+  private List<StackGresClusterInstalledExtension> toInstallExtensions;
 
   @BeforeEach
   void setUp() throws Exception {
@@ -72,21 +75,28 @@ class ExtensionsMutatorTest {
         "plpython3u")
         .map(this::getExtension)
         .collect(ImmutableList.toImmutableList());
-    installedExtensions = Seq.of(
+    existingExtensions = Seq.of(
         "plpgsql",
         "pg_stat_statements",
         "dblink",
         "plpython3u")
         .map(this::getInstalledExtension)
         .collect(ImmutableList.toImmutableList());
+    toInstallExtensions = Seq.of(
+        "plpgsql",
+        "pg_stat_statements",
+        "dblink",
+        "plpython3u")
+        .map(this::getInstalledExtensionWithoutBuild)
+        .collect(ImmutableList.toImmutableList());
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), any()))
+        same(review.getRequest().getObject()), any(), anyBoolean()))
         .then(this::getDefaultExtensionMetadata);
   }
 
   private Optional<StackGresExtensionMetadata> getDefaultExtensionMetadata(
       InvocationOnMock invocation) {
-    return Optional.of(new StackGresExtensionMetadata(installedExtensions.stream()
+    return Optional.of(new StackGresExtensionMetadata(existingExtensions.stream()
         .filter(defaultExtension -> defaultExtension.getName()
             .equals(((StackGresClusterExtension) invocation.getArgument(1)).getName()))
         .findAny().get()));
@@ -97,7 +107,7 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(extensions);
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
+        .addAll(toInstallExtensions);
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -122,10 +132,10 @@ class ExtensionsMutatorTest {
         .addAll(extensions).add(extension).build());
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
+        .addAll(toInstallExtensions);
 
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -137,7 +147,8 @@ class ExtensionsMutatorTest {
 
   @Test
   void clusterWithAnExtensionAlreadyInstalled_shouldNotDoAnything() throws Exception {
-    final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedExtension =
+        getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(
@@ -145,12 +156,12 @@ class ExtensionsMutatorTest {
         .addAll(extensions).add(extension).build());
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
+        .addAll(toInstallExtensions);
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
         .add(installedExtension);
 
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -161,12 +172,14 @@ class ExtensionsMutatorTest {
   @Test
   void clusterWithExtensionInstalledAddADifferntExtension_shouldAddToInstallPostgresExtensions()
       throws Exception {
-    final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedTestExtension =
+        getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     final StackGresClusterExtension testExtension = getExtension();
     testExtension.setName("test");
     testExtension.setVersion(installedTestExtension.getVersion());
-    final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedExtension =
+        getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(
@@ -174,18 +187,18 @@ class ExtensionsMutatorTest {
         .addAll(extensions).add(extension).add(testExtension).build());
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
+        .addAll(toInstallExtensions);
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(testExtension)))
+        same(review.getRequest().getObject()), same(testExtension), anyBoolean()))
         .thenReturn(Optional.of(extensionTestMetadata));
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -196,13 +209,14 @@ class ExtensionsMutatorTest {
   @Test
   void clusterWithExtensionInstalledButRemoved_shouldReplaceToInstallPostgresExtensions()
       throws Exception {
-    final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedExtension =
+        getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(extensions);
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
+        .addAll(toInstallExtensions);
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
         .add(installedExtension);
 
@@ -215,7 +229,8 @@ class ExtensionsMutatorTest {
   @Test
   void clusterWithExtensionInstalledAddDifferntExtension_shouldReplaceToInstallPostgresExtensions()
       throws Exception {
-    final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedExtension =
+        getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(
@@ -223,14 +238,15 @@ class ExtensionsMutatorTest {
         .addAll(extensions).add(extension).build());
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
-    final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
+        .addAll(toInstallExtensions);
+    final StackGresClusterInstalledExtension installedTestExtension =
+        getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -242,7 +258,8 @@ class ExtensionsMutatorTest {
   @Test
   void clusterWithTwoExtensionInstalledAddDifferntExtension_shouldReplaceToInstallExtensions()
       throws Exception {
-    final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedExtension =
+        getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(
@@ -250,18 +267,20 @@ class ExtensionsMutatorTest {
         .addAll(extensions).add(extension).build());
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
-    final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
+        .addAll(toInstallExtensions);
+    final StackGresClusterInstalledExtension installedTestExtension =
+        getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
         .add(installedTestExtension);
-    final StackGresClusterInstalledExtension installedTestExtension2 = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedTestExtension2 =
+        getInstalledExtensionWithoutBuild();
     installedTestExtension2.setName("test2");
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
         .add(installedTestExtension2);
 
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -273,7 +292,8 @@ class ExtensionsMutatorTest {
   @Test
   void clusterWithExtensionInstalledAddExtensionWithExtraMounts_shouldReplaceToInstallExtensions()
       throws Exception {
-    final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedExtension =
+        getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(
@@ -281,8 +301,9 @@ class ExtensionsMutatorTest {
         .addAll(extensions).add(extension).build());
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
-    final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
+        .addAll(toInstallExtensions);
+    final StackGresClusterInstalledExtension installedTestExtension =
+        getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
         .add(installedTestExtension);
@@ -290,7 +311,7 @@ class ExtensionsMutatorTest {
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getVersion().setExtraMounts(ImmutableList.of("test"));
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -302,7 +323,8 @@ class ExtensionsMutatorTest {
   @Test
   void clusterWithExtensionInstalledWithExtraMountsAndExtension_shouldReplaceToInstallExtensions()
       throws Exception {
-    final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedExtension =
+        getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(
@@ -310,8 +332,9 @@ class ExtensionsMutatorTest {
         .addAll(extensions).add(extension).build());
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
-    final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
+        .addAll(toInstallExtensions);
+    final StackGresClusterInstalledExtension installedTestExtension =
+        getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     installedTestExtension.setExtraMounts(ImmutableList.of("test"));
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
@@ -319,7 +342,7 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -331,7 +354,8 @@ class ExtensionsMutatorTest {
   @Test
   void clusterWithExtensionInstalledWithExtraMountsAddSimilarExtension_shouldReplaceToInstall()
       throws Exception {
-    final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedExtension =
+        getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(
@@ -339,8 +363,9 @@ class ExtensionsMutatorTest {
         .addAll(extensions).add(extension).build());
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
-    final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
+        .addAll(toInstallExtensions);
+    final StackGresClusterInstalledExtension installedTestExtension =
+        getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     installedTestExtension.setExtraMounts(ImmutableList.of("test"));
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
@@ -349,7 +374,7 @@ class ExtensionsMutatorTest {
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getVersion().setExtraMounts(ImmutableList.of("test"));
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -361,7 +386,8 @@ class ExtensionsMutatorTest {
   @Test
   void clusterWithExtensionInstalledWithNoBuildAddDifferntExtension_shouldReplaceToInstall()
       throws Exception {
-    final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedExtension =
+        getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(
@@ -369,8 +395,9 @@ class ExtensionsMutatorTest {
         .addAll(extensions).add(extension).build());
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
-    final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
+        .addAll(toInstallExtensions);
+    final StackGresClusterInstalledExtension installedTestExtension =
+        getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     installedTestExtension.setBuild(null);
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
@@ -378,7 +405,7 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -390,7 +417,8 @@ class ExtensionsMutatorTest {
   @Test
   void clusterWithExtensionInstalledAddDifferntExtensionWithoutBuild_shouldReplaceToInstall()
       throws Exception {
-    final StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedExtension =
+        getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(
@@ -398,8 +426,9 @@ class ExtensionsMutatorTest {
         .addAll(extensions).add(extension).build());
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
-    final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
+        .addAll(toInstallExtensions);
+    final StackGresClusterInstalledExtension installedTestExtension =
+        getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
         .add(installedTestExtension);
@@ -407,7 +436,7 @@ class ExtensionsMutatorTest {
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getTarget().setBuild(null);
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(extension)))
+        same(review.getRequest().getObject()), same(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -418,7 +447,8 @@ class ExtensionsMutatorTest {
 
   @Test
   void clusterWithMissingExtension_shouldNotDoAnything() throws Exception {
-    final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedTestExtension =
+        getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     final StackGresClusterExtension testExtension = getExtension();
     testExtension.setName("test");
@@ -428,12 +458,12 @@ class ExtensionsMutatorTest {
         .addAll(extensions).add(testExtension).build());
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
+        .addAll(toInstallExtensions);
 
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(testExtension)))
+        same(review.getRequest().getObject()), same(testExtension), anyBoolean()))
         .thenReturn(Optional.empty());
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -442,7 +472,8 @@ class ExtensionsMutatorTest {
 
   @Test
   void clusterWithAnAlreadyInstalledMissingExtension_shouldReplaceToInstall() throws Exception {
-    final StackGresClusterInstalledExtension installedTestExtension = getInstalledExtension();
+    final StackGresClusterInstalledExtension installedTestExtension =
+        getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     final StackGresClusterExtension testExtension = getExtension();
     testExtension.setName("test");
@@ -452,14 +483,14 @@ class ExtensionsMutatorTest {
         .addAll(extensions).add(testExtension).build());
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
+        .addAll(toInstallExtensions);
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(review.getRequest().getObject()), same(testExtension)))
+        same(review.getRequest().getObject()), same(testExtension), anyBoolean()))
         .thenReturn(Optional.empty());
     final List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -483,17 +514,30 @@ class ExtensionsMutatorTest {
 
   private StackGresClusterInstalledExtension getInstalledExtension(String name) {
     final StackGresClusterInstalledExtension installedExtension =
+        getInstalledExtensionWithoutBuild(name);
+    installedExtension.setBuild(BUILD_VERSION);
+    return installedExtension;
+  }
+
+  private StackGresClusterInstalledExtension getInstalledExtension() {
+    final StackGresClusterInstalledExtension installedExtension =
+        getInstalledExtensionWithoutBuild();
+    installedExtension.setBuild(BUILD_VERSION);
+    return installedExtension;
+  }
+
+  private StackGresClusterInstalledExtension getInstalledExtensionWithoutBuild(String name) {
+    final StackGresClusterInstalledExtension installedExtension =
         new StackGresClusterInstalledExtension();
     installedExtension.setName(name);
     installedExtension.setPublisher("com.ongres");
     installedExtension.setRepository(OperatorProperty.EXTENSIONS_REPOSITORY_URLS.getString());
     installedExtension.setVersion("1.0.0");
     installedExtension.setPostgresVersion(POSTGRES_MAJOR_VERSION);
-    installedExtension.setBuild(BUILD_VERSION);
     return installedExtension;
   }
 
-  private StackGresClusterInstalledExtension getInstalledExtension() {
+  private StackGresClusterInstalledExtension getInstalledExtensionWithoutBuild() {
     final StackGresClusterInstalledExtension installedExtension =
         new StackGresClusterInstalledExtension();
     installedExtension.setName("timescaledb");
@@ -501,7 +545,6 @@ class ExtensionsMutatorTest {
     installedExtension.setRepository(OperatorProperty.EXTENSIONS_REPOSITORY_URLS.getString());
     installedExtension.setVersion("1.7.1");
     installedExtension.setPostgresVersion(POSTGRES_MAJOR_VERSION);
-    installedExtension.setBuild(BUILD_VERSION);
     return installedExtension;
   }
 

@@ -22,15 +22,15 @@ import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.ClusterPatchResumer;
+import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
-import io.stackgres.operator.conciliation.StackGresReconciliator;
 import io.stackgres.operator.conciliation.StatusManager;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
 public class ClusterReconciliator
-    extends StackGresReconciliator<StackGresCluster> {
+    extends AbstractReconciliator<StackGresCluster> {
 
   private StatusManager<StackGresCluster, StackGresClusterCondition> statusManager;
 

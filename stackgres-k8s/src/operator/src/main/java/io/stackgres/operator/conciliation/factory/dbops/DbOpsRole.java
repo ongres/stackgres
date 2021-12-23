@@ -107,7 +107,7 @@ public class DbOpsRole implements ResourceGenerator<StackGresDbOpsContext> {
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
-            .withResources("services", "secrets")
+            .withResources("services", "secrets", "endpoints")
             .withVerbs("get", "list")
             .build())
         .addToRules(new PolicyRuleBuilder()

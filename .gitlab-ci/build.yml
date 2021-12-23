@@ -1,28 +1,139 @@
 build:
-  image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
-  stage: build
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  stage: build 1
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
     - stackgres-maven-runner
+    - linux-amd64
   script:
-    - 'microdnf install python3-pip jq'
-    - 'pip3 install yamllint yq'
-    - 'mvn $MAVEN_CLI_OPTS clean verify -P safer'
-    - 'sh -x stackgres-k8s/src/api-web/src/main/swagger/build.sh'
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --copy stackgres-k8s/ci/build/target/junit-build.hashes.xml \
+        --copy stackgres-k8s/src/.mvn \
+        --copy .m2/repository \
+        --extract stackgres-operator-framework:'stackgres-k8s/src/operator-framework/target/surefire-reports/TEST-*.xml' \
+        --extract stackgres-common:'stackgres-k8s/src/common/target/surefire-reports/TEST-*.xml' \
+        --extract stackgres-operator:'stackgres-k8s/src/operator/target/surefire-reports/TEST-*.xml' \
+        --extract stackgres-restapi:'stackgres-k8s/src/api-web/target/surefire-reports/TEST-*.xml' \
+        --extract stackgres-jobs:'stackgres-k8s/src/jobs/target/surefire-reports/TEST-*.xml' \
+        --extract stackgres-cluster-controller:'stackgres-k8s/src/cluster-controller/target/surefire-reports/TEST-*.xml' \
+        --extract stackgres-distributedlogs-controller:'stackgres-k8s/src/distributedlogs-controller/target/surefire-reports/TEST-*.xml' \
+        --extract stackgres-restapi:'stackgres-k8s/src/api-web/target/swagger*' \
+        stackgres-parent stackgres-operator-framework stackgres-test-util stackgres-common \
+        stackgres-operator stackgres-restapi stackgres-jobs \
+        stackgres-cluster-controller stackgres-distributedlogs-controller
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
+    - key: java
+      paths:
+      - stackgres-k8s/src/.mvn
+      - .m2/repository
+  artifacts:
+    expire_in: 1 week
+    when: always
+    reports:
+      junit:
+        - stackgres-k8s/ci/build/target/junit-build.hashes.xml
+        - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
     paths:
-      - $CI_PROJECT_DIR/.m2/repository
+        - stackgres-k8s/src/api-web/target/swagger*
+        - stackgres-k8s/ci/build/target
+
+build ui:
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  stage: build 2
+  tags:
+    - stackgres-runner
+  script:
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --copy stackgres-k8s/src/admin-ui/node_modules \
+        admin-ui
+  retry: 2
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
+    - key: node
+      paths:
+      - stackgres-k8s/src/admin-ui/node_modules
+
+build documentation:
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  stage: build 2
+  tags:
+    - stackgres-runner
+  script:
+    - |
+      [ "$DEBUG" != true ] || set -x
+      export DOCUMENTATION_BASE_URL="https://stackgres.io/doc"
+      export DOCUMENTATION_EXTRA_PATH=""
+      if [ -z "$CI_COMMIT_TAG" ] || echo "$CI_COMMIT_TAG" | grep -q '^latest-.*$'
+      then
+        DOCUMENTATION_BASE_URL="https://ongresinc.gitlab.io/stackgres"
+        if [ "${CI_COMMIT_REF_NAME%%-*}" != "main" ] && [ "${CI_COMMIT_REF_NAME%%-*}" != "current" ]
+        then
+          DOCUMENTATION_EXTRA_PATH="$CI_COMMIT_REF_NAME/"
+        fi
+      fi
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --extract documentation:doc/public \
+        documentation
+  retry: 2
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
   artifacts:
     expire_in: 1 week
     when: always
     paths:
-      - stackgres-k8s/src/target
-      - stackgres-k8s/src/*/target
-    reports:
-      junit:
-        - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
+    - doc/public
 
+build helm packages:
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  stage: build 2
+  tags:
+    - stackgres-runner
+  script:
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --extract helm-packages:stackgres-k8s/install/helm/target/packages \
+        helm-packages
+  retry: 2
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+      - stackgres-k8s/install/helm/target/packages
+
+build helm templates:
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  stage: build 2
+  tags:
+    - stackgres-runner
+  script:
+    - |
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        --extract helm-templates:stackgres-k8s/install/helm/target/templates \
+        helm-templates
+  retry: 2
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+      - stackgres-k8s/install/helm/target/templates

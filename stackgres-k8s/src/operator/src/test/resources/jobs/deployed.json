@@ -120,7 +120,7 @@
             "value" : "/usr/local/bin/dbops/major-version-upgrade/major-version-upgrade.sh"
           }, {
             "name" : "LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH",
-            "value" : "/usr/local/bin/dbops/major-version-upgrade/reset-patroni-initialize.sh"
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/reset-patroni.sh"
           }, {
             "name" : "PG_BASE_PATH",
             "value" : "/var/lib/postgresql"
@@ -320,7 +320,7 @@
             "value" : "/usr/local/bin/dbops/major-version-upgrade/major-version-upgrade.sh"
           }, {
             "name" : "LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH",
-            "value" : "/usr/local/bin/dbops/major-version-upgrade/reset-patroni-initialize.sh"
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/reset-patroni.sh"
           }, {
             "name" : "PG_BASE_PATH",
             "value" : "/var/lib/postgresql"
@@ -517,7 +517,7 @@
             "value" : "/usr/local/bin/dbops/major-version-upgrade/major-version-upgrade.sh"
           }, {
             "name" : "LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH",
-            "value" : "/usr/local/bin/dbops/major-version-upgrade/reset-patroni-initialize.sh"
+            "value" : "/usr/local/bin/dbops/major-version-upgrade/reset-patroni.sh"
           }, {
             "name" : "PG_BASE_PATH",
             "value" : "/var/lib/postgresql"

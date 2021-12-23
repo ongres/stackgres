@@ -62,7 +62,7 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
 
   @Override
   public Uni<ClusterRestartState> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {
-    LOGGER.info("Starting SecurityUpgrade for SgDbOps {}", dbOps.getMetadata().getName());
+    LOGGER.info("Starting security upgrade for SGDbOps {}", dbOps.getMetadata().getName());
 
     return upgradeClusterAndPauseReconciliation(cluster)
         .chain(this::upgradeSts)

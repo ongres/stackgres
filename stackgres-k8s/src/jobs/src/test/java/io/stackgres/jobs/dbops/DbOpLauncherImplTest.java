@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -18,6 +19,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -29,7 +31,9 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.junit.mockito.InjectSpy;
+import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.unchecked.Unchecked;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
@@ -163,7 +167,23 @@ class DbOpLauncherImplTest {
     verify(databaseOperationEventEmitter, never()).operationCompleted(randomDbOpsName, namespace);
     verify(databaseOperationEventEmitter, never()).operationTimedOut(randomDbOpsName, namespace);
     verify(databaseOperationEventEmitter).operationFailed(randomDbOpsName, namespace);
+  }
 
+  @Test
+  void givenATimeout_itShouldReportTheTimeout() {
+    when(securityUpgradeJob.runJob(any(), any()))
+        .thenAnswer(invocation -> getClusterRestartStateUni()
+            .invoke(Unchecked.consumer(item -> Thread.sleep(10000))));
+    doNothing().when(databaseOperationEventEmitter).operationStarted(randomDbOpsName, namespace);
+    doNothing().when(databaseOperationEventEmitter).operationCompleted(randomDbOpsName, namespace);
+
+    dbOps.getSpec().setTimeout(Duration.ofMillis(10).toString());
+    assertThrows(TimeoutException.class, () -> dbOpLauncher.launchDbOp(randomDbOpsName, namespace));
+
+    verify(databaseOperationEventEmitter, atMost(1)).operationStarted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, atMost(1)).operationCompleted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter).operationTimedOut(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationFailed(randomDbOpsName, namespace);
   }
 
   @Test

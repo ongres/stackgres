@@ -1,12 +1,22 @@
 #!/bin/sh
 
+e2e_use_extensions() {
+  true
+}
+
 e2e_test_install() {
   CLUSTER_NAME="extensions"
-  POSTGIS_VERSION="$(get_latest_version_of_extension postgis 14.0)"
-  POSTGIS_RASTER_VERSION="$(get_latest_version_of_extension postgis_raster 14.0)"
+  POSTGIS_VERSION="$(get_latest_version_of_extension postgis 14.1 || true)"
+  POSTGIS_RASTER_VERSION="$(get_latest_version_of_extension postgis_raster 14.1 || true)"
 }
 
 e2e_test() {
+  if [ -z "$POSTGIS_VERSION" ] || [ -z "$POSTGIS_RASTER_VERSION" ]
+  then
+    echo "Skipping extensions-extra-mounts-and-overwrite since postgis not available for $(uname -m)"
+    return
+  fi
+
   run_test "Check extension with extra mount is installed and available when booting" check_extension_with_extra_mount_installed_when_booting
 
   run_test "Check extension with same shared library is installed and available when added" check_extension_with_same_shared_library_when_added
@@ -14,9 +24,9 @@ e2e_test() {
 
 check_extension_with_extra_mount_installed_when_booting() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
-    --set-string 'cluster.postgres.version=14.0' \
+    --set-string 'cluster.postgres.version=14.1' \
     --set-string 'cluster.postgres.extensions[0].name=postgis' \
-    --set-string 'cluster.postgres.extensions[0].version=3.1.4' \
+    --set-string "cluster.postgres.extensions[0].version=$POSTGIS_VERSION" \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
@@ -65,11 +75,11 @@ check_extension_with_extra_mount_installed_when_booting() {
 check_extension_with_same_shared_library_when_added() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
-    --set-string 'cluster.postgres.version=14.0' \
+    --set-string 'cluster.postgres.version=14.1' \
     --set-string 'cluster.postgres.extensions[0].name=postgis' \
-    --set-string 'cluster.postgres.extensions[0].version=3.1.4' \
+    --set-string "cluster.postgres.extensions[0].version=$POSTGIS_VERSION" \
     --set-string 'cluster.postgres.extensions[1].name=postgis_raster' \
-    --set-string 'cluster.postgres.extensions[1].version=3.1.4' \
+    --set-string "cluster.postgres.extensions[1].version=$POSTGIS_RASTER_VERSION" \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
   try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \

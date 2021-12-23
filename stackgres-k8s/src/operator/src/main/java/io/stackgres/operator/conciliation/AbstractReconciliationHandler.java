@@ -16,19 +16,14 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.stackgres.common.StackGresKubernetesClient;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public abstract class AbstractReconciliationHandler<T extends CustomResource<?, ?>>
     implements ReconciliationHandler<T>, ReconciliationOperations {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.reconciliator");
 
   private KubernetesClient client;
 
@@ -37,23 +32,15 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
     return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
         .withFieldManager(STACKGRES_FIELD_MANAGER)
         .withForce(true)
-        .build(), resource);
+        .build(), resource, Optional.empty());
   }
 
   @Override
   public HasMetadata patch(T context, HasMetadata resource, HasMetadata oldResource) {
-    try {
-      return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
-          .withFieldManager(STACKGRES_FIELD_MANAGER)
-          .withForce(true)
-          .build(), resource);
-    } catch (KubernetesClientException ex) {
-      LOGGER.warn("Server side apply failed, switching back to JSON merge", ex);
-      return getResourceOperation(client, resource)
-          .inNamespace(resource.getMetadata().getNamespace())
-          .withName(resource.getMetadata().getName())
-          .patch(resource);
-    }
+    return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
+        .withFieldManager(STACKGRES_FIELD_MANAGER)
+        .withForce(true)
+        .build(), resource, Optional.of(oldResource));
   }
 
   @Override

@@ -46,7 +46,7 @@ public enum PatroniEnvPaths {
   LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH(LOCAL_BIN_PATH,
       "dbops/major-version-upgrade/major-version-upgrade.sh"),
   LOCAL_BIN_RESET_PATRONI_INITIALIZE_SH_PATH(LOCAL_BIN_PATH,
-      "dbops/major-version-upgrade/reset-patroni-initialize.sh"),
+      "dbops/major-version-upgrade/reset-patroni.sh"),
   PG_BASE_PATH("/var/lib/postgresql"),
   PG_DATA_PATH(PG_BASE_PATH, "data"),
   PG_UPGRADE_PATH(PG_BASE_PATH, "upgrade"),

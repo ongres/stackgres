@@ -3,7 +3,7 @@
   image: quay.io/buildah/stable:v1.20.1
   stage: deploy
   tags:
-    - stackgres-runner
+    - stackgres-runner-v2
   variables:
     IMAGE_TAG_SUFFIX: ""
   script:
@@ -118,13 +118,17 @@ deploy distributedlogs-controller native image:
 deploy helm packages and templates:
   image: mikesir87/aws-cli:latest
   stage: deploy
-  dependencies:
-    - build helm packages
-    - build helm templates
   script:
     - set -e
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-packages stackgres-k8s/install/helm/template/packages
+    - sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-templates stackgres-k8s/install/helm/template/templates
     - aws s3 sync ./stackgres-k8s/install/helm/target/public/ s3://$S3_BUCKET_NAME/
     - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*'
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
   only:
     variables:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
@@ -137,12 +141,15 @@ pages:
   environment:
     name: development
     url: https://ongresinc.gitlab.io/stackgres/
-  dependencies:
-    - build documentation
   script:
-  - tar cC doc public | tar x
-  - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+    - sh stackgres-k8s/ci/build/build-gitlab.sh extract documentation doc/public
+    - tar cC doc public | tar x
+    - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
   retry: 2
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
   artifacts:
     paths:
     - public

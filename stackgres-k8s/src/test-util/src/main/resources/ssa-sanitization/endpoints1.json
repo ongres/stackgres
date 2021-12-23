@@ -1,0 +1,47 @@
+{
+    "apiVersion": "v1",
+    "kind": "Endpoints",
+    "metadata": {
+        "annotations": {
+            "acquireTime": "2021-12-17T11:04:34.595473+00:00",
+            "leader": "dbops-security-upgrade-1-0",
+            "optime": "67159464",
+            "renewTime": "2021-12-17T11:58:44.823684+00:00",
+            "transitions": "0",
+            "ttl": "30"
+        },
+        "creationTimestamp": "2021-12-17T11:04:34Z",
+        "labels": {
+            "app": "StackGresCluster",
+            "cluster": "true",
+            "cluster-name": "dbops-security-upgrade-1",
+            "cluster-uid": "cc8ecffc-7786-4426-b7d6-94918f9c7a43"
+        },
+        "name": "dbops-security-upgrade-1",
+        "namespace": "dbops-security-upgrade-61bc6d8a",
+        "resourceVersion": "287010",
+        "selfLink": "/api/v1/namespaces/dbops-security-upgrade-61bc6d8a/endpoints/dbops-security-upgrade-1",
+        "uid": "62a24da7-6895-451f-8cb8-55a98e8075ba"
+    },
+    "subsets": [
+        {
+            "addresses": [
+                {
+                    "ip": "192.168.82.28"
+                }
+            ],
+            "ports": [
+                {
+                    "name": "pgport",
+                    "port": 7432,
+                    "protocol": "TCP"
+                },
+                {
+                    "name": "pgreplication",
+                    "port": 7433,
+                    "protocol": "TCP"
+                }
+            ]
+        }
+    ]
+}

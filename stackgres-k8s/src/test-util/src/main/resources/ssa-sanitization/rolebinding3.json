@@ -1,0 +1,38 @@
+{
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "RoleBinding",
+    "metadata": {
+        "creationTimestamp": "2021-12-17T11:01:38Z",
+        "labels": {
+            "app": "StackGresCluster",
+            "cluster-name": "dbops-security-upgrade-3",
+            "cluster-uid": "eb704ca7-27ea-4926-a3f9-ac0310b3222d"
+        },
+        "name": "dbops-security-upgrade-3-patroni",
+        "namespace": "dbops-security-upgrade-61bc6d8a",
+        "ownerReferences": [
+            {
+                "apiVersion": "stackgres.io/v1beta1",
+                "controller": true,
+                "kind": "SGCluster",
+                "name": "dbops-security-upgrade-3",
+                "uid": "eb704ca7-27ea-4926-a3f9-ac0310b3222d"
+            }
+        ],
+        "resourceVersion": "277812",
+        "selfLink": "/apis/rbac.authorization.k8s.io/v1/namespaces/dbops-security-upgrade-61bc6d8a/rolebindings/dbops-security-upgrade-3-patroni",
+        "uid": "190b8f6f-3fbc-4c88-8de2-af01c9d83184"
+    },
+    "roleRef": {
+        "apiGroup": "rbac.authorization.k8s.io",
+        "kind": "Role",
+        "name": "dbops-security-upgrade-3-patroni"
+    },
+    "subjects": [
+        {
+            "kind": "ServiceAccount",
+            "name": "dbops-security-upgrade-3-patroni",
+            "namespace": "dbops-security-upgrade-61bc6d8a"
+        }
+    ]
+}

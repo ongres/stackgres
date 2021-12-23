@@ -6,7 +6,7 @@ configurations:
     create: false
 cluster:
   postgres:
-    version: "13.4"
+    version: "13.5"
   pods:
     persistentVolume:
       size: 128Mi

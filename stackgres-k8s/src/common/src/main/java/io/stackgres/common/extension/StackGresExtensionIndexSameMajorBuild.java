@@ -9,6 +9,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
@@ -27,11 +28,17 @@ public class StackGresExtensionIndexSameMajorBuild {
   private final boolean fromIndex;
   private final List<String> channels;
   private final String build;
-  private final String arch;
-  private final String os;
+  private final Optional<String> arch;
+  private final Optional<String> os;
 
-  public StackGresExtensionIndexSameMajorBuild(StackGresCluster cluster,
-      StackGresClusterExtension extension) {
+  public static StackGresExtensionIndexSameMajorBuild fromClusterExtension(StackGresCluster cluster,
+      StackGresClusterExtension extension, boolean detectOs) {
+    return new StackGresExtensionIndexSameMajorBuild(cluster, extension,
+        Optional.of(ExtensionUtil.OS_DETECTOR).filter(od -> detectOs));
+  }
+
+  private StackGresExtensionIndexSameMajorBuild(StackGresCluster cluster,
+      StackGresClusterExtension extension, Optional<ExtensionUtil.OsDetector> osDetector) {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.version = extension.getVersionOrDefaultChannel();
@@ -44,8 +51,8 @@ public class StackGresExtensionIndexSameMajorBuild {
     this.channels = ImmutableList.of();
     this.build = getPostgresFlavorComponent(cluster).findBuildMajorVersion(
         cluster.getSpec().getPostgres().getVersion());
-    this.arch = ExtensionUtil.ARCH_X86_64;
-    this.os = ExtensionUtil.OS_LINUX;
+    this.arch = ExtensionUtil.getClusterArch(cluster, osDetector);
+    this.os = ExtensionUtil.getClusterOs(cluster, osDetector);
   }
 
   public StackGresExtensionIndexSameMajorBuild(StackGresExtension extension,
@@ -62,8 +69,8 @@ public class StackGresExtensionIndexSameMajorBuild {
         .map(Tuple2::v1)
         .collect(ImmutableList.toImmutableList());
     this.build = ExtensionUtil.getMajorBuildOrNull(target.getBuild());
-    this.arch = target.getArchOrDefault();
-    this.os = target.getOsOrDefault();
+    this.arch = Optional.of(target.getArchOrDefault());
+    this.os = Optional.of(target.getOsOrDefault());
   }
 
   @Override
@@ -82,10 +89,8 @@ public class StackGresExtensionIndexSameMajorBuild {
     StackGresExtensionIndexSameMajorBuild other = (StackGresExtensionIndexSameMajorBuild) obj;
     if (Objects.equals(publisher, other.publisher)
         && Objects.equals(name, other.name)) {
-      if (fromIndex && other.fromIndex) {
-        return equalsBothFromIndex(this, other);
-      }
-      if (!fromIndex && !other.fromIndex) {
+      if ((fromIndex && other.fromIndex)
+          || (!fromIndex && !other.fromIndex)) {
         return equalsBothFromIndex(this, other);
       }
       if (fromIndex && !other.fromIndex) {
@@ -117,8 +122,8 @@ public class StackGresExtensionIndexSameMajorBuild {
         && (Objects.equals(fromIndex.postgresVersion, other.postgresVersion) // NOPMD
             || Objects.equals(fromIndex.postgresVersion, other.postgresExactVersion)) // NOPMD
         && (Objects.isNull(fromIndex.build) // NOPMD
-            || (Objects.equals(fromIndex.arch, other.arch) // NOPMD
-            && Objects.equals(fromIndex.os, other.os)
+            || ((other.arch.isEmpty() || Objects.equals(fromIndex.arch, other.arch)) // NOPMD
+            && (other.os.isEmpty() || Objects.equals(fromIndex.os, other.os))
             && Objects.equals(fromIndex.build, other.build)));
   }
 

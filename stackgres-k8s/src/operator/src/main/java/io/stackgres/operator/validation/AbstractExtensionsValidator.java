@@ -35,12 +35,16 @@ public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
       case CREATE:
       case UPDATE: {
         final StackGresCluster cluster = getCluster(review);
+        var defaultExtensions = Seq.seq(getDefaultExtensions(cluster))
+            .collect(ImmutableList.toImmutableList());
         List<Tuple2<String, Optional<String>>> requiredExtensions =
             Seq.seq(getPostgresExtensions(review))
                 .flatMap(List::stream)
                 .map(extension -> Tuple.tuple(
                     extension.getName(), Optional.ofNullable(extension.getVersion())))
-                .append(Seq.seq(getDefaultExtensions(cluster)))
+                .filter(extension -> defaultExtensions.stream()
+                    .map(Tuple2::v1).noneMatch(extension.v1::equals))
+                .append(defaultExtensions)
                 .collect(ImmutableList.toImmutableList());
         List<Tuple2<String, Optional<String>>> toInstallExtensions =
             Seq.seq(getToInstallExtensions(review))
@@ -52,7 +56,7 @@ public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
             .filter(requiredExtension -> toInstallExtensions.stream()
                 .noneMatch(toInstallExtension -> requiredExtension.v1.equals(
                     toInstallExtension.v1)))
-            .sorted()
+            .sorted(Tuple2::v1)
             .collect(ImmutableList.toImmutableList());
         if (!missingExtensions.isEmpty()) {
           Map<String, List<String>> candidateExtensionVersions = missingExtensions
@@ -70,7 +74,7 @@ public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
                               extension.setName(missingExtension.v1);
                               missingExtension.v2.ifPresent(extension::setVersion);
                               return extension;
-                            }))
+                            }), false)
                         .stream()
                         .map(extensionMetadata -> extensionMetadata.getVersion().getVersion())
                         .collect(ImmutableList.toImmutableList()));

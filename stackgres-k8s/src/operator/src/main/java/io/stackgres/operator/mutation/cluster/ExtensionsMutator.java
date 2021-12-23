@@ -96,15 +96,15 @@ public class ExtensionsMutator
       StackGresCluster cluster, StackGresClusterExtension extension) {
     Optional<StackGresClusterInstalledExtension> exactCandidateExtension =
         extensionMetadataManager
-        .findExtensionCandidateSameMajorBuild(cluster, extension)
+        .findExtensionCandidateSameMajorBuild(cluster, extension, false)
         .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
-            extension, extensionMetadata));
+            cluster, extension, extensionMetadata, false));
     if (exactCandidateExtension.isEmpty()) {
       List<StackGresExtensionMetadata> candidateExtensionMetadatas =
-          extensionMetadataManager.getExtensionsAnyVersion(cluster, extension);
+          extensionMetadataManager.getExtensionsAnyVersion(cluster, extension, false);
       if (candidateExtensionMetadatas.size() == 1) {
         return Optional.of(ExtensionUtil.getInstalledExtension(
-            extension, candidateExtensionMetadatas.get(0)));
+            cluster, extension, candidateExtensionMetadatas.get(0), false));
       }
       return Optional.empty();
     }

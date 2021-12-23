@@ -6,11 +6,14 @@
 package io.stackgres.common.extension;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +23,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
@@ -38,6 +42,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class ExtensionReconciliationTest {
 
+  private static final URI REPOSITORY =
+      URI.create("https://extensions.stackgres.io/postgres/repository");
+
   private static final String POSTGRES_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedVersions().findFirst().get();
 
@@ -46,6 +53,9 @@ public class ExtensionReconciliationTest {
 
   private static final String BUILD_VERSION =
       StackGresComponent.POSTGRESQL.getOrderedBuildVersions().findFirst().get();
+
+  @Mock
+  private ExtensionMetadataManager extensionMetadataManager;
 
   @Mock
   private ExtensionManager extensionManager;
@@ -68,6 +78,25 @@ public class ExtensionReconciliationTest {
 
   @BeforeEach
   void setUp() throws Exception {
+    lenient().when(extensionManager.getMetadataManager()).thenReturn(extensionMetadataManager);
+    lenient().when(extensionMetadataManager
+        .getExtensionCandidateSameMajorBuild(any(), any(), anyBoolean()))
+        .thenAnswer(invocation -> {
+          StackGresClusterExtension clusterExtension = invocation.getArgument(1);
+          StackGresExtension extension = new StackGresExtension();
+          extension.setName(clusterExtension.getName());
+          extension.setPublisher(clusterExtension.getPublisherOrDefault());
+          extension.setRepository(REPOSITORY.toString());
+          StackGresExtensionVersion version = new StackGresExtensionVersion();
+          version.setVersion(clusterExtension.getVersion());
+          StackGresExtensionVersionTarget target = new StackGresExtensionVersionTarget();
+          target.setPostgresVersion(POSTGRES_MAJOR_VERSION);
+          target.setBuild(BUILD_VERSION);
+          StackGresExtensionPublisher publisher = new StackGresExtensionPublisher();
+          publisher.setId(clusterExtension.getPublisherOrDefault());
+          return new StackGresExtensionMetadata(
+              extension, version, target, publisher);
+        });
     initReconciliator = new ExtensionReconciliator<>("test-0",
         extensionManager, false, eventEmitter) {
       @Override
@@ -103,7 +132,7 @@ public class ExtensionReconciliationTest {
         new StackGresClusterInstalledExtension();
     installedExtension.setName("timescaledb");
     installedExtension.setPublisher("com.ongres");
-    installedExtension.setRepository(null);
+    installedExtension.setRepository(REPOSITORY.toString());
     installedExtension.setVersion("1.7.1");
     installedExtension.setPostgresVersion(POSTGRES_MAJOR_VERSION);
     installedExtension.setBuild(BUILD_VERSION);

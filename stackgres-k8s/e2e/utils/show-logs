@@ -4,35 +4,35 @@ show_logs() {
   if [ -n "$1" ]
   then
     find "$TARGET_PATH/logs/$(basename "$SPEC_NAME")" -name '*.log' -type f \
-      | while read log
+      | while read LOG
       do
         echo
         echo ------------------------------------------------------------------
-        echo "$log"
+        echo "$LOG"
         echo ------------------------------------------------------------------
-        cat "$log"
+        cat "$LOG"
         echo ------------------------------------------------------------------
         echo
       done
     return
   fi
-  find "$(realpath "$TARGET_PATH/logs")" -name '*.log' -type f \
-    | grep -v -F 'logs/results.log' | while read log
+  find "$TARGET_PATH/logs" -name '*.log' -type f \
+    | grep -v -F 'logs/results.log' | while read LOG
     do
       echo
       echo ------------------------------------------------------------------
-      echo "$log"
+      echo "$LOG"
       echo ------------------------------------------------------------------
-      cat "$log"
+      cat "$LOG"
       echo ------------------------------------------------------------------
       echo
     done
 }
 
 show_failed_logs() {
-  find "$(realpath "$TARGET_PATH")" -name '*.failed' -type f \
-    | while read failed
+  find "$TARGET_PATH" -name '*.failed' -type f \
+    | while read FAILED
       do
-        show_logs "$(basename "$failed" | sed 's/^\([^.]\+\)\.failed/\1/')"
+        show_logs "$(basename "$FAILED" | sed 's/^\([^.]\+\)\.failed/\1/')"
       done
 }

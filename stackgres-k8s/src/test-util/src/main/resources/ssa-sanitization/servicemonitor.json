@@ -1,0 +1,44 @@
+{
+    "apiVersion": "monitoring.coreos.com/v1",
+    "kind": "ServiceMonitor",
+    "metadata": {
+        "annotations": {
+            "meta.helm.sh/release-name": "prometheus",
+            "meta.helm.sh/release-namespace": "dbops-security-upgrade-61bc6d8a-monitor"
+        },
+        "creationTimestamp": "2021-12-17T10:59:48Z",
+        "generation": 1,
+        "labels": {
+            "app": "kube-prometheus-stack-prometheus",
+            "app.kubernetes.io/managed-by": "Helm",
+            "chart": "kube-prometheus-stack-12.8.0",
+            "heritage": "Helm",
+            "release": "prometheus"
+        },
+        "name": "prometheus-kube-prometheus-prometheus",
+        "namespace": "dbops-security-upgrade-61bc6d8a-monitor",
+        "resourceVersion": "276755",
+        "selfLink": "/apis/monitoring.coreos.com/v1/namespaces/dbops-security-upgrade-61bc6d8a-monitor/servicemonitors/prometheus-kube-prometheus-prometheus",
+        "uid": "1f846b4a-388d-42d9-9a5e-9a97692dd01c"
+    },
+    "spec": {
+        "endpoints": [
+            {
+                "path": "/metrics",
+                "port": "web"
+            }
+        ],
+        "namespaceSelector": {
+            "matchNames": [
+                "dbops-security-upgrade-61bc6d8a-monitor"
+            ]
+        },
+        "selector": {
+            "matchLabels": {
+                "app": "kube-prometheus-stack-prometheus",
+                "release": "prometheus",
+                "self-monitor": "true"
+            }
+        }
+    }
+}

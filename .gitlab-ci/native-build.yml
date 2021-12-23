@@ -1,27 +1,32 @@
 
 .build native executable:
-  image: docker.io/ongres/ubi-graalvm-maven:21.0.0.2-java11
-  stage: native build
-  tags:
-    - stackgres-runner
-    - stackgres-native-build-runner
-  dependencies:
-    - build
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
+  stage: build 2
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: ""
     MAVEN_EXTRA_ARGS: ""
     QUARKUS_NATIVE_NATIVE_IMAGE_XMX: 18g
   timeout: 12 hour
   script:
-    - MAVEN_CLI_OPTS="$MAVEN_CLI_OPTS -DskipTests"
     - |
       flock "/tmp/stackgres-build$NATIVE_IMAGE_EXTRA_PREFIX-native-executable" \
         timeout -s KILL 3600 \
-        mvn $MAVEN_CLI_OPTS package -P native $MAVEN_EXTRA_ARGS
+        sh stackgres-k8s/ci/build/build-gitlab.sh build \
+          --copy .m2/repository \
+          --copy stackgres-k8s/src/.mvn \
+          "$MODULE"
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
+  cache:
+    - key: hashes
+      paths:
+      - stackgres-k8s/ci/build/target/*
+    - key: java
+      paths:
+      - stackgres-k8s/src/.mvn
+      - .m2/repository
   artifacts:
     expire_in: 1 week
     when: always
@@ -29,6 +34,13 @@
       - stackgres-k8s/src/*/target/stackgres-*-runner
       - stackgres-k8s/src/*/target/lib/
       - stackgres-k8s/src/*/target/stackgres-*-runner.jar
+
+.build native executable amd64:
+  extends: .build native executable
+  tags:
+    - stackgres-runner-v2
+    - stackgres-native-build-runner
+    - linux-amd64
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
@@ -37,32 +49,86 @@
       - $DO_DEPLOY
       - $DO_NATIVE
 
-build operator native executable:
-  extends: .build native executable
+build operator native executable amd64:
+  extends: .build native executable amd64
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-operator"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,operator"
+    MODULE: "operator-native"
 
-build restapi native executable:
-  extends: .build native executable
+build restapi native executable amd64:
+  extends: .build native executable amd64
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-restapi"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,api-web"
+    MODULE: "restapi-native"
 
-build jobs native executable:
-  extends: .build native executable
+build jobs native executable amd64:
+  extends: .build native executable amd64
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-jobs"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,jobs"
+    MODULE: "jobs-native"
 
-build cluster-controller native executable:
-  extends: .build native executable
+build cluster-controller native executable amd64:
+  extends: .build native executable amd64
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-cluster-controller"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,cluster-controller"
+    MODULE: "cluster-controller-native"
 
-build distributedlogs-controller native executable:
-  extends: .build native executable
+build distributedlogs-controller native executable amd64:
+  extends: .build native executable amd64
   variables:
     NATIVE_IMAGE_EXTRA_PREFIX: "-distributedlogs-controller"
     MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,distributedlogs-controller"
+    MODULE: "distributedlogs-controller-native"
+
+.build native executable arm64:
+  extends: .build native executable
+  tags:
+    - stackgres-runner-v2
+    - stackgres-native-build-runner
+    - linux-arm64
+  only:
+    variables:
+      - $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
+      - $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_REF_NAME == "current"
+      - $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+      - $DO_NATIVE && $DO_ARM
+
+build operator native executable arm64:
+  extends: .build native executable arm64
+  variables:
+    NATIVE_IMAGE_EXTRA_PREFIX: "-operator"
+    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,operator"
+    MODULE: "operator-native"
+
+build restapi native executable arm64:
+  extends: .build native executable arm64
+  variables:
+    NATIVE_IMAGE_EXTRA_PREFIX: "-restapi"
+    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,api-web"
+    MODULE: "restapi-native"
+
+build jobs native executable arm64:
+  extends: .build native executable arm64
+  variables:
+    NATIVE_IMAGE_EXTRA_PREFIX: "-jobs"
+    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,jobs"
+    MODULE: "jobs-native"
+
+build cluster-controller native executable arm64:
+  extends: .build native executable arm64
+  variables:
+    NATIVE_IMAGE_EXTRA_PREFIX: "-cluster-controller"
+    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,cluster-controller"
+    MODULE: "cluster-controller-native"
+
+build distributedlogs-controller native executable arm64:
+  extends: .build native executable arm64
+  variables:
+    NATIVE_IMAGE_EXTRA_PREFIX: "-distributedlogs-controller"
+    MAVEN_EXTRA_ARGS: "-pl .,common,operator-framework,test-util,distributedlogs-controller"
+    MODULE: "distributedlogs-controller-native"

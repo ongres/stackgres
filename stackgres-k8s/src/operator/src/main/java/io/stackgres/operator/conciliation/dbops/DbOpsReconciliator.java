@@ -15,14 +15,14 @@ import io.stackgres.common.crd.sgcluster.DbOpsEventReason;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.operator.common.PatchResumer;
+import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
-import io.stackgres.operator.conciliation.StackGresReconciliator;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
 public class DbOpsReconciliator
-    extends StackGresReconciliator<StackGresDbOps> {
+    extends AbstractReconciliator<StackGresDbOps> {
 
   private EventEmitter<StackGresDbOps> eventController;
 

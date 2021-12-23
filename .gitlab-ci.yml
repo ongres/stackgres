@@ -1,34 +1,11 @@
 image: null
 
 variables:
-  # This will suppress any download for dependencies and plugins or upload messages which would clutter the console log.
-  # `showDateTime` will show the passed time in milliseconds. You need to specify `--batch-mode` to make this work.
-  MAVEN_OPTS: |
-    -Dhttps.protocols=TLSv1.2
-    -Dorg.slf4j.simpleLogger.showDateTime=true
-    -Djava.awt.headless=true
-    -XX:+UseParallelGC
-  # As of Maven 3.3.0 instead of this you may define these options in `.mvn/maven.config` so the same config is used
-  # when running from the command line.
-  # `installAtEnd` and `deployAtEnd` are only effective with recent version of the corresponding plugins.
-  MAVEN_CLI_OPTS: |
-    -f stackgres-k8s/src/pom.xml
-    --batch-mode
-    --errors
-    --fail-at-end
-    --show-version
-    -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
-    -DinstallAtEnd=true
-    -DdeployAtEnd=true
-    -Dsurefire.useFile=false
-    -Dsurefire.useFile=false
-    -DtrimStackTrace=false
+  SG_CI_IMAGE_NAME: "ci:1.10"
+  BUILDER_IMAGE_NAME: "builder:1.2"
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
   SKIP_DEPLOY: "false"
-  E2E_SHELL: sh
-  E2E_ENV: kind
-  E2E_PARALLELISM: 32
   E2E_JOBS: 3
   E2E_EXCLUSIVE_JOBS: 3
   E2E_RETRY: 2
@@ -37,9 +14,9 @@ variables:
   EXECUTOR_JOB_SECTION_ATTEMPTS: 3
   GET_SOURCES_ATTEMPTS: 3
   RESTORE_CACHE_ATTEMPTS: 3
+  E2E_SHELL: sh
+  E2E_ENV: kind
   K8S_VERSION: 1.16.15
-  K8S_FROM_DIND: "true"
-  K8S_REUSE: "true"
   LATEST: "false"
 
 # Cache downloaded dependencies and plugins between builds.
@@ -49,19 +26,20 @@ cache:
     - .m2/repository
 
 stages:
-  - build
-  - post-build
-  - check-release
-  - native build
+  - pre build
+  - pre build multi archs
+  - build 1
+  - build 2
   - image build
+  - image build multi archs
   - test
   - deploy
 
 include:
+  - local: .gitlab-ci/pre-build.yml
   - local: .gitlab-ci/build.yml
-  - local: .gitlab-ci/post-build.yml
   - local: .gitlab-ci/native-build.yml
   - local: .gitlab-ci/image-build.yml
   - local: .gitlab-ci/test.yml
-  - local: .gitlab-ci/check-release.yml
+  - local: .gitlab-ci/e2e-test.yml
   - local: .gitlab-ci/deploy.yml

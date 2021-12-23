@@ -21,14 +21,6 @@ public interface StackGresContext {
   String DB_OPS_KEY = "db-ops";
   String SCHEDULED_BACKUP_KEY = "scheduled-backup";
   String DISRUPTIBLE_KEY = "disruptible";
-  String ROLE_KEY = "role";
-  String PRIMARY_ROLE = "master";
-  String REPLICA_ROLE = "replica";
-  String PROMOTED_ROLE = "promoted";
-  String DEMOTED_ROLE = "demoted";
-  String UNINITIALIZED_ROLE = "uninitialized";
-  String STANDBY_LEADER_ROLE = "standby_leader";
-  String SYNC_STANDBY_ROLE = "sync_standby";
   String REST_APIUSER_KEY = "apiUsername";
   String REST_K8SUSER_KEY = "k8sUsername";
   String REST_PASSWORD_KEY = "password";
@@ -48,6 +40,7 @@ public interface StackGresContext {
   String BACKUP_NAMESPACE_KEY = "backup-namespace";
 
   String STACKGRES_KEY_PREFIX = "stackgres.io/";
+  String MANAGED_BY_SERVER_SIDE_APPLY_KEY = STACKGRES_KEY_PREFIX + "managed-by-server-side-apply";
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
   String RECONCILIATION_PAUSE_UNTIL_RESTART_KEY =

@@ -28,14 +28,13 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Multi;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
@@ -46,8 +45,8 @@ import io.stackgres.common.event.DbOpsEventEmitter;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartImpl;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableClusterRestartState;
-import io.stackgres.jobs.dbops.clusterrestart.ImmutableRestartEvent;
-import io.stackgres.jobs.dbops.clusterrestart.InvalidCluster;
+import io.stackgres.jobs.dbops.clusterrestart.ImmutableRestartEventForTest;
+import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
 import io.stackgres.jobs.dbops.clusterrestart.PodTestUtil;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEventType;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
@@ -55,8 +54,6 @@ import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.apache.commons.compress.utils.Lists;
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
@@ -161,9 +158,10 @@ public abstract class ClusterStateHandlerTest {
 
   protected Pod getPrimaryInstance(List<Pod> pods) {
     return pods.stream()
-        .filter(pod -> StackGresContext.PRIMARY_ROLE.equals(
-            pod.getMetadata().getLabels().get(StackGresContext.ROLE_KEY)))
-        .findFirst().orElseThrow(() -> new InvalidCluster("Cluster has no primary pod"));
+        .filter(pod -> PatroniUtil.PRIMARY_ROLE.equals(
+            pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)))
+        .findFirst().orElseThrow(() -> new InvalidClusterException(
+            "Cluster has no primary pod"));
   }
 
   @Test
@@ -331,6 +329,47 @@ public abstract class ClusterStateHandlerTest {
 
     var clusterRestartState = getRestartStateHandler().restartCluster(dbOps)
         .await()
+        .atMost(Duration.ofMillis(1000));
+
+    assertEqualsRestartState(expectedClusterState, clusterRestartState);
+  }
+
+  @Test
+  void buildRestartStateWithPodsWithNoRoles_shouldNotFail() {
+    podTestUtil.preparePodsWithNoRoles(cluster, 0, 1, 2);
+
+    var pods = podTestUtil.getClusterPods(cluster);
+
+    final Pod primaryPod = pods.stream()
+        .filter(pod -> pod.getMetadata().getName().endsWith("-0"))
+        .findAny().get();
+
+    final Pod replica1Pod = pods.stream()
+        .filter(pod -> pod.getMetadata().getName().endsWith("-1"))
+        .findAny().get();
+
+    dbOps = kubeDb.addOrReplaceDbOps(dbOps);
+
+    var expectedClusterState = ImmutableClusterRestartState.builder()
+        .namespace(dbOps.getMetadata().getNamespace())
+        .dbOpsName(dbOps.getMetadata().getName())
+        .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
+        .clusterName(dbOps.getSpec().getSgCluster())
+        .isOnlyPendingRestart(false)
+        .restartMethod(getRestartMethod(dbOps))
+        .isSwitchoverInitiated(Boolean.FALSE)
+        .isSwitchoverFinalized(Boolean.FALSE)
+        .primaryInstance(primaryPod)
+        .addInitialInstances(primaryPod, replica1Pod)
+        .addRestartedInstances(replica1Pod)
+        .addAllTotalInstances(pods)
+        .putAllPodRestartReasonsMap(pods.stream()
+            .collect(ImmutableMap.toImmutableMap(
+                Function.identity(), pod -> RestartReasons.of())))
+        .build();
+
+    var clusterRestartState = getRestartStateHandler().restartCluster(dbOps)
+        .await()
         .atMost(Duration.ofMillis(50));
 
     assertEqualsRestartState(expectedClusterState, clusterRestartState);
@@ -349,65 +388,65 @@ public abstract class ClusterStateHandlerTest {
     when(clusterRestart.restartCluster(any()))
         .thenReturn(Multi.createFrom()
             .items(
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.RESTARTING_POSTGRES)
-                    .pod(pods.get(0))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.POSTGRES_RESTARTED)
-                    .pod(pods.get(0))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.INCREASING_INSTANCES)
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.INSTANCES_INCREASED)
-                    .pod(pods.get(2))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.RESTARTING_POD)
-                    .pod(pods.get(1))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.POD_RESTARTED)
-                    .pod(pods.get(1))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.RESTARTING_POD)
-                    .pod(pods.get(2))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.POD_RESTARTED)
-                    .pod(pods.get(2))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.SWITCHOVER_INITIATED)
-                    .pod(pods.get(0))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.SWITCHOVER_FINALIZED)
-                    .pod(pods.get(0))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.RESTARTING_POD)
-                    .pod(pods.get(0))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.POD_RESTARTED)
-                    .pod(pods.get(0))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.DECREASING_INSTANCES)
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.INSTANCES_DECREASED)
-                    .build()));
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.RESTARTING_POSTGRES)
+                .pod(pods.get(0))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.POSTGRES_RESTARTED)
+                .pod(pods.get(0))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.INCREASING_INSTANCES)
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.INSTANCES_INCREASED)
+                .pod(pods.get(2))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.RESTARTING_POD)
+                .pod(pods.get(1))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.POD_RESTARTED)
+                .pod(pods.get(1))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.RESTARTING_POD)
+                .pod(pods.get(2))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.POD_RESTARTED)
+                .pod(pods.get(2))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.SWITCHOVER_INITIATED)
+                .pod(pods.get(0))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.SWITCHOVER_FINALIZED)
+                .pod(pods.get(0))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.RESTARTING_POD)
+                .pod(pods.get(0))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.POD_RESTARTED)
+                .pod(pods.get(0))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.DECREASING_INSTANCES)
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.INSTANCES_DECREASED)
+                .build()));
 
     List<StackGresDbOps> storedDbOps = Lists.newArrayList();
     kubeDb.watchDbOps(dbOpsName, namespace, storedDbOps::add);
 
     getRestartStateHandler().restartCluster(dbOps)
-        .await().atMost(Duration.ofMillis(50));
+        .await().atMost(Duration.ofMillis(1000));
 
     verifyDbOpsRestartStatus(pods, Seq.seq(storedDbOps).findLast().get());
 
@@ -428,101 +467,79 @@ public abstract class ClusterStateHandlerTest {
     when(clusterRestart.restartCluster(any()))
         .thenReturn(Multi.createFrom()
             .items(
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.RESTARTING_POSTGRES)
-                    .pod(pods.get(0))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.POSTGRES_RESTARTED)
-                    .pod(pods.get(0))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.INCREASING_INSTANCES)
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.INSTANCES_INCREASED)
-                    .pod(pods.get(2))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.RESTARTING_POD)
-                    .pod(pods.get(1))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.POD_RESTARTED)
-                    .pod(pods.get(1))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.RESTARTING_POD)
-                    .pod(pods.get(2))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.POD_RESTARTED)
-                    .pod(pods.get(2))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.SWITCHOVER_INITIATED)
-                    .pod(pods.get(0))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.SWITCHOVER_FINALIZED)
-                    .pod(pods.get(0))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.RESTARTING_POD)
-                    .pod(pods.get(0))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.POD_RESTARTED)
-                    .pod(pods.get(0))
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.DECREASING_INSTANCES)
-                    .build(),
-                ImmutableRestartEvent.builder()
-                    .eventType(RestartEventType.INSTANCES_DECREASED)
-                    .build()));
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.RESTARTING_POSTGRES)
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.POSTGRES_RESTARTED)
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.INCREASING_INSTANCES)
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.INSTANCES_INCREASED)
+                .pod(pods.get(2))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.RESTARTING_POD)
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.POD_RESTARTED)
+                .pod(pods.get(1))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.RESTARTING_POD)
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.POD_RESTARTED)
+                .pod(pods.get(2))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.SWITCHOVER_INITIATED)
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.SWITCHOVER_FINALIZED)
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.RESTARTING_POD)
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.POD_RESTARTED)
+                .pod(pods.get(0))
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.DECREASING_INSTANCES)
+                .build(),
+                ImmutableRestartEventForTest.builder()
+                .eventType(RestartEventType.INSTANCES_DECREASED)
+                .build()));
 
     getRestartStateHandler().restartCluster(dbOps)
-        .await().atMost(Duration.ofMillis(50));
+        .await().indefinitely();
 
-    final String sgcluster = HasMetadata.getSingular(StackGresCluster.class);
     verifyEventEmission(
-        Tuple.tuple(RestartEventType.RESTARTING_POSTGRES,
-            "Restarting postgres of pod " + pods.get(0).getMetadata().getName()),
-        Tuple.tuple(RestartEventType.POSTGRES_RESTARTED,
-            "Restarted postgres of pod " + pods.get(0).getMetadata().getName()),
-        Tuple.tuple(RestartEventType.INCREASING_INSTANCES,
-            "Increasing instances of " + sgcluster + " " + clusterName),
-        Tuple.tuple(RestartEventType.INSTANCES_INCREASED,
-            "Increased instances of " + sgcluster + " " + clusterName),
-        Tuple.tuple(RestartEventType.RESTARTING_POD,
-            "Restarting pod " + pods.get(1).getMetadata().getName()),
-        Tuple.tuple(RestartEventType.POD_RESTARTED,
-            "Pod " + pods.get(1).getMetadata().getName() + " successfully restarted"),
-        Tuple.tuple(RestartEventType.RESTARTING_POD,
-            "Restarting pod " + pods.get(2).getMetadata().getName()),
-        Tuple.tuple(RestartEventType.POD_RESTARTED,
-            "Pod " + pods.get(2).getMetadata().getName() + " successfully restarted"),
-        Tuple.tuple(RestartEventType.SWITCHOVER_INITIATED,
-            "Switchover of " + sgcluster + " " + clusterName + " initiated"),
-        Tuple.tuple(RestartEventType.SWITCHOVER_FINALIZED,
-            "Switchover of " + sgcluster + " " + clusterName + " completed"),
-        Tuple.tuple(RestartEventType.RESTARTING_POD,
-            "Restarting pod " + pods.get(0).getMetadata().getName()),
-        Tuple.tuple(RestartEventType.POD_RESTARTED,
-            "Pod " + pods.get(0).getMetadata().getName() + " successfully restarted"),
-        Tuple.tuple(RestartEventType.DECREASING_INSTANCES,
-            "Decreasing instances of " + sgcluster + " " + clusterName),
-        Tuple.tuple(RestartEventType.INSTANCES_DECREASED,
-            "Decreased instances of " + sgcluster + " " + clusterName)
+        RestartEventType.RESTARTING_POSTGRES,
+        RestartEventType.POSTGRES_RESTARTED,
+        RestartEventType.INCREASING_INSTANCES,
+        RestartEventType.INSTANCES_INCREASED,
+        RestartEventType.RESTARTING_POD,
+        RestartEventType.POD_RESTARTED,
+        RestartEventType.RESTARTING_POD,
+        RestartEventType.POD_RESTARTED,
+        RestartEventType.SWITCHOVER_INITIATED,
+        RestartEventType.SWITCHOVER_FINALIZED,
+        RestartEventType.RESTARTING_POD,
+        RestartEventType.POD_RESTARTED,
+        RestartEventType.DECREASING_INSTANCES,
+        RestartEventType.INSTANCES_DECREASED
     );
   }
 
   @SafeVarargs
-  private void verifyEventEmission(Tuple2<RestartEventType, String>... events) {
+  private void verifyEventEmission(RestartEventType... events) {
     final InOrder inOrder = inOrder(eventEmitter);
     Arrays.stream(events).forEach(event -> {
-      inOrder.verify(eventEmitter).sendEvent(eq(event.v1), eq(event.v2), any());
+      inOrder.verify(eventEmitter).sendEvent(eq(event), eq(event.toString()), any());
     });
   }
 

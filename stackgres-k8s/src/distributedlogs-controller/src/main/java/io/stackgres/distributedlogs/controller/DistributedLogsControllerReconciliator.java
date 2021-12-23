@@ -32,6 +32,8 @@ import io.stackgres.operatorframework.reconciliation.Reconciliator;
 public class DistributedLogsControllerReconciliator
     extends Reconciliator<StackGresDistributedLogsContext> {
 
+  private final DistributedLogsControllerPostgresBootstrapReconciliator
+      postgresBootstrapReconciliator;
   private final DistributedLogsExtensionReconciliator extensionReconciliator;
   private final DistributedLogsClusterReconciliator clusterReconciliator;
   private final CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
@@ -39,6 +41,7 @@ public class DistributedLogsControllerReconciliator
 
   @Dependent
   public static class Parameters {
+    @Inject DistributedLogsControllerPostgresBootstrapReconciliator postgresBootstrapReconciliator;
     @Inject DistributedLogsExtensionReconciliator extensionReconciliator;
     @Inject DistributedLogsClusterReconciliator clusterReconciliator;
     @Inject CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
@@ -47,6 +50,7 @@ public class DistributedLogsControllerReconciliator
 
   @Inject
   public DistributedLogsControllerReconciliator(Parameters parameters) {
+    this.postgresBootstrapReconciliator = parameters.postgresBootstrapReconciliator;
     this.extensionReconciliator = parameters.extensionReconciliator;
     this.clusterReconciliator = parameters.clusterReconciliator;
     this.distributedLogsScheduler = parameters.distributedLogsScheduler;
@@ -56,6 +60,7 @@ public class DistributedLogsControllerReconciliator
   public DistributedLogsControllerReconciliator() {
     super();
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+    this.postgresBootstrapReconciliator = null;
     this.extensionReconciliator = null;
     this.clusterReconciliator = null;
     this.distributedLogsScheduler = null;
@@ -73,6 +78,8 @@ public class DistributedLogsControllerReconciliator
   protected ReconciliationResult<Void> reconcile(KubernetesClient client,
       StackGresDistributedLogsContext context) throws Exception {
     boolean statusUpdated = false;
+    ReconciliationResult<Boolean> postgresBootstrapReconciliationResult =
+        postgresBootstrapReconciliator.reconcile(client, context);
     ReconciliationResult<Boolean> extensionReconciliationResult =
         extensionReconciliator.reconcile(client, context);
     if (extensionReconciliationResult.result().orElse(false)
@@ -100,6 +107,8 @@ public class DistributedLogsControllerReconciliator
             if (targetDistributedLogs.getStatus() == null) {
               targetDistributedLogs.setStatus(new StackGresDistributedLogsStatus());
             }
+            targetDistributedLogs.getStatus().setArch(status.getArch());
+            targetDistributedLogs.getStatus().setOs(status.getOs());
             if (targetDistributedLogs.getStatus().getPodStatuses() == null) {
               targetDistributedLogs.getStatus().setPodStatuses(new ArrayList<>());
             }
@@ -114,7 +123,9 @@ public class DistributedLogsControllerReconciliator
                     () -> targetDistributedLogs.getStatus().getPodStatuses().add(podStatus));
           });
     }
-    return extensionReconciliationResult.join(clusterReconciliationResult);
+    return postgresBootstrapReconciliationResult
+        .join(extensionReconciliationResult)
+        .join(clusterReconciliationResult);
   }
 
   private Optional<StackGresClusterPodStatus> findPodStatus(

@@ -7,6 +7,11 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  if ! can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
+  then
+    return
+  fi
+
   RANDOM_VALUE="$(random_string)"
   CLUSTER_1_NAME="$(get_sgcluster_name "$CLUSTER_NAME-1")"
   CLUSTER_2_NAME="$(get_sgcluster_name "$CLUSTER_NAME-2")"
@@ -26,12 +31,25 @@ e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
 
-  if [ "$E2E_DISABLE_CACHE" != "true" ]
+  if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
   then
-    load_component_images_from \
-      "$E2E_COMPONENTS_REGISTRY" \
-      "$E2E_COMPONENTS_PATH" \
-      "$STACKGRES_PREVIOUS_VERSION"
+    if [ "$E2E_SKIP_LOAD_OPERATOR" != true ]
+    then
+      load_operator_images_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH" \
+        "$STACKGRES_PREVIOUS_VERSION"
+    fi
+
+    if [ "$E2E_SKIP_LOAD_COMPONENTS" != true ]
+    then
+      load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_REGISTRY_PATH" \
+        "$STACKGRES_PREVIOUS_VERSION"
+    fi
+
+    if [ "$E2E_SKIP_LOAD_EXTENSIONS" != true ]
+    then
+      load_extensions_images_from "$E2E_EXTENSIONS_REGISTRY" "$E2E_EXTENSIONS_REGISTRY_PATH" \
+        "$STACKGRES_PREVIOUS_VERSION"
+    fi
   fi
 
   install_prometheus_operator_for_version 12.8.0
@@ -154,6 +172,11 @@ is_backup_phase() {
 }
 
 e2e_test_uninstall() {
+  if ! can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
+  then
+    return
+  fi
+
   uninstall_prometheus_operator
   delete_operator_only
   install_operator_only
@@ -161,6 +184,11 @@ e2e_test_uninstall() {
 }
 
 e2e_test() {
+  if ! can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
+  then
+    echo "Skip dbops-security-upgrade since previous version of operator $STACKGRES_PREVIOUS_VERSION can not be installed"
+    return
+  fi
   run_test "Check clusters before operator upgrade" check_before_operator_upgrade
   run_test "Check that operator can be upgraded to newer version" check_operator_upgrade
   run_test "Check that previous CRDs be converted to previous versions" check_previous_versions_conversion_webhooks
@@ -311,6 +339,7 @@ check_distributedlogs_security_upgrade() {
 }
 
 check_cluster_1_security_upgrade_start() {
+  kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
   check_cluster_security_upgrade_start "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
 }
 
@@ -357,14 +386,7 @@ spec:
     method: $METHOD
 EOF
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Running
-  then
-    echo "SUCCESS. Cluster $CLUSTER_NAME security upgrade running."
-  else
-    echo "FAILED. Cluster $CLUSTER_NAME security upgrade not running."
-    return 1
-  fi
+  assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
 
   wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}")" != 0 ]'
@@ -385,14 +407,7 @@ check_cluster_security_upgrade() {
   local METHOD="$3"
   shift 3
 
-  if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
-    --for condition=Completed
-  then
-    echo "SUCCESS. Cluster $CLUSTER_NAME security upgrade completed."
-  else
-    echo "FAILED. Cluster $CLUSTER_NAME security upgrade failed."
-    return 1
-  fi
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 
   check_cluster_after_security_upgrade
 
@@ -444,7 +459,7 @@ check_cluster_after_security_upgrade() {
   fi
 
   local STS_UPDATE_REVISION
-  STS_UPDATE_REVISION="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
+  STS_UPDATE_REVISION="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .status.updateRevision }}')"
   local POD_CONTROLLER_REVISION_HASH
   local POD_CONTROLLER_REVISION_HASHES
   POD_CONTROLLER_REVISION_HASHES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
@@ -508,7 +523,7 @@ check_sts_is_not_altered() {
   local TARGET_CLUSTER="$1"
 
   local STS_PATRONI_IMAGE
-  STS_PATRONI_IMAGE="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')"
+  STS_PATRONI_IMAGE="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')"
 
   if assert_string_equal "$PREVIOUS_PATRONI_IMAGE" "$STS_PATRONI_IMAGE"
   then
