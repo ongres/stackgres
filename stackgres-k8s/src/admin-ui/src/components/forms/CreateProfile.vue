@@ -77,10 +77,10 @@
                     <span class="warning">Please, be aware that any changes made to this instance profile will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance on the following {{ (profileClusters.length > 1) ? 'clusters' : 'cluster' }}: <strong>{{ profileClusters.join(", ") }}</strong> </span>
                 </template>
 
-                <button class="btn" @click="createProfile()">Update Profile</button>
+                <button class="btn" type="submit" @click="createProfile()">Update Profile</button>
             </template>
             <template v-else>
-                <button class="btn" @click="createProfile()">Create Profile</button>
+                <button class="btn" type="submit" @click="createProfile()">Create Profile</button>
             </template>
 
             <button @click="cancel" class="btn border">Cancel</button>

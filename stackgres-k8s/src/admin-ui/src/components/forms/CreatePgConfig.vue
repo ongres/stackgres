@@ -67,10 +67,10 @@
                     <span class="warning">Please, be aware that some changes made to this configuration might require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance on the following {{ (configClusters.length > 1) ? 'clusters' : 'cluster' }}: <strong>{{ configClusters.join(", ") }}</strong> </span>
                 </template>
 
-                <button class="btn" @click="createPGConfig()">Update Configuration</button>
+                <button class="btn" type="submit" @click="createPGConfig()">Update Configuration</button>
             </template>
             <template v-else>
-                <button class="btn" @click="createPGConfig()">Create Configuration</button>
+                <button class="btn" type="submit" @click="createPGConfig()">Create Configuration</button>
             </template>
             
             <button class="btn border" @click="cancel()">Cancel</button>

@@ -38,7 +38,7 @@
             <div class="row-50">
                 <div class="col">
                     <label for="metadata.name">Configuration Name <span class="req">*</span></label>
-                    <input v-model="backupConfigName" :disabled="(editMode)" required data-dield="metadata.name" autocomplete="off">
+                    <input v-model="backupConfigName" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
                     <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.metadata.name')"></span>                    
                 </div>
             </div>
@@ -59,27 +59,27 @@
                 <div class="cron" data-field="spec.baseBackups.cronSchedule">
                     <div class="col">
                         <label for="backupConfigFullScheduleMin" title="Minute *">Minute <span class="req">*</span></label>
-                        <input v-model="backupConfigFullScheduleMin" required>
+                        <input v-model="backupConfigFullScheduleMin" required id="backupConfigFullScheduleMin">
                     </div>
 
                     <div class="col">
                         <label for="backupConfigFullScheduleHour" title="Hour *">Hour <span class="req">*</span></label>
-                        <input v-model="backupConfigFullScheduleHour" required>
+                        <input v-model="backupConfigFullScheduleHour" required id="backupConfigFullScheduleHour">
                     </div>
 
                     <div class="col">
                         <label for="backupConfigFullScheduleDOM" title="Day of Month *">Day of Month <span class="req">*</span></label>
-                        <input v-model="backupConfigFullScheduleDOM" required>
+                        <input v-model="backupConfigFullScheduleDOM" required id="backupConfigFullScheduleDOM">
                     </div>
 
                     <div class="col">
                         <label for="backupConfigFullScheduleMonth" title="Month *">Month <span class="req">*</span></label>
-                        <input v-model="backupConfigFullScheduleMonth" required>
+                        <input v-model="backupConfigFullScheduleMonth" required id="backupConfigFullScheduleMonth">
                     </div>
 
                     <div class="col">
                         <label for="backupConfigFullScheduleDOW" title="Day of Week *">Day of Week <span class="req">*</span></label>
-                        <input v-model="backupConfigFullScheduleDOW" required>
+                        <input v-model="backupConfigFullScheduleDOW" required id="backupConfigFullScheduleDOW">
                     </div>
                 </div>
 
@@ -371,10 +371,10 @@
             <hr/>
             
             <template v-if="editMode">
-                <button class="btn" @click="createBackupConfig()">Update Configuration</button>
+                <button class="btn" type="submit" @click="createBackupConfig()">Update Configuration</button>
             </template>
             <template v-else>
-                <button class="btn" @click="createBackupConfig()">Create Configuration</button>
+                <button class="btn" type="submit" @click="createBackupConfig()">Create Configuration</button>
             </template>
 
             <button class="btn border" @click="cancel()">Cancel</button>
@@ -644,7 +644,7 @@
                                     "performance": {
                                         ...( this.backupConfigUploadDiskConcurrency.length && { "uploadDiskConcurrency": this.backupConfigUploadDiskConcurrency } ),
                                         ...( this.backupConfigMaxNetworkBandwidth.length && { "maxNetworkBandwitdh": this.backupConfigMaxNetworkBandwidth }),
-                                        ...( this.backupConfigMaxDiskBandwidth.length && { "maxDiskBandwidth": this.backupConfigMaxDiskBandwidth } )
+                                        ...( this.backupConfigMaxDiskBandwidth.length && { "maxDiskBandwitdh": this.backupConfigMaxDiskBandwidth } )
                                     }
                                 }) )
                             },
