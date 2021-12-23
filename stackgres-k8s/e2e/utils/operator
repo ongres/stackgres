@@ -631,11 +631,14 @@ reinstall_operator_if_not_as_expected() {
     else
       echo "Re-installing operator since has different values"
       echo
-      echo "Values expected:"
-      cat "$TARGET_PATH/operator-values.json"
+      if [ -f "$TARGET_PATH/operator-values.json" ]
+      then
+        echo "Values expected:"
+        cat "$TARGET_PATH/operator-values.json"
+      fi
       echo
       echo "Values found:"
-      get_installed_operator_values
+      get_installed_operator_values || true
       echo
     fi
     k8s_webhook_cleanup
@@ -643,7 +646,12 @@ reinstall_operator_if_not_as_expected() {
     k8s_cleanup
 
     kubectl create namespace "$OPERATOR_NAMESPACE"
-    install_operator_only -f "$TARGET_PATH/operator-values.json"
+    if [ -f "$TARGET_PATH/operator-values.json" ]
+    then
+      install_operator_only -f "$TARGET_PATH/operator-values.json"
+    else
+      install_operator_only
+    fi
   fi
 }
 
