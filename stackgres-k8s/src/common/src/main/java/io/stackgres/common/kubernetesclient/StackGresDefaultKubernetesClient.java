@@ -79,6 +79,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
@@ -338,6 +339,23 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
           filteredItem = ManagedFieldsReader.readManagedFields(itemObject, fieldManager);
           ((ObjectNode) filteredItem.get("metadata")).set("managedFields",
               itemObject.get("metadata").get("managedFields"));
+          Optional.ofNullable(itemObject.get("metadata").get("annotations"))
+              .stream()
+              .flatMap(annotations -> Seq.seq(annotations.fields()))
+              .filter(annotation -> annotation.getKey()
+                  .startsWith(StackGresContext.STACKGRES_KEY_PREFIX))
+              .filter(annotation -> Optional
+                  .ofNullable(filteredItem.get("metadata").get("annotations"))
+                  .filter(filteredAnnotation -> filteredAnnotation.has(annotation.getKey()))
+                  .isEmpty())
+              .forEach(annotation -> {
+                if (!filteredItem.get("metadata").has("annotations")) {
+                  ((ObjectNode) filteredItem.get("metadata"))
+                      .set("annotations", filteredItem.objectNode());
+                }
+                ((ObjectNode) filteredItem.get("metadata").get("annotations"))
+                    .set(annotation.getKey(), annotation.getValue().deepCopy());
+              });
         } else {
           filteredItem = itemObject;
         }
