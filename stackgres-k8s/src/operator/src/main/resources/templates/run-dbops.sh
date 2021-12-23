@@ -65,10 +65,10 @@ run() {
   PID="$!"
 
   (
-  while (kill -0 "$PID" && kill -0 "$TIMEOUT_PID" \
-    && ([ "$EXCLUSIVE_OP" != true ] || kill -0 "$TRY_LOCK_PID")) 2>/dev/null
+  while { kill -0 "$PID" && kill -0 "$TIMEOUT_PID" \
+    && { [ "$EXCLUSIVE_OP" != true ] || kill -0 "$TRY_LOCK_PID"; }; } 2>/dev/null
   do
-    true
+    { sleep 1; } 2>/dev/null
   done
   )
 
