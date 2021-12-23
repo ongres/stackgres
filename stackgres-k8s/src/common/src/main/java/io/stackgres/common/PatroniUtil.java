@@ -22,12 +22,9 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public interface PatroniUtil {
-
-  static Logger LOGGER = LoggerFactory.getLogger(PatroniUtil.class);
 
   String LEADER_KEY = "leader";
   String INITIALIZE_KEY = "initialize";
@@ -126,7 +123,8 @@ public interface PatroniUtil {
           .filter(Matcher::find).filter(matcher -> matcher.group(1) != null)
           .map(matcher -> matcher.group(1)).map(Integer::parseInt).orElse(0);
     } catch (RuntimeException ex) {
-      LOGGER.warn("Unable to parse patroni history to indentify previous primary instance", ex);
+      LoggerFactory.getLogger(PatroniUtil.class)
+          .warn("Unable to parse patroni history to indentify previous primary instance", ex);
       return 0;
     }
   }
