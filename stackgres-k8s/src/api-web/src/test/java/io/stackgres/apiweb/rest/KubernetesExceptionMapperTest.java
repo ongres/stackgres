@@ -13,7 +13,6 @@ import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.exception.KubernetesExceptionMapper;
-import io.stackgres.apiweb.rest.utils.Kubernetes12StatusParser;
 import io.stackgres.apiweb.rest.utils.Kubernetes16StatusParser;
 import io.stackgres.common.ErrorType;
 import io.stackgres.testutil.JsonUtil;
@@ -27,7 +26,7 @@ class KubernetesExceptionMapperTest {
 
   @BeforeEach
   void setUp() {
-    mapper = new KubernetesExceptionMapper(new Kubernetes12StatusParser());
+    mapper = new KubernetesExceptionMapper(new Kubernetes16StatusParser());
   }
 
   @Test
@@ -52,30 +51,12 @@ class KubernetesExceptionMapperTest {
 
     Assertions.assertEquals(errorTypeUri, errorResponse.getType());
     Assertions.assertEquals(ErrorType.CONSTRAINT_VIOLATION.getTitle(), errorResponse.getTitle());
-    Assertions.assertEquals(detail, errorResponse.getDetail());
+    Assertions.assertEquals("· " + detail, errorResponse.getDetail());
     Assertions.assertEquals(field, errorResponse.getFields()[0]);
   }
 
   @Test
-  void kubernetesValidations_shouldBeParsed() {
-    Status status = JsonUtil.readFromJson("kube_status/status-1.13.12.json", Status.class);
-
-    Response response = mapper.toResponse(new KubernetesClientException("error", 422, status));
-
-    ErrorResponse errorResponse = (ErrorResponse) response.getEntity();
-
-    Assertions.assertEquals(ErrorType.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION),
-        errorResponse.getType());
-    Assertions.assertEquals(ErrorType.CONSTRAINT_VIOLATION.getTitle(), errorResponse.getTitle());
-    Assertions.assertEquals("spec.memory in body should match '^[0-9]+(\\\\.[0-9]+)?(Mi|Gi)$'",
-        errorResponse.getDetail());
-    Assertions.assertEquals("spec.memory", errorResponse.getFields()[0]);
-  }
-
-  @Test
   void kubernetes16Validations_shouldBeParsed() {
-    mapper.setStatusParser(new Kubernetes16StatusParser());
-
     Status status = JsonUtil.readFromJson("kube_status/status-1.16.4.json", Status.class);
 
     Response response = mapper.toResponse(new KubernetesClientException("error", 422, status));
@@ -92,8 +73,6 @@ class KubernetesExceptionMapperTest {
 
   @Test
   void kubernetesInvalidNameValidation_shouldBeParsed() {
-    mapper.setStatusParser(new Kubernetes16StatusParser());
-
     Status status = JsonUtil.readFromJson("kube_status/invalid_cluster_name.json", Status.class);
 
     Response response = mapper.toResponse(new KubernetesClientException(status));
@@ -111,8 +90,6 @@ class KubernetesExceptionMapperTest {
 
   @Test
   void kubernetesInvalidDnsValidation_shouldBeParsed() {
-    mapper.setStatusParser(new Kubernetes16StatusParser());
-
     Status status = JsonUtil.readFromJson("kube_status/invalid_dns_name.json", Status.class);
 
     Response response = mapper.toResponse(new KubernetesClientException(status));
@@ -131,8 +108,6 @@ class KubernetesExceptionMapperTest {
 
   @Test
   void kubernetesAlreadyExists_shouldBeParsed() {
-    mapper.setStatusParser(new Kubernetes16StatusParser());
-
     Status status = JsonUtil.readFromJson("kube_status/already-exists.json", Status.class);
 
     Response response = mapper.toResponse(new KubernetesClientException("error", 409, status));

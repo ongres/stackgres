@@ -37,15 +37,6 @@ public class StatusParserProviderImpl implements StatusParserProvider {
         });
   }
 
-  private Optional<Integer> getMinorVersion() {
-    return Optional.ofNullable(client.getVersion())
-        .map(VersionInfo::getMinor)
-        .map(VERSION_PATTERN::matcher)
-        .filter(Matcher::find)
-        .map(matcher -> matcher.group(1))
-        .map(Integer::parseInt);
-  }
-
   @Inject
   public void setClient(KubernetesClient client) {
     this.client = client;
@@ -57,13 +48,20 @@ public class StatusParserProviderImpl implements StatusParserProvider {
   }
 
   private StatusParser getStatusParser(Integer minorVersion) {
+    // Only K8s 1.16+ is supported
     if (minorVersion.intValue() < 16) {
-      LOGGER.debug("Using parser for k8s versions lower than 1.16");
-      return new Kubernetes12StatusParser();
+      return null;
     }
-
     LOGGER.debug("Using parser for k8s version 1.16 or newer");
     return new Kubernetes16StatusParser();
   }
 
+  private Optional<Integer> getMinorVersion() {
+    return Optional.ofNullable(client.getVersion())
+        .map(VersionInfo::getMinor)
+        .map(VERSION_PATTERN::matcher)
+        .filter(Matcher::find)
+        .map(matcher -> matcher.group(1))
+        .map(Integer::valueOf);
+  }
 }
