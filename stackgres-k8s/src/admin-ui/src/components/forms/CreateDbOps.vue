@@ -48,23 +48,23 @@
             
                 <div class="col">            
                     <label for="spec.runAt">Run At</label>
-                    <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="runAtTimezone">
+                    <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="runAtTimezone" data-field="spec.runAt">
                     <span class="helpTooltip" :data-tooltip="(timezone == 'local') ? getTooltip('sgdbops.spec.runAt').replace('UTC ','') : getTooltip('sgdbops.spec.runAt')"></span>
                 </div>
 
                 <div class="col">        
                     <label for="spec.timeout">Timeout</label>
                     <div class="timeSelect">
-                        <select v-model="timeout.d" class="round dayselect">
+                        <select v-model="timeout.d" class="round dayselect" data-field="spec.timeout.days">
                             <option disabled selected value="0">Days</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
                         </select>
-                        <select v-model="timeout.h" class="round hourselect">
+                        <select v-model="timeout.h" class="round hourselect" data-field="spec.timeout.hours">
                             <option disabled selected value="0">Hours</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
                         </select> 
-                        <select v-model="timeout.m" class="round minuteselect">
+                        <select v-model="timeout.m" class="round minuteselect" data-field="spec.timeout.minutes">
                             <option disabled selected value="0">Minutes</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
                         </select>
-                        <select v-model="timeout.s" class="round secondselect">
+                        <select v-model="timeout.s" class="round secondselect" data-field="spec.timeout.seconds">
                             <option disabled selected value="0">Seconds</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
                         </select>
                     </div>
@@ -81,7 +81,7 @@
         
                 <div class="col">
                     <label for="spec.maxRetries">Max Retries</label>
-                    <select v-model="maxRetries">
+                    <select v-model="maxRetries" data-field="spec.maxRetries">
                         <option v-for="val in 11">{{ val - 1 }}</option>
                     </select>
                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.maxRetries')"></span>
@@ -89,7 +89,7 @@
 
                 <div class="col">
                     <label for="spec.op">Database Operation <span class="req">*</span></label>
-                    <select v-model="op" required>
+                    <select v-model="op" required data-field="spec.op">
                         <option disabled value="">Choose one...</option>
                         <option value="benchmark">Benchmark</option>
                         <option value="vacuum">Vacuum</option>
@@ -113,7 +113,7 @@
                 <div class="row-50">
                     <div class="col">
                         <label for="spec.vacuum.full">Full Vacuum</label>
-                        <label for="fullVacuum" class="switch yes-no">
+                        <label for="fullVacuum" class="switch yes-no" data-field="spec.vacuum.full">
                             Enable
                             <input type="checkbox" id="fullVacuum" v-model="vacuum.full" data-switch="ON">
                         </label>
@@ -122,7 +122,7 @@
 
                     <div class="col">
                         <label for="spec.vacuum.freeze">Freeze</label>
-                        <label for="freezeVacuum" class="switch yes-no">
+                        <label for="freezeVacuum" class="switch yes-no" data-field="spec.vacuum.freeze">
                             Enable
                             <input type="checkbox" id="freezeVacuum" v-model="vacuum.freeze" data-switch="ON">
                         </label>
@@ -131,7 +131,7 @@
 
                     <div class="col">
                         <label for="spec.vacuum.analyze">Analyze</label>
-                        <label for="analyzeVacuum" class="switch yes-no">
+                        <label for="analyzeVacuum" class="switch yes-no" data-field="spec.vacuum.analyze">
                             Enable
                             <input type="checkbox" id="analyzeVacuum" v-model="vacuum.analyze" data-switch="ON">
                         </label>
@@ -140,7 +140,7 @@
 
                     <div class="col">
                         <label for="spec.vacuum.disablePageSkipping">Page Skipping</label>
-                        <label for="disablePageSkippingVacuum" class="switch yes-no reverse">
+                        <label for="disablePageSkippingVacuum" class="switch yes-no reverse" data-field="spec.vacuum.disablePageSkipping">
                             Enable
                             <input type="checkbox" id="disablePageSkippingVacuum" v-model="vacuum.disablePageSkipping" data-switch="ON"></label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping')"></span>
@@ -148,7 +148,10 @@
 
                     <div class="col">
                         <label for="spec.vacuum.databases">Database Specific Options</label>
-                        <label for="vacuumPerDbs" class="switch">Enable<input type="checkbox" id="vacuumPerDbs" v-model="vacuumPerDbs" data-switch="ON"></label>
+                        <label for="vacuumPerDbs" class="switch" data-field="spec.vacuum.databases">
+                            Enable
+                            <input type="checkbox" id="vacuumPerDbs" v-model="vacuumPerDbs" data-switch="ON">
+                        </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.databases')"></span>
                     </div>
                 </div>
@@ -173,13 +176,13 @@
                                 <div class="row row-50">
                                     <div class="col">
                                         <label for="spec.vacuum.databases.name">Name <span class="req">*</span></label>
-                                        <input v-model="db.name" placeholder="Type a name..." required autocomplete="off">
+                                        <input v-model="db.name" placeholder="Type a name..." required autocomplete="off" data-field="spec.vacuum.databases.name">
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.databases.name')"></span>
                                     </div>
 
                                     <div class="col">
                                         <label for="spec.vacuum.databases.full">Full</label>
-                                        <select v-model="db.full">
+                                        <select v-model="db.full" data-field="spec.vacuum.databases.full">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -189,7 +192,7 @@
 
                                     <div class="col">
                                         <label for="spec.vacuum.databases.freeze">Freeze</label>
-                                        <select v-model="db.freeze">
+                                        <select v-model="db.freeze" data-field="spec.vacuum.databases.freeze">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -199,7 +202,7 @@
 
                                     <div class="col">
                                         <label for="spec.vacuum.databases.analyze">Analyze</label>
-                                        <select v-model="db.analyze">
+                                        <select v-model="db.analyze" data-field="spec.vacuum.databases.analyze">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -209,7 +212,7 @@
 
                                     <div class="col">
                                         <label for="spec.vacuum.databases.disablePageSkipping">Page Skipping</label>
-                                        <select v-model="db.disablePageSkipping">
+                                        <select v-model="db.disablePageSkipping" data-field="spec.vacuum.databases.disablePageSkipping">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="false">Enable</option>
                                             <option :value="true">Disable</option>
@@ -234,7 +237,7 @@
                 <div class="row-50">
                     <div class="col">
                         <label for="spec.restart.method">Method</label>
-                        <select v-model="restart.method">
+                        <select v-model="restart.method" data-field="spec.restart.method">
                             <option value="InPlace">In Place</option>
                             <option value="ReducedImpact">Reduced Impact</option>
                         </select>
@@ -243,7 +246,10 @@
 
                     <div class="col">
                         <label for="spec.restart.onlyPendingRestart">Pods to Restart</label>
-                        <label for="usePreparedStatements" class="switch yes-no">Pending Pods Only<input type="checkbox" id="usePreparedStatements" v-model="restart.onlyPendingRestart" data-switch="NO"></label>
+                        <label for="usePreparedStatements" class="switch yes-no" data-field="spec.restart.onlyPendingRestart">
+                            Pending Pods Only
+                            <input type="checkbox" id="usePreparedStatements" v-model="restart.onlyPendingRestart" data-switch="NO">
+                        </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.restart.onlyPendingRestart')"></span>
                     </div>
                 </div>
@@ -257,7 +263,7 @@
                 <div class="row-50">
                     <div class="col">
                         <label for="spec.securityUpgrade.method">Method</label>
-                        <select v-model="securityUpgrade.method">
+                        <select v-model="securityUpgrade.method" data-field="spec.securityUpgrade.method">
                             <option value="InPlace">In Place</option>
                             <option value="ReducedImpact">Reduced Impact</option>
                         </select>
@@ -277,7 +283,7 @@
                             <div class="row-50">
                                 <div class="col">
                                     <label for="spec.minorVersionUpgrade.method">Method</label>
-                                    <select v-model="minorVersionUpgrade.method">
+                                    <select v-model="minorVersionUpgrade.method" data-field="spec.minorVersionUpgrade.method">
                                         <option value="InPlace">In Place</option>
                                         <option value="ReducedImpact">Reduced Impact</option>
                                     </select>
@@ -286,7 +292,7 @@
 
                                 <div class="col">
                                     <label for="spec.minorVersionUpgrade.postgresVersion">Target Postgres Version <span class="req">*</span></label>
-                                    <select v-model="minorVersionUpgrade.postgresVersion" required>
+                                    <select v-model="minorVersionUpgrade.postgresVersion" required data-field="spec.minorVersionUpgrade.postgresVersion">
                                         <option disabled value="">Choose version...</option>
                                         <option v-for="version in postgresVersionsList[cluster.data.spec.postgres.version.substring(0,2)]" v-if="version > cluster.data.spec.postgres.version">{{ version }}</option>
                                     </select>
@@ -322,7 +328,7 @@
                             <div class="row-50">
                                 <div class="col">
                                     <label for="spec.majorVersionUpgrade.link">Hard Link Files</label>
-                                    <label for="majorVersionUpgradeLink" class="switch yes-no">
+                                    <label for="majorVersionUpgradeLink" class="switch yes-no" data-field="spec.majorVersionUpgrade.link">
                                         Enable
                                         <input type="checkbox" id="majorVersionUpgradeLink" v-model="majorVersionUpgrade.link" data-switch="ON">
                                     </label>
@@ -331,7 +337,7 @@
 
                                 <div class="col">
                                     <label for="spec.majorVersionUpgrade.clone">Clone Files</label>
-                                    <label for="majorVersionUpgradeClone" class="switch yes-no">
+                                    <label for="majorVersionUpgradeClone" class="switch yes-no" data-field="spec.majorVersionUpgrade.clone">
                                         Enable
                                         <input type="checkbox" id="majorVersionUpgradeClone" v-model="majorVersionUpgrade.clone" data-switch="ON">
                                     </label>
@@ -340,7 +346,7 @@
 
                                 <div class="col">
                                     <label for="spec.majorVersionUpgrade.check">Check Clusters</label>
-                                    <label for="majorVersionUpgradeCheck" class="switch yes-no">
+                                    <label for="majorVersionUpgradeCheck" class="switch yes-no" data-field="spec.majorVersionUpgrade.check">
                                         Enable
                                         <input type="checkbox" id="majorVersionUpgradeCheck" v-model="majorVersionUpgrade.check" data-switch="ON">
                                     </label>
@@ -349,7 +355,7 @@
 
                                 <div class="col">
                                     <label for="spec.majorVersionUpgrade.postgresVersion">Target Postgres Version <span class="req">*</span></label>
-                                    <select v-model="majorVersionUpgrade.postgresVersion" required>
+                                    <select v-model="majorVersionUpgrade.postgresVersion" required data-field="spec.majorVersionUpgrade.postgresVersion">
                                         <option disabled value="">Choose version...</option>
                                         <option v-for="version in postgresVersionsList[parseInt(cluster.data.spec.postgres.version.substring(0,2)) + 1]">{{ version }}</option>
                                     </select>
@@ -358,7 +364,7 @@
 
                                 <div class="col" v-if="majorVersionUpgrade.postgresVersion.length">
                                     <label for="spec.majorVersionUpgrade.sgPostgresConfig">Target Postgres Configuration <span class="req">*</span></label>
-                                    <select v-model="majorVersionUpgrade.sgPostgresConfig" required>
+                                    <select v-model="majorVersionUpgrade.sgPostgresConfig" required data-field="spec.majorVersionUpgrade.sgPostgresConfig">
                                         <option disabled value="">Choose config...</option>
                                         <option v-for="config in pgConfigs" v-if="config.data.spec.postgresVersion == majorVersionUpgrade.postgresVersion.substring(0,2)">{{ config.name }}</option>
                                     </select>
@@ -394,7 +400,7 @@
 
                     <div class="col">
                         <label for="spec.benchmark.connectionType">Connection Type</label>
-                        <select v-model="benchmark.connectionType">
+                        <select v-model="benchmark.connectionType" data-field="spec.benchmark.connectionType">
                             <option value="primary-service">Connect to the Primary Service</option>
                             <option value="replicas-service">Connect to the Replicas Service</option>
                         </select>
@@ -420,7 +426,10 @@
 
                         <div class="col">
                             <label for="spec.benchmark.pgbench.usePreparedStatements">Prepared Statements</label>
-                            <label for="usePreparedStatements" class="switch yes-no">Enable<input type="checkbox" id="usePreparedStatements" v-model="benchmark.pgbench.usePreparedStatements" data-switch="NO"></label>
+                            <label for="usePreparedStatements" class="switch yes-no" data-field="spec.benchmark.pgbench.usePreparedStatements">
+                                Enable
+                                <input type="checkbox" id="usePreparedStatements" v-model="benchmark.pgbench.usePreparedStatements" data-switch="NO">
+                            </label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.pgbench.usePreparedStatements')"></span>
                         </div>
 
@@ -439,16 +448,16 @@
                         <div class="col">
                             <label for="spec.benchmark.pgbench.duration">Duration <span class="req">*</span></label>
                             <div class="timeSelect reqFieldset">
-                                <select v-model="benchmark.pgbench.duration.d" class="round dayselect">
+                                <select v-model="benchmark.pgbench.duration.d" class="round dayselect" data-field="spec.benchmark.pgbench.duration.days">
                                     <option disabled selected value="">Days</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
                                 </select>
-                                <select v-model="benchmark.pgbench.duration.h" class="round hourselect">
+                                <select v-model="benchmark.pgbench.duration.h" class="round hourselect" data-field="spec.benchmark.pgbench.duration.hours">
                                     <option disabled selected value="">Hours</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
                                 </select>
-                                <select v-model="benchmark.pgbench.duration.m" class="round minuteselect">
+                                <select v-model="benchmark.pgbench.duration.m" class="round minuteselect" data-field="spec.benchmark.pgbench.duration.minutes">
                                     <option disabled selected value="">Minutes</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
                                 </select>
-                                <select v-model="benchmark.pgbench.duration.s" class="round secondselect">
+                                <select v-model="benchmark.pgbench.duration.s" class="round secondselect" data-field="spec.benchmark.pgbench.duration.seconds">
                                     <option disabled selected value="">Seconds</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
                                 </select>
                             </div>
@@ -467,41 +476,53 @@
                 <div class="row-50">
                     <div class="col">
                         <label for="spec.repack.noOrder">No Order</label>
-                        <label for="repackNoOrder" class="switch yes-no">Enable<input type="checkbox" id="repackNoOrder" v-model="repack.noOrder" data-switch="ON"></label>
+                        <label for="repackNoOrder" class="switch yes-no" data-field="spec.repack.noOrder">
+                            Enable
+                            <input type="checkbox" id="repackNoOrder" v-model="repack.noOrder" data-switch="ON">
+                        </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noOrder')"></span>
                     </div>
 
                     <div class="col">
                         <label for="spec.repack.noKillBackend">No Kill Backend</label>
-                        <label for="repackNoKillBackend" class="switch yes-no">Enable<input type="checkbox" id="repackNoKillBackend" v-model="repack.noKillBackend" data-switch="ON"></label>
+                        <label for="repackNoKillBackend" class="switch yes-no" data-field="spec.repack.noKillBackend">
+                            Enable
+                            <input type="checkbox" id="repackNoKillBackend" v-model="repack.noKillBackend" data-switch="ON">
+                        </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noKillBackend')"></span>
                     </div>
 
                     <div class="col">
                         <label for="spec.repack.noAnalyze">No Analyze</label>
-                        <label for="repackNoAnalyze" class="switch yes-no">Enable<input type="checkbox" id="repackNoAnalyze" v-model="repack.noAnalyze" data-switch="ON"></label>
+                        <label for="repackNoAnalyze" class="switch yes-no" data-field="spec.repack.noAnalyze">
+                            Enable
+                            <input type="checkbox" id="repackNoAnalyze" v-model="repack.noAnalyze" data-switch="ON">
+                        </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noAnalyze')"></span>
                     </div>
 
                     <div class="col">
                         <label for="spec.repack.excludeExtension">Exclude Extension</label>
-                        <label for="repackExcludeExtension" class="switch yes-no">Enable<input type="checkbox" id="repackExcludeExtension" v-model="repack.excludeExtension" data-switch="ON"></label>
+                        <label for="repackExcludeExtension" class="switch yes-no" data-field="spec.repack.excludeExtension">
+                            Enable
+                            <input type="checkbox" id="repackExcludeExtension" v-model="repack.excludeExtension" data-switch="ON">
+                        </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.excludeExtension')"></span>
                     </div>
 
                     <div class="col">
                         <label for="spec.repack.waitTimeout">Wait Timeout</label>
                         <div class="timeSelect">
-                            <select v-model="repack.waitTimeout.d" class="round dayselect">
+                            <select v-model="repack.waitTimeout.d" class="round dayselect" data-field="spec.repack.waitTimeout.days">
                                 <option disabled selected value="0">Days</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
                             </select>
-                            <select v-model="repack.waitTimeout.h" class="round hourselect">
+                            <select v-model="repack.waitTimeout.h" class="round hourselect" data-field="spec.repack.waitTimeout.hours">
                                 <option disabled selected value="0">Hours</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
                             </select>
-                            <select v-model="repack.waitTimeout.m" class="round minuteselect">
+                            <select v-model="repack.waitTimeout.m" class="round minuteselect" data-field="spec.repack.waitTimeout.minutes">
                                 <option disabled selected value="0">Minutes</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
                             </select>
-                            <select v-model="repack.waitTimeout.s" class="round secondselect">
+                            <select v-model="repack.waitTimeout.s" class="round secondselect" data-field="spec.repack.waitTimeout.seconds">
                                 <option disabled selected value="0">Seconds</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
                             </select>
                         </div>
@@ -510,7 +531,10 @@
 
                     <div class="col">
                         <label for="spec.repack.databases">Database Specific Options</label>
-                        <label for="repackPerDbs" class="switch yes-no">Enable<input type="checkbox" id="repackPerDbs" v-model="repackPerDbs" data-switch="ON"></label>
+                        <label for="repackPerDbs" class="switch yes-no" data-field="spec.repack.databases">
+                            Enable
+                            <input type="checkbox" id="repackPerDbs" v-model="repackPerDbs" data-switch="ON">
+                        </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases')"></span>
                     </div>
                 </div>
@@ -535,13 +559,13 @@
                                 <div class="row row-50">
                                     <div class="col">
                                         <label for="spec.repack.databases.name">Name <span class="req">*</span></label>
-                                        <input v-model="db.name" placeholder="Type a name..." required autocomplete="off">
+                                        <input v-model="db.name" placeholder="Type a name..." required autocomplete="off" data-field="spec.repack.databases.name">
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.name')"></span>
                                     </div>
 
                                     <div class="col">
                                         <label for="spec.repack.databases.noOrder">No Order</label>
-                                        <select v-model="db.noOrder">
+                                        <select v-model="db.noOrder" data-field="spec.repack.databases.noOrder">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -551,7 +575,7 @@
 
                                     <div class="col">                                
                                         <label for="spec.repack.databases.noKillBackend">No Kill Backend</label>
-                                        <select v-model="db.noKillBackend">
+                                        <select v-model="db.noKillBackend" data-field="spec.repack.databases.noKillBackend">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -561,7 +585,7 @@
 
                                     <div class="col">
                                         <label for="spec.repack.databases.noAnalyze">No Analyze</label>
-                                        <select v-model="db.noAnalyze">
+                                        <select v-model="db.noAnalyze" data-field="spec.repack.databases.noAnalyze">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -571,7 +595,7 @@
 
                                     <div class="col">
                                         <label for="spec.repack.databases.excludeExtension">Exclude Extension</label>
-                                        <select v-model="db.excludeExtension">
+                                        <select v-model="db.excludeExtension" data-field="spec.repack.databases.excludeExtension">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -581,7 +605,7 @@
 
                                     <div class="col">
                                         <label for="spec.repack.databases.waitTimeout">Wait Timeout</label>
-                                        <select v-model="db.inheritTimeout">
+                                        <select v-model="db.inheritTimeout" data-field="spec.repack.databases.waitTimeout">
                                             <option :value="true">Inherit from global settings</option>
                                             <option :value="false">Set custom timeout</option>
                                         </select>
@@ -591,16 +615,16 @@
                                     <div class="col" v-if="!db.inheritTimeout">
                                         <label for="spec.repack.databases.waitTimeout">Custom Wait Timeout</label>
                                         <div class="timeSelect">
-                                            <select v-model="db.waitTimeout.d" class="round dayselect">
+                                            <select v-model="db.waitTimeout.d" class="round dayselect" data-field="spec.repack.databases.waitTimeout.days">
                                                 <option disabled selected value="inherit">Days</option><option value="inherit">Inherit from global</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
                                             </select>
-                                            <select v-model="db.waitTimeout.h" class="round hourselect">
+                                            <select v-model="db.waitTimeout.h" class="round hourselect" data-field="spec.repack.databases.waitTimeout.hours">
                                                 <option disabled selected value="inherit">Hours</option><option value="inherit">Inherit from global</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
                                             </select>
-                                            <select v-model="db.waitTimeout.m" class="round minuteselect">
+                                            <select v-model="db.waitTimeout.m" class="round minuteselect" data-field="spec.repack.databases.waitTimeout.minutes">
                                                 <option disabled selected value="inherit">Minutes</option><option value="inherit">Inherit from global</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
                                             </select>
-                                            <select v-model="db.waitTimeout.s" class="round secondselect">
+                                            <select v-model="db.waitTimeout.s" class="round secondselect" data-field="spec.repack.databases.waitTimeout.seconds">
                                                 <option disabled selected value="inherit">Seconds</option><option value="inherit">Inherit from global</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
                                             </select>
                                         </div>
@@ -616,7 +640,7 @@
                 </template>
             </fieldset>
 
-            <button class="btn" @click="createDbOps()">Create Operation</button>
+            <button class="btn" type="submit" @click="createDbOps()">Create Operation</button>
             
             <button @click="cancel()" class="btn border">Cancel</button>
         
@@ -921,7 +945,7 @@
                             dbOps 
                         )
                         .then(function (response) {
-                            vc.notify('Database operation created successfully', 'message', 'sgdbops');
+                            vc.notify('Database operation "' + dbOps.metadata.name + '" created successfully', 'message', 'sgdbops');
 
                             vc.fetchAPI('sgdbops');
                             router.push('/' + vc.$route.params.namespace + '/sgdbops');
