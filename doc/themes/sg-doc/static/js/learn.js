@@ -55,7 +55,8 @@ function navToggle() {
 }
 
 function toggleDiv(id) {
-    jQuery(id).toggleClass('show')
+    jQuery(id).toggleClass('show');
+    $('body').toggleClass('noScroll');
 }
 
 function toggleToc() {
