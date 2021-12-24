@@ -27,6 +27,10 @@ e2e_test_install() {
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:' | grep "[-]pg$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-" | tail -n 1)"
 
+  PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION")"
+  PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12[0-9.]\+-build-')"
+  PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | tail -n 1)"
+
   k8s_unnamespaced_cleanup
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
@@ -325,6 +329,7 @@ check_previous_versions_conversion_webhooks() {
 check_distributedlogs_security_upgrade() {
   local CLUSTER_CRD="sgdistributedlogs.stackgres.io"
   local CLUSTER_NAME="$DISTRIBUTED_LOGS_NAME"
+  local PREVIOUS_PATRONI_IMAGE="$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE"
 
   check_cluster_before_security_upgrade "$DISTRIBUTED_LOGS_NAME"
 
