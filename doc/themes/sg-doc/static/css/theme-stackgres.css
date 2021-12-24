@@ -1616,6 +1616,10 @@ code.language-bash {
         font-size: 1.1rem;
     }
 
+    body.noScroll {
+        overflow-y: hidden;
+    }
+
     ul.topics .parent .toggleToc {
         right: 18px;
     }
