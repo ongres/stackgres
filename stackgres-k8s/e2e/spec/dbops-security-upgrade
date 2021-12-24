@@ -84,6 +84,7 @@ e2e_test_install() {
     --set-string cluster.configurations.sgBackupConfig=backupconf \
     --set configurations.backupconfig.create=true \
     --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100 \
+    --set-string configurations.postgresconfig.postgresql\.conf.invalid_param=true \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=true \
     --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \

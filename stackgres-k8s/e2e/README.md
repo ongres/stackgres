@@ -35,13 +35,13 @@ sh e2e <function name>
 CI uses a meven profile to run e2e tests in docker. You can test e2e locally using docker with the following command:
 
 ```
-mvn clean verify -P build-image-jvm,integration -Dit.test=StackGresOperatorEnd2EndIt
+ ./mvnw clean verify -P build-image-jvm,integration -Dit.test=StackGresOperatorEnd2EndIt
 ```
 
 e2e test can also be used with native image:
 
 ```
-mvn clean verify -P native,build-image-native,integration -Dit.test=StackGresOperatorEnd2EndIt
+./mvnw clean verify -P native,build-image-native,integration -Dit.test=StackGresOperatorEnd2EndIt
 ```
 
 ## Environment variables

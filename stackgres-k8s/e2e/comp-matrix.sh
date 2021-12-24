@@ -121,17 +121,17 @@ EOF
 build_images(){
   (
     cd "$STACKGRES_PATH/stackgres-k8s/src"
-    ./mvnw -q -DskipTests clean package -P build-image-jvm > "$LOG_PATH/build-image-jvm.log"
+    ./mvnw -q clean package -DskipTests -Dmaven.test.skip=true -P build-image-jvm > "$LOG_PATH/build-image-jvm.log"
   )
   if [ "$E2E_INCLUDE_NATIVE" = true ]
   then
   (
     cd "$STACKGRES_PATH/stackgres-k8s/src"
-    mvn -DskipTests clean package -P native > "$LOG_PATH/build-native.log"
+     ./mvnw -q clean package -DskipTests -Dmaven.test.skip=true -P native > "$LOG_PATH/build-native.log"
     cp "$GRAALVM_HOME/jre/lib/amd64/libsunec.so" operator/target/
     cp "$GRAALVM_HOME/jre/lib/security/cacerts" operator/target/
 
-    mvn -DskipTests package -P build-image-native > "$LOG_PATH/build-image-native.log"
+     ./mvnw -q clean package -DskipTests -Dmaven.test.skip=true package -P build-image-native > "$LOG_PATH/build-image-native.log"
   )
   fi
 }
