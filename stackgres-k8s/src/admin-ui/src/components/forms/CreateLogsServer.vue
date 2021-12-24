@@ -777,3 +777,13 @@
         }
     }
 </script>
+
+<style scoped>
+    .repeater .row:last-child input {
+        margin-bottom: -10px;
+    }
+
+    .scheduling.repeater > fieldset:last-of-type {
+        padding-bottom: 0;
+    }
+</style>
