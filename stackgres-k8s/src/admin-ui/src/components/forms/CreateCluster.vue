@@ -61,7 +61,7 @@
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
                         </div>
 
-                        <span class="warning" v-if="nameColission && !editMode">
+                        <span class="warning topLeft" v-if="nameColission && !editMode">
                             There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
                         </span>
                     </div>
@@ -123,7 +123,7 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.flavor')"></span>
                             </div>
 
-                            <p class="warning orange babelfish">
+                            <p class="warning orange babelfish topLeft">
                                 StackGres packs Babelfish for PostgreSQL as an <strong>experimental feature</strong> which use is <strong>not recommended for production environments.</strong>
                             </p>
                         </template>
@@ -224,9 +224,9 @@
                         <li class="extension notFound">
                             No extensions match your search terms.
                         </li>
-                        <li v-for="(ext, index) in extensionsList[flavor][postgresVersion]" v-if="(!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)) && ext.versions.length" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
+                        <li v-for="(ext, index) in extensionsList[flavor][postgresVersion]" v-if="(!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)) && ext.versions.length" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''" :data-extension-index="index">
                             <label class="hoverTooltip">
-                                <input type="checkbox" class="plain" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length || !ext.selectedVersion.length" :data-field="'spec.postgres.extensions.' + ext.name" />
+                                <input type="checkbox" class="plain enableExtension" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length || !ext.selectedVersion.length" :data-field="'spec.postgres.extensions.' + ext.name" />
                                 <span class="name">
                                     {{ ext.name }}
                                     <a v-if="ext.hasOwnProperty('url') && ext.url" :href="ext.url" class="newTab" target="_blank"></a>
@@ -571,7 +571,7 @@
             </fieldset>
 
             <fieldset class="step podsMetadata" :class="(currentStep == 'metadata') && 'active'" id="podsMetadata">
-                 <div class="header">
+                <div class="header">
                     <h2>Metadata</h2>
                 </div>
 
@@ -1198,7 +1198,8 @@
             <button type="button" @click="cancel" class="btn border">Cancel</button>
         
         </form>
-        <ClusterSummary :cluster="previewCluster" :extensionsList="extensionsList" v-if="showSummary" @closeSummary="showSummary = false"></ClusterSummary>
+        
+        <ClusterSummary :cluster="previewCRD" :extensionsList="extensionsList" v-if="showSummary" @closeSummary="showSummary = false"></ClusterSummary>
     </div>
 </template>
 
@@ -1208,7 +1209,7 @@
     import store from '../../store'
     import axios from 'axios'
     import moment from 'moment'
-    import ClusterSummary from './summary/ClusterSummary.vue'
+    import ClusterSummary from './summary/SGClusterSummary.vue'
 
     export default {
         name: 'CreateCluster',
@@ -1224,14 +1225,13 @@
             const vm = this;
 
             return {
-                previewCluster: {},
+                previewCRD: {},
                 showSummary: false,
                 advancedMode: false,
                 formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'sidecars', 'services', 'metadata', 'scheduling', 'non-production'],
                 currentStep: 'cluster',
                 editMode: (vm.$route.name === 'EditCluster'),
                 editReady: false,
-                help: 'Click on a question mark to get help and tips about that field.',
                 nullVal: null,
                 name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 namespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
@@ -1388,8 +1388,6 @@
                     store.state.clusters.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
 
-                            console.log(c)
-                        
                             let volumeSize = c.data.spec.pods.persistentVolume.size.match(/\d+/g);
                             let volumeUnit = c.data.spec.pods.persistentVolume.size.match(/[a-zA-Z]+/g);
 
@@ -1704,8 +1702,8 @@
 
                     if(preview) {                  
 
-                        vc.previewCluster = {};
-                        vc.previewCluster['data'] = cluster;
+                        vc.previewCRD = {};
+                        vc.previewCRD['data'] = cluster;
                         vc.showSummary = true;
 
                     } else {
@@ -2180,7 +2178,7 @@
 
         },
 
-        created: function() {
+        created() {
             const vc = this;
 
             axios
@@ -2192,22 +2190,12 @@
                 console.log(error.response);
                 vc.notify(error.response.data,'error','sgclusters');
             });
-        },
-
-        beforeDestroy: function() {
-            store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.');
-            $('.daterangepicker').remove()
         }
 
     }
 </script>
 
 <style scoped>
-    .form {
-        max-width: 900px;
-        width: 900px;
-    }
-
     .scriptFieldset:first-child {
         border-top: 0;
         margin-top: 0;
@@ -2483,118 +2471,7 @@
         float: right;
     }
 
-    .step {
-        display: none;
-        width: 870px;
-        border: 0;
-        padding: 20px 0 0;
-        margin-bottom: 0;
-    }
-
-    .step.active {
-        display: block;
-    }
-
-    .stepsContainer {
-        width: 100%;
-        text-align: center;
-        border-bottom: 1px solid var(--borderColor);
-        margin-bottom: 20px;
-    }
-
-    ul.steps {
-        display: inline-block;
-        margin: 10px 0 20px;
-        border: 0;
-        padding: 0 28px;
-        position: relative;
-    }
-
-    ul.steps li {
-        float: left;
-        list-style: none;
-        position: relative;
-        text-align: center;
-        margin: 0 7px;
-        text-transform: capitalize;
-        min-width: 70px;
-        cursor: pointer;
-    }
-
-    ul.steps li:before {
-        content: " ";
-        display: block;
-        background: var(--bgColor);
-        width: 10px;
-        height: 10px;
-        margin: 0 auto 10px;
-        border-radius: 100%;
-        border: 2px solid var(--borderColor);
-        position: relative;
-        z-index: 2;
-    }
-
-    ul.steps li.basic:before {
-        background: var(--borderColor);
-    }
-
-    ul.steps li.active:before {
-        border-color: var(--baseColor);
-        color: var(--bgColor);
-    }
-
-    ul.steps li.basic.active:before {
-        background: var(--baseColor);
-    }
-
-    ul.steps li.active {
-        color: var(--baseColor);
-        font-weight: bold;
-    }
-
-    ul.steps li:after {
-        height: 2px;
-        background: var(--borderColor);
-        content: " ";
-        display: block;
-        position: absolute;
-        width: calc(100% + 20px);
-        top: 6px;
-        left: -10px;
-    }
-
-    ul.steps li:first-child:after {
-        width: calc(50% + 10px);
-        left: 50%;
-    }
-
-    ul.steps li:last-child:after {
-        width: calc(50% + 10px);
-    }
-
-    .helpTooltip {
-        float: right;
-        transform: translate(20px, -30px);
-    }
-
-    .switch + .helpTooltip {
-        transform: translate(20px, -47px);
-    }
-
-    .step p {
-        display: inline-block;
-        margin: 5px 0 10px;
-    }
     
-    .step .fields p {
-        margin: 5px 0 30px;
-    }
-
-    .steps a {
-        display: inline-block;
-        margin-left: 10px;
-        font-weight: bold;
-    }
 
     .extHead span.name, .extensionsList span.name {
         width: 180px;
@@ -2624,12 +2501,6 @@
         transform: translateY(3px);
     }
 
-    h2 .helpTooltip, h3 .helpTooltip, h4 .helpTooltip, label .helpTooltip {
-        float: none;
-        transform: none;
-        margin-left: 5px;
-    }
-
     .extension a.newTab {
         width: 11px;
         height: 11px;
@@ -2646,26 +2517,8 @@
     }
 
     .warning.babelfish {
-        top: -10px;
+        top: -25px;
         position: relative;
-    }
-
-    .warning.babelfish:before {
-        content: " ";
-        display: block;
-        position: absolute;
-        border: 1px solid var(--orange);
-        width: 7px;
-        height: 7px;
-        transform: rotate(45deg);
-        border-bottom: 0;
-        border-right: 0;
-        top: -5px;
-        background: #ffefec;
-    }
-
-    .darkmode .warning.babelfish:before {
-        background: #361f1b;
     }
 
     input.affinityWeight + span {
@@ -2674,17 +2527,6 @@
 
     input.affinityWeight {
         width: calc(100% - 25px);
-    }
-
-    #advancedMode + span {
-        position: relative;
-        top: -1px;
-    }
-
-    .steps label {
-        position: absolute;
-        width: 95px;
-        top: 11px;
     }
 
     fieldset.noRepeater {
@@ -2705,67 +2547,6 @@
 
     .scheduling .fieldsetFooter {
         margin-bottom: 20px;
-    }
-
-    .steps button.arrow {
-        position: absolute;
-        width: 25px;
-        height: 25px;
-        padding: 0;
-        top: -16px;
-        background: var(--inputBg);
-        border-color: var(--borderColor);
-    }
-
-    .steps button.arrow:hover {
-        border-color: var(--baseColor);
-    }
-
-    .steps button.arrow:after {
-        content: " ";
-        width: 6px;
-        height: 6px;
-        border: 1px solid var(--gray3);
-        display: block;
-        transform: rotate(45deg);
-        position: absolute;
-        top: 8px;
-    }
-
-    .darkmode .steps button.arrow:after {
-        border-color: var(--gray5);
-    }
-
-    .steps button.arrow:hover:after {
-        border-color: var(--baseColor);
-    }
-
-    .steps button.arrow[disabled] {
-        border-color: transparent;
-    }
-
-    .steps button.arrow[disabled]:after {
-        border-color: var(--borderColor);
-    }
-
-    .steps button.prev {
-        left: 0;
-    }
-
-    .steps button.next {
-        right: 0;
-    }
-
-    .steps button.next:after {
-        border-left: 0;
-        border-bottom: 0;
-        left: 6px;
-    }
-
-    .steps button.prev:after {
-        border-right: 0;
-        border-top: 0;
-        left: 10px;
     }
 
     .searchBar + .helpTooltip {

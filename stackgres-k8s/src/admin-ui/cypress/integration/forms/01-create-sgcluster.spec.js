@@ -1,4 +1,4 @@
-describe('Create Cluster', () => {
+describe('Create SGCluster', () => {
 
     const host = Cypress.env('host')
     const resourcename = Cypress.env('resourcename')
@@ -8,12 +8,12 @@ describe('Create Cluster', () => {
         cy.visit(host + '/default/sgclusters/new')
     })
 
-    it('Create Cluster form should be visible', () => {
+    it('Create SGCluster form should be visible', () => {
         cy.get('form#createCluster')
             .should('be.visible')
     });  
 
-    it('Creating a basic cluster should be possible', () => {
+    it('Creating a basic SGCluster should be possible', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
             .type('basic-' + resourcename)
@@ -26,9 +26,11 @@ describe('Create Cluster', () => {
             .should(($notification) => {
                 expect($notification).contain('Cluster "basic-' + resourcename + '" created successfully')
             })
+
+        cy.location('pathname').should('eq', '/admin/default/sgclusters')
     });
 
-    it('Creating a cluster with Babelfish should be possible', () => {
+    it('Creating a SGCluster with Babelfish should be possible', () => {
         
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
@@ -46,9 +48,11 @@ describe('Create Cluster', () => {
             .should(($notification) => {
                 expect($notification).contain('Cluster "babelfish-' + resourcename + '" created successfully')
             })
+
+        cy.location('pathname').should('eq', '/admin/default/sgclusters')
     });
 
-    it('Creating an advanced cluster should be possible', () => {
+    it('Creating an advanced SGCluster should be possible', () => {
 
         // Enable advanced options
         cy.get('form#createCluster input#advancedMode')
@@ -60,22 +64,22 @@ describe('Create Cluster', () => {
         
         // Test Volume Size
         cy.get('input[data-field="spec.pods.persistentVolume.size"]')
+            .clear()
             .type('2')
 
         // Test some extensions
         cy.get('form#createCluster li[data-step="extensions"]')
             .click()
 
-        cy.get('input[data-field="spec.postgres.extensions.adminpack"]')
+        cy.get('ul.extensionsList li[data-extension-index="0"] input.enableExtension')
             .click()
-        
-        cy.get('input[data-field="spec.postgres.extensions.citus"]')
+        cy.get('ul.extensionsList li[data-extension-index="1"] input.enableExtension')
             .click()
-        
-        cy.get('input[data-field="spec.postgres.extensions.dblink"]')
+        cy.get('ul.extensionsList li[data-extension-index="2"] input.enableExtension')
             .click()
-        
-        cy.get('input[data-field="spec.postgres.extensions.postgis"]')
+        cy.get('ul.extensionsList li[data-extension-index="3"] input.enableExtension')
+            .click()
+        cy.get('ul.extensionsList li[data-extension-index="4"] input.enableExtension')
             .click()
 
         // Test prometheus autobind
@@ -194,6 +198,9 @@ describe('Create Cluster', () => {
             .should(($notification) => {
                 expect($notification).contain('Cluster "advanced-' + resourcename + '" created successfully')
             })
+
+        // Test user redirection
+        cy.location('pathname').should('eq', '/admin/default/sgclusters')
     }); 
     
 

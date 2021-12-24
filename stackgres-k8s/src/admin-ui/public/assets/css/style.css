@@ -525,14 +525,18 @@ form#login .warning {
     width: 100%;
 }
 
-.row-50 .col {
+.row-50 > .col {
     width: 45%;
     display: inline-block;
     float: left;
 }
 
-.row-50 .col:nth-of-type(2n) {
+.row-50 > .col:nth-of-type(2n) {
     margin-left: 7%;
+}
+
+.row-50 > .col:nth-of-type(2n) + .col {
+    clear: left;
 }
 
 .row-100 > .col {
@@ -540,7 +544,7 @@ form#login .warning {
     width: 97%;
 }
 
-.row-20 .col {
+.row-20 > .col {
     width: 20%;
     float: left;
     padding-right: 10px;
@@ -2244,6 +2248,7 @@ form .warning {
     display: inline-block;
     line-height: 1.3;
     width: 100%;
+    position: relative;
 }
 
 .warning svg {
@@ -2255,6 +2260,33 @@ form .warning {
     padding-left: 40px;
 }
 
+.warning.topLeft:before {
+    content: " ";
+    display: block;
+    position: absolute;
+    border: 1px solid var(--blue);
+    width: 7px;
+    height: 7px;
+    transform: rotate(45deg);
+    border-bottom: 0;
+    border-right: 0;
+    top: -5px;
+    background: #f2fbfb;
+}
+
+.darkmode .warning.topLeft:before {
+    background: #161f1f;
+}
+
+.warning.orange.topLeft:before {
+    border-color: var(--orange);
+}
+
+.darkmode .warning.orange.topLeft:before {
+    background: #361f1b;
+}
+
+
 label.switch {
     border: 1px solid var(--gray2);
     padding: 10px;
@@ -2264,7 +2296,7 @@ label.switch {
     cursor: pointer;
 }
 
-.switch input {
+.switch input, .switch.reverse input:checked {
     width: 60px;
     height: auto;
     display: inline-block;
@@ -2294,13 +2326,13 @@ label.switch {
     background: var(--blue);
 }
 
-.switch input:checked {
+.switch input:checked, .switch.reverse input:not(:checked), .switch.reverse input:not(:checked):focus {
     border-color: var(--blue);
     color: var(--blue);
     text-align: left;
 }
 
-.switch input:focus:not(:checked) {
+.switch input:focus:not(:checked), .switch.reverse input:checked:focus {
     border-color: var(--gray3);
 }
 
@@ -2314,15 +2346,15 @@ label.switch {
     content: "ON";
 }
 
-.switch.yes-no input:after {
+.switch.yes-no input:after, .switch.yes-no.reverse input:checked:after {
     content: 'NO';
 }
 
-.switch.yes-no input:checked:after {
+.switch.yes-no input:checked:after, .switch.yes-no.reverse input:not(:checked):after {
     content: 'YES';
 }
 
-.switch input:before {
+.switch input:before, .switch.reverse input:checked:before {
     display: block;
     width: 19px;
     height: 19px;
@@ -2336,7 +2368,7 @@ label.switch {
     transition: all .3s ease-out;
 }
 
-.switch input:checked:before {
+.switch input:checked:before, .switch.reverse input:before {
     background: var(--blue);
     left: auto;
     right: 3px;

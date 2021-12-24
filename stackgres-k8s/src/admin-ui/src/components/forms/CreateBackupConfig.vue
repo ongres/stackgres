@@ -1,5 +1,5 @@
 <template>
-    <form id="create-backup-config" v-if="loggedIn && isReady&& !notFound" @submit.prevent>
+    <div id="create-backup-config" v-if="loggedIn && isReady&& !notFound">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
@@ -26,283 +26,364 @@
             </div>
         </header>
                 
-        <div class="form crdForm">
+        <form id="createBackupConfig" class="form" @submit.prevent>
             <div class="header">
                 <h2>Backup Configuration Details</h2>
-                <label for="advancedMode" :class="(advancedMode) ? 'active' : ''" class="floatRight">
-                    <input v-model="advancedMode" type="checkbox" id="advancedMode" name="advancedMode" />
-                    <span>Advanced</span>
+                <label for="advancedMode" class="floatRight">
+                    <span>ADVANCED OPTIONS </span>
+                    <input type="checkbox" id="advancedMode" name="advancedMode" v-model="advancedMode" class="switch">
                 </label>
             </div>
             
-            <label for="metadata.name">Configuration Name <span class="req">*</span></label>
-            <input v-model="backupConfigName" :disabled="(editMode)" required data-dield="metadata.name" autocomplete="off">
-            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.metadata.name')"></span>
-
-            <span class="warning" v-if="nameColission && !editMode">
+            <div class="row-50">
+                <div class="col">
+                    <label for="metadata.name">Configuration Name <span class="req">*</span></label>
+                    <input v-model="backupConfigName" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.metadata.name')"></span>                    
+                </div>
+            </div>
+            
+            <span class="warning topLeft" v-if="nameColission && !editMode">
                 There's already a <strong>SGBackupConfig</strong> with the same name on this namespace. Please specify a different name or create the configuration on another namespace
             </span>
+            
+            <hr/>
 
-            <fieldset class="cron row-20" data-field="spec.baseBackups.cronSchedule">
-                <div class="header">
-                    <h3 for="spec.baseBackups.cronSchedule">Base Backup Schedule <span class="req">*</span></h3>
-                </div>                    
-                
-                <div class="col">
-                    <label for="backupConfigFullScheduleMin" title="Minute *">Minute <span class="req">*</span></label>
-                    <input v-model="backupConfigFullScheduleMin" required>
+            <fieldset class="step active">
+                <h4 for="spec.baseBackups.cronSchedule">
+                    Backup Schedule 
+                    <span class="req">*</span>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.cronSchedule')"></span>
+                </h4><br/>
+
+                <div class="cron" data-field="spec.baseBackups.cronSchedule">
+                    <div class="col">
+                        <label for="backupConfigFullScheduleMin" title="Minute *">Minute <span class="req">*</span></label>
+                        <input v-model="backupConfigFullScheduleMin" required id="backupConfigFullScheduleMin">
+                    </div>
+
+                    <div class="col">
+                        <label for="backupConfigFullScheduleHour" title="Hour *">Hour <span class="req">*</span></label>
+                        <input v-model="backupConfigFullScheduleHour" required id="backupConfigFullScheduleHour">
+                    </div>
+
+                    <div class="col">
+                        <label for="backupConfigFullScheduleDOM" title="Day of Month *">Day of Month <span class="req">*</span></label>
+                        <input v-model="backupConfigFullScheduleDOM" required id="backupConfigFullScheduleDOM">
+                    </div>
+
+                    <div class="col">
+                        <label for="backupConfigFullScheduleMonth" title="Month *">Month <span class="req">*</span></label>
+                        <input v-model="backupConfigFullScheduleMonth" required id="backupConfigFullScheduleMonth">
+                    </div>
+
+                    <div class="col">
+                        <label for="backupConfigFullScheduleDOW" title="Day of Week *">Day of Week <span class="req">*</span></label>
+                        <input v-model="backupConfigFullScheduleDOW" required id="backupConfigFullScheduleDOW">
+                    </div>
                 </div>
 
-                <div class="col">
-                    <label for="backupConfigFullScheduleHour" title="Hour *">Hour <span class="req">*</span></label>
-                    <input v-model="backupConfigFullScheduleHour" required>
-                </div>
-
-                <div class="col">
-                    <label for="backupConfigFullScheduleDOM" title="Day of Month *">Day of Month <span class="req">*</span></label>
-                    <input v-model="backupConfigFullScheduleDOM" required>
-                </div>
-
-                <div class="col">
-                    <label for="backupConfigFullScheduleMonth" title="Month *">Month <span class="req">*</span></label>
-                    <input v-model="backupConfigFullScheduleMonth" required>
-                </div>
-
-                <div class="col">
-                    <label for="backupConfigFullScheduleDOW" title="Day of Week *">Day of Week <span class="req">*</span></label>
-                    <input v-model="backupConfigFullScheduleDOW" required>
-                </div>
-
-                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.cronSchedule')"></span>
                 <div class="warning">
                     <strong>That is: </strong>
                     {{ (backupConfigFullScheduleMin+' '+backupConfigFullScheduleHour+' '+backupConfigFullScheduleDOM+' '+backupConfigFullScheduleMonth+' '+backupConfigFullScheduleDOW) | prettyCRON(false) }}
                 </div>
             </fieldset>
 
-            <!-- <template v-if="advancedMode">
-                <label for="backupConfigFullWindow">Full Window</label>
-                <input v-model="backupConfigFullWindow" value="" required data-field="spec.fullWindow">
-            </template> -->
-
-            <label for="spec.baseBackups.retention">Retention Window (max. number of base backups) <span class="req">*</span></label>
-            <input v-model="backupConfigRetention" value="" required data-field="spec.baseBackups.retention" type="number">
-            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.retention')"></span>
-
-            <template v-if="advancedMode">
-                <label for="spec.baseBackups.compression">Compression Method</label>
-                <select v-model="backupConfigCompressionMethod" data-field="spec.baseBackups.compression">
-                    <option disabled value="">Select a method</option>
-                    <option value="lz4">LZ4</option>
-                    <option value="lzma">LZMA</option>
-                    <option value="brotli">Brotli</option>
-                </select>
-                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.compression')"></span>
-            </template>
-
-            <template v-if="advancedMode">
-                <label for="spec.baseBackups.performance.maxNetworkBandwitdh">Max Network Bandwitdh</label>
-                <input v-model="backupConfigMaxNetworkBandwitdh" data-field="spec.baseBackups.performance.maxNetworkBandwitdh" type="number" min="0">
-                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.maxNetworkBandwitdh')"></span>
-            </template>
-
-            <template v-if="advancedMode">
-                <label for="spec.baseBackups.performance.maxDiskBandwitdh">Max Disk Bandwitdh</label>
-                <input v-model="backupConfigMaxDiskBandwitdh" data-field="spec.baseBackups.performance.maxDiskBandwitdh" type="number" min="0">
-                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.maxDiskBandwitdh')"></span>
-            </template>
-
-            <template v-if="advancedMode">
-                <!--<div class="unit-select">
-                    <label for="backupConfigTarSizeThreshold">Tar Size Threshold</label>  
-                    <input v-model="backupConfigTarSizeThreshold" class="size" value="" data-field="spec.tarSizeThreshold">
-                    <select v-model="backupConfigTarSizeThresholdUnit" class="unit" data-field="spec.tarSizeThreshold">
-                        <option disabled value="">Select Unit</option>
-                        <option value="1024">KiB</option>
-                        <option value="1048576">MiB</option>
-                        <option value="1073741824">GiB</option>
-                        <option value="1099511627776">TiB</option>
-                        <option value="1125899906842624">PiB</option>
-                        <option value="1152921504606846976">EiB</option>
-                        <option value="1180591620717411303424">ZiB</option>
-                        <option value="1208925819614629174706176">YiB</option>        
-                    </select>
-                </div>-->
+            <hr/>
             
-                <label for="spec.baseBackups.performance.uploadDiskConcurrency">Upload Disk Concurrency</label>
-                <input v-model="backupConfigUploadDiskConcurrency" value="" data-field="spec.baseBackups.performance.uploadDiskConcurrency" type="number">
-                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.uploadDiskConcurrency')"></span>
+            <template v-if="advancedMode">
+                <fieldset class="step active">
+                    <h3>Base Backup Details</h3>
+
+                    <div class="row-50">
+                        <div class="col">
+                            <label for="spec.baseBackups.retention">Retention Window (max. number of base backups)</label>
+                            <input v-model="backupConfigRetention" data-field="spec.baseBackups.retention" type="number">
+                            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.retention')"></span>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.baseBackups.compression">Compression Method</label>
+                            <select v-model="backupConfigCompressionMethod" data-field="spec.baseBackups.compression">
+                                <option disabled value="">Select a method</option>
+                                <option value="lz4">LZ4</option>
+                                <option value="lzma">LZMA</option>
+                                <option value="brotli">Brotli</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.compression')"></span>
+                        </div>
+                    </div>
+                </fieldset>
+                
+                <hr/>
+            </template>
+            
+            <template v-if="advancedMode">
+                <fieldset class="step active row-50">
+                    <h3>Performance Details</h3>
+
+                    <div class="col">
+                        <label for="spec.baseBackups.performance.maxNetworkBandwitdh">Max Network Bandwidth</label>
+                        <input v-model="backupConfigMaxNetworkBandwidth" data-field="spec.baseBackups.performance.maxNetworkBandwitdh" type="number" min="0">
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.maxNetworkBandwitdh')"></span>
+                    </div>
+
+                    <div class="col">
+                        <label for="spec.baseBackups.performance.maxDiskBandwitdh">Max Disk Bandwidth</label>
+                        <input v-model="backupConfigMaxDiskBandwidth" data-field="spec.baseBackups.performance.maxDiskBandwitdh" type="number" min="0">
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.maxDiskBandwitdh')"></span>
+                    </div>
+
+                    <div class="col">                
+                        <label for="spec.baseBackups.performance.uploadDiskConcurrency">Upload Disk Concurrency</label>
+                        <input v-model="backupConfigUploadDiskConcurrency" value="" data-field="spec.baseBackups.performance.uploadDiskConcurrency" type="number">
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.uploadDiskConcurrency')"></span>
+                    </div>
+                </fieldset>
+
+                <hr/>
             </template>
 
-            <label for="spec.storage.type">Storage Type <span class="req">*</span></label>
-            <select v-model="backupConfigStorageType" data-field="spec.storage.type" required>
-                <option disabled value="">Select Storage Type</option>
-                <option value="s3">Amazon S3</option>
-                <option value="s3Compatible">Amazon S3 - API Compatible</option>
-                <option value="gcs">Google Cloud Storage</option>
-                <option value="azureBlob">Azure Blob Storage</option>
-            </select>
-            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.type')"></span>
+            <fieldset class="step active">
+                <h3>Storage Details</h3>
 
-            <fieldset class="fieldset" v-if="backupConfigStorageType.length">
-                <div class="header">
-                    <h3 v-if="backupConfigStorageType === 's3'">
-                        Amazon S3 Configuration
-                    </h3>
-                    <h3 v-else-if="backupConfigStorageType === 's3Compatible'">
-                        AS3 Compatible Configuration
-                    </h3>
-                    <h3 v-else-if="backupConfigStorageType === 'gcs'">
-                        Google Cloud Storage Configuration
-                    </h3>
-                    <h3 v-else-if="backupConfigStorageType === 'azureBlob'">
-                        Microsoft Azure Configuration
-                    </h3>
-
-                    <label for="advancedModeStorage" :class="(advancedModeStorage) ? 'active' : ''" class="floatRight">
-                        <input v-model="advancedModeStorage" type="checkbox" id="advancedModeStorage"/>
-                        <span>Advanced</span>
-                    </label>
+                <div class="row-50">
+                    <div class="col">
+                        <label for="spec.storage.type">Storage Type <span class="req">*</span></label>
+                        <select v-model="backupConfigStorageType" data-field="spec.storage.type" required>
+                            <option disabled value="">Select Storage Type</option>
+                            <option value="s3">Amazon S3</option>
+                            <option value="s3Compatible">Amazon S3 - API Compatible</option>
+                            <option value="gcs">Google Cloud Storage</option>
+                            <option value="azureBlob">Azure Blob Storage</option>
+                        </select>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.type')"></span>
+                    </div>
                 </div>
-                
 
-                <template v-if="backupConfigStorageType === 's3'">
-                    <label for="spec.storage.s3.bucket">Bucket <span class="req">*</span></label>
-                    <input v-model="backupS3Bucket" data-field="spec.storage.s3.bucket" required>
-                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.bucket')"></span>
+                <fieldset class="fieldset" v-if="backupConfigStorageType.length">
+                    <div class="header">
+                        <h3 v-if="backupConfigStorageType === 's3'">
+                            Amazon S3 Configuration
+                        </h3>
+                        <h3 v-else-if="backupConfigStorageType === 's3Compatible'">
+                            AS3 Compatible Configuration
+                        </h3>
+                        <h3 v-else-if="backupConfigStorageType === 'gcs'">
+                            Google Cloud Storage Configuration
+                        </h3>
+                        <h3 v-else-if="backupConfigStorageType === 'azureBlob'">
+                            Microsoft Azure Configuration
+                        </h3>
 
-                    <template v-if="advancedModeStorage">
-                        <label for="spec.storage.s3.path">Path</label>
-                        <input v-model="backupS3Path" data-field="spec.storage.s3.path">
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.path')"></span>
-
-                        <label for="spec.storage.s3.region">Region</label>
-                        <input v-model="backupS3Region" data-field="spec.storage.s3.region">
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.region')"></span>
-                    </template>
-
-                    <label for="spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId">API Key <span class="req">*</span></label>
-                    <input v-model="backupS3AccessKeyId" required data-field="spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId">
-                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId')"></span>
-
-                    <label for="spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey">API Secret <span class="req">*</span></label>
-                    <input v-model="backupS3SecretAccessKey" required data-field="spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey" type="password">
-                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
-
-                    <template v-if="advancedModeStorage">
-                        <label for="spec.storage.s3.storageClass">Storage Class</label>
-                        <select v-model="backupS3StorageClass" data-field="spec.storage.s3.storageClass">
-                            <option disabled value="">Select Storage Class...</option>
-                            <option value="STANDARD">Standard</option>
-                            <option value="STANDARD_IA">Infrequent Access</option>
-                            <option value="REDUCED_REDUNDANCY">Reduced Redundancy</option>
-                        </select>
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.storageClass')"></span>
-                    </template>
-                </template>
-
-                <template v-if="backupConfigStorageType === 's3Compatible'">
-                    <label for="spec.storage.s3Compatible.bucket">Bucket <span class="req">*</span></label>
-                    <input v-model="backupS3CompatibleBucket" data-field="spec.storage.s3Compatible.bucket" required>
-                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.bucket')"></span>
-
-                    <template v-if="advancedModeStorage">
-                        <label for="spec.storage.s3Compatible.path">Path</label>
-                        <input v-model="backupS3CompatiblePath" data-field="spec.storage.s3Compatible.path">
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.path')"></span>
-
-                        <label for="spec.storage.s3Compatible.endpoint">Endpoint</label>
-                        <input v-model="backupS3CompatibleEndpoint" data-field="spec.storage.s3Compatible.endpoint">
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.endpoint')"></span>
-
-                        <label for="spec.storage.s3Compatible.region">Region</label>
-                        <input v-model="backupS3CompatibleRegion" data-field="spec.storage.s3Compatible.region">
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.region')"></span>
-                    </template>
-
-                    <label for="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId">API Key <span class="req">*</span></label>
-                    <input v-model="backupS3CompatibleAccessKeyId" required data-field="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId">
-                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId')"></span>
-
-                    <label for="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey">API Secret <span class="req">*</span></label>
-                    <input v-model="backupS3CompatibleSecretAccessKey" required data-field="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey" type="password">
-                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
-
-                    <template v-if="advancedModeStorage">
-                        <label for="spec.storage.s3Compatible.enablePathStyleAddressing">Enable Path Style Addressing</label>
-                        <label for="backupS3CompatibleEnablePathStyleAddressing" class="switch">
-                            Bucket URL Force Path Style
-                            <input type="checkbox" id="enablePathStyleAddressing" v-model="backupS3CompatibleEnablePathStyleAddressing" data-switch="OFF" data-field="spec.storage.s3Compatible.enablePathStyleAddressing">
+                        <label for="advancedModeStorage" class="floatRight">
+                            <span>ADVANCED OPTIONS </span>
+                            <input type="checkbox" id="advancedModeStorage" name="advancedModeStorage" v-model="advancedModeStorage" class="switch">
                         </label>
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.enablePathStyleAddressing')"></span>
+                    </div>
                     
-                        <label for="spec.storage.s3Compatible.storageClass">Storage Class</label>
-                        <select v-model="backupS3CompatibleStorageClass" data-field="spec.storage.s3Compatible.storageClass">
-                            <option disabled value="">Select Storage Class...</option>
-                            <option value="STANDARD">Standard</option>
-                            <option value="STANDARD_IA">Infrequent Access</option>
-                            <option value="REDUCED_REDUNDANCY">Reduced Redundancy</option>
-                        </select>
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.storageClass')"></span>
+
+                    <template v-if="backupConfigStorageType === 's3'">
+
+                        <div class="row-50">
+                            <div class="col">
+                                <label for="spec.storage.s3.bucket">Bucket <span class="req">*</span></label>
+                                <input v-model="backupS3Bucket" data-field="spec.storage.s3.bucket" required>
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.bucket')"></span>
+                            </div>
+
+                            
+                            <template v-if="advancedModeStorage">
+                                <div class="col">
+                                    <label for="spec.storage.s3.path">Path</label>
+                                    <input v-model="backupS3Path" data-field="spec.storage.s3.path">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.path')"></span>
+                                </div>
+
+                                <div class="col">
+                                    <label for="spec.storage.s3.region">Region</label>
+                                    <input v-model="backupS3Region" data-field="spec.storage.s3.region">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.region')"></span>
+                                </div>
+                            </template>
+
+                            <div class="col">
+                                <label for="spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId">API Key <span class="req">*</span></label>
+                                <input v-model="backupS3AccessKeyId" required data-field="spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId">
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId')"></span>
+                            </div>
+
+                            <div class="col">
+                                <label for="spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey">API Secret <span class="req">*</span></label>
+                                <input v-model="backupS3SecretAccessKey" required data-field="spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey" type="password">
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
+                            </div>
+
+                            <template v-if="advancedModeStorage">
+                                <div class="col">
+                                    <label for="spec.storage.s3.storageClass">Storage Class</label>
+                                    <select v-model="backupS3StorageClass" data-field="spec.storage.s3.storageClass">
+                                        <option disabled value="">Select Storage Class...</option>
+                                        <option value="STANDARD">Standard</option>
+                                        <option value="STANDARD_IA">Infrequent Access</option>
+                                        <option value="REDUCED_REDUNDANCY">Reduced Redundancy</option>
+                                    </select>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.storageClass')"></span>
+                                </div>
+                            </template>
+                        </div>
                     </template>
 
-                </template>
+                    <template v-if="backupConfigStorageType === 's3Compatible'">
 
-                <template v-if="backupConfigStorageType === 'gcs'">
-                    <label for="spec.storage.gcs.bucket">Bucket <span class="req">*</span></label>
-                    <input v-model="backupGCSBucket" data-field="spec.storage.gcs.bucket" required>
-                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.bucket')"></span>
+                        <div class="row-50">
+                            <div class="col">
+                                <label for="spec.storage.s3Compatible.bucket">Bucket <span class="req">*</span></label>
+                                <input v-model="backupS3CompatibleBucket" data-field="spec.storage.s3Compatible.bucket" required>
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.bucket')"></span>
+                            </div>
 
-                    <template v-if="advancedModeStorage">
-                        <label for="spec.storage.gcs.path">Path</label>
-                        <input v-model="backupGCSPath" data-field="spec.storage.gcs.path">
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.path')"></span>
+                            <template v-if="advancedModeStorage">
+                                
+                                <div class="col">
+                                    <label for="spec.storage.s3Compatible.path">Path</label>
+                                    <input v-model="backupS3CompatiblePath" data-field="spec.storage.s3Compatible.path">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.path')"></span>
+                                </div>
+
+                                <div class="col">
+                                    <label for="spec.storage.s3Compatible.endpoint">Endpoint</label>
+                                    <input v-model="backupS3CompatibleEndpoint" data-field="spec.storage.s3Compatible.endpoint">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.endpoint')"></span>
+                                </div>
+
+                                <div class="col">
+                                    <label for="spec.storage.s3Compatible.region">Region</label>
+                                    <input v-model="backupS3CompatibleRegion" data-field="spec.storage.s3Compatible.region">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.region')"></span>
+                                </div>
+
+                            </template>
+
+                        
+                            <div class="col">
+                                <label for="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId">API Key <span class="req">*</span></label>
+                                <input v-model="backupS3CompatibleAccessKeyId" required data-field="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId">
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId')"></span>
+                            </div>
+
+                            <div class="col">
+                                <label for="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey">API Secret <span class="req">*</span></label>
+                                <input v-model="backupS3CompatibleSecretAccessKey" required data-field="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey" type="password">
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
+                            </div>
+
+                            <template v-if="advancedModeStorage">
+                                <div class="col">
+                                    <label for="spec.storage.s3Compatible.enablePathStyleAddressing">Enable Path Style Addressing</label>
+                                    <label for="backupS3CompatibleEnablePathStyleAddressing" class="switch">
+                                        Bucket URL Force Path Style
+                                        <input type="checkbox" id="enablePathStyleAddressing" v-model="backupS3CompatibleEnablePathStyleAddressing" data-switch="OFF" data-field="spec.storage.s3Compatible.enablePathStyleAddressing">
+                                    </label>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.enablePathStyleAddressing')"></span>
+                                </div>
+
+                                <div class="col">
+                                    <label for="spec.storage.s3Compatible.storageClass">Storage Class</label>
+                                    <select v-model="backupS3CompatibleStorageClass" data-field="spec.storage.s3Compatible.storageClass">
+                                        <option disabled value="">Select Storage Class...</option>
+                                        <option value="STANDARD">Standard</option>
+                                        <option value="STANDARD_IA">Infrequent Access</option>
+                                        <option value="REDUCED_REDUNDANCY">Reduced Redundancy</option>
+                                    </select>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.storageClass')"></span>
+                                </div>
+                            </template>
+                        </div>
                     </template>
 
-                    <label for="spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService">Fetch Credentials from Metadata Service</label>  
-                    <label for="fetchGCSCredentials" class="switch yes-no">Fetch <input type="checkbox" id="fetchGCSCredentials" v-model="fetchGCSCredentials" data-switch="NO"></label>
-                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService')"></span>
+                    <template v-if="backupConfigStorageType === 'gcs'">
+                        <div class="row-50">
+                            <div class="col">
+                                <label for="spec.storage.gcs.bucket">Bucket <span class="req">*</span></label>
+                                <input v-model="backupGCSBucket" data-field="spec.storage.gcs.bucket" required>
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.bucket')"></span>
+                            </div>
 
-                    <template v-if="!fetchGCSCredentials">
-                        <label for="spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON">Service Account JSON <span class="req">*</span></label>
-                        <input id="uploadJSON" type="file" @change="uploadJSON" :required="!editMode" data-field="spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON">
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')"></span>
-                        <textarea id="textJSON" v-model="backupGCSServiceAccountJSON" data-field="spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON" class="hide"></textarea>
+                            <template v-if="advancedModeStorage">
+                                <div class="col">
+                                    <label for="spec.storage.gcs.path">Path</label>
+                                    <input v-model="backupGCSPath" data-field="spec.storage.gcs.path">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.path')"></span>
+                                </div>
+                            </template>
+
+                            <div class="col">
+                                <label for="spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService">Fetch Credentials from Metadata Service</label>  
+                                <label for="fetchGCSCredentials" class="switch yes-no">Fetch <input type="checkbox" id="fetchGCSCredentials" v-model="fetchGCSCredentials" data-switch="NO"></label>
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService')"></span>
+                            </div>
+
+                            <template v-if="!fetchGCSCredentials">
+                                <div class="col">
+                                    <label for="spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON">Service Account JSON <span class="req">*</span></label>
+                                    <input id="uploadJSON" type="file" @change="uploadJSON" :required="!editMode" data-field="spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')"></span>
+                                    <textarea id="textJSON" v-model="backupGCSServiceAccountJSON" data-field="spec.storage.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON" class="hide"></textarea>
+                                </div>
+                            </template>
+                        </div>
                     </template>
-                </template>
 
-                <template v-if="backupConfigStorageType === 'azureBlob'">
-                    <label for="spec.storage.azureBlob.bucket">Bucket <span class="req">*</span></label>
-                    <input v-model="backupAzureBucket" data-field="spec.storage.azureBlob.bucket" required>
-                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.bucket')"></span>
-
-                    <template v-if="advancedModeStorage">
-                        <label for="spec.storage.azureBlob.path">Path</label>
-                        <input v-model="backupAzurePath" data-field="spec.storage.azureBlob.path">
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.path')"></span>
+                    <template v-if="backupConfigStorageType === 'azureBlob'">
+                        
+                        <div class="row-50">
+                            <div class="col">
+                                <label for="spec.storage.azureBlob.bucket">Bucket <span class="req">*</span></label>
+                                <input v-model="backupAzureBucket" data-field="spec.storage.azureBlob.bucket" required>
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.bucket')"></span>
+                            </div>
+                            
+                            <template v-if="advancedModeStorage">
+                                <div class="col">
+                                    <label for="spec.storage.azureBlob.path">Path</label>
+                                    <input v-model="backupAzurePath" data-field="spec.storage.azureBlob.path">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.path')"></span>
+                                </div>
+                            </template>
+                                
+                            <div class="col">
+                                <label for="spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount">Account Name <span class="req">*</span></label>
+                                <input v-model="backupAzureAccount" required data-field="spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount">
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount')"></span>
+                            </div>
+                                
+                            <div class="col">
+                                <label for="spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey">Account Access Key <span class="req">*</span></label>
+                                <input v-model="backupAzureAccessKey" required data-field="spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey" type="password">
+                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey')"></span>
+                            </div>
+                        </div>
                     </template>
-
-                    <label for="spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount">Account Name <span class="req">*</span></label>
-                    <input v-model="backupAzureAccount" required data-field="spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount">
-                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount')"></span>
-
-                    <label for="spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey">Account Access Key <span class="req">*</span></label>
-                    <input v-model="backupAzureAccessKey" required data-field="spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey" type="password">
-                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey')"></span>
-                </template>
+                </fieldset>
             </fieldset>
 
+            <hr/>
             
             <template v-if="editMode">
-                <button class="btn" @click="createBackupConfig">Update Configuration</button>
+                <button class="btn" type="submit" @click="createBackupConfig()">Update Configuration</button>
             </template>
             <template v-else>
-                <button class="btn" @click="createBackupConfig">Create Configuration</button>
+                <button class="btn" type="submit" @click="createBackupConfig()">Create Configuration</button>
             </template>
 
-            <button class="btn border" @click="cancel">Cancel</button>
-        </div>
-    </form>
+            <button class="btn border" @click="cancel()">Cancel</button>
+
+            <button type="button" class="btn floatRight" @click="createBackupConfig(true)">View Summary</button>
+        </form>
+
+        <CRDSummary :crd="previewCRD" kind="SGBackupConfig" v-if="showSummary" @closeSummary="showSummary = false"></CRDSummary>
+    </div>
 </template>
 
 <script>
@@ -310,11 +391,16 @@
     import router from '../../router'
     import store from '../../store'
     import axios from 'axios'
+    import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
         name: 'CreateBackupConfig',
 
         mixins: [mixin],
+
+        components: {
+            CRDSummary
+        },
 
         data: function() {
             
@@ -323,22 +409,22 @@
             return {
                 editMode: (vm.$route.name === 'EditBackupConfig'),
                 editReady: false,
+                previewCRD: {},
+                showSummary: false,
                 advancedMode: false,
                 advancedModeStorage: false,
                 backupConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 backupConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 backupConfigCompressionMethod: 'lz4',
-                backupConfigFullSchedule: '*/2 * * * *',
-                backupConfigFullScheduleMin: '*/2',
-                backupConfigFullScheduleHour: '*',
+                backupConfigFullSchedule: '0 5 * * *',
+                backupConfigFullScheduleMin: '0',
+                backupConfigFullScheduleHour: '5',
                 backupConfigFullScheduleDOM: '*',
                 backupConfigFullScheduleMonth: '*',
                 backupConfigFullScheduleDOW: '*',
                 backupConfigRetention: 5,
-                backupConfigTarSizeThreshold: 1,
-                backupConfigTarSizeThresholdUnit: 1073741824,
-                backupConfigMaxNetworkBandwitdh: '',
-                backupConfigMaxDiskBandwitdh: '',
+                backupConfigMaxNetworkBandwidth: '',
+                backupConfigMaxDiskBandwidth: '',
                 backupConfigUploadDiskConcurrency: 1,
                 backupConfigStorageType: '',
                 backupS3Bucket: '',
@@ -368,13 +454,6 @@
                 
         },
         computed: {
-            allNamespaces () {
-                return store.state.allNamespaces
-            },
-
-            tooltipsText() {
-                return store.state.tooltipsText
-            },
 
             nameColission() {
 
@@ -397,30 +476,6 @@
                 if( vm.editMode && !vm.editReady ) {
                     store.state.backupConfig.forEach(function( config ){
                         if( (config.data.metadata.name === vm.$route.params.name) && (config.data.metadata.namespace === vm.$route.params.namespace) ) {
-                            
-                            let tresholdSize = vm.formatBytes(config.data.spec.tarSizeThreshold);
-                            let tresholdUnit = '';            
-                            let unitSizes = {
-                                "Ki": 1024, 
-                                "Mi": 1048576,
-                                "Gi": 1073741824,
-                                "Ti": 1099511627776,
-                                "Pi": 1125899906842624,
-                                "Ei": 1152921504606846976,
-                                "Zi": 1180591620717411303424,
-                                "Yi": 1208925819614629174706176
-                            };
-                            
-                            $.each( unitSizes, function( index, value ){
-                                if( tresholdSize.match(/[a-zA-Z]+/g)[0] === index ) {
-                                    tresholdUnit = value;
-                                    return false;
-                                }
-                            });
-                            
-                            // console.log(tresholdSize);
-                            // console.log(tresholdSize.match(/[a-zA-Z]+/g));
-                            // console.log(tresholdSize.match(/[a-zA-Z]+/g)[0]);
         
                             // Cron to Human
                             let cron = vm.tzCrontab(config.data.spec.baseBackups.cronSchedule).split(" ");
@@ -434,10 +489,8 @@
                             vm.backupConfigFullScheduleDOW = cron[4];
                             //backupConfigFullWindow = config.data.spec.fullWindow;
                             vm.backupConfigRetention = config.data.spec.baseBackups.retention;
-                            vm.backupConfigTarSizeThreshold = tresholdSize.match(/\d+/g);
-                            vm.backupConfigTarSizeThresholdUnit = tresholdUnit;
-                            vm.backupConfigMaxNetworkBandwitdh = vm.hasProp(config, 'data.spec.baseBackups.performance.maxNetworkBandwitdh') ? config.data.spec.baseBackups.performance.maxNetworkBandwitdh : '';
-                            vm.backupConfigMaxDiskBandwitdh = vm.hasProp(config, 'data.spec.baseBackups.performance.maxDiskBandwitdh') ? config.data.spec.baseBackups.performance.maxDiskBandwitdh : ''; 
+                            vm.backupConfigMaxNetworkBandwidth = vm.hasProp(config, 'data.spec.baseBackups.performance.maxNetworkBandwitdh') ? config.data.spec.baseBackups.performance.maxNetworkBandwitdh : '';
+                            vm.backupConfigMaxDiskBandwidth = vm.hasProp(config, 'data.spec.baseBackups.performance.maxDiskBandwitdh') ? config.data.spec.baseBackups.performance.maxDiskBandwitdh : ''; 
                             vm.backupConfigUploadDiskConcurrency = vm.hasProp(config, 'data.spec.baseBackups.performance.uploadDiskConcurrency') ? config.data.spec.baseBackups.performance.uploadDiskConcurrency : 1;
                             vm.backupConfigStorageType = config.data.spec.storage.type;
         
@@ -501,7 +554,7 @@
         methods: {
 
             
-            createBackupConfig: function(e) {
+            createBackupConfig(preview = false) {
                 const vc = this;
 
                 if(vc.checkRequired()) {
@@ -587,60 +640,70 @@
                                 "cronSchedule": this.tzCrontab(this.backupConfigFullScheduleMin+' '+this.backupConfigFullScheduleHour+' '+this.backupConfigFullScheduleDOM+' '+this.backupConfigFullScheduleMonth+' '+this.backupConfigFullScheduleDOW, false),
                                 "retention": this.backupConfigRetention,
                                 ...( ((typeof this.backupConfigCompressionMethod !== 'undefined') && this.backupConfigCompressionMethod.length ) && ( {"compression": this.backupConfigCompressionMethod }) ),
-                                "performance": {
-                                    "uploadDiskConcurrency": this.backupConfigUploadDiskConcurrency,
-                                    "maxNetworkBandwitdh": this.backupConfigMaxNetworkBandwitdh,
-                                    "maxDiskBandwitdh": this.backupConfigMaxDiskBandwitdh
-                                }
+                                ...( (this.backupConfigUploadDiskConcurrency.length || this.backupConfigMaxNetworkBandwidth.length || this.backupConfigMaxDiskBandwidth.length ) && ({
+                                    "performance": {
+                                        ...( this.backupConfigUploadDiskConcurrency.length && { "uploadDiskConcurrency": this.backupConfigUploadDiskConcurrency } ),
+                                        ...( this.backupConfigMaxNetworkBandwidth.length && { "maxNetworkBandwitdh": this.backupConfigMaxNetworkBandwidth }),
+                                        ...( this.backupConfigMaxDiskBandwidth.length && { "maxDiskBandwitdh": this.backupConfigMaxDiskBandwidth } )
+                                    }
+                                }) )
                             },
                             "storage": storage
                         }
                     }
 
-                    //console.log(config)
+                    if(preview) {
 
-                    if(this.editMode) {
-                        
-                        const res = axios
-                        .put(
-                            '/stackgres/sgbackupconfigs', 
-                            config 
-                        )
-                        .then(function (response) {
-                            vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgbackupconfigs');
-
-                            vc.fetchAPI('sgbackupconfig');
-                            router.push('/' + config.metadata.namespace + '/sgbackupconfig/' + config.metadata.name);
-                        })
-                        .catch(function (error) {
-                            console.log(error.response);
-                            vc.notify(error.response.data,'error','sgbackupconfigs');
-                        });
+                        vc.previewCRD = {};
+                        vc.previewCRD['data'] = config;
+                        vc.showSummary = true;
 
                     } else {
-                        const res = axios
-                        .post(
-                            '/stackgres/sgbackupconfigs', 
-                            config 
-                        )
-                        .then(function (response) {
-                            
-                            var urlParams = new URLSearchParams(window.location.search);
-                            if(urlParams.has('newtab')) {
-                                opener.fetchParentAPI('sgbackupconfigs');
-                                vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgbackupconfigs');
-                            } else {
-                                vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgbackupconfigs');
-                            }
 
-                            vc.fetchAPI('sgbackupconfig');
-                            router.push('/' + config.metadata.namespace + '/sgbackupconfigs');
+                        if(this.editMode) {
                             
-                        })
-                        .catch(function (error) {
-                            console.log(error.response);
-                            vc.notify(error.response.data,'error','sgbackupconfigs');
-                        });
+                            const res = axios
+                            .put(
+                                '/stackgres/sgbackupconfigs', 
+                                config 
+                            )
+                            .then(function (response) {
+                                vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgbackupconfigs');
+
+                                vc.fetchAPI('sgbackupconfig');
+                                router.push('/' + config.metadata.namespace + '/sgbackupconfig/' + config.metadata.name);
+                            })
+                            .catch(function (error) {
+                                console.log(error.response);
+                                vc.notify(error.response.data,'error','sgbackupconfigs');
+                            });
+
+                        } else {
+                            const res = axios
+                            .post(
+                                '/stackgres/sgbackupconfigs', 
+                                config 
+                            )
+                            .then(function (response) {
+                                
+                                var urlParams = new URLSearchParams(window.location.search);
+                                if(urlParams.has('newtab')) {
+                                    opener.fetchParentAPI('sgbackupconfigs');
+                                    vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgbackupconfigs');
+                                } else {
+                                    vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgbackupconfigs');
+                                }
+
+                                vc.fetchAPI('sgbackupconfig');
+                                router.push('/' + config.metadata.namespace + '/sgbackupconfigs');
+                                
+                            })
+                            .catch(function (error) {
+                                console.log(error.response);
+                                vc.notify(error.response.data,'error','sgbackupconfigs');
+                            });
+                        }
+
                     }
 
                 }
@@ -671,21 +734,19 @@
             }
 
         },
-        created: function() {
-
-
-        },
-
-        mounted: function() {
-        },
-
-        beforeDestroy: function() {
-            store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.');
-        }
     }
 </script>
 
 <style scoped>
+    .cron > .col:not(:last-child) {
+        margin-right: 1.25%;
+    }
+
+    .cron > .col {
+        width: 19%;
+        float: left;
+    }
+
     .cron a.help {
         margin-top: 0;
     }

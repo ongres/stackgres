@@ -1,5 +1,5 @@
 <template>
-    <form id="create-profile" v-if="loggedIn && isReady && !notFound" @submit.prevent>
+    <div id="create-profile" class="createProfile noSubmit" v-if="loggedIn && isReady && !notFound">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
@@ -26,58 +26,69 @@
             </div>
         </header>
 
-        <div class="form crdForm">
+        <form id="createProfile" class="form" @submit.prevent>
             <div class="header">
                 <h2>Instance Profile Details</h2>
             </div>
 
-            <label for="metadata.name">Profile Name <span class="req">*</span></label>
-            <input v-model="profileName" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
-            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgprofile.metadata.name')"></span>
-
-            <span class="warning" v-if="nameColission && !editMode">
-                There's already a <strong>SGInstanceProfile</strong> with the same name on this namespace. Please specify a different name or create the profile on another namespace
-            </span>
-
+            <div class="row-50">
+                <div class="col">
+                    <label for="metadata.name">Profile Name <span class="req">*</span></label>
+                    <input v-model="profileName" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgprofile.metadata.name')"></span>
+                </div>
             
-            <div class="unit-select">
-                <label for="spec.memory">RAM <span class="req">*</span></label>
-                <input v-model="profileRAM" class="size" required data-field="spec.memory" type="number" min="0">
+                <div class="col">
+                    <div class="unit-select">
+                        <label for="spec.memory">RAM <span class="req">*</span></label>
+                        <input v-model="profileRAM" class="size" required data-field="spec.memory" type="number" min="0">
 
-                <select v-model="profileRAMUnit" class="unit" required data-field="spec.memory">
-                    <option value="Mi">MiB</option>
-                    <option value="Gi" selected>GiB</option>
-                </select>
-                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgprofile.spec.memory')"></span>
-            </div>
+                        <select v-model="profileRAMUnit" class="unit" required data-field="spec.memory">
+                            <option value="Mi">MiB</option>
+                            <option value="Gi" selected>GiB</option>
+                        </select>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgprofile.spec.memory')"></span>
+                    </div>
+                </div>
 
-            <div class="unit-select">
-                <label for="spec.cpu">CPU <span class="req">*</span></label>
-                <input v-model="profileCPU" class="size" required data-field="spec.cpu" type="number" min="0">
+                <span class="warning topLeft" v-if="nameColission && !editMode">
+                    There's already a <strong>SGInstanceProfile</strong> with the same name on this namespace. Please specify a different name or create the profile on another namespace
+                </span>
 
-                <select v-model="profileCPUUnit" class="unit" required data-field="spec.cpu">
-                    <option selected>CPU</option>
-                    <option value="m">millicpu</option>
-                </select>
-                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgprofile.spec.cpu')"></span>
+                <div class="col">
+                    <div class="unit-select">
+                        <label for="spec.cpu">CPU <span class="req">*</span></label>
+                        <input v-model="profileCPU" class="size" required data-field="spec.cpu" type="number" min="0">
+
+                        <select v-model="profileCPUUnit" class="unit" required data-field="spec.cpu">
+                            <option selected>CPU</option>
+                            <option value="m">millicpu</option>
+                        </select>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgprofile.spec.cpu')"></span>
+                    </div>
+                </div>
             </div>
                                 
-
+            <hr/>
+            
             <template v-if="editMode">
                 <template v-if="profileClusters.length">
                     <br/><br/>
                     <span class="warning">Please, be aware that any changes made to this instance profile will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance on the following {{ (profileClusters.length > 1) ? 'clusters' : 'cluster' }}: <strong>{{ profileClusters.join(", ") }}</strong> </span>
                 </template>
 
-                <button class="btn" @click="createProfile">Update Profile</button>
+                <button class="btn" type="submit" @click="createProfile()">Update Profile</button>
             </template>
             <template v-else>
-                <button class="btn" @click="createProfile">Create Profile</button>
+                <button class="btn" type="submit" @click="createProfile()">Create Profile</button>
             </template>
 
             <button @click="cancel" class="btn border">Cancel</button>
-        </div>
-    </form>
+
+            <button type="button" class="btn floatRight" @click="createProfile(true)">View Summary</button>
+        </form>
+        <CRDSummary :crd="previewCRD" kind="SGInstanceProfile" v-if="showSummary" @closeSummary="showSummary = false"></CRDSummary>
+    </div>
 </template>
 
 <script>
@@ -85,11 +96,16 @@
     import router from '../../router'
     import store from '../../store'
     import axios from 'axios'
+    import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
         name: 'CreateProfile',
 
         mixins: [mixin],
+
+        components: {
+			CRDSummary
+		},
         
         data: function() {
 
@@ -98,6 +114,8 @@
             return {
                 editMode: (vm.$route.name === 'EditProfile'),
                 editReady: false,
+                previewCRD: {},
+                showSummary: false,
                 profileName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 profileNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 profileCPU: '',
@@ -155,7 +173,7 @@
         },
         methods: {
 
-            createProfile: function(e) {
+            createProfile(preview = false) {
                 const vc = this;
 
                 if(vc.checkRequired()) {
@@ -171,67 +189,64 @@
                         }
                     }
 
-                    if(this.editMode) {
-                        axios
-                        .put(
-                            '/stackgres/sginstanceprofiles', 
-                            profile 
-                        )
-                        .then(function (response) {
-                            vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> updated successfully', 'message','sginstanceprofiles');
+                    if(preview) {                  
 
-                            vc.fetchAPI('sginstanceprofile');
-                            router.push('/' + profile.metadata.namespace + '/sginstanceprofile/' + profile.metadata.name);
-
-                        })
-                        .catch(function (error) {
-                            console.log(error.response);
-                            vc.notify(error.response.data,'error','sginstanceprofiles');
-                        });
+                        vc.previewCRD = {};
+                        vc.previewCRD['data'] = profile;
+                        vc.showSummary = true;
 
                     } else {
-                        axios
-                        .post(
-                            '/stackgres/sginstanceprofiles', 
-                            profile 
-                        )
-                        .then(function (response) {
 
-                            var urlParams = new URLSearchParams(window.location.search);
-                            if(urlParams.has('newtab')) {
-                                opener.fetchParentAPI('sginstanceprofile');
-                                vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your profile from the list.', 'message','sginstanceprofiles');
-                            } else {
-                                vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message','sginstanceprofiles');
-                            }
+                        if(this.editMode) {
+                            axios
+                            .put(
+                                '/stackgres/sginstanceprofiles', 
+                                profile 
+                            )
+                            .then(function (response) {
+                                vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> updated successfully', 'message','sginstanceprofiles');
 
-                            vc.fetchAPI('sginstanceprofiles');
-                            router.push('/' + profile.metadata.namespace + '/sginstanceprofiles');
-            
-                        })
-                        .catch(function (error) {
-                            console.log(error.response);
-                            vc.notify(error.response.data,'error','sginstanceprofiles');
-                        });
+                                vc.fetchAPI('sginstanceprofile');
+                                router.push('/' + profile.metadata.namespace + '/sginstanceprofile/' + profile.metadata.name);
 
-                    }
-        
+                            })
+                            .catch(function (error) {
+                                console.log(error.response);
+                                vc.notify(error.response.data,'error','sginstanceprofiles');
+                            });
+
+                        } else {
+                            axios
+                            .post(
+                                '/stackgres/sginstanceprofiles', 
+                                profile 
+                            )
+                            .then(function (response) {
+
+                                var urlParams = new URLSearchParams(window.location.search);
+                                if(urlParams.has('newtab')) {
+                                    opener.fetchParentAPI('sginstanceprofile');
+                                    vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your profile from the list.', 'message','sginstanceprofiles');
+                                } else {
+                                    vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message','sginstanceprofiles');
+                                }
+
+                                vc.fetchAPI('sginstanceprofiles');
+                                router.push('/' + profile.metadata.namespace + '/sginstanceprofiles');
+                
+                            })
+                            .catch(function (error) {
+                                console.log(error.response);
+                                vc.notify(error.response.data,'error','sginstanceprofiles');
+                            });
+
+                        }
+                    }        
                     
                 }
 
             }
-        },
-        created: function() {
-            
-
-        },
-
-        mounted: function() {
-        
-        },
-
-        beforeDestroy: function() {
-            store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.');
         }
+
     }
 </script>

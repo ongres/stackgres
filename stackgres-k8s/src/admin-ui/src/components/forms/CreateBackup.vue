@@ -1,5 +1,5 @@
 <template>
-    <form id="create-backup" v-if="loggedIn && isReady && !notFound" @submit.prevent>
+    <div id="create-backup" v-if="loggedIn && isReady && !notFound">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(backup).length > 0"></template>
         <header>
@@ -39,42 +39,58 @@
             </div>
         </header>
                 
-        <div class="form crdForm">
+        <form id="createBackup" class="form" @submit.prevent>
             <div class="header">
                 <h2>Backup Details</h2>
             </div>
             
-            <label for="spec.sgCluster">Backup Cluster <span class="req">*</span></label>
-            <select v-model="backupCluster" :disabled="(editMode)" required data-field="spec.sgCluster">
-                <option disabled value="">Choose a Cluster</option>
-                <template v-for="cluster in allClusters">
-                    <option v-if="cluster.data.metadata.namespace == backupNamespace">{{ cluster.data.metadata.name }}</option>
-                </template>
-            </select>
-            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackup.spec.sgCluster')"></span>
+            <div class="row-50">
+                <div class="col">
+                    <label for="metadata.name">Backup Name <span class="req">*</span></label>
+                    <input v-model="backupName" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackup.metadata.name')"></span>
+                </div>
 
-            <label for="metadata.name">Backup Name <span class="req">*</span></label>
-            <input v-model="backupName" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
-            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackup.metadata.name')"></span>
+                <div class="col">
+                    <label for="spec.sgCluster">Backup Cluster <span class="req">*</span></label>
+                    <select v-model="backupCluster" :disabled="(editMode)" required data-field="spec.sgCluster">
+                        <option disabled value="">Choose a Cluster</option>
+                        <template v-for="cluster in allClusters">
+                            <option v-if="cluster.data.metadata.namespace == backupNamespace">{{ cluster.data.metadata.name }}</option>
+                        </template>
+                    </select>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackup.spec.sgCluster')"></span>
+                </div>
 
-            <span class="warning" v-if="nameColission && !editMode">
-                There's already a <strong>SGBackup</strong> with the same name on this namespace. Please specify a different name or create the backup on another namespace
-            </span>
+                <span class="warning" v-if="nameColission && !editMode">
+                    There's already a <strong>SGBackup</strong> with the same name on this namespace. Please specify a different name or create the backup on another namespace
+                </span>
 
-            <label for="spec.managedLifecycle">Managed Lifecycle</label>  
-            <label for="permanent" class="switch yes-no" data-field="spec.managedLifecycle">Managed <input type="checkbox" id="permanent" v-model="managedLifecycle" data-switch="NO"></label>
-            <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackup.spec.managedLifecycle')"></span>
+                <div class="col">
+                    <label for="spec.managedLifecycle">Managed Lifecycle</label>  
+                    <label for="permanent" class="switch yes-no" data-field="spec.managedLifecycle">Managed 
+                        <input type="checkbox" id="permanent" v-model="managedLifecycle" data-switch="NO">
+                    </label>
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackup.spec.managedLifecycle')"></span>
+                </div>
+            </div>
+
+            <hr/>
             
             <template v-if="editMode">
-                <button class="btn" @click="createBackup">Update Backup</button>
+                <button type="submit" class="btn" @click="createBackup()">Update Backup</button>
             </template>
             <template v-else>
-                <button class="btn" @click="createBackup">Create Backup</button>
+                <button type="submit" class="btn" @click="createBackup()">Create Backup</button>
             </template>
 
-            <button class="btn border" @click="cancel">Cancel</button>
-        </div>
-    </form>
+            <button class="btn border" @click="cancel()">Cancel</button>
+            
+            <button type="button" class="btn floatRight" @click="createBackup(true)">View Summary</button>
+        </form>
+       
+        <CRDSummary :crd="previewCRD" kind="SGBackup" v-if="showSummary" @closeSummary="showSummary = false"></CRDSummary>
+    </div>
 </template>
 
 <script>
@@ -82,11 +98,16 @@
     import router from '../../router'
     import store from '../../store'
     import axios from 'axios'
+    import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
         name: 'CreateBackup',
 
         mixins: [mixin],
+
+        components: {
+            CRDSummary
+        },
 
         data: function() {
 
@@ -96,23 +117,18 @@
                 editMode: vm.$route.name.includes('Edit'),
                 editReady: false,
                 advancedMode: false,
+                previewCRD: {},
+                showSummary: false,
                 backupName: '',
                 backupNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 backupCluster: (vm.$route.params.hasOwnProperty('cluster')) ? vm.$route.params.cluster : '',
-                managedLifecycle: ''
+                managedLifecycle: false
             }
         },
         computed: {
-            allNamespaces () {
-                return store.state.allNamespaces
-            },
 
             allClusters () {
                 return store.state.clusters
-            },
-
-            tooltipsText() {
-                return store.state.tooltipsText
             },
 
             nameColission() {
@@ -148,10 +164,10 @@
                 return backup
             }
         },
+        
         methods: {
 
-            
-            createBackup: function(e) {
+            createBackup(preview = false) {
                 const vc = this;
 
                 if(vc.checkRequired()) {
@@ -168,80 +184,78 @@
                         "status": {}
                     };
 
-                    if(this.editMode) {
-                        const res = axios
-                        .put(
-                            '/stackgres/sgbackups', 
-                            backup 
-                        )
-                        .then(function (response) {
-                            vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message', 'sgbackups');
+                    if(preview) {                  
 
-                            vc.fetchAPI('sgbackup');
-
-                            // If edited backup is not in Pending state, redirect to its details
-                            let bk = store.state.backups.find(b => (b.data.metadata.namespace == backup.metadata.namespace) && (b.data.metadata.name == backup.metadata.name) && vc.hasProp(b, 'data.status.process.status') && (b.data.status.process.status != 'Pending'))
-                            
-                            if( typeof bk != 'undefined') {
-                                if(vc.isCluster) {
-                                    router.push('/' + backup.metadata.namespace + '/sgcluster/' + backup.spec.sgCluster + '/sgbackup/' + backup.metadata.name);
-                                } else {
-                                    router.push('/' + backup.metadata.namespace + '/sgbackup/' + backup.metadata.name);
-                                }
-                            } else {
-                                if(vc.isCluster) {
-                                    router.push('/' + backup.metadata.namespace + '/sgcluster/' + backup.spec.sgCluster + '/sgbackups');
-                                } else {
-                                    router.push('/' + backup.metadata.namespace + '/sgbackup/');
-                                }
-                            }
-                        })
-                        .catch(function (error) {
-                            console.log(error.response);
-                            vc.notify(error.response.data,'error', 'sgbackups');
-                        });
+                        vc.previewCRD = {};
+                        vc.previewCRD['data'] = backup;
+                        vc.showSummary = true;
 
                     } else {
-                        const res = axios
-                        .post(
-                            '/stackgres/sgbackups', 
-                            backup 
-                        )
-                        .then(function (response) {
 
-                            var urlParams = new URLSearchParams(window.location.search);
-                            if(urlParams.has('newtab')) {
-                                opener.fetchParentAPI('sgbackups');
-                                vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully! You must wait for the backup to be completed before you can choose it from the list.<br/><br/>You may now close this window.', 'message','sgbackups');
-                            } else {
-                                vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully.', 'message', 'sgbackups');
-                            }
+                        if(this.editMode) {
+                            const res = axios
+                            .put(
+                                '/stackgres/sgbackups', 
+                                backup 
+                            )
+                            .then(function (response) {
+                                vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message', 'sgbackups');
 
-                            vc.fetchAPI('sgbackup');
-                            router.push('/' + backup.metadata.namespace + '/sgbackups');
-                        })
-                        .catch(function (error) {
-                            console.log(error.response);
-                            vc.notify(error.response.data,'error', 'sgbackups');
-                        });
+                                vc.fetchAPI('sgbackup');
+
+                                // If edited backup is not in Pending state, redirect to its details
+                                let bk = store.state.backups.find(b => (b.data.metadata.namespace == backup.metadata.namespace) && (b.data.metadata.name == backup.metadata.name) && vc.hasProp(b, 'data.status.process.status') && (b.data.status.process.status != 'Pending'))
+                                
+                                if( typeof bk != 'undefined') {
+                                    if(vc.isCluster) {
+                                        router.push('/' + backup.metadata.namespace + '/sgcluster/' + backup.spec.sgCluster + '/sgbackup/' + backup.metadata.name);
+                                    } else {
+                                        router.push('/' + backup.metadata.namespace + '/sgbackup/' + backup.metadata.name);
+                                    }
+                                } else {
+                                    if(vc.isCluster) {
+                                        router.push('/' + backup.metadata.namespace + '/sgcluster/' + backup.spec.sgCluster + '/sgbackups');
+                                    } else {
+                                        router.push('/' + backup.metadata.namespace + '/sgbackup/');
+                                    }
+                                }
+                            })
+                            .catch(function (error) {
+                                console.log(error.response);
+                                vc.notify(error.response.data,'error', 'sgbackups');
+                            });
+
+                        } else {
+                            const res = axios
+                            .post(
+                                '/stackgres/sgbackups', 
+                                backup 
+                            )
+                            .then(function (response) {
+
+                                var urlParams = new URLSearchParams(window.location.search);
+                                if(urlParams.has('newtab')) {
+                                    opener.fetchParentAPI('sgbackups');
+                                    vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully! You must wait for the backup to be completed before you can choose it from the list.<br/><br/>You may now close this window.', 'message','sgbackups');
+                                } else {
+                                    vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> started successfully.', 'message', 'sgbackups');
+                                }
+
+                                vc.fetchAPI('sgbackup');
+                                router.push('/' + backup.metadata.namespace + '/sgbackups');
+                            })
+                            .catch(function (error) {
+                                console.log(error.response);
+                                vc.notify(error.response.data,'error', 'sgbackups');
+                            });
+                        }
                     }
 
                 }
 
             }
-        },
-        created: function() {
-            
-
-        },
-
-        mounted: function() {
-        
-        },
-
-        beforeDestroy: function() {
-            store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.');
         }
+
     }
 
 </script>
