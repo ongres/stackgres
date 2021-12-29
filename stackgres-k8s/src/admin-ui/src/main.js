@@ -5,7 +5,6 @@ import store from './store'
 import moment from 'moment'
 import page from 'v-page';
 
-
 Vue.config.productionTip = false
 
 // Include jQuery
@@ -153,9 +152,6 @@ const vm = new Vue({
   }
 }).$mount('#app')
 
-
-var apiData = []
-
 var urlParams = new URLSearchParams(window.location.search);
 
 // Check URL Params
@@ -235,62 +231,6 @@ function getCookie(cname) {
     }
   }
   return "";
-}
-
-function arraysMatch (arr1, arr2) {
-
-  // Check if the arrays are the same length
-  if (arr1.length !== arr2.length) return false;
-
-  // Check if all items exist and are in the same order
-  for (var i = 0; i < arr1.length; i++) {
-    if (arr1[i] !== arr2[i]) return false;
-  }
-
-  // Otherwise, return true
-  return true;
-
-}
-
-function checkData (newData, currentData) {
-  return (JSON.stringify(newData) != JSON.stringify(currentData))
-}
-
-function trimString(string) {
-  return string.trim();
-}
-
-function getJSON( value ) {
-  //e.preventDefault();
-  var text = value.split("\n").map(trimString);
-  var json = {};
-
-  text.forEach(function(e, i, a){
-    var param = e.split("=").map(trimString);
-    json[''+param[0].toString()+''] = param[1];
-  });
-
-  // alert(json);
-  // console.log(json);
-  
-  return(json);
-}
-
-function discoverText(e) {
-  var search = $("#keyword").val();
-  console.log(search);
-
-  if (/[a-zA-Z]/.test(search) || e.keyCode == "8" || e.keyCode == "46") {
-      
-      $("table tr").each(function () {
-
-          if ( ($(this).text().toLowerCase().indexOf(search.toLowerCase()) !== -1) )
-              $(this).fadeIn();
-          else
-              $(this).fadeOut();
-
-      });
-  }
 }
 
 /* jQuery Init */
