@@ -523,7 +523,62 @@
 				if(store.state.loginToken.length > 0)
 					vc.fetchAPI();
 			}.bind(this), 10000);
+		},
+
+		created() {
+
+			const vc = this;
+			
+			// Axios Error Interceptor
+			let reportIssue = '<br/>If the problem persists, feel free to <a href="https://gitlab.com/ongresinc/stackgres/-/issues/new" target="_blank">report an issue</a>.'
+			let refreshPage = ' Please refresh the page and try again.';
+			let errorMessages = {
+				'400': 'The server could not process your request.',
+				'401': 'It seems you\'re not authenticated and we couldn\'t handle your request.',
+				'403': 'It seems you\'re not autorized to access the requested information.',
+				'404': 'The resource you are trying to access could not be found.',
+				'405': 'Your request could not be processed with the specified method.',
+				'406': 'The server could not find any response that matches your request.',
+				'407': 'It seems you\'re not authenticated to your proxy server, we couldn\'t handle your request.',
+				'408': 'A response from the server could not be obtained on time.',
+				//'409': 'It seems your request produced some conflicts with the server\'s resources.',
+				'410': 'The resource you are trying to access has been deleted from the server.',
+				'413': 'The data included on your request is too big to be processed by the server.',
+				'414': 'It seems the requested URL is too long to be processed by the server.',
+				'415': 'The servers does not support the provided media type.',
+				'429': 'Too many requests have been sent according to the server\'s usage limitations.',
+				'500': 'An internal server error has been encountered when trying to access your data.',
+				'501': 'The method provided on your request is not available at the time.',
+				'502': 'There was an error when trying to access the information from an external source.',
+				'503': 'The server is temporarily unavailable and your request could not be processed.',
+				'504': 'A response from the server could not be obtained on time.'
+			}
+
+			axios.interceptors.response.use(function (response) {
+				// If everything works well, process the response
+				return response;
+			}, function (error) {
+
+				// If there's an error on the request, notify the user in the best possible way
+				if(error.hasOwnProperty('response')) {
+					let errorCode = error.response.status;
+					let errorTitle = error.response.statusText;
+					let errorDetail = (error.response.data.hasOwnProperty('detail') ? ('<strong>Details:</strong><br/>' + error.response.data.detail) : '');
+
+					if(errorMessages.hasOwnProperty(errorCode)) {
+						vc.notify({
+							...(errorTitle.length && { 
+								title: errorTitle
+							}),
+							detail: errorMessages[errorCode] + refreshPage + '<br/><hr/><br/><p>' + errorDetail + '</p><p>' + reportIssue + '</p>'
+						}, 'error');
+					}
+				}
+				return Promise.reject(error);
+			});
 		}
+
+
 	}
 </script>
 
