@@ -3023,6 +3023,7 @@ th.actions, td.actions {
 td.actions a {
     margin: 0 5px;
     cursor: pointer;
+    top: 0;
 }
 
 .actions svg path {
