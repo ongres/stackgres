@@ -90,13 +90,13 @@
 											</router-link>
 										</td>
 										<td class="cpu textRight">
-											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor" v-if="hasProp(cluster,'status.cpuRequested')">
-												{{ cluster.status.cpuRequested }}
+											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
+												<span>{{ hasProp(cluster,'status.cpuRequested') ? cluster.status.cpuRequested : ''}}</span>
 											</router-link>
 										</td>
 										<td class="ram textRight">
-											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor" v-if="hasProp(cluster,'status.memoryRequested')">
-												{{ cluster.status.memoryRequested.replace('.00','') }}
+											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
+												<span>{{ hasProp(cluster,'status.memoryRequested') ? cluster.status.memoryRequested.replace('.00','') : '' }}</span>
 											</router-link>
 										</td>
 										<td class="volumeSize textRight">
