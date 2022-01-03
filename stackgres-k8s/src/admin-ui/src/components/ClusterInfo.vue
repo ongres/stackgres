@@ -156,10 +156,14 @@
 	}
 </script>
 
-<style scoped>
+<style>
 	.helpTooltip.alert {
 		position: absolute;
 		right: 30px;
 		top: 11px;
+	}
+
+	table.clusterConfig a > svg {
+		margin-top: 3px;
 	}
 </style>

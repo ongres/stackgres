@@ -188,12 +188,12 @@
                                         </span>
                                     </td>
                                     <td class="phase center">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor" :set="opStatus = getOpStatus(op)">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor" :class="getOpStatus(op).toLowerCase()" :set="opStatus = getOpStatus(op)">
                                             <span :class="opStatus">                                            
                                                 {{opStatus }}
                                             </span>
+                                            <span v-if="( hasProp(op, 'data.status.' + op.data.spec.op + '.failure') && (opStatus == 'Failed') )" class="helpTooltip failed onHover" :data-tooltip="op.data.status[op.data.spec.op].failure"></span>
                                         </router-link>
-                                        <span v-if="( hasProp(op, 'data.status.' + op.data.spec.op + '.failure') && (opStatus == 'Failed') )" class="helpTooltip alert" :data-tooltip="op.data.status[op.data.spec.op].failure" :title="op.data.status[op.data.spec.op].failure"></span>
                                     </td>
                                     <td class="targetCluster hasTooltip">
                                         <span>
@@ -1938,9 +1938,16 @@
         margin-top: 25px;
     }
 
-    span.helpTooltip.alert, .darkmode span.helpTooltip.alert {
+    td.phase a.failed {
+        position: relative;
+    }
+
+    span.helpTooltip.failed, .darkmode span.helpTooltip.failed {
         position: absolute;
-        transform: translate(-10px, 6px) scale(.7);
+        width: 10px;
+        height: 10px;
+        left: -3px;
+        top: -2px;
         background: red !important;
         border: 2px solid var(--rowBg);
     }

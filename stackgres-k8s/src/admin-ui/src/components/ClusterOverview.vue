@@ -211,4 +211,8 @@
 		position: relative;
 		top: 1px;
 	}
+
+	td.actions a {
+		top: 7px;
+	}
 </style>
