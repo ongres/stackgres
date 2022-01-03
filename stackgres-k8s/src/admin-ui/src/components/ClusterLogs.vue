@@ -50,6 +50,13 @@
 			</ul>
 		</header>
 
+		<div id="logGraph">
+			<apexchart 
+				:options="graphOptions"
+				:series="graphSeries" height="100%">
+			</apexchart>
+		</div>
+
 		<div class="content noScroll">
 			<div id="logs">
 				<div class="toolbar">
@@ -531,7 +538,68 @@
 
 		data: function() {
 
+			let logTypes = ['PANIC','CRITICAL', 'FATAL', 'LOG', 'ERROR', 'WARNING', 'NOTICE', 'INFO', 'DEBUG'];
+			let logSeries = [];
+
+			logTypes.forEach(function(item) {
+				logSeries.push({
+					name: item,
+					data: Array.from({length: 89}, () => Math.floor(Math.random() * 40))
+				})
+			})
+
+
+
 			return {
+				graphSeries: logSeries,
+				graphOptions: {
+					chart: {
+						type: 'bar',
+						height: '100%',
+						stacked: true,
+						toolbar: {
+							show: false
+						},
+						zoom: {
+							enabled: true
+						},
+						 animations: {
+        					enabled: false,
+						},
+					},
+					dataLabels: {
+						enabled: false,
+					},
+					plotOptions: {
+						bar: {
+							horizontal: false,
+						},
+					},
+					xaxis: {
+						type: 'datetime',
+						categories: ['01/01/2011 GMT', '01/02/2011 GMT', '01/03/2011 GMT', '01/04/2011 GMT',
+							'01/05/2011 GMT', '01/06/2011 GMT', '01/07/2011 GMT', '01/08/2011 GMT', '01/09/2011 GMT', '01/10/2011 GMT',
+							'01/11/2011 GMT', '01/12/2011 GMT', '01/13/2011 GMT', '01/14/2011 GMT', '01/15/2011 GMT', '01/16/2011 GMT',
+							'01/17/2011 GMT', '01/18/2011 GMT', '01/19/2011 GMT', '01/20/2011 GMT', '01/21/2011 GMT', '01/22/2011 GMT',
+							'01/23/2011 GMT', '01/24/2011 GMT', '01/25/2011 GMT', '01/26/2011 GMT', '01/27/2011 GMT', '01/28/2011 GMT',
+							'01/29/2011 GMT', '01/30/2011 GMT', '01/31/2011 GMT', '02/01/2011 GMT', '02/02/2011 GMT', '02/03/2011 GMT', '02/04/2011 GMT',
+							'02/05/2011 GMT', '02/06/2011 GMT', '02/07/2011 GMT', '02/08/2011 GMT', '02/09/2011 GMT', '02/10/2011 GMT',
+							'02/11/2011 GMT', '02/12/2011 GMT', '02/13/2011 GMT', '02/14/2011 GMT', '02/15/2011 GMT', '02/16/2011 GMT',
+							'02/17/2011 GMT', '02/18/2011 GMT', '02/19/2011 GMT', '02/20/2011 GMT', '02/21/2011 GMT', '02/22/2011 GMT',
+							'02/23/2011 GMT', '02/24/2011 GMT', '02/25/2011 GMT', '02/26/2011 GMT', '02/27/2011 GMT', '02/28/2011 GMT',
+							'03/01/2011 GMT', '03/02/2011 GMT', '03/03/2011 GMT', '03/04/2011 GMT',
+							'03/05/2011 GMT', '03/06/2011 GMT', '03/07/2011 GMT', '03/08/2011 GMT', '03/09/2011 GMT', '03/10/2011 GMT',
+							'03/11/2011 GMT', '03/12/2011 GMT', '03/13/2011 GMT', '03/14/2011 GMT', '03/15/2011 GMT', '03/16/2011 GMT',
+							'03/17/2011 GMT', '03/18/2011 GMT', '03/19/2011 GMT', '03/20/2011 GMT', '03/21/2011 GMT', '03/22/2011 GMT',
+							'03/23/2011 GMT', '03/24/2011 GMT', '03/25/2011 GMT', '03/26/2011 GMT', '03/27/2011 GMT', '03/28/2011 GMT',
+							'03/29/2011 GMT', '03/30/2011 GMT'
+							, 
+						],
+					},
+					fill: {
+						opacity: 1
+					}
+				},
 				logs: [],
 				currentSortDir: 'desc',
 				records: 50,
@@ -656,16 +724,30 @@
 			$(document).ready(function(){
 
 				vc.records = parseInt($('.records').height() / 15);
-				vc.getLogs();
+				/* vc.getLogs();
 
 				$(document).on('keyup', 'input.search', function(e){
 					if (e.keyCode === 13)
 						vc.getLogs();
-				});
+				}); */
 				
 				$(document).on('click', '#datePicker', function(){
 					$(this).parent().toggleClass('open');
 				});
+
+				$(document).on('click', '#darkmode', function(){
+					vc.graphOptions = {
+						theme: {
+							mode: $('body').hasClass('darkmode') ? 'dark' : 'light'
+						}
+					}
+				});
+
+				vc.graphOptions = {
+					theme: {
+						mode: document.body.classList.contains('darkmode') ? 'dark' : 'light'
+					}
+				}
 
 			});
 
@@ -1418,6 +1500,24 @@
 
 	.scroller {
 		height: 100%;
+	}
+
+	#logGraph {
+		border-bottom: 1px solid var(--borderColor);
+		height: 360px;
+		padding: 20px 0 30px;
+		display: inline-block;
+		width: 100%;
+		margin-bottom: 30px;	
+	}
+	
+	.apexcharts-canvas > svg {
+		background: transparent !important;
+	}
+
+	span.apexcharts-legend-marker {
+		width: 5px !important;
+		height: 20px !important;
 	}
 
 </style>
