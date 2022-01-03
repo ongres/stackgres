@@ -517,9 +517,10 @@ $(document).ready(function(){
   });
 
   $(document).on('mouseleave', '[data-tooltip]', function(e) {
-    if(!e.target.classList.contains('helpTooltip')) {
+    if(!e.target.classList.contains('helpTooltip') || e.target.classList.contains('onHover')) {
       store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.')
       $('#helpTooltip').removeClass('show').hide()
+      $(e.target).removeClass('show')
     }
   });
   
