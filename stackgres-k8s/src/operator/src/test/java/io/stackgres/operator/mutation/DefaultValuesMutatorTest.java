@@ -50,7 +50,7 @@ public abstract class DefaultValuesMutatorTest
   protected abstract R getDefaultResource();
 
   @Test
-  public void givenAnEmptyConf_itShouldReturnAPatchForEveryDefaultsProperty() {
+  void givenAnEmptyConf_itShouldReturnAPatchForEveryDefaultsProperty() {
 
     T review = getEmptyReview();
 
@@ -63,7 +63,7 @@ public abstract class DefaultValuesMutatorTest
   }
 
   @Test
-  public void givenAConfWithAllDefaultsValuesSettled_itShouldNotReturnAnyPatch() {
+  void givenAConfWithAllDefaultsValuesSettled_itShouldNotReturnAnyPatch() {
 
     T review = getDefaultReview();
 
@@ -74,7 +74,7 @@ public abstract class DefaultValuesMutatorTest
   }
 
   @Test
-  public void returnedOperationsMustBeValidJsonPatches() throws JsonPatchException {
+  void returnedOperationsMustBeValidJsonPatches() throws JsonPatchException {
 
     T review = getEmptyReview();
 

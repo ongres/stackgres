@@ -72,13 +72,13 @@ default_pg_config(){
 
 default_pg_config_update(){
   local DEFAULT_PGCONFIG
-  DEFAULT_PGCONFIG="$(get_default_pgconfig 13 -o jsonpath='{.items[0].metadata.name}')"
+  DEFAULT_PGCONFIG="$(get_default_pgconfig '^postgres-13-generated-from-default-.*$' -o jsonpath='{.items[0].metadata.name}')"
   check_update sgpgconfigs "$DEFAULT_PGCONFIG" '[{"op":"replace", "path": "/spec/postgresql.conf/shared_buffers", "value":"512MB"}]'  
 }
 
 default_pg_config_delete(){
   local DEFAULT_PGCONFIG
-  DEFAULT_PGCONFIG="$(get_default_pgconfig 13 -o jsonpath='{.items[0].metadata.name}')"
+  DEFAULT_PGCONFIG="$(get_default_pgconfig '^postgres-13-generated-from-default-.*$' -o jsonpath='{.items[0].metadata.name}')"
   check_delete sgpgconfigs "$DEFAULT_PGCONFIG"
 }
 

@@ -14,6 +14,8 @@ import com.github.fge.jackson.JacksonUtils;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
+import com.github.fge.jsonpatch.MoveOperation;
+import com.github.fge.jsonpatch.RemoveOperation;
 import com.github.fge.jsonpatch.ReplaceOperation;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
@@ -71,14 +73,20 @@ public interface JsonPatchMutator<T> {
     return operations;
   }
 
-  default JsonPatchOperation applyReplaceValue(JsonPointer basePointer,
-      JsonNode valueNode) {
+  default JsonPatchOperation applyReplaceValue(JsonPointer basePointer, JsonNode valueNode) {
     return new ReplaceOperation(basePointer, valueNode);
   }
 
-  default JsonPatchOperation applyAddValue(JsonPointer basePointer,
-      JsonNode valueNode) {
+  default JsonPatchOperation applyAddValue(JsonPointer basePointer, JsonNode valueNode) {
     return new AddOperation(basePointer, valueNode);
+  }
+
+  default JsonPatchOperation applyMoveValue(JsonPointer from, JsonPointer path) {
+    return new MoveOperation(from, path);
+  }
+
+  default JsonPatchOperation applyRemoveValue(JsonPointer path) {
+    return new RemoveOperation(path);
   }
 
 }
