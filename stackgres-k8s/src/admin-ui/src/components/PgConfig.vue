@@ -146,14 +146,14 @@
 						</table>
 					</div>
 					<div class="paramDetails" v-if="conf.data.status['postgresql.conf'].length">
-						<template v-if="Object.keys(conf.data.status.defaultParameters).length != conf.data.status['postgresql.conf'].length">
+						<template v-if="hasParamsSet(conf)">
 							<h2>
 								Parameters
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresql.conf')"></span>
 							</h2>
 							<table>
 								<tbody>
-									<tr v-for="param in conf.data.status['postgresql.conf']" v-if="!conf.data.status.defaultParameters.hasOwnProperty(param.parameter)">
+									<tr v-for="param in conf.data.status['postgresql.conf']" v-if="(!conf.data.status.defaultParameters.hasOwnProperty(param.parameter) || (conf.data.status.defaultParameters.hasOwnProperty(param.parameter) && (conf.data.status.defaultParameters[param.parameter] != param.value)) )">
 										<td class="label">
 											{{ param.parameter }}
 											<a v-if="(typeof param.documentationLink !== 'undefined')" :href="param.documentationLink" target="_blank" :title="'Read documentation about ' + param.parameter" class="paramDoc">
@@ -175,7 +175,7 @@
 							</h2>
 							<table class="defaultParams">
 								<tbody>
-									<tr v-for="param in conf.data.status['postgresql.conf']" v-if="conf.data.status.defaultParameters.hasOwnProperty(param.parameter)">
+									<tr v-for="param in conf.data.status['postgresql.conf']" v-if="( conf.data.status.defaultParameters.hasOwnProperty(param.parameter) && (conf.data.status.defaultParameters[param.parameter] == param.value))">
 										<td class="label">
 											{{ param.parameter }}
 											<a v-if="(typeof param.documentationLink !== 'undefined')" :href="param.documentationLink" target="_blank" :title="'Read documentation about ' + param.parameter" class="paramDoc"></a>
@@ -225,6 +225,20 @@
 			}
 
 		},
+
+		methods: {
+
+			hasParamsSet(conf) {
+				
+				if(Object.keys(conf.data.status.defaultParameters).length != conf.data.status['postgresql.conf'].length) {
+					return true
+				} else {
+					let setParam = conf.data.status['postgresql.conf'].find(p => ( (conf.data.status.defaultParameters[p.parameter] != p.value) ))
+					return (typeof setParam != 'undefined')
+				}
+			}
+
+		}
 
 	}
 </script>
