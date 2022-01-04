@@ -32,7 +32,7 @@
                             Postgres Flavor
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.flavor')"></span>
                         </td>
-                        <td colspan="3">{{ cluster.data.spec.postgres.flavor }}</td>
+                        <td colspan="3" class="capitalize">{{ hasProp(cluster, 'data.spec.postgres.flavor') ? cluster.data.spec.postgres.flavor : 'vanilla' }}</td>
                     </tr>
                     <tr>
                         <td class="label">
