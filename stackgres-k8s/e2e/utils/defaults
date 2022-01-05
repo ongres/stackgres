@@ -1,29 +1,37 @@
 #!/bin/sh
 get_default_cr(){
-  CRD="$1"
+  local CRD="$1"
   shift 1
 
-  CR_NAME="$(kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" -o json \
-    | jq -r ".items[]|select(.metadata.annotations[\"stackgres.io/operatorVersion\"] == \"$STACKGRES_VERSION\")|.metadata.name" \
-    | head -n 1 )"
+  local CR_NAME
+  CR_NAME="$(kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" -o json)"
+  CR_NAME="$(printf '%s' "$CR_NAME" \
+    | jq -r ".items[]|select(.metadata.annotations[\"stackgres.io/operatorVersion\"] == \"$STACKGRES_VERSION\")|.metadata.name")"
+  CR_NAME="$(printf '%s' "$CR_NAME" \
+    | head -n 1)"
 
   kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" "$@"
 }
 
 get_default_cr_filter(){
-  CRD="$1"
-  FILTER="$2"
+  local CRD="$1"
+  local FILTER="$2"
   shift 2
 
-  CR_NAME="$(kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" -o json \
-    | jq -r ".items[]|select(.metadata.annotations[\"stackgres.io/operatorVersion\"] == \"$STACKGRES_VERSION\")|.metadata.name" \
-    | grep $FILTER | head -n 1 )"
+  local CR_NAME
+  CR_NAME="$(kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" -o json)"
+  CR_NAME="$(printf '%s' "$CR_NAME" \
+    | jq -r ".items[]|select(.metadata.annotations[\"stackgres.io/operatorVersion\"] == \"$STACKGRES_VERSION\")|.metadata.name")"
+  CR_NAME="$(printf '%s' "$CR_NAME" \
+    | grep "$FILTER")"
+  CR_NAME="$(printf '%s' "$CR_NAME" \
+    | head -n 1)"
 
   kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" "$@"
 }
 
 get_default_pgconfig(){
-  FILTER="$1"
+  local FILTER="$1"
   shift 1
   get_default_cr_filter "sgpgconfigs.stackgres.io" "$FILTER" "$@"
 }
@@ -43,9 +51,10 @@ get_default_profile(){
 
 get_generated_cr(){
   local NAMESPACE="${CLUSTER_NAMESPACE:-$OPERATOR_NAMESPACE}"
-  CRD="$1"
+  local CRD="$1"
   shift 1
 
+  local CR_NAME
   CR_NAME="$(kubectl get "$CRD" -n "$NAMESPACE" -o jsonpath='{.items[*].metadata.name}')"
   kubectl get "$CRD" -n "$OPERATOR_NAMESPACE" "$CR_NAME" "$@"
 }
