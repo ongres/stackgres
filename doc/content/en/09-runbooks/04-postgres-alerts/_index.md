@@ -90,6 +90,7 @@ spec:
       labels:
         severity: critical
         service: "PostgreSQL"
+        cluster: "StackGres"
       annotations:
         summary: "Postgres server instance is down"
         description: "Postgres has not been responding for the past 1 minutes on {{ $labels.instance }}"
@@ -100,6 +101,7 @@ spec:
       labels:
         severity: critical
         service: "PostgreSQL"
+        cluster: "StackGres"
       annotations:
         summary: "Postgres Exporter is down or is showing errors"
         description: "postgres-exporter is not running or it is showing errors {{ $labels.instance }}"
@@ -109,6 +111,7 @@ spec:
       labels:
         severity: critical
         service: "PostgreSQL"
+        cluster: "StackGres"
       annotations:
         summary: "Postgres replication lag size is to large"
         description: "Replication lag size on server {{$labels.instance}} ({{$labels.application_name}}) is currently {{ $value | humanize1024}}B behind the leader in cluster {{$labels.cluster_name}}"
@@ -118,6 +121,7 @@ spec:
       labels:
         severity: warning
         service: "PostgreSQL"
+        cluster: "StackGres"
       annotations:
         summary: "PostgreSQL dead tuples is too large"
         description: "The dead tuple ratio of {{$labels.relname}} on database {{$labels.datname}} is greater than 5% in cluster {{$labels.cluster_name}}"
@@ -127,6 +131,7 @@ spec:
       labels:
         severity: warning
         service: "PostgreSQL"
+        cluster: "StackGres"
       annotations:
         summary: "There are inactive replications slots"
         description: "The are some inactive replication slots on {{$labels.instance}} in cluster {{$labels.cluster_name}}"
@@ -136,6 +141,7 @@ spec:
       labels:
         severity: critical
         service: "PostgreSQL"
+        cluster: "StackGres"
       annotations:
         summary: "There are more than one instance in read-write mode"
         description: "Split Brain: too many postgres databases in cluster {{$labels.cluster_name}} in read-write mode"
@@ -144,6 +150,8 @@ spec:
       for: 5m
       labels:
         severity: warning
+        service: "PostgreSQL"
+        cluster: "StackGres"
       annotations:
         summary: Postgresql too many connections (instance {{ $labels.instance }} in cluster {{$labels.cluster_name}})
         description: "PostgreSQL instance has too many connections\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
@@ -152,6 +160,8 @@ spec:
       for: 5m
       labels:
         severity: warning
+        service: "PostgreSQL"
+        cluster: "StackGres"
       annotations:
         summary: Postgresql not enough connections (instance {{ $labels.instance }} in cluster {{$labels.cluster_name}})
         description: "PostgreSQL instance should have more connections (> 5)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
@@ -160,6 +170,8 @@ spec:
       for: 5m
       labels:
         severity: warning
+        service: "PostgreSQL"
+        cluster: "StackGres"
       annotations:
         summary: "Postgresql promoted node (instance {{ $labels.instance }}, cluster {{ $labels.cluster_name }})"
         description: "Postgresql standby server has been promoted as primary node\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
@@ -169,6 +181,8 @@ spec:
       for: 5m
       labels:
         severity: warning
+        service: "PgBouncer"
+        cluster: "StackGres"
       annotations:
         summary: PgBouncer has waiting clients on instance {{ $labels.instance }} in cluster {{$labels.cluster_name}})
         description: "PgBouncer instance has waiting clients\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
@@ -177,6 +191,8 @@ spec:
       for: 10m
       labels:
         severity: critical
+        service: "PgBouncer"
+        cluster: "StackGres"
       annotations:
         summary: PgBouncer pool size is not enough for the current connections on {{ $labels.instance }} in cluster {{$labels.cluster_name}})
         description: "PgBouncer is getting more connections than the pool size, extra connections = {{ $value }}"
@@ -185,6 +201,8 @@ spec:
       for: 5m
       labels:
         severity: warning
+        service: "PgBouncer"
+        cluster: "StackGres"
       annotations:
         summary: PgBouncer pool is filling up on {{ $labels.instance }} in cluster {{$labels.cluster_name}})
         description: "PgBouncer pool is filling up, remaining connections = {{ $value }}"
@@ -193,6 +211,8 @@ spec:
       for: 5m
       labels:
         severity: warning
+        service: "PgBouncer"
+        cluster: "StackGres"
       annotations:
         summary: PgBouncer time spent by clients waiting for a connections is too high on {{ $labels.instance }} in cluster {{$labels.cluster_name}})
         description: "PgBouncer wait for a server connections is too high = {{ $value }}"
@@ -201,6 +221,8 @@ spec:
       for: 5m
       labels:
         severity: warning
+        service: "PgBouncer"
+        cluster: "StackGres"
       annotations:
         summary: PgBouncer average query duration more than 5 seconds on {{ $labels.instance }} in cluster {{$labels.cluster_name}})
         description: "PgBouncer average query duration more than 5 seconds = {{ $value }}"
@@ -209,6 +231,7 @@ spec:
       for: 15m
       labels:
         severity: warning
+        cluster: "StackGres"
       annotations:
         summary: Database disk is filling up currently have less than 20% available on {{ $labels.instance }} in cluster {{$labels.cluster_name}})
         description: "Database disk is filling up currently have less than 20%, currently occupied {{ $value }} %"
