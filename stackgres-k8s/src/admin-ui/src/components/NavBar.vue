@@ -535,19 +535,19 @@
 			let errorMessages = {
 				'400': 'The server could not process your request.',
 				'401': 'It seems you\'re not authenticated and we couldn\'t handle your request.',
-				'403': 'It seems you\'re not autorized to access the requested information.',
-				'404': 'The resource you are trying to access could not be found.',
+				/* '403': 'It seems you\'re not autorized to access the requested information.', */
+				/* '404': 'The resource you are trying to access could not be found.', */
 				'405': 'Your request could not be processed with the specified method.',
 				'406': 'The server could not find any response that matches your request.',
 				'407': 'It seems you\'re not authenticated to your proxy server, we couldn\'t handle your request.',
 				'408': 'A response from the server could not be obtained on time.',
-				//'409': 'It seems your request produced some conflicts with the server\'s resources.',
+				/* '409': 'It seems your request produced some conflicts with the server\'s resources.', */
 				'410': 'The resource you are trying to access has been deleted from the server.',
 				'413': 'The data included on your request is too big to be processed by the server.',
 				'414': 'It seems the requested URL is too long to be processed by the server.',
 				'415': 'The servers does not support the provided media type.',
 				'429': 'Too many requests have been sent according to the server\'s usage limitations.',
-				'500': 'An internal server error has been encountered when trying to access your data.',
+				/* '500': 'An internal server error has been encountered when trying to access your data.', */
 				'501': 'The method provided on your request is not available at the time.',
 				'502': 'There was an error when trying to access the information from an external source.',
 				'503': 'The server is temporarily unavailable and your request could not be processed.',
