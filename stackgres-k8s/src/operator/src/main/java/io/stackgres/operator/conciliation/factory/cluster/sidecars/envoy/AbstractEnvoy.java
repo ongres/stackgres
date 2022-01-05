@@ -90,7 +90,8 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
   public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.ENVOY_VERSION_KEY,
-        StackGresComponent.ENVOY.findLatestVersion());
+        StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
+        .findLatestVersion());
   }
 
   @Override
@@ -122,7 +123,5 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
       boolean disablePgBouncer);
 
   public abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);
-
-  public abstract String getImageName();
 
 }

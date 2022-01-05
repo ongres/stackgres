@@ -41,8 +41,10 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceStatus;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.component.Component;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -265,10 +267,10 @@ public interface StackGresUtil {
     if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
       return ImmutableList.of();
     }
-    if (StackGresComponent.compareBuildVersions("6.6",
-        StackGresComponent.PATRONI.findBuildVersion(
+    if (Component.compareBuildVersions("6.6",
+        StackGresComponent.PATRONI.get(cluster).findBuildVersion(
             StackGresComponent.LATEST, ImmutableMap.of(
-                getPostgresFlavorComponent(cluster),
+                getPostgresFlavorComponent(cluster).get(cluster),
                 cluster.getSpec().getPostgres().getVersion()))) <= 0) {
       return ImmutableList.of();
     }
@@ -340,11 +342,18 @@ public interface StackGresUtil {
   }
 
   static String getPatroniImageName(StackGresCluster cluster, String postgresVersion) {
-    StackGresComponent postgresComponentFlavor = getPostgresFlavorComponent(cluster);
-    return StackGresComponent.PATRONI.findImageName(
+    Component postgresComponentFlavor = getPostgresFlavorComponent(cluster).get(cluster);
+    return StackGresComponent.PATRONI.get(cluster).findImageName(
         StackGresComponent.LATEST,
         ImmutableMap.of(postgresComponentFlavor,
             postgresVersion));
+  }
+
+  static String getPatroniImageName(StackGresDistributedLogs distributedLogs) {
+    return StackGresComponent.PATRONI.get(distributedLogs).findImageName(
+        StackGresComponent.LATEST,
+        ImmutableMap.of(StackGresComponent.POSTGRESQL.get(distributedLogs),
+            "12"));
   }
 
   static @NotNull StackGresComponent getPostgresFlavorComponent(StackGresCluster cluster) {

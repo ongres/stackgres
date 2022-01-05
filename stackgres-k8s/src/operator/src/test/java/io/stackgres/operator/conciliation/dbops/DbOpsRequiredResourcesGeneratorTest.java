@@ -50,7 +50,8 @@ class DbOpsRequiredResourcesGeneratorTest {
         .readFromJson("stackgres_dbops/dbops_restart.json", StackGresDbOps.class);
     cluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
-    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.findLatestVersion());
+    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
+        .getLatest().findLatestVersion());
     cluster.getMetadata().setNamespace(dbOps.getMetadata().getNamespace());
     cluster.getMetadata().setName(dbOps.getSpec().getSgCluster());
   }

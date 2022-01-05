@@ -14,7 +14,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.operator.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GeneratorTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -33,16 +33,19 @@ public interface StackGresDistributedLogsUtil {
 
   String POSTGRESQL_VERSION = "12";
 
-  static String getPostgresVersion() {
-    return StackGresComponent.POSTGRESQL.findVersion(POSTGRESQL_VERSION);
+  static String getPostgresVersion(StackGresDistributedLogs distributedLogs) {
+    return StackGresComponent.POSTGRESQL.get(distributedLogs)
+        .findVersion(POSTGRESQL_VERSION);
   }
 
-  static String getPostgresMajorVersion() {
-    return StackGresComponent.POSTGRESQL.findMajorVersion(POSTGRESQL_VERSION);
+  static String getPostgresMajorVersion(StackGresDistributedLogs distributedLogs) {
+    return StackGresComponent.POSTGRESQL.get(distributedLogs)
+        .findMajorVersion(POSTGRESQL_VERSION);
   }
 
-  static String getPostgresBuildMajorVersion() {
-    return StackGresComponent.POSTGRESQL.findBuildMajorVersion(POSTGRESQL_VERSION);
+  static String getPostgresBuildMajorVersion(StackGresDistributedLogs distributedLogs) {
+    return StackGresComponent.POSTGRESQL.get(distributedLogs)
+        .findBuildMajorVersion(POSTGRESQL_VERSION);
   }
 
   static StackGresCluster getStackGresClusterForDistributedLogs(
@@ -56,7 +59,8 @@ public interface StackGresDistributedLogsUtil {
         distributedLogs.getMetadata().getUid());
     distributedLogsCluster.setSpec(new StackGresClusterSpec());
     distributedLogsCluster.getSpec().setPostgres(new StackGresClusterPostgres());
-    distributedLogsCluster.getSpec().getPostgres().setVersion(getPostgresVersion());
+    distributedLogsCluster.getSpec().getPostgres().setVersion(
+        getPostgresVersion(distributedLogs));
     distributedLogsCluster.getSpec().setInstances(1);
     distributedLogsCluster.getSpec().setPod(new StackGresClusterPod());
     distributedLogsCluster.getSpec().getPod().setPersistentVolume(

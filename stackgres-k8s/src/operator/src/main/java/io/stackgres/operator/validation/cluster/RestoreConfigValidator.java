@@ -64,6 +64,7 @@ public class RestoreConfigValidator implements ClusterValidator {
 
   private void checkBackup(StackGresClusterReview review,
                            StackGresClusterRestore restoreConfig) throws ValidationFailed {
+    StackGresCluster cluster = review.getRequest().getObject();
     String backupUid = restoreConfig.getFromBackup().getUid();
 
     switch (review.getRequest().getOperation()) {
@@ -90,7 +91,8 @@ public class RestoreConfigValidator implements ClusterValidator {
 
         String givenPgVersion = review.getRequest().getObject().getSpec()
             .getPostgres().getVersion();
-        String givenMajorVersion = getPostgresFlavorComponent(review.getRequest().getObject())
+        String givenMajorVersion = getPostgresFlavorComponent(cluster)
+            .get(cluster)
             .findMajorVersion(givenPgVersion);
 
         if (!backupMajorVersion.equals(givenMajorVersion)) {

@@ -40,15 +40,19 @@ public class ContextUtil {
           String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
           String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
           String sourceMajorVersion = getPostgresFlavorComponent(cluster)
+              .get(cluster)
               .findMajorVersion(sourceVersion);
           return ImmutablePostgresContainerContext.builder()
               .from(context)
               .postgresMajorVersion(getPostgresFlavorComponent(cluster)
+                  .get(cluster)
                   .findMajorVersion(targetVersion))
               .oldMajorVersion(sourceMajorVersion)
               .imageBuildMajorVersion(getPostgresFlavorComponent(cluster)
+                  .get(cluster)
                   .findBuildMajorVersion(targetVersion))
               .oldImageBuildMajorVersion(getPostgresFlavorComponent(cluster)
+                  .get(cluster)
                   .findBuildMajorVersion(sourceVersion))
               .postgresVersion(targetVersion)
               .oldPostgresVersion(sourceVersion);
@@ -56,8 +60,10 @@ public class ContextUtil {
         .orElseGet(() -> {
           final String postgresVersion = cluster.getSpec().getPostgres().getVersion();
           final String majorVersion = getPostgresFlavorComponent(cluster)
+              .get(cluster)
               .findMajorVersion(postgresVersion);
           final String buildMajorVersion = getPostgresFlavorComponent(cluster)
+              .get(cluster)
               .findBuildMajorVersion(postgresVersion);
           return ImmutablePostgresContainerContext.builder()
               .from(context)
@@ -92,9 +98,12 @@ public class ContextUtil {
 
     return ImmutablePostgresContainerContext.builder()
         .from(context)
-        .postgresMajorVersion(StackGresDistributedLogsUtil.getPostgresMajorVersion())
-        .postgresVersion(StackGresDistributedLogsUtil.getPostgresVersion())
-        .imageBuildMajorVersion(StackGresDistributedLogsUtil.getPostgresBuildMajorVersion())
+        .postgresMajorVersion(StackGresDistributedLogsUtil.getPostgresMajorVersion(
+            context.getDistributedLogsContext().getSource()))
+        .postgresVersion(StackGresDistributedLogsUtil.getPostgresVersion(
+            context.getDistributedLogsContext().getSource()))
+        .imageBuildMajorVersion(StackGresDistributedLogsUtil.getPostgresBuildMajorVersion(
+            context.getDistributedLogsContext().getSource()))
         .addAllInstalledExtensions(installedExtensions)
         .build();
   }

@@ -97,8 +97,9 @@ public abstract class DbOpsJob implements JobFactory {
 
   protected abstract ClusterStatefulSetPath getRunScript();
 
-  protected String getSetResultImage() {
-    return StackGresComponent.KUBECTL.findLatestImageName();
+  protected String getSetResultImage(StackGresDbOpsContext context) {
+    return StackGresComponent.KUBECTL.get(context.getCluster())
+        .findLatestImageName();
   }
 
   protected ClusterStatefulSetPath getSetResultScript() {
@@ -137,7 +138,7 @@ public abstract class DbOpsJob implements JobFactory {
         .withServiceAccountName(DbOpsRole.roleName(context))
         .withInitContainers(new ContainerBuilder()
             .withName("set-dbops-running")
-            .withImage(getSetResultImage())
+            .withImage(getSetResultImage(context))
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(clusterEnvironmentVariables.listResources(context))
@@ -266,7 +267,8 @@ public abstract class DbOpsJob implements JobFactory {
                 .build(),
             new ContainerBuilder()
                 .withName("set-dbops-result")
-                .withImage(StackGresComponent.KUBECTL.findLatestImageName())
+                .withImage(StackGresComponent.KUBECTL.get(context.getCluster())
+                    .findLatestImageName())
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterEnvironmentVariables

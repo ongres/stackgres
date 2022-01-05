@@ -14,7 +14,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.operator.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import org.jooq.lambda.Seq;
 

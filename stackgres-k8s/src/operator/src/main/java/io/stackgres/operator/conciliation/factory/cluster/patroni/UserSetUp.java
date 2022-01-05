@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.operator.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
@@ -52,7 +52,8 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContainerCont
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName("setup-arbitrary-user")
-        .withImage(StackGresComponent.KUBECTL.findLatestImageName())
+        .withImage(StackGresComponent.KUBECTL.get(context.getClusterContext().getCluster())
+            .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()

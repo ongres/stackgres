@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -22,7 +23,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.cluster.ClusterRequiredResourceDecorator;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -55,7 +55,7 @@ public abstract class GeneratorTest {
     if (version.ordinal() <= StackGresVersion.V09_LAST.ordinal()) {
       defaultPostgreVersion = "12.6";
     } else {
-      defaultPostgreVersion = StackGresComponent.POSTGRESQL.findLatestVersion();
+      defaultPostgreVersion = StackGresComponent.POSTGRESQL.getLatest().findLatestVersion();
     }
     cluster.getSpec().getPostgres().setVersion(defaultPostgreVersion);
     cluster.getSpec().setPod(new StackGresClusterPod());

@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.operator.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ClusterInitContainer;

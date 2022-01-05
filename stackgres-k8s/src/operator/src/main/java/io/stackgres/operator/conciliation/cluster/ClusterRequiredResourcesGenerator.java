@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +23,6 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -167,8 +168,8 @@ public class ClusterRequiredResourcesGenerator
                 getBabelfishUserScript(config),
                 getBabelfishDatabaseScript(),
                 getBabelfishInitDatabaseScript())
-                .filter(script -> StackGresUtil.getPostgresFlavorComponent(config).getName()
-                    .equals(StackGresComponent.BABELFISH.getName()))))
+                .filter(
+                    script -> getPostgresFlavorComponent(config) == StackGresComponent.BABELFISH)))
         .databaseCredentials(secretFinder.findByNameAndNamespace(clusterName, clusterNamespace))
         .build();
 

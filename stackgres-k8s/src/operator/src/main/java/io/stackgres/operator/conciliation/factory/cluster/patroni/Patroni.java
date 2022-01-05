@@ -34,9 +34,9 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -55,7 +55,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10B1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
 @RunningContainer(ClusterRunningContainer.PATRONI)
 public class Patroni implements ContainerFactory<StackGresClusterContainerContext> {
 
@@ -107,10 +107,12 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.POSTGRES_VERSION_KEY,
-        StackGresComponent.POSTGRESQL.findVersion(
+        StackGresComponent.POSTGRESQL.get(context.getClusterContext().getCluster())
+        .findVersion(
             context.getClusterContext().getCluster().getSpec().getPostgres().getVersion()),
         StackGresContext.PATRONI_VERSION_KEY,
-        StackGresComponent.PATRONI.findLatestVersion());
+        StackGresComponent.PATRONI.get(context.getClusterContext().getCluster())
+        .findLatestVersion());
   }
 
   @Override

@@ -7,7 +7,6 @@ package io.stackgres.operator.validation.dbops;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,14 +14,16 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.validation.ValidationType;
+import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
@@ -32,25 +33,23 @@ import org.jooq.lambda.tuple.Tuple2;
 public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
-  private final Map<StackGresComponent, List<String>> supportedPostgresVersions;
+  private final Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+      supportedPostgresVersions;
   private final String errorPostgresMismatchUri;
   private final String errorForbiddenUpdateUri;
 
   @Inject
   public DbOpsMinorVersionUpgradeValidator(
       CustomResourceFinder<StackGresCluster> clusterFinder) {
-    this(clusterFinder, ImmutableMap.of(
-        StackGresComponent.POSTGRESQL, StackGresComponent.POSTGRESQL.getOrderedVersions().toList(),
-        StackGresComponent.BABELFISH, StackGresComponent.BABELFISH.getOrderedVersions().toList()));
+    this(clusterFinder, ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
   }
 
   public DbOpsMinorVersionUpgradeValidator(
       CustomResourceFinder<StackGresCluster> clusterFinder,
-      Map<StackGresComponent, List<String>> orderedSupportedPostgresVersions) {
+      Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+          orderedSupportedPostgresVersions) {
     this.clusterFinder = clusterFinder;
-    this.supportedPostgresVersions = Seq.seq(orderedSupportedPostgresVersions)
-        .map(t -> t.map2(ArrayList::new))
-        .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
+    this.supportedPostgresVersions = orderedSupportedPostgresVersions;
     this.errorPostgresMismatchUri = ErrorType.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
     this.errorForbiddenUpdateUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
   }
@@ -76,9 +75,10 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
               fail(errorPostgresMismatchUri, message);
             }
 
-            String givenMajorVersion = getPostgresFlavorComponent(cluster).findMajorVersion(
-                givenPgVersion);
+            String givenMajorVersion = getPostgresFlavorComponent(cluster)
+                .get(cluster).findMajorVersion(givenPgVersion);
             long givenMajorVersionIndex = getPostgresFlavorComponent(cluster)
+                .get(cluster)
                 .getOrderedMajorVersions()
                 .zipWithIndex()
                 .filter(t -> t.v1.equals(givenMajorVersion))
@@ -87,8 +87,10 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
                 .get();
             String oldPgVersion = cluster.getSpec().getPostgres().getVersion();
             String oldMajorVersion = getPostgresFlavorComponent(cluster)
+                .get(cluster)
                 .findMajorVersion(oldPgVersion);
             long oldMajorVersionIndex = getPostgresFlavorComponent(cluster)
+                .get(cluster)
                 .getOrderedMajorVersions()
                 .zipWithIndex()
                 .filter(t -> t.v1.equals(oldMajorVersion))
@@ -109,7 +111,9 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
   }
 
   private boolean isPostgresVersionSupported(StackGresCluster cluster, String version) {
-    return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster)).contains(version);
+    return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
+        .get(StackGresVersion.getStackGresVersion(cluster).getMinorVersion())
+        .contains(version);
   }
 
 }

@@ -72,14 +72,16 @@ public abstract class AbstractFluentBit implements
   public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.FLUENTBIT_VERSION_KEY,
-        StackGresComponent.FLUENT_BIT.findLatestVersion());
+        StackGresComponent.FLUENT_BIT.get(context.getClusterContext().getCluster())
+        .findLatestVersion());
   }
 
   @Override
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(NAME)
-        .withImage(getImageImageName())
+        .withImage(StackGresComponent.FLUENT_BIT.get(context.getClusterContext().getCluster())
+            .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
@@ -126,10 +128,6 @@ public abstract class AbstractFluentBit implements
         .withEnv(getContainerEnvironmentVariables(context))
         .withVolumeMounts(getVolumeMounts(context))
         .build();
-  }
-
-  protected String getImageImageName() {
-    return StackGresComponent.FLUENT_BIT.findLatestImageName();
   }
 
   protected abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);

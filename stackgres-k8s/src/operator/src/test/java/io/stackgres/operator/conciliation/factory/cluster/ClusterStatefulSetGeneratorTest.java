@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecBuilder;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.operator.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GeneratorTest;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;

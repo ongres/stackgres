@@ -15,16 +15,14 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresDistributedLogsUtil;
-import io.stackgres.operator.common.StackGresVersion;
+import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
@@ -60,14 +58,10 @@ public class InitRelocateBinaries implements ContainerFactory<DistributedLogsCon
 
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
-    final String patroniImageName = StackGresComponent.PATRONI.findImageName(
-        StackGresComponent.LATEST,
-        ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            StackGresDistributedLogsUtil.getPostgresVersion()));
-
     return new ContainerBuilder()
         .withName("relocate-binaries")
-        .withImage(patroniImageName)
+        .withImage(StackGresUtil.getPatroniImageName(
+            context.getDistributedLogsContext().getSource()))
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()

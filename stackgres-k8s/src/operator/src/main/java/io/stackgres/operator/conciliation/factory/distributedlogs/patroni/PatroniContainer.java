@@ -35,9 +35,10 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresDistributedLogsUtil;
+import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
@@ -56,7 +57,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLog
 import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10B1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
 @RunningContainer(ClusterRunningContainer.PATRONI)
 public class PatroniContainer implements ContainerFactory<DistributedLogsContainerContext> {
 
@@ -85,17 +86,11 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
     final StackGresDistributedLogs cluster = context.getDistributedLogsContext().getSource();
-    final String pgVersion = StackGresDistributedLogsUtil.getPostgresVersion();
-
-    final String patroniImageName = StackGresComponent.PATRONI.findImageName(
-        StackGresComponent.LATEST,
-        ImmutableMap.of(StackGresComponent.POSTGRESQL,
-            pgVersion));
 
     final String startScript = "/start-patroni.sh";
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.PATRONI)
-        .withImage(patroniImageName)
+        .withImage(StackGresUtil.getPatroniImageName(cluster))
         .withCommand("/bin/sh", "-ex",
             PatroniEnvPaths.LOCAL_BIN_PATH.getPath() + startScript)
         .withImagePullPolicy("IfNotPresent")
@@ -145,9 +140,11 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
   public Map<String, String> getComponentVersions(DistributedLogsContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.POSTGRES_VERSION_KEY,
-        StackGresDistributedLogsUtil.getPostgresVersion(),
+        StackGresDistributedLogsUtil
+        .getPostgresVersion(context.getDistributedLogsContext().getSource()),
         StackGresContext.PATRONI_VERSION_KEY,
-        StackGresComponent.PATRONI.findLatestVersion());
+        StackGresComponent.PATRONI.get(context.getDistributedLogsContext().getSource())
+        .findLatestVersion());
   }
 
   public List<VolumeMount> getVolumeMounts(DistributedLogsContainerContext context) {

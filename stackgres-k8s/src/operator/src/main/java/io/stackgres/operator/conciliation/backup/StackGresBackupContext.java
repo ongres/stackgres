@@ -6,10 +6,10 @@
 package io.stackgres.operator.conciliation.backup;
 
 import io.stackgres.common.ClusterContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
 

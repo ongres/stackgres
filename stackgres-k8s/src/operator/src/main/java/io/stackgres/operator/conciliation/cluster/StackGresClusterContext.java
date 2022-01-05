@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.ClusterContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -19,7 +20,6 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.Prometheus;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GenerationContext;
 import io.stackgres.operator.conciliation.factory.PatroniScriptsConfigMap;
 import org.immutables.value.Value;

@@ -193,8 +193,8 @@ public interface ExtensionUtil {
 
   static String getDescription(StackGresCluster cluster,
       StackGresClusterExtension extension, boolean detectOs) {
-    final String pgMajorVersion = getPostgresFlavorComponent(cluster).findMajorVersion(
-        cluster.getSpec().getPostgres().getVersion());
+    final String pgMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
+        .findMajorVersion(cluster.getSpec().getPostgres().getVersion());
     final Optional<OsDetector> osDetector = Optional.of(OS_DETECTOR).filter(od -> detectOs);
     return extension.getPublisherOrDefault() + "/" + extension.getName()
         + " for version " + extension.getVersionOrDefaultChannel()

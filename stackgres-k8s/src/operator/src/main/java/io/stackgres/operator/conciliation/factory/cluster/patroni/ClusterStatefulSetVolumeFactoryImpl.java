@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.Volume;
-import io.stackgres.operator.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 

@@ -33,10 +33,10 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
@@ -83,7 +83,8 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
     StackGresCluster cluster = context.getClusterContext().getSource();
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.findLatestImageName())
+        .withImage(StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.get(cluster)
+            .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-exc")
         .withArgs(""
@@ -153,7 +154,8 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
   public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY,
-        StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.findLatestVersion());
+        StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER
+        .get(context.getClusterContext().getCluster()).findLatestVersion());
   }
 
   @Override

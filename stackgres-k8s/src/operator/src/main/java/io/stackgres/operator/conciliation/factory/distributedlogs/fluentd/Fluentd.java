@@ -39,11 +39,11 @@ import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.distributedlogs.PatroniTableFields;
 import io.stackgres.common.distributedlogs.PostgresTableFields;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
@@ -87,7 +87,8 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
   public Map<String, String> getComponentVersions(DistributedLogsContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.FLUENTD_VERSION_KEY,
-        StackGresComponent.FLUENTD.findLatestVersion());
+        StackGresComponent.FLUENTD.get(context.getDistributedLogsContext().getSource())
+        .findLatestVersion());
   }
 
   // list of log_patroni table fields
@@ -95,7 +96,8 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
   public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.FLUENTD)
-        .withImage(StackGresComponent.FLUENTD.findLatestImageName())
+        .withImage(StackGresComponent.FLUENTD.get(context.getDistributedLogsContext().getSource())
+            .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-exc")
         .withArgs(""

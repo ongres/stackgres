@@ -35,6 +35,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -44,7 +45,6 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
@@ -153,7 +153,7 @@ public class BackupJob
         .withServiceAccountName(PatroniRoleGenerator.roleName(context))
         .withContainers(new ContainerBuilder()
             .withName("create-backup")
-            .withImage(StackGresComponent.KUBECTL.findLatestImageName())
+            .withImage(StackGresComponent.KUBECTL.get(context.getCluster()).findLatestImageName())
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(getClusterEnvVars(context))

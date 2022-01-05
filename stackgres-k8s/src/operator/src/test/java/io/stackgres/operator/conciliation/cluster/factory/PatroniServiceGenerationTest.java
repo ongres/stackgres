@@ -13,7 +13,7 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.operator.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GeneratorTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

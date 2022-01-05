@@ -30,10 +30,10 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -113,7 +113,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
 
   public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
-    final String pgVersion = StackGresComponent.POSTGRESQL.findVersion(
+    final String pgVersion = StackGresComponent.POSTGRESQL.get(cluster).findVersion(
         cluster.getSpec().getPostgres().getVersion());
 
     final String patroniClusterLabelsAsJson;

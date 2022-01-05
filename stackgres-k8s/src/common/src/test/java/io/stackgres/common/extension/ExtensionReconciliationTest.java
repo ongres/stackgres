@@ -46,13 +46,13 @@ public class ExtensionReconciliationTest {
       URI.create("https://extensions.stackgres.io/postgres/repository");
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().findFirst().get();
 
   private static final String POSTGRES_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedMajorVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions().findFirst().get();
 
   private static final String BUILD_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedBuildVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedBuildVersions().findFirst().get();
 
   @Mock
   private ExtensionMetadataManager extensionMetadataManager;

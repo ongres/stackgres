@@ -33,9 +33,10 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -60,8 +61,6 @@ import io.stackgres.operator.conciliation.factory.v09.PatroniStaticVolume;
 public class Patroni implements ContainerFactory<StackGresClusterContainerContext> {
 
   public static final String POST_INIT_SUFFIX = "-post-init";
-
-  private static final String IMAGE_NAME = "docker.io/ongres/patroni-ext:v1.6.5-pg%s-build-6.0";
 
   private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
       clusterEnvVarFactoryDiscoverer;
@@ -120,9 +119,6 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getSource();
 
-    final String patroniImageName = String.format(IMAGE_NAME,
-        cluster.getSpec().getPostgres().getVersion());
-
     ResourceRequirements podResources = requirementsFactory
         .createResource(clusterContext);
 
@@ -130,7 +126,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
         ? "/start-patroni-with-restore.sh" : "/start-patroni.sh";
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.PATRONI)
-        .withImage(patroniImageName)
+        .withImage(StackGresUtil.getPatroniImageName(cluster))
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.LOCAL_BIN_PATH.path() + startScript)
         .withImagePullPolicy("IfNotPresent")
@@ -184,10 +180,12 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return Map.of(
         StackGresContext.POSTGRES_VERSION_KEY,
-        StackGresComponent.POSTGRESQL.findVersion(
+        StackGresComponent.POSTGRESQL.get(context.getClusterContext().getCluster())
+        .findVersion(
             context.getClusterContext().getCluster().getSpec().getPostgres().getVersion()),
         StackGresContext.PATRONI_VERSION_KEY,
-        StackGresComponent.PATRONI.findLatestVersion());
+        StackGresComponent.PATRONI.get(context.getClusterContext().getCluster())
+        .findLatestVersion());
   }
 
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {
