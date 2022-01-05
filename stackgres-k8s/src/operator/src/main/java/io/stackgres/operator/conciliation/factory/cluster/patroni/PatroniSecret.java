@@ -80,9 +80,10 @@ public class PatroniSecret implements
           .getOrDefault(BABELFISH_PASSWORD_KEY, generatePassword()));
       data.put(BABELFISH_CREATE_USER_SQL_KEY,
           ResourceUtil.encodeSecret(
-              "CREATE USER " + BABELFISH_USER_NAME + " SUPERUSER"
+              "SET log_statement TO 'none';\n"
+                  + "CREATE USER " + BABELFISH_USER_NAME + " SUPERUSER"
                   + " PASSWORD '" + ResourceUtil.dencodeSecret(
-                  data.get(BABELFISH_PASSWORD_KEY)) + "'"));
+                  data.get(BABELFISH_PASSWORD_KEY)) + "';"));
     }
 
     return Stream.of(new SecretBuilder()
