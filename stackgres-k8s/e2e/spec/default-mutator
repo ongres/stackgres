@@ -76,7 +76,7 @@ EOF
   local CREATED_FIELDS
   CREATED_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
   local DEFAULT_FIELDS
-  DEFAULT_FIELDS="$(get_default_pgconfig 13 -o json | jq '.spec["postgresql.conf"] | length')"
+  DEFAULT_FIELDS="$(get_default_pgconfig '^postgres-13-generated-from-default-.*$' -o json | jq '.spec["postgresql.conf"] | length')"
 
   if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
@@ -89,7 +89,7 @@ EOF
   local CREATED_DEFAULTS_PARAMETERS
   CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | keys | sort')"
   local DEFAULTS_PARAMETERS
-  DEFAULTS_PARAMETERS="$(get_default_pgconfig 13 -o json | jq '.spec["postgresql.conf"] | keys | sort')"
+  DEFAULTS_PARAMETERS="$(get_default_pgconfig '^postgres-13-generated-from-default-.*$' -o json | jq '.spec["postgresql.conf"] | keys | sort')"
 
   if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
@@ -133,7 +133,7 @@ EOF
   local UPDATED_FIELDS
   UPDATED_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
   local DEFAULT_FIELDS
-  DEFAULT_FIELDS="$(get_default_pgconfig 13 -o json | jq '.spec["postgresql.conf"] | length')"
+  DEFAULT_FIELDS="$(get_default_pgconfig '^postgres-13-generated-from-default-.*$' -o json | jq '.spec["postgresql.conf"] | length')"
 
   if [ "$UPDATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
@@ -146,7 +146,7 @@ EOF
   local UPDATED_DEFAULTS_PARAMETERS
   UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | keys | sort')"
   local DEFAULTS_PARAMETERS
-  DEFAULTS_PARAMETERS="$(get_default_pgconfig 13 -o json | jq '.spec["postgresql.conf"] | keys | sort')"
+  DEFAULTS_PARAMETERS="$(get_default_pgconfig '^postgres-13-generated-from-default-.*$' -o json | jq '.spec["postgresql.conf"] | keys | sort')"
 
   if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
@@ -589,7 +589,7 @@ EOF
   local CREATED_PGCONFIG_FIELDS
   CREATED_PGCONFIG_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
   local DEFAULT_PGCONFIG_FIELDS
-  DEFAULT_PGCONFIG_FIELDS="$(get_default_pgconfig 13 -o json | jq '.spec["postgresql.conf"] | length')"
+  DEFAULT_PGCONFIG_FIELDS="$(get_default_pgconfig '^postgres-13-generated-from-default-.*$' -o json | jq '.spec["postgresql.conf"] | length')"
 
   if [ "$CREATED_PGCONFIG_FIELDS" = "$DEFAULT_PGCONFIG_FIELDS" ]
   then
