@@ -89,16 +89,13 @@ clean_up_project_temp_dir() {
 }
 
 get_sensible_variables() {
-  local E2E_SENSIBLE_VARIABLES
-  E2E_SENSIBLE_VARIABLES=" $(echo "$E2E_SENSIBLE_VARIABLES" | tr '\n' ' ' | tr -s ' ') "
-
   env \
-    | cut -d = -f 1 | sort \
+    | grep '^[A-Z]' | cut -d = -f 1 | sort | uniq \
     | while read -r NAME
       do
-        if echo "$E2E_SENSIBLE_VARIABLES" | grep -qF " $NAME "
+        if [ x != "x$NAME" ] && echo " $(echo "$E2E_SENSIBLE_VARIABLES" | tr '\n' ' ' | tr -s ' ') " | grep -qF " $NAME "
         then
-          eval "printf '%s=%s\n' \"$NAME\" \"\$$NAME\""
+          eval "[ x = \"x\$$NAME\" ] || printf '%s=%s\n' \"$NAME\" \"\$$NAME\""
         fi
       done
 }
