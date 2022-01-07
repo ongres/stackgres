@@ -287,13 +287,20 @@
 				
 				if( store.state.currentCluster.hasOwnProperty('status') && store.state.currentCluster.status.hasOwnProperty('pods')) {
 					let primary = store.state.currentCluster.status.pods.find(p => (p.role == 'primary'))
-					let used = vc.getBytes(primary.diskUsed);
-					let available = vc.getBytes(store.state.currentCluster.data.spec.pods.persistentVolume.size);
-					let percentage = Math.round((used*63)/available);
+					
+					if(typeof primary != 'undefined') {
+						let used = vc.getBytes(primary.diskUsed);
+						let available = vc.getBytes(store.state.currentCluster.data.spec.pods.persistentVolume.size);
+						let percentage = Math.round((used*63)/available);
+						
+						return percentage
+					} else {
+						return 0
+					}
 
-					return percentage
-				} else
+				} else {
 					return 0
+				}
 
 			},
 			
