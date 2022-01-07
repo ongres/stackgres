@@ -30,12 +30,7 @@ public class StackGresClusterControllerMain {
       StackGresClusterControllerMain.class);
 
   public static void main(String... args) {
-    if (Seq.seq(Optional.ofNullable(System.getenv("COMMAND")))
-        .append(Optional.ofNullable(args).map(Seq::of).orElse(Seq.empty()))
-        .filter(command -> !command.isEmpty())
-        .map(command -> command.equals("run-reconciliation-cycle"))
-        .findFirst()
-        .orElse(false)) {
+    if (isReconciliationCycle(args)) {
       AtomicReference<Tuple2<Integer, Throwable>> exitCodeReference =
           new AtomicReference<>(Tuple.tuple(0, null));
       Quarkus.run(StackGresClusterControllerReconcile.class,
@@ -48,6 +43,15 @@ public class StackGresClusterControllerMain {
       return;
     }
     Quarkus.run(StackGresClusterControllerApp.class, args);
+  }
+
+  private static Boolean isReconciliationCycle(String... args) {
+    return Seq.seq(Optional.ofNullable(System.getenv("COMMAND")))
+        .append(Optional.ofNullable(args).map(Seq::of).orElse(Seq.empty()))
+        .filter(command -> !command.isEmpty())
+        .map(command -> command.equals("run-reconciliation-cycle"))
+        .findFirst()
+        .orElse(false);
   }
 
   public static class StackGresClusterControllerReconcile implements QuarkusApplication {
@@ -66,7 +70,7 @@ public class StackGresClusterControllerMain {
       if (!result.success()) {
         RuntimeException ex = Seq.seq(result.getException())
             .append(result.getContextExceptions().values().stream())
-            .filter(this::filterExceptions)
+            .filter(e -> filterExceptions(e, args))
             .reduce(new RuntimeException("StackGres Cluster Controller"
                 + " reconciliation cycle failed"),
                 (exception, suppressedException) -> {
@@ -81,8 +85,9 @@ public class StackGresClusterControllerMain {
       return 0;
     }
 
-    private boolean filterExceptions(Exception exception) {
-      if (exception instanceof KubernetesClientStatusUpdateException) {
+    private boolean filterExceptions(Exception exception, String... args) {
+      if (!isReconciliationCycle(args)
+          && exception instanceof KubernetesClientStatusUpdateException) {
         LOGGER.warn("A non critical error occured.", exception);
         return false;
       }
