@@ -45,7 +45,7 @@ e2e_test_install() {
 
     if [ "$E2E_SKIP_LOAD_COMPONENTS" != true ]
     then
-      load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_REGISTRY_PATH" \
+      E2E_INCLUDE_ONLY_POSTGRES_VERSIONS= load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_REGISTRY_PATH" \
         "$STACKGRES_PREVIOUS_VERSION"
     fi
 

@@ -449,8 +449,8 @@ can_install_operator_version() {
   if [ "$VERSION_AS_NUMBER" -le "$VERSION_0_9_5" ]
   then
     if {
-        [ "$KUBERNETES_VERSION_NUMBER" -le 117 ] \
-        || [ "$KUBERNETES_VERSION_NUMBER" -ge 111 ]
+        [ "$KUBERNETES_VERSION_NUMBER" -gt 117 ] \
+        || [ "$KUBERNETES_VERSION_NUMBER" -lt 111 ]
       } \
       || [ "$(uname -m)" != x86_64 ]
     then
