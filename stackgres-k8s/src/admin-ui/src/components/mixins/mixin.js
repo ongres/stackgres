@@ -75,7 +75,7 @@ export const mixin = {
         }
       },      
 
-      fetchAPI: function(kind = '') {
+      fetchAPI  (kind = '') {
 
         const vc = this
 
@@ -112,6 +112,10 @@ export const mixin = {
           .get('/stackgres/namespaces')
           .then( function(response){
   
+            if(vc.$route.params.hasOwnProperty('namespace') && !response.data.includes(vc.$route.params.namespace)) {
+              router.push('/')
+              vc.notify('The namespace you were browsing has been deleted from the server')
+            }
             store.commit('addNamespaces', response.data);
 
           }).catch(function(err) {
@@ -123,12 +127,7 @@ export const mixin = {
         if ( !store.state.permissions.forbidden.includes('sgclusters') && ( !kind.length || (kind == 'sgclusters') ) ){
           /* Clusters Data */
           axios
-          .get('/stackgres/sgclusters',
-            { headers: {
-                'content-type': 'application/json'
-              }
-            }
-          )
+          .get('/stackgres/sgclusters')
           .then( function(response){
 
             vc.lookupCRDs('sgcluster', response.data);
@@ -142,20 +141,13 @@ export const mixin = {
                 status: {}
               };
               
-              
-              if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+              if(!store.state.namespaces.includes(item.metadata.namespace))
                 store.commit('updateNamespaces', item.metadata.namespace);
 
               store.commit('updateClusters', cluster);
 
               axios
-              .get('/stackgres/namespaces/'+cluster.data.metadata.namespace+'/sgclusters/'+cluster.data.metadata.name+'/stats',
-                { 
-                  headers: {
-                    'content-type': 'application/json'
-                  }
-                }
-              )
+              .get('/stackgres/namespaces/'+cluster.data.metadata.namespace+'/sgclusters/'+cluster.data.metadata.name+'/stats')
               .then( function(resp) {
                 store.commit('updateClusterStats', {
                   name: cluster.data.metadata.name,
@@ -170,7 +162,7 @@ export const mixin = {
               if(!store.state.currentCluster)              
                 store.commit('setCurrentCluster', cluster);
 
-              });
+            });
             
           }).catch(function(err) {
             console.log(err);
@@ -183,11 +175,7 @@ export const mixin = {
           
           /* Backups */
           axios
-          .get('/stackgres/sgbackups',
-            { headers: {
-              'content-type': 'application/json'
-            }
-          })
+          .get('/stackgres/sgbackups')
           .then( function(response) {
 
             vc.lookupCRDs('sgbackup', response.data);
@@ -246,11 +234,7 @@ export const mixin = {
   
           /* PostgreSQL Config */
           axios
-          .get('/stackgres/sgpgconfigs',
-            { headers: {
-              'content-type': 'application/json'
-            }
-          })
+          .get('/stackgres/sgpgconfigs')
           .then( function(response) {
 
             vc.lookupCRDs('sgpgconfig', response.data);
@@ -281,11 +265,7 @@ export const mixin = {
   
           /* Connection Pooling Config */
           axios
-          .get('/stackgres/sgpoolconfigs',
-            { headers: {
-              'content-type': 'application/json'
-            }
-          })
+          .get('/stackgres/sgpoolconfigs')
           .then( function(response) {
 
             vc.lookupCRDs('sgpoolconfig', response.data);
@@ -315,11 +295,7 @@ export const mixin = {
   
           /* Backup Config */
           axios
-          .get('/stackgres/sgbackupconfigs',
-            { headers: {
-              'content-type': 'application/json'
-            }
-          })
+          .get('/stackgres/sgbackupconfigs')
           .then( function(response) {
 
             vc.lookupCRDs('sgbackupconfig', response.data);
@@ -351,11 +327,7 @@ export const mixin = {
   
           /* Profiles */
           axios
-          .get('/stackgres/sginstanceprofiles',
-            { headers: {
-              'content-type': 'application/json'
-            }
-          })
+          .get('/stackgres/sginstanceprofiles')
           .then( function(response) {
 
             vc.lookupCRDs('sginstanceprofile', response.data);
@@ -1212,8 +1184,7 @@ export const mixin = {
       },
 
       lookupCRDs(kind, crds) {
-
-        let sgKind = kind;
+        const vc = this;
 
         switch(kind) {
           
@@ -1250,25 +1221,63 @@ export const mixin = {
             break;
         }
 
-        store.state[kind].forEach(function(storeItem, index) {
+        store.state[kind].forEach(function(item, index) {
 
-          let foundItem = crds.find(e => (e.metadata.name == storeItem.data.metadata.name) && (e.metadata.namespace == storeItem.data.metadata.namespace))
+          let foundItem = crds.find(e => (e.metadata.name == item.data.metadata.name) && (e.metadata.namespace == item.data.metadata.namespace))
 
-          if(typeof foundItem === 'undefined') {
+          if(typeof foundItem == 'undefined') {
 
-            store.commit('setDeleteItem', {
-              kind: sgKind,
-              name: storeItem.data.metadata.name,
-              namespace: storeItem.data.metadata.namespace,
-              redirect: ''
+            store.commit('removeResource', {
+              kind: kind,
+              name: item.data.metadata.name,
+              namespace: item.data.metadata.namespace,
             })
 
-            store.commit("setDeleteItem", {
-							kind: '',
-							namespace: '',
-							name: '',
-							redirect: ''
-						});
+            if(vc.$route.params.hasOwnProperty('name') && (item.data.metadata.name == vc.$route.params.name)) {
+
+              switch(kind) {
+          
+                case 'clusters':
+                  router.push('/' + item.data.metadata.namespace + '/sgclusters')
+                  break;
+                
+                case 'pgConfig':
+                  router.push('/' + item.data.metadata.namespace + '/sgpgconfigs')
+                  break;
+      
+                case 'poolConfig':
+                  router.push('/' + item.data.metadata.namespace + '/sgpoolconfigs')
+                  break;
+      
+                case 'backupConfig':
+                  router.push('/' + item.data.metadata.namespace + '/sgbackupconfigs')
+                  break;
+                
+                case 'profiles':
+                  router.push('/' + item.data.metadata.namespace + '/sginstanceprofiles')
+                  break;
+                
+                case 'logsClusters':
+                  router.push('/' + item.data.metadata.namespace + '/sgdistributedlogs')
+                  break;
+                
+                case 'dbOps':
+                  router.push('/' + item.data.metadata.namespace + '/sgdbops')
+                  break;
+              }
+
+              vc.notify('The resource you were browsing has been deleted from the server')
+            } else if ((kind == 'backups') && vc.$route.params.hasOwnProperty('backupname') && (item.data.metadata.name == vc.$route.params.backupname) ) {
+              
+              if(vc.$route.params.hasOwnProperty('name')) {
+                router.push('/' + item.data.metadata.namespace + '/sgcluster/' + vc.$route.params.name + '/sgbackups')
+              } else {
+                router.push('/' + item.data.metadata.namespace + '/sgbackups')
+              }
+              vc.notify('The resource you were browsing has been deleted from the server')
+
+            }  
+
           }
 
         })

@@ -383,8 +383,12 @@ svg.background circle {
     text-align: right;
 }
 
-.cursor:hover {
+.hoverPointer:hover {
     cursor: pointer;
+}
+
+.noHoverPointer:hover {
+    cursor: default !important;
 }
 
 .no-data {

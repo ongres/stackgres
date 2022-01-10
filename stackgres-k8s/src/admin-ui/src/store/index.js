@@ -299,6 +299,10 @@ export default new Vuex.Store({
       state.deleteItem = item;
     },
 
+    removeResource(state, resource) {
+      state[resource.kind].splice(state[resource.kind].findIndex( el => (el.name == resource.name) && (el.data.metadata.namespace == resource.namespace) ), 1)
+    },
+
     setConfirmDeleteName (state, name) {
       state.confirmDeleteName = name;
     },
