@@ -47,6 +47,26 @@ then
   E2E_ONLY_INCLUDES="$("$BATCH_LIST_TEST_FUNCTION" | to_e2e_test_batch "$BATCH_INDEX" "$BATCH_COUNT")"
 fi
 
+if [ "$E2E_USE_TEST_CACHE" = true ]
+then
+  echo "Retrieving cache..."
+  E2E_EXCLUDES_BY_HASH="$(get_already_passed_tests)"
+  echo 'done'
+
+  if echo "$E2E_EXCLUDES_BY_HASH" | grep -q '[^ ]'
+  then
+    echo "Excluding following tests since already passed:"
+    echo
+    printf '%s' "$E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | grep -v '^$' \
+      | while read -r E2E_EXCLUDED_TEST
+        do
+          printf ' - %s\n' "$E2E_EXCLUDED_TEST"
+        done
+    echo
+  fi
+  E2E_EXCLUDES="$(echo "$E2E_EXCLUDES $E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')"
+fi
+
 if [ -z "$E2E_ONLY_INCLUDES" ]
 then
   SPECS="$(printf "%s\n%s" "$(get_all_specs)" "$(get_all_env_specs)")"
@@ -309,6 +329,11 @@ $(cat "$TARGET_PATH/e2e-tests-junit-report.results.xml")
   </testsuite>
 </testsuites>
 EOF
+
+if [ "$E2E_USE_TEST_CACHE" = true ]
+then
+  store_test_results
+fi
 
 if [ "$K8S_DELETE" = true ]
 then
