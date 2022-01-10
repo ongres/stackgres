@@ -15,7 +15,6 @@ import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.stackgres.cluster.controller.ClusterControllerReconciliationCycle;
-import io.stackgres.common.resource.KubernetesClientStatusUpdateException;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle.ReconciliationCycleResult;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
@@ -70,7 +69,6 @@ public class StackGresClusterControllerMain {
       if (!result.success()) {
         RuntimeException ex = Seq.seq(result.getException())
             .append(result.getContextExceptions().values().stream())
-            .filter(e -> filterExceptions(e, args))
             .reduce(new RuntimeException("StackGres Cluster Controller"
                 + " reconciliation cycle failed"),
                 (exception, suppressedException) -> {
@@ -85,14 +83,6 @@ public class StackGresClusterControllerMain {
       return 0;
     }
 
-    private boolean filterExceptions(Exception exception, String... args) {
-      if (!isReconciliationCycle(args)
-          && exception instanceof KubernetesClientStatusUpdateException) {
-        LOGGER.warn("A non critical error occured.", exception);
-        return false;
-      }
-      return true;
-    }
   }
 
   public static class StackGresClusterControllerApp implements QuarkusApplication {

@@ -68,7 +68,6 @@ import io.stackgres.common.kubernetesclient.workaround.SecretOperationsImpl;
 import io.stackgres.common.kubernetesclient.workaround.ServiceOperationsImpl;
 import io.stackgres.common.prometheus.ServiceMonitor;
 import io.stackgres.common.prometheus.ServiceMonitorList;
-import io.stackgres.common.resource.KubernetesClientStatusUpdateException;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import okhttp3.Call;
@@ -202,14 +201,9 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
         return null;
       });
       return (T) replaceMethod.invoke(replaceDeleteable, resourceOverwrite, true);
-    } catch (KubernetesClientException ex) {
-      throw new KubernetesClientStatusUpdateException(ex);
     } catch (InvocationTargetException ex) {
       Throwable targetEx = ex.getTargetException();
-      if (targetEx instanceof KubernetesClientException) {
-        throw new KubernetesClientStatusUpdateException(
-            (KubernetesClientException) targetEx);
-      } else if (targetEx instanceof RuntimeException) {
+      if (targetEx instanceof RuntimeException) {
         throw (RuntimeException) targetEx;
       } else if (targetEx instanceof Error) {
         throw (Error) targetEx;

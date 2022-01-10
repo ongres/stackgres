@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.StackGresKubernetesClient;
+import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 
 public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?, ?>,
     L extends CustomResourceList<T>>
@@ -54,31 +55,35 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
 
   @Override
   public T update(T resource, BiConsumer<T, T> setter) {
-    T resourceOverwrite = getCustomResourceEndpoints(client)
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
-        .get();
-    if (resourceOverwrite == null) {
-      throw new RuntimeException("Can not update status of resource "
-          + resource.getKind()
-          + "." + resource.getGroup()
-          + " " + resource.getMetadata().getNamespace()
-          + "." + resource.getMetadata().getName()
-          + ": resource not found");
-    }
-    setter.accept(resourceOverwrite, resource);
-    return getCustomResourceEndpoints(client)
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
-        .lockResourceVersion(resourceOverwrite.getMetadata().getResourceVersion())
-        .replace(resourceOverwrite);
+    return KubernetesClientUtil.retryOnConflict(
+        () -> {
+          T resourceOverwrite = getCustomResourceEndpoints(client)
+              .inNamespace(resource.getMetadata().getNamespace())
+              .withName(resource.getMetadata().getName())
+              .get();
+          if (resourceOverwrite == null) {
+            throw new RuntimeException("Can not update status of resource "
+                + resource.getKind()
+                + "." + resource.getGroup()
+                + " " + resource.getMetadata().getNamespace()
+                + "." + resource.getMetadata().getName()
+                + ": resource not found");
+          }
+          setter.accept(resourceOverwrite, resource);
+          return getCustomResourceEndpoints(client)
+              .inNamespace(resource.getMetadata().getNamespace())
+              .withName(resource.getMetadata().getName())
+              .lockResourceVersion(resourceOverwrite.getMetadata().getResourceVersion())
+              .replace(resourceOverwrite);
+        });
   }
 
   @Override
   public <S> T updateStatus(T resource, Function<T, S> statusGetter,
       BiConsumer<T, S> statusSetter) {
-    return ((StackGresKubernetesClient) client).updateStatus(customResourceClass,
-        customResourceListClass, resource, statusGetter, statusSetter);
+    return KubernetesClientUtil.retryOnConflict(
+        () -> ((StackGresKubernetesClient) client).updateStatus(customResourceClass,
+            customResourceListClass, resource, statusGetter, statusSetter));
   }
 
   @Override
