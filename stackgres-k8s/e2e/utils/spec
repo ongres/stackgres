@@ -10,6 +10,28 @@ export E2E_TEST_AFTER_ALL_FUNCTION="${E2E_TEST_AFTER_ALL_FUNCTION:-e2e_test_afte
 export E2E_BEFORE_RUN_TEST_COUNT=0
 export SPEC_PATH="$E2E_PATH/spec"
 export E2E_LOCK
+export E2E_TEST_REGISTRY
+export E2E_TEST_REGISTRY_PATH
+export E2E_HASH_VARIABLES='
+    E2E_ENV
+    E2E_COMPONENTS_REGISTRY
+    E2E_COMPONENTS_REGISTRY_PATH
+    E2E_EXTENSIONS_REGISTRY_PATH
+    E2E_IMAGE_MAP
+    E2E_MAJOR_SOURCE_POSTGRES_VERSION
+    E2E_MAJOR_TARGET_POSTGRES_VERSION
+    E2E_MINOR_SOURCE_POSTGRES_VERSION
+    E2E_MINOR_TARGET_POSTGRES_VERSION
+    E2E_OPERATOR_OPTS
+    E2E_OPERATOR_REGISTRY
+    E2E_OPERATOR_REGISTRY_PATH
+    E2E_SET_MAX_LENGTH_NAMES
+    E2E_SET_MAX_LENGTH_NAMES_PLUS_ONE
+    E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR
+    E2E_STORAGE_CLASS_REFLINK_ENABLED
+    STACKGRES_PREVIOUS_VERSION
+    K8S_VERSION
+    '
 
 e2e_test_before_all() {
   true
@@ -313,6 +335,26 @@ e2e_after_run_test() {
 }
 
 calculate_spec_hashes() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" generate_image_hashes
+
+  local JVM_IMAGE_MODULE_HASH NATIVE_IMAGE_MODULE_HASH UI_IMAGE_MODULE_HASH
+  JVM_IMAGE_MODULE_HASH="$(
+    grep '^jvm-image=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes" \
+      | cut -d = -f 2)"
+  NATIVE_IMAGE_MODULE_HASH="$(
+    grep '^native-image=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes" \
+      | cut -d = -f 2)"
+  UI_IMAGE_MODULE_HASH="$(
+    grep '^ui-image=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes" \
+      | cut -d = -f 2)"
+  local SPEC_PLATFORM
+  SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform)"
+  # shellcheck disable=SC2015
+  [ -n "$JVM_IMAGE_MODULE_HASH" ] \
+    && [ -n "$UI_IMAGE_MODULE_HASH" ] \
+    && [ -n "$NATIVE_IMAGE_MODULE_HASH" ] \
+    && [ -n "$SPEC_PLATFORM" ] \
+    && true || false
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" init_hash
   local GLOBAL_SPEC_HASH
   GLOBAL_SPEC_HASH="$(
@@ -323,14 +365,18 @@ calculate_spec_hashes() {
           do
             "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
               "$(realpath --relative-to "$PROJECT_PATH" "$FILE")"
-          done \
-        | md5sum | cut -d ' ' -f 1)"
+          done)"
+   GLOBAL_SPEC_HASH="$(printf '%s' "$GLOBAL_SPEC_HASH" | md5sum | cut -d ' ' -f 1)"
+  local VARIABLES_HASH
+  VARIABLES_HASH="$(get_variables_for_hash)"
+  VARIABLES_HASH="$(printf '%s' "$VARIABLES_HASH" | md5sum | cut -d ' ' -f 1)"
   {
     get_all_specs
     get_all_env_specs
   } | while read SPEC
       do
         SPEC_HASH="$( {
+          echo "${SPEC##*spec/}"
           echo "$GLOBAL_SPEC_HASH"
           "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
               "$(realpath --relative-to "$PROJECT_PATH" "$SPEC")"
@@ -351,8 +397,202 @@ calculate_spec_hashes() {
             get_extensions_index_hash
           fi
           )
+          if [ "${IMAGE_TAG%-jvm}" = "$IMAGE_TAG" ]
+          then
+            printf '%s\n' "$NATIVE_IMAGE_MODULE_HASH"
+          else
+            printf '%s\n' "$JVM_IMAGE_MODULE_HASH"
+          fi
+          if [ "$SPEC_NAME" = ui ]
+          then
+            printf '%s\n' "$UI_IMAGE_MODULE_HASH"
+          fi
+          printf '%s' "$VARIABLES_HASH"
         })"
         SPEC_HASH="$(printf '%s' "$SPEC_HASH" | md5sum | cut -d ' ' -f 1)"
-        echo "$SPEC:$SPEC_HASH"
+        printf '%s:%s-%s\n' "${SPEC##*spec/}" "$SPEC_HASH" "$SPEC_PLATFORM"
       done
+}
+
+get_variables_for_hash() {
+  env -0 \
+    | cut -z -d = -f 1 | tr '\0' '\n' | sort | uniq \
+    | while read -r NAME
+      do
+        if [ x != "x$NAME" ] && echo " $(echo "$E2E_HASH_VARIABLES" | tr '\n' ' ' | tr -s ' ') " | grep -qF " $NAME "
+        then
+          eval "[ x = \"x\$$NAME\" ] || printf '%s=%s\n' \"$NAME\" \"\$$NAME\""
+        fi
+      done
+}
+
+get_already_passed_tests() {
+  [ -n "$E2E_TEST_REGISTRY" ] \
+    && [ -n "$E2E_TEST_REGISTRY_PATH" ] \
+    && true || false
+
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/e2e/e2e" calculate_spec_hashes \
+    > "$TARGET_PATH/test-hashes"
+  while read -r SPEC_HASH
+  do
+    SPEC_NAME="${SPEC_HASH%:*}"
+    SPEC_HASH="${SPEC_HASH#*:}"
+    printf '%s=%s/%s/e2e-test-result-%s:%s\n' \
+      "$SPEC_NAME" "$E2E_TEST_REGISTRY" "$E2E_TEST_REGISTRY_PATH" "$SPEC_NAME" "$SPEC_HASH"
+  done < "$TARGET_PATH/test-hashes" \
+    > "$TARGET_PATH/test-result-images"
+
+  cut -d = -f 2- "$TARGET_PATH/test-result-images" \
+    > "$TARGET_PATH/all-test-result-images"
+
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" find_image_digests \
+    "$TARGET_PATH/all-test-result-images" \
+    > "$TARGET_PATH/test-result-image-digests"
+
+  rm -f "$TARGET_PATH/already-passed-tests"
+  touch "$TARGET_PATH/already-passed-tests"
+  if [ "$E2E_DO_TESTS" != true ]
+  then
+    while IFS='=' read -r TEST_NAME IMAGE_NAME
+    do
+      if grep -q "^$IMAGE_NAME=" "$TARGET_PATH/test-result-image-digests"
+      then
+        printf '%s\n' "$TEST_NAME" >> "$TARGET_PATH/already-passed-tests"
+      fi
+    done < "$TARGET_PATH/test-result-images"
+  fi
+
+  tr '\n' ' ' < "$TARGET_PATH/already-passed-tests"
+}
+
+store_test_results() {
+  [ -n "$E2E_TEST_REGISTRY" ] \
+    && [ -n "$E2E_TEST_REGISTRY_PATH" ] \
+    && true || false
+
+  cat << EOF > "$TARGET_PATH/Dockerfile.e2e"
+FROM alpine:3.13.5
+  COPY . /project
+EOF
+
+  local SPEC_PLATFORM
+  SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform)"
+  # shellcheck disable=SC2046
+  docker build -f "$TARGET_PATH/Dockerfile.e2e" \
+    -t "$E2E_TEST_REGISTRY/$E2E_TEST_REGISTRY_PATH/e2e-test-result$SUFFIX:$IMAGE_TAG-$SPEC_PLATFORM" \
+    $(
+      while read -r TEST_NAME
+      do
+        IMAGE_NAME="$(grep "^$TEST_NAME=" "$TARGET_PATH/test-result-images" \
+          | cut -d = -f 2-)"
+        printf '%s %s ' '-t' "$IMAGE_NAME"
+      done < "$TARGET_PATH/passed-tests"
+    ) \
+    "$TARGET_PATH"
+  docker push "$E2E_TEST_REGISTRY/$E2E_TEST_REGISTRY_PATH/e2e-test-result$SUFFIX:$IMAGE_TAG-$SPEC_PLATFORM"
+  while read -r TEST_NAME
+  do
+    IMAGE_NAME="$(grep "^$TEST_NAME=" "$TARGET_PATH/test-result-images" \
+      | cut -d = -f 2-)"
+    printf '%s\n' "$IMAGE_NAME"
+  done < "$TARGET_PATH/passed-tests" \
+    | xargs -I % -P "$E2E_PARALLELISM" docker push %
+}
+
+add_already_passed_tests_to_report() {
+  E2E_ALREADY_PASSED_COUNT="$(wc -l "$TARGET_PATH/already-passed-tests" | cut -d ' ' -f 1)"
+
+  cat << EOF > "$TARGET_PATH/already-passed-e2e-tests-junit-report.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites time="0">
+  <testsuite name="e2e tests already passed" tests="$E2E_ALREADY_PASSED_COUNT" time="0">
+    $(
+      while read -r TEST_NAME
+      do
+        if ! grep -qxF "$TEST_NAME" "$TARGET_PATH/all-tests"
+        then
+          continue
+        fi
+        TEST_HASH="$(grep "^$TEST_NAME:" "$TARGET_PATH/test-hashes")"
+        TEST_HASH="${TEST_HASH#*:}"
+        cat << INNER_EOF
+    <testcase classname="$TEST_NAME" name="$TEST_HASH" time="0" />
+INNER_EOF
+      done < "$TARGET_PATH/already-passed-tests"
+      )
+  </testsuite>
+</testsuites>
+EOF
+}
+
+show_test_result_summary() {
+  local EXIT_CODE="${1:-0}"
+
+  local TEST_NAME
+  local ANY_TEST_ALREADY_PASSED=false
+  while read -r TEST_NAME
+  do
+    if grep -qxF "$TEST_NAME" "$TARGET_PATH/all-tests"
+    then
+      ANY_TEST_ALREADY_PASSED=true
+      break
+    fi
+  done < "$TARGET_PATH/already-passed-tests"
+  if [ "$ANY_TEST_ALREADY_PASSED" = true ]
+  then
+    echo "Already passed tests:"
+    echo
+    while read -r TEST_NAME
+    do
+      if grep -qxF "$TEST_NAME" "$TARGET_PATH/all-tests"
+      then
+        printf ' - %s\n' "$TEST_NAME"
+      fi
+    done < "$TARGET_PATH/already-passed-tests"
+    echo
+  else
+    echo "No test where cached before for this build"
+    echo
+  fi
+
+  if [ -s "$TARGET_PATH/passed-tests" ]
+  then
+    echo "Passed tests:"
+    echo
+    while read -r TEST_NAME
+    do
+      printf ' - %s\n' "$TEST_NAME"
+    done < "$TARGET_PATH/passed-tests"
+    echo
+  elif [ "$({ wc -l "$TARGET_PATH/runned-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
+    "$({ wc -l "$TARGET_PATH/passed-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
+  then
+    echo "Passed tests:"
+    echo
+    echo "None :("
+    echo
+  fi
+
+  if [ "$({ wc -l "$TARGET_PATH/runned-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
+    "$({ wc -l "$TARGET_PATH/passed-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
+  then
+    echo "Failed tests:"
+    echo
+    while read -r TEST_NAME
+    do
+      if ! grep -qxF "$TEST_NAME" "$TARGET_PATH/passed-tests"
+      then
+        printf ' - %s\n' "$TEST_NAME"
+      fi
+    done < "$TARGET_PATH/runned-tests"
+    echo
+  else
+    if [ "$EXIT_CODE" != 0 ]
+    then
+      echo "Something went bad?! :_("
+    else
+      echo "Everything went well! :)"
+    fi
+    echo
+  fi
 }

@@ -8,33 +8,12 @@ set -e
 
 # shellcheck disable=SC2015
 { [ "$IS_WEB" = true ] || [ "$IS_WEB" = false ]; } \
-  && { [ "$IS_NATIVE" = true ] || [ "$IS_NATIVE" = false ]; } \
   && [ -n "$E2E_SUFFIX" ] && [ -n "$E2E_RUN_ONLY" ] \
   && [ -n "$CI_JOB_ID" ] && [ -n "$CI_PROJECT_ID" ] && [ -d "$CI_PROJECT_DIR" ] \
   && [ -n "$CI_COMMIT_SHORT_SHA" ] && [ -n "$CI_PROJECT_PATH" ] \
   && [ -n "$CI_REGISTRY" ] && [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ] \
   && true || false
 
-export E2E_SENSIBLE_VARIABLES='
-    E2E_ENV
-    E2E_COMPONENTS_REGISTRY
-    E2E_COMPONENTS_REGISTRY_PATH
-    E2E_EXTENSIONS_REGISTRY_PATH
-    E2E_IMAGE_MAP
-    E2E_MAJOR_SOURCE_POSTGRES_VERSION
-    E2E_MAJOR_TARGET_POSTGRES_VERSION
-    E2E_MINOR_SOURCE_POSTGRES_VERSION
-    E2E_MINOR_TARGET_POSTGRES_VERSION
-    E2E_OPERATOR_OPTS
-    E2E_OPERATOR_REGISTRY
-    E2E_OPERATOR_REGISTRY_PATH
-    E2E_SET_MAX_LENGTH_NAMES
-    E2E_SET_MAX_LENGTH_NAMES_PLUS_ONE
-    E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR
-    E2E_STORAGE_CLASS_REFLINK_ENABLED
-    STACKGRES_PREVIOUS_VERSION
-    K8S_VERSION
-    '
 export E2E_SHELL="${E2E_SHELL:-sh}"
 export E2E_ENV="${E2E_ENV:-kind}"
 export E2E_PARALLELISM="${E2E_PARALLELISM:-32}"
@@ -88,219 +67,12 @@ clean_up_project_temp_dir() {
   echo "done"
 }
 
-get_sensible_variables() {
-  env \
-    | grep '^[A-Z]' | cut -d = -f 1 | sort | uniq \
-    | while read -r NAME
-      do
-        if [ x != "x$NAME" ] && echo " $(echo "$E2E_SENSIBLE_VARIABLES" | tr '\n' ' ' | tr -s ' ') " | grep -qF " $NAME "
-        then
-          eval "[ x = \"x\$$NAME\" ] || printf '%s=%s\n' \"$NAME\" \"\$$NAME\""
-        fi
-      done
-}
-
-get_already_passed_tests() {
-  sh stackgres-k8s/ci/build/build-functions.sh generate_image_hashes
-
-  JVM_IMAGE_MODULE_HASH="$(
-    grep '^jvm-image=' stackgres-k8s/ci/build/target/image-type-hashes \
-      | cut -d = -f 2)"
-  NATIVE_IMAGE_MODULE_HASH="$(
-    grep '^native-image=' stackgres-k8s/ci/build/target/image-type-hashes \
-      | cut -d = -f 2)"
-  UI_IMAGE_MODULE_HASH="$(
-    grep '^ui-image=' stackgres-k8s/ci/build/target/image-type-hashes \
-      | cut -d = -f 2)"
-  VARIABLES="$(get_sensible_variables)"
-  SPEC_PLATFORM="$(sh stackgres-k8s/ci/build/build-functions.sh get_platform)"
-  # shellcheck disable=SC2015
-  [ -n "$JVM_IMAGE_MODULE_HASH" ] \
-    && [ -n "$UI_IMAGE_MODULE_HASH" ] \
-    && [ -n "$NATIVE_IMAGE_MODULE_HASH" ] \
-    && true || false
-  sh stackgres-k8s/e2e/e2e calculate_spec_hashes > stackgres-k8s/ci/test/target/test-hashes
-  while read -r SPEC_HASH
-  do
-    SPEC_HASH="${SPEC_HASH##*/}"
-    SPEC_NAME="${SPEC_HASH%:*}"
-    SPEC_HASH="${SPEC_HASH#*:}"
-    SPEC_RESULT_HASH="$(
-      {
-        printf '%s\n' "$SPEC_NAME"
-        printf '%s\n' "$SPEC_HASH"
-        if "$IS_NATIVE"
-        then
-          printf '%s\n' "$NATIVE_IMAGE_MODULE_HASH"
-        else
-          printf '%s\n' "$JVM_IMAGE_MODULE_HASH"
-        fi
-        if [ "$SPEC_NAME" = ui ]
-        then
-          printf '%s\n' "$UI_IMAGE_MODULE_HASH"
-        fi
-        printf '%s\n' "$VARIABLES"
-      } | md5sum | cut -d ' ' -f 1)"
-    printf '%s=%s/%s/e2e-test-result-%s:%s-%s\n' \
-      "$SPEC_NAME" "$CI_REGISTRY" "$CI_PROJECT_PATH" "$SPEC_NAME" "$SPEC_RESULT_HASH" "$SPEC_PLATFORM"
-  done < stackgres-k8s/ci/test/target/test-hashes \
-    > stackgres-k8s/ci/test/target/test-result-images
-
-  cut -d = -f 2- stackgres-k8s/ci/test/target/test-result-images \
-    > stackgres-k8s/ci/test/target/all-test-result-images
-
-  sh stackgres-k8s/ci/build/build-functions.sh find_image_digests \
-    stackgres-k8s/ci/test/target/all-test-result-images \
-    > stackgres-k8s/ci/test/target/test-result-image-digests
-
-  rm -f stackgres-k8s/ci/test/target/already-passed-tests
-  touch stackgres-k8s/ci/test/target/already-passed-tests
-  if [ "$E2E_DO_TESTS" != true ]
-  then
-    while IFS='=' read -r TEST_NAME IMAGE_NAME
-    do
-      if grep -q "^$IMAGE_NAME=" stackgres-k8s/ci/test/target/test-result-image-digests
-      then
-        printf '%s\n' "$TEST_NAME" >> stackgres-k8s/ci/test/target/already-passed-tests
-      fi
-    done < stackgres-k8s/ci/test/target/test-result-images
-  fi
-
-  tr '\n' ' ' < stackgres-k8s/ci/test/target/already-passed-tests
-}
-
-store_test_results() {
-  cat << EOF > stackgres-k8s/ci/test/target/Dockerfile.e2e
-FROM alpine:3.13.5
-  COPY . /project
-EOF
-
-  # shellcheck disable=SC2046
-  docker build -f stackgres-k8s/ci/test/target/Dockerfile.e2e \
-    -t "$CI_REGISTRY/$CI_PROJECT_PATH/e2e-test-result$SUFFIX:$CI_COMMIT_SHORT_SHA" \
-    $(
-      while read -r TEST_NAME
-      do
-        IMAGE_NAME="$(grep "^$TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
-          | cut -d = -f 2-)"
-        printf '%s %s ' '-t' "$IMAGE_NAME"
-      done < stackgres-k8s/e2e/target/passed-tests
-    ) \
-    stackgres-k8s/e2e/target
-  docker push "$CI_REGISTRY/$CI_PROJECT_PATH/e2e-test-result$SUFFIX:$CI_COMMIT_SHORT_SHA"
-  while read -r TEST_NAME
-  do
-    IMAGE_NAME="$(grep "^$TEST_NAME=" stackgres-k8s/ci/test/target/test-result-images \
-      | cut -d = -f 2-)"
-    printf '%s\n' "$IMAGE_NAME"
-  done < stackgres-k8s/e2e/target/passed-tests \
-    | xargs -I % -P "$E2E_PARALLELISM" docker push %
-}
-
-add_already_passed_tests_to_report() {
-  E2E_ALREADY_PASSED_COUNT="$(wc -l stackgres-k8s/ci/test/target/already-passed-tests | cut -d ' ' -f 1)"
-
-  cat << EOF > stackgres-k8s/ci/test/target/already-passed-e2e-tests-junit-report.xml
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites time="0">
-  <testsuite name="e2e tests already passed" tests="$E2E_ALREADY_PASSED_COUNT" time="0">
-    $(
-      while read -r TEST_NAME
-      do
-        if ! grep -qxF "$TEST_NAME" stackgres-k8s/e2e/target/all-tests
-        then
-          continue
-        fi
-        TEST_HASH="$(grep "^$TEST_NAME:" stackgres-k8s/ci/test/target/test-hashes)"
-        TEST_HASH="${TEST_HASH#*:}"
-        cat << INNER_EOF
-    <testcase classname="$TEST_NAME" name="$TEST_HASH" time="0" />
-INNER_EOF
-      done < stackgres-k8s/ci/test/target/already-passed-tests
-      )
-  </testsuite>
-</testsuites>
-EOF
-}
-
-show_test_result_summary() {
-  local EXIT_CODE="${1:-0}"
-
-  local TEST_NAME
-  local ANY_TEST_ALREADY_PASSED=false
-  while read -r TEST_NAME
-  do
-    if grep -qxF "$TEST_NAME" stackgres-k8s/e2e/target/all-tests
-    then
-      ANY_TEST_ALREADY_PASSED=true
-      break
-    fi
-  done < stackgres-k8s/ci/test/target/already-passed-tests
-  if [ "$ANY_TEST_ALREADY_PASSED" = true ]
-  then
-    echo "Already passed tests:"
-    echo
-    while read -r TEST_NAME
-    do
-      if grep -qxF "$TEST_NAME" stackgres-k8s/e2e/target/all-tests
-      then
-        printf ' - %s\n' "$TEST_NAME"
-      fi
-    done < stackgres-k8s/ci/test/target/already-passed-tests
-    echo
-  else
-    echo "No test where cached before for this build"
-    echo
-  fi
-
-  if [ -s stackgres-k8s/e2e/target/passed-tests ]
-  then
-    echo "Passed tests:"
-    echo
-    while read -r TEST_NAME
-    do
-      printf ' - %s\n' "$TEST_NAME"
-    done < stackgres-k8s/e2e/target/passed-tests
-    echo
-  elif [ "$({ wc -l stackgres-k8s/e2e/target/runned-tests 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
-    "$({ wc -l stackgres-k8s/e2e/target/passed-tests 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
-  then
-    echo "Passed tests:"
-    echo
-    echo "None :("
-    echo
-  fi
-
-  if [ "$({ wc -l stackgres-k8s/e2e/target/runned-tests 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
-    "$({ wc -l stackgres-k8s/e2e/target/passed-tests 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
-  then
-    echo "Failed tests:"
-    echo
-    while read -r TEST_NAME
-    do
-      if ! grep -qxF "$TEST_NAME" stackgres-k8s/e2e/target/passed-tests
-      then
-        printf ' - %s\n' "$TEST_NAME"
-      fi
-    done < stackgres-k8s/e2e/target/runned-tests
-    echo
-  else
-    if [ "$EXIT_CODE" != 0 ]
-    then
-      echo "Something went bad?! :_("
-    else
-      echo "Everything went well! :)"
-    fi
-    echo
-  fi
-}
-
 run_all_tests_loop() {
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
 
   echo "Variables:"
   echo
-  get_sensible_variables \
+  sh stackgres-k8s/e2e/e2e get_variables_for_hash \
     | while read -r VARIABLE
       do
         printf ' - %s\n' "$VARIABLE"
@@ -309,18 +81,20 @@ run_all_tests_loop() {
 
   echo "Retrieving cache..."
   export IS_WEB
-  export IS_NATIVE
-  E2E_EXCLUDES_BY_HASH="$(get_already_passed_tests)"
+  E2E_EXCLUDES_BY_HASH="$(
+    E2E_TEST_REGISTRY="$CI_REGISTRY" \
+    E2E_TEST_REGISTRY_PATH="$CI_PROJECT_PATH" \
+    sh stackgres-k8s/e2e/e2e get_already_passed_tests)"
   echo 'done'
 
   echo
 
   echo "Retrieved image digests:"
-  sort stackgres-k8s/ci/test/target/all-test-result-images | uniq \
+  sort stackgres-k8s/e2e/target/all-test-result-images | uniq \
     | while read -r IMAGE_NAME
       do
         printf ' - %s => %s\n' "$IMAGE_NAME" "$(
-          { grep "^$IMAGE_NAME=" stackgres-k8s/ci/test/target/test-result-image-digests || echo '=<not found>'; } \
+          { grep "^$IMAGE_NAME=" stackgres-k8s/e2e/target/test-result-image-digests || echo '=<not found>'; } \
             | cut -d = -f 2-)"
       done
   echo "done"
@@ -446,7 +220,9 @@ run_all_tests() {
   do
     (
     set -e
-    store_test_results
+    E2E_TEST_REGISTRY="$CI_REGISTRY" \
+      E2E_TEST_REGISTRY_PATH="$CI_PROJECT_PATH" \
+      sh stackgres-k8s/e2e/e2e store_test_results
     )
     STORE_RESULTS_EXIT_CODE="$?"
     if [ "$STORE_RESULTS_EXIT_CODE" = 0 ]
@@ -475,9 +251,9 @@ run_all_tests() {
 
   clean_up_project_temp_dir
 
-  add_already_passed_tests_to_report
+  sh stackgres-k8s/e2e/e2e add_already_passed_tests_to_report
 
-  show_test_result_summary "$EXIT_CODE"
+  sh stackgres-k8s/e2e/e2e show_test_result_summary "$EXIT_CODE"
 
   exit "$EXIT_CODE"
 }
