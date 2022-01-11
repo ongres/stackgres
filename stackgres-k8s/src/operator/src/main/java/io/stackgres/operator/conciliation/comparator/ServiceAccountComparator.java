@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.comparator;
 
-import java.util.Arrays;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -18,12 +16,26 @@ public class ServiceAccountComparator extends StackGresAbstractComparator {
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
       new StackGresAbstractComparator.SimpleIgnorePatch("/managedFields",
           "add"),
+      new ManagedByServerSideApplyIgnorePatch(),
       new StackGresAbstractComparator.SimpleIgnorePatch("/secrets",
           "add"),
-      new SimpleIgnorePatch("/metadata/annotations/"
-          + StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY,
-          "add"),
   };
+
+  static class ManagedByServerSideApplyIgnorePatch implements IgnorePatch {
+    private static final String MANAGED_BY_SERVER_SIDE_APPLY_PATH =
+        "/annotations/"
+        + ResourceComparator.escapePatchPath(StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY);
+
+    public boolean matches(JsonPatch patch) {
+      return patch.getOp().equals("add")
+          && (patch.getPath().equals(MANAGED_BY_SERVER_SIDE_APPLY_PATH)
+              || (
+                  patch.getPath().equals("/annotations")
+                  && patch.getJsonValue().has(StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY)
+                  )
+              );
+    }
+  }
 
   @Override
   protected IgnorePatch[] getPatchPattersToIgnore() {
@@ -36,27 +48,11 @@ public class ServiceAccountComparator extends StackGresAbstractComparator {
   }
 
   @Override
-  public ArrayNode getJsonDiff(HasMetadata required, HasMetadata deployed) {
-
+  public ArrayNode getRawJsonDiff(HasMetadata required, HasMetadata deployed) {
     final JsonNode source = PATCH_MAPPER.valueToTree(required.getMetadata());
     final JsonNode target = PATCH_MAPPER.valueToTree(deployed.getMetadata());
     ArrayNode diff = (ArrayNode) JsonDiff.asJson(source, target);
-
-    for (int index = diff.size() - 1; index >= 0; index--) {
-      JsonNode singleDiff = diff.get(index);
-      JsonPatch patch = new JsonPatch(singleDiff);
-      if (Arrays.stream(getPatchPattersToIgnore())
-          .anyMatch(patchPattern -> patchPattern.matches(patch))) {
-        diff.remove(index);
-      }
-    }
-    if (LOGGER.isDebugEnabled()) {
-      for (JsonNode singleDiff : diff) {
-        LOGGER.debug("{}: {} diff {}",
-            getClass().getSimpleName(), required.getKind(), singleDiff.toPrettyString());
-      }
-    }
-
     return diff;
   }
+
 }
