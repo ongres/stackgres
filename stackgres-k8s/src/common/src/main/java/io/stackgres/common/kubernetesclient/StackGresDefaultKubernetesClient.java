@@ -193,7 +193,7 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
       var replaceDeleteable = resources(resourceClass, resourceListClass)
           .inNamespace(resource.getMetadata().getNamespace())
           .withName(resource.getMetadata().getName())
-          .lockResourceVersion(resource.getMetadata().getResourceVersion());
+          .lockResourceVersion(resourceOverwrite.getMetadata().getResourceVersion());
       Method replaceMethod = replaceDeleteable.getClass().getSuperclass()
           .getDeclaredMethod("replace", HasMetadata.class, boolean.class);
       AccessController.doPrivileged((PrivilegedAction<?>) () -> {
