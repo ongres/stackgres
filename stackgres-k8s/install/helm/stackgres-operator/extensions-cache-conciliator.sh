@@ -404,11 +404,11 @@ get_to_install_extensions() {
     | .availableFor = (.availableFor
       | sort_by(if .build == null then 0 else (.build | split(".") 
         | (.[0] | tonumber | . * 10000) + (.[1] | split("-")[0] | tonumber)) end)
-      | reduce .[] as $availableForEntry ({};
-        . as $result | ($availableForEntry.postgresVersion | if . != null then . else "any" end)
+      | reduce .[] as $availableFor ({};
+        . as $result | ($availableFor.postgresVersion | if . != null then . else "any" end)
           + "-" + ($availableFor.arch | if . != null then . else "'"$DEFAULT_BUILD_ARCH"'" end)
-          + "-" + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end) as $key
-        | $availableForEntry | $result | .[$key] = $availableForEntry) | to_entries | map(.value))
+          + "-" + ($availableFor.os | if . != null then . else "'"$DEFAULT_BUILD_OS"'" end) | . as $key
+        | $result | .[$key] = $availableFor) | to_entries | map(.value))
     | .availableFor[] | . as $availableFor
     | select('"$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS"' | any(. as $test
       | $extension.publisher
