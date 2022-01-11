@@ -347,24 +347,32 @@ public interface StackGresUtil {
             postgresVersion));
   }
 
-  static StackGresComponent getPostgresFlavorComponent(StackGresCluster cluster) {
+  static @NotNull StackGresComponent getPostgresFlavorComponent(StackGresCluster cluster) {
     return getPostgresFlavorComponent(cluster.getSpec().getPostgres().getFlavor());
   }
 
-  static StackGresComponent getPostgresFlavorComponent(@Nullable String flavor) {
+  static @NotNull StackGresComponent getPostgresFlavorComponent(@Nullable String flavor) {
     StackGresComponent postgresComponentFlavor;
-    if (Optional.ofNullable(flavor)
-        .map(StackGresPostgresFlavor.VANILLA.toString()::equals)
-        .orElse(true)) {
+    final String postgresFlavor = getPostgresFlavor(flavor);
+    if (postgresFlavor
+        .equals(StackGresPostgresFlavor.VANILLA.toString())) {
       postgresComponentFlavor = StackGresComponent.POSTGRESQL;
-    } else if (Optional.ofNullable(flavor)
-        .map(StackGresPostgresFlavor.BABELFISH.toString()::equals)
-        .orElse(false)) {
+    } else if (postgresFlavor
+        .equals(StackGresPostgresFlavor.BABELFISH.toString())) {
       postgresComponentFlavor = StackGresComponent.BABELFISH;
     } else {
-      throw new IllegalArgumentException("Unknown flavor " + flavor);
+      throw new IllegalArgumentException("Unknown flavor " + postgresFlavor);
     }
     return postgresComponentFlavor;
+  }
+
+  static @NotNull String getPostgresFlavor(StackGresCluster cluster) {
+    return getPostgresFlavor(cluster.getSpec().getPostgres().getFlavor());
+  }
+
+  static @NotNull String getPostgresFlavor(@Nullable String flavor) {
+    return Optional.ofNullable(flavor)
+        .orElse(StackGresPostgresFlavor.VANILLA.toString());
   }
 
   /**

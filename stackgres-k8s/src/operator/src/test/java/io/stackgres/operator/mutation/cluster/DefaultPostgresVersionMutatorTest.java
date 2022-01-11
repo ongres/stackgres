@@ -18,6 +18,7 @@ import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultPostgresVersionMutatorTest {
+
+  private static final String POSTGRES_VERSION =
+      StackGresComponent.POSTGRESQL.getOrderedVersions().findFirst().get();
 
   protected static final ObjectMapper JSON_MAPPER = new ObjectMapper();
 
@@ -38,19 +42,16 @@ class DefaultPostgresVersionMutatorTest {
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
-
     review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     mutator = new DefaultPostgresVersionMutator();
     mutator.init();
-
   }
 
   @Test
   void clusterWithFinalPostgresVersion_shouldNotDoAnything() {
-
-    review.getRequest().getObject().getSpec().getPostgres().setVersion("12.3");
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -59,7 +60,6 @@ class DefaultPostgresVersionMutatorTest {
 
   @Test
   void clusteWithNoPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
-
     review.getRequest().getObject().getSpec().getPostgres().setVersion(null);
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -71,12 +71,26 @@ class DefaultPostgresVersionMutatorTest {
 
     String actualPostgresVersion = newConfig.get("spec").get("postgres").get("version").asText();
     assertEquals(StackGresComponent.POSTGRESQL.findLatestVersion(), actualPostgresVersion);
+  }
 
+  @Test
+  void clusteWithNoPostgresFlavor_shouldSetFinalValue() throws JsonPatchException {
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
+    review.getRequest().getObject().getSpec().getPostgres().setFlavor(null);
+
+    List<JsonPatchOperation> operations = mutator.mutate(review);
+
+    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
+
+    JsonPatch jp = new JsonPatch(operations);
+    JsonNode newConfig = jp.apply(crJson);
+
+    String actualPostgresFlavor = newConfig.get("spec").get("postgres").get("flavor").asText();
+    assertEquals(StackGresPostgresFlavor.VANILLA.toString(), actualPostgresFlavor);
   }
 
   @Test
   void clusteWithLatestPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
-
     review.getRequest().getObject().getSpec().getPostgres().setVersion(StackGresComponent.LATEST);
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -88,12 +102,10 @@ class DefaultPostgresVersionMutatorTest {
 
     String actualPostgresVersion = newConfig.get("spec").get("postgres").get("version").asText();
     assertEquals(StackGresComponent.POSTGRESQL.findLatestVersion(), actualPostgresVersion);
-
   }
 
   @Test
   void clusteWithMajorPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
-
     review.getRequest().getObject().getSpec().getPostgres().setVersion("12");
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
@@ -105,6 +117,5 @@ class DefaultPostgresVersionMutatorTest {
 
     String actualPostgresVersion = newConfig.get("spec").get("postgres").get("version").asText();
     assertEquals(StackGresComponent.POSTGRESQL.findVersion("12"), actualPostgresVersion);
-
   }
 }
