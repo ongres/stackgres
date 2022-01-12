@@ -102,8 +102,9 @@ public class PostgresConfigValidator implements ClusterValidator {
         break;
       case UPDATE:
         StackGresCluster oldCluster = review.getRequest().getOldObject();
-        if (!Objects.equals(cluster.getSpec().getPostgres().getFlavor(),
-            oldCluster.getSpec().getPostgres().getFlavor())) {
+        if (!Objects.equals(
+            getPostgresFlavorComponent(cluster),
+            getPostgresFlavorComponent(oldCluster))) {
           fail(errorForbiddenUpdateUri,
               "postgres flavor can not be changed");
         }
