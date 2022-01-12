@@ -15,7 +15,6 @@ import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.stackgres.cluster.controller.ClusterControllerReconciliationCycle;
-import io.stackgres.common.resource.KubernetesClientStatusUpdateException;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle.ReconciliationCycleResult;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
@@ -30,12 +29,7 @@ public class StackGresClusterControllerMain {
       StackGresClusterControllerMain.class);
 
   public static void main(String... args) {
-    if (Seq.seq(Optional.ofNullable(System.getenv("COMMAND")))
-        .append(Optional.ofNullable(args).map(Seq::of).orElse(Seq.empty()))
-        .filter(command -> !command.isEmpty())
-        .map(command -> command.equals("run-reconciliation-cycle"))
-        .findFirst()
-        .orElse(false)) {
+    if (isReconciliationCycle(args)) {
       AtomicReference<Tuple2<Integer, Throwable>> exitCodeReference =
           new AtomicReference<>(Tuple.tuple(0, null));
       Quarkus.run(StackGresClusterControllerReconcile.class,
@@ -48,6 +42,15 @@ public class StackGresClusterControllerMain {
       return;
     }
     Quarkus.run(StackGresClusterControllerApp.class, args);
+  }
+
+  private static Boolean isReconciliationCycle(String... args) {
+    return Seq.seq(Optional.ofNullable(System.getenv("COMMAND")))
+        .append(Optional.ofNullable(args).map(Seq::of).orElse(Seq.empty()))
+        .filter(command -> !command.isEmpty())
+        .map(command -> command.equals("run-reconciliation-cycle"))
+        .findFirst()
+        .orElse(false);
   }
 
   public static class StackGresClusterControllerReconcile implements QuarkusApplication {
@@ -66,7 +69,6 @@ public class StackGresClusterControllerMain {
       if (!result.success()) {
         RuntimeException ex = Seq.seq(result.getException())
             .append(result.getContextExceptions().values().stream())
-            .filter(this::filterExceptions)
             .reduce(new RuntimeException("StackGres Cluster Controller"
                 + " reconciliation cycle failed"),
                 (exception, suppressedException) -> {
@@ -81,13 +83,6 @@ public class StackGresClusterControllerMain {
       return 0;
     }
 
-    private boolean filterExceptions(Exception exception) {
-      if (exception instanceof KubernetesClientStatusUpdateException) {
-        LOGGER.warn("A non critical error occured.", exception);
-        return false;
-      }
-      return true;
-    }
   }
 
   public static class StackGresClusterControllerApp implements QuarkusApplication {

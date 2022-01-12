@@ -5,6 +5,15 @@
 
 package io.stackgres.operator.validation;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
+
 public interface ValidationUtil {
 
   String VALIDATION_PATH = "/stackgres/validation";
@@ -17,4 +26,16 @@ public interface ValidationUtil {
   String DISTRIBUTED_LOGS_VALIDATION_PATH = VALIDATION_PATH + "/sgdistributedlogs";
   String DBOPS_VALIDATION_PATH = VALIDATION_PATH + "/sgdbops";
 
+  Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>> SUPPORTED_POSTGRES_VERSIONS
+      = ImmutableList.of(
+          StackGresComponent.POSTGRESQL,
+          StackGresComponent.BABELFISH
+          )
+          .stream()
+          .collect(ImmutableMap.toImmutableMap(Function.identity(),
+              component -> component.getComponentVersions()
+              .entrySet()
+              .stream()
+              .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey,
+                  entry -> entry.getValue().getOrderedVersions().toList()))));
 }

@@ -26,9 +26,9 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -103,11 +103,6 @@ public class FluentBit extends AbstractFluentBit {
         )
         .addAll(containerLocalOverrideMounts.getVolumeMounts(context))
         .build();
-  }
-
-  @Override
-  protected String getImageImageName() {
-    return "docker.io/ongres/fluentbit:v1.4.6-build-6.0";
   }
 
   protected Optional<HasMetadata> buildSource(StackGresClusterContext context) {

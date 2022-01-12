@@ -21,11 +21,11 @@ import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -93,7 +93,8 @@ public class ResetPatroniInit implements ContainerFactory<StackGresClusterContai
     return
         new ContainerBuilder()
             .withName("reset-patroni")
-            .withImage(StackGresComponent.KUBECTL.findLatestImageName())
+            .withImage(StackGresComponent.KUBECTL.get(clusterContext.getCluster())
+                .findLatestImageName())
             .withImagePullPolicy("IfNotPresent")
             .withCommand("/bin/sh", "-ex",
                 ClusterStatefulSetPath.TEMPLATES_PATH.path()

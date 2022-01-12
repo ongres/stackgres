@@ -29,7 +29,9 @@ public abstract class AbstractPostgresUtil
   public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.POSTGRES_VERSION_KEY,
-        getPostgresFlavorComponent(context.getClusterContext().getCluster()).findVersion(
+        getPostgresFlavorComponent(context.getClusterContext().getCluster())
+        .get(context.getClusterContext().getCluster())
+        .findVersion(
             context.getClusterContext().getCluster().getSpec().getPostgres().getVersion()));
   }
 

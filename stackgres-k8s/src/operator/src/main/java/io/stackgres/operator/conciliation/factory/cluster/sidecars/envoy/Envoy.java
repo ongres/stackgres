@@ -35,6 +35,7 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.ObjectMapperProvider;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -42,7 +43,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.operator.common.Sidecar;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
@@ -78,7 +78,8 @@ public class Envoy extends AbstractEnvoy {
   public Container getContainer(StackGresClusterContainerContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(StackGresComponent.ENVOY.findLatestImageName())
+        .withImage(StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
+            .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(NAME)
@@ -314,8 +315,4 @@ public class Envoy extends AbstractEnvoy {
         .toList();
   }
 
-  @Override
-  public String getImageName() {
-    return StackGresComponent.ENVOY.findLatestImageName();
-  }
 }

@@ -64,7 +64,7 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
           .builderWithExpectedSize(2);
       if (postgresVersion != null) {
         final String calculatedPostgresVersion = getPostgresFlavorComponent(postgresFlavor)
-            .findVersion(postgresVersion);
+            .get(cluster).findVersion(postgresVersion);
 
         if (!calculatedPostgresVersion.equals(postgresVersion)) {
           JsonNode target = mapper.valueToTree(calculatedPostgresVersion);
@@ -72,7 +72,7 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
         }
       } else {
         JsonNode target = mapper.valueToTree(getPostgresFlavorComponent(postgresFlavor)
-            .findVersion(StackGresComponent.LATEST));
+            .get(cluster).findVersion(StackGresComponent.LATEST));
         operations.add(applyAddValue(postgresVersionPointer, target));
       }
 

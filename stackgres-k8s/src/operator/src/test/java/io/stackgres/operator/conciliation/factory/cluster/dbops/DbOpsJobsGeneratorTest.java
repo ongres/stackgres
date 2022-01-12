@@ -13,11 +13,11 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.ImmutableStackGresDbOpsContext;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;

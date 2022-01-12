@@ -76,9 +76,13 @@ create_or_replace_cluster_for_version() {
   local INSTANCES="$4"
   shift 4
 
+  if ! [ -d "$LOG_PATH/stackgres-cluster-$VERSION" ]
+  then
+    mkdir -p "$LOG_PATH/stackgres-cluster-$VERSION"
+  fi
   local CLUSTER_HELM_URL
   CLUSTER_HELM_URL="$(get_cluster_helm_url "$VERSION")"
-  local CLUSTER_HELM_TAR_PATH="$LOG_PATH/${CLUSTER_HELM_URL##*/}"
+  local CLUSTER_HELM_TAR_PATH="$LOG_PATH/stackgres-cluster-$VERSION/${CLUSTER_HELM_URL##*/}"
   if ! [ -f "$CLUSTER_HELM_TAR_PATH" ]
   then
     curl -f -s -L "$CLUSTER_HELM_URL" -o "$CLUSTER_HELM_TAR_PATH"
@@ -87,11 +91,11 @@ create_or_replace_cluster_for_version() {
   tar tzvf "$CLUSTER_HELM_TAR_PATH" > "$CLUSTER_HELM_TAR_PATH.log"
   CLUSTER_HELM_PATH="$(tr -s ' ' < "$CLUSTER_HELM_TAR_PATH.log" \
     | cut -d ' ' -f 6 | cut -d / -f 1 | head -n 1)"
-  CLUSTER_HELM_PATH="$LOG_PATH/$CLUSTER_HELM_PATH"
+  CLUSTER_HELM_PATH="$LOG_PATH/stackgres-cluster-$VERSION/$CLUSTER_HELM_PATH"
   if ! [ -f "$CLUSTER_HELM_PATH/Chart.yaml" ]
   then
     rm -rf "$CLUSTER_HELM_PATH"
-    tar xzf "$CLUSTER_HELM_TAR_PATH" -C "$LOG_PATH"
+    tar xzf "$CLUSTER_HELM_TAR_PATH" -C "$LOG_PATH/stackgres-cluster-$VERSION"
     if ! sed -i '/^kubeVersion:/d' "$CLUSTER_HELM_PATH/Chart.yaml"
     then
       rm -rf "$CLUSTER_HELM_PATH"

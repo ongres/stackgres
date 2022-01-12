@@ -30,20 +30,20 @@ public class ExtensionUtilTest {
   static final URI REPOSITORY =
       URI.create("https://extensions.stackgres.io/postgres/repository");
   static final String PG_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedVersions()
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
       .findAny().get();
   static final String FIRST_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions()
       .get(0).get();
   static final String SECOND_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions()
       .get(1).get();
   static final String SECOND_PG_VERSION =
-      StackGresComponent.POSTGRESQL.findVersion(SECOND_PG_MAJOR_VERSION);
+      StackGresComponent.POSTGRESQL.getLatest().findVersion(SECOND_PG_MAJOR_VERSION);
   static final String BUILD_VERSION =
-      StackGresComponent.POSTGRESQL.findBuildVersion(PG_VERSION);
+      StackGresComponent.POSTGRESQL.getLatest().findBuildVersion(PG_VERSION);
   static final String BUILD_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.findBuildMajorVersion(PG_VERSION);
+      StackGresComponent.POSTGRESQL.getLatest().findBuildMajorVersion(PG_VERSION);
 
   StackGresExtensions extensionsMetadata;
 

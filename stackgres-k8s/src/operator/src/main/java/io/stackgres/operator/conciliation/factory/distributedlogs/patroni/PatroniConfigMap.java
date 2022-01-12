@@ -23,8 +23,8 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -93,7 +93,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
 
   public @NotNull HasMetadata buildSource(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
-    final String pgVersion = StackGresDistributedLogsUtil.getPostgresVersion();
+    final String pgVersion = StackGresDistributedLogsUtil.getPostgresVersion(context.getSource());
 
     final String patroniClusterLabelsAsJson;
     final Map<String, String> patroniClusterLabels = labelFactory.genericLabels(cluster);

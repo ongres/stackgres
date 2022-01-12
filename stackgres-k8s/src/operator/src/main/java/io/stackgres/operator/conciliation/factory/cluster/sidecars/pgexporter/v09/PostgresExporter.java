@@ -30,10 +30,11 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
@@ -60,8 +61,6 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
     VolumeFactory<StackGresClusterContext> {
 
   public static final String NAME = StackgresClusterContainers.POSTGRES_EXPORTER;
-  private static final String IMAGE_NAME =
-      "docker.io/ongres/prometheus-postgres-exporter:v0.8.0-build-6.0";
   private static final Logger POSTGRES_EXPORTER_LOGGER = LoggerFactory.getLogger(
       "io.stackgres.prometheus-postgres-exporter");
 
@@ -81,7 +80,8 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
     StackGresCluster cluster = context.getClusterContext().getSource();
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(IMAGE_NAME)
+        .withImage(StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.get(cluster)
+            .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-exc")
         .withArgs(""

@@ -39,7 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DbOpsRepackExtensionValidatorTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().findFirst().get();
 
   private DbOpsRepackExtensionValidator validator;
 

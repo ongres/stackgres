@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -50,35 +51,40 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PostgresVersionValidatorTest {
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
-      StackGresComponent.POSTGRESQL.getOrderedVersions().toList();
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().toList();
   private static final List<String> SUPPORTED_BABELFISH_VERSIONS =
-      StackGresComponent.BABELFISH.getOrderedVersions().toList();
-  private static final Map<StackGresComponent, List<String>> ALL_SUPPORTED_POSTGRES_VERSIONS =
+      StackGresComponent.BABELFISH.getLatest().getOrderedVersions().toList();
+  private static final Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+      ALL_SUPPORTED_POSTGRES_VERSIONS =
       ImmutableMap.of(
-          StackGresComponent.POSTGRESQL, Seq.of(StackGresComponent.LATEST)
-          .append(StackGresComponent.POSTGRESQL.getOrderedMajorVersions())
-          .append(SUPPORTED_POSTGRES_VERSIONS)
-          .collect(ImmutableList.toImmutableList()),
-          StackGresComponent.BABELFISH, Seq.of(StackGresComponent.LATEST)
-          .append(StackGresComponent.BABELFISH.getOrderedMajorVersions())
-          .append(SUPPORTED_BABELFISH_VERSIONS)
-          .collect(ImmutableList.toImmutableList()));
+          StackGresComponent.POSTGRESQL, ImmutableMap.of(
+              StackGresMinorVersion.LATEST,
+              Seq.of(StackGresComponent.LATEST)
+              .append(StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions())
+              .append(SUPPORTED_POSTGRES_VERSIONS)
+              .collect(ImmutableList.toImmutableList())),
+          StackGresComponent.BABELFISH, ImmutableMap.of(
+              StackGresMinorVersion.LATEST,
+              Seq.of(StackGresComponent.LATEST)
+              .append(StackGresComponent.BABELFISH.getLatest().getOrderedMajorVersions())
+              .append(SUPPORTED_BABELFISH_VERSIONS)
+              .collect(ImmutableList.toImmutableList())));
   private static final String FIRST_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions()
           .get(0).get();
   private static final String SECOND_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions()
           .get(1).get();
   private static final String FIRST_PG_MINOR_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedVersions()
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
           .skipWhile(p -> p.startsWith("14"))
           .get(0).get();
   private static final String SECOND_PG_MINOR_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedVersions()
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
           .skipWhile(p -> p.startsWith("14"))
           .get(1).get();
   private static final String FIRST_BF_MINOR_VERSION =
-      StackGresComponent.BABELFISH.getOrderedVersions()
+      StackGresComponent.BABELFISH.getLatest().getOrderedVersions()
           .get(0).get();
 
   private static String getRandomPostgresVersion() {
@@ -96,7 +102,7 @@ class PostgresVersionValidatorTest {
     for (int i = 0; i < ALL_SUPPORTED_POSTGRES_VERSIONS
         .get(StackGresComponent.POSTGRESQL).size(); i++) {
       if (ALL_SUPPORTED_POSTGRES_VERSIONS.get(StackGresComponent.POSTGRESQL)
-          .get(i).equals(version)) {
+          .values().iterator().next().get(i).equals(version)) {
         return true;
       }
     }

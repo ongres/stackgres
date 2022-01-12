@@ -35,13 +35,13 @@ public class StackGresExtensionIndexAnyVersion {
     this.name = extension.getName();
     this.publisher = extension.getPublisherOrDefault();
     this.flavor = ExtensionUtil.getFlavorPrefix(cluster);
-    this.postgresVersion = getPostgresFlavorComponent(cluster).findMajorVersion(
-        cluster.getSpec().getPostgres().getVersion());
-    this.postgresExactVersion = getPostgresFlavorComponent(cluster).findVersion(
-        cluster.getSpec().getPostgres().getVersion());
+    this.postgresVersion = getPostgresFlavorComponent(cluster).get(cluster)
+        .findMajorVersion(cluster.getSpec().getPostgres().getVersion());
+    this.postgresExactVersion = getPostgresFlavorComponent(cluster).get(cluster)
+        .findVersion(cluster.getSpec().getPostgres().getVersion());
     this.fromIndex = false;
-    this.build = getPostgresFlavorComponent(cluster).findBuildMajorVersion(
-        cluster.getSpec().getPostgres().getVersion());
+    this.build = getPostgresFlavorComponent(cluster).get(cluster)
+        .findBuildMajorVersion(cluster.getSpec().getPostgres().getVersion());
     this.arch = ExtensionUtil.getClusterArch(cluster, osDetector);
     this.os = ExtensionUtil.getClusterOs(cluster, osDetector);
   }

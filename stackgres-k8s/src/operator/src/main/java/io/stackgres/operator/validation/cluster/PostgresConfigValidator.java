@@ -9,7 +9,6 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import static io.stackgres.operatorframework.resource.ResourceUtil.getServiceAccountFromUsername;
 import static io.stackgres.operatorframework.resource.ResourceUtil.isServiceAccountUsername;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -18,17 +17,19 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.validation.ValidationType;
+import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
@@ -39,7 +40,8 @@ public class PostgresConfigValidator implements ClusterValidator {
 
   private final CustomResourceFinder<StackGresPostgresConfig> configFinder;
 
-  private final Map<StackGresComponent, List<String>> supportedPostgresVersions;
+  private final Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+      supportedPostgresVersions;
 
   private final String errorCrReferencerUri;
   private final String errorPostgresMismatchUri;
@@ -50,20 +52,17 @@ public class PostgresConfigValidator implements ClusterValidator {
   public PostgresConfigValidator(
       CustomResourceFinder<StackGresPostgresConfig> configFinder,
       OperatorPropertyContext operatorPropertyContext) {
-    this(configFinder, ImmutableMap.of(
-        StackGresComponent.POSTGRESQL, StackGresComponent.POSTGRESQL.getOrderedVersions().toList(),
-        StackGresComponent.BABELFISH, StackGresComponent.BABELFISH.getOrderedVersions().toList()),
+    this(configFinder, ValidationUtil.SUPPORTED_POSTGRES_VERSIONS,
         operatorPropertyContext);
   }
 
   public PostgresConfigValidator(
       CustomResourceFinder<StackGresPostgresConfig> configFinder,
-      Map<StackGresComponent, List<String>> orderedSupportedPostgresVersions,
+      Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+          orderedSupportedPostgresVersions,
       OperatorPropertyContext operatorPropertyContext) {
     this.configFinder = configFinder;
-    this.supportedPostgresVersions = Seq.seq(orderedSupportedPostgresVersions)
-        .map(t -> t.map2(ArrayList::new))
-        .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
+    this.supportedPostgresVersions = orderedSupportedPostgresVersions;
     this.errorCrReferencerUri = ErrorType.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
     this.errorPostgresMismatchUri = ErrorType.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
     this.errorForbiddenUpdateUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
@@ -92,7 +91,8 @@ public class PostgresConfigValidator implements ClusterValidator {
       fail(errorPostgresMismatchUri, message);
     }
 
-    String givenMajorVersion = getPostgresFlavorComponent(cluster).findMajorVersion(givenPgVersion);
+    String givenMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
+        .findMajorVersion(givenPgVersion);
     String namespace = cluster.getMetadata().getNamespace();
     String username = review.getRequest().getUserInfo().getUsername();
 
@@ -102,8 +102,9 @@ public class PostgresConfigValidator implements ClusterValidator {
         break;
       case UPDATE:
         StackGresCluster oldCluster = review.getRequest().getOldObject();
-        if (!Objects.equals(cluster.getSpec().getPostgres().getFlavor(),
-            oldCluster.getSpec().getPostgres().getFlavor())) {
+        if (!Objects.equals(
+            getPostgresFlavorComponent(cluster),
+            getPostgresFlavorComponent(oldCluster))) {
           fail(errorForbiddenUpdateUri,
               "postgres flavor can not be changed");
         }
@@ -113,7 +114,8 @@ public class PostgresConfigValidator implements ClusterValidator {
           validateAgainstConfiguration(givenMajorVersion, pgConfig, namespace);
         }
 
-        long givenMajorVersionIndex = getPostgresFlavorComponent(cluster).getOrderedMajorVersions()
+        long givenMajorVersionIndex = getPostgresFlavorComponent(cluster)
+            .get(cluster).getOrderedMajorVersions()
             .zipWithIndex()
             .filter(t -> t.v1.equals(givenMajorVersion))
             .map(Tuple2::v2)
@@ -121,8 +123,10 @@ public class PostgresConfigValidator implements ClusterValidator {
             .get();
         String oldPgVersion = oldCluster.getSpec().getPostgres().getVersion();
         String oldMajorVersion = getPostgresFlavorComponent(oldCluster)
+            .get(cluster)
             .findMajorVersion(oldPgVersion);
         long oldMajorVersionIndex = getPostgresFlavorComponent(oldCluster)
+            .get(cluster)
             .getOrderedMajorVersions()
             .zipWithIndex()
             .filter(t -> t.v1.equals(oldMajorVersion))
@@ -183,7 +187,9 @@ public class PostgresConfigValidator implements ClusterValidator {
   }
 
   private boolean isPostgresVersionSupported(StackGresCluster cluster, String version) {
-    return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster)).contains(version);
+    return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
+        .get(StackGresVersion.getStackGresVersion(cluster).getMinorVersion())
+        .contains(version);
   }
 
 }

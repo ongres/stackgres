@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 import javax.inject.Singleton;
 
-import io.stackgres.operator.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.StaticVolumeFactory;

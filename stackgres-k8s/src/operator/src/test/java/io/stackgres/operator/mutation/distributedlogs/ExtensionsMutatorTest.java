@@ -31,10 +31,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ExtensionsMutatorTest {
 
   private static final String POSTGRES_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedMajorVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions().findFirst().get();
 
   private static final String BUILD_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedBuildVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedBuildVersions().findFirst().get();
 
   private StackGresDistributedLogsReview review;
 

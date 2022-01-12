@@ -18,6 +18,7 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.StackGresDbOpsReview;
@@ -37,22 +38,26 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DbOpsMinorVersionUpgradeValidatorTest {
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
-      StackGresComponent.POSTGRESQL.getOrderedVersions().toList();
-  private static final Map<StackGresComponent, List<String>> ALL_SUPPORTED_POSTGRES_VERSIONS =
-      ImmutableMap.of(StackGresComponent.POSTGRESQL, Seq.of(StackGresComponent.LATEST)
-          .append(StackGresComponent.POSTGRESQL.getOrderedMajorVersions())
-          .append(SUPPORTED_POSTGRES_VERSIONS)
-          .collect(ImmutableList.toImmutableList()));
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().toList();
+  private static final Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+      ALL_SUPPORTED_POSTGRES_VERSIONS =
+      ImmutableMap.of(
+          StackGresComponent.POSTGRESQL, ImmutableMap.of(
+              StackGresMinorVersion.LATEST,
+              Seq.of(StackGresComponent.LATEST)
+              .append(StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions())
+              .append(SUPPORTED_POSTGRES_VERSIONS)
+              .collect(ImmutableList.toImmutableList())));
   private static final String SECOND_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions()
           .skipWhile(p -> p.startsWith("14"))
           .get(1).get();
   private static final String FIRST_PG_MINOR_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedVersions()
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
           .skipWhile(p -> p.startsWith("14"))
           .get(0).get();
   private static final String SECOND_PG_MINOR_VERSION =
-      StackGresComponent.POSTGRESQL.getOrderedVersions()
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
           .skipWhile(p -> p.startsWith("14"))
           .get(1).get();
 

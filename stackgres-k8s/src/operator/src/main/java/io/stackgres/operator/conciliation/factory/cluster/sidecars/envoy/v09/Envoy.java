@@ -27,12 +27,13 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.Sidecar;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
@@ -51,7 +52,6 @@ import org.jooq.lambda.Seq;
 @RunningContainer(ClusterRunningContainer.ENVOY_V09)
 public class Envoy extends AbstractEnvoy {
 
-  private static final String IMAGE_NAME = "docker.io/ongres/envoy:v1.15.3-build-6.0";
   private final VolumeMountsProvider<ContainerContext> containerLocalOverrideMounts;
 
   @Inject
@@ -71,7 +71,8 @@ public class Envoy extends AbstractEnvoy {
   public Container getContainer(StackGresClusterContainerContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(NAME)
-        .withImage(IMAGE_NAME)
+        .withImage(StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
+            .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(NAME)
@@ -175,8 +176,4 @@ public class Envoy extends AbstractEnvoy {
     return containerLocalOverrideMounts.getVolumeMounts(context);
   }
 
-  @Override
-  public String getImageName() {
-    return "docker.io/ongres/envoy:v1.15.3-build-6.0";
-  }
 }

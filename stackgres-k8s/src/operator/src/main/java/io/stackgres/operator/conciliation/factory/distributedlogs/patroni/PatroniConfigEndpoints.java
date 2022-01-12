@@ -19,10 +19,10 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresDistributedLogsUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.resource.ResourceUtil;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
@@ -74,7 +74,7 @@ public class PatroniConfigEndpoints
 
   @NotNull
   public Map<String, String> getPostgresConfigValues(StackGresDistributedLogsContext context) {
-    final String pgVersion = StackGresDistributedLogsUtil.getPostgresVersion();
+    final String pgVersion = StackGresDistributedLogsUtil.getPostgresVersion(context.getSource());
     Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues(pgVersion));
 
     params.put("archive_command", "/bin/true");

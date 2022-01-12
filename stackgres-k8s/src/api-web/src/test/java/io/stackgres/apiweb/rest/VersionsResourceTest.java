@@ -17,7 +17,8 @@ class VersionsResourceTest {
 
   @Test
   void get_listOf_postgresql_versions() {
-    String[] pgvers = StackGresComponent.POSTGRESQL.getOrderedVersions().toArray(String[]::new);
+    String[] pgvers = StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
+        .toArray(String[]::new);
     when()
         .get("/stackgres/version/postgresql")
         .then()
@@ -27,7 +28,8 @@ class VersionsResourceTest {
 
   @Test
   void get_listOf_babelfish_versions() {
-    String[] pgvers = StackGresComponent.BABELFISH.getOrderedVersions().toArray(String[]::new);
+    String[] pgvers = StackGresComponent.BABELFISH.getLatest().getOrderedVersions()
+        .toArray(String[]::new);
     when()
         .get("/stackgres/version/postgresql?flavor=babelfish")
         .then()

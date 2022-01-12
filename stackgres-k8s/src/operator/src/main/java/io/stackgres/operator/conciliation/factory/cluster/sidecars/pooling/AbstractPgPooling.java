@@ -102,7 +102,8 @@ public abstract class AbstractPgPooling
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(NAME)
-        .withImage(getImageName())
+        .withImage(StackGresComponent.PGBOUNCER.get(context.getClusterContext().getCluster())
+            .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(getVolumeMounts(context))
         .build();
@@ -112,11 +113,8 @@ public abstract class AbstractPgPooling
   public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.PGBOUNCER_VERSION_KEY,
-        StackGresComponent.PGBOUNCER.findLatestVersion());
-  }
-
-  protected String getImageName() {
-    return StackGresComponent.PGBOUNCER.findLatestImageName();
+        StackGresComponent.PGBOUNCER.get(context.getClusterContext().getCluster())
+        .findLatestVersion());
   }
 
   protected abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);

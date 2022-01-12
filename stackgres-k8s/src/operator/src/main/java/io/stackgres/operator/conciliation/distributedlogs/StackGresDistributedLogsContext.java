@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Secret;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
 

@@ -22,12 +22,12 @@ import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
-import io.stackgres.operator.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
@@ -81,6 +81,7 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
     String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
     String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
     String sourceMajorVersion = getPostgresFlavorComponent(clusterContext.getCluster())
+        .get(clusterContext.getCluster())
         .findMajorVersion(sourceVersion);
     String locale = majorVersionUpgradeStatus.getLocale();
     String encoding = majorVersionUpgradeStatus.getEncoding();
@@ -96,11 +97,14 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
         ImmutablePostgresContainerContext.builder()
             .from(context)
             .postgresMajorVersion(getPostgresFlavorComponent(clusterContext.getCluster())
+                .get(clusterContext.getCluster())
                 .findMajorVersion(targetVersion))
             .oldMajorVersion(sourceMajorVersion)
             .imageBuildMajorVersion(getPostgresFlavorComponent(clusterContext.getCluster())
+                .get(clusterContext.getCluster())
                 .findBuildMajorVersion(targetVersion))
             .oldImageBuildMajorVersion(getPostgresFlavorComponent(clusterContext.getCluster())
+                .get(clusterContext.getCluster())
                 .findBuildMajorVersion(sourceVersion))
             .postgresVersion(targetVersion)
             .oldPostgresVersion(sourceVersion)

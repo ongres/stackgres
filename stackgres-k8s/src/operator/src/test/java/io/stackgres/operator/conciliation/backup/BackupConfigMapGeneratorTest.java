@@ -9,7 +9,7 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.operator.common.StackGresVersion;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.GeneratorTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
