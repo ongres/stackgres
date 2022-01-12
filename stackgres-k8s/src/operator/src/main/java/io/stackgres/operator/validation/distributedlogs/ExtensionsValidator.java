@@ -11,16 +11,19 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableList;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operator.validation.AbstractExtensionsValidator;
+import io.stackgres.operator.validation.ExtensionReview;
+import io.stackgres.operator.validation.ImmutableExtensionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -42,28 +45,56 @@ public class ExtensionsValidator extends AbstractExtensionsValidator<StackGresDi
   }
 
   @Override
-  protected ImmutableList<Tuple2<String, Optional<String>>> getDefaultExtensions(
-      StackGresCluster cluster) {
-    return StackGresUtil.getDefaultDistributedLogsExtensions(cluster);
+  protected ExtensionReview getExtensionReview(StackGresDistributedLogsReview review) {
+    return ImmutableExtensionReview.builder()
+        .postgresVersion(getPostgresVersion(review))
+        .postgresFlavor(getPostgresFlavor())
+        .arch(getArch(review))
+        .os(getOs(review))
+        .defaultExtensions(getDefaultExtensions(review))
+        .toInstallExtensions(getToInstallExtensions(review))
+        .stackGresVersion(StackGresVersion.getStackGresVersion(review.getRequest().getObject()))
+        .build();
   }
 
-  @Override
-  protected StackGresCluster getCluster(StackGresDistributedLogsReview review) {
-    return StackGresDistributedLogsUtil.getStackGresClusterForDistributedLogs(
-        review.getRequest().getObject());
-  }
-
-  @Override
-  protected Optional<List<StackGresClusterExtension>> getPostgresExtensions(
+  protected List<Tuple2<String, Optional<String>>> getDefaultExtensions(
       StackGresDistributedLogsReview review) {
-    return Optional.empty();
+    final StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
+    final StackGresVersion stackGresVersion = StackGresVersion.getStackGresVersion(
+        distributedLogs
+    );
+    return StackGresUtil.getDefaultDistributedLogsExtensions(
+        StackGresDistributedLogsUtil.getPostgresVersion(distributedLogs),
+        stackGresVersion
+    );
   }
 
-  @Override
-  protected Optional<List<StackGresClusterInstalledExtension>> getToInstallExtensions(
+  protected Optional<String> getArch(StackGresDistributedLogsReview review) {
+    return Optional.of(review.getRequest().getObject())
+        .map(StackGresDistributedLogs::getStatus)
+        .map(StackGresDistributedLogsStatus::getArch);
+  }
+
+  protected Optional<String> getOs(StackGresDistributedLogsReview review) {
+    return Optional.of(review.getRequest().getObject())
+        .map(StackGresDistributedLogs::getStatus)
+        .map(StackGresDistributedLogsStatus::getOs);
+  }
+
+  protected String getPostgresVersion(StackGresDistributedLogsReview review) {
+    final StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
+    return StackGresDistributedLogsUtil.getPostgresVersion(distributedLogs);
+  }
+
+  protected StackGresComponent getPostgresFlavor() {
+    return StackGresComponent.POSTGRESQL;
+  }
+
+  protected List<StackGresClusterInstalledExtension> getToInstallExtensions(
       StackGresDistributedLogsReview review) {
     return Optional.ofNullable(review.getRequest().getObject().getSpec())
-        .map(StackGresDistributedLogsSpec::getToInstallPostgresExtensions);
+        .map(StackGresDistributedLogsSpec::getToInstallPostgresExtensions)
+        .orElse(List.of());
   }
 
   @Override
