@@ -207,7 +207,7 @@ e2e ui tests jvm amd64:
     IS_WEB: "true"
   except:
     variables:
-      - $E2E_TEST != "" && $E2E_TEST !~ /(^ui$|^ui | ui | ui$)/
+      - $E2E_TEST != null && $E2E_TEST !~ /(^ui$|^ui | ui | ui$)/
 
 e2e tests native 1 amd64:
   extends: .e2e tests native amd64
@@ -326,7 +326,7 @@ e2e ui tests native amd64:
     IS_WEB: "true"
   except:
     variables:
-      - $E2E_TEST != "" && $E2E_TEST !~ /(^ui$|^ui | ui | ui$)/
+      - $E2E_TEST != null && $E2E_TEST !~ /(^ui$|^ui | ui | ui$)/
 
 .e2e tests jvm arm64:
   extends: .e2e tests
@@ -486,7 +486,7 @@ e2e ui tests jvm arm64:
     IS_WEB: "true"
   except:
     variables:
-      - $E2E_TEST != "" && $E2E_TEST !~ /(^ui$|^ui | ui | ui$)/
+      - $E2E_TEST != null && $E2E_TEST !~ /(^ui$|^ui | ui | ui$)/
 
 e2e tests native 1 arm64:
   extends: .e2e tests native arm64
@@ -605,4 +605,4 @@ e2e ui tests native arm64:
     IS_WEB: "true"
   except:
     variables:
-      - $E2E_TEST != "" && $E2E_TEST !~ /(^ui$|^ui | ui | ui$)/
+      - $E2E_TEST != null && $E2E_TEST !~ /(^ui$|^ui | ui | ui$)/
