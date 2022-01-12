@@ -34,15 +34,15 @@ e2e_test() {
 }
 
 cluster_has_node_affinity_required_during_scheduling_properties() {
-  assert_cluster_node_affinity_required_during_scheuling_match_property "key" "$NODE_AFFINITY_KEY"
-  assert_cluster_node_affinity_required_during_scheuling_match_property "operator" "$NODE_AFFINITY_OPERATOR"
-  assert_cluster_node_affinity_required_during_scheuling_match_property "values[0]" "$NODE_AFFINITY_VALUE"
+  assert_cluster_node_affinity_required_during_scheduling_match_property "key" "$NODE_AFFINITY_KEY"
+  assert_cluster_node_affinity_required_during_scheduling_match_property "operator" "$NODE_AFFINITY_OPERATOR"
+  assert_cluster_node_affinity_required_during_scheduling_match_property "values[0]" "$NODE_AFFINITY_VALUE"
 }
 
 should_sgcluster_has_node_affinity_preferred_during_scheduling(){
-  assert_cluster_node_affinity_preferred_during_scheuling_match_property "key" "$NODE_AFFINITY_KEY"
-  assert_cluster_node_affinity_preferred_during_scheuling_match_property "operator" "$NODE_AFFINITY_OPERATOR"
-  assert_cluster_node_affinity_preferred_during_scheuling_match_property "values[0]" "$NODE_AFFINITY_VALUE"
+  assert_cluster_node_affinity_preferred_during_scheduling_match_property "key" "$NODE_AFFINITY_KEY"
+  assert_cluster_node_affinity_preferred_during_scheduling_match_property "operator" "$NODE_AFFINITY_OPERATOR"
+  assert_cluster_node_affinity_preferred_during_scheduling_match_property "values[0]" "$NODE_AFFINITY_VALUE"
 
   if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq -r '.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight')" \
@@ -72,8 +72,8 @@ EOF
     return 1
   fi
 
-  assert_sts_node_affinity_required_during_scheuling_match_property "operator" "$NODE_AFFINITY_OPERATOR"
-  assert_sts_node_affinity_required_during_scheuling_match_property "values[0]" "$NODE_AFFINITY_VALUE"
+  assert_sts_node_affinity_required_during_scheduling_match_property "operator" "$NODE_AFFINITY_OPERATOR"
+  assert_sts_node_affinity_required_during_scheduling_match_property "values[0]" "$NODE_AFFINITY_VALUE"
 }
 
 check_sts_has_node_affinity_preferred_during_scheduling(){
@@ -93,8 +93,8 @@ EOF
     return 1
   fi
 
-  assert_sts_node_affinity_preferred_during_scheuling_match_property "operator" "$NODE_AFFINITY_OPERATOR"
-  assert_sts_node_affinity_preferred_during_scheuling_match_property "values[0]" "$NODE_AFFINITY_VALUE"
+  assert_sts_node_affinity_preferred_during_scheduling_match_property "operator" "$NODE_AFFINITY_OPERATOR"
+  assert_sts_node_affinity_preferred_during_scheduling_match_property "values[0]" "$NODE_AFFINITY_VALUE"
 
   if [ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
       | jq -r ".spec.template.spec.affinity.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight")" \
@@ -107,7 +107,7 @@ EOF
   fi
 }
 
-assert_sts_node_affinity_preferred_during_scheuling_match_property(){
+assert_sts_node_affinity_preferred_during_scheduling_match_property(){
   local PROPERTY="$1"
   local PROPERTY_VALUE="$2"
 
@@ -121,7 +121,7 @@ assert_sts_node_affinity_preferred_during_scheuling_match_property(){
     return 1
   fi
 }
-assert_sts_node_affinity_required_during_scheuling_match_property(){
+assert_sts_node_affinity_required_during_scheduling_match_property(){
   local PROPERTY="$1"
   local PROPERTY_VALUE="$2"
 
@@ -136,7 +136,7 @@ assert_sts_node_affinity_required_during_scheuling_match_property(){
   fi
 }
 
-assert_cluster_node_affinity_preferred_during_scheuling_match_property(){
+assert_cluster_node_affinity_preferred_during_scheduling_match_property(){
   local PROPERTY="$1"
   local PROPERTY_VALUE="$2"
 
@@ -150,7 +150,7 @@ assert_cluster_node_affinity_preferred_during_scheuling_match_property(){
     return 1
   fi
 }
-assert_cluster_node_affinity_required_during_scheuling_match_property(){
+assert_cluster_node_affinity_required_during_scheduling_match_property(){
   local PROPERTY="$1"
   local PROPERTY_VALUE="$2"
 
