@@ -16,8 +16,8 @@ import com.google.common.collect.ImmutableList;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.extension.ExtensionRequest;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
@@ -66,7 +66,7 @@ class ExtensionsValidatorTest {
       InvocationOnMock invocation) {
     return installedExtensions.stream()
         .filter(defaultExtension -> defaultExtension.getName()
-            .equals(((StackGresClusterExtension) invocation.getArgument(1)).getName()))
+            .equals(((ExtensionRequest) invocation.getArgument(0)).getExtension().getName()))
         .map(StackGresExtensionMetadata::new)
         .collect(ImmutableList.toImmutableList());
   }
@@ -92,8 +92,8 @@ class ExtensionsValidatorTest {
   @Test
   void givenACreationWithMissingExtensions_shouldFail() {
     final StackGresDistributedLogsReview review = getCreationReview();
-    when(extensionMetadataManager.getExtensionsAnyVersion(
-        any(), any(), anyBoolean()))
+    when(extensionMetadataManager.requestExtensionsAnyVersion(
+        any(ExtensionRequest.class), anyBoolean()))
         .then(this::getDefaultExtensionMetadatas);
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),

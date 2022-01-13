@@ -22,11 +22,8 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -115,28 +112,6 @@ public interface StackGresUtil {
       return name;
     }
     return namespace + '.' + name;
-  }
-
-  /**
-   * Return true when labels match a non-disruptible label, false otherwise.
-   */
-  static boolean isNonDisruptible(Map<String, String> labels) {
-    return Objects.equals(labels.get(StackGresContext.DISRUPTIBLE_KEY),
-            StackGresContext.WRONG_VALUE);
-  }
-
-  /**
-   * Extract the index of a cluster stateful set pod.
-   */
-  static Integer extractPodIndex(StackGresCluster cluster, ObjectMeta podMetadata) {
-    Matcher matcher = Pattern.compile(ResourceUtil.getNameWithIndexPattern(
-        cluster.getMetadata().getName())).matcher(podMetadata.getName());
-    if (matcher.find()) {
-      return Integer.parseInt(matcher.group(1));
-    }
-    throw new IllegalStateException("Can not extract index from pod "
-        + podMetadata.getNamespace() + "." + podMetadata.getName() + " for cluster "
-        + cluster.getMetadata().getNamespace() + "." + cluster.getMetadata().getName());
   }
 
   /**
@@ -262,32 +237,74 @@ public interface StackGresUtil {
     return serviceDns;
   }
 
-  static ImmutableList<Tuple2<String, Optional<String>>> getDefaultClusterExtensions(
+  static List<Tuple2<String, Optional<String>>> getDefaultClusterExtensions(
       StackGresCluster cluster) {
-    if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
+
+    String pgVersion = cluster.getSpec().getPostgres().getVersion();
+    StackGresComponent flavor = getPostgresFlavorComponent(cluster);
+    StackGresVersion version = StackGresVersion.getStackGresVersion(cluster);
+    return getDefaultClusterExtensions(pgVersion, flavor, version);
+  }
+
+  static List<Tuple2<String, Optional<String>>> getDefaultClusterExtensions(
+      StackGresVersion stackGresVersion, String pgVersion, String flavor) {
+    if (Component.compareBuildVersions("6.6",
+        StackGresComponent.PATRONI.getOrThrow(stackGresVersion).findBuildVersion(
+            StackGresComponent.LATEST, ImmutableMap.of(
+                getPostgresFlavorComponent(flavor).getOrThrow(stackGresVersion),
+                pgVersion))) <= 0) {
       return ImmutableList.of();
     }
+
+    return Seq.of(
+            Tuple.tuple("plpgsql"),
+            Tuple.tuple("pg_stat_statements"),
+            Tuple.tuple("dblink"),
+            Tuple.tuple("plpython3u"))
+        .map(t -> t.concat(Optional.<String>empty()))
+        .collect(Collectors.toUnmodifiableList());
+  }
+
+  static List<Tuple2<String, Optional<String>>> getDefaultClusterExtensions(
+      String pgVersion, StackGresComponent flavor, StackGresVersion stackGresVersion) {
+    if (flavor == StackGresComponent.BABELFISH) {
+      return List.of();
+    }
     if (Component.compareBuildVersions("6.6",
-        StackGresComponent.PATRONI.get(cluster).findBuildVersion(
+        StackGresComponent.PATRONI.getOrThrow(stackGresVersion).findBuildVersion(
             StackGresComponent.LATEST, ImmutableMap.of(
-                getPostgresFlavorComponent(cluster).get(cluster),
-                cluster.getSpec().getPostgres().getVersion()))) <= 0) {
+                flavor.getOrThrow(stackGresVersion),
+                pgVersion))) <= 0) {
       return ImmutableList.of();
     }
     return Seq.of(
-        Tuple.tuple("plpgsql"),
-        Tuple.tuple("pg_stat_statements"),
-        Tuple.tuple("dblink"),
-        Tuple.tuple("plpython3u"))
+            Tuple.tuple("plpgsql"),
+            Tuple.tuple("pg_stat_statements"),
+            Tuple.tuple("dblink"),
+            Tuple.tuple("plpython3u"))
         .map(t -> t.concat(Optional.<String>empty()))
-        .collect(ImmutableList.toImmutableList());
+        .collect(Collectors.toUnmodifiableList());
   }
 
-  static ImmutableList<Tuple2<String, Optional<String>>> getDefaultDistributedLogsExtensions(
+  static List<Tuple2<String, Optional<String>>> getDefaultDistributedLogsExtensions(
       StackGresCluster cluster) {
-    return Seq.seq(getDefaultClusterExtensions(cluster))
-        .append(Tuple.tuple("timescaledb", Optional.of("1.7.4")))
-        .collect(ImmutableList.toImmutableList());
+    String pgVersion = cluster.getSpec().getPostgres().getVersion();
+
+    return getDefaultDistributedLogsExtensions(
+        pgVersion,
+        StackGresVersion.getStackGresVersion(cluster)
+    );
+  }
+
+  static List<Tuple2<String, Optional<String>>> getDefaultDistributedLogsExtensions(
+      String pgVersion, StackGresVersion stackGresVersion) {
+    return Seq.seq(getDefaultClusterExtensions(
+        stackGresVersion,
+        pgVersion,
+        StackGresPostgresFlavor.VANILLA.toString()
+    )).append(
+        Tuple.tuple("timescaledb", Optional.of("1.7.4"))
+    ).collect(Collectors.toUnmodifiableList());
   }
 
   static boolean isLocked(HasMetadata resource, int lockTimeoutMillis) {
@@ -312,7 +329,7 @@ public interface StackGresUtil {
   }
 
   static void setLock(HasMetadata resource, String lockServiceAccount, String lockPodName,
-      long lockTimestamp) {
+                      long lockTimestamp) {
     final Map<String, String> annotations = resource.getMetadata().getAnnotations();
 
     annotations.put(LOCK_SERVICE_ACCOUNT_KEY, lockServiceAccount);

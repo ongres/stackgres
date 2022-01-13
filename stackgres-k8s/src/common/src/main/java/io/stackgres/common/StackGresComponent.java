@@ -63,12 +63,12 @@ public enum StackGresComponent {
     return getOrThrow(StackGresVersion.getStackGresVersion(distributedLogs));
   }
 
-  private Optional<Component> get(StackGresMinorVersion version) {
+  public Optional<Component> get(StackGresMinorVersion version) {
     return Optional.of(this.componentMap)
         .map(map -> map.get(version));
   }
 
-  private Component getOrThrow(StackGresVersion version) {
+  public Component getOrThrow(StackGresVersion version) {
     return getOrThrow(version.getMinorVersion());
   }
 

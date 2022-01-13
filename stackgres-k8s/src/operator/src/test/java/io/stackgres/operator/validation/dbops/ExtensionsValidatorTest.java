@@ -3,26 +3,31 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.validation.cluster;
+package io.stackgres.operator.validation.dbops;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.extension.ExtensionRequest;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
-import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operator.utils.ValidationUtils;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
@@ -45,18 +50,19 @@ class ExtensionsValidatorTest {
   private static final String BUILD_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().getOrderedBuildVersions().findFirst().get();
 
-  private ExtensionsValidator validator;
-
-  private List<StackGresClusterExtension> extensions;
-
-  private List<StackGresClusterInstalledExtension> installedExtensions;
-
   @Mock
-  private ClusterExtensionMetadataManager extensionMetadataManager;
+  ClusterExtensionMetadataManager extensionMetadataManager;
+  @Mock
+  CustomResourceFinder<StackGresCluster> clusterFinder;
+  StackGresCluster cluster;
+  private DbOpsMajorVersionUpgradeExtensionValidator validator;
+  private List<StackGresClusterExtension> extensions;
+  private List<StackGresClusterInstalledExtension> installedExtensions;
 
   @BeforeEach
   void setUp() {
-    validator = new ExtensionsValidator(extensionMetadataManager);
+    validator = new DbOpsMajorVersionUpgradeExtensionValidator(extensionMetadataManager,
+        clusterFinder);
 
     extensions = Seq.of(
             "plpgsql",
@@ -65,6 +71,7 @@ class ExtensionsValidatorTest {
             "plpython3u")
         .map(this::getExtension)
         .collect(Collectors.toUnmodifiableList());
+
     installedExtensions = Seq.of(
             "plpgsql",
             "pg_stat_statements",
@@ -72,6 +79,10 @@ class ExtensionsValidatorTest {
             "plpython3u")
         .map(this::getInstalledExtension)
         .collect(Collectors.toUnmodifiableList());
+
+    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
+        StackGresCluster.class);
+    cluster.getSpec().getPostgres().setExtensions(extensions);
   }
 
   private List<StackGresExtensionMetadata> getDefaultExtensionsMetadata(
@@ -86,28 +97,41 @@ class ExtensionsValidatorTest {
 
   @Test
   void givenAValidCreation_shouldPass() throws ValidationFailed {
-    final StackGresClusterReview review = getCreationReview();
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(extensions);
-    review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
+    final StackGresDbOpsReview review = getCreationReview();
+
+    when(clusterFinder.findByNameAndNamespace(
+        cluster.getMetadata().getName(),
+        cluster.getMetadata().getNamespace()
+    )).thenReturn(Optional.of(cluster));
+
+    cluster.getSpec().setToInstallPostgresExtensions(List.copyOf(installedExtensions));
+
     validator.validate(review);
+
+    verify(clusterFinder).findByNameAndNamespace(any(), any());
+
   }
 
   @Test
   void givenAnUpdate_shouldPass() throws ValidationFailed {
-    final StackGresClusterReview review = getUpdateReview();
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(extensions);
-    review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
-        .addAll(installedExtensions);
+    final StackGresDbOpsReview review = getUpdateReview();
+
     validator.validate(review);
+    verify(clusterFinder, never()).findByNameAndNamespace(
+        cluster.getMetadata().getName(),
+        cluster.getMetadata().getNamespace()
+    );
   }
 
   @Test
   void givenACreationWithMissingExtensions_shouldFail() {
-    final StackGresClusterReview review = getCreationReview();
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(extensions);
+    when(clusterFinder.findByNameAndNamespace(
+        cluster.getMetadata().getName(),
+        cluster.getMetadata().getNamespace()
+    )).thenReturn(Optional.of(cluster));
+    final StackGresDbOpsReview review = getCreationReview();
+    cluster.getSpec().getPostgres().setExtensions(extensions);
+
     when(extensionMetadataManager.requestExtensionsAnyVersion(
         any(ExtensionRequest.class),
         anyBoolean())
@@ -120,20 +144,35 @@ class ExtensionsValidatorTest {
             + " plpython3u (available 1.0.0)");
   }
 
-  private StackGresClusterReview getCreationReview() {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json",
-            StackGresClusterReview.class);
-    review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
+  private StackGresDbOpsReview getCreationReview() {
+    StackGresDbOpsReview review = JsonUtil
+        .readFromJson("dbops_allow_requests/valid_major_version_upgrade_creation.json",
+            StackGresDbOpsReview.class);
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setPostgresVersion(POSTGRES_VERSION);
+    review.getRequest().getObject().getMetadata().setNamespace(
+        cluster.getMetadata().getNamespace()
+    );
+    review.getRequest().getObject().getSpec().setSgCluster(
+        cluster.getMetadata().getName()
+    );
     return review;
   }
 
-  private StackGresClusterReview getUpdateReview() {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/postgres_config_update.json",
-            StackGresClusterReview.class);
-    review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
-    review.getRequest().getOldObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
+  private StackGresDbOpsReview getUpdateReview() {
+    StackGresDbOpsReview review = JsonUtil
+        .readFromJson("dbops_allow_requests/valid_major_version_upgrade_creation.json",
+            StackGresDbOpsReview.class);
+    review.getRequest().setOperation(Operation.UPDATE);
+    review.getRequest().setOldObject(review.getRequest().getObject());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setPostgresVersion(POSTGRES_VERSION);
+    review.getRequest().getObject().getMetadata().setNamespace(
+        cluster.getMetadata().getNamespace()
+    );
+    review.getRequest().getObject().getSpec().setSgCluster(
+        cluster.getMetadata().getName()
+    );
     return review;
   }
 

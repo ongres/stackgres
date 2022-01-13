@@ -23,12 +23,14 @@ import javax.ws.rs.core.UriBuilder;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple4;
 
 public interface ExtensionUtil {
 
@@ -40,15 +42,6 @@ public interface ExtensionUtil {
   String DEFAULT_ARCH = ARCH_X86_64;
   String OS_LINUX = "linux";
   String DEFAULT_OS = OS_LINUX;
-
-  String ROOT_PATH = "/";
-  String RELOCATED_SUB_PATH = "original";
-  String LIB64_SUB_PATH = "usr/lib64";
-  String LIB_POSTGRESQL_SUB_PATH = "usr/lib/postgresql";
-  String LIB_SUB_PATH = "lib";
-  String BIN_SUB_PATH = "bin";
-  String SHARE_POSTGRESQL_SUB_PATH = "usr/share/postgresql";
-  String EXTENSION_SUB_PATH = "extension";
 
   OsDetector OS_DETECTOR = new OsDetector();
 
@@ -63,7 +56,7 @@ public interface ExtensionUtil {
         })
         .flatMap(extension -> extension.getVersions().stream()
             .map(version -> Tuple.tuple(extension, version)))
-        .flatMap(t -> t.v2.getAvailableFor().stream().map(target -> t.concat(target)))
+        .flatMap(t -> t.v2.getAvailableFor().stream().map(t::concat))
         .collect(Collectors.toMap(
             t -> new StackGresExtensionIndex(t.v1, t.v2, t.v3),
             t -> new StackGresExtensionMetadata(t.v1, t.v2, t.v3,
@@ -87,9 +80,9 @@ public interface ExtensionUtil {
         })
         .flatMap(extension -> extension.getVersions().stream()
             .map(version -> Tuple.tuple(extension, version)))
-        .flatMap(t -> t.v2.getAvailableFor().stream().map(target -> t.concat(target)))
+        .flatMap(t -> t.v2.getAvailableFor().stream().map(t::concat))
         .map(t -> t.concat(new StackGresExtensionIndexSameMajorBuild(t.v1, t.v2, t.v3)))
-        .grouped(t -> t.v4())
+        .grouped(Tuple4::v4)
         .collect(Collectors.toMap(
             t -> t.v1,
             t -> t.v2.map(tt -> new StackGresExtensionMetadata(tt.v1, tt.v2, tt.v3,
@@ -114,9 +107,9 @@ public interface ExtensionUtil {
         })
         .flatMap(extension -> extension.getVersions().stream()
             .map(version -> Tuple.tuple(extension, version)))
-        .flatMap(t -> t.v2.getAvailableFor().stream().map(target -> t.concat(target)))
+        .flatMap(t -> t.v2.getAvailableFor().stream().map(t::concat))
         .map(t -> t.concat(new StackGresExtensionIndexAnyVersion(t.v1, t.v3)))
-        .grouped(t -> t.v4())
+        .grouped(Tuple4::v4)
         .toMap(
             t -> t.v1,
             t -> t.v2.map(tt -> new StackGresExtensionMetadata(tt.v1, tt.v2, tt.v3,
@@ -139,11 +132,21 @@ public interface ExtensionUtil {
   static String getExtensionPackageName(
       StackGresCluster cluster,
       StackGresClusterInstalledExtension extension) {
+
+    return getExtensionPackageName(
+        getPostgresFlavorComponent(cluster),
+        extension
+    );
+  }
+
+  static String getExtensionPackageName(
+      StackGresComponent component,
+      StackGresClusterInstalledExtension extension) {
     final Optional<String> buildVersion = Optional.ofNullable(
         extension.getBuild());
     return extension.getName()
         + "-" + extension.getVersion()
-        + "-" + getFlavorPrefix(cluster)
+        + "-" + getFlavorPrefix(component)
         + extension.getPostgresVersion()
         + buildVersion.map(build -> "-build-" + build).orElse("");
   }
@@ -227,6 +230,10 @@ public interface ExtensionUtil {
 
   static String getFlavorPrefix(StackGresCluster cluster) {
     var component = getPostgresFlavorComponent(cluster);
+    return getFlavorPrefix(component);
+  }
+
+  static String getFlavorPrefix(StackGresComponent component) {
     switch (component) {
       case POSTGRESQL:
         return "pg";
@@ -247,7 +254,7 @@ public interface ExtensionUtil {
   static String getClusterArch(@Nullable StackGresCluster cluster) {
     return Optional.ofNullable(cluster).map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getArch)
-        .orElseGet(() -> OS_DETECTOR.getArch());
+        .orElseGet(OS_DETECTOR::getArch);
   }
 
   static Optional<String> getClusterArch(@Nullable StackGresCluster cluster,
@@ -257,10 +264,22 @@ public interface ExtensionUtil {
         .or(() -> osDetector.map(OsDetector::getArch));
   }
 
+  static Optional<String> getClusterArch(ExtensionRequest extensionRequest,
+                                         Optional<OsDetector> osDetector) {
+    return extensionRequest.getArch()
+        .or(() -> osDetector.map(OsDetector::getArch));
+  }
+
+  static Optional<String> getClusterOs(ExtensionRequest extensionRequest,
+                                       Optional<OsDetector> osDetector) {
+    return extensionRequest.getOs()
+        .or(() -> osDetector.map(OsDetector::getOs));
+  }
+
   static String getClusterOs(@Nullable StackGresCluster cluster) {
     return Optional.ofNullable(cluster).map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getOs)
-        .orElseGet(() -> OS_DETECTOR.getOs());
+        .orElseGet(OS_DETECTOR::getOs);
   }
 
   static Optional<String> getClusterOs(@Nullable StackGresCluster cluster,

@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -47,7 +48,7 @@ public abstract class ExtensionMetadataManager {
   private final List<URI> extensionsRepositoryUris;
 
   public ExtensionMetadataManager(WebClientFactory webClientFactory,
-      List<URI> extensionsRepositoryUrls) {
+                                  List<URI> extensionsRepositoryUrls) {
     this.webClientFactory = webClientFactory;
     this.extensionsRepositoryUris = extensionsRepositoryUrls;
   }
@@ -88,18 +89,23 @@ public abstract class ExtensionMetadataManager {
         .orElse(ImmutableList.of());
   }
 
-  public StackGresExtensionMetadata getExtensionCandidateAnyVersion(
-      StackGresCluster cluster, StackGresClusterExtension extension, boolean detectOs) {
-    return findExtensionCandidateAnyVersion(cluster, extension, detectOs)
-        .orElseThrow(
-            () -> new IllegalArgumentException("Can not find candidate for any version"
-                + " of extension " + ExtensionUtil.getDescription(cluster, extension, detectOs)));
-  }
-
   public Optional<StackGresExtensionMetadata> findExtensionCandidateAnyVersion(
       StackGresCluster cluster, StackGresClusterExtension extension, boolean detectOs) {
     return getExtensionsAnyVersion(cluster, extension, detectOs).stream()
         .findFirst();
+  }
+
+  public List<StackGresExtensionMetadata> requestExtensionsAnyVersion(
+      ExtensionRequest extensionRequest,
+      boolean detectOs) {
+    return Optional
+        .ofNullable(
+            getExtensionsMetadata().indexAnyVersions.get(
+                StackGresExtensionIndexAnyVersion.fromClusterExtension(extensionRequest, detectOs)
+            )
+        )
+        .map(this::extractLatestVersions)
+        .orElse(List.of());
   }
 
   public List<StackGresExtensionMetadata> getExtensionsAnyVersion(
@@ -109,20 +115,19 @@ public abstract class ExtensionMetadataManager {
             .get(StackGresExtensionIndexAnyVersion
                 .fromClusterExtension(cluster, extension, detectOs)))
         .map(this::extractLatestVersions)
-        .orElse(ImmutableList.of());
+        .orElse(List.of());
   }
 
-  private ImmutableList<StackGresExtensionMetadata> extractLatestVersions(
+  private List<StackGresExtensionMetadata> extractLatestVersions(
       List<StackGresExtensionMetadata> list) {
     return Seq.seq(list)
         .map(e -> Tuple.tuple(e.getVersion().getVersion(), e.getMajorBuild(), e))
         .grouped(Tuple3::limit2)
         .map(group -> group.v2
             .map(Tuple3::v3)
-            .sorted(StackGresExtensionMetadata::compareBuild)
-            .findFirst()
+            .min(StackGresExtensionMetadata::compareBuild)
             .orElseThrow())
-        .collect(ImmutableList.toImmutableList());
+        .collect(Collectors.toUnmodifiableList());
   }
 
   public Collection<StackGresExtensionMetadata> getExtensions() {
@@ -138,8 +143,8 @@ public abstract class ExtensionMetadataManager {
         final Duration cacheTimeout =
             getUriQueryParameter(
                 extensionsRepositoryUri, CACHE_TIMEOUT_PARAMETER)
-            .map(Duration::parse)
-            .orElse(Duration.of(1, ChronoUnit.HOURS));
+                .map(Duration::parse)
+                .orElse(Duration.of(1, ChronoUnit.HOURS));
         if (Optional.ofNullable(uriCache.get(extensionsRepositoryUri))
             .map(ExtensionMetadataCache::getCreated)
             .orElse(Instant.MIN)
@@ -180,6 +185,11 @@ public abstract class ExtensionMetadataManager {
     return uriCache.get(LATEST_MERGED_CACHE_URI);
   }
 
+  public StackGresExtensionPublisher getPublisher(String publisher) {
+    return Optional.ofNullable(getExtensionsMetadata().publishers.get(publisher))
+        .orElseThrow(() -> new RuntimeException("Publisher " + publisher + " was not found"));
+  }
+
   static class ExtensionMetadataCache {
     final Instant created;
     final Map<StackGresExtensionIndex, StackGresExtensionMetadata> index;
@@ -188,15 +198,6 @@ public abstract class ExtensionMetadataManager {
     final Map<StackGresExtensionIndexAnyVersion, List<StackGresExtensionMetadata>>
         indexAnyVersions;
     final Map<String, StackGresExtensionPublisher> publishers;
-
-    static ExtensionMetadataCache from(URI repositoryUri, StackGresExtensions extensions) {
-      URI repositoryBaseUri = UriBuilder.fromUri(repositoryUri).replaceQuery(null).build();
-      return new ExtensionMetadataCache(
-          ExtensionUtil.toExtensionsMetadataIndex(repositoryBaseUri, extensions),
-          ExtensionUtil.toExtensionsMetadataIndexSameMajorBuilds(repositoryBaseUri, extensions),
-          ExtensionUtil.toExtensionsMetadataIndexAnyVersions(repositoryBaseUri, extensions),
-          ExtensionUtil.toPublishersIndex(extensions));
-    }
 
     ExtensionMetadataCache(
         Map<StackGresExtensionIndex, StackGresExtensionMetadata> index,
@@ -212,6 +213,15 @@ public abstract class ExtensionMetadataManager {
       this.publishers = publishers;
     }
 
+    static ExtensionMetadataCache from(URI repositoryUri, StackGresExtensions extensions) {
+      URI repositoryBaseUri = UriBuilder.fromUri(repositoryUri).replaceQuery(null).build();
+      return new ExtensionMetadataCache(
+          ExtensionUtil.toExtensionsMetadataIndex(repositoryBaseUri, extensions),
+          ExtensionUtil.toExtensionsMetadataIndexSameMajorBuilds(repositoryBaseUri, extensions),
+          ExtensionUtil.toExtensionsMetadataIndexAnyVersions(repositoryBaseUri, extensions),
+          ExtensionUtil.toPublishersIndex(extensions));
+    }
+
     public Instant getCreated() {
       return created;
     }
@@ -222,11 +232,6 @@ public abstract class ExtensionMetadataManager {
       indexAnyVersions.putAll(other.indexAnyVersions);
       publishers.putAll(other.publishers);
     }
-  }
-
-  public StackGresExtensionPublisher getPublisher(String publisher) {
-    return Optional.ofNullable(getExtensionsMetadata().publishers.get(publisher))
-        .orElseThrow(() -> new RuntimeException("Publisher " + publisher + " was not found"));
   }
 
 }
