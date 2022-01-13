@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
@@ -124,16 +125,16 @@ public class PodTemplateSpecFactory
                 StackGresProperty.OPERATOR_VERSION.getString())
             .build())
         .withNewSpec()
-        .withAffinity(new AffinityBuilder()
+        .withAffinity(Optional.of(new AffinityBuilder()
             .withPodAntiAffinity(new PodAntiAffinityBuilder()
-                .addAllToRequiredDuringSchedulingIgnoredDuringExecution(Optional.of(
+                .addAllToRequiredDuringSchedulingIgnoredDuringExecution(ImmutableList.of(
                     new PodAffinityTermBuilder()
                         .withLabelSelector(new LabelSelectorBuilder()
                             .withMatchExpressions(new LabelSelectorRequirementBuilder()
-                                .withKey(StackGresContext.APP_KEY)
-                                .withOperator("In")
-                                .withValues(labelFactory.labelMapper().appName())
-                                .build(),
+                                    .withKey(StackGresContext.APP_KEY)
+                                    .withOperator("In")
+                                    .withValues(labelFactory.labelMapper().appName())
+                                    .build(),
                                 new LabelSelectorRequirementBuilder()
                                     .withKey("cluster")
                                     .withOperator("In")
@@ -141,16 +142,15 @@ public class PodTemplateSpecFactory
                                     .build())
                             .build())
                         .withTopologyKey("kubernetes.io/hostname")
-                        .build())
-                    .filter(ignore -> Optional.ofNullable(
-                        cluster.getSpec().getNonProduction())
-                        .map(StackGresClusterNonProduction::getDisableClusterPodAntiAffinity)
-                        .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
-                        .orElse(true))
-                    .stream()
-                    .collect(Collectors.toList()))
+                        .build()))
                 .build())
             .build())
+            .filter(ignore -> Optional.ofNullable(
+                cluster.getSpec().getNonProduction())
+                .map(StackGresClusterNonProduction::getDisableClusterPodAntiAffinity)
+                .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
+                .orElse(true))
+            .orElse(null))
         .withNodeSelector(Optional.ofNullable(cluster.getSpec())
             .map(StackGresClusterSpec::getPod)
             .map(StackGresClusterPod::getScheduling)

@@ -10,6 +10,10 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 
 public interface ResourceComparator {
 
+  static String escapePatchPath(String patchPath) {
+    return patchPath.replace("~", "~0").replace("/", "~1");
+  }
+
   default boolean isTheSameResource(HasMetadata required, HasMetadata deployed) {
     return required.getKind().equals(deployed.getKind())
         && required.getMetadata().getNamespace().equals(deployed.getMetadata().getNamespace())

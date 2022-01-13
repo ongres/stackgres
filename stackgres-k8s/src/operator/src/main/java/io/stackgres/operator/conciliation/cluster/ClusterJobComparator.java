@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.StackGresAbstractComparator;
@@ -81,10 +80,6 @@ public class ClusterJobComparator extends StackGresAbstractComparator {
           .compile("/metadata/ownerReferences/\\d+/apiVersion"),
           "replace"
       ),
-      new SimpleIgnorePatch("/metadata/managedFields", "add"),
-      new SimpleIgnorePatch("/metadata/annotations/"
-          + StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY,
-          "add"),
   };
 
   @Override

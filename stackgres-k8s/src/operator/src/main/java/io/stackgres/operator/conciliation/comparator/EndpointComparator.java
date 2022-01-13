@@ -9,8 +9,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-import io.stackgres.common.StackGresContext;
-
 public class EndpointComparator extends StackGresAbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
@@ -29,15 +27,10 @@ public class EndpointComparator extends StackGresAbstractComparator {
       new SimpleIgnorePatch("/metadata/annotations/ttl", "add"),
       new SimpleIgnorePatch("/subsets",
           "add"),
-      new SimpleIgnorePatch("/metadata/managedFields",
-           "add"),
       new FunctionValuePattern(Pattern
           .compile("/metadata/annotations"),
           "add",
           (v) -> v.startsWith("{") && v.endsWith("}") && v.contains("acquireTime")),
-      new SimpleIgnorePatch("/metadata/annotations/"
-          + StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY,
-          "add"),
   };
 
   @Override

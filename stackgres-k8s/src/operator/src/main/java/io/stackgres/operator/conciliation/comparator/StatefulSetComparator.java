@@ -7,8 +7,6 @@ package io.stackgres.operator.conciliation.comparator;
 
 import java.util.regex.Pattern;
 
-import io.stackgres.common.StackGresContext;
-
 public class StatefulSetComparator extends StackGresAbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATTERS = {
@@ -91,6 +89,9 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
       new PatchPattern(Pattern
           .compile("/spec/template/spec/volumes/\\d+$"),
           "move"),
+      new PatchPattern(Pattern
+          .compile("/spec/template/spec/volumes/\\d+/emptyDir"),
+          "remove"),
       new SimpleIgnorePatch("/spec/template/spec/dnsPolicy",
           "add",
           "ClusterFirst"),
@@ -125,10 +126,6 @@ public class StatefulSetComparator extends StackGresAbstractComparator {
           "add",
           "10"),
       new SimpleIgnorePatch("/status",
-          "add"),
-      new SimpleIgnorePatch("/metadata/managedFields", "add"),
-      new SimpleIgnorePatch("/metadata/annotations/"
-          + StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY,
           "add"),
   };
 
