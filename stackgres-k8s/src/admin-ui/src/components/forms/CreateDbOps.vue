@@ -45,7 +45,53 @@
                 <span class="warning" v-if="nameColission">
                     There's already a <strong>SGDbOps</strong> with the same name on this namespace. Please specify a different name or create the operation on another namespace.
                 </span>
+            </div>
+
+            <hr/>
+
+            <div class="row-100">
+                <h3 class="sectionTitle">Database Operation <span class="req">*</span></h3>
+
+                <div class="col">
+                    <div class="opList">
+                        <div class="benchmark">
+                            <input type="radio" v-model="op" data-field="spec.op" value="benchmark" id="benchmark">
+                            <label for="benchmark" data-field="spec.op">Benchmark</label>
+                        </div>
+                        <div class="vacuum">
+                            <input type="radio" v-model="op" data-field="spec.op" value="vacuum" id="vacuum">
+                            <label for="vacuum" data-field="spec.op">Vacuum</label>
+                        </div>
+                        <div class="repack">
+                            <input type="radio" v-model="op" data-field="spec.op" value="repack" id="repack">
+                            <label for="repack" data-field="spec.op">Repack</label>
+                        </div>
+                        <div class="securityUpgrade">
+                            <input type="radio" v-model="op" data-field="spec.op" value="securityUpgrade" id="securityUpgrade">
+                           <label for="securityUpgrade" data-field="spec.op">Security<br>Upgrade</label>
+                        </div>
+                        <div class="minorVersionUpgrade">
+                            <input type="radio" v-model="op" data-field="spec.op" value="minorVersionUpgrade" id="minorVersionUpgrade">
+                            <label for="minorVersionUpgrade" data-field="spec.op">Minor Version Upgrade</label>
+                        </div>
+                        <div class="majorVersionUpgrade">
+                            <input type="radio" v-model="op" data-field="spec.op" value="majorVersionUpgrade" id="majorVersionUpgrade">
+                            <label for="majorVersionUpgrade" data-field="spec.op">Major Version Upgrade</label>
+                        </div>
+                        <div class="restart">
+                            <input type="radio" v-model="op" data-field="spec.op" value="restart" id="restart">
+                            <label for="restart" data-field="spec.op">Restart</label>
+                        </div>
+                    </div>
+                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.op')"></span>
+                </div>
+            </div>
+
+            <hr/>
             
+            <div class="row-50">
+                <h3 class="sectionTitle">General Operation Details</h3>
+
                 <div class="col">            
                     <label for="spec.runAt">Run At</label>
                     <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="runAtTimezone" data-field="spec.runAt">
@@ -85,21 +131,6 @@
                         <option v-for="val in 11">{{ val - 1 }}</option>
                     </select>
                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.maxRetries')"></span>
-                </div>
-
-                <div class="col">
-                    <label for="spec.op">Database Operation <span class="req">*</span></label>
-                    <select v-model="op" required data-field="spec.op">
-                        <option disabled value="">Choose one...</option>
-                        <option value="benchmark">Benchmark</option>
-                        <option value="vacuum">Vacuum</option>
-                        <option value="repack">Repack</option>
-                        <option value="securityUpgrade">Security Upgrade</option>
-                        <option value="minorVersionUpgrade">Minor Version Upgrade</option>
-                        <option value="majorVersionUpgrade">Major Version Upgrade</option>
-                        <option value="restart">Restart</option>
-                    </select>
-                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.op')"></span>
                 </div>
             </div>
 
@@ -821,6 +852,14 @@
 
         },
 
+        created: function() {
+            $(document).on('click', '.opList label', function(){    
+				$(this).addClass('active');
+                $('.opList label').not($(this)).removeClass('active');
+                $('.opList label').removeClass('notValid');
+			});
+        },
+
         methods: {
 
             getIsoDuration( duration ) {
@@ -1046,6 +1085,72 @@
 </script>
 
 <style scoped>
+    .sectionTitle {
+        display: block;
+        margin-bottom: 20px;
+    }
+
+    .opList {
+        margin-bottom: 10px;
+        display: grid;
+        grid-auto-columns: minmax(0,1fr);
+        grid-auto-flow: column;
+        column-gap: 10px;
+    }
+
+    .opList > div {
+        height: 100px;
+        padding: 0;
+    }
+
+    .opList input[type=radio] {
+        display: none;
+    }
+
+    .opList label {
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        background-color: var(--activeBg);
+        border: 1px solid var(--borderColor);
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .opList label:before {
+        display: block;
+        content: "";
+        height: 25px;
+        width: 25px;
+        position: relative;
+        margin: 15px auto 10px;
+    }
+
+    .opList label:hover {
+        border-color: var(--blue);
+        background-color: rgba(54, 168, 255, .1);
+        color: var(--blue);
+    }
+
+    .opList label.active {
+        border-color: var(--blue);
+        background-color: rgba(54, 168, 255, .9);
+        font-weight: 600;
+        color: var(--bgColor);
+    }
+
+    .opList label.active:before {
+        filter: brightness(0) invert(1);
+    }
+    
+    .darkmode .opList label.active:before {
+        filter: brightness(0.15);
+    }
+
+    .opList + .helpTooltip {
+        transform: translate(20px, -100px);
+    }
+
     .timeSelect {
         display: flex;
     }
