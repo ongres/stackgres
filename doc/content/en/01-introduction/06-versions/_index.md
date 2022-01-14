@@ -6,7 +6,7 @@ description: Details about StackGres versions.
 showToc: true
 ---
 
-## StackGres 1.1.0
+## StackGres 1.1.0-RC1
 
 | Component | Versions |
 | ------ | ----------- |

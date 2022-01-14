@@ -1,3 +1,61 @@
+# :rocket: Release 1.1.0-RC1 (2022-01-14)
+
+## :notepad_spiral: NOTES
+
+Here comes StackGres 1.1.0-RC1 the awaited gift of this Christmas with a new tasty and fishy flavor ARMed to the teeth!! :christmas_tree: :fishing_pole_and_fish: :bomb: :tada: :bottle_with_popping_cork:
+
+We have listened to you. Did you want ARM? Here it comes! Finally, you can run Postgres on Kubernetes on ARM64 nodes. This release brings support ARM64 architecture in order to run StackGres even on a Raspberry Pi (and of course on cool ARM hardware, like AWS Graviton 2/3). And the new experimental Postgres for Babelfish flavor allows you to connect to Postgres using the SQLServer protocol! (which is also available on ARM).
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Add support for ARM64 architecture
+* New Postgres versions 14.1, 13.5 and 12.9
+* Support for [Postgres for Babelfish](https://babelfishpg.org/) version 13.4, both for AMD64 and ARM64
+* Completely redesigned cluster creation form: it is now implemented wizard-style, with separate steps for each major relevant function
+* Patroni 2.1.2
+* PgBouncer 1.16.1
+* Check for Postgres timeline when failing or switching over a replica to avoid data loss as much as possible.
+* Support to specify external IPs for Postgres services
+* Support to configure resources in operator helm chart
+* Enable Patroni `check_timeline` to avoid data corruption on failover and switchover
+
+## :bug: FIXES
+
+* Support allowing restart when primary pod is unavailable
+* When deleting primary Pod cluster may become unresponsive
+* Restart not restarting the cluster
+* Internal DNS for services not using configured search names
+* If backup used in initialData is removed the reconciliation cycle crashes
+* Infinite running state when restarting Pod after invalid configuration
+* Some resources are continuously patched
+* Major version upgrade cannot be performed now if not all installed extensions are not available in the new postgres major version
+* Init reconciliation cycle should fail for any error
+* Support migration from Client Side Apply to Server Side Apply
+* Error in endpoints stats from REST API
+
+## :construction: KNOWN ISSUES
+
+* Installation fails in EKS 1.21+ due to CSR not returning the certificate ([#1358](https://gitlab.com/ongresinc/stackgres/-/issues/1358)) 
+* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
+* After major version upgrade continuous archiving and backups may hang ([#1383](https://gitlab.com/ongresinc/stackgres/-/issues/1383)) 
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+* After upgrading StackGres operator newer Postgres versions that can not be used for SGCluster not upgraded may be presented in the Web UI ([#1540](https://gitlab.com/ongresinc/stackgres/-/issues/1540))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 0.9 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.1.0-RC1)
+
 # :rocket: Release 1.1.0-beta1 (2021-11-05)
 
 ## :notepad_spiral: NOTES
