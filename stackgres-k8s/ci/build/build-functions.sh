@@ -64,7 +64,7 @@ copy_from_image() {
   docker_run -i $(! test -t 1 || printf '%s' '-t') --rm \
     --platform "$SOURCE_IMAGE_PLATFORM" \
     --volume "$(pwd):/project-target" \
-    --user "$UID" \
+    --user "$BUILD_UID" \
     "$SOURCE_IMAGE_NAME" \
     sh -ec $(echo "$-" | grep -v -q x || printf '%s' '-x') \
       'cp -rd /project/. /project-target/.'
@@ -93,7 +93,7 @@ build_in_container() {
     return
   fi
   COMMANDS="$(jq -r ".modules[\"$MODULE\"].build_commands | if . != null then . | join(\"\n\") else true end" stackgres-k8s/ci/build/target/config.json)"
-  run_commands_in_container "$MODULE" "$BUILD_IMAGE_NAME" "$UID" "$COMMANDS"
+  run_commands_in_container "$MODULE" "$BUILD_IMAGE_NAME" "$BUILD_UID" "$COMMANDS"
 }
 
 post_build_in_container() {
@@ -113,7 +113,7 @@ run_commands_in_container() {
   [ "$#" -ge 4 ] || false
   local MODULE="$1"
   local BUILD_IMAGE_NAME="$2"
-  local UID="$3"
+  local BUILD_UID="$3"
   local COMMANDS="$4"
   local MODULE_PATH
   if [ "$COMMANDS" = true ]
@@ -133,7 +133,7 @@ EOF
   docker_run -i $(! test -t 1 || printf '%s' '-t') --rm \
     --volume "$(pwd):/project" \
     --workdir /project \
-    --user "$UID" \
+    --user "$BUILD_UID" \
     --env "PRE_BUILD_COMMANDS=$PRE_BUILD_COMMANDS" \
     --env "BUILD_COMMANDS=$BUILD_COMMANDS" \
     --env "POST_BUILD_COMMANDS=$POST_BUILD_COMMANDS" \
@@ -205,8 +205,8 @@ EOF
 ARG TARGET_IMAGE_NAME
 
 FROM "$TARGET_IMAGE_NAME" as target
-  ARG UID
-  USER $UID
+  ARG BUILD_UID
+  USER $BUILD_UID
   WORKDIR /project
 EOF
     for MODULE_ARTIFACT in $MODULE_ARTIFACTS
@@ -218,7 +218,7 @@ EOF
   # shellcheck disable=SC2086
   # shellcheck disable=SC2046
   docker_build $DOCKER_BUILD_OPTS -t "$IMAGE_NAME" \
-    --build-arg "UID=$UID" \
+    --build-arg "BUILD_UID=$BUILD_UID" \
     --build-arg "TARGET_IMAGE_NAME=$TARGET_IMAGE_NAME" \
     $(jq -r ".modules[\"$MODULE\"].dockerfile.args
         | if . != null then . else {} end | to_entries
@@ -393,7 +393,7 @@ generate_image_hashes() {
   local SOURCE_IMAGE_NAME
   local IMAGE_NAME
 
-  UID="$(id -u)"
+  BUILD_UID="$(id -u)"
 
   mkdir -p stackgres-k8s/ci/build/target
 

@@ -476,9 +476,10 @@ install_operator_only() {
 
 can_install_operator_version() {
   local VERSION="${1:-$STACKGRES_PREVIOUS_VERSION}"
-  local VERSION_AS_NUMBER VERSION_0_9_5
+  local VERSION_AS_NUMBER VERSION_0_9_5 VERSION_1_1_0_RC1
   VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
   VERSION_0_9_5="$(get_version_as_number 0.9.5)"
+  VERSION_1_1_0_RC1="$(get_version_as_number 1.1.0-RC1)"
   if [ "$VERSION_AS_NUMBER" -le "$VERSION_0_9_5" ]
   then
     if {
@@ -486,6 +487,13 @@ can_install_operator_version() {
         || [ "$KUBERNETES_VERSION_NUMBER" -lt 111 ]
       } \
       || [ "$(uname -m)" != x86_64 ]
+    then
+      return 1
+    fi
+  fi
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_1_0_RC1" ]
+  then
+    if [ "$(uname -m)" != x86_64 ]
     then
       return 1
     fi
