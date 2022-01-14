@@ -47,16 +47,15 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-
-    final StackGresCluster stackGresCluster = context.getSource();
-    final Map<String, String> labels = labelFactory.genericLabels(stackGresCluster);
-    Map<String, String> crossNamespaceLabels = labelFactory
-        .clusterCrossNamespaceLabels(stackGresCluster);
+    final StackGresCluster cluster = context.getSource();
+    final Map<String, String> crossNamespaceLabels = labelFactory
+        .clusterCrossNamespaceLabels(cluster);
+    final Map<String, String> clusterSelectorLabels = labelFactory.clusterLabels(cluster);
 
     Seq<HasMetadata> resources = Seq.of(
         new ServiceBuilder()
             .withNewMetadata()
-            .withNamespace(stackGresCluster.getMetadata().getNamespace())
+            .withNamespace(cluster.getMetadata().getNamespace())
             .withName(AbstractEnvoy.serviceName(context))
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(crossNamespaceLabels)
@@ -64,7 +63,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
                 .build())
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
-                .withSelector(labels)
+                .withSelector(clusterSelectorLabels)
                 .withPorts(new ServicePortBuilder()
                     .withProtocol("TCP")
                     .withName(AbstractEnvoy.NAME)
