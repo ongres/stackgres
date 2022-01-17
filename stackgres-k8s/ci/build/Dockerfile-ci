@@ -3,7 +3,7 @@
 #
 # Build the image with:
 #
-# docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t registry.gitlab.com/ongresinc/stackgres/ci-amd64:1.10 stackgres-k8s/ci/build/
+# docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t registry.gitlab.com/ongresinc/stackgres/ci-amd64:1.11 stackgres-k8s/ci/build/
 #
 ###
 
@@ -43,3 +43,5 @@ FROM docker.io/docker:20.10
     RUN wget -q -O ~/.docker/cli-plugins/docker-buildx "https://github.com/docker/buildx/releases/download/v0.7.1/buildx-v0.7.1.linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
     RUN chmod a+x ~/.docker/cli-plugins/docker-buildx
     RUN echo '{"experimental":"enabled"}' > ~/.docker/config.json
+    RUN apk add aws-cli
+
