@@ -176,8 +176,8 @@ public class ServerSideApplySanitizer {
               String ref = context.v3.get("$ref").asText();
               if (!ref.startsWith("#/definitions/")) {
                 throw new IllegalArgumentException(
-                    "Invalid $ref " + ref + " found under path "
-                        + context.v2 + " for definition " + context.v1);
+                    "Invalid $ref " + ref + " (type: " + context.v3.getNodeType() + ")"
+                        + " found under path " + context.v2 + " for type " + type);
               }
               String refType = ref.substring("#/definitions/".length());
               JsonPointer refPointer = createRelativePointer(pointer, context.v2);
@@ -185,23 +185,54 @@ public class ServerSideApplySanitizer {
               return context.map1(v -> refResult)
                   .map4(v -> true);
             }
+            if (!context.v3.has("type")) {
+              LOGGER.warn("Missing field \"type\" in path {} for definition of {}",
+                  context.v2, type);
+              return context;
+            }
             String innerType = context.v3.get("type").asText();
             JsonPointer nextPointer = context.v2.append(rawToken);
             if ("object".equals(innerType)) {
-              var propertyObjectNode = (ObjectNode) context.v3.get("properties").get(rawToken);
+              var propertyObjectNode = Optional.of(context.v3)
+                  .map(node -> {
+                    if (!node.has("properties")) {
+                      LOGGER.warn("Missing field \"properties\" in path {} for definition of {}",
+                          context.v2, type);
+                    }
+                    return node;
+                  })
+                  .map(node -> node.get("properties"))
+                  .map(node -> {
+                    if (!node.has(rawToken)) {
+                      LOGGER.warn("Missing field \"{}\" in path {} for definition of {}",
+                          rawToken, context.v2, type);
+                    }
+                    return node;
+                  })
+                  .map(node -> node.get(rawToken))
+                  .filter(ObjectNode.class::isInstance)
+                  .map(ObjectNode.class::cast);
               return context
-                  .map1(v -> Optional.of(propertyObjectNode)
-                      .filter(o -> pointer.equals(nextPointer)))
+                  .map1(v -> propertyObjectNode.filter(o -> pointer.equals(nextPointer)))
                   .map2(v -> v.append(rawToken))
-                  .map3(v -> propertyObjectNode)
+                  .map3(v -> propertyObjectNode.orElse(null))
                   .map4(v -> pointer.equals(nextPointer));
             } else if ("array".equals(innerType)) {
-              var elementObjectNode = (ObjectNode) context.v3.get("items");
+              var elementObjectNode = Optional.of(context.v3)
+                  .map(node -> {
+                    if (!node.has("items")) {
+                      LOGGER.warn("Missing field \"items\" in path {} for definition of {}",
+                          context.v2, type);
+                    }
+                    return node;
+                  })
+                  .map(node -> node.get("items"))
+                  .filter(ObjectNode.class::isInstance)
+                  .map(ObjectNode.class::cast);
               return context
-                  .map1(v -> Optional.of(elementObjectNode)
-                      .filter(o -> pointer.equals(nextPointer)))
+                  .map1(v -> elementObjectNode.filter(o -> pointer.equals(nextPointer)))
                   .map2(v -> v.append(rawToken))
-                  .map3(v -> elementObjectNode)
+                  .map3(v -> elementObjectNode.orElse(null))
                   .map4(v -> pointer.equals(nextPointer));
             }
             return context;
