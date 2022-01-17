@@ -116,13 +116,13 @@ deploy distributedlogs-controller native image:
       - $DO_DEPLOY
 
 deploy helm packages and templates:
-  image: mikesir87/aws-cli:latest
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: deploy
   script:
     - set -e
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-packages stackgres-k8s/install/helm/template/packages
-    - sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-templates stackgres-k8s/install/helm/template/templates
+    - sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-packages stackgres-k8s/install/helm/target/packages
+    - sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-templates stackgres-k8s/install/helm/target/templates
     - aws s3 sync ./stackgres-k8s/install/helm/target/public/ s3://$S3_BUCKET_NAME/
     - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*'
   cache:
@@ -137,7 +137,7 @@ deploy helm packages and templates:
 
 pages:
   stage: deploy
-  image: alpine
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   environment:
     name: development
     url: https://ongresinc.gitlab.io/stackgres/
