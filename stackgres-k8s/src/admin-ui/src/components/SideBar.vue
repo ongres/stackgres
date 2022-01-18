@@ -48,7 +48,14 @@
 					<li><ul v-if="iCan('list', 'sgclusters', currentPath.namespace)" class="crdSubmenu">
 						<template v-for="cluster in clusters">
 							<li v-if="cluster.data.metadata.namespace == currentPath.namespace" :class="'sgcluster-'+cluster.data.metadata.namespace+'-'+cluster.name">
-								<router-link :to="'/' + cluster.data.metadata.namespace + '/sgcluster/' + cluster.name" class="item cluster" :title="cluster.name" :class="(currentPath.component.includes('Cluster') && (currentPath.name == cluster.name)) ? 'router-link-exact-active' : ''">{{ cluster.name }}</router-link>
+								<router-link :to="'/' + cluster.data.metadata.namespace + '/sgcluster/' + cluster.name" class="item cluster" :title="cluster.name" :class="(currentPath.component.includes('Cluster') && (currentPath.name == cluster.name)) ? 'router-link-exact-active' : ''">
+									{{ cluster.name }}
+									<template v-if="hasProp(cluster, 'data.status.conditions')">
+										<template v-for="condition in cluster.data.status.conditions" v-if="( (condition.type == 'PendingRestart') && (condition.status == 'True') )">
+											<div class="helpTooltip alert onHover" data-tooltip="A restart operation is pending for this cluster"></div>
+										</template>
+									</template>
+								</router-link>
 							</li>
 						</template>
 					</ul></li>
@@ -261,7 +268,7 @@
 						else
 							submenu.css("top", "auto").css("bottom",window.innerHeight - $(this).height() - offset.top)
 						
-						submenu.addClass("show wow");
+						submenu.addClass("show");
 					}
 				}
 			});
@@ -464,6 +471,14 @@
 		line-height: 50px;
 	}
 
+	.helpTooltip.alert {
+		width: 55px;
+		height: 50px;
+		top: 0;
+		left: auto;
+		right: 0;
+	}
+
 	.nav-item {
 		color: inherit;
 		display: flex;
@@ -476,10 +491,11 @@
 
 	.subset .nav-item, .crdSubmenu a {
 		padding-left: 80px;
+		padding-right: 55px;
 	}
 
 	.subset .crdSubmenu a {
-		padding: 0 20px 0 110px;
+		padding: 0 55px 0 110px;
 	}
 
 	.addnew {
@@ -572,7 +588,7 @@
 	}
 
 	.set:not(.active) .crdSubmenu.show a, .collapsed .set.active .crdSubmenu.show a {
-		padding: 0 20px;
+		padding: 0 55px 0 20px;
 	}
 
 	.set li a:hover {
