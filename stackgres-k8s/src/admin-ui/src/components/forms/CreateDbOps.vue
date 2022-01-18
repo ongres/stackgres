@@ -55,32 +55,46 @@
                 <div class="col">
                     <div class="opList">
                         <div class="benchmark">
-                            <input type="radio" v-model="op" data-field="spec.op" value="benchmark" id="benchmark">
-                            <label for="benchmark" data-field="spec.op">Benchmark</label>
+                            <label for="benchmark" data-field="spec.op">
+                                Benchmark
+                                <input type="radio" v-model="op" data-field="spec.op" value="benchmark" id="benchmark">
+                            </label>
                         </div>
                         <div class="vacuum">
-                            <input type="radio" v-model="op" data-field="spec.op" value="vacuum" id="vacuum">
-                            <label for="vacuum" data-field="spec.op">Vacuum</label>
+                            <label for="vacuum" data-field="spec.op">
+                                Vacuum
+                                <input type="radio" v-model="op" data-field="spec.op" value="vacuum" id="vacuum">
+                            </label>
                         </div>
                         <div class="repack">
-                            <input type="radio" v-model="op" data-field="spec.op" value="repack" id="repack">
-                            <label for="repack" data-field="spec.op">Repack</label>
+                            <label for="repack" data-field="spec.op">
+                                Repack
+                                <input type="radio" v-model="op" data-field="spec.op" value="repack" id="repack">
+                            </label>
                         </div>
                         <div class="securityUpgrade">
-                            <input type="radio" v-model="op" data-field="spec.op" value="securityUpgrade" id="securityUpgrade">
-                           <label for="securityUpgrade" data-field="spec.op">Security<br>Upgrade</label>
+                            <label for="securityUpgrade" data-field="spec.op">
+                                Security<br>Upgrade
+                                <input type="radio" v-model="op" data-field="spec.op" value="securityUpgrade" id="securityUpgrade">
+                            </label>
                         </div>
                         <div class="minorVersionUpgrade">
-                            <input type="radio" v-model="op" data-field="spec.op" value="minorVersionUpgrade" id="minorVersionUpgrade">
-                            <label for="minorVersionUpgrade" data-field="spec.op">Minor Version Upgrade</label>
+                            <label for="minorVersionUpgrade" data-field="spec.op">
+                                Minor Version Upgrade
+                                <input type="radio" v-model="op" data-field="spec.op" value="minorVersionUpgrade" id="minorVersionUpgrade">
+                            </label>
                         </div>
                         <div class="majorVersionUpgrade">
-                            <input type="radio" v-model="op" data-field="spec.op" value="majorVersionUpgrade" id="majorVersionUpgrade">
-                            <label for="majorVersionUpgrade" data-field="spec.op">Major Version Upgrade</label>
+                            <label for="majorVersionUpgrade" data-field="spec.op">
+                                Major Version Upgrade
+                                <input type="radio" v-model="op" data-field="spec.op" value="majorVersionUpgrade" id="majorVersionUpgrade">
+                            </label>
                         </div>
                         <div class="restart">
-                            <input type="radio" v-model="op" data-field="spec.op" value="restart" id="restart">
-                            <label for="restart" data-field="spec.op">Restart</label>
+                            <label for="restart" data-field="spec.op">
+                                Restart
+                                <input type="radio" v-model="op" data-field="spec.op" value="restart" id="restart">
+                            </label>
                         </div>
                     </div>
                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.op')"></span>
@@ -1178,6 +1192,10 @@
 
     .majorVersionUpgrade, .securityUpgrade, .minorVersionUpgrade {
         padding-bottom: 15px;
+    }
+
+    fieldset > .warning {
+       margin-bottom: 0;
     }
 
 </style>
