@@ -1194,8 +1194,8 @@
         padding-bottom: 15px;
     }
 
-    fieldset > .warning {
-       margin-bottom: 0;
+    fieldset > .warning:first-child:last-child {
+       margin-bottom: 5px;
     }
 
 </style>
