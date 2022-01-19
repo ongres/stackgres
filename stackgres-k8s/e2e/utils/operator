@@ -493,7 +493,11 @@ can_install_operator_version() {
   fi
   if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_1_0_RC1" ]
   then
-    if [ "$(uname -m)" != x86_64 ]
+    if {
+        [ "$KUBERNETES_VERSION_NUMBER" -gt 122 ] \
+        || [ "$KUBERNETES_VERSION_NUMBER" -lt 116 ]
+      } \
+      || [ "$(uname -m)" != x86_64 ]
     then
       return 1
     fi
@@ -1195,8 +1199,8 @@ get_version_as_number() {
 }
 
 traceable_get_version_as_number() {
-  [ -n "$VERSION" ]
   local VERSION="$1"
+  [ -n "$VERSION" ]
 
   local CARDINALITY
   CARDINALITY="$(printf '%s' "$VERSION" | tr '.' ' ' | wc -w)"
