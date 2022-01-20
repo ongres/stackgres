@@ -366,7 +366,7 @@
                                         <span>
                                             <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.name" title="Database Operation Details">
                                                 <span class="status" :class="getOpStatus(op)" :title="getOpStatus(op).length ? getOpStatus(op) : 'No Status Available'"></span>
-                                                <span class="operationType" :class="op.data.spec.op" :title="op.data.spec.op"></span>
+                                                <span class="operationType dbopIcon" :class="op.data.spec.op" :title="op.data.spec.op"></span>
                                                 {{ op.name }}
                                             </router-link>
                                         </span>

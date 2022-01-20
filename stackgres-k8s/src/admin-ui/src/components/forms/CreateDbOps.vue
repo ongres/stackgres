@@ -53,49 +53,13 @@
                 <h3 class="sectionTitle">Database Operation <span class="req">*</span></h3>
 
                 <div class="col">
-                    <div class="opList">
-                        <div class="benchmark">
-                            <label for="benchmark" data-field="spec.op">
-                                Benchmark
-                                <input type="radio" v-model="op" data-field="spec.op" value="benchmark" id="benchmark">
+                    <div class="optionBoxes">
+                        <template v-for="operation in ['benchmark', 'vacuum', 'repack', 'securityUpgrade', 'minorVersionUpgrade', 'majorVersionUpgrade', 'restart']">
+                            <label class="dbopIcon" :class="[operation, ( (op == operation) && 'active' )]" :for="operation" data-field="spec.op">
+                                {{ splitUppercase(operation) }}
+                                <input type="radio" v-model="op" data-field="spec.op" :value="operation" :id="operation">
                             </label>
-                        </div>
-                        <div class="vacuum">
-                            <label for="vacuum" data-field="spec.op">
-                                Vacuum
-                                <input type="radio" v-model="op" data-field="spec.op" value="vacuum" id="vacuum">
-                            </label>
-                        </div>
-                        <div class="repack">
-                            <label for="repack" data-field="spec.op">
-                                Repack
-                                <input type="radio" v-model="op" data-field="spec.op" value="repack" id="repack">
-                            </label>
-                        </div>
-                        <div class="securityUpgrade">
-                            <label for="securityUpgrade" data-field="spec.op">
-                                Security<br>Upgrade
-                                <input type="radio" v-model="op" data-field="spec.op" value="securityUpgrade" id="securityUpgrade">
-                            </label>
-                        </div>
-                        <div class="minorVersionUpgrade">
-                            <label for="minorVersionUpgrade" data-field="spec.op">
-                                Minor Version Upgrade
-                                <input type="radio" v-model="op" data-field="spec.op" value="minorVersionUpgrade" id="minorVersionUpgrade">
-                            </label>
-                        </div>
-                        <div class="majorVersionUpgrade">
-                            <label for="majorVersionUpgrade" data-field="spec.op">
-                                Major Version Upgrade
-                                <input type="radio" v-model="op" data-field="spec.op" value="majorVersionUpgrade" id="majorVersionUpgrade">
-                            </label>
-                        </div>
-                        <div class="restart">
-                            <label for="restart" data-field="spec.op">
-                                Restart
-                                <input type="radio" v-model="op" data-field="spec.op" value="restart" id="restart">
-                            </label>
-                        </div>
+                        </template>
                     </div>
                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.op')"></span>
                 </div>
@@ -1104,34 +1068,12 @@
         margin-bottom: 20px;
     }
 
-    .opList {
-        margin-bottom: 10px;
-        display: grid;
-        grid-auto-columns: minmax(0,1fr);
-        grid-auto-flow: column;
-        column-gap: 10px;
-    }
-
-    .opList > div {
+    .optionBoxes > label {
         height: 100px;
-        padding: 0;
+        padding: 0 10px;
     }
 
-    .opList input[type=radio] {
-        display: none;
-    }
-
-    .opList label {
-        text-align: center;
-        width: 100%;
-        height: 100%;
-        background-color: var(--activeBg);
-        border: 1px solid var(--borderColor);
-        border-radius: 6px;
-        cursor: pointer;
-    }
-
-    .opList label:before {
+    .dbopIcon:before {
         display: block;
         content: "";
         height: 25px;
@@ -1140,28 +1082,15 @@
         margin: 15px auto 10px;
     }
 
-    .opList label:hover {
-        border-color: var(--blue);
-        background-color: rgba(54, 168, 255, .1);
-        color: var(--blue);
-    }
-
-    .opList label.active {
-        border-color: var(--blue);
-        background-color: rgba(54, 168, 255, .9);
-        font-weight: 600;
-        color: var(--bgColor);
-    }
-
-    .opList label.active:before {
+    .dbopIcon.active:before {
         filter: brightness(0) invert(1);
     }
     
-    .darkmode .opList label.active:before {
+    .darkmode .dbopIcon.active:before {
         filter: brightness(0.15);
     }
 
-    .opList + .helpTooltip {
+    .optionBoxes + .helpTooltip {
         transform: translate(20px, -100px);
     }
 

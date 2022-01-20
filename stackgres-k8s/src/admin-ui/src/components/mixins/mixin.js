@@ -1301,8 +1301,12 @@ export const mixin = {
         let isValid = true;
         
         $('[required]').each(function() {
-          if ( !$(this).val() ) {
+          if ( !$(this).val() || ($(this).is(':checkbox') && !$(this).is(':checked')) ) {
             $(this).addClass("notValid");
+
+            if($(this).is(':checkbox')) {
+              $(this).parent('label').addClass('notValid');
+            }
             isValid = false;
           } else if ($(this).hasClass('error')) {
             $(this).removeClass('notValid');
@@ -1316,6 +1320,10 @@ export const mixin = {
         }
 
         return isValid
+      },
+
+      splitUppercase(text) {
+        return text.split(/(?=[A-Z])/).join(' ')
       }
 
     },
