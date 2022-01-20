@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.validation.cluster;
+package io.stackgres.operator.validation;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -19,48 +19,45 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.api.model.storage.StorageClassBuilder;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.utils.ValidationUtils;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
-class PersistentVolumeSizeExpansionValidatorTest {
-
-  @Mock
-  ResourceFinder<StorageClass> finder;
+public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends AdmissionReview<R>,
+    R extends CustomResource<?, ?>> {
 
   @Mock
-  ResourceScanner<PersistentVolumeClaim> pvcScanner;
+  protected ResourceFinder<StorageClass> finder;
 
   @Mock
-  LabelFactoryForCluster<StackGresCluster> labelFactory;
+  protected ResourceScanner<PersistentVolumeClaim> pvcScanner;
 
-  PersistentVolumeSizeExpansionValidator validator;
+  @Mock
+  protected LabelFactoryForCluster<R> labelFactory;
 
-  StackGresClusterReview clusterReview;
+  protected T clusterReview;
+
+  protected PersistentVolumeSizeExpansionValidator<T, R> validator;
 
   @BeforeEach
   void setUp() {
-
-    validator = new PersistentVolumeSizeExpansionValidator(finder, pvcScanner, labelFactory);
-    clusterReview = JsonUtil.readFromJson("cluster_allow_requests/valid_update.json",
-        StackGresClusterReview.class);
-
+    clusterReview = getAdmissionReview();
+    validator = getValidator();
   }
+
+  protected abstract T getAdmissionReview();
+
+  protected abstract PersistentVolumeSizeExpansionValidator<T, R> getValidator();
 
   @Test
   @DisplayName("Given an increase PVC expansion it should allow it, "
@@ -108,7 +105,7 @@ class PersistentVolumeSizeExpansionValidatorTest {
      * With the above configured storage class
      */
     Map<String, String> clusterLabels = getRandomClusterLabels();
-    StackGresCluster cluster = clusterReview.getRequest().getObject();
+    R cluster = clusterReview.getRequest().getObject();
     setupLabelFactory(cluster, clusterLabels);
     String clusterNamespace = getClusterNamespace(clusterReview);
     configurePvcScanner(storageClassName, clusterLabels, clusterNamespace);
@@ -177,7 +174,7 @@ class PersistentVolumeSizeExpansionValidatorTest {
     configureVolumeChange(clusterReview, "1Gi", "2Gi");
     configureStorageClassName(clusterReview, null);
     Map<String, String> clusterLabels = getRandomClusterLabels();
-    StackGresCluster cluster = clusterReview.getRequest().getObject();
+    R cluster = clusterReview.getRequest().getObject();
     setupLabelFactory(cluster, clusterLabels);
     String clusterNamespace = getClusterNamespace(clusterReview);
     configureEmptyPvcScanner();
@@ -222,7 +219,7 @@ class PersistentVolumeSizeExpansionValidatorTest {
     configureVolumeChange(clusterReview, "1Gi", "2Gi");
     configureStorageClassName(clusterReview, null);
     Map<String, String> clusterLabels = getRandomClusterLabels();
-    StackGresCluster cluster = clusterReview.getRequest().getObject();
+    R cluster = clusterReview.getRequest().getObject();
     setupLabelFactory(cluster, clusterLabels);
     String clusterNamespace = getClusterNamespace(clusterReview);
 
@@ -303,32 +300,22 @@ class PersistentVolumeSizeExpansionValidatorTest {
     verifyNoPvcInteractions();
   }
 
-  private void configureEmptyPvcScanner(){
-    when(pvcScanner.findByLabelsAndNamespace(any(), any()))
-        .thenReturn(List.of());
-  }
-  private void configurePvcScanner(String storageClassName,
-                                   Map<String, String> clusterLabels,
-                                   String clusterNamespace) {
-    when(pvcScanner.findByLabelsAndNamespace(clusterNamespace, clusterLabels))
-        .thenReturn(List.of(
-            new PersistentVolumeClaimBuilder()
-                .withNewMetadata()
-                .withName(StringUtils.getRandomString())
-                .endMetadata()
-                .withNewSpec()
-                .withStorageClassName(storageClassName)
-                .endSpec()
-                .build()
-        ));
-  }
+  protected abstract void setVolumeSize(R cluster, String size);
 
-  private String getClusterNamespace(StackGresClusterReview clusterReview) {
+  protected abstract void setStorageClassName(R cluster, String storageClassName);
+
+  protected abstract String getStorageClassName(R cluster);
+
+  private String getClusterNamespace(T clusterReview) {
     return clusterReview.getRequest().getObject().getMetadata().getNamespace();
   }
 
-  private void setupLabelFactory(StackGresCluster cluster, Map<String, String> clusterLabels) {
+  private void setupLabelFactory(R cluster, Map<String, String> clusterLabels) {
     when(labelFactory.clusterLabels(cluster)).thenReturn(clusterLabels);
+  }
+
+  private String getStorageClass() {
+    return getStorageClassName(clusterReview.getRequest().getObject());
   }
 
   private Map<String, String> getRandomClusterLabels() {
@@ -337,39 +324,28 @@ class PersistentVolumeSizeExpansionValidatorTest {
     );
   }
 
-  private void setupVolumeExpansion(StackGresClusterReview review) {
+  private void setupVolumeExpansion(T review) {
     final String storageClassName = StringUtils.getRandomClusterName();
 
     configureStorageClassName(review, storageClassName);
     configureVolumeChange(review, "500Mi", "1Gi");
   }
 
-  private void setupUnalteredVolumeSize(StackGresClusterReview review) {
+  private void setupUnalteredVolumeSize(T review) {
     final String storageClassName = StringUtils.getRandomClusterName();
 
     configureVolumeChange(review, "500Mi", "500Mi");
     configureStorageClassName(review, storageClassName);
   }
 
-  private void configureVolumeChange(StackGresClusterReview review, String oldSize, String newSize) {
-
-    final StackGresPodPersistentVolume oldPersistentVolume = review.getRequest().getOldObject()
-        .getSpec().getPod().getPersistentVolume();
-    oldPersistentVolume.setSize(oldSize);
-
-    final StackGresPodPersistentVolume newPersistentVolume = review.getRequest().getObject()
-        .getSpec().getPod().getPersistentVolume();
-    newPersistentVolume.setSize(newSize);
+  private void configureVolumeChange(T review, String oldSize, String newSize) {
+    setVolumeSize(review.getRequest().getObject(), newSize);
+    setVolumeSize(review.getRequest().getOldObject(), oldSize);
   }
 
-  private void configureStorageClassName(StackGresClusterReview review, String storageClassName) {
-    final StackGresPodPersistentVolume oldPersistentVolume = review.getRequest().getOldObject()
-        .getSpec().getPod().getPersistentVolume();
-    oldPersistentVolume.setStorageClass(storageClassName);
-
-    final StackGresPodPersistentVolume newPersistentVolume = review.getRequest().getObject()
-        .getSpec().getPod().getPersistentVolume();
-    newPersistentVolume.setStorageClass(storageClassName);
+  private void configureStorageClassName(T review, String storageClassName) {
+    setStorageClassName(review.getRequest().getOldObject(), storageClassName);
+    setStorageClassName(review.getRequest().getObject(), storageClassName);
   }
 
   private void allowStorageClassVolumeExpansion(String storageClassName) {
@@ -391,11 +367,6 @@ class PersistentVolumeSizeExpansionValidatorTest {
     ));
   }
 
-  private String getStorageClass() {
-    return clusterReview.getRequest().getObject().getSpec()
-        .getPod().getPersistentVolume().getStorageClass();
-  }
-
   private void verityStorageClassRequest(String storageClassName) {
     verify(finder).findByName(storageClassName);
   }
@@ -410,4 +381,26 @@ class PersistentVolumeSizeExpansionValidatorTest {
     verify(pvcScanner, never()).findResourcesInNamespace(any());
     verify(pvcScanner, never()).findResources();
   }
+
+  private void configurePvcScanner(String storageClassName,
+                                   Map<String, String> clusterLabels,
+                                   String clusterNamespace) {
+    when(pvcScanner.findByLabelsAndNamespace(clusterNamespace, clusterLabels))
+        .thenReturn(List.of(
+            new PersistentVolumeClaimBuilder()
+                .withNewMetadata()
+                .withName(StringUtils.getRandomString())
+                .endMetadata()
+                .withNewSpec()
+                .withStorageClassName(storageClassName)
+                .endSpec()
+                .build()
+        ));
+  }
+
+  private void configureEmptyPvcScanner() {
+    when(pvcScanner.findByLabelsAndNamespace(any(), any()))
+        .thenReturn(List.of());
+  }
+
 }
