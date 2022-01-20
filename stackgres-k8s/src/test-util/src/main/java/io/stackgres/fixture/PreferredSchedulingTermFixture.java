@@ -13,11 +13,11 @@ import io.fabric8.kubernetes.api.model.PreferredSchedulingTermBuilder;
 
 public class PreferredSchedulingTermFixture {
 
-  private int weigth;
+  private int weight;
   private NodeSelectorRequirement nodeSelectorRequirement;
 
-  public PreferredSchedulingTermFixture withWeight(int weigth) {
-    this.weigth = weigth;
+  public PreferredSchedulingTermFixture withWeight(int weight) {
+    this.weight = weight;
     return this;
   }
 
@@ -29,7 +29,7 @@ public class PreferredSchedulingTermFixture {
 
   public PreferredSchedulingTerm build() {
     return new PreferredSchedulingTermBuilder()
-      .withWeight(this.weigth)
+      .withWeight(this.weight)
       .withNewPreference()
         .addAllToMatchExpressions(Arrays.asList(this.nodeSelectorRequirement))
         .endPreference()
