@@ -1,22 +1,49 @@
 
 .deploy image:
-  image: quay.io/buildah/stable:v1.20.1
+  image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: deploy
   tags:
     - stackgres-runner-v2
   variables:
     IMAGE_TAG_SUFFIX: ""
   script:
-    - set -e
-    - buildah login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - set -x
-    - export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_TAG_SUFFIX"
-    - export IMAGE_PUSH_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}$IMAGE_TAG_SUFFIX"
-    - '[ -n "$IMAGE_NAME" ]'
-    - export IMAGE_PULL_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:$IMAGE_TAG"
-    - export IMAGE_PUSH_NAME="docker.io/$IMAGE_NAME:$IMAGE_PUSH_TAG"
-    - buildah pull "$IMAGE_PULL_NAME"
-    - buildah push --format=docker --authfile "$REGISTRY_AUTH_FILE" "$IMAGE_PULL_NAME" "docker://$IMAGE_PUSH_NAME"
+    - |
+      set -e
+      [ "$DEBUG" != true ] || set -x
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_TAG_SUFFIX"
+      export IMAGE_PUSH_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}$IMAGE_TAG_SUFFIX"
+      [ -n "$IMAGE_NAME" ]
+      export IMAGE_PULL_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:$IMAGE_TAG"
+      export IMAGE_PUSH_NAME="docker.io/$IMAGE_NAME:$IMAGE_PUSH_TAG"
+      ARCH_LIST="amd64 $(
+        if [ "$DO_ARM" = true ] \
+          || { [ "$SKIP_ARM" != true ] && [ -n "$CI_COMMIT_TAG" ]; }
+        then
+          echo arm64
+        fi
+        )"
+      if docker manifest inspect "$IMAGE_PUSH_NAME" >/dev/null 2>&1
+      then
+        docker pull registry.gitlab.com/ongresinc/stackgres/placeholder
+        docker tag registry.gitlab.com/ongresinc/stackgres/placeholder "$IMAGE_PUSH_NAME"
+        docker push "$IMAGE_PUSH_NAME"
+      fi
+      for ARCH in $ARCH_LIST
+      do
+        docker pull "$IMAGE_PULL_NAME-$ARCH"
+        docker tag "$IMAGE_PULL_NAME-$ARCH" "$IMAGE_PUSH_NAME-$ARCH"
+        docker push "$IMAGE_PUSH_NAME-$ARCH"
+      done
+      docker manifest rm "$IMAGE_PUSH_NAME" 2>/dev/null || true
+      docker manifest create "$IMAGE_PUSH_NAME" $(
+        for ARCH in $ARCH_LIST
+        do
+          echo "$IMAGE_PUSH_NAME-$ARCH "
+        done)
+      mv ~/.docker/config.json ~/.docker/gitlab.json
+      mv "$REGISTRY_AUTH_FILE" ~/.docker/config.json
+      docker manifest push "$IMAGE_PUSH_NAME"
   retry: 2
   only:
     variables:
@@ -63,7 +90,6 @@ deploy operator native image:
     variables:
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
 
 deploy restapi native image:
   extends: .deploy image
@@ -74,7 +100,6 @@ deploy restapi native image:
     variables:
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
 
 deploy job native image:
   extends: .deploy image
@@ -85,7 +110,6 @@ deploy job native image:
     variables:
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
 
 deploy adminui image:
   extends: .deploy image
@@ -102,7 +126,6 @@ deploy cluster-controller native image:
     variables:
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
 
 deploy distributedlogs-controller native image:
   extends: .deploy image
@@ -113,7 +136,6 @@ deploy distributedlogs-controller native image:
     variables:
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_DEPLOY
 
 deploy helm packages and templates:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
