@@ -2840,6 +2840,22 @@ fieldset.podsScheduling .row a.help {
     right: 0;
 }
 
+.optionBoxes.withLogos label {
+    padding: 25px 5px;
+}
+
+.optionBoxes.withLogos > label.active {
+    background: rgba(54, 168, 255, .1);
+    color: var(--textColor) !important;
+}
+
+.optionBoxes.withLogos svg {
+    height: 45px;
+    display: block;
+    margin: 0 auto 20px;
+}
+
+
 /* Help Tooltips */
 
 #help {
