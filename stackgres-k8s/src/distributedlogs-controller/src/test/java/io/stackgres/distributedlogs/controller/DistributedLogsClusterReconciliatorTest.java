@@ -50,6 +50,9 @@ public class DistributedLogsClusterReconciliatorTest {
   @Mock
   private EventController eventController;
 
+  @Mock
+  private DistributedLogsPersistentVolumeSizeReconciliator pvcReconciliator;
+
   private DistributedLogsClusterReconciliator reconciliator;
 
   @BeforeEach
@@ -59,6 +62,7 @@ public class DistributedLogsClusterReconciliatorTest {
       p.databaseManager = databaseReconciliator;
       p.configReconciliator = configReconciliator;
       p.eventController = eventController;
+      p.persistentVolumeSizeReconciliator = pvcReconciliator;
     });
   }
 

@@ -283,6 +283,29 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
   }
 
   @Test
+  @DisplayName("Given a decrease in the persistent volume size it should block it")
+  void testDecreaseSize() {
+
+    /*
+     * This simulates a SGCluster update in which the persistent volume size was decreased
+     */
+    configureVolumeChange(clusterReview, "2Gi", "1Gi");
+
+    /*
+     * Sin kubernetes doesn't allow a decrease in PVC we should not allow it either
+     */
+    ValidationUtils.assertValidationFailed(
+        () -> validator.validate(clusterReview),
+        ErrorType.FORBIDDEN_CLUSTER_UPDATE,
+        "Decrease of persistent volume size is not supported"
+    );
+
+    verifyNoStorageClassInteractions();
+    verifyNoPvcInteractions();
+
+  }
+
+  @Test
   @DisplayName("Given no increase in PVC size it should ignore it")
   void testNoExpansion() throws ValidationFailed {
     /*
@@ -296,7 +319,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
      * Since there no change in the persistent volume size we should not look for any storage class
      * or PVC
      */
-    verify(finder, never()).findByName(any());
+    verifyNoStorageClassInteractions();
     verifyNoPvcInteractions();
   }
 

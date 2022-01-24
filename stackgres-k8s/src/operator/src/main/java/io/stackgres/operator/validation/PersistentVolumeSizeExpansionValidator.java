@@ -27,7 +27,14 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
 
   @Override
   public void validate(T review) throws ValidationFailed {
-    if (isOperationUpdate(review) && isVolumeSizeExpanded(review)) {
+    if (isOperationUpdate(review) && compareVolumeSizes(review) != 0) {
+
+      if (compareVolumeSizes(review) < 0) {
+        // At the moment we can't decrease volume sizes
+        throwValidationError("Decrease of persistent volume size is not supported");
+      }
+
+      //If we are here is because the persistent volume size is being increased
 
       List<StorageClass> storageClasses = findClusterStorageClasses(review);
       if (storageClasses.isEmpty()) {
@@ -75,18 +82,21 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
 
   /**
    * Looks for a storage class finder.
+   *
    * @return a storage class finder.
    */
   public abstract ResourceFinder<StorageClass> getStorageClassFinder();
 
   /**
    * Looks for a LabelFactoryForCluster.
+   *
    * @return a label factory for cluster.
    */
   public abstract LabelFactoryForCluster<R> getLabelFactory();
 
   /**
    * Looks for a PersistentVolumeClaim scanner.
+   *
    * @return a Persistent Volume Claim scanner.
    */
   public abstract ResourceScanner<PersistentVolumeClaim> getPvcScanner();
@@ -163,9 +173,11 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
    * objects.
    *
    * @param review The update admission review
-   * @return <code>true</code> if the persistent volume sizes expanded, <code>false</code> otherwise
+   * @return <code>1</code> if the new persistent volume sizes is bigger than the old one,
+   *         <code>0</code> if the persistent volume size is equal
+   *         <code>-1</code> if the new persistent volume size is lower than the old one
    */
-  protected boolean isVolumeSizeExpanded(T review) {
+  protected int compareVolumeSizes(T review) {
     R oldObject = review.getRequest().getOldObject();
     R newObject = review.getRequest().getObject();
 
@@ -178,7 +190,7 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
     var oldSizeInBytes = Quantity.getAmountInBytes(oldSizeQuantity);
     var newSizeInBytes = Quantity.getAmountInBytes(newSizeQuantity);
 
-    return newSizeInBytes.compareTo(oldSizeInBytes) > 0;
+    return newSizeInBytes.compareTo(oldSizeInBytes);
   }
 
 }

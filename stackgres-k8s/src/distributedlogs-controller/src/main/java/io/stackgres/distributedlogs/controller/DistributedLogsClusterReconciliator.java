@@ -47,6 +47,7 @@ public class DistributedLogsClusterReconciliator {
   private final DistributedLogsDatabaseManager databaseManager;
   private final DistributedLogsConfigManager configManager;
   private final EventController eventController;
+  private final DistributedLogsPersistentVolumeSizeReconciliator pvcSizeReconciliator;
 
   @Dependent
   public static class Parameters {
@@ -54,6 +55,7 @@ public class DistributedLogsClusterReconciliator {
     @Inject DistributedLogsDatabaseManager databaseManager;
     @Inject DistributedLogsConfigManager configReconciliator;
     @Inject EventController eventController;
+    @Inject DistributedLogsPersistentVolumeSizeReconciliator persistentVolumeSizeReconciliator;
   }
 
   @Inject
@@ -62,6 +64,7 @@ public class DistributedLogsClusterReconciliator {
     this.databaseManager = parameters.databaseManager;
     this.configManager = parameters.configReconciliator;
     this.eventController = parameters.eventController;
+    this.pvcSizeReconciliator = parameters.persistentVolumeSizeReconciliator;
   }
 
   public DistributedLogsClusterReconciliator() {
@@ -71,6 +74,7 @@ public class DistributedLogsClusterReconciliator {
     this.databaseManager = null;
     this.configManager = null;
     this.eventController = null;
+    this.pvcSizeReconciliator = null;
   }
 
   public static DistributedLogsClusterReconciliator create(Consumer<Parameters> consumer) {
@@ -82,6 +86,7 @@ public class DistributedLogsClusterReconciliator {
       justification = "False positives")
   protected ReconciliationResult<Boolean> reconcile(
       KubernetesClient client, StackGresDistributedLogsContext context) throws Exception {
+    pvcSizeReconciliator.reconcile();
     StackGresDistributedLogs distributedLogs = context.getDistributedLogs();
     if (distributedLogs.getStatus() == null || !isPatroniReady(context)) {
       LOGGER.warn("Waiting for distributedlogs cluster to become ready...");

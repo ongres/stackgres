@@ -36,6 +36,7 @@ public class ClusterControllerReconciliator
   private final ClusterExtensionReconciliator extensionReconciliator;
   private final PgBouncerReconciliator pgbouncerReconciliator;
   private final ClusterControllerPropertyContext propertyContext;
+  private final ClusterPersistentVolumeSizeReconciliator pvcSizeReconciliator;
 
   @Inject
   public ClusterControllerReconciliator(Parameters parameters) {
@@ -44,6 +45,8 @@ public class ClusterControllerReconciliator
     this.extensionReconciliator = parameters.extensionReconciliator;
     this.pgbouncerReconciliator = parameters.pgbouncerReconciliator;
     this.propertyContext = parameters.propertyContext;
+    this.pvcSizeReconciliator = parameters.clusterPersistentVolumeSizeReconciliator;
+
   }
 
   public ClusterControllerReconciliator() {
@@ -54,6 +57,7 @@ public class ClusterControllerReconciliator
     this.postgresBootstrapReconciliator = null;
     this.extensionReconciliator = null;
     this.pgbouncerReconciliator = null;
+    this.pvcSizeReconciliator = null;
   }
 
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
@@ -67,6 +71,7 @@ public class ClusterControllerReconciliator
         extensionReconciliator.reconcile(client, context);
     ReconciliationResult<Boolean> pgbouncerReconciliationResult =
         pgbouncerReconciliator.reconcile(client, context);
+    pvcSizeReconciliator.reconcile();
 
     if (extensionReconciliationResult.result().orElse(false)) {
       final String podName = propertyContext.getString(
@@ -133,6 +138,7 @@ public class ClusterControllerReconciliator
     @Inject ClusterExtensionReconciliator extensionReconciliator;
     @Inject PgBouncerReconciliator pgbouncerReconciliator;
     @Inject ClusterControllerPropertyContext propertyContext;
+    @Inject ClusterPersistentVolumeSizeReconciliator clusterPersistentVolumeSizeReconciliator;
   }
 
 }
