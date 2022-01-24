@@ -568,11 +568,21 @@ form.form .helpTooltip {
     transform: translate(20px, -30px);
 }
 
+.header.stickyHeader {
+    margin-top: -15px;
+    padding-top: 15px;
+    margin-bottom: 0;
+    background-color: var(--bgColor);
+    position: sticky;
+    top: 50px;
+    z-index: 999;
+}
+
 .step {
     display: none;
     width: 100%;
     border: 0;
-    padding: 20px 0 0;
+    padding: 25px 0 0;
     margin-bottom: 0;
 }
 
@@ -584,7 +594,12 @@ form.form .helpTooltip {
     width: 100%;
     text-align: center;
     border-bottom: 1px solid var(--borderColor);
-    margin-bottom: 20px;
+    background-color: var(--bgColor);
+    margin-bottom: 10px;
+    padding-top: 25px;
+    position: sticky;
+    top: 90px;
+    z-index: 999;     
 }
 
 ul.steps {
