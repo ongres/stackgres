@@ -364,7 +364,7 @@
                                                                             </g>                                                                                                                        
                                                                         </g>
                                                                     </svg>
-                                                                    <span v-if="( (pod.role != 'primary') && (pod.hasOwnProperty('diskUsed')) )" class="dataPercent">
+                                                                    <span v-if="( primaryNodeDisk && (pod.role != 'primary') && (pod.hasOwnProperty('diskUsed')) )" class="dataPercent">
                                                                         <strong>{{ Math.ceil(parseInt(getBytes(pod.diskUsed) * 100 / primaryNodeDisk)) }}%</strong><br/>
                                                                         Replication
                                                                     </span>
