@@ -19,6 +19,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
   ETC_GROUP_PATH("/etc/group"),
   ETC_SHADOW_PATH("/etc/shadow"),
   ETC_GSHADOW_PATH("/etc/gshadow"),
+  ETC_POSTGRES_PATH("/etc/postgresql"),
   SHARED_MEMORY_PATH("/dev/shm"),
   LOCAL_BIN_PATH("/usr/local/bin"),
   LOCAL_BIN_SHELL_UTILS_PATH(LOCAL_BIN_PATH, "shell-utils"),

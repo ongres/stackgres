@@ -23,7 +23,8 @@ public enum StatefulSetDynamicVolumes {
   PGBOUNCER("pgbouncer", "%s-connection-pooling-config"),
   PGBOUNCER_AUTH_FILE("pgbouncer-auth-file"),
   PGBOUNCER_SECRETS("pgbouncer-secrets"),
-  FLUENT_BIT("fluent-bit", "%s-fluent-bit");
+  FLUENT_BIT("fluent-bit", "%s-fluent-bit"),
+  POSTGRES_CONFIG("postgresql-conf", "%s-postgresql-conf");
 
   private final String volumeName;
   private final String resourceNameFormat;
