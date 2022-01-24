@@ -16,6 +16,7 @@ describe('Create SGDbOp', () => {
     it('Creating a Benchmark SGDbOps should be possible', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
+            .clear()
             .type('benchmark-' + resourcename)
 
         // Test target SGCluster
@@ -91,6 +92,7 @@ describe('Create SGDbOp', () => {
     it('Creating a Vacuum SGDbOps should be possible', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
+            .clear()
             .type('vacuum-' + resourcename)
 
         // Test target SGCluster
@@ -226,6 +228,7 @@ describe('Create SGDbOp', () => {
     it('Creating a Security Upgrade SGDbOps should be possible', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
+            .clear()
             .type('sec-upg-' + resourcename)
 
         // Test target SGCluster
@@ -346,6 +349,7 @@ describe('Create SGDbOp', () => {
     it('Creating a Restart SGDbOps should be possible', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
+            .clear()
             .type('restart-' + resourcename)
 
         // Test target SGCluster

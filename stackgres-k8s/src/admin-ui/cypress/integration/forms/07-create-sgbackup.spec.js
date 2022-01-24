@@ -16,6 +16,7 @@ describe('Create SGBackup', () => {
     it('Creating a SGBackup should be possible', () => {
         // Test SGBackup Name
         cy.get('[data-field="metadata.name"]')
+            .clear()
             .type(resourcename)
 
         // Test source SGCluster
