@@ -11,7 +11,7 @@ This runbook will show you the process to recover postgres data from an existing
 
 ## Scenario
 
-For the purpose of this runbook we'll asume that you already have an SGCluster running as is shown below.
+For the purpose of this runbook we'll asume that you already have an SGCluster running as is shown below following our recommendations for the storage class mentioned [Here]({{% relref "/04-production-installation/01-pre-requisites/02-data-storage/01-storage-classes" %}}), specially the reclaimPolicy setted to `Retain` to avoid the volumes been deleted.
 
 ### SGCluster
 
@@ -132,7 +132,7 @@ pvc-7528761f-48a3-4aaa-a071-74cb0dd1a65b   50Gi       RWO            Retain     
 ❯ kubectl get pv pvc-7528761f-48a3-4aaa-a071-74cb0dd1a65b -o yaml > demo-0-pv.yaml
 ```
 
->Note: For security reason create a copy of each one.
+> **Note**: To prevent mistakes from remove any property create a copy of each one.
 
 ## Stop the reconciliation cycle for sgclusters
 
@@ -184,14 +184,14 @@ delete:
 `pvc-13949341-8e30-4100-bdd8-dea148ea6894`
 
 
-Delete the PVC with not data:
+Delete the PVC with no data:
 
 ```bash
 ❯ kubectl delete pvc -n demo-db demo-db-data-demo-db-0
 persistentvolumeclaim "demo-db-data-demo-db-0" deleted
 ```
 
-Check de PVs, you'll see that both are now in a `Released` state:
+Check the PVs, you'll see that both are now in a `Released` state:
 
 ```bash
 ❯ kubectl get pv
@@ -201,7 +201,7 @@ pvc-1b9b4811-c618-4869-ae02-819f5b8c8cd3   50Gi       RWO            Delete     
 pvc-7528761f-48a3-4aaa-a071-74cb0dd1a65b   50Gi       RWO            Retain           Released   demo-db/demo-db-data-demo-db-0                   ssd-data                26m
 ```
 
-Delete the PV with not data:
+Delete the PV with no data:
 
 ```bash
 ❯ kubectl delete pv pvc-13949341-8e30-4100-bdd8-dea148ea6894
@@ -259,7 +259,10 @@ pvc-1b9b4811-c618-4869-ae02-819f5b8c8cd3   50Gi       RWO            Delete     
 pvc-7528761f-48a3-4aaa-a071-74cb0dd1a65b   50Gi       RWO            Retain           Bound    demo-db/demo-db-data-demo-db-0                   ssd-data                6m43s
 ```
 
-Remove the annotation `initialize` from endpoint `demo-db-config`:
+Update the `demo-db-config` endpoint:
+
+- remove the annotation `initialize` 
+- If present, set the `history` to []
 
 ```bash
 ❯ kubectl edit endpoints -n demo-db demo-db-config
