@@ -34,6 +34,13 @@ then
     -E "$ENCODING" \
     --locale "$LOCALE" \
     $("$DATA_CHECKSUM" && echo "-k" || true)
+  mv "$PG_UPGRADE_PATH/$TARGET_VERSION/data/postgresql.conf" \
+    "$PG_UPGRADE_PATH/$TARGET_VERSION/data/postgresql.init.conf"
+  {
+    cat "$PG_UPGRADE_PATH/$TARGET_VERSION/data/postgresql.init.conf"
+    echo
+    cat "$ETC_POSTGRES_PATH/postgresql.conf"
+  } > "$PG_UPGRADE_PATH/$TARGET_VERSION/data/postgresql.conf"
   (
   cd "$PG_UPGRADE_PATH/$TARGET_VERSION"
   if [ "$CHECK" ]

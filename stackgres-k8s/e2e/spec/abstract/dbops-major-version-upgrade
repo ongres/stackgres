@@ -12,7 +12,10 @@ e2e_test_install() {
   CLUSTER_NAME="$(get_sgcluster_name dbops-major-version-upgrade)"
   DBOPS_NAME="$(get_sgdbops_name major-version-upgrade)"
 
-  POSTGIS_VERSION="$(get_latest_version_of_extension postgis 12 || true)"
+  SOURCE_POSTGIS_VERSION="$(get_latest_version_of_extension postgis "${E2E_MAJOR_SOURCE_POSTGRES_VERSION%.*}" || true)"
+  TARGET_POSTGIS_VERSION="$(get_latest_version_of_extension postgis "${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}" || true)"
+  SOURCE_TIMESCALE_VERSION="$(get_latest_version_of_extension timescaledb "${E2E_MAJOR_SOURCE_POSTGRES_VERSION%.*}" || true)"
+  TARGET_TIMESCALE_VERSION="$(get_latest_version_of_extension timescaledb "${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}" || true)"
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -29,12 +32,31 @@ reset_cluster() {
 
   wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
 
-  if [ -n "$POSTGIS_VERSION" ]
+  if [ -n "$SOURCE_POSTGIS_VERSION" ] && [ "$SOURCE_POSTGIS_VERSION" = "$TARGET_POSTGIS_VERSION" ] \
+    && [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
   then
     create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
       --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
       --set-string cluster.postgres.extensions[0].name=postgis \
-      --set-string cluster.postgres.extensions[0].version="$POSTGIS_VERSION" \
+      --set-string cluster.postgres.extensions[0].version="$SOURCE_POSTGIS_VERSION" \
+      --set-string cluster.postgres.extensions[1].name=timescaledb \
+      --set-string cluster.postgres.extensions[1].version="$SOURCE_TIMESCALE_VERSION" \
+      --set-string 'configurations.postgresconfig.postgresql\.conf.shared_preload_libraries=pg_stat_statements\, auto_explain\, timescaledb' \
+      "$@"
+  elif [ -n "$SOURCE_POSTGIS_VERSION" ] && [ "$SOURCE_POSTGIS_VERSION" = "$TARGET_POSTGIS_VERSION" ]
+  then
+    create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+      --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
+      --set-string cluster.postgres.extensions[0].name=postgis \
+      --set-string cluster.postgres.extensions[0].version="$SOURCE_POSTGIS_VERSION" \
+      "$@"
+  elif [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
+  then
+    create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+      --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
+      --set-string cluster.postgres.extensions[0].name=timescaledb \
+      --set-string cluster.postgres.extensions[0].version="$SOURCE_TIMESCALE_VERSION" \
+      --set-string 'configurations.postgresconfig.postgresql\.conf.shared_preload_libraries=pg_stat_statements\, auto_explain\, timescaledb' \
       "$@"
   else
     echo "Extension postgis not found for $(uname -m)"
@@ -46,7 +68,7 @@ reset_cluster() {
   wait_pods_running "$CLUSTER_NAMESPACE" "$PODS_RUNNING"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  if [ -n "$POSTGIS_VERSION" ]
+  if [ -n "$SOURCE_POSTGIS_VERSION" ] && [ "$SOURCE_POSTGIS_VERSION" = "$TARGET_POSTGIS_VERSION" ]
   then
     kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -c "$(cat << 'EOF'
 CREATE EXTENSION postgis;
@@ -56,12 +78,31 @@ EOF
       )"
   fi
 
-  create_or_replace_cluster "$CLUSTER_NAME-for-major-version-upgrade" "$CLUSTER_NAMESPACE" 1 \
-    --set cluster.create=false \
-    --set instanceProfiles=null \
-    --set cluster.configurations.sgPostgresConfig=postgresconf-for-major-version-upgrade \
-    --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-major-version-upgrade \
-    --set-string cluster.postgres.version="$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+  if [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
+  then
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -c "$(cat << 'EOF'
+CREATE EXTENSION timescaledb;
+EOF
+      )"
+  fi
+
+  if [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
+  then
+    create_or_replace_cluster "$CLUSTER_NAME-for-major-version-upgrade" "$CLUSTER_NAMESPACE" 1 \
+      --set cluster.create=false \
+      --set instanceProfiles=null \
+      --set cluster.configurations.sgPostgresConfig=postgresconf-for-major-version-upgrade \
+      --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-major-version-upgrade \
+      --set-string 'configurations.postgresconfig.postgresql\.conf.shared_preload_libraries=pg_stat_statements\, auto_explain\, timescaledb' \
+      --set-string cluster.postgres.version="$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+  else
+    create_or_replace_cluster "$CLUSTER_NAME-for-major-version-upgrade" "$CLUSTER_NAMESPACE" 1 \
+      --set cluster.create=false \
+      --set instanceProfiles=null \
+      --set cluster.configurations.sgPostgresConfig=postgresconf-for-major-version-upgrade \
+      --set cluster.configurations.sgPoolingConfig=pgbouncerconf-for-major-version-upgrade \
+      --set-string cluster.postgres.version="$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+  fi
 
   generate_mock_data "$CLUSTER_NAME"
   check_mock_data_samehost "$CLUSTER_NAME"
