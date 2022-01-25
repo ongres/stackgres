@@ -102,7 +102,6 @@ body, html {
     font-weight: 400;
     line-height: 1.2;
     color: var(--gray5);
-    overflow-x:hidden;
     -webkit-font-smoothing: subpixel-antialiased;
     -moz-osx-font-smoothing: subpixel-antialiased;
     font-smoothing: subpixel-antialiased;
