@@ -678,12 +678,13 @@
         },
 
         data: function() {
+            const vc = this;
 
             return {
                 previewCRD: {},
                 showSummary: false,
                 nameEdited: false,
-                name: 'sgdbop-name',
+                name: 'sgdbop-' + vc.getDbopDateString(),
                 sgCluster: '',
                 runAt: '',
                 timeout: {
@@ -1024,6 +1025,15 @@
                     vc.name += opCount;
                     vc.name = vc.name.substring(0,20);
                 } 
+            },
+
+            getDbopDateString() {
+                const vc = this;
+
+                var date = vc.getDateString().replaceAll('-','');
+                var newDate = [date.slice(0,8), '-', date.slice(8,-2)].join('');
+
+                return newDate
             }
 
         },

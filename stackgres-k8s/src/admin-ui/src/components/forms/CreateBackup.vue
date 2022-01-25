@@ -120,7 +120,7 @@
                 advancedMode: false,
                 previewCRD: {},
                 showSummary: false,
-                backupName: 'sgbackup-name',
+                backupName: 'sgbackup-' + vm.getDateString(),
                 backupNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 backupCluster: (vm.$route.params.hasOwnProperty('cluster')) ? vm.$route.params.cluster : '',
                 managedLifecycle: false
