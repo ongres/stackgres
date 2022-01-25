@@ -1,19 +1,19 @@
 #!/bin/sh
 
 e2e_test_install() {
-  export EXPANDABLE_STORAGE_CLASSNAME="expandable"
-  create_expandable_storage_class
-  export HIGH_PV_SIZE="256Mi"
-  export LOW_PV_SIZE="128Mi"  
-  export DISTRIBUTED_LOGS_NAME="$CLUSTER_NAME-dl"
+  STORAGE_CLASSNAME="$(get_expandable_storage_class_name)"
+  init_expandable_storage_class
+  HIGH_PV_SIZE="256Mi"
+  LOW_PV_SIZE="128Mi"  
+  DISTRIBUTED_LOGS_NAME="$CLUSTER_NAME-dl"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set cluster.pods.persistentVolume.size="$LOW_PV_SIZE" \
-    --set cluster.pods.persistentVolume.storageClass="$EXPANDABLE_STORAGE_CLASSNAME" \
+    --set cluster.pods.persistentVolume.storageClass="$STORAGE_CLASSNAME" \
     --set cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=create \
     --set distributedLogs.persistentVolume.size="$LOW_PV_SIZE" \
-    --set distributedLogs.persistentVolume.storageClass="$EXPANDABLE_STORAGE_CLASSNAME"
+    --set distributedLogs.persistentVolume.storageClass="$STORAGE_CLASSNAME"
     
   wait_pods_running "$CLUSTER_NAMESPACE" "3"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
@@ -21,92 +21,86 @@ e2e_test_install() {
 }
 
 e2e_test() {
-    run_test "Checking that is possible to increase SGCluster PVC size" test_increase_sgcluster_pvc_size
+  run_test "Checking that is possible to increase SGCluster PVC size" test_increase_sgcluster_pvc_size
 
-    run_test "Checking that is possible to increase SGDistributedLogs PVC size" test_increase_sgdistributedlogs_pvc_size    
+  run_test "Checking that is possible to increase SGDistributedLogs PVC size" test_increase_sgdistributedlogs_pvc_size    
 }
 
 test_increase_sgcluster_pvc_size(){
-    increase_sgcluster_pv_size
-    wait_until assert_sgcluster_pvc_sizes
+  increase_sgcluster_pv_size
+  wait_until assert_sgcluster_pvc_sizes
 }
 
 test_increase_sgdistributedlogs_pvc_size(){
-    increase_sgdistributedlogs_pv_size
-    wait_until assert_sgdistributedlogs_pvc_sizes
+  increase_sgdistributedlogs_pv_size
+  wait_until assert_sgdistributedlogs_pvc_sizes
 }
 
 patch_sgcluster_pv(){
-    local NEW_SIZE="$1"
-    kubectl patch sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type='json' \
-      -p '[{ "op": "replace", "path": "/spec/pods/persistentVolume/size", "value": '"$NEW_SIZE"' }]'
+  local NEW_SIZE
+  NEW_SIZE="$1"
+  kubectl patch sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type='json' \
+    -p '[{ "op": "replace", "path": "/spec/pods/persistentVolume/size", "value": '"$NEW_SIZE"' }]'
 }
 
 patch_sgdistributedlogs_pv(){
-    local NEW_SIZE="$1"
-    kubectl patch sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" --type='json' \
-      -p '[{ "op": "replace", "path": "/spec/persistentVolume/size", "value": '"$NEW_SIZE"' }]'
+  local NEW_SIZE
+  NEW_SIZE="$1"
+  kubectl patch sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" --type='json' \
+    -p '[{ "op": "replace", "path": "/spec/persistentVolume/size", "value": '"$NEW_SIZE"' }]'
 }
 increase_sgcluster_pv_size(){
-    patch_sgcluster_pv "$HIGH_PV_SIZE"
+  patch_sgcluster_pv "$HIGH_PV_SIZE"
 }
 
 increase_sgdistributedlogs_pv_size(){
-    patch_sgdistributedlogs_pv "$HIGH_PV_SIZE"
+  patch_sgdistributedlogs_pv "$HIGH_PV_SIZE"
 }
 
 assert_sgcluster_pvc_sizes(){
-    local EXPECTED_SIZE="$(get_sgcluster_pv_size)"
-    local PVC_SIZE_0=$(get_sgcluster_pvc_size 0)
-    local PVC_SIZE_1=$(get_sgcluster_pvc_size 1)
-    if [ "$PVC_SIZE_0" = "$EXPECTED_SIZE" ] && [ "$PVC_SIZE_1" = "$EXPECTED_SIZE" ]
-    then
-      return 0
-    else
-      return 1
-    fi
+  local EXPECTED_SIZE
+  local PVC_SIZE_0
+  local PVC_SIZE_1
+  EXPECTED_SIZE="$(get_sgcluster_pv_size)"
+  PVC_SIZE_0="$(get_sgcluster_pvc_size 0)"
+  PVC_SIZE_1="$(get_sgcluster_pvc_size 1)"
+  if [ "$PVC_SIZE_0" = "$EXPECTED_SIZE" ] && [ "$PVC_SIZE_1" = "$EXPECTED_SIZE" ]
+  then
+    return 0
+  else
+    return 1
+  fi
 }
 
 assert_sgdistributedlogs_pvc_sizes(){
-    local EXPECTED_SIZE="$(get_sgdistributedlogs_pv_size)"
-    local PVC_SIZE=$(get_sgdistributedlogs_pvc_size 0)
-    if [ "$PVC_SIZE" = "$EXPECTED_SIZE" ]
-    then
-      return 0
-    else
-      return 1
-    fi
+  local EXPECTED_SIZE
+  local PVC_SIZE
+  EXPECTED_SIZE="$(get_sgdistributedlogs_pv_size)"
+  PVC_SIZE="$(get_sgdistributedlogs_pvc_size 0)"
+  if [ "$PVC_SIZE" = "$EXPECTED_SIZE" ]
+  then
+    return 0
+  else
+    return 1
+  fi
 }
 
 get_sgcluster_pv_size(){
-    kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.pods.persistentVolume.size}'
+  kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.pods.persistentVolume.size}'
 }
 
 get_sgcluster_pvc_size(){
-    INSTANCE=$1
-    kubectl get pvc -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-data-$CLUSTER_NAME-$INSTANCE" -o jsonpath='{.spec.resources.requests.storage}'
+  INSTANCE=$1
+  kubectl get pvc -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-data-$CLUSTER_NAME-$INSTANCE" -o jsonpath='{.spec.resources.requests.storage}'
 }
 
 get_sgdistributedlogs_pv_size(){
-    kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o jsonpath='{.spec.persistentVolume.size}'
+  kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o jsonpath='{.spec.persistentVolume.size}'
 }
 
 get_sgdistributedlogs_pvc_size(){
-    INSTANCE=$1
-    kubectl get pvc -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME-data-$DISTRIBUTED_LOGS_NAME-$INSTANCE" -o jsonpath='{.spec.resources.requests.storage}'
-}
-
-create_expandable_storage_class(){
-  cat << EOF | kubectl apply -f -
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: $EXPANDABLE_STORAGE_CLASSNAME
-provisioner: rancher.io/local-path
-reclaimPolicy: Delete
-volumeBindingMode: WaitForFirstConsumer
-allowVolumeExpansion: true
-EOF
+  INSTANCE=$1
+  kubectl get pvc -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME-data-$DISTRIBUTED_LOGS_NAME-$INSTANCE" -o jsonpath='{.spec.resources.requests.storage}'
 }
 
 e2e_test_uninstall() {
@@ -114,5 +108,5 @@ e2e_test_uninstall() {
 
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 
-  kubectl delete storageclasses "$EXPANDABLE_STORAGE_CLASSNAME"  
+  kubectl delete storageclasses "$STORAGE_CLASSNAME"  
 }
