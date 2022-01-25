@@ -26,7 +26,7 @@
             </div>
         </header>
         <form id="createLogsServer" class="form logsForm" @submit.prevent>
-            <div class="header">
+            <div class="header stickyHeader">
                 <h2>Logs Server Details</h2>
                 <label for="advancedMode" class="floatRight">
                     <span>ADVANCED OPTIONS </span>
