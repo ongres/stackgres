@@ -47,13 +47,13 @@
             <div class="row-50">
                 <div class="col">
                     <label for="metadata.name">Backup Name <span class="req">*</span></label>
-                    <input v-model="backupName" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
+                    <input v-model="backupName" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off" @keyup="nameEdited = true">
                     <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackup.metadata.name')"></span>
                 </div>
 
                 <div class="col">
                     <label for="spec.sgCluster">Backup Cluster <span class="req">*</span></label>
-                    <select v-model="backupCluster" :disabled="(editMode)" required data-field="spec.sgCluster">
+                    <select v-model="backupCluster" :disabled="(editMode)" required data-field="spec.sgCluster" @change="setDefaultName()">
                         <option disabled value="">Choose a Cluster</option>
                         <template v-for="cluster in allClusters">
                             <option v-if="cluster.data.metadata.namespace == backupNamespace">{{ cluster.data.metadata.name }}</option>
@@ -114,12 +114,13 @@
             const vm = this;
 
             return {
+                nameEdited: false,
                 editMode: vm.$route.name.includes('Edit'),
                 editReady: false,
                 advancedMode: false,
                 previewCRD: {},
                 showSummary: false,
-                backupName: '',
+                backupName: 'sgbackup-' + vm.getDateString(),
                 backupNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 backupCluster: (vm.$route.params.hasOwnProperty('cluster')) ? vm.$route.params.cluster : '',
                 managedLifecycle: false
@@ -253,9 +254,18 @@
 
                 }
 
+            },
+
+            setDefaultName() {
+                const vc = this;
+
+                if(!vc.nameEdited) {
+                    vc.backupName = 'sgbackup-' + vc.backupCluster;
+                    vc.backupName += ('-' + vc.getDateString());
+                    vc.backupName = vc.backupName.substring(0,55);
+                } 
             }
         }
-
     }
 
 </script>

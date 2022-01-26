@@ -1324,6 +1324,17 @@ export const mixin = {
 
       splitUppercase(text) {
         return text.split(/(?=[A-Z])/).join(' ')
+      },
+
+      getDateString() {
+        let fullDate = new Date();
+        let timeString = (store.state.timezone == 'local' ? fullDate.toLocaleTimeString().replaceAll(':','-') : fullDate.toUTCString().slice(fullDate.toUTCString().lastIndexOf(' ') - 8, fullDate.toUTCString().lastIndexOf(' ')).replaceAll(':','-'));
+        let localeMonth = fullDate.getMonth()+1;
+        let dayString = (store.state.timezone == 'local' ? (fullDate.getFullYear() + '-' + localeMonth.toString().padStart(2, '0') + '-' + fullDate.getDate().toString().padStart(2, '0'))  : fullDate.toISOString().slice(0, fullDate.toISOString().indexOf('T')));
+
+        let dateString = dayString + '-' + timeString
+
+        return dateString
       }
 
     },
