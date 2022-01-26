@@ -9,9 +9,25 @@ import javax.inject.Singleton;
 
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.StackGresPropertyContext;
+import io.stackgres.common.controller.PodLocalControllerContext;
 
 @Singleton
 public class DistributedLogsControllerPropertyContext
-    implements StackGresPropertyContext<DistributedLogsControllerProperty> {
+    implements StackGresPropertyContext<DistributedLogsControllerProperty>,
+    PodLocalControllerContext {
 
+  @Override
+  public String getClusterName() {
+    return getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAME);
+  }
+
+  @Override
+  public String getNamespace() {
+    return getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE);
+  }
+
+  @Override
+  public String getPodName() {
+    return getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME);
+  }
 }

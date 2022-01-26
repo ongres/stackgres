@@ -7,6 +7,7 @@ KIND_CONTAINERD_CACHE_PATH="${K8S_CACHE_PATH:-$KIND_CONTAINERD_CACHE_PATH}"
 KIND_CONTAINERD_CACHE_RESET="${K8S_CACHE_RESET:-$KIND_CONTAINERD_CACHE_RESET}"
 KIND_LOG_PATH="${KIND_LOG_PATH:-$TARGET_PATH/kind-logs}"
 KIND_LOG_RESOURCES_POLICY_PATH="${KIND_LOG_RESOURCES_POLICY_PATH:-$TARGET_PATH/kind-apiserver-audit-policy}"
+KIND_EXPANDABLE_STORAGE_CLASSNAME=${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}
 
 check_kind_version() {
   if ! kind version | grep -q -F 'kind v0.11.1 '
@@ -429,5 +430,18 @@ v1.17.17@sha256:66f1d0d91a88b8a001811e2f1054af60eef3b669a9a74f9b6db871f2f1eeed00
 v1.16.15@sha256:83067ed51bf2a3395b24687094e283a7c7c865ccc12a8b1d7aa673ba0c5e8861
 v1.15.12@sha256:b920920e1eda689d9936dfcf7332701e80be12566999152626b2c9d730397a95
 v1.14.10@sha256:f8a66ef82822ab4f7569e91a5bccaf27bceee135c1457c512e54de8c6f7219f8
+EOF
+}
+
+create_expandable_storage_class_k8s(){
+  cat << EOF | kubectl apply -f -
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: $KIND_EXPANDABLE_STORAGE_CLASSNAME
+provisioner: rancher.io/local-path
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
 EOF
 }
