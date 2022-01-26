@@ -173,9 +173,9 @@
                                             </router-link>
                                         </span>
                                     </td>
-                                    <td :class="op.data.spec.op" class="operationType">
+                                    <td class="operationType">
                                         <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" class="noColor">
-                                            <span>
+                                            <span class="dbopIcon" :class="op.data.spec.op">
                                                 {{ op.data.spec.op }}
                                             </span>
                                         </router-link>                                        

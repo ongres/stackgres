@@ -45,6 +45,30 @@
                 <span class="warning" v-if="nameColission">
                     There's already a <strong>SGDbOps</strong> with the same name on this namespace. Please specify a different name or create the operation on another namespace.
                 </span>
+            </div>
+
+            <hr/>
+
+            <div class="row-100">
+                <h3 class="sectionTitle">Database Operation <span class="req">*</span></h3>
+
+                <div class="col">
+                    <div class="optionBoxes">
+                        <template v-for="operation in ['benchmark', 'vacuum', 'repack', 'securityUpgrade', 'minorVersionUpgrade', 'majorVersionUpgrade', 'restart']">
+                            <label class="dbopIcon" :class="[operation, ( (op == operation) && 'active' )]" :for="operation" data-field="spec.op">
+                                {{ splitUppercase(operation) }}
+                                <input type="radio" v-model="op" data-field="spec.op" :value="operation" :id="operation">
+                            </label>
+                        </template>
+                    </div>
+                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.op')"></span>
+                </div>
+            </div>
+
+            <hr/>
+            
+            <div class="row-50">
+                <h3 class="sectionTitle">General Operation Details</h3>
             
                 <div class="col">            
                     <label for="spec.runAt">Run At</label>
@@ -85,21 +109,6 @@
                         <option v-for="val in 11">{{ val - 1 }}</option>
                     </select>
                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.maxRetries')"></span>
-                </div>
-
-                <div class="col">
-                    <label for="spec.op">Database Operation <span class="req">*</span></label>
-                    <select v-model="op" required data-field="spec.op">
-                        <option disabled value="">Choose one...</option>
-                        <option value="benchmark">Benchmark</option>
-                        <option value="vacuum">Vacuum</option>
-                        <option value="repack">Repack</option>
-                        <option value="securityUpgrade">Security Upgrade</option>
-                        <option value="minorVersionUpgrade">Minor Version Upgrade</option>
-                        <option value="majorVersionUpgrade">Major Version Upgrade</option>
-                        <option value="restart">Restart</option>
-                    </select>
-                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.op')"></span>
                 </div>
             </div>
 
@@ -821,6 +830,14 @@
 
         },
 
+        created: function() {
+            $(document).on('click', '.opList label', function(){    
+				$(this).addClass('active');
+                $('.opList label').not($(this)).removeClass('active');
+                $('.opList label').removeClass('notValid');
+			});
+        },
+
         methods: {
 
             getIsoDuration( duration ) {
@@ -1046,6 +1063,37 @@
 </script>
 
 <style scoped>
+    .sectionTitle {
+        display: block;
+        margin-bottom: 20px;
+    }
+
+    .optionBoxes > label {
+       height: 100px;
+        padding: 0 10px;
+    }
+
+    .dbopIcon:before {
+        display: block;
+        content: "";
+        height: 25px;
+        width: 25px;
+        position: relative;
+        margin: 15px auto 10px;
+    }
+
+    .dbopIcon.active:before {
+        filter: brightness(0) invert(1);
+    }
+    
+    .darkmode .dbopIcon.active:before {
+        filter: brightness(0.15);
+    }
+
+    .optionBoxes + .helpTooltip {
+        transform: translate(20px, -100px);
+    }
+
     .timeSelect {
         display: flex;
     }
@@ -1073,6 +1121,10 @@
 
     .majorVersionUpgrade, .securityUpgrade, .minorVersionUpgrade {
         padding-bottom: 15px;
+    }
+
+    fieldset > .warning:first-child:last-child {
+       margin-bottom: 5px;
     }
 
 </style>

@@ -37,6 +37,8 @@ describe('Create SGCluster', () => {
             .type('babelfish-' + resourcename)
         
         // Test enabling babelfish
+        cy.get('label[data-field="spec.postgres.flavor.babelfish"]')
+            .click()
         cy.get('input[data-field="spec.nonProductionOptions.enabledFeatureGates.babelfish"]')
             .click()
 
