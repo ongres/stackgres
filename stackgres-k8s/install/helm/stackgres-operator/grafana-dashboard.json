@@ -8392,10 +8392,7 @@
         "multi": false,
         "name": "namespace",
         "options": [],
-        "query": {
-          "query": "label_values(namespace)",
-          "refId": "Prometheus-namespace-Variable-Query"
-        },
+        "query": "label_values(namespace)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -8418,10 +8415,7 @@
         "multi": false,
         "name": "pod",
         "options": [],
-        "query": {
-          "query": "query_result(up{namespace=\"$namespace\"})",
-          "refId": "Prometheus-pod-Variable-Query"
-        },
+        "query": "query_result(up{namespace=\"$namespace\"})",
         "refresh": 2,
         "regex": "/.*pod=\"([^\":]+).*/",
         "skipUrlSync": false,
@@ -8444,10 +8438,7 @@
         "multi": false,
         "name": "instance",
         "options": [],
-        "query": {
-          "query": "query_result(up{namespace=\"$namespace\", pod=\"$pod\"})",
-          "refId": "Prometheus-instance-Variable-Query"
-        },
+        "query": "query_result(up{namespace=\"$namespace\", pod=\"$pod\"})",
         "refresh": 1,
         "regex": "/.*instance=\"([^\":]+).*/",
         "skipUrlSync": false,
@@ -8470,10 +8461,7 @@
         "multi": true,
         "name": "datname",
         "options": [],
-        "query": {
-          "query": "label_values(datname)",
-          "refId": "Prometheus-datname-Variable-Query"
-        },
+        "query": "label_values(datname)",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
@@ -8496,10 +8484,7 @@
         "multi": false,
         "name": "cluster_name",
         "options": [],
-        "query": {
-          "query": "query_result(pg_up{pod=\"$pod\"})",
-          "refId": "Prometheus-cluster_name-Variable-Query"
-        },
+        "query": "query_result(pg_up{pod=\"$pod\"})",
         "refresh": 1,
         "regex": "/.*cluster_name=\"([^\":]+).*/",
         "skipUrlSync": false,
