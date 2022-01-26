@@ -312,14 +312,6 @@
 
         mixins: [mixin],
 
-        props: ['crd', 'showDefaults'],
-
-        methods: {
-
-            splitUppercase(text) {
-                return text.split(/(?=[A-Z])/).join(' ')
-            }
-
-        }
+        props: ['crd', 'showDefaults']
 	}
 </script>

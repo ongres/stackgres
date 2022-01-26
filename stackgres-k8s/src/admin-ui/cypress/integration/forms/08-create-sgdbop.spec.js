@@ -22,11 +22,17 @@ describe('Create SGDbOp', () => {
         cy.get('select[data-field="spec.sgCluster"]')
             .select('advanced-' + resourcename)
 
+        // Test Benchmark input
+        cy.get('label[for="benchmark"]')
+            .click()
+
         // Test runAt
         cy.get('input[data-field="spec.runAt"]')
             .type('9999-01-01 00:00:00')
-
-        // Test timeout
+        cy.get('.daterangepicker button.applyBtn')
+            .click()
+        
+            // Test timeout
         cy.get('select[data-field="spec.timeout.days"]')
          .select('10')
         cy.get('select[data-field="spec.timeout.hours"]')
@@ -41,9 +47,6 @@ describe('Create SGDbOp', () => {
          .select('10')
 
         // Test Benchmark specs
-        cy.get('select[data-field="spec.op"]')
-         .select('benchmark')
-
         cy.get('select[data-field="spec.benchmark.connectionType"]')
             .select('replicas-service')
 
@@ -93,15 +96,18 @@ describe('Create SGDbOp', () => {
         // Test target SGCluster
         cy.get('select[data-field="spec.sgCluster"]')
             .select('advanced-' + resourcename)
+        
+        // Test Vaccum input
+        cy.get('label[for="vacuum"]')
+            .click()
 
         // Test runAt
         cy.get('input[data-field="spec.runAt"]')
             .type('9999-01-01 00:00:00')
+        cy.get('.daterangepicker button.applyBtn')
+            .click()
 
         // Test Vaccum specs
-        cy.get('select[data-field="spec.op"]')
-         .select('vacuum')
-
         cy.get('label[data-field="spec.vacuum.full"]')
             .click()
         cy.get('label[data-field="spec.vacuum.freeze"]')
@@ -225,15 +231,18 @@ describe('Create SGDbOp', () => {
         // Test target SGCluster
         cy.get('select[data-field="spec.sgCluster"]')
             .select('advanced-' + resourcename)
-
+        
+        // Test Security Upgrade input
+        cy.get('label[for="securityUpgrade"]')
+            .click()
+    
         // Test runAt
         cy.get('input[data-field="spec.runAt"]')
             .type('9999-01-01 00:00:00')
+        cy.get('.daterangepicker button.applyBtn')
+            .click()
 
         // Test Security Upgrade specs
-        cy.get('select[data-field="spec.op"]')
-            .select('securityUpgrade')
-
         cy.get('select[data-field="spec.securityUpgrade.method"]')
             .select('ReducedImpact')
 
@@ -343,14 +352,17 @@ describe('Create SGDbOp', () => {
         cy.get('select[data-field="spec.sgCluster"]')
             .select('advanced-' + resourcename)
 
+        // Test Restart input
+        cy.get('label[for="restart"]')
+            .click()
+
         // Test runAt
         cy.get('input[data-field="spec.runAt"]')
-            .type('9999-01-01 00:00:00')
+            .type('9999-01-01 00:00:00')    
+        cy.get('.daterangepicker button.applyBtn')
+            .click()
 
-        // Test Security Upgrade specs
-        cy.get('select[data-field="spec.op"]')
-            .select('restart')
-
+        // Test Restart specs
         cy.get('select[data-field="spec.restart.method"]')
             .select('ReducedImpact')
 

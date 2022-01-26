@@ -69,8 +69,8 @@ describe('Create SGBackupConfig', () => {
         
 
         //Storage Details
-        cy.get('[data-field="spec.storage.type"]')
-            .select('s3')
+        cy.get('[data-field="spec.storage.type.s3"]')
+            .click()
 
         cy.get('form#createBackupConfig input#advancedModeStorage')
             .click()
@@ -137,8 +137,8 @@ describe('Create SGBackupConfig', () => {
 
         
         //Storage Details
-        cy.get('[data-field="spec.storage.type"]')
-            .select('s3Compatible')
+        cy.get('[data-field="spec.storage.type.s3Compatible"]')
+            .click()
 
         cy.get('form#createBackupConfig input#advancedModeStorage')
             .click()
@@ -210,8 +210,8 @@ describe('Create SGBackupConfig', () => {
 
         
         //Storage Details
-        cy.get('[data-field="spec.storage.type"]')
-            .select('gcs')
+        cy.get('[data-field="spec.storage.type.gcs"]')
+            .click()
         
         cy.get('form#createBackupConfig input#advancedModeStorage')
             .click()
@@ -271,8 +271,8 @@ describe('Create SGBackupConfig', () => {
 
         
         //Storage Details
-        cy.get('[data-field="spec.storage.type"]')
-            .select('azureBlob')
+        cy.get('[data-field="spec.storage.type.azureBlob"]')
+            .click()
         
         cy.get('form#createBackupConfig input#advancedModeStorage')
             .click()
