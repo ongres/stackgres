@@ -175,7 +175,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
         .withNamespace(context.getSource().getMetadata().getNamespace())
         .withLabels(labelFactory.clusterCrossNamespaceLabels(context.getSource()))
         .endMetadata()
-        .withData(ImmutableMap.of("queries.yaml",
+        .withData(ImmutableMap.of("queries-0.9.yaml",
             Unchecked.supplier(() -> Resources
                 .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
                     "/prometheus-postgres-exporter/queries.yaml")),

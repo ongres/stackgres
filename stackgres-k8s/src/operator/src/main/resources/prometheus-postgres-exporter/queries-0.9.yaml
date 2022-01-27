@@ -918,7 +918,6 @@ pgbouncer_show_pools:
     _."user",
     _.cl_active,
     _.cl_waiting,
-    _.cl_cancel_req,
     _.sv_active,
     _.sv_idle,
     _.sv_used,
@@ -928,7 +927,7 @@ pgbouncer_show_pools:
     _.maxwait_us,
     _.pool_mode
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show pools'::text)
-    _(database text, "user" text, cl_active integer, cl_waiting integer, cl_cancel_req integer, sv_active integer, sv_idle integer,
+    _(database text, "user" text, cl_active integer, cl_waiting integer, sv_active integer, sv_idle integer,
     sv_used integer, sv_tested integer, sv_login integer, maxwait integer, maxwait_us integer, pool_mode text);
   metrics:
     - database:
@@ -943,9 +942,6 @@ pgbouncer_show_pools:
     - cl_waiting:
         usage: "GAUGE"
         description: "Client connections that have sent queries but have not yet got a server connection"
-    - cl_cancel_req:
-        usage: "GAUGE"
-        description: "Client connections that have not forwarded query cancellations to the server yet"
     - sv_active:
         usage: "GAUGE"
         description: "Server connections that are linked to a client"
@@ -980,7 +976,6 @@ pgbouncer_show_databases:
     _.database,
     _.force_user,
     _.pool_size,
-    _.min_pool_size,
     _.reserve_pool,
     _.pool_mode,
     _.max_connections,
@@ -988,8 +983,8 @@ pgbouncer_show_databases:
     _.paused,
     _.disabled
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show databases'::text)
-    _(name text, host text, port integer, database text, force_user text, pool_size integer, min_pool_size integer,
-    reserve_pool integer, pool_mode text, max_connections integer, current_connections integer, paused boolean, disabled boolean);
+    _(name text, host text, port integer, database text, force_user text, pool_size integer, reserve_pool integer,
+    pool_mode text, max_connections integer, current_connections integer, paused boolean, disabled boolean);
   metrics:
     - name:
         usage: "LABEL"
@@ -1009,9 +1004,6 @@ pgbouncer_show_databases:
     - pool_size:
         usage: "GAUGE"
         description: "Maximum number of server connections"
-    - min_pool_size:
-        usage: "GAUGE"
-        description: "Minimum number of server connections"
     - reserve_pool:
         usage: "GAUGE"
         description: "Maximum number of additional connections for this database"
