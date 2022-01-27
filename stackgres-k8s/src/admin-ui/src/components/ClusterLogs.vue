@@ -337,6 +337,7 @@
 							<DynamicScroller
 								:items="logs"
 								:min-item-size="15"
+								:buffer="records * 20"
 								class="scroller"
 								key-field="logTimeIndex"
 							>
@@ -491,13 +492,7 @@
 					</div>
 				</div>
 				<div class="logOptions form">
-					Loading Method:
-					<select v-model="loadingMethod" @change="getLogs(true, true)">
-						<option value="live">Live Reload</option>
-						<option value="scroll">Load on Scroll</option>
-					</select>
-
-					<button @click="scrollToBottom()" class="btn border">Scroll to Bottom</button>
+					<small>Log records are loaded <strong>{{ liveMonitoring ? 'automatically' : 'on scroll' }}</strong></small>
 				</div>
 			</div>
 		</div>
@@ -533,14 +528,13 @@
 
 			return {
 				logs: [],
-				currentSortDir: 'desc',
 				records: 50,
 				fetching: false,
 				pooling: null,
 				lastCall: '',
 				currentLog: -1,
 				noData: false,
-				loadingMethod: 'live',
+				liveMonitoring: true,
 				scrollAwait: null,
 				lastScroll: 0,
 				filters: {
@@ -670,7 +664,7 @@
 			});
 
 			document.addEventListener('scroll', function (event) {
-				if (event.target.className.includes('scroller') && (vc.loadingMethod == 'scroll') ) {
+				if (!vc.liveMonitoring && event.target.className.includes('scroller') ) {
 					vc.handleScroll()
 				}
 			}, true);
@@ -756,15 +750,17 @@
 				$('.records').addClass('loading');
 
 				if(!append) {
-					vc.currentSortDir = 'desc'
 					clearTimeout(vc.pooling);
 					$('.filter.open').removeClass('open');
 				}
 
 				let params = '';
 
-				params += '?records='+this.records;
-				params += vc.datePicker.length ? '&sort=asc' : '&sort='+this.currentSortDir;
+				params += '?sort=asc&records='+this.records;
+
+				if(vc.datePicker.length) {
+					vc.liveMonitoring = false;
+				}
 				
 				if( Object.keys(vc.filters.logType).find( k => !vc.filters.logType[k] ) ) {
 
@@ -821,15 +817,14 @@
 				.get(thisCall)
 				.then( function(response){
 
-					if( ( vc.loadingMethod == 'live') && (!append || ( $('.scroller')[0].scrollTop == ( $('.scroller')[0].scrollHeight - $('.scroller')[0].clientHeight ) ) ) ) {
+					if( vc.liveMonitoring && (!append || ( $('.scroller')[0].scrollTop == ( $('.scroller')[0].scrollHeight - $('.scroller')[0].clientHeight ) ) ) ) {
 						vc.scrollToBottom();
 					}
 
 					if(append) {
 						vc.logs = vc.logs.concat(response.data);
 					} else {
-						vc.currentSortDir = 'asc';
-						vc.logs = response.data.reverse();
+						vc.logs = response.data;
 						vc.lastScroll = 0;
 					}
 
@@ -853,9 +848,9 @@
 					vc.fetching = false;
 				});
 
-				if(vc.loadingMethod == 'live') {
+				if(vc.liveMonitoring) {
 					vc.pooling = setTimeout(() => {
-						if(!vc.fetching && (vc.loadingMethod == 'live')) {
+						if(!vc.fetching && vc.liveMonitoring) {
 							if(vc.logs.length) {
 								let ltime = vc.logs[vc.logs.length-1].logTime;
 								let lindex = vc.logs[vc.logs.length-1].logTimeIndex;
@@ -878,18 +873,10 @@
 				switch(time) {
 
 					case '1d':
-						if(vc.currentSortDir == 'asc') {
-							vc.dateStart = vc.logs[0].logTime + ',' + vc.logs[0].logTimeIndex;
-
-							date.setHours(23,59,59,59);
-							vc.dateEnd = date.format('YYYY-MM-DDTHH:mm:ss');
-						} else {
-							date.setHours(23,59,59,59);
-							vc.dateStart = date.format('YYYY-MM-DDTHH:mm:ss');
-
-							date.setHours(0,0,0,0);
-							vc.dateEnd = date.format('YYYY-MM-DDTHH:mm:ss');
-						}
+						
+						vc.dateStart = vc.logs[0].logTime + ',' + vc.logs[0].logTimeIndex;
+						date.setHours(23,59,59,59);
+						vc.dateEnd = date.format('YYYY-MM-DDTHH:mm:ss');
 						
 						$('#datePicker').data('daterangepicker').setStartDate(vc.dateStart);
 						$('#datePicker').data('daterangepicker').setEndDate(vc.dateEnd);
@@ -919,7 +906,6 @@
 				if( !vc.fetching &&
 					!vc.scrollAwait &&
 					!$('.records').hasClass('loading') && 
-					(vc.loadingMethod == 'scroll') &&
 					($('.scroller').scrollTop() > vc.lastScroll) &&
 					(( ($('.scroller').scrollTop() + $('.scroller').innerHeight() >= ($('.scroller')[0].scrollHeight - 300) )) ) ) {
 
@@ -945,6 +931,7 @@
 						"timePicker24Hour": true,
 						"timePickerSeconds": true,
 						"opens": "left",
+						"maxDate": new Date(),
 						locale: {
 							cancelLabel: "RESET"
 						}
@@ -979,10 +966,10 @@
 					});
 
 					$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
-						vc.currentSortDir = 'desc';
 						vc.datePicker = '';
 						vc.dateStart = '';
 						vc.dateEnd = '';
+						vc.liveMonitoring = true;
 
 						vc.getLogs();
 						$('#datePicker').parent().removeClass('open');
@@ -1068,10 +1055,10 @@
 		border-radius: 100%;
 		content: " ";
 		position: fixed;
-		bottom: 105px;
-		right: 50px;
-		width: 30px;
-		height: 30px;
+		bottom: 75px;
+		right: 55px;
+		width: 35px;
+		height: 35px;
 		background: url('/assets/img/loader.gif') center center no-repeat rgba(0,0,0,.05);
 		background-size: 70%;
 		opacity: 1;
@@ -1369,6 +1356,8 @@
 		margin-top: 10px;
 		width: 100%;
     	max-width: 100%;
+		text-align: center;
+		font-size: 90%;
 	}
 
 	.logOptions select {
@@ -1418,6 +1407,21 @@
 
 	.scroller {
 		height: 100%;
+	}
+
+	#loadingMethod {
+		top: 0;
+		right: -3px;
+	}
+
+	#loadingMethod[disabled] {
+		border: 1px solid var(--textColor);
+	}
+
+	label[for="loadingMethod"] {
+		display: inline-block;
+		width: auto;
+		margin-top: 5px;
 	}
 
 </style>

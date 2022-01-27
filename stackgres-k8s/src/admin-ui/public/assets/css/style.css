@@ -137,7 +137,7 @@ h1, h2, h3, h4, h5, h6 {
     cursor: pointer;
 }
 
-.btn[disabled] {
+.btn[disabled], label[disabled] {
     filter: grayscale(1);
     cursor: not-allowed;
 }
@@ -2606,7 +2606,7 @@ fieldset {
     user-select: none;
 }
 
-.header input[type="checkbox"] {
+.header input[type="checkbox"], input[type="checkbox"].plain {
     width: 14px;
     height: 14px;
     border-radius: 2px;
@@ -2618,11 +2618,11 @@ fieldset {
     top: -2px;
 }
 
-.header input[type="checkbox"]:checked {
+.header input[type="checkbox"]:checked, input[type="checkbox"].plain:checked {
     border: 1px solid var(--blue);
 }
 
-.header input[type="checkbox"]:checked:after {
+.header input[type="checkbox"]:checked:after, input[type="checkbox"].plain:checked:after {
     border: 2px solid var(--blue);
     width: 3px;
     height: 7px;
