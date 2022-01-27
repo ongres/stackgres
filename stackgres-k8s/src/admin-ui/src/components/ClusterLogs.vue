@@ -337,6 +337,7 @@
 							<DynamicScroller
 								:items="logs"
 								:min-item-size="15"
+								:buffer="records * 20"
 								class="scroller"
 								key-field="logTimeIndex"
 							>
@@ -527,7 +528,6 @@
 
 			return {
 				logs: [],
-				currentSortDir: 'desc',
 				records: 50,
 				fetching: false,
 				pooling: null,
@@ -750,20 +750,16 @@
 				$('.records').addClass('loading');
 
 				if(!append) {
-					vc.currentSortDir = 'desc'
 					clearTimeout(vc.pooling);
 					$('.filter.open').removeClass('open');
 				}
 
 				let params = '';
 
-				params += '?records='+this.records;
+				params += '?sort=asc&records='+this.records;
 
 				if(vc.datePicker.length) {
-					params += '&sort=asc';
 					vc.liveMonitoring = false;
-				} else {
-					params += '&sort='+this.currentSortDir;
 				}
 				
 				if( Object.keys(vc.filters.logType).find( k => !vc.filters.logType[k] ) ) {
@@ -828,8 +824,7 @@
 					if(append) {
 						vc.logs = vc.logs.concat(response.data);
 					} else {
-						vc.currentSortDir = 'asc';
-						vc.logs = response.data.reverse();
+						vc.logs = response.data;
 						vc.lastScroll = 0;
 					}
 
@@ -878,18 +873,10 @@
 				switch(time) {
 
 					case '1d':
-						if(vc.currentSortDir == 'asc') {
-							vc.dateStart = vc.logs[0].logTime + ',' + vc.logs[0].logTimeIndex;
-
-							date.setHours(23,59,59,59);
-							vc.dateEnd = date.format('YYYY-MM-DDTHH:mm:ss');
-						} else {
-							date.setHours(23,59,59,59);
-							vc.dateStart = date.format('YYYY-MM-DDTHH:mm:ss');
-
-							date.setHours(0,0,0,0);
-							vc.dateEnd = date.format('YYYY-MM-DDTHH:mm:ss');
-						}
+						
+						vc.dateStart = vc.logs[0].logTime + ',' + vc.logs[0].logTimeIndex;
+						date.setHours(23,59,59,59);
+						vc.dateEnd = date.format('YYYY-MM-DDTHH:mm:ss');
 						
 						$('#datePicker').data('daterangepicker').setStartDate(vc.dateStart);
 						$('#datePicker').data('daterangepicker').setEndDate(vc.dateEnd);
@@ -979,7 +966,6 @@
 					});
 
 					$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
-						vc.currentSortDir = 'desc';
 						vc.datePicker = '';
 						vc.dateStart = '';
 						vc.dateEnd = '';
