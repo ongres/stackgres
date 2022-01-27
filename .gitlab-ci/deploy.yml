@@ -23,26 +23,32 @@
           echo arm64
         fi
         )"
-      if docker manifest inspect "$IMAGE_PUSH_NAME" >/dev/null 2>&1
-      then
-        docker pull registry.gitlab.com/ongresinc/stackgres/placeholder
-        docker tag registry.gitlab.com/ongresinc/stackgres/placeholder "$IMAGE_PUSH_NAME"
-        docker push "$IMAGE_PUSH_NAME"
-      fi
       for ARCH in $ARCH_LIST
       do
         docker pull "$IMAGE_PULL_NAME-$ARCH"
         docker tag "$IMAGE_PULL_NAME-$ARCH" "$IMAGE_PUSH_NAME-$ARCH"
+      done
+      if docker manifest inspect "$IMAGE_PUSH_NAME" >/dev/null 2>&1
+      then
+        docker pull registry.gitlab.com/ongresinc/stackgres/placeholder
+        docker tag registry.gitlab.com/ongresinc/stackgres/placeholder "$IMAGE_PUSH_NAME"
+      fi
+      mv ~/.docker/config.json ~/.docker/gitlab.json
+      mv "$REGISTRY_AUTH_FILE" ~/.docker/config.json
+      for ARCH in $ARCH_LIST
+      do
         docker push "$IMAGE_PUSH_NAME-$ARCH"
       done
+      if docker manifest inspect "$IMAGE_PUSH_NAME" >/dev/null 2>&1
+      then
+        docker push "$IMAGE_PUSH_NAME"
+      fi
       docker manifest rm "$IMAGE_PUSH_NAME" 2>/dev/null || true
       docker manifest create "$IMAGE_PUSH_NAME" $(
         for ARCH in $ARCH_LIST
         do
           echo "$IMAGE_PUSH_NAME-$ARCH "
         done)
-      mv ~/.docker/config.json ~/.docker/gitlab.json
-      mv "$REGISTRY_AUTH_FILE" ~/.docker/config.json
       docker manifest push "$IMAGE_PUSH_NAME"
   retry: 2
   only:
