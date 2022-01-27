@@ -3,28 +3,28 @@ imagePullPolicy: "IfNotPresent"
 operator:
   image:
     name: "stackgres/operator"
-    tag: "1.1.0-RC2"
+    tag: "main-1.1-jvm"
     pullPolicy: "IfNotPresent"
   resources: {}
 restapi:
   name: stackgres-restapi
   image:
     name: "stackgres/restapi"
-    tag: "1.1.0-RC2"
+    tag: "main-1.1-jvm"
     pullPolicy: "IfNotPresent"
   resources: {}
 jobs:
   name: stackgres-jobs
   image:
     name: "stackgres/jobs"
-    tag: "1.1.0-RC2"
+    tag: "main-1.1-jvm"
     pullPolicy: "IfNotPresent"
   resources: {}
 adminui:
   name: stackgres-adminui
   image:
     name: "stackgres/admin-ui"
-    tag: "1.1.0-RC2"
+    tag: "main-1.1"
     pullPolicy: "IfNotPresent"
   resources: {}
   service:
