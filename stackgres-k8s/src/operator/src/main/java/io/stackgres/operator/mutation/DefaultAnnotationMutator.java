@@ -38,7 +38,6 @@ public interface DefaultAnnotationMutator
     List<String> existentAnnotations = givenAnnotations.keySet()
         .stream()
         .filter(k -> k.startsWith(StackGresContext.STACKGRES_KEY_PREFIX))
-        .map(k -> k.substring(StackGresContext.STACKGRES_KEY_PREFIX.length()))
         .collect(Collectors.toList());
 
     Map<String, String> defaultAnnotations = getDefaultAnnotationValues();
