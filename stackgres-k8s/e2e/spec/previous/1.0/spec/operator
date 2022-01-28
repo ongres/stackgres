@@ -1,0 +1,89 @@
+#!/bin/sh
+
+e2e_exclusive_lock() {
+  true
+}
+
+e2e_test_install() {
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+}
+
+e2e_test_uninstall() {
+  delete_operator_only
+  install_operator_only
+  wait_pods_running "$OPERATOR_NAMESPACE" 2
+}
+
+e2e_test() {
+  run_test "Check that operator can be installed" check_operator_install
+  run_test "Check that operator can be upgrade with same values" check_operator_upgrade
+  run_test "Check that operator can be deleted" check_operator_delete
+  run_test "Check that operator can be installed from outside" check_operator_install_outside
+  run_test "Check that operator can be installed with load balancer" check_operator_install_load_balancer
+  run_test "Check that operator can be installed with the '--wait' option" check_operator_install_with_wait
+}
+
+check_operator_install() {
+  install_operator_only
+
+  check_operator_installed
+}
+
+check_operator_upgrade() {
+  upgrade_operator
+
+  check_operator_installed
+}
+
+check_operator_delete() {
+  delete_operator_only
+}
+
+check_operator_install_outside() {
+  delete_operator_only
+
+  install_operator_only --set-string service.type=NodePort --set service.nodePort=31111
+
+  check_operator_installed
+}
+
+check_operator_install_load_balancer() {
+  delete_operator_only
+
+  install_operator_only --set service.loadBalancer.enabled=true
+
+  check_operator_installed
+}
+
+check_operator_install_with_wait() {
+  delete_operator_only
+
+  install_operator_only  --wait
+
+  check_operator_installed
+}
+
+check_operator_installed() {
+  for app in operator restapi; do
+    REPLICAS="$(kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" --template '{{ .spec.replicas }}')"
+    if [ "$REPLICAS" = "1" ]; then
+      echo "SUCCESS. Deployment 'stackgres-${app}' has 1 replica."
+      continue
+    fi
+
+    echo "FAILED. Deployment 'stackgres-${app}' was $REPLICAS replicas."
+    return 1
+  done
+
+  for app in operator restapi; do
+    if kubectl rollout status -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}"; then
+      echo "SUCCESS. Deployment 'stackgres-${app}' was rolled out."
+      continue
+    fi
+
+    echo "FAILED. Deployment 'stackgres-${app}' was not rolled out."
+    return 1
+  done
+}

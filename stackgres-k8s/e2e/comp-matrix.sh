@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. "$(dirname "$0")/e2e"
+. "${0%/*}/e2e"
 
 E2E_BUILD_IMAGES="${E2E_BUILD_IMAGES:-false}"
 E2E_INCLUDE_NATIVE="${E2E_INCLUDE_NATIVE:-true}"

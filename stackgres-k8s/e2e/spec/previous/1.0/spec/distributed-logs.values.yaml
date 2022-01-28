@@ -1,0 +1,21 @@
+configurations:
+  postgresconfig:
+    postgresql.conf:
+      shared_buffers: '32MB'
+      log_min_duration_statement: '0'
+      log_checkpoints: on
+      log_connections: on
+      log_disconnections: on
+      log_lock_waits: on
+      log_replication_commands: on
+  backupconfig:
+    create: false
+cluster:
+  pods:
+    persistentVolume:
+      size: 128Mi
+  configurations:
+    sgBackupConfig: null
+  prometheusAutobind: false
+nonProductionOptions:
+  disableClusterPodAntiAffinity: true

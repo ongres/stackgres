@@ -9,6 +9,15 @@ export E2E_TEST_UNINSTALL_FUNCTION="${E2E_TEST_UNINSTALL_FUNCTION:-e2e_test_unin
 export E2E_TEST_AFTER_ALL_FUNCTION="${E2E_TEST_AFTER_ALL_FUNCTION:-e2e_test_after_all}"
 export E2E_BEFORE_RUN_TEST_COUNT=0
 export SPEC_PATH="$E2E_PATH/spec"
+if [ -n "$STACKGRES_TARGET_VERSION" ] && [ "${STACKGRES_VERSION%.*}" != "${STACKGRES_TARGET_VERSION%.*}" ]
+then
+  SPEC_PATH="$E2E_PATH/spec/previous/${STACKGRES_TARGET_VERSION%.*}/spec"
+  if [ ! -d "$SPEC_PATH" ]
+  then
+    echo "Specs for StackGres $STACKGRES_TARGET_VERSION not found"
+    exit 1
+  fi
+fi
 export E2E_LOCK
 export E2E_TEST_REGISTRY
 export E2E_TEST_REGISTRY_PATH
@@ -29,8 +38,9 @@ export E2E_HASH_VARIABLES='
     E2E_SET_MAX_LENGTH_NAMES_PLUS_ONE
     E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR
     E2E_STORAGE_CLASS_REFLINK_ENABLED
-    STACKGRES_PREVIOUS_VERSION
     K8S_VERSION
+    STACKGRES_PREVIOUS_VERSION
+    STACKGRES_TARGET_VERSION
     '
 
 e2e_test_before_all() {
@@ -179,8 +189,8 @@ spec() {
   local EXIT_CODE
   local SPEC_FILE="$1"
   local SPEC_VALUES_FILE="$1.values.yaml"
-  local SPEC_PATH="$(dirname "$SPEC_FILE")"
-  local SPEC_NAME="$(basename "$SPEC_FILE")"
+  local SPEC_PATH="${SPEC_FILE%/*}"
+  local SPEC_NAME="${SPEC_FILE##*/}"
   local CLUSTER_NAMESPACE="$SPEC_NAME-$(printf '%x' "$(date +%s)")"
   local CLUSTER_NAME
   CLUSTER_NAME="$(get_sgcluster_name "$SPEC_NAME")"
