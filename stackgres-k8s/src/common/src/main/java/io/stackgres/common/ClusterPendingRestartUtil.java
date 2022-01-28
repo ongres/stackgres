@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -47,7 +46,6 @@ public class ClusterPendingRestartUtil {
   }
 
   public enum RestartReason {
-    OPERATOR_VERSION,
     STATEFULSET,
     PATRONI,
     POD_STATUS;
@@ -57,10 +55,6 @@ public class ClusterPendingRestartUtil {
       List<StackGresClusterPodStatus> clusterPodStatuses,
       Optional<StatefulSet> clusterStatefulSet, List<Pod> clusterPods) {
     final RestartReasons reasons = new RestartReasons();
-
-    if (isClusterOperatorVersionPendingUpgrade(clusterPods)) {
-      reasons.addReason(RestartReason.OPERATOR_VERSION);
-    }
 
     if (isStatefulSetPendingRestart(clusterStatefulSet, clusterPods)) {
       reasons.addReason(RestartReason.STATEFULSET);
@@ -75,17 +69,6 @@ public class ClusterPendingRestartUtil {
     }
 
     return reasons;
-  }
-
-  private static boolean isClusterOperatorVersionPendingUpgrade(List<Pod> clusterPods) {
-    return clusterPods
-            .stream()
-            .anyMatch(pod -> Optional.ofNullable(pod.getMetadata().getAnnotations())
-                .orElse(ImmutableMap.of())
-                .entrySet()
-                .stream()
-                .noneMatch(e -> e.getKey().equals(StackGresContext.VERSION_KEY)
-                    && e.getValue().equals(StackGresProperty.OPERATOR_VERSION.getString())));
   }
 
   private static boolean isStatefulSetPendingRestart(
