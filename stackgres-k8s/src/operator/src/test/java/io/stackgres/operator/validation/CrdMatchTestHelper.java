@@ -27,14 +27,25 @@ import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.testutil.CrdUtils;
 import org.opentest4j.AssertionFailedError;
 import org.reflections.Reflections;
+import org.reflections.scanners.Scanners;
+import org.reflections.util.ConfigurationBuilder;
 
 @SuppressWarnings("rawtypes")
 public class CrdMatchTestHelper {
 
+  private static final Set<Class<? extends CustomResource>> SG_CR_CLASSES = scanCrdsClasses();
+
+  private static Set<Class<? extends CustomResource>> scanCrdsClasses() {
+    Reflections reflections = new Reflections(new ConfigurationBuilder()
+        .forPackage("io.stackgres.common.crd")
+        .setScanners(Scanners.SubTypes));
+    return Set.copyOf(reflections.getSubTypesOf(CustomResource.class));
+  }
+
   public static int getMaxLengthResourceNameFrom(String crdFilename)
       throws JsonProcessingException, IOException {
     File[] listFiles = loadSpecificCrdFile(crdFilename);
-    YAMLMapper yamlMapper = new YamlMapperProvider().yamlMapper();
+    YAMLMapper yamlMapper = new YamlMapperProvider().get();
     JsonNode crdTree = yamlMapper.readTree(listFiles[0]);
     JsonNode maxLengthResourceName = extractMetadataMaxLengthResourceName(crdTree);
     return Optional.of(maxLengthResourceName.intValue()).orElse(null);
@@ -47,13 +58,12 @@ public class CrdMatchTestHelper {
   }
 
   private static Set<Class<? extends CustomResource>> getCustomResourceClasses() {
-    Reflections reflections = new Reflections("io.stackgres.common.crd");
-    return reflections.getSubTypesOf(CustomResource.class);
+    return SG_CR_CLASSES;
   }
 
   public static void withEveryYaml(Consumer<JsonNode> crdDefinition, List<String> crdFileanames)
       throws IOException {
-    YAMLMapper yamlMapper = new YamlMapperProvider().yamlMapper();
+    YAMLMapper yamlMapper = new YamlMapperProvider().get();
     File[] crdFiles = loadSpecificCrdFile(crdFileanames);
     for (File crd : crdFiles) {
       JsonNode crdTree = yamlMapper.readTree(crd);
@@ -63,7 +73,7 @@ public class CrdMatchTestHelper {
 
   public static void withEveryYaml(Consumer<JsonNode> crdDefinition) throws IOException {
     var crdFiles = loadAllCrdFiles();
-    YAMLMapper yamlMapper = new YamlMapperProvider().yamlMapper();
+    YAMLMapper yamlMapper = new YamlMapperProvider().get();
     for (File crd : crdFiles) {
       JsonNode crdTree = yamlMapper.readTree(crd);
       crdDefinition.accept(crdTree);

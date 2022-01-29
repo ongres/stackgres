@@ -13,7 +13,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -43,15 +43,16 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
   public static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
+
   private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
-  private final JsonMapper objectMapper;
+  private final ObjectMapper jsonMapper;
 
   @Inject
   public PatroniConfigMap(LabelFactoryForCluster<StackGresDistributedLogs> labelFactory,
-                          JsonMapper objectMapper) {
+      ObjectMapper jsonMapper) {
     this.labelFactory = labelFactory;
-    this.objectMapper = objectMapper;
+    this.jsonMapper = jsonMapper;
   }
 
   public static String name(StackGresDistributedLogsContext clusterContext) {
@@ -97,7 +98,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
     final String patroniClusterLabelsAsJson;
     final Map<String, String> patroniClusterLabels = labelFactory.genericLabels(cluster);
     try {
-      patroniClusterLabelsAsJson = objectMapper.writeValueAsString(
+      patroniClusterLabelsAsJson = jsonMapper.writeValueAsString(
           patroniClusterLabels);
     } catch (JsonProcessingException ex) {
       throw new RuntimeException(ex);

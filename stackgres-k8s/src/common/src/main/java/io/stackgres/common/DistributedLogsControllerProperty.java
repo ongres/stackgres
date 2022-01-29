@@ -7,8 +7,6 @@ package io.stackgres.common;
 
 import java.util.Properties;
 
-import org.jooq.lambda.Unchecked;
-
 public enum DistributedLogsControllerProperty implements StackGresPropertyReader {
 
   DISTRIBUTEDLOGS_NAMESPACE("stackgres.distributedlogsNamespace"),
@@ -20,8 +18,7 @@ public enum DistributedLogsControllerProperty implements StackGresPropertyReader
       "stackgres.distributedlogsSkipOverwriteSharedLibraries");
 
   private static final Properties APPLICATION_PROPERTIES =
-      Unchecked.supplier(() -> StackGresPropertyReader
-          .readApplicationProperties(DistributedLogsControllerProperty.class)).get();
+      StackGresPropertyReader.readApplicationProperties(DistributedLogsControllerProperty.class);
 
   private final String propertyName;
 

@@ -5,7 +5,9 @@
 
 package io.stackgres.common;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
@@ -99,10 +101,12 @@ public interface StackGresPropertyReader {
    * Implementation of this interface should use this function to read the application properties
    * file.
    */
-  static Properties readApplicationProperties(Class<?> clazz) throws Exception {
+  static Properties readApplicationProperties(Class<?> clazz) {
     Properties properties = new Properties();
     try (InputStream is = clazz.getResourceAsStream("/application.properties")) {
       properties.load(is);
+    } catch (IOException e) {
+      throw new UncheckedIOException("Can't read properties file", e);
     }
     return properties;
   }

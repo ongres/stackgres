@@ -6,10 +6,7 @@
 package io.stackgres.common.resource;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 
@@ -17,14 +14,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 public class ClusterScheduler extends
     AbstractCustomResourceScheduler<StackGresCluster, StackGresClusterList> {
 
-  @Inject
-  public ClusterScheduler(KubernetesClient client) {
-    super(client, StackGresCluster.class, StackGresClusterList.class);
-  }
-
   public ClusterScheduler() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+    super(StackGresCluster.class, StackGresClusterList.class);
   }
 
   @Override

@@ -23,7 +23,7 @@ public abstract class DefaultValuesMutator<R extends CustomResource<?, ?>,
     T extends AdmissionReview<R>>
     implements JsonPatchMutator<T> {
 
-  protected static final ObjectMapper mapper = new ObjectMapper();
+  private ObjectMapper jsonMapper;
 
   private DefaultCustomResourceFactory<R> factory;
 
@@ -35,22 +35,24 @@ public abstract class DefaultValuesMutator<R extends CustomResource<?, ?>,
     defaultNode = getTargetNode(defaultResource);
   }
 
-  public JsonNode getTargetNode(R resource) {
-    JsonNode resourceNode = mapper.valueToTree(resource);
-    return resourceNode;
-  }
-
-  protected List<JsonPatchOperation> mutate(JsonPointer basePointer,
-                                            R incomingResource) {
-
-    JsonNode incomingNode = getTargetNode(incomingResource);
-
-    return applyDefaults(basePointer, defaultNode, incomingNode);
-
-  }
-
   @Inject
   public void setFactory(DefaultCustomResourceFactory<R> factory) {
     this.factory = factory;
   }
+
+  @Inject
+  public void setObjectMapper(ObjectMapper jsonMapper) {
+    this.jsonMapper = jsonMapper;
+  }
+
+  public JsonNode getTargetNode(R resource) {
+    return jsonMapper.valueToTree(resource);
+  }
+
+  protected List<JsonPatchOperation> mutate(JsonPointer basePointer,
+                                            R incomingResource) {
+    JsonNode incomingNode = getTargetNode(incomingResource);
+    return applyDefaults(basePointer, defaultNode, incomingNode);
+  }
+
 }

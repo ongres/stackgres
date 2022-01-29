@@ -1,5 +1,5 @@
 .pre build image:
-  image: docker:20.10.6
+  image: docker:20.10.12
   stage: pre build
   timeout: 1 hour
   script:
@@ -26,7 +26,7 @@
   retry: 2
 
 .pre build image multi archs:
-  image: docker:20.10.6
+  image: docker:20.10.12
   tags:
     - stackgres-runner-v2
   stage: pre build multi archs

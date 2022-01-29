@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -35,13 +35,13 @@ public class PatroniConfigEndpoints
 
   public static final String PATRONI_CONFIG_KEY = "config";
 
-  private final JsonMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
   private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   @Inject
   public PatroniConfigEndpoints(
-      JsonMapper objectMapper, LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
+      ObjectMapper objectMapper, LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
     this.objectMapper = objectMapper;
     this.labelFactory = labelFactory;
   }

@@ -14,11 +14,10 @@ then
   APP_OPTS="$APP_OPTS -Dquarkus.log.console.format=%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{4.}] (%t) %s%e%n"
 fi
 exec java \
+  -XX:MaxRAMPercentage=75.0 \
   -Djava.net.preferIPv4Stack=true \
-  -Djava.awt.headless=true -XX:MaxRAMPercentage=75.0 \
+  -Djava.awt.headless=true \
   -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
-  $JAVA_OPTS $DEBUG_JAVA_OPTS -jar /app/stackgres-restapi.jar \
+  $JAVA_OPTS $DEBUG_JAVA_OPTS -jar /app/quarkus-run.jar \
   -Dquarkus.http.host=0.0.0.0 \
-  -Dquarkus.http.port=8080 \
-  -Dquarkus.http.ssl-port=8443 \
   $APP_OPTS

@@ -38,10 +38,10 @@ public class PgBouncerSpecMigrationPostVersion1 implements Converter {
       Optional.ofNullable(node.get("spec"))
           .map(spec -> spec.get("pgBouncer"))
           .map(pgBouncer -> pgBouncer.get("pgbouncer.ini"))
-          .map(pgBouncerIni -> (ObjectNode) pgBouncerIni)
+          .map(ObjectNode.class::cast)
           .ifPresent(pgBouncerIni -> {
             ObjectNode innerPgBouncer = Optional.ofNullable(pgBouncerIni.get("pgbouncer"))
-                .map(o -> (ObjectNode) o)
+                .map(ObjectNode.class::cast)
                 .orElseGet(node::objectNode);
             Converter.removeFieldIfExists(pgBouncerIni, "pgbouncer");
             Converter.removeFieldIfExists(pgBouncerIni, "users");

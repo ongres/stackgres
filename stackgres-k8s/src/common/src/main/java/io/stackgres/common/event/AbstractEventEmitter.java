@@ -7,13 +7,13 @@ package io.stackgres.common.event;
 
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.fabric8.kubernetes.api.model.EventSourceBuilder;
@@ -41,10 +41,10 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
     final Instant now = Instant.now();
     final String namespace = involvedObject.getMetadata().getNamespace();
 
-    client.v1().events()
+    Event ev = client.v1().events()
         .inNamespace(namespace)
         .withLabels(Optional.ofNullable(involvedObject.getMetadata().getLabels())
-            .orElse(ImmutableMap.of()))
+            .orElse(Map.of()))
         .list()
         .getItems()
         .stream()
@@ -53,6 +53,7 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
         .map(event -> patchEvent(event, now, client))
         .orElseGet(() -> createEvent(namespace, now,
             reason, message, involvedObject, client));
+    LOGGER.debug("Sending event {}", ev);
   }
 
   private String nextId() {

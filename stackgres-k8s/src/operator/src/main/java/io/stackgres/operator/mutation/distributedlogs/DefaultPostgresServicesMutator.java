@@ -12,9 +12,10 @@ import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
@@ -30,7 +31,7 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 @ApplicationScoped
 public class DefaultPostgresServicesMutator implements DistributedLogsMutator {
 
-  protected static final JsonMapper JSON_MAPPER = new JsonMapper();
+  private ObjectMapper jsonMapper;
 
   private JsonPointer postgresServicesPointer;
 
@@ -49,9 +50,8 @@ public class DefaultPostgresServicesMutator implements DistributedLogsMutator {
     return Optional.ofNullable(review)
         .map(StackGresDistributedLogsReview::getRequest)
         .map(AdmissionRequest::getOperation)
-        .map(operation -> {
-          return mutatePgServices(operations, review);
-        }).orElse(operations.build());
+        .map(operation -> mutatePgServices(operations, review))
+        .orElse(operations.build());
   }
 
   private ImmutableList<JsonPatchOperation> mutatePgServices(
@@ -64,9 +64,8 @@ public class DefaultPostgresServicesMutator implements DistributedLogsMutator {
 
     return Optional.ofNullable(review.getRequest().getObject())
         .map(StackGresDistributedLogs::getSpec)
-        .map(spec -> {
-          return validatePgServices(operations, spec);
-        }).orElse(operations.build());
+        .map(spec -> validatePgServices(operations, spec))
+        .orElse(operations.build());
 
   }
 
@@ -77,7 +76,7 @@ public class DefaultPostgresServicesMutator implements DistributedLogsMutator {
         .map(pgServices -> {
           mapPgPrimaryService(pgServices);
           mapPgReplicasService(pgServices);
-          JsonNode target = JSON_MAPPER.valueToTree(pgServices);
+          JsonNode target = jsonMapper.valueToTree(pgServices);
           operations.add(applyReplaceValue(postgresServicesPointer, target));
           return operations.build();
         }).orElseGet(() -> {
@@ -85,7 +84,7 @@ public class DefaultPostgresServicesMutator implements DistributedLogsMutator {
               new StackGresDistributedLogsPostgresServices();
           pgServices.setPrimary(createPostgresServicePrimary());
           pgServices.setReplicas(createPostgresServiceReplicas());
-          JsonNode target = JSON_MAPPER.valueToTree(pgServices);
+          JsonNode target = jsonMapper.valueToTree(pgServices);
           operations.add(applyAddValue(postgresServicesPointer, target));
           return operations.build();
         });
@@ -133,4 +132,8 @@ public class DefaultPostgresServicesMutator implements DistributedLogsMutator {
     return createNewPostgresService(null);
   }
 
+  @Inject
+  public void setObjectMapper(ObjectMapper jsonMapper) {
+    this.jsonMapper = jsonMapper;
+  }
 }

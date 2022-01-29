@@ -42,7 +42,6 @@ import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
-import io.stackgres.jobs.dbops.clusterrestart.ImmutableClusterRestartState;
 import io.stackgres.jobs.dbops.lock.LockAcquirerImpl;
 import io.stackgres.jobs.dbops.lock.LockRequest;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
@@ -108,7 +107,7 @@ class DbOpLauncherImplTest {
   private Uni<ClusterRestartState> getClusterRestartStateUni() {
     Pod primary = new Pod();
     return Uni.createFrom().item(
-        ImmutableClusterRestartState.builder()
+        ClusterRestartState.builder()
             .namespace(dbOps.getMetadata().getNamespace())
             .dbOpsName(dbOps.getMetadata().getName())
             .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))

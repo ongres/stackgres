@@ -47,7 +47,6 @@ import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestart;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartStateHandlerImpl;
-import io.stackgres.jobs.dbops.clusterrestart.ImmutableClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEvent;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -90,11 +89,12 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   @Inject
   EventEmitter<StackGresDbOps> eventEmitter;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  @Inject
+  ObjectMapper objectMapper;
 
   private final ExecutorService restartStateHandlerExecutor;
 
-  public AbstractRestartStateHandler() {
+  protected AbstractRestartStateHandler() {
     this.restartStateHandlerExecutor = Executors.newSingleThreadExecutor(
         new ThreadFactoryBuilder()
         .setNameFormat("restart-state-handler-executor-%d")
@@ -349,7 +349,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         .map(StackGresDbOpsRestart::getOnlyPendingRestart)
         .orElse(false);
 
-    return ImmutableClusterRestartState.builder()
+    return ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))

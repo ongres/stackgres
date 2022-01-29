@@ -26,7 +26,7 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 @ApplicationScoped
 public class DefaultRestoreMutator implements ClusterMutator {
 
-  protected static final ObjectMapper mapper = new ObjectMapper();
+  private ObjectMapper jsonMapper;
 
   private JsonPointer restorePointer;
   private JsonNode defaultNode;
@@ -45,7 +45,7 @@ public class DefaultRestoreMutator implements ClusterMutator {
         .append(initDataJson).append(restoreJsonField);
 
     StackGresClusterRestore defaultRestore = defaultRestoreFactory.buildResource();
-    defaultNode = mapper.valueToTree(defaultRestore);
+    defaultNode = jsonMapper.valueToTree(defaultRestore);
 
   }
 
@@ -61,7 +61,7 @@ public class DefaultRestoreMutator implements ClusterMutator {
 
       if (restore != null) {
 
-        JsonNode target = mapper.valueToTree(restore);
+        JsonNode target = jsonMapper.valueToTree(restore);
         ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
         operations.addAll(applyDefaults(restorePointer, defaultNode, target));
 
@@ -70,12 +70,17 @@ public class DefaultRestoreMutator implements ClusterMutator {
 
     }
 
-    return ImmutableList.of();
+    return List.of();
   }
 
   @Inject
   public void setDefaultRestoreFactory(
       DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory) {
     this.defaultRestoreFactory = defaultRestoreFactory;
+  }
+
+  @Inject
+  public void setObjectMapper(ObjectMapper jsonMapper) {
+    this.jsonMapper = jsonMapper;
   }
 }

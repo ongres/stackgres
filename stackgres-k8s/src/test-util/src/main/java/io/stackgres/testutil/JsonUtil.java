@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.io.CharStreams;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.json.JSONException;
@@ -29,12 +30,13 @@ import org.tukaani.xz.XZInputStream;
 
 public class JsonUtil {
 
-  public static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+  public static final ObjectMapper JSON_MAPPER = JsonMapper.builder()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+      .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+      .build();
 
-  private JsonUtil() {
-    JSON_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    JSON_MAPPER.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
-  }
+  private JsonUtil() {}
 
   public static <T> T readFromJson(String resource, Class<T> clazz) {
     Objects.requireNonNull(resource, "resource");
@@ -85,9 +87,7 @@ public class JsonUtil {
         throw new IllegalArgumentException("resource " + resource + " not found");
       }
       try (XZInputStream xzIs = new XZInputStream(is)) {
-        try (Reader reader = new InputStreamReader(xzIs, StandardCharsets.UTF_8)) {
-          return (T) JSON_MAPPER.readTree(CharStreams.toString(reader));
-        }
+        return (T) JSON_MAPPER.readTree(xzIs);
       }
     } catch (IOException e) {
       throw new IllegalArgumentException("could not open resource " + resource, e);
@@ -101,9 +101,7 @@ public class JsonUtil {
       if (is == null) {
         throw new IllegalArgumentException("resource " + resource + " not found");
       }
-      try (Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
-        return (T) JSON_MAPPER.readTree(CharStreams.toString(reader));
-      }
+      return (T) JSON_MAPPER.readTree(is);
     } catch (IOException e) {
       throw new IllegalArgumentException("could not open resource " + resource, e);
     }

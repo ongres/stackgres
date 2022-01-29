@@ -14,7 +14,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
@@ -37,7 +37,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Pos
 public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
 
   @Inject
-  public PatroniConfigEndpoints(JsonMapper objectMapper,
+  public PatroniConfigEndpoints(ObjectMapper objectMapper,
       LabelFactoryForCluster<StackGresCluster> labelFactory) {
     super(objectMapper, labelFactory);
   }

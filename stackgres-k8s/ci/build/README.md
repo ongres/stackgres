@@ -43,7 +43,7 @@ If you pass the `hashes` keywork the command will just output the hashes of imag
 ## config.yml
 
 | Field | Description |
-|+------|+------------|
+|-------|-------------|
 | modules | An object that defines all available modules |
 | modules.<name> | Required. The name of a module |
 | modules.<name>.type | Required. The type of the module |

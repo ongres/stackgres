@@ -7,7 +7,7 @@ package io.stackgres.operator.conversion;
 
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import io.quarkus.test.junit.QuarkusTest;
@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 @QuarkusTest
 class SgPostgresConfigConversionPipelineTest {
 
-  protected static final JsonMapper MAPPER = new JsonMapper();
+  protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
 
   @Inject
   @Conversion(StackGresPostgresConfig.KIND)

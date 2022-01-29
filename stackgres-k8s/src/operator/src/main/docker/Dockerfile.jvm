@@ -2,18 +2,21 @@ ARG BASE_IMAGE
 FROM "$BASE_IMAGE"
   USER root:root
   WORKDIR '/app/'
-  COPY 'target/stackgres-operator-runner.jar' '/app/stackgres-operator.jar'
-  COPY 'target/lib/' '/app/lib/'
-  COPY 'src/main/docker/stackgres-operator.jvm.sh' '/app/stackgres-operator.sh'
-  RUN chown jboss:jboss '/app/' -R
-  RUN chmod 775 '/home/jboss' -R
-  RUN chmod 775 '/app' -R
-  RUN chmod 775 '/app/stackgres-operator.sh'
 
+  COPY 'src/main/docker/stackgres-operator.jvm.sh' '/app/stackgres-operator.sh'
+
+  COPY 'target/quarkus-app/lib/' '/app/lib/'
+  COPY 'target/quarkus-app/*.jar' '/app/'
+  COPY 'target/quarkus-app/app/' '/app/app/'
+  COPY 'target/quarkus-app/quarkus/' '/app/quarkus/'
+
+  RUN chown -R jboss:jboss '/app'
+  RUN chmod 755 '/app'
+  RUN chmod 755 '/app/stackgres-operator.sh'
+
+  ENV HOME=/app LANG=C.utf8
   USER jboss:jboss
-  ENV HOME=/app
-  CMD '/app/stackgres-operator.sh'
   EXPOSE 8080
   EXPOSE 8443
-  ENV LANG="C.UTF-8"
-  ENV LC_ALL="C.UTF-8"
+
+  CMD '/app/stackgres-operator.sh'

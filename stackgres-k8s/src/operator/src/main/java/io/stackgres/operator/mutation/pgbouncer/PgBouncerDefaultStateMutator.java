@@ -40,12 +40,12 @@ public class PgBouncerDefaultStateMutator
     if (pgBouncerConfig.getStatus() == null) {
       pgBouncerConfig.setStatus(new StackGresPoolingConfigStatus());
       operations.add(buildAddOperation(
-          PG_BOUNCER_DEFAULT_PARAMETERS_POINTER.parent().parent(), MAPPER.createObjectNode()));
+          PG_BOUNCER_DEFAULT_PARAMETERS_POINTER.parent().parent(), FACTORY.objectNode()));
     }
     if (pgBouncerConfig.getStatus().getPgBouncer() == null) {
       pgBouncerConfig.getStatus().setPgBouncer(new StackGresPoolingConfigPgBouncerStatus());
       operations.add(buildAddOperation(
-          PG_BOUNCER_DEFAULT_PARAMETERS_POINTER.parent(), MAPPER.createObjectNode()));
+          PG_BOUNCER_DEFAULT_PARAMETERS_POINTER.parent(), FACTORY.objectNode()));
     }
     operations.addAll(mutate(PG_BOUNCER_DEFAULT_PARAMETERS_POINTER, pgBouncerConfig));
     return operations;

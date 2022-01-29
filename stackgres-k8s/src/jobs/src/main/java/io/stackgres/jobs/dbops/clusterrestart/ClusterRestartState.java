@@ -14,8 +14,10 @@ import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.DbOpsOperation;
 import org.immutables.value.Value;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
 @Value.Immutable
+@Value.Style(visibility = ImplementationVisibility.PACKAGE)
 public interface ClusterRestartState {
 
   String getDbOpsName();
@@ -64,6 +66,13 @@ public interface ClusterRestartState {
     return !getRestartedInstances().contains(pod)
         && (!isOnlyPendingRestart()
             || getPodRestartReasonsMap().get(pod).requiresRestart());
+  }
+
+  class Builder extends ImmutableClusterRestartState.Builder {
+  }
+
+  static Builder builder() {
+    return new Builder();
   }
 
 }

@@ -28,9 +28,7 @@ public class SgProfileDefaultValuesMutator
 
   @Override
   public List<JsonPatchOperation> mutate(SgProfileReview review) {
-
     return mutate(SG_PROFILE_CONFIG_POINTER, review.getRequest().getObject());
-
   }
 
 }

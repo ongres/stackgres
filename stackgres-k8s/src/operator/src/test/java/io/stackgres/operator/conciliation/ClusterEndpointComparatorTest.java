@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 
 class ClusterEndpointComparatorTest {
 
-  private static final JsonMapper JSON_MAPPER = new JsonMapper();
+  private static final ObjectMapper JSON_MAPPER = JsonUtil.JSON_MAPPER;
 
   private final ClusterEndpointComparator comparator = new ClusterEndpointComparator();
 

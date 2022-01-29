@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -36,17 +35,11 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
 
   @Inject
   PatroniApiMetadataFinder apiFinder;
-  @Inject
-  Vertx vertx;
-  private WebClient client;
+
+  private final WebClient client;
 
   @Inject
   public PatroniApiHandlerImpl(Vertx vertx) {
-    this.vertx = vertx;
-  }
-
-  @PostConstruct
-  void init() {
     this.client = WebClient.create(vertx, new WebClientOptions()
         .setConnectTimeout((int) Duration.ofSeconds(5).toMillis())
         .setIdleTimeout((int) Duration.ofSeconds(5).toSeconds()));
@@ -65,7 +58,7 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
         .transform(res -> {
           JsonObject body = res.body();
           JsonArray membersJson = body.getJsonArray("members");
-          return IntStream.rangeClosed(0, membersJson.size() - 1)
+          return IntStream.range(0, membersJson.size())
               .mapToObj(membersJson::getJsonObject)
               .map(member -> ImmutableClusterMember.builder()
                   .clusterName(name)

@@ -11,8 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,8 +58,12 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.ServiceResource;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
+import io.fabric8.kubernetes.client.http.HttpClient;
+import io.fabric8.kubernetes.client.http.HttpRequest;
+import io.fabric8.kubernetes.client.http.HttpResponse;
 import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import io.fabric8.kubernetes.client.utils.URLUtils.URLBuilder;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.kubernetesclient.workaround.SecretOperationsImpl;
@@ -70,13 +72,6 @@ import io.stackgres.common.prometheus.ServiceMonitor;
 import io.stackgres.common.prometheus.ServiceMonitorList;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-import okhttp3.Call;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
@@ -91,7 +86,7 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
     Handlers.register(Secret.class, SecretOperationsImpl::new);
   }
 
-  public static final MediaType APPLY_PATCH = MediaType.get("application/apply-patch+yaml");
+  public static final String APPLY_PATCH_YAML = "application/apply-patch+yaml";
   private static final Logger LOGGER = LoggerFactory
       .getLogger(StackGresDefaultKubernetesClient.class);
   private static final String SERVER_SIDE_APPLY_DEFAULT_PATH_FORMAT =
@@ -132,7 +127,7 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
     super(config);
   }
 
-  public StackGresDefaultKubernetesClient(OkHttpClient httpClient, Config config) {
+  public StackGresDefaultKubernetesClient(HttpClient httpClient, Config config) {
     super(httpClient, config);
   }
 
@@ -196,10 +191,7 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
           .lockResourceVersion(resourceOverwrite.getMetadata().getResourceVersion());
       Method replaceMethod = replaceDeleteable.getClass().getSuperclass()
           .getDeclaredMethod("replace", HasMetadata.class, boolean.class);
-      AccessController.doPrivileged((PrivilegedAction<?>) () -> {
-        replaceMethod.setAccessible(true);
-        return null;
-      });
+      replaceMethod.setAccessible(true);
       return (T) replaceMethod.invoke(replaceDeleteable, resourceOverwrite, true);
     } catch (InvocationTargetException ex) {
       Throwable targetEx = ex.getTargetException();
@@ -248,69 +240,62 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
     }
 
     String content = PatchUtils.patchMapper().valueToTree(modifiedIntent).toString();
-    RequestBody body = RequestBody.create(APPLY_PATCH, content);
-    Request request = new Request.Builder()
+
+    HttpClient client = getHttpClient();
+
+    HttpRequest request = client.newHttpRequestBuilder()
         .url(applyUrl)
-        .patch(body)
+        .patch(APPLY_PATCH_YAML, content)
         .build();
 
-    OkHttpClient client = getHttpClient();
-
-    final Call call = client.newCall(request);
-    return executeRequest(modifiedIntent, call);
+    return executeRequest(modifiedIntent, request);
   }
 
-  private <T extends HasMetadata> List<T> list(HttpUrl listUrl, Class<T> resource,
+  private <T extends HasMetadata> List<T> list(URL listUrl, Class<T> resource,
       String fieldManager) throws IOException {
     LOGGER.trace("Performing list request to the endpoint: {}", listUrl);
-    Request request = new Request.Builder()
+    HttpClient client = getHttpClient();
+
+    HttpRequest request = client.newHttpRequestBuilder()
         .url(listUrl)
-        .get()
         .build();
 
-    OkHttpClient client = getHttpClient();
-
-    final Call call = client.newCall(request);
-    return executeListRequest(call, resource, fieldManager);
-
+    return executeListRequest(request, resource, fieldManager);
   }
 
   @SuppressWarnings("unchecked")
-  private <T extends HasMetadata> T executeRequest(T intent, Call call) throws IOException {
-    try (Response response = call.execute()) {
-
-      String responseString = response.body().string();
-      if (response.isSuccessful()) {
-        return (T) Serialization.unmarshal(responseString, intent.getClass());
-      } else {
-        var status = Serialization.unmarshal(responseString, Status.class);
-        throw new KubernetesClientException(status);
-      }
+  private <T extends HasMetadata> T executeRequest(T intent, HttpRequest call) throws IOException {
+    HttpResponse<String> response = getHttpClient().send(call, String.class);
+    String responseString = response.bodyString();
+    if (response.isSuccessful()) {
+      return (T) Serialization.unmarshal(responseString, intent.getClass());
+    } else {
+      var status = Serialization.unmarshal(responseString, Status.class);
+      throw new KubernetesClientException(status);
     }
   }
 
   private <T extends HasMetadata> List<T> executeListRequest(
-      Call call,
+      HttpRequest call,
       Class<T> format,
       String fieldManager) throws IOException {
-    try (Response response = call.execute()) {
+    HttpResponse<String> response = getHttpClient().send(call, String.class);
 
-      String responseString = response.body().string();
+    String responseString = response.bodyString();
 
-      if (response.isSuccessful()) {
+    if (response.isSuccessful()) {
 
-        ObjectNode list = (ObjectNode) Serialization.jsonMapper().readTree(responseString);
-        return parseListObject(list, format, fieldManager);
-      } else {
-        if (response.code() == 404) {
-          return List.of();
-        }
-        try {
-          var status = Serialization.unmarshal(responseString, Status.class);
-          throw new KubernetesClientException(status);
-        } catch (Exception ex) {
-          throw new KubernetesClientException(responseString);
-        }
+      ObjectNode list = (ObjectNode) Serialization.jsonMapper().readTree(responseString);
+      return parseListObject(list, format, fieldManager);
+    } else {
+      if (response.code() == 404) {
+        return List.of();
+      }
+      try {
+        var status = Serialization.unmarshal(responseString, Status.class);
+        throw new KubernetesClientException(status);
+      } catch (Exception ex) {
+        throw new KubernetesClientException(responseString);
       }
     }
   }
@@ -326,7 +311,7 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
       for (JsonNode item : data) {
         final ObjectNode itemObject = (ObjectNode) item;
         if (!itemObject.has("kind")) {
-          itemObject.set("kind", new TextNode(HasMetadata.getKind(format)));
+          itemObject.set("kind", TextNode.valueOf(HasMetadata.getKind(format)));
         }
         ObjectNode filteredItem;
         if (ManagedFieldsReader.hasManagedFieldsConfiguration(itemObject, fieldManager)) {
@@ -354,8 +339,7 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
           filteredItem = itemObject;
         }
         result.add(
-            Serialization.jsonMapper().treeToValue(filteredItem, format)
-        );
+            Serialization.jsonMapper().treeToValue(filteredItem, format));
       }
       return result;
 
@@ -441,8 +425,8 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
     }
   }
 
-  protected HttpUrl buildHttpUrl(@NotNull URL url, @NotNull Map<String, String> labels) {
-    final HttpUrl.Builder builder = HttpUrl.get(url).newBuilder();
+  protected URL buildHttpUrl(@NotNull URL url, @NotNull Map<String, String> labels) {
+    final URLBuilder builder = new URLBuilder(url);
 
     String labelSelector = getLabelSelectorQueryParam(labels);
 
@@ -471,25 +455,21 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
     try {
       var masterUrl = getMasterUrl();
       final URL opeApiUrl = new URL(masterUrl, OPEN_API);
-      final HttpUrl openApiHttpUrl = HttpUrl.get(opeApiUrl);
 
       LOGGER.trace("Performing openApi request to the endpoint: {}", OPEN_API);
 
-      Request request = new Request.Builder()
-          .url(openApiHttpUrl)
-          .get()
+      HttpClient client = getHttpClient();
+
+      HttpRequest request = client.newHttpRequestBuilder()
+          .url(opeApiUrl)
           .build();
 
-      OkHttpClient client = getHttpClient();
-
-      final Call call = client.newCall(request);
-      try (Response response = call.execute()) {
-        String responseString = response.body().string();
-        if (response.isSuccessful()) {
-          return (ObjectNode) Serialization.jsonMapper().readTree(responseString);
-        } else {
-          throw new KubernetesClientException(responseString);
-        }
+      final HttpResponse<@NotNull String> response = client.send(request, String.class);
+      String responseString = response.bodyString();
+      if (response.isSuccessful()) {
+        return (ObjectNode) Serialization.jsonMapper().readTree(responseString);
+      } else {
+        throw new KubernetesClientException(responseString);
       }
     } catch (RuntimeException ex) {
       throw ex;
@@ -565,7 +545,7 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
     try {
       return new ServerSideApplySanitizer(
           OPEN_API_CACHE.get(CACHE_KEY, () -> getOpenApi()))
-          .sanitize(intent);
+              .sanitize(intent);
     } catch (ExecutionException ex) {
       throw new RuntimeException(ex);
     }
@@ -582,25 +562,21 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
             + " is not configured"));
   }
 
-  private <M extends HasMetadata> Function<KubernetesClient, MixedOperation<? extends HasMetadata,
-      ? extends KubernetesResourceList<? extends HasMetadata>,
-      ? extends Resource<? extends HasMetadata>>> getResourceOperations(M resource) {
+  private <M extends HasMetadata> Function<KubernetesClient,
+      MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
+      ? extends Resource<? extends HasMetadata>>> getResourceOperations(
+      M resource) {
     return RESOURCE_OPERATIONS.get(resource.getClass());
   }
 
-  static final ImmutableMap<
-      Class<? extends HasMetadata>,
-      Function<
-          KubernetesClient,
-          MixedOperation<
-              ? extends HasMetadata,
-              ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>>
-      RESOURCE_OPERATIONS =
-      ImmutableMap.<Class<? extends HasMetadata>, Function<KubernetesClient,
+  static final ImmutableMap<Class<? extends HasMetadata>, Function<KubernetesClient,
+      MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
+        ? extends Resource<? extends HasMetadata>>>> RESOURCE_OPERATIONS =
+      ImmutableMap
+          .<Class<? extends HasMetadata>, Function<KubernetesClient,
           MixedOperation<? extends HasMetadata,
               ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>>builder()
+                  ? extends Resource<? extends HasMetadata>>>>builder()
           .put(StatefulSet.class, client -> client.apps().statefulSets())
           .put(Service.class, KubernetesClient::services)
           .put(ServiceAccount.class, KubernetesClient::serviceAccounts)
@@ -618,12 +594,12 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
 
   @Override
   public MixedOperation<Service, ServiceList, ServiceResource<Service>> services() {
-    return new ServiceOperationsImpl(httpClient, getConfiguration());
+    return new ServiceOperationsImpl(this);
   }
 
   @Override
   public MixedOperation<Secret, SecretList, Resource<Secret>> secrets() {
-    return new SecretOperationsImpl(httpClient, getConfiguration());
+    return new SecretOperationsImpl(this);
   }
 
 }

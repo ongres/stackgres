@@ -8,7 +8,7 @@ package io.stackgres.operator.conciliation.factory.cluster.patroni;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.ongres.pgconfig.validator.GucValidator;
 import com.ongres.pgconfig.validator.PgParameter;
@@ -28,12 +28,12 @@ public abstract class AbstractPatroniConfigEndpoints
 
   public static final String PATRONI_CONFIG_KEY = "config";
 
-  private final JsonMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  protected AbstractPatroniConfigEndpoints(JsonMapper objectMapper,
-      LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  protected AbstractPatroniConfigEndpoints(ObjectMapper objectMapper,
+                                LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.objectMapper = objectMapper;
     this.labelFactory = labelFactory;
   }

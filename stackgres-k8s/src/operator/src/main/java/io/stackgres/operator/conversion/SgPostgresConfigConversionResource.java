@@ -38,10 +38,9 @@ public class SgPostgresConfigConversionResource implements ConversionResource {
     this.pipeline = pipeline;
   }
 
+  @Override
   @POST
   public ConversionReviewResponse convert(ConversionReview conversionReview) {
-
     return convert(pipeline, conversionReview);
-
   }
 }

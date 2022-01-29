@@ -8,7 +8,6 @@ package io.stackgres.jobs.app;
 import java.util.Properties;
 
 import io.stackgres.common.StackGresPropertyReader;
-import org.jooq.lambda.Unchecked;
 
 public enum JobsProperty implements StackGresPropertyReader {
 
@@ -26,8 +25,7 @@ public enum JobsProperty implements StackGresPropertyReader {
   DBOPS_LOCK_TIMEOUT("stackgres.dbops.lockTimeout");
 
   private static final Properties APPLICATION_PROPERTIES =
-      Unchecked.supplier(() -> StackGresPropertyReader
-          .readApplicationProperties(JobsProperty.class)).get();
+      StackGresPropertyReader.readApplicationProperties(JobsProperty.class);
 
   private final String propertyName;
 

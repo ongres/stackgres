@@ -222,7 +222,7 @@ class ClusterWatcherImplTest {
     clusterWatcher.getAvailablePrimary(clusterName, namespace)
         .subscribe()
         .withSubscriber(UniAssertSubscriber.create())
-        .await()
+        .awaitItem()
         .assertCompleted()
         .assertItem(Optional.of(podTestUtil.getClusterPods(cluster)
             .stream()
@@ -258,7 +258,7 @@ class ClusterWatcherImplTest {
     clusterWatcher.getAvailablePrimary(clusterName, namespace)
         .subscribe()
         .withSubscriber(UniAssertSubscriber.create())
-        .await()
+        .awaitItem()
         .assertCompleted()
         .assertItem(Optional.empty());
   }

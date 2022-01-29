@@ -35,7 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DefaultRestoreMutatorTest {
 
-  protected static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+  protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
 
   protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
@@ -67,6 +67,7 @@ class DefaultRestoreMutatorTest {
 
     mutator = new DefaultRestoreMutator();
     mutator.setDefaultRestoreFactory(defaultRestoreFactory);
+    mutator.setObjectMapper(MAPPER);
     mutator.init();
 
   }
@@ -94,7 +95,7 @@ class DefaultRestoreMutatorTest {
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
 
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);

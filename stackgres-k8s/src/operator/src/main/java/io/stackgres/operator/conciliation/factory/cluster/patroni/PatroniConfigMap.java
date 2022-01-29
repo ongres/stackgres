@@ -55,9 +55,15 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final ObjectMapper jsonMapper;
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  @Inject
+  public PatroniConfigMap(LabelFactoryForCluster<StackGresCluster> labelFactory,
+      ObjectMapper jsonMapper) {
+    this.labelFactory = labelFactory;
+    this.jsonMapper = jsonMapper;
+  }
 
   public static String name(ClusterContext clusterContext) {
     return StatefulSetDynamicVolumes.PATRONI_ENV
@@ -119,7 +125,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     final Map<String, String> patroniClusterLabels = labelFactory
         .patroniClusterLabels(cluster);
     try {
-      patroniClusterLabelsAsJson = objectMapper.writeValueAsString(
+      patroniClusterLabelsAsJson = jsonMapper.writeValueAsString(
           patroniClusterLabels);
     } catch (JsonProcessingException ex) {
       throw new RuntimeException(ex);
@@ -174,10 +180,5 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build();
-  }
-
-  @Inject
-  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
-    this.labelFactory = labelFactory;
   }
 }

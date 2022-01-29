@@ -57,7 +57,7 @@ public class WebClientFactory {
         .map(URI::create);
     final Optional<String> optionalRetry = getUriQueryParameter(uri, RETRY_PARAMETER);
     if (skipHostnameVerification) {
-      SSLContext sslContext = SSLContext.getInstance("TLS");
+      SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
       sslContext.init(null,
           new X509TrustManager[] { InsecureX509TrustManager.INSTANCE },
           new SecureRandom());

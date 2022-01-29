@@ -12,7 +12,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
@@ -28,7 +28,7 @@ import org.opentest4j.AssertionFailedError;
 
 class DefaultPostgresServicesMutatorTest {
 
-  protected static final JsonMapper JSON_MAPPER = new JsonMapper();
+  protected static final ObjectMapper JSON_MAPPER = JsonUtil.JSON_MAPPER;
 
   protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
@@ -41,6 +41,7 @@ class DefaultPostgresServicesMutatorTest {
         StackGresClusterReview.class);
 
     mutator = new DefaultPostgresServicesMutator();
+    mutator.setObjectMapper(JSON_MAPPER);
     mutator.init();
   }
 

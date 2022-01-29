@@ -37,7 +37,10 @@ class ApplicationResourceTest implements AuthenticatedResourceTest {
   @Test
   void getApplicationEndpoint_shouldReturnBabelfishCompass() {
     when(resource.getAllApplications())
-        .thenReturn(List.of(new ApplicationDto("babelfish-compass", "com.ongres")));
+        .thenReturn(List.of(new ApplicationDto.Builder()
+            .name("babelfish-compass")
+            .publisher("com.ongres")
+            .build()));
 
     given()
         .header(AUTHENTICATION_HEADER)

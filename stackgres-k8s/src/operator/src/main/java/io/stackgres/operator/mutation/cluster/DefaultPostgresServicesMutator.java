@@ -9,9 +9,10 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
@@ -25,7 +26,7 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 @ApplicationScoped
 public class DefaultPostgresServicesMutator implements ClusterMutator {
 
-  protected static final JsonMapper JSON_MAPPER = new JsonMapper();
+  private ObjectMapper jsonMapper;
 
   private JsonPointer postgresServicesPointer;
 
@@ -71,7 +72,7 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
           postgresServices.setReplicas(createNewPostgresService());
         }
 
-        JsonNode target = JSON_MAPPER.valueToTree(postgresServices);
+        JsonNode target = jsonMapper.valueToTree(postgresServices);
         ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
         operations.add(applyReplaceValue(postgresServicesPointer, target));
 
@@ -81,7 +82,7 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
         pgServices.setPrimary(createNewPostgresService());
         pgServices.setReplicas(createNewPostgresService());
 
-        JsonNode target = JSON_MAPPER.valueToTree(pgServices);
+        JsonNode target = jsonMapper.valueToTree(pgServices);
         ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
         operations.add(applyAddValue(postgresServicesPointer, target));
 
@@ -89,7 +90,7 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
       }
     }
 
-    return ImmutableList.of();
+    return List.of();
   }
 
   private StackGresPostgresService createNewPostgresService() {
@@ -97,6 +98,11 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
     service.setEnabled(Boolean.TRUE);
     service.setType(StackGresPostgresServiceType.CLUSTER_IP.toString());
     return service;
+  }
+
+  @Inject
+  public void setObjectMapper(ObjectMapper jsonMapper) {
+    this.jsonMapper = jsonMapper;
   }
 
 }

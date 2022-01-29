@@ -37,7 +37,7 @@ helm install stackgres-cluster --namespace stackgres stackgres-k8s/install/helm/
 
 The prerequisites are the same for any Quarkus-based application.
 
-- JDK 1.8+ installed with `JAVA_HOME` configured appropriately.
+- JDK 17+ installed with `JAVA_HOME` configured appropriately.
 - GraalVM installed from the GraalVM web site. Using the community edition is enough.
 - The `GRAALVM_HOME` environment variable configured appropriately.
 - The `native-image` tool must be installed; this can be done by running `gu install native-image` from your GraalVM directory.

@@ -7,8 +7,6 @@ package io.stackgres.common;
 
 import java.util.Properties;
 
-import org.jooq.lambda.Unchecked;
-
 public enum StackGresProperty implements StackGresPropertyReader {
 
   OPERATOR_VERSION("stackgres.operatorVersion"),
@@ -29,8 +27,7 @@ public enum StackGresProperty implements StackGresPropertyReader {
   SG_IMAGE_KUBECTL("stackgres.imageKubectl");
 
   private static final Properties APPLICATION_PROPERTIES =
-      Unchecked.supplier(() -> StackGresPropertyReader
-          .readApplicationProperties(StackGresProperty.class)).get();
+      StackGresPropertyReader.readApplicationProperties(StackGresProperty.class);
 
   private final String propertyName;
 

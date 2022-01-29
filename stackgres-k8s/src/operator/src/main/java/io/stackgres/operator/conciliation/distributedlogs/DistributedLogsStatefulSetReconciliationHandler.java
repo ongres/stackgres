@@ -8,7 +8,7 @@ package io.stackgres.operator.conciliation.distributedlogs;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -36,7 +36,7 @@ public class DistributedLogsStatefulSetReconciliationHandler
       ResourceWriter<Pod> podWriter,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
       ResourceWriter<PersistentVolumeClaim> pvcWriter,
-      ResourceFinder<Endpoints> endpointsFinder, JsonMapper objectMapper) {
+      ResourceFinder<Endpoints> endpointsFinder, ObjectMapper objectMapper) {
     super(labelFactory, statefulSetFinder, statefulSetWriter, podScanner, podWriter, pvcScanner,
         pvcWriter, endpointsFinder, objectMapper);
   }

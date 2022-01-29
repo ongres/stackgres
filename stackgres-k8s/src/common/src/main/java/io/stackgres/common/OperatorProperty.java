@@ -7,8 +7,6 @@ package io.stackgres.common;
 
 import java.util.Properties;
 
-import org.jooq.lambda.Unchecked;
-
 public enum OperatorProperty implements StackGresPropertyReader {
 
   OPERATOR_NAME("stackgres.operatorName"),
@@ -18,15 +16,13 @@ public enum OperatorProperty implements StackGresPropertyReader {
   GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded"),
   AUTHENTICATION_SECRET_NAME("stackgres.authentication.secretName"),
   USE_ARBITRARY_USER("stackgres.useArbitraryUser"),
-  EXTENSIONS_REPOSITORY_URLS(
-      "stackgres.extensionsRepositoryUrls"),
+  EXTENSIONS_REPOSITORY_URLS("stackgres.extensionsRepositoryUrls"),
   CONFLICT_SLEEP_SECONDS("stackgres.conflictSleepSeconds"),
   LOCK_POLL_INTERVAL("stackgres.lockPollInterval"),
   LOCK_TIMEOUT("stackgres.lockTimeout");
 
   private static final Properties APPLICATION_PROPERTIES =
-      Unchecked.supplier(() -> StackGresPropertyReader
-          .readApplicationProperties(OperatorProperty.class)).get();
+      StackGresPropertyReader.readApplicationProperties(OperatorProperty.class);
 
   private final String propertyName;
 

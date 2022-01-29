@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.core.UriBuilder;
 
@@ -127,7 +126,7 @@ public abstract class ExtensionMetadataManager {
             .map(Tuple3::v3)
             .min(StackGresExtensionMetadata::compareBuild)
             .orElseThrow())
-        .collect(Collectors.toUnmodifiableList());
+        .toUnmodifiableList();
   }
 
   public Collection<StackGresExtensionMetadata> getExtensions() {

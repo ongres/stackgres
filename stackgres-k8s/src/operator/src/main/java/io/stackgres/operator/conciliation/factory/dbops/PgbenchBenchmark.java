@@ -12,7 +12,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -44,7 +44,7 @@ public class PgbenchBenchmark extends DbOpsJob {
       DbOpsEnvironmentVariables clusterStatefulSetEnvironmentVariables,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       LabelFactoryForDbOps dbOpsLabelFactory,
-      JsonMapper jsonMapper) {
+      ObjectMapper jsonMapper) {
     super(podSecurityFactory, clusterStatefulSetEnvironmentVariables, labelFactory,
         dbOpsLabelFactory, jsonMapper);
   }

@@ -11,7 +11,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -33,15 +32,11 @@ import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.tuple.Tuple2;
 import org.jooq.lambda.tuple.Tuple4;
 
 public abstract class StackGresClusterContext implements ResourceHandlerContext, ClusterContext {
 
   public abstract OperatorPropertyContext getOperatorContext();
-
-  @Override
-  public abstract StackGresCluster getCluster();
 
   public abstract Optional<StackGresPostgresConfig> getPostgresConfig();
 
@@ -61,12 +56,6 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext,
 
   public abstract ImmutableList<StackGresClusterScriptEntry> getInternalScripts();
 
-  @Override
-  public abstract ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> getExistingResources();
-
-  @Override
-  public abstract ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> getRequiredResources();
-
   public abstract String getClusterNamespace();
 
   public abstract String getClusterKey();
@@ -78,9 +67,6 @@ public abstract class StackGresClusterContext implements ResourceHandlerContext,
   public abstract String getBackupKey();
 
   public abstract String getDbOpsKey();
-
-  @Override
-  public abstract ImmutableMap<String, String> getLabels();
 
   public abstract ImmutableList<OwnerReference> getOwnerReferences();
 

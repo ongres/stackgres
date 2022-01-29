@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,24 +29,24 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
-import javax.enterprise.inject.spi.CDI;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.BaseEncoding;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceStatus;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.ArcContainer;
 import io.stackgres.common.component.Component;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
@@ -135,7 +136,7 @@ public interface StackGresUtil {
         .getBytes(StandardCharsets.UTF_8));
     return ImmutableMap.<String, String>builder()
         .putAll(data)
-        .put("MD5SUM", BaseEncoding.base16().encode(messageDigest.digest()))
+        .put("MD5SUM", HexFormat.of().withUpperCase().formatHex(messageDigest.digest()))
         .build();
   }
 
@@ -149,7 +150,7 @@ public interface StackGresUtil {
         .sorted()
         .map(Unchecked.function(Files::readAllBytes))
         .forEach(messageDigest::update);
-    return BaseEncoding.base16().encode(messageDigest.digest());
+    return HexFormat.of().withUpperCase().formatHex(messageDigest.digest());
   }
 
   /**
@@ -200,16 +201,17 @@ public interface StackGresUtil {
 
   @NotNull
   static String toPrettyYaml(Object pojoObject) {
+    YamlMapperProvider yamlProvider = null;
+    ArcContainer container = Arc.container();
+    if (container != null) {
+      yamlProvider = container.instance(YamlMapperProvider.class).get();
+    }
     try {
-      try {
-        return CDI.current().select(YamlMapperProvider.class).get()
-            .yamlMapper().writeValueAsString(pojoObject);
-      } catch (Exception ex) {
-        return new YamlMapperProvider()
-            .yamlMapper().writeValueAsString(pojoObject);
-      }
-    } catch (Exception ex) {
-      throw new RuntimeException("Failed deserializing instance of "
+      return yamlProvider != null
+          ? yamlProvider.get().writeValueAsString(pojoObject)
+          : new YamlMapperProvider().get().writeValueAsString(pojoObject);
+    } catch (JsonProcessingException ex) {
+      throw new RuntimeException("Failed serializing instance of "
           + pojoObject.getClass().getName(), ex);
     }
   }
@@ -265,10 +267,10 @@ public interface StackGresUtil {
     }
 
     return Seq.of(
-            Tuple.tuple("plpgsql"),
-            Tuple.tuple("pg_stat_statements"),
-            Tuple.tuple("dblink"),
-            Tuple.tuple("plpython3u"))
+        Tuple.tuple("plpgsql"),
+        Tuple.tuple("pg_stat_statements"),
+        Tuple.tuple("dblink"),
+        Tuple.tuple("plpython3u"))
         .map(t -> t.concat(Optional.<String>empty()))
         .collect(Collectors.toUnmodifiableList());
   }
@@ -286,10 +288,10 @@ public interface StackGresUtil {
       return ImmutableList.of();
     }
     return Seq.of(
-            Tuple.tuple("plpgsql"),
-            Tuple.tuple("pg_stat_statements"),
-            Tuple.tuple("dblink"),
-            Tuple.tuple("plpython3u"))
+        Tuple.tuple("plpgsql"),
+        Tuple.tuple("pg_stat_statements"),
+        Tuple.tuple("dblink"),
+        Tuple.tuple("plpython3u"))
         .map(t -> t.concat(Optional.<String>empty()))
         .collect(Collectors.toUnmodifiableList());
   }
@@ -300,8 +302,7 @@ public interface StackGresUtil {
 
     return getDefaultDistributedLogsExtensions(
         pgVersion,
-        StackGresVersion.getStackGresVersion(cluster)
-    );
+        StackGresVersion.getStackGresVersion(cluster));
   }
 
   static List<Tuple2<String, Optional<String>>> getDefaultDistributedLogsExtensions(
@@ -309,10 +310,9 @@ public interface StackGresUtil {
     return Seq.seq(getDefaultClusterExtensions(
         stackGresVersion,
         pgVersion,
-        StackGresPostgresFlavor.VANILLA.toString()
-    )).append(
-        Tuple.tuple("timescaledb", Optional.of("1.7.4"))
-    ).collect(Collectors.toUnmodifiableList());
+        StackGresPostgresFlavor.VANILLA.toString())).append(
+            Tuple.tuple("timescaledb", Optional.of("1.7.4")))
+        .collect(Collectors.toUnmodifiableList());
   }
 
   static boolean isLocked(HasMetadata resource, int lockTimeoutMillis) {
@@ -337,7 +337,7 @@ public interface StackGresUtil {
   }
 
   static void setLock(HasMetadata resource, String lockServiceAccount, String lockPodName,
-                      long lockTimestamp) {
+      long lockTimestamp) {
     final Map<String, String> annotations = resource.getMetadata().getAnnotations();
 
     annotations.put(LOCK_SERVICE_ACCOUNT_KEY, lockServiceAccount);

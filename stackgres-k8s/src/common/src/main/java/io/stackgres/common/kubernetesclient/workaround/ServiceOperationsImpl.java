@@ -8,19 +8,19 @@ package io.stackgres.common.kubernetesclient.workaround;
 import java.util.function.Supplier;
 
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.ClientContext;
 import io.fabric8.kubernetes.client.dsl.base.OperationContext;
-import okhttp3.OkHttpClient;
+import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperationsImpl;
 
 public class ServiceOperationsImpl
     extends io.fabric8.kubernetes.client.dsl.internal.core.v1.ServiceOperationsImpl {
 
-  public ServiceOperationsImpl(OkHttpClient client, Config config) {
-    super(client, config);
+  public ServiceOperationsImpl(ClientContext clientContext) {
+    this(clientContext, null);
   }
 
-  public ServiceOperationsImpl(OkHttpClient client, Config config, String namespace) {
-    super(client, config, namespace);
+  public ServiceOperationsImpl(ClientContext clientContext, String namespace) {
+    this(HasMetadataOperationsImpl.defaultContext(clientContext).withNamespace(namespace));
   }
 
   public ServiceOperationsImpl(OperationContext context) {

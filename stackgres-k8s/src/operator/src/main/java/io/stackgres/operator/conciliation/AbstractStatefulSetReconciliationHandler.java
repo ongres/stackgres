@@ -19,9 +19,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -76,9 +77,9 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
   private final ResourceFinder<Endpoints> endpointsFinder;
 
-  private final JsonMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
-  public AbstractStatefulSetReconciliationHandler(
+  protected AbstractStatefulSetReconciliationHandler(
       LabelFactoryForCluster<T> labelFactory,
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceWriter<StatefulSet> statefulSetWriter,
@@ -86,7 +87,8 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       ResourceWriter<Pod> podWriter,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
       ResourceWriter<PersistentVolumeClaim> pvcWriter,
-      ResourceFinder<Endpoints> endpointsFinder, JsonMapper objectMapper) {
+      ResourceFinder<Endpoints> endpointsFinder,
+      ObjectMapper objectMapper) {
     this.labelFactory = labelFactory;
     this.statefulSetFinder = statefulSetFinder;
     this.statefulSetWriter = statefulSetWriter;
@@ -154,7 +156,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
   }
 
   private StatefulSet concileSts(T context, HasMetadata resource,
-      Function<StatefulSet, StatefulSet> writer) {
+      UnaryOperator<StatefulSet> writer) {
     final StatefulSet requiredSts = safeCast(resource);
     final StatefulSetSpec spec = requiredSts.getSpec();
     final Map<String, String> patroniClusterLabels = labelFactory.patroniClusterLabels(context);

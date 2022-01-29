@@ -25,7 +25,7 @@
       - stackgres-k8s/ci/build/target/*
 
 .build image multi archs:
-  image: docker:20.10.6
+  image: docker:20.10.12
   stage: image build multi archs
   timeout: 1 hour
   script:

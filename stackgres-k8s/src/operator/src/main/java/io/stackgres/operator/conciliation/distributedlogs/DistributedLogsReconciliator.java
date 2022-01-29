@@ -32,6 +32,10 @@ import org.slf4j.helpers.MessageFormatter;
 @ApplicationScoped
 public class DistributedLogsReconciliator extends AbstractReconciliator<StackGresDistributedLogs> {
 
+  public DistributedLogsReconciliator() {
+    super(StackGresDistributedLogs.KIND);
+  }
+
   private ConnectedClustersScanner connectedClustersScanner;
 
   private DistributedLogsScheduler distributedLogsScheduler;
@@ -46,11 +50,6 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
 
   void onStop(@Observes ShutdownEvent ev) {
     stop();
-  }
-
-  @Override
-  protected String getReconciliationName() {
-    return StackGresDistributedLogs.KIND;
   }
 
   @Override

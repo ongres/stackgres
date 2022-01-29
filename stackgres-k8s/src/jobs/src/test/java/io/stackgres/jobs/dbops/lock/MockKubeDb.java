@@ -29,7 +29,7 @@ import org.jooq.lambda.tuple.Tuple2;
 @ApplicationScoped
 public class MockKubeDb {
 
-  private static final JsonMapper JSON_MAPPER = new JsonMapper();
+  private static final JsonMapper JSON_MAPPER = JsonMapper.builder().build();
   private static final String KEY_FORMAT = "%s/%s";
   private static final String PENDING_FAILURES = "pendingFailures";
 

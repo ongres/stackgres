@@ -13,6 +13,7 @@ import java.util.Objects;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +30,7 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 @ApplicationScoped
 public class DefaultPostgresVersionMutator implements ClusterMutator {
 
-  protected static final ObjectMapper mapper = new ObjectMapper();
+  private ObjectMapper jsonMapper;
 
   private JsonPointer postgresVersionPointer;
   private JsonPointer postgresFlavorPointer;
@@ -67,24 +68,28 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
             .get(cluster).findVersion(postgresVersion);
 
         if (!calculatedPostgresVersion.equals(postgresVersion)) {
-          JsonNode target = mapper.valueToTree(calculatedPostgresVersion);
+          JsonNode target = jsonMapper.valueToTree(calculatedPostgresVersion);
           operations.add(applyReplaceValue(postgresVersionPointer, target));
         }
       } else {
-        JsonNode target = mapper.valueToTree(getPostgresFlavorComponent(postgresFlavor)
+        JsonNode target = jsonMapper.valueToTree(getPostgresFlavorComponent(postgresFlavor)
             .get(cluster).findVersion(StackGresComponent.LATEST));
         operations.add(applyAddValue(postgresVersionPointer, target));
       }
 
       if (!Objects.equals(postgresFlavor, getPostgresFlavor(postgresFlavor))) {
-        JsonNode target = mapper.valueToTree(getPostgresFlavor(postgresFlavor));
+        JsonNode target = jsonMapper.valueToTree(getPostgresFlavor(postgresFlavor));
         operations.add(applyAddValue(postgresFlavorPointer, target));
       }
 
       return operations.build();
     }
 
-    return ImmutableList.of();
+    return List.of();
   }
 
+  @Inject
+  public void setObjectMapper(ObjectMapper jsonMapper) {
+    this.jsonMapper = jsonMapper;
+  }
 }

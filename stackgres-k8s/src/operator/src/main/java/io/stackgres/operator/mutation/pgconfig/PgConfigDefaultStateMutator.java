@@ -11,21 +11,31 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.DefaultStateMutator;
 
 public class PgConfigDefaultStateMutator
-    extends DefaultStateMutator<StackGresPostgresConfig, PgConfigReview>
-    implements PgConfigMutator {
+    extends DefaultStateMutator<StackGresPostgresConfig, PgConfigReview> {
+
+  public static PgConfigDefaultStateMutator create(
+      DefaultCustomResourceFactory<StackGresPostgresConfig> factory,
+      ObjectMapper objectMapper) {
+    PgConfigDefaultStateMutator mutator = new PgConfigDefaultStateMutator();
+    mutator.setFactory(factory);
+    mutator.setObjectMapper(objectMapper);
+    mutator.init();
+    return mutator;
+  }
 
   @Override
   public JsonNode getTargetNode(StackGresPostgresConfig resource) {
-    return PG_CONFIG_DEFAULT_PARAMETERS_POINTER.get(super.getTargetNode(resource));
+    return PgConfigMutator.PG_CONFIG_DEFAULT_PARAMETERS_POINTER.get(super.getTargetNode(resource));
   }
 
   @Override
@@ -35,9 +45,9 @@ public class PgConfigDefaultStateMutator
     if (pgConfig.getStatus() == null) {
       pgConfig.setStatus(new StackGresPostgresConfigStatus());
       operations.add(buildAddOperation(
-          PG_CONFIG_DEFAULT_PARAMETERS_POINTER.parent(), MAPPER.createObjectNode()));
+          PgConfigMutator.PG_CONFIG_DEFAULT_PARAMETERS_POINTER.parent(), FACTORY.objectNode()));
     }
-    operations.addAll(mutate(PG_CONFIG_DEFAULT_PARAMETERS_POINTER, pgConfig));
+    operations.addAll(mutate(PgConfigMutator.PG_CONFIG_DEFAULT_PARAMETERS_POINTER, pgConfig));
     return operations;
   }
 
@@ -45,7 +55,7 @@ public class PgConfigDefaultStateMutator
   protected Map<String, String> getParametersNode(StackGresPostgresConfig incomingResource) {
     return Optional.ofNullable(incomingResource.getSpec())
         .map(StackGresPostgresConfigSpec::getPostgresqlConf)
-        .orElse(ImmutableMap.of());
+        .orElse(Map.of());
   }
 
 }

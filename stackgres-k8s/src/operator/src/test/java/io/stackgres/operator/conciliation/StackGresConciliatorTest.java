@@ -265,9 +265,9 @@ class StackGresConciliatorTest {
 
   public static class TestReconciliator
       extends AbstractReconciliator<CustomResource<Object, Object>> {
-    @Override
-    protected String getReconciliationName() {
-      return "Test";
+
+    TestReconciliator() {
+      super("Test");
     }
 
     @Override

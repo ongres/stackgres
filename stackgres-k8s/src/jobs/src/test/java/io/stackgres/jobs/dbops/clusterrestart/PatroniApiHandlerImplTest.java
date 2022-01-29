@@ -28,9 +28,9 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthProvider;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.AuthHandler;
+import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.junit5.VertxTestContext;
@@ -60,7 +60,7 @@ class PatroniApiHandlerImplTest {
   @BeforeEach
   void setUp() throws InterruptedException {
 
-    AuthProvider authProvider = (jsonObject, handler) -> {
+    AuthenticationProvider authProvider = (jsonObject, handler) -> {
       String givenUsername = jsonObject.getString("username");
       String givenPassword = jsonObject.getString("password");
 
@@ -70,7 +70,7 @@ class PatroniApiHandlerImplTest {
         handler.handle(Future.failedFuture("Invalid credentials"));
       }
     };
-    AuthHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
+    AuthenticationHandler basicAuthHandler = BasicAuthHandler.create(authProvider);
 
     Router router = Router.router(vertx);
 
@@ -110,7 +110,7 @@ class PatroniApiHandlerImplTest {
     VertxTestContext testContext = new VertxTestContext();
     mockServer = vertx.createHttpServer().requestHandler(router)
         .listen(0, ar -> {
-          testContext.succeeding();
+          testContext.succeedingThenComplete();
           testContext.completeNow();
         });
 

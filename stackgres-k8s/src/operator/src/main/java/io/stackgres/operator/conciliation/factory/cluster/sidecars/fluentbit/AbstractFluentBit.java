@@ -86,45 +86,46 @@ public abstract class AbstractFluentBit implements
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh", "-exc")
-        .withArgs(""
-            + "CONFIG_PATH=/etc/fluent-bit\n"
-            + "update_config() {\n"
-            + "  rm -Rf \"$PG_LOG_PATH/last_config\"\n"
-            + "  cp -Lr \"$CONFIG_PATH\" \"$PG_LOG_PATH/last_config\"\n"
-            + "}\n"
-            + "\n"
-            + "has_config_changed() {\n"
-            + "  for file in $(ls -1 \"$CONFIG_PATH\")\n"
-            + "  do\n"
-            + "    [ \"$(cat \"$CONFIG_PATH/$file\" | md5sum)\" \\\n"
-            + "      != \"$(cat \"$PG_LOG_PATH/last_config/$file\" | md5sum)\" ] \\\n"
-            + "      && return || true\n"
-            + "  done\n"
-            + "  return 1\n"
-            + "}\n"
-            + "\n"
-            + "run_fluentbit() {\n"
-            + "  set -x\n"
-            + "  exec /usr/local/bin/fluent-bit \\\n"
-            + "    -c /etc/fluent-bit/fluentbit.conf\n"
-            + "}\n"
-            + "\n"
-            + "set +x\n"
-            + "while true\n"
-            + "do\n"
-            + "  if has_config_changed || [ ! -d \"/proc/$PID\" ]\n"
-            + "  then\n"
-            + "    update_config\n"
-            + "    if [ -n \"$PID\" ]\n"
-            + "    then\n"
-            + "      kill \"$PID\"\n"
-            + "      wait \"$PID\" || true\n"
-            + "    fi\n"
-            + "    run_fluentbit &\n"
-            + "    PID=\"$!\"\n"
-            + "  fi\n"
-            + "  sleep 5\n"
-            + "done\n")
+        .withArgs("""
+            CONFIG_PATH=/etc/fluent-bit
+            update_config() {
+              rm -Rf "$PG_LOG_PATH/last_config"
+              cp -Lr "$CONFIG_PATH" "$PG_LOG_PATH/last_config"
+            }
+
+            has_config_changed() {
+              for file in $(ls -1 "$CONFIG_PATH")
+              do
+                [ "$(cat "$CONFIG_PATH/$file" | md5sum)" \\
+                  != "$(cat "$PG_LOG_PATH/last_config/$file" | md5sum)" ] \\
+                  && return || true
+              done
+              return 1
+            }
+
+            run_fluentbit() {
+              set -x
+              exec /usr/local/bin/fluent-bit \\
+                -c /etc/fluent-bit/fluentbit.conf
+            }
+
+            set +x
+            while true
+            do
+              if has_config_changed || [ ! -d "/proc/$PID" ]
+              then
+                update_config
+                if [ -n "$PID" ]
+                then
+                  kill "$PID"
+                  wait "$PID" || true
+                fi
+                run_fluentbit &
+                PID="$!"
+              fi
+              sleep 5
+            done
+            """)
         .withEnv(getContainerEnvironmentVariables(context))
         .withVolumeMounts(getVolumeMounts(context))
         .build();

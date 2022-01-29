@@ -19,6 +19,7 @@ import com.google.common.collect.Streams;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -26,7 +27,7 @@ import org.mockito.Mock;
 public abstract class DefaultValuesMutatorTest
       <R extends CustomResource<?, ?>, T extends AdmissionReview<R>> {
 
-  protected static final ObjectMapper mapper = new ObjectMapper();
+  protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
 
   protected DefaultValuesMutator<R, T> mutator;
 
@@ -38,6 +39,7 @@ public abstract class DefaultValuesMutatorTest
     when(factory.buildResource()).thenReturn(getDefaultResource());
     mutator = getMutatorInstance();
     mutator.setFactory(factory);
+    mutator.setObjectMapper(MAPPER);
     mutator.init();
   }
 
@@ -78,7 +80,7 @@ public abstract class DefaultValuesMutatorTest
 
     T review = getEmptyReview();
 
-    JsonNode crJson = mapper.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 

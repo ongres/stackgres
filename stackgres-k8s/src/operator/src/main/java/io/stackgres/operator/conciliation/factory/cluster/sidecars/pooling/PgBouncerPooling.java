@@ -181,7 +181,7 @@ public class PgBouncerPooling extends AbstractPgPooling {
         .map(HashMap::new)
         .orElseGet(() -> new HashMap<>(PgBouncerDefaultValues.getDefaultValues()));
 
-    parameters.putAll(defaultParameters);
+    parameters.putAll(getDefaultParameters());
     parameters.putAll(newParams);
 
     String pgBouncerConfig = parameters.entrySet().stream()
