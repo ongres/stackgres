@@ -261,7 +261,7 @@
 						else
 							submenu.css("top", "auto").css("bottom",window.innerHeight - $(this).height() - offset.top)
 						
-						submenu.addClass("show wow");
+						submenu.addClass("show");
 					}
 				}
 			});

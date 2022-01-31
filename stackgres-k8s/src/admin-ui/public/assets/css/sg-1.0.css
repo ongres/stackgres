@@ -575,7 +575,7 @@ form.form .helpTooltip {
     background-color: var(--bgColor);
     position: sticky;
     top: 50px;
-    z-index: 999;
+    z-index: 2;
 }
 
 .step {
@@ -599,7 +599,7 @@ form.form .helpTooltip {
     padding-top: 25px;
     position: sticky;
     top: 90px;
-    z-index: 999; 
+    z-index: 2; 
 }
 
 ul.steps {
