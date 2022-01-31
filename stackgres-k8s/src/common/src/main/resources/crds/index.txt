@@ -6,3 +6,4 @@ SGDistributedLogs.yaml
 SGInstanceProfile.yaml
 SGPoolingConfig.yaml
 SGPostgresConfig.yaml
+SGObjectStorage.yaml
