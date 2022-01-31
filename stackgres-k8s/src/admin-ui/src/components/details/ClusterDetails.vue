@@ -712,7 +712,7 @@
                     </thead>
                     <tbody>
                         <tr v-for="ext in sortExtensions(cluster.data.spec.postgres.extensions)">
-                            <template v-for="extInfo in extensionsList[cluster.data.spec.postgres.flavor][cluster.data.spec.postgres.version]" v-if="ext.name == extInfo.name">
+                            <template v-for="extInfo in extensionsList" v-if="ext.name == extInfo.name">
                                 <td class="label">
                                     <a v-if="extInfo.hasOwnProperty('url') && extInfo.url" :href="extInfo.url" target="_blank" class="newTab" :title="extInfo.url">
                                         {{ ext.name }}
