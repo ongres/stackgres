@@ -33,7 +33,7 @@ check_label(){
   local EXPECTED_LABEL_VALUE="$1"
 
   local ACTUAL_LABEL
-  ACTUAL_LABEL="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath="{.spec.template.metadata.labels.test-label}")"
+  ACTUAL_LABEL="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath="{.spec.template.metadata.labels.test-label}")"
 
   if assert_string_equal "$EXPECTED_LABEL_VALUE" "$ACTUAL_LABEL"
   then

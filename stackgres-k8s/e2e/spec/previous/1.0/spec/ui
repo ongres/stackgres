@@ -5,6 +5,11 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
+  if [ "$(uname -m)" != x86_64 ]
+  then
+    return
+  fi
+
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
 
@@ -43,6 +48,8 @@ e2e_test_install() {
       env:
       - name: CYPRESS_host
         value: "https://$SERVICE.$OPERATOR_NAMESPACE/admin"
+      - name: CYPRESS_api
+        value: "https://$SERVICE.$OPERATOR_NAMESPACE/stackgres"
       - name: CYPRESS_username
         value: "admin"
       - name: CYPRESS_password
@@ -60,6 +67,12 @@ EOF
 }
 
 e2e_test() {  
+  if [ "$(uname -m)" != x86_64 ]
+  then
+    echo "Skipping ui test since not running in x86_64 architecture"
+    return
+  fi
+
   run_test "Cypress chrome tests should pass" cypress_chrome_tests
 
   run_test "Cypress firefox tests should pass" cypress_firefox_tests
@@ -70,11 +83,13 @@ e2e_test() {
 }
 
 cypress_chrome_tests(){
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser chrome
+  RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser chrome --env resourcename="$RANDOM_RESOURCE"
 }
 
 cypress_firefox_tests(){
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser firefox
+  RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser firefox --env resourcename="$RANDOM_RESOURCE"
 }
 
 check_index_on_not_found_resource(){

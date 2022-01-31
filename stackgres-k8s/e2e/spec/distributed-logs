@@ -97,7 +97,6 @@ default_annotations(){
 }
 
 check_distributed_logs_attach_to_clusters() {
-
   if [ -n "$TIMESCALE_VERSION" ]
   then
      create_or_replace_cluster "$COPY_CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \

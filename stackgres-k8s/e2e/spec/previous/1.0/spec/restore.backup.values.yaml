@@ -20,8 +20,10 @@ configurations:
               key: secretkey
         region: k8s
         enablePathStyleAddressing: true
-        endpoint: http://restore-backup-minio.restore-backup.svc.cluster.local:9000
+        endpoint: http://restore-backup-minio.restore-backup:9000
 cluster:
+  postgres:
+    version: "13"
   pods:
     persistentVolume:
       size: 128Mi

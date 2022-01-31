@@ -1,7 +1,14 @@
 #!/bin/sh
 
-e2e_test_install_pods() {
-  echo 1
+e2e_test_install() {
+  init_expandable_storage_class
+  STORAGE_CLASSNAME="$(get_expandable_storage_class_name)"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$(e2e_test_install_pods)" \
+    --set cluster.pods.persistentVolume.storageClass="$STORAGE_CLASSNAME"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "$(e2e_test_install_pods)"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
@@ -64,7 +71,7 @@ check_persistent_volume_claim_is_updated() {
 
 check_persistent_volume_claim() {
   local EXPECTED_CAPACITY="$1"
-  VOLUME_CLAIM_CAPACITY="$(kubectl get sts -n "$CLUSTER_NAMESPACE" \
+  VOLUME_CLAIM_CAPACITY="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" \
     "$CLUSTER_NAME" \
     -o jsonpath='{.spec.volumeClaimTemplates[0].spec.resources.requests.storage}')"
 

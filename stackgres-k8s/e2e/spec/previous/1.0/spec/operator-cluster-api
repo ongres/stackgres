@@ -1,5 +1,9 @@
 #!/bin/sh
 
+e2e_use_extensions() {
+  true
+}
+
 e2e_test_install() {
   install_minio
 
@@ -35,11 +39,11 @@ e2e_test() {
 
   run_test "Check that a created cluster is included in the response" check_cluster_in_list
 
-  run_test "Check that the stats endpoint are returning the master stats" test_cluster_stats_are_loaded
+  run_test "Check that the stats endpoint are returning the primary stats" test_cluster_stats_are_loaded
 
   run_test "Check that the component versions are annotated" test_cluster_component_versions_are_annotated
 
-  run_test "Check that the number of pods match with the master and replicas" test_cluster_pod_count
+  run_test "Check that the number of pods match with the primary and replicas" test_cluster_pod_count
 
   run_test "Check that a cluster was removed after its deletion in the API" check_cluster_removed
 
@@ -462,7 +466,8 @@ check_authentication_error() {
 check_create_cluster_with_inline_script() {
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string 'cluster.postgres.version=13'
 
   OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
@@ -526,7 +531,8 @@ check_create_cluster_node_selectors_script() {
 check_create_cluster_with_secret_and_configmap_script() {
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string 'cluster.postgres.version=13'
 
   OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
@@ -588,7 +594,8 @@ check_create_cluster_with_secret_and_configmap_script() {
 check_failed_cluster_creation_with_secret_and_configmap_script() {
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string 'cluster.postgres.version=13'
 
   OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \

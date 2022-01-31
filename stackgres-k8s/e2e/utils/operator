@@ -905,7 +905,12 @@ get_component_versions() {
   (
   if [ "$STACKGRES_VERSION" = "$VERSION" ]
   then
-    cat "$STACKGRES_PATH/src/common/src/main/resources/versions.properties"
+    if [ -n "$STACKGRES_TARGET_VERSION" ] && [ "${STACKGRES_TARGET_VERSION%.*}" != "${STACKGRES_VERSION%.*}" ]
+    then
+      cat "$STACKGRES_PATH/src/common/src/main/resources/versions-${STACKGRES_TARGET_VERSION%.*}.properties"
+    else
+      cat "$STACKGRES_PATH/src/common/src/main/resources/versions.properties"
+    fi
   else
     curl -f -s "$(get_versions_url "$VERSION")"
   fi

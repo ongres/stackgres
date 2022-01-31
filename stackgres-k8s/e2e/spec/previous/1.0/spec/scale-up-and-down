@@ -16,9 +16,9 @@ e2e_test() {
 
   run_test "Checking that switchover is working" check_switchover
 
-  run_test "Checking scaledown is working when master is the last pod" check_scaledown_when_master_last_pod
+  run_test "Checking scaledown is working when primary is the last pod" check_scaledown_when_primary_last_pod
 
-  run_test "Checking that scaleup is working when master is beyond last pod" check_scaleup_when_master_beyond_last_pod
+  run_test "Checking that scaleup is working when primary is beyond last pod" check_scaleup_when_primary_beyond_last_pod
 }
 
 check_scaledown() {
@@ -27,7 +27,10 @@ check_scaledown() {
 
   check_cluster_pod_count 2
 
-  if create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
+  local RESULT
+  local EXIT_CODE
+  try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
+  if "$RESULT"
   then
     echo "SUCCESS. The number of instances has been changed"
   else
@@ -35,7 +38,8 @@ check_scaledown() {
     return 1
   fi
 
-  if wait_pods_terminated "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[01]"
+  try_function wait_pods_terminated "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[01]"
+  if "$RESULT"
   then
     echo "SUCCESS. The number of pods has changed"
   else
@@ -68,7 +72,10 @@ check_scaleup() {
   local PRIMARY_UID
   PRIMARY_UID="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 --template '{{ .metadata.uid }}')"
 
- if create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  local RESULT
+  local EXIT_CODE
+  try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  if "$RESULT"
   then
     echo "SUCCESS. The number of instances has been changed"
   else
@@ -76,7 +83,8 @@ check_scaleup() {
     return 1
   fi
 
-  if wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[01]"
+  try_function wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[01]"
+  if "$RESULT"
   then
     echo "SUCCESS. The number of pods has changed"
   else
@@ -133,30 +141,35 @@ check_switchover() {
     return 1
   fi
 
-  if ! run_query -i 1 -p 5432 -q "SELECT pg_is_in_recovery()" | grep -q '^t$'
+  local IS_IN_RECOVERY="$(run_query -i 1 -p 5432 -q "SELECT pg_is_in_recovery()")"
+  if [ "$IS_IN_RECOVERY" = 'f' ]
   then
-    echo "SUCCESS. The primary is now the node at index 1"
+    echo "SUCCESS. The primary is now the pod at index 1"
   else
-    echo "FAIL. The node at index 1 is not the primary"
+    echo "FAIL. The pod at index 1 is not the primary"
     return 1
   fi
 
-  if ! run_query -i 0 -p 5432 -q "SELECT pg_is_in_recovery()" | grep -q '^f$'
+  local IS_IN_RECOVERY="$(run_query -i 0 -p 5432 -q "SELECT pg_is_in_recovery()")"
+  if [ "$IS_IN_RECOVERY" = 't' ]
   then
-    echo "SUCCESS. The replica is now the node at index 0"
+    echo "SUCCESS. The replica is now the pod at index 0"
   else
-    echo "FAIL. The node at index 0 is not a replica"
+    echo "FAIL. The pod at index 0 is not a replica"
     return 1
   fi
 
   check_cluster_pod_count 2
 }
 
-check_scaledown_when_master_last_pod() {
+check_scaledown_when_primary_last_pod() {
   local PRIMARY_UID
   PRIMARY_UID="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-1 --template '{{ .metadata.uid }}')"
 
-  if create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
+  local RESULT
+  local EXIT_CODE
+  try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
+  if "$RESULT"
   then
     echo "SUCCESS. The number of instances has been changed"
   else
@@ -164,7 +177,8 @@ check_scaledown_when_master_last_pod() {
     return 1
   fi
 
-  if wait_pods_terminated "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[01]"
+  try_function wait_pods_terminated "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[01]"
+  if "$RESULT"
   then
     echo "SUCCESS. The number of pods has changed"
   else
@@ -193,11 +207,14 @@ check_scaledown_when_master_last_pod() {
   check_cluster_pod_count 1
 }
 
-check_scaleup_when_master_beyond_last_pod() {
+check_scaleup_when_primary_beyond_last_pod() {
   local PRIMARY_UID
   PRIMARY_UID="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-1 --template '{{ .metadata.uid }}')"
 
- if create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  local RESULT
+  local EXIT_CODE
+  try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  if "$RESULT"
   then
     echo "SUCCESS. The number of instances has been changed"
   else
@@ -205,7 +222,8 @@ check_scaleup_when_master_beyond_last_pod() {
     return 1
   fi
 
-  if wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[01]"
+  try_function wait_pods_running "$CLUSTER_NAMESPACE" 2 "$CLUSTER_NAME-[01]"
+  if "$RESULT"
   then
     echo "SUCCESS. The number of pods has changed"
   else

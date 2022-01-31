@@ -9,7 +9,7 @@ e2e_test_install() {
 
   SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
 
-  local ENDPOINT="http://restore-backup-minio.$CLUSTER_NAMESPACE-backup.svc.cluster.local:9000"
+  local ENDPOINT="http://restore-backup-minio.$CLUSTER_NAMESPACE-backup:9000"
   create_or_replace_cluster "$BACKUP_CLUSTER_NAME" "$CLUSTER_NAMESPACE-backup" 1 \
     --set-string "configurations.backupconfig.storage.s3Compatible.endpoint=$ENDPOINT"
 
@@ -44,7 +44,8 @@ EOF
 
   kubectl create namespace "$CLUSTER_NAMESPACE" || true
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 --set cluster.initialData.restore.fromBackup.uid="$BACKUP_UID"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set cluster.initialData.restore.fromBackup.uid="$BACKUP_UID"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
@@ -250,7 +251,8 @@ assert_default_value(){
 
 check_restore_using_pitr() {
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 --set-string cluster.initialData.restore.fromBackup.uid="$BACKUP_UID" \
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string cluster.initialData.restore.fromBackup.uid="$BACKUP_UID" \
     --set-string cluster.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp="$BACKUP_PITR_DATE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
