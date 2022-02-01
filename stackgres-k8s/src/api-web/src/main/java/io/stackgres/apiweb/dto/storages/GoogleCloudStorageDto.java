@@ -17,7 +17,7 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AzureBlobStorage {
+public class GoogleCloudStorageDto {
 
   @JsonProperty("bucket")
   @NotNull(message = "The bucket is required")
@@ -26,10 +26,10 @@ public class AzureBlobStorage {
   @JsonProperty("path")
   private String path;
 
-  @JsonProperty("azureCredentials")
+  @JsonProperty("gcpCredentials")
   @NotNull(message = "The credentials is required")
   @Valid
-  private AzureBlobStorageCredentials credentials;
+  private GoogleCloudCredentialsDto credentials;
 
   public String getBucket() {
     return bucket;
@@ -47,11 +47,11 @@ public class AzureBlobStorage {
     this.path = path;
   }
 
-  public AzureBlobStorageCredentials getCredentials() {
+  public GoogleCloudCredentialsDto getCredentials() {
     return credentials;
   }
 
-  public void setCredentials(AzureBlobStorageCredentials credentials) {
+  public void setCredentials(GoogleCloudCredentialsDto credentials) {
     this.credentials = credentials;
   }
 

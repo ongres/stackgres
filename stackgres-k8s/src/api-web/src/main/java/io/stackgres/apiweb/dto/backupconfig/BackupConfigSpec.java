@@ -12,7 +12,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.apiweb.dto.storages.BackupStorage;
+import io.stackgres.apiweb.dto.storages.BackupStorageDto;
 import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
@@ -23,18 +23,18 @@ public class BackupConfigSpec {
   @JsonProperty("storage")
   @NotNull(message = "The storage is required")
   @Valid
-  private BackupStorage storage;
+  private BackupStorageDto storage;
 
   @JsonProperty("baseBackups")
   @NotNull(message = "Base backup configuration is required")
   @Valid
   private BaseBackupConfig baseBackups;
 
-  public BackupStorage getStorage() {
+  public BackupStorageDto getStorage() {
     return storage;
   }
 
-  public void setStorage(BackupStorage storage) {
+  public void setStorage(BackupStorageDto storage) {
     this.storage = storage;
   }
 

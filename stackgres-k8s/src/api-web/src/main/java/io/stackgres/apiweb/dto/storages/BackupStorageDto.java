@@ -17,7 +17,7 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class BackupStorage {
+public class BackupStorageDto {
 
   @JsonProperty("type")
   @NotNull(message = "The storage type is required")
@@ -25,19 +25,19 @@ public class BackupStorage {
 
   @JsonProperty("s3")
   @Valid
-  private AwsS3Storage s3;
+  private AwsS3StorageDto s3;
 
   @JsonProperty("s3Compatible")
   @Valid
-  private AwsS3CompatibleStorage s3Compatible;
+  private AwsS3CompatibleStorageDto s3Compatible;
 
   @JsonProperty("gcs")
   @Valid
-  private GoogleCloudStorage gcs;
+  private GoogleCloudStorageDto gcs;
 
   @JsonProperty("azureBlob")
   @Valid
-  private AzureBlobStorage azureBlob;
+  private AzureBlobStorageDto azureBlob;
 
   public String getType() {
     return type;
@@ -47,35 +47,35 @@ public class BackupStorage {
     this.type = type;
   }
 
-  public AwsS3Storage getS3() {
+  public AwsS3StorageDto getS3() {
     return s3;
   }
 
-  public void setS3(AwsS3Storage s3) {
+  public void setS3(AwsS3StorageDto s3) {
     this.s3 = s3;
   }
 
-  public AwsS3CompatibleStorage getS3Compatible() {
+  public AwsS3CompatibleStorageDto getS3Compatible() {
     return s3Compatible;
   }
 
-  public void setS3Compatible(AwsS3CompatibleStorage s3Compatible) {
+  public void setS3Compatible(AwsS3CompatibleStorageDto s3Compatible) {
     this.s3Compatible = s3Compatible;
   }
 
-  public GoogleCloudStorage getGcs() {
+  public GoogleCloudStorageDto getGcs() {
     return gcs;
   }
 
-  public void setGcs(GoogleCloudStorage gcs) {
+  public void setGcs(GoogleCloudStorageDto gcs) {
     this.gcs = gcs;
   }
 
-  public AzureBlobStorage getAzureBlob() {
+  public AzureBlobStorageDto getAzureBlob() {
     return azureBlob;
   }
 
-  public void setAzureBlob(AzureBlobStorage azureBlob) {
+  public void setAzureBlob(AzureBlobStorageDto azureBlob) {
     this.azureBlob = azureBlob;
   }
 

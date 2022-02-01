@@ -17,7 +17,7 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AwsS3CompatibleStorage {
+public class AwsS3StorageDto {
 
   @JsonProperty("bucket")
   @NotNull(message = "The bucket is required")
@@ -29,16 +29,10 @@ public class AwsS3CompatibleStorage {
   @JsonProperty("awsCredentials")
   @NotNull(message = "The credentials is required")
   @Valid
-  private AwsCredentials credentials;
+  private AwsCredentialsDto credentials;
 
   @JsonProperty("region")
   private String region;
-
-  @JsonProperty("endpoint")
-  private String endpoint;
-
-  @JsonProperty("enablePathStyleAddressing")
-  private Boolean enablePathStyleAddressing;
 
   @JsonProperty("storageClass")
   private String storageClass;
@@ -59,11 +53,11 @@ public class AwsS3CompatibleStorage {
     this.path = path;
   }
 
-  public AwsCredentials getCredentials() {
+  public AwsCredentialsDto getCredentials() {
     return credentials;
   }
 
-  public void setCredentials(AwsCredentials credentials) {
+  public void setCredentials(AwsCredentialsDto credentials) {
     this.credentials = credentials;
   }
 
@@ -73,22 +67,6 @@ public class AwsS3CompatibleStorage {
 
   public void setRegion(String region) {
     this.region = region;
-  }
-
-  public String getEndpoint() {
-    return endpoint;
-  }
-
-  public void setEndpoint(String endpoint) {
-    this.endpoint = endpoint;
-  }
-
-  public Boolean isForcePathStyle() {
-    return enablePathStyleAddressing;
-  }
-
-  public void setForcePathStyle(Boolean enablePathStyleAddressing) {
-    this.enablePathStyleAddressing = enablePathStyleAddressing;
   }
 
   public String getStorageClass() {

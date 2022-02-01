@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.dto.storages;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,17 +17,26 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AwsCredentials {
+public class AzureBlobStorageCredentialsDto {
 
-  @JsonProperty("accessKeyId")
+  @JsonProperty("storageAccount")
+  private String account;
+
+  @JsonProperty("accessKey")
   private String accessKey;
 
-  @JsonProperty("secretAccessKey")
-  private String secretKey;
-
   @JsonProperty("secretKeySelectors")
+  @NotNull(message = "The secret Key Selectors are required")
   @Valid
-  private AwsSecretKeySelector secretKeySelectors = new AwsSecretKeySelector();
+  private AzureBlobSecretKeySelectorDto secretKeySelectors;
+
+  public String getAccount() {
+    return account;
+  }
+
+  public void setAccount(String account) {
+    this.account = account;
+  }
 
   public String getAccessKey() {
     return accessKey;
@@ -36,19 +46,11 @@ public class AwsCredentials {
     this.accessKey = accessKey;
   }
 
-  public String getSecretKey() {
-    return secretKey;
-  }
-
-  public void setSecretKey(String secretKey) {
-    this.secretKey = secretKey;
-  }
-
-  public AwsSecretKeySelector getSecretKeySelectors() {
+  public AzureBlobSecretKeySelectorDto getSecretKeySelectors() {
     return secretKeySelectors;
   }
 
-  public void setSecretKeySelectors(AwsSecretKeySelector secretKeySelectors) {
+  public void setSecretKeySelectors(AzureBlobSecretKeySelectorDto secretKeySelectors) {
     this.secretKeySelectors = secretKeySelectors;
   }
 
