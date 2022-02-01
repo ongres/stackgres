@@ -27,6 +27,10 @@ describe('Create SGDbOp', () => {
         cy.get('label[for="benchmark"]')
             .click()
 
+        // Test Benchmark input
+        cy.get('label[for="benchmark"]')
+            .click()
+
         // Test runAt
         cy.get('input[data-field="spec.runAt"]')
             .type('9999-01-01 00:00:00')
@@ -98,6 +102,10 @@ describe('Create SGDbOp', () => {
         // Test target SGCluster
         cy.get('select[data-field="spec.sgCluster"]')
             .select('advanced-' + resourcename)
+        
+        // Test Vaccum input
+        cy.get('label[for="vacuum"]')
+            .click()
 
         // Test Vaccum input
         cy.get('label[for="vacuum"]')

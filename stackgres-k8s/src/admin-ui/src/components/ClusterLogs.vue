@@ -754,9 +754,7 @@
 					$('.filter.open').removeClass('open');
 				}
 
-				let params = '';
-
-				params += '?sort=asc&records='+this.records;
+				let params = '?sort=asc&records='+this.records;
 
 				if(vc.datePicker.length) {
 					vc.liveMonitoring = false;
@@ -873,7 +871,6 @@
 				switch(time) {
 
 					case '1d':
-						
 						vc.dateStart = vc.logs[0].logTime + ',' + vc.logs[0].logTimeIndex;
 						date.setHours(23,59,59,59);
 						vc.dateEnd = date.format('YYYY-MM-DDTHH:mm:ss');
@@ -907,7 +904,7 @@
 					!vc.scrollAwait &&
 					!$('.records').hasClass('loading') && 
 					($('.scroller').scrollTop() > vc.lastScroll) &&
-					(( ($('.scroller').scrollTop() + $('.scroller').innerHeight() >= ($('.scroller')[0].scrollHeight - 300) )) ) ) {
+					(( ($('.scroller').scrollTop() + $('.scroller').innerHeight() >= ($('.scroller')[0].scrollHeight - 500) )) ) ) {
 
 					let ltime = vc.logs[vc.logs.length-1].logTime;
 					let lindex = vc.logs[vc.logs.length-1].logTimeIndex;
@@ -1055,7 +1052,7 @@
 		border-radius: 100%;
 		content: " ";
 		position: fixed;
-		bottom: 75px;
+		bottom: 100px;
 		right: 55px;
 		width: 35px;
 		height: 35px;
@@ -1407,21 +1404,6 @@
 
 	.scroller {
 		height: 100%;
-	}
-
-	#loadingMethod {
-		top: 0;
-		right: -3px;
-	}
-
-	#loadingMethod[disabled] {
-		border: 1px solid var(--textColor);
-	}
-
-	label[for="loadingMethod"] {
-		display: inline-block;
-		width: auto;
-		margin-top: 5px;
 	}
 
 </style>

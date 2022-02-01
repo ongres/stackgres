@@ -43,17 +43,20 @@ done
 
 helm template --namespace stackgres stackgres-operator \
   "target/stackgres-operator" \
+  --kube-version 1.23 \
   --set-string adminui.service.type=LoadBalancer \
   >> "target/templates/stackgres-operator-demo.yml"
 
 helm template --namespace default simple \
   "target/stackgres-cluster" \
+  --kube-version 1.23 \
   --set configurations.create=true \
   --set cluster.create=false \
   > "target/templates/stackgres-simple-config-demo.yml"
 
 helm template --namespace default simple \
   "target/stackgres-cluster" \
+  --kube-version 1.23 \
   --set configurations.create=false \
   --set cluster.create=true \
   --set profiles=null \
@@ -66,7 +69,8 @@ helm template --namespace default simple \
 rm -rf target/minio
 
 helm template --namespace default minio \
-  ../../e2e/helm/minio-7.0.1.tgz \
+  ../../e2e/helm/minio-8.0.10.tgz \
+  --kube-version 1.23 \
   --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true \
   | grep -v '^ \+namespace: "\?default"\?$' \
   > "target/templates/minio-demo.yml"

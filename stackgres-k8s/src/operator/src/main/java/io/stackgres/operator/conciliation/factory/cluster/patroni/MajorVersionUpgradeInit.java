@@ -14,8 +14,10 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
@@ -40,17 +42,18 @@ import io.stackgres.operator.conciliation.factory.PostgresContainerContext;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
 @InitContainer(ClusterInitContainer.INIT_MAJOR_VERSION_UPGRADE)
-public class InitMajorVersionUpgrade implements ContainerFactory<StackGresClusterContainerContext> {
+public class MajorVersionUpgradeInit implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final VolumeMountsProvider<PostgresContainerContext> majorVersionUpgradeMounts;
   private final VolumeMountsProvider<ContainerContext> templateMounts;
 
   @Inject
-  public InitMajorVersionUpgrade(
+  public MajorVersionUpgradeInit(
       @ProviderName(MAJOR_VERSION_UPGRADE)
           VolumeMountsProvider<PostgresContainerContext> majorVersionUpgradeMounts,
       @ProviderName(SCRIPT_TEMPLATES)
@@ -118,6 +121,10 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
                 ClusterStatefulSetPath.TEMPLATES_PATH.path()
                     + "/"
                     + ClusterStatefulSetPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH.filename())
+            .withEnvFrom(new EnvFromSourceBuilder()
+                .withConfigMapRef(new ConfigMapEnvSourceBuilder()
+                    .withName(PatroniConfigMap.name(clusterContext)).build())
+                .build())
             .addToEnv(
                 new EnvVarBuilder()
                     .withName("PRIMARY_INSTANCE")
@@ -164,7 +171,8 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
                     .withValueFrom(new EnvVarSourceBuilder()
                         .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
                         .build())
-                    .build())
+                    .build(),
+                ClusterStatefulSetPath.ETC_POSTGRES_PATH.envVar())
             .addAllToEnv(majorVersionUpgradeMounts.getDerivedEnvVars(postgresContainerContext))
             .withVolumeMounts(templateMounts.getVolumeMounts(context))
             .addAllToVolumeMounts(
@@ -177,6 +185,10 @@ public class InitMajorVersionUpgrade implements ContainerFactory<StackGresCluste
             .addToVolumeMounts(new VolumeMountBuilder()
                 .withName(PatroniStaticVolume.LOG.getVolumeName())
                 .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
+                .build())
+            .addToVolumeMounts(new VolumeMountBuilder()
+                .withName(StatefulSetDynamicVolumes.POSTGRES_CONFIG.getVolumeName())
+                .withMountPath(ClusterStatefulSetPath.ETC_POSTGRES_PATH.path())
                 .build())
             .build();
   }

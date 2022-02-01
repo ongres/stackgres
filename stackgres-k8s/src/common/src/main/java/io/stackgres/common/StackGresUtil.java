@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -53,6 +55,12 @@ public interface StackGresUtil {
 
   String DATA_SUFFIX = "-data";
   String BACKUP_SUFFIX = "-backup";
+  Pattern EMPTY_LINE_PATTERN = Pattern.compile(
+      "^\\s*(:?#.*)?$");
+  Pattern PARAMETER_PATTERN = Pattern.compile(
+      "^\\s*(?<parameter>[^\\s=]+)"
+          + "\\s*[=\\s]\\s*"
+          + "(?:'(?<quoted>.*)'|(?<unquoted>(?:|[^'\\s#][^\\s#]*)))(?:\\s*#.*)?\\s*$");
 
   static String statefulSetDataPersistentVolumeName(ClusterContext cluster) {
     return ResourceUtil
@@ -414,6 +422,38 @@ public interface StackGresUtil {
     }
     // fallback default value
     return ".svc.cluster.local";
+  }
+
+  /**
+   * Convert a {@code Map<String, String>} to a plain Postgres configuration.
+   */
+  static String toPlainPostgresConfig(Map<String, String> source) {
+    return Seq.seq(source.entrySet())
+        .map(e -> e.getKey() + "='" + e.getValue().replaceAll("'", "''") + "'")
+        .toString("\n");
+  }
+
+  /**
+   * Convert a plain Postgres configuration to a {@code Map<String, String>}.
+   */
+  static Map<String, String> fromPlainPostgresConfig(String postgresqlConf) {
+    return Seq.of(postgresqlConf.split("\n"))
+        .filter(line -> !EMPTY_LINE_PATTERN.matcher(line).matches())
+        .map(Tuple::tuple)
+        .map(t -> t.concat(PARAMETER_PATTERN.matcher(t.v1)))
+        .peek(t -> {
+          if (!t.v2.matches()) {
+            throw new IllegalArgumentException(
+                "Line " + t.v1 + " does not match PostgreSQL's configuration format.");
+          }
+        })
+        .map(Tuple2::v2)
+        .filter(Matcher::matches)
+        .collect(ImmutableMap.toImmutableMap(
+            matcher -> matcher.group("parameter"),
+            matcher -> Optional.ofNullable(matcher.group("quoted"))
+              .map(quoted -> quoted.replaceAll("[\\']'", "'"))
+              .orElseGet(() -> matcher.group("unquoted"))));
   }
 
 }

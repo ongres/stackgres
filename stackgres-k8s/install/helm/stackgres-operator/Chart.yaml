@@ -1,7 +1,7 @@
 apiVersion: v2
 name: stackgres-operator
-version: "1.1.0-SNAPSHOT"
-kubeVersion: "1.16.0-0 - 1.22.x-O"
+version: "1.1.0"
+kubeVersion: "1.16.0-0 - 1.23.x-O"
 description: StackGres Operator
 keywords:
   - stackgres
@@ -18,5 +18,5 @@ maintainers:
     email: info@ongres.com
     url: https://ongres.com
 icon: https://assets.gitlab-static.net/uploads/-/system/project/avatar/12584701/logo-stackgres.png?width=64
-appVersion: "1.1.0-SNAPSHOT"
+appVersion: "1.1.0"
 deprecated: false

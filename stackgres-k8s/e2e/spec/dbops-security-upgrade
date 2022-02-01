@@ -56,7 +56,15 @@ e2e_test_install() {
     fi
   fi
 
-  install_prometheus_operator_for_version 12.8.0
+  local VERSION_AS_NUMBER VERSIONAS_NUMBER_0_9_5
+  VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
+  VERSION_0_9_5="$(get_version_as_number 0.9.5)"
+  if [ "$VERSION_AS_NUMBER" -gt "$VERSION_0_9_5" ]
+  then
+    install_prometheus_operator
+  else
+    install_prometheus_operator_for_version 12.8.0
+  fi
   install_operator_previous_version \
     --set grafana.autoEmbed=true \
     --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"

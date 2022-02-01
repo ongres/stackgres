@@ -5,8 +5,9 @@
   script:
     - |
       [ "$DEBUG" != true ] || set -x
-      TARGET_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME-$IMAGE_ARCH"
-      mkdir -p "$HOME/.docker"; echo '{"experimental": "enabled"}' > "$HOME/.docker/config.json"
+      mkdir -p "$HOME/.docker"
+      echo '{"experimental": "enabled"}' > "$HOME/.docker/config.json"
+      TARGET_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME-$ARCH"
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       cat << EOF > build-image.sh
       if docker manifest inspect "$TARGET_IMAGE_NAME" 2>/dev/null
@@ -24,6 +25,39 @@
       flock "/tmp/stackgres-build-$IMAGE_NAME" sh -xe build-image.sh
   retry: 2
 
+.pre build image multi archs:
+  image: docker:20.10.6
+  tags:
+    - stackgres-runner-v2
+  stage: pre build multi archs
+  timeout: 1 hour
+  script:
+    - |
+      [ "$DEBUG" != true ] || set -x
+      mkdir -p "$HOME/.docker"
+      echo '{"experimental": "enabled"}' > "$HOME/.docker/config.json"
+      TARGET_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME"
+      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+      ARCH_LIST="amd64 $(
+        if [ "$DO_ARM" = true ] \
+          || { [ "$SKIP_ARM" != true ] && [ -n "$CI_COMMIT_TAG" ]; }
+        then
+          echo arm64
+        fi
+        )"
+      if docker manifest inspect "$TARGET_IMAGE_NAME" >/dev/null 2>&1
+      then
+        exit
+      fi
+      docker manifest rm "$TARGET_IMAGE_NAME" 2>/dev/null || true
+      docker manifest create "$TARGET_IMAGE_NAME" $(
+        for ARCH in $ARCH_LIST
+        do
+          echo "$TARGET_IMAGE_NAME-$ARCH "
+        done)
+      docker manifest push "$TARGET_IMAGE_NAME"
+  retry: 2
+
 build ci image amd64:
   extends: .pre build image
   tags:
@@ -31,7 +65,7 @@ build ci image amd64:
     - linux-amd64
   variables:
     IMAGE_NAME: $SG_CI_IMAGE_NAME
-    IMAGE_ARCH: 'amd64'
+    ARCH: 'amd64'
     IMAGE_DOCKERFILE: stackgres-k8s/ci/build/Dockerfile-ci
 
 build ci image arm64:
@@ -41,7 +75,7 @@ build ci image arm64:
     - linux-arm64
   variables:
     IMAGE_NAME: $SG_CI_IMAGE_NAME
-    IMAGE_ARCH: 'arm64'
+    ARCH: 'arm64'
     IMAGE_DOCKERFILE: stackgres-k8s/ci/build/Dockerfile-ci
   only:
     variables:
@@ -55,7 +89,7 @@ build builder image amd64:
     - linux-amd64
   variables:
     IMAGE_NAME: $BUILDER_IMAGE_NAME
-    IMAGE_ARCH: 'amd64'
+    ARCH: 'amd64'
     IMAGE_DOCKERFILE: stackgres-k8s/ci/build/Dockerfile-builder
 
 build builder image arm64:
@@ -65,42 +99,12 @@ build builder image arm64:
     - linux-arm64
   variables:
     IMAGE_NAME: $BUILDER_IMAGE_NAME
-    IMAGE_ARCH: 'arm64'
+    ARCH: 'arm64'
     IMAGE_DOCKERFILE: stackgres-k8s/ci/build/Dockerfile-builder
   only:
     variables:
       - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_ARM
-
-.pre build image multi archs:
-  image: docker:20.10.6
-  tags:
-    - stackgres-runner-v2
-  stage: pre build multi archs
-  timeout: 1 hour
-  script:
-    - |
-      [ "$DEBUG" != true ] || set -x
-      TARGET_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME"
-      docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-      ARCH_LIST="amd64 $(
-        if [ "$DO_ARM" = true ] \
-          || { [ "$SKIP_ARM" != true ] && [ -n "$CI_COMMIT_TAG" ]; }
-        then
-          echo arm64
-        fi
-        )"
-      if ! docker manifest inspect "$TARGET_IMAGE_NAME" >/dev/null 2>&1
-      then
-        docker manifest rm "$TARGET_IMAGE_NAME" 2>/dev/null || true
-        docker manifest create "$TARGET_IMAGE_NAME" $(
-          for IMAGE_ARCH in $ARCH_LIST
-          do
-            echo "$TARGET_IMAGE_NAME-$IMAGE_ARCH "
-          done)
-        docker manifest push "$TARGET_IMAGE_NAME"
-      fi
-  retry: 2
 
 build ci image multi archs:
   extends: .pre build image multi archs

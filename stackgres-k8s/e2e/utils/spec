@@ -416,7 +416,7 @@ calculate_spec_hashes() {
 
 get_variables_for_hash() {
   env -0 \
-    | cut -z -d = -f 1 | tr '\0' '\n' | sort | uniq \
+    | tr '\n\0' ' \n' | cut -d = -f 1 | sort | uniq \
     | while read -r NAME
       do
         if [ x != "x$NAME" ] && echo " $(echo "$E2E_HASH_VARIABLES" | tr '\n' ' ' | tr -s ' ') " | grep -qF " $NAME "

@@ -2565,7 +2565,7 @@
     .searchBar + .helpTooltip {
         top: -15px;
     }
-
+    
     .warning.babelfish label, .warning.babelfish p, .warning.babelfish .col {
         margin-bottom: 0;
     }
