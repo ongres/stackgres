@@ -19,6 +19,8 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
@@ -88,6 +90,8 @@ class DbOpsMajorVersionUpgradeValidatorTest {
         ALL_SUPPORTED_POSTGRES_VERSIONS);
 
     cluster = getDefaultCluster();
+    cluster.getMetadata().getAnnotations().put(
+        StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().getPostgres().setVersion(SECOND_PG_MAJOR_VERSION);
 
     postgresConfig = getDefaultPostgresConfig();
