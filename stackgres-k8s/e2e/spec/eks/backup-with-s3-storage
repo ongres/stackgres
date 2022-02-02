@@ -5,6 +5,7 @@ e2e_test_install() {
   local AWS_ACCOUNT
   AWS_ACCOUNT="$(aws sts get-caller-identity | jq -r '.Account')"
   e2e_test_uninstall || true
+  aws s3 mb "s3://stackgres-e2e/"
 
   cat << EOF > "$LOG_PATH/policy.json"
 {

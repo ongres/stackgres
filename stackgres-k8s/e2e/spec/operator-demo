@@ -37,7 +37,7 @@ test_yamls() {
     | sed "s|image: \"stackgres/jobs:.*\"$|image: \"$JOBS_IMAGE_NAME\"|" \
     | sed "s|image: 'stackgres/admin-ui:.*'$|image: \"$ADMINUI_IMAGE_NAME\"|" \
     | sed "$(printf '/name: OPERATOR_IMAGE_VERSION$/{$!{N;s/name: OPERATOR_IMAGE_VERSION\\n\( *\)value: .*$/name: OPERATOR_IMAGE_VERSION\\n\\1value: '"'%s'"'/;ty;P;D;:y}}' "$IMAGE_TAG")" \
-    | sed "s|imagePullPolicy:.*$|imagePullPolicy: $(operator_pull_policy)|" \
+    | sed "s|imagePullPolicy:.*$|imagePullPolicy: $E2E_OPERATOR_PULL_POLICY|" \
     | if grep -q 'http%3A%2F%2Fstackgres-operator-extensions-cache\.stackgres%3FsetHttpScheme%3Dtrue' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"
       then
         sed "s|value: \"https://extensions.stackgres.io/postgres/repository?|value: \"$ESCAPED_EXTENSIONS_REPOSITORY_URL$(
@@ -58,7 +58,7 @@ test_yamls() {
   grep -qF "image: \"$JOBS_IMAGE_NAME\"" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "image: \"$ADMINUI_IMAGE_NAME\"" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "value: '$IMAGE_TAG'" "${LOG_PATH}/stackgres-operator-demo.yml"
-  grep -qF "imagePullPolicy: $(operator_pull_policy)" "${LOG_PATH}/stackgres-operator-demo.yml"
+  grep -qF "imagePullPolicy: $E2E_OPERATOR_PULL_POLICY" "${LOG_PATH}/stackgres-operator-demo.yml"
   if grep -q 'http%3A%2F%2Fstackgres-operator-extensions-cache\.stackgres%3FsetHttpScheme%3Dtrue' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"
   then
     grep -qF "value: \"$EXTENSIONS_REPOSITORY_URL$(
@@ -190,13 +190,13 @@ test_packages() {
   helm install --namespace "${OPERATOR_NAMESPACE}" stackgres-operator \
     "${STACKGRES_PACKAGES}/stackgres-operator.tgz" \
     --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
-    --set-string "operator.image.pullPolicy=$(operator_pull_policy)" \
+    --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
-    --set-string "restapi.image.pullPolicy=$(operator_pull_policy)" \
+    --set-string "restapi.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string jobs.image.name="${JOBS_IMAGE_NAME%:*}" --set-string jobs.image.tag="${JOBS_IMAGE_NAME#*:}" \
-    --set-string "jobs.image.pullPolicy=$(operator_pull_policy)" \
+    --set-string "jobs.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
-    --set-string "adminui.image.pullPolicy=$(operator_pull_policy)" \
+    --set-string "adminui.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
     --set adminui.service.type=LoadBalancer
 

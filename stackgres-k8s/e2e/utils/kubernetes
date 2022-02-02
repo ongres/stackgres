@@ -29,7 +29,7 @@ setup_k8s() {
 
   KUBERNETES_VERSION_NUMBER="$(kubectl version -o json 2>/dev/null)"
   KUBERNETES_VERSION_NUMBER="$(printf '%s' "$KUBERNETES_VERSION_NUMBER" \
-    | jq '(.serverVersion.major | tonumber) * 100 + (.serverVersion.minor | tonumber)')"
+    | jq '(.serverVersion.major | sub("[^0-9]";"";"g") | tonumber) * 100 + (.serverVersion.minor | sub("[^0-9]";"";"g") | tonumber)')"
 }
 
 create_namespace_if_not_exists() {

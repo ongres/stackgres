@@ -8,7 +8,8 @@ K8S_AZ_NODE_SIZE="${K8S_AZ_NODE_SIZE:-Standard_F2}"
 K8S_AZ_NODE_COUNT="${K8S_AZ_NODE_COUNT:-3}"
 K8S_AZ_REGISTRY="${K8S_AZ_REGISTRY:-stackgrese2e}"
 
-export E2E_USE_INTERMIDIATE_PRIVATE_REPO=true
+export E2E_USE_INTERMIDIATE_PRIVATE_REPO="${E2E_USE_INTERMIDIATE_PRIVATE_REPO:-true}"
+export E2E_OPERATOR_PULL_POLICY=Always
 
 if [ "$K8S_AZ_NODE_SIZE" = "Standard_F2" ] && [ "$E2E_PARALLELISM" -gt "$K8S_AZ_NODE_COUNT" ]
 then
@@ -79,10 +80,6 @@ delete_k8s(){
 load_image_k8s() {
   echo "Cannot load images directly to k8s in a aks environment"
   exit 1
-}
-
-operator_pull_policy() {
-  echo Always
 }
 
 get_k8s_versions() {

@@ -11,9 +11,11 @@ K8S_EKS_REGION="${K8S_EKS_REGION:-us-west-2}"
 K8S_EKS_NODE_TYPE="${K8S_EKS_NODE_TYPE:-m5.large}"
 K8S_EKS_DISK_SIZE="${K8S_EKS_DISK_SIZE:-20}"
 K8S_EKS_OPTS="$K8S_EKS_OPTS"
-E2E_USE_INTERMIDIATE_PRIVATE_REPO=true
 
-export K8S_EKS_NAME K8S_VERSION K8S_EKS_REGION K8S_EKS_NODE_LOCATIONS K8S_EKS_NODE_TYPE K8S_EKS_OPTS E2E_USE_INTERMIDIATE_PRIVATE_REPO
+export E2E_USE_INTERMIDIATE_PRIVATE_REPO="${E2E_USE_INTERMIDIATE_PRIVATE_REPO:-true}"
+export E2E_OPERATOR_PULL_POLICY=Always
+
+export K8S_EKS_NAME K8S_VERSION K8S_EKS_REGION K8S_EKS_NODE_LOCATIONS K8S_EKS_NODE_TYPE K8S_EKS_OPTS
 
 get_k8s_env_version() {
   echo "eksctl version $(eksctl version)"
@@ -39,13 +41,12 @@ reset_k8s() {
   delete_k8s
   eksctl create cluster --name "$K8S_EKS_NAME" \
     --region "$K8S_EKS_REGION" \
+    --spot \
     --node-type "$K8S_EKS_NODE_TYPE" \
     --node-volume-size "$K8S_EKS_DISK_SIZE" \
     --nodes 3 \
     --version "$(echo "$K8S_VERSION" | cut -d . -f 1-2)" \
     $K8S_EKS_OPTS
-
-  aws s3 mb "s3://stackgres-e2e/"
 
   echo "...done"
 }
@@ -65,21 +66,12 @@ delete_k8s() {
   aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
     | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % sh -c "aws ec2 delete-volume --region $K8S_EKS_REGION --volume-id % || true" 
 
-  if aws s3 ls | cut -d ' ' -f 3 | grep -q stackgres-e2e
-  then
-    aws s3 rb "s3://stackgres-e2e/" --force
-  fi
-
   echo "...done"
 }
 
 load_image_k8s() {
   echo "Cannot load images directly to k8s in a eks environment"
   exit 1
-}
-
-operator_pull_policy() {
-  echo Always
 }
 
 get_k8s_versions() {
@@ -91,32 +83,32 @@ get_k8s_versions() {
 EOF
 }
 
-excluded_customresourcedefinitions() {
-  echo '.*\.aws'
-  echo '.*\.amazonaws\.com'
-}
-
-excluded_clusterroles() {
-  echo 'eks:.*'
-  echo 'aws-node'
-  echo 'vpc-resource-controller-role'
-}
-
-excluded_clusterrolebindings() {
-  echo 'eks:.*'
-  echo 'aws-node'
-  echo 'vpc-resource-controller-rolebinding'
-}
-
-excluded_podsecuritypolicies() {
-  echo 'eks\.privileged'
-}
-
 excluded_validatingwebhookconfigurations() {
   echo "vpc-resource-validating-webhook"
 }
 
 excluded_mutatingwebhookconfigurations() {
-  echo "vpc-resource-mutating-webhook"
   echo "pod-identity-webhook"
+  echo "vpc-resource-mutating-webhook"
+}
+
+excluded_customresourcedefinitions() {
+  echo ".*\.amazonaws\.com"
+  echo ".*\.k8s\.aws"
+}
+
+excluded_podsecuritypolicies() {
+  echo "eks\.privileged"
+}
+
+excluded_clusterroles() {
+  echo "aws-node"
+  echo "eks:.*"
+  echo "vpc-resource-controller-role"
+}
+
+excluded_clusterrolebindings() {
+  echo "aws-node"
+  echo "eks:.*"
+  echo "vpc-resource-controller-rolebinding"
 }
