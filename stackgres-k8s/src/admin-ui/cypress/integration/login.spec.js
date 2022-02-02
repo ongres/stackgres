@@ -2,10 +2,20 @@ describe('StackGres Login', () => {
 
     const username = Cypress.env('username')
     const password = Cypress.env('password')
-    const host = Cypress.env('host')
+
+    before( () => {
+      cy.visit('/');
+
+      cy.get('#nav').then(nav => {
+        if(nav.find('#logout').length > 0) {   
+            cy.get('#logout > a')
+            .click()
+        }
+      })
+    });
 
     it('Login page should load', () => {
-      cy.visit(host);
+      cy.visit('/');
     });
 
     it('Login form should be visible', () => {

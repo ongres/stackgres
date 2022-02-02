@@ -1,12 +1,28 @@
 describe('Create SGCluster', () => {
 
-    const host = Cypress.env('host')
-    const resourcename = Cypress.env('resourcename')
+    const namespace = Cypress.env('namespace')
+    let resourceName;
+
+    before( () => {
+        cy.login()
+
+        generateRandomString = () => Cypress._.random(0, 1e6)
+
+        resourceName = generateRandomString()
+    });
 
     beforeEach( () => {
-        cy.login()
-        cy.visit(host + '/default/sgclusters/new')
-    })
+        Cypress.Cookies.preserveOnce('sgToken')
+        cy.visit(namespace + '/sgclusters/new')
+    });
+
+    after( () => {
+        cy.deleteCluster(namespace, 'basic-' + resourceName);
+
+        cy.deleteCluster(namespace, 'babelfish-' + resourceName);
+
+        cy.deleteCluster(namespace, 'advanced-' + resourceName);
+    });
 
     it('Create SGCluster form should be visible', () => {
         cy.get('form#createCluster')
@@ -16,7 +32,7 @@ describe('Create SGCluster', () => {
     it('Creating a basic SGCluster should be possible', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
-            .type('basic-' + resourcename)
+            .type('basic-' + resourceName)
 
         // Test Submit form
         cy.get('form#createCluster button[type="submit"]')
@@ -24,17 +40,16 @@ describe('Create SGCluster', () => {
         
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Cluster "basic-' + resourcename + '" created successfully')
+                expect($notification).contain('Cluster "basic-' + resourceName + '" created successfully')
             })
 
-        cy.location('pathname').should('eq', '/admin/default/sgclusters')
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgclusters')
     });
 
-    it('Creating a SGCluster with Babelfish should be possible', () => {
-        
+    it('Creating a SGCluster with Babelfish should be possible', () => {  
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
-            .type('babelfish-' + resourcename)
+            .type('babelfish-' + resourceName)
         
         // Test enabling babelfish
         cy.get('label[data-field="spec.postgres.flavor.babelfish"]')
@@ -48,21 +63,20 @@ describe('Create SGCluster', () => {
         
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Cluster "babelfish-' + resourcename + '" created successfully')
+                expect($notification).contain('Cluster "babelfish-' + resourceName + '" created successfully')
             })
 
-        cy.location('pathname').should('eq', '/admin/default/sgclusters')
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgclusters')
     });
 
     it('Creating an advanced SGCluster should be possible', () => {
-
         // Enable advanced options
         cy.get('form#createCluster input#advancedMode')
             .click()
         
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
-            .type('advanced-' + resourcename)
+            .type('advanced-' + resourceName)
         
         // Test Volume Size
         cy.get('input[data-field="spec.pods.persistentVolume.size"]')
@@ -198,12 +212,10 @@ describe('Create SGCluster', () => {
         
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Cluster "advanced-' + resourcename + '" created successfully')
+                expect($notification).contain('Cluster "advanced-' + resourceName + '" created successfully')
             })
 
         // Test user redirection
-        cy.location('pathname').should('eq', '/admin/default/sgclusters')
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgclusters')
     }); 
-    
-
   })
