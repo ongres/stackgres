@@ -1,7 +1,6 @@
 #!/bin/sh
 
 export E2E_PULLED_IMAGES_PATH="${E2E_PULLED_IMAGES_PATH:-$TARGET_PATH/pulled-images}"
-export E2E_USE_INTERMIDIATE_PRIVATE_REPO="${E2E_USE_INTERMIDIATE_PRIVATE_REPO:-false}"
 
 setup_cache() {
   notrace_function traceable_setup_cache "$@"
@@ -20,57 +19,56 @@ traceable_setup_cache() {
 }
 
 set_up_private_repository() {
-  if ! aws ecr describe-repositories --repository-name "stackgres/operator" > /dev/null
-  then
-    aws ecr create-repository --repository-name "stackgres/operator" 
-  fi
-
-  if ! aws ecr describe-repositories --repository-name "stackgres/restapi" > /dev/null
-  then
-    aws ecr create-repository --repository-name "stackgres/restapi" 
-  fi
-
-  if ! aws ecr describe-repositories --repository-name "stackgres/admin-ui" > /dev/null
-  then
-    aws ecr create-repository --repository-name "stackgres/admin-ui" 
-  fi
-
-  if ! aws ecr describe-repositories --repository-name "stackgres/admin-ui" > /dev/null
-  then
-    aws ecr create-repository --repository-name "stackgres/admin-ui" 
-  fi  
-
-
   export PRIVATE_REPO_URI="$(get_private_repository_uri)"
+  export PRIVATE_REPO_USER="$(get_private_repository_user)"
   export PRIVATE_OPERATOR_IMAGE_NAME="$PRIVATE_REPO_URI/$OPERATOR_IMAGE_NAME"
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/$RESTAPI_IMAGE_NAME"
-  export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/$JOBS_IMAGE_NAME"
   export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/$ADMINUI_IMAGE_NAME"
+  export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/$JOBS_IMAGE_NAME"
+  export PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/$CLUSTER_CONTROLLER_IMAGE_NAME"
+  export PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
 
-  get_private_repository_password | docker login --username AWS --password-stdin "$PRIVATE_REPO_URI"
-  
-  docker tag "$OPERATOR_IMAGE_NAME" "$PRIVATE_OPERATOR_IMAGE_NAME"
-  docker tag "$RESTAPI_IMAGE_NAME" "$PRIVATE_RESTAPI_IMAGE_NAME"
-  docker tag "$JOBS_IMAGE_NAME" "$PRIVATE_JOBS_IMAGE_NAME"
-  docker tag "$ADMINUI_IMAGE_NAME" "$PRIVATE_ADMINUI_IMAGE_NAME"
+  if [ "$E2E_FORCE_IMAGE_PULL" != "true" ]
+  then
+    get_private_repository_password | docker login --username AWS --password-stdin "$PRIVATE_REPO_URI"
 
-  docker push "$PRIVATE_OPERATOR_IMAGE_NAME"
-  docker push "$PRIVATE_RESTAPI_IMAGE_NAME"
-  docker push "$JOBS_IMAGE_NAME"
-  docker push "$PRIVATE_ADMINUI_IMAGE_NAME"  
+    docker tag "$OPERATOR_IMAGE_NAME" "$PRIVATE_OPERATOR_IMAGE_NAME"
+    docker tag "$RESTAPI_IMAGE_NAME" "$PRIVATE_RESTAPI_IMAGE_NAME"
+    docker tag "$JOBS_IMAGE_NAME" "$PRIVATE_JOBS_IMAGE_NAME"
+    docker tag "$ADMINUI_IMAGE_NAME" "$PRIVATE_ADMINUI_IMAGE_NAME"
+    docker tag "$CLUSTER_CONTROLLER_IMAGE_NAME" "$PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME"
+    docker tag "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME" "$PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+
+    local NAME
+    for NAME in operator restapi admin-ui jobs \
+      cluster-controller distributedlogs-controller
+    do
+      if ! aws ecr describe-repositories --repository-name "stackgres/$NAME" > /dev/null
+      then
+        aws ecr create-repository --repository-name "stackgres/$NAME"
+      fi
+    done
+
+    docker push "$PRIVATE_OPERATOR_IMAGE_NAME"
+    docker push "$PRIVATE_RESTAPI_IMAGE_NAME"
+    docker push "$PRIVATE_JOBS_IMAGE_NAME"
+    docker push "$PRIVATE_ADMINUI_IMAGE_NAME"  
+    docker push "$PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME"
+    docker push "$PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+  fi
 
   if kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null
   then  
     kubectl get secret -n "$OPERATOR_NAMESPACE" regcred > /dev/null && kubectl delete secret -n "$OPERATOR_NAMESPACE" regcred
     kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" regcred \
       --docker-server="$PRIVATE_REPO_URI" \
-      --docker-username="AWS" \
+      --docker-username="$PRIVATE_REPO_USER" \
       --docker-password="$(get_private_repository_password)"
   else
     kubectl create namespace "$OPERATOR_NAMESPACE"
     kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" regcred \
     --docker-server="$PRIVATE_REPO_URI" \
-    --docker-username="AWS" \
+    --docker-username="$PRIVATE_REPO_USER" \
     --docker-password="$(get_private_repository_password)"
   fi
 
@@ -105,15 +103,38 @@ EOF
 }
 
 get_private_repository_uri() {
-  local AWS_ACCOUNT_ID AWS_REGION
-  AWS_ACCOUNT_ID="$(aws --output=text sts get-caller-identity | awk '{print $1}')"
-  AWS_REGION="$(aws configure get region)"
+  if [ "$E2E_FORCE_IMAGE_PULL" != "true" ]
+  then
+    local AWS_ACCOUNT_ID AWS_REGION
+    AWS_ACCOUNT_ID="$(aws --output=text sts get-caller-identity | awk '{print $1}')"
+    AWS_REGION="$(aws configure get region)"
 
-  echo "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+    echo "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+  else
+    echo "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+  fi
+}
+
+get_private_repository_user() {
+  if [ "$E2E_FORCE_IMAGE_PULL" != "true" ]
+  then
+    echo AWS
+  else
+    jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json" \
+      | grep -F 'registry.gitlab.com' | head -n 1 | cut -d '|' -f 2 \
+      | base64 -d | cut -d : -f 1
+  fi
 }
 
 get_private_repository_password() {
-  echo "$(aws ecr get-login-password)"
+  if [ "$E2E_FORCE_IMAGE_PULL" != "true" ]
+  then
+    echo "$(aws ecr get-login-password)"
+  else
+    jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json" \
+      | grep -F 'registry.gitlab.com' | head -n 1 | cut -d '|' -f 2 \
+      | base64 -d | cut -d : -f 2
+  fi
 }
 
 load_cached_images_from_local_repository() {
