@@ -40,7 +40,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 
 @Sidecar(AbstractFluentBit.NAME)
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
 @RunningContainer(ClusterRunningContainer.FLUENT_BIT)
 public class FluentBit extends AbstractFluentBit {
 

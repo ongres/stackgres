@@ -35,7 +35,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniServices;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
 @BenchmarkJob("pgbench")
 public class PgbenchBenchmark extends DbOpsJob {
 

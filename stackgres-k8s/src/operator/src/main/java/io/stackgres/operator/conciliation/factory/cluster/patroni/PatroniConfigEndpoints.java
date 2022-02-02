@@ -34,7 +34,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Pos
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
 public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
 
   @Inject

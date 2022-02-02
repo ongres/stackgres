@@ -20,7 +20,7 @@ import io.stackgres.operator.conciliation.factory.Decorator;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
 public class OwnerReferenceDecorator implements
     Decorator<StackGresDbOpsContext> {
 

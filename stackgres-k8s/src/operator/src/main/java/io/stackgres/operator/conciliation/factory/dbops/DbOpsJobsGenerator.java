@@ -23,7 +23,7 @@ import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
 public class DbOpsJobsGenerator implements ResourceGenerator<StackGresDbOpsContext> {
 
   private final DbOpsJobsDiscoverer jobsDiscoverer;

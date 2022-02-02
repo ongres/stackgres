@@ -34,7 +34,7 @@ import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFac
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
 public class RestoreSecret
     implements VolumeFactory<StackGresClusterContext> {
 

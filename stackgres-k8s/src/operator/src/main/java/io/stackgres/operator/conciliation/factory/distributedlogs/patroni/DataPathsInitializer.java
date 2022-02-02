@@ -21,7 +21,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLog
 import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
 @InitContainer(ClusterInitContainer.DATA_PATHS_INITIALIZER)
 public class DataPathsInitializer implements ContainerFactory<DistributedLogsContainerContext> {
 

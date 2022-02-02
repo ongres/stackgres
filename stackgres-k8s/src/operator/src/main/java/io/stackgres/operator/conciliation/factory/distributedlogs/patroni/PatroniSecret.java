@@ -26,7 +26,7 @@ import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLo
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
 public class PatroniSecret implements
     ResourceGenerator<StackGresDistributedLogsContext>, StackGresRandomPasswordKeys {
 

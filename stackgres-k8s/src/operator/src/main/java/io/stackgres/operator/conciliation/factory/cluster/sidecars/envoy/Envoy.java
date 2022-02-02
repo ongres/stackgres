@@ -56,7 +56,7 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 @Sidecar(AbstractEnvoy.NAME)
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
 @RunningContainer(ClusterRunningContainer.ENVOY)
 public class Envoy extends AbstractEnvoy {
 

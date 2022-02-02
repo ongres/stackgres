@@ -13,7 +13,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolumesFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A3, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A3, stopAt = StackGresVersion.V12)
 public class ClusterPatroniStaticVolumesFactory
     extends PatroniStaticVolumesFactory<StackGresClusterContext> {
 }

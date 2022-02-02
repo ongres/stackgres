@@ -39,7 +39,8 @@ public enum StackGresVersion {
   V11B1("1.1.0-beta1"),
   V11RC1("1.1.0-RC1"),
   V11RC2("1.1.0-RC2"),
-  V11("1.1.0");
+  V11("1.1.0"),
+  V12("1.2.0");
 
   public static final StackGresVersion LATEST = Seq.of(StackGresVersion.values())
       .findLast().orElseThrow();
@@ -47,7 +48,8 @@ public enum StackGresVersion {
   public enum StackGresMinorVersion {
     V09("0.9"),
     V10("1.0"),
-    V11("1.1");
+    V11("1.1"),
+    V12("1.2");
 
     public static final StackGresMinorVersion LATEST = Seq.of(StackGresMinorVersion.values())
         .findLast().orElseThrow();

@@ -55,7 +55,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniRoleGen
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
 public class PodTemplateSpecFactory
     implements PodTemplateFactory<StackGresClusterContainerContext> {
 

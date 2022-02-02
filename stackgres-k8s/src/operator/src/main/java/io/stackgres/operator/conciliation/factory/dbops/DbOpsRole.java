@@ -32,7 +32,7 @@ import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
 public class DbOpsRole implements ResourceGenerator<StackGresDbOpsContext> {
 
   public static final String SUFFIX = "-dbops";

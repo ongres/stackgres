@@ -44,7 +44,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 
 @Singleton
 @Sidecar(ClusterController.NAME)
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
 @RunningContainer(ClusterRunningContainer.CLUSTER_CONTROLLER)
 public class ClusterController implements ContainerFactory<StackGresClusterContainerContext> {
 

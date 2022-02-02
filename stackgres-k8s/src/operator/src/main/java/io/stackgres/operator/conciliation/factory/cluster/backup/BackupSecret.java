@@ -31,7 +31,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
 public class BackupSecret
     implements VolumeFactory<StackGresClusterContext> {
 

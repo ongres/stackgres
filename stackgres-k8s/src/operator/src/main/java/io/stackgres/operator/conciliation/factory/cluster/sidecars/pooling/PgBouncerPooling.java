@@ -57,7 +57,7 @@ import org.jetbrains.annotations.NotNull;
 
 @Sidecar("connection-pooling")
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
 @RunningContainer(ClusterRunningContainer.PGBOUNCER)
 public class PgBouncerPooling extends AbstractPgPooling {
 

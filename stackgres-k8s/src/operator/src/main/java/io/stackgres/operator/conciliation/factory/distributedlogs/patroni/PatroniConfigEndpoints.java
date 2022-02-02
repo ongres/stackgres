@@ -30,7 +30,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Pos
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
 public class PatroniConfigEndpoints
     implements ResourceGenerator<StackGresDistributedLogsContext> {
 

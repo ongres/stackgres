@@ -13,7 +13,7 @@ import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLo
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolumesFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
 public class DistributedLogsPatroniStaticVolumesFactory
     extends PatroniStaticVolumesFactory<StackGresDistributedLogsContext> {
 }

@@ -34,7 +34,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniService
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
+@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
 @OpJob("vacuum")
 public class DbOpsVacuumJob extends DbOpsJob {
 

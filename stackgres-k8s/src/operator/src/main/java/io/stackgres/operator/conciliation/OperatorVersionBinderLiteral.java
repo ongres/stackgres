@@ -21,7 +21,7 @@ public class OperatorVersionBinderLiteral extends AnnotationLiteral<OperatorVers
 
   @Override
   public StackGresVersion stopAt() {
-    return StackGresVersion.V11;
+    return StackGresVersion.V12;
   }
 
 }
