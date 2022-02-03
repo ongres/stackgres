@@ -6,6 +6,7 @@
 package io.stackgres.common.crd.sgobjectstorage;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Kind;
@@ -19,7 +20,8 @@ import io.stackgres.common.crd.storages.BackupStorage;
 @Group(CommonDefinition.GROUP)
 @Version(StackGresObjectStorage.VERSION)
 @Kind(StackGresObjectStorage.KIND)
-public class StackGresObjectStorage extends CustomResource<BackupStorage, Void> {
+public class StackGresObjectStorage extends CustomResource<BackupStorage, Void>
+    implements Namespaced {
 
   public static final String VERSION = "v1beta1";
   public static final String KIND = "SGObjectStorage";

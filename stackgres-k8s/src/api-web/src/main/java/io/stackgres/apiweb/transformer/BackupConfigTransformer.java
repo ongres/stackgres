@@ -84,7 +84,7 @@ public class BackupConfigTransformer
   private io.stackgres.common.crd.storages.BackupStorage getCustomResourceStorage(
       BackupStorageDto source
   ) {
-    return storageTransformer.toTarget(source);
+    return storageTransformer.toSource(source);
   }
 
   public BackupConfigSpec getResourceSpec(StackGresBackupConfigSpec source) {
@@ -127,6 +127,6 @@ public class BackupConfigTransformer
     if (source == null) {
       return null;
     }
-    return storageTransformer.toSource(source);
+    return storageTransformer.toTarget(source);
   }
 }

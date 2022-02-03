@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.storages;
 
+import java.util.Objects;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -59,4 +61,22 @@ public class AzureBlobStorageCredentialsDto {
     return StackGresUtil.toPrettyYaml(this);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    AzureBlobStorageCredentialsDto that = (AzureBlobStorageCredentialsDto) o;
+    return Objects.equals(account, that.account)
+        && Objects.equals(accessKey, that.accessKey)
+        && Objects.equals(secretKeySelectors, that.secretKeySelectors);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(account, accessKey, secretKeySelectors);
+  }
 }

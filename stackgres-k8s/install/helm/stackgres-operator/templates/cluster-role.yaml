@@ -52,6 +52,7 @@ rules:
   - sgbackups
   - sgdistributedlogs
   - sgdbops
+  - sgobjectstorages
   verbs:
   - create
   - watch

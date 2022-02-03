@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageStatus;
 import io.stackgres.apiweb.dto.storages.BackupStorageDto;
@@ -23,9 +25,14 @@ public class ObjectStorageTransformer
     extends AbstractDependencyResourceTransformer<ObjectStorageDto, StackGresObjectStorage> {
 
   private final Transformer<BackupStorageDto, BackupStorage> storageTransformer;
+  private final JsonMapper mapper;
 
-  public ObjectStorageTransformer(Transformer<BackupStorageDto, BackupStorage> storageTransformer) {
+  @Inject
+  public ObjectStorageTransformer(
+      Transformer<BackupStorageDto, BackupStorage> storageTransformer,
+      JsonMapper mapper) {
     this.storageTransformer = storageTransformer;
+    this.mapper = mapper;
   }
 
   @Override
@@ -34,10 +41,11 @@ public class ObjectStorageTransformer
       @Nullable StackGresObjectStorage original
   ) {
     StackGresObjectStorage customResource = Optional.ofNullable(original)
+        .map(o -> mapper.convertValue(o, StackGresObjectStorage.class))
         .orElseGet(StackGresObjectStorage::new);
 
     customResource.setMetadata(getCustomResourceMetadata(resource, original));
-    customResource.setSpec(storageTransformer.toTarget(resource.getSpec()));
+    customResource.setSpec(storageTransformer.toSource(resource.getSpec()));
     return customResource;
   }
 
@@ -48,7 +56,8 @@ public class ObjectStorageTransformer
   ) {
 
     ObjectStorageDto dto = new ObjectStorageDto();
-    dto.setSpec(storageTransformer.toSource(customResource.getSpec()));
+    dto.setMetadata(getResourceMetadata(customResource));
+    dto.setSpec(storageTransformer.toTarget(customResource.getSpec()));
     dto.setStatus(new ObjectStorageStatus());
     dto.getStatus().setClusters(clusters);
     return dto;

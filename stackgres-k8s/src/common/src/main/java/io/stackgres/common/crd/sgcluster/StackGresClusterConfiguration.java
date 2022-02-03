@@ -30,6 +30,9 @@ public class StackGresClusterConfiguration {
   @JsonProperty("sgBackupConfig")
   private String backupConfig;
 
+  @JsonProperty("backups")
+  private StackGresClusterBackupConfiguration backups;
+
   public String getPostgresConfig() {
     return postgresConfig;
   }
@@ -54,9 +57,17 @@ public class StackGresClusterConfiguration {
     this.backupConfig = backupConfig;
   }
 
+  public StackGresClusterBackupConfiguration getBackups() {
+    return backups;
+  }
+
+  public void setBackups(StackGresClusterBackupConfiguration backups) {
+    this.backups = backups;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(backupConfig, connectionPoolingConfig, postgresConfig);
+    return Objects.hash(backupConfig, connectionPoolingConfig, postgresConfig, backups);
   }
 
   @Override
@@ -70,7 +81,8 @@ public class StackGresClusterConfiguration {
     StackGresClusterConfiguration other = (StackGresClusterConfiguration) obj;
     return Objects.equals(backupConfig, other.backupConfig)
         && Objects.equals(connectionPoolingConfig, other.connectionPoolingConfig)
-        && Objects.equals(postgresConfig, other.postgresConfig);
+        && Objects.equals(postgresConfig, other.postgresConfig)
+        && Objects.equals(backups, other.backups);
   }
 
   @Override

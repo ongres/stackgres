@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -41,5 +43,23 @@ public class ClusterRestoreFromBackup {
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterRestoreFromBackup that = (ClusterRestoreFromBackup) o;
+    return Objects.equals(uid, that.uid)
+        && Objects.equals(pointInTimeRecovery, that.pointInTimeRecovery);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(uid, pointInTimeRecovery);
   }
 }

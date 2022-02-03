@@ -33,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.BadRequestException;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -115,7 +116,7 @@ import org.mockito.stubbing.Answer;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ClusterResourceMockedTest extends
     AbstractCustomResourceTest<ClusterDto, StackGresCluster,
-    ClusterResource, NamespacedClusterResource> {
+        ClusterResource, NamespacedClusterResource> {
 
   @Mock
   ManagedExecutor managedExecutor;
@@ -376,10 +377,10 @@ class ClusterResourceMockedTest extends
         .thenReturn(Optional.of("true"));
     when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(getResourceName())),
         anyString()))
-            .thenReturn(Optional.of(servicePrimary));
+        .thenReturn(Optional.of(servicePrimary));
     when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.readOnlyName(getResourceName())),
         anyString()))
-            .thenReturn(Optional.of(serviceReplicas));
+        .thenReturn(Optional.of(serviceReplicas));
     when(configMapFinder.findByNameAndNamespace(anyString(), anyString()))
         .thenReturn(Optional.of(configMap));
     when(podFinder.findResourcesWithLabels(any())).thenReturn(podList.getItems());
@@ -447,7 +448,8 @@ class ClusterResourceMockedTest extends
   @Override
   protected ClusterTransformer getTransformer() {
     return new ClusterTransformer(
-        configContext, new ClusterPodTransformer());
+        configContext, new ClusterPodTransformer(),
+        new JsonMapper());
   }
 
   @Override
@@ -530,145 +532,6 @@ class ClusterResourceMockedTest extends
 
   @Override
   protected void checkDto(ClusterDto dto, StackGresCluster resource) {
-    if (resource.getMetadata() != null) {
-      assertNotNull(dto.getMetadata());
-      assertEquals(resource.getMetadata().getNamespace(), dto.getMetadata().getNamespace());
-      assertEquals(resource.getMetadata().getName(), dto.getMetadata().getName());
-      assertEquals(resource.getMetadata().getUid(), dto.getMetadata().getUid());
-    } else {
-      assertNull(dto.getMetadata());
-    }
-
-    final StackGresClusterSpec resourceSpec = resource.getSpec();
-    final ClusterSpec dtoSpec = dto.getSpec();
-    if (resourceSpec != null) {
-      assertNotNull(dtoSpec);
-      assertEquals(resourceSpec.getInstances(), dtoSpec.getInstances());
-      assertEquals(resourceSpec.getPostgres().getVersion(), dtoSpec.getPostgres().getVersion());
-      assertEquals(resourceSpec.getPrometheusAutobind(), dtoSpec.getPrometheusAutobind());
-      assertEquals(resourceSpec.getResourceProfile(), dtoSpec.getSgInstanceProfile());
-
-      final ClusterConfiguration dtoClusterConfigurations = dtoSpec.getConfigurations();
-      final StackGresClusterConfiguration resourceClusterConfiguration =
-          resourceSpec.getConfiguration();
-      if (resourceClusterConfiguration != null) {
-        assertNotNull(dtoClusterConfigurations);
-        assertEquals(resourceClusterConfiguration.getBackupConfig(),
-            dtoClusterConfigurations.getSgBackupConfig());
-        assertEquals(resourceClusterConfiguration.getConnectionPoolingConfig(),
-            dtoClusterConfigurations.getSgPoolingConfig());
-        assertEquals(resourceClusterConfiguration.getPostgresConfig(),
-            dtoClusterConfigurations.getSgPostgresConfig());
-      } else {
-        assertNull(dtoClusterConfigurations);
-      }
-
-      final ClusterPod dtoSpecPods = dtoSpec.getPods();
-      final StackGresClusterPod resourcePod = resourceSpec.getPod();
-      if (resourcePod != null) {
-        assertNotNull(dtoSpecPods);
-        assertEquals(resourcePod.getDisableConnectionPooling(),
-            dtoSpecPods.getDisableConnectionPooling());
-        assertEquals(resourcePod.getDisableMetricsExporter(),
-            dtoSpecPods.getDisableMetricsExporter());
-        assertEquals(resourcePod.getDisablePostgresUtil(), dtoSpecPods.getDisablePostgresUtil());
-
-        final ClusterPodPersistentVolume resourcePV = dtoSpecPods.getPersistentVolume();
-        final StackGresPodPersistentVolume dtoPV = resourcePod.getPersistentVolume();
-        if (dtoPV != null) {
-          assertNotNull(resourcePV);
-          assertEquals(dtoPV.getSize(), resourcePV.getSize());
-          assertEquals(dtoPV.getStorageClass(), resourcePV.getStorageClass());
-        } else {
-          assertNull(resourcePV);
-        }
-
-        if (resourceSpec.getMetadata() != null) {
-          assertNotNull(dtoSpec.getMetadata());
-          assertEquals(resourceSpec.getMetadata().getLabels().getClusterPods(),
-              dtoSpec.getMetadata().getLabels().getClusterPods());
-        } else {
-          assertNull(dtoSpec.getMetadata());
-        }
-
-        if (resourcePod.getScheduling() != null) {
-          assertNotNull(dtoSpecPods.getScheduling());
-          assertEquals(resourcePod.getScheduling().getNodeSelector(),
-              dtoSpecPods.getScheduling().getNodeSelector());
-          assertEquals(resourcePod.getScheduling().getNodeAffinity(),
-              dtoSpecPods.getScheduling().getNodeAffinity());
-        } else {
-          assertNull(dtoSpecPods.getScheduling());
-        }
-      } else {
-        assertNull(dtoSpecPods);
-      }
-
-      if (resourceSpec.getDistributedLogs() != null) {
-        assertNotNull(dtoSpec.getDistributedLogs());
-        assertEquals(resourceSpec.getDistributedLogs().getDistributedLogs(),
-            dtoSpec.getDistributedLogs().getDistributedLogs());
-      } else {
-        assertNull(dtoSpec.getDistributedLogs());
-      }
-
-      final StackGresClusterInitData resourceInitData = resourceSpec.getInitData();
-      if (resourceInitData != null) {
-        final ClusterInitData dtoInitData = dtoSpec.getInitData();
-        assertNotNull(dtoInitData);
-        if (resourceInitData.getRestore() != null) {
-          assertNotNull(dtoInitData.getRestore());
-          assertEquals(resourceInitData.getRestore().getFromBackup().getUid(),
-              dtoInitData.getRestore().getFromBackup().getUid());
-          assertEquals(resourceInitData.getRestore().getDownloadDiskConcurrency(),
-              dtoInitData.getRestore().getDownloadDiskConcurrency());
-        } else {
-          assertNull(dtoInitData.getRestore());
-        }
-
-        if (resourceInitData.getScripts() != null) {
-          assertNotNull(dtoInitData.getScripts());
-          Seq.zip(resourceInitData.getScripts(), dtoInitData.getScripts())
-              .forEach(tuple -> {
-                assertEquals(tuple.v1.getDatabase(), tuple.v2.getDatabase());
-                assertEquals(tuple.v2.getName(), tuple.v2.getName());
-                assertEquals(tuple.v2.getScript(), tuple.v2.getScript());
-                final StackGresClusterScriptFrom resourceScriptFrom = tuple.v1.getScriptFrom();
-                final ClusterScriptFrom dtoScriptFrom = tuple.v2.getScriptFrom();
-                if (resourceScriptFrom != null) {
-                  assertNotNull(dtoScriptFrom);
-                  if (resourceScriptFrom.getSecretKeyRef() != null) {
-                    assertNotNull(dtoScriptFrom.getSecretKeyRef());
-                    assertEquals(resourceScriptFrom.getSecretKeyRef().getKey(),
-                        dtoScriptFrom.getSecretKeyRef().getKey());
-                    assertEquals(resourceScriptFrom.getSecretKeyRef().getName(),
-                        dtoScriptFrom.getSecretKeyRef().getName());
-                  } else {
-                    assertNull(dtoScriptFrom.getSecretKeyRef());
-                  }
-                  if (resourceScriptFrom.getConfigMapKeyRef() != null) {
-                    assertNotNull(dtoScriptFrom.getConfigMapKeyRef());
-                    assertEquals(resourceScriptFrom.getConfigMapKeyRef().getKey(),
-                        dtoScriptFrom.getConfigMapKeyRef().getKey());
-                    assertEquals(resourceScriptFrom.getConfigMapKeyRef().getName(),
-                        dtoScriptFrom.getConfigMapKeyRef().getName());
-                    assertEquals(configMap.getData().get(
-                        resourceScriptFrom.getConfigMapKeyRef().getKey()),
-                        dtoScriptFrom.getConfigMapScript());
-                  } else {
-                    assertNull(dtoScriptFrom.getConfigMapKeyRef());
-                  }
-                } else {
-                  assertNull(dtoScriptFrom);
-                }
-              });
-        }
-      }
-
-    } else {
-      assertNull(dtoSpec);
-    }
-
     if (dto.getPods() != null) {
       assertEquals(1, dto.getPodsReady());
       assertEquals(2, dto.getPods().size());
@@ -722,8 +585,8 @@ class ClusterResourceMockedTest extends
 
   @Override
   protected void checkCustomResource(StackGresCluster resource,
-      ClusterDto resourceDto,
-      Operation operation) {
+                                     ClusterDto resourceDto,
+                                     Operation operation) {
 
     final Metadata dtoMetadata = resourceDto.getMetadata();
     final ObjectMeta resourceMetadata = resource.getMetadata();

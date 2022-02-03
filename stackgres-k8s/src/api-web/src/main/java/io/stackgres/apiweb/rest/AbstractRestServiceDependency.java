@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.rest;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
@@ -59,16 +60,22 @@ public abstract class AbstractRestServiceDependency
   @CommonApiResponses
   @Override
   public List<T> list() {
+    final List<R> resources = scanner.getResources();
+
     List<StackGresCluster> clusters = clusterScanner.getResources();
-    return Seq.seq(scanner.getResources())
-        .map(resource -> transformer.toResource(resource, Seq.seq(clusters)
-            .filter(cluster -> belongsToCluster(resource, cluster))
-            .map(cluster -> StackGresUtil.getRelativeId(
-                cluster.getMetadata().getName(),
-                cluster.getMetadata().getNamespace(),
-                resource.getMetadata().getNamespace()))
-            .toList()))
-        .toList();
+
+    return resources.stream()
+        .map(resource -> transformer.toResource(
+            resource,
+            Seq.seq(clusters).filter(cluster -> belongsToCluster(resource, cluster))
+                .map(cluster ->
+                    StackGresUtil.getRelativeId(
+                        cluster.getMetadata().getName(),
+                        cluster.getMetadata().getNamespace(),
+                        resource.getMetadata().getNamespace())
+                )
+                .toList()))
+        .collect(Collectors.toList());
   }
 
   /**
@@ -106,7 +113,7 @@ public abstract class AbstractRestServiceDependency
   public void update(@NotNull T resource) {
     scheduler.update(transformer.toCustomResource(resource,
         finder.findByNameAndNamespace(
-            resource.getMetadata().getName(), resource.getMetadata().getNamespace())
+                resource.getMetadata().getName(), resource.getMetadata().getNamespace())
             .orElseThrow(NotFoundException::new)));
   }
 

@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.app.postgres.service;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
@@ -50,4 +52,21 @@ public class PostgresServices implements KubernetesResource {
     return StackGresUtil.toPrettyYaml(this);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    PostgresServices that = (PostgresServices) o;
+    return Objects.equals(primary, that.primary)
+        && Objects.equals(replicas, that.replicas);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(primary, replicas);
+  }
 }

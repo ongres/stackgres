@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.CommonDefinition;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import org.junit.jupiter.api.Test;
 
@@ -64,8 +65,18 @@ class CrdMatchTest {
           crdTree.get("spec").get("names").get("kind").asText(),
           StackGresObjectStorage.KIND)) {
         /*
-         * Skipping this test because the SGObjectStorage because we don't v1beta1 version
-         * released at the moment
+         * Skipping this test because the SGObjectStorage we only have v1beta1 version
+         * at the moment
+         */
+        return;
+      }
+
+      if (Objects.equals(
+          crdTree.get("spec").get("names").get("kind").asText(),
+          StackGresCluster.KIND)) {
+        /*
+         * Skipping this test because the SGCluster is at v2beta1 version
+         * at the moment
          */
         return;
       }

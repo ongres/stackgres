@@ -72,13 +72,13 @@ EOF
     until (
       DBOPS="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
       DBOPS="$(printf '%s' "$DBOPS" | jq '.status |= . + '"$DB_OPS_PATCH")"
-      printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
+      printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v2beta1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
       )
     do
       (
         DBOPS="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
         DBOPS="$(printf '%s' "$DBOPS" | jq 'del(.status.dbOps)')"
-        printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
+        printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v2beta1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
       )
     done
   else
@@ -126,7 +126,7 @@ EOF
     CLUSTER="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq '.spec.postgres.version = "'"$TARGET_VERSION"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq '.spec.configurations.sgPostgresConfig = "'"$TARGET_POSTGRES_CONFIG"'"')"
-    printf '%s' "$CLUSTER" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
+    printf '%s' "$CLUSTER" | kubectl replace --raw /apis/"$CRD_GROUP"/v2beta1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
     )
   do
     sleep 1
@@ -257,7 +257,7 @@ EOF
 
   until kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json | \
       jq 'del(.status.dbOps)' | \
-      kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
+      kubectl replace --raw /apis/"$CRD_GROUP"/v2beta1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
   do
     sleep 1
   done

@@ -11,10 +11,13 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.app.postgres.service.PostgresService;
 import io.stackgres.apiweb.config.WebApiProperty;
+import io.stackgres.apiweb.dto.backupconfig.BaseBackupPerformance;
+import io.stackgres.apiweb.dto.cluster.ClusterBackupsConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterCondition;
 import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterDbOpsMajorVersionUpgradeStatus;
@@ -47,7 +50,9 @@ import io.stackgres.apiweb.transformer.converter.cluster.ClusterPodSchedulingCon
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupPerformance;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -55,6 +60,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
@@ -80,25 +86,30 @@ public class ClusterTransformer
 
   private final StackGresPropertyContext<WebApiProperty> context;
   private final ClusterPodTransformer clusterPodTransformer;
+  private final JsonMapper mapper;
 
   @Inject
   public ClusterTransformer(StackGresPropertyContext<WebApiProperty> context,
-      ClusterPodTransformer clusterPodTransformer) {
+                            ClusterPodTransformer clusterPodTransformer,
+                            JsonMapper mapper) {
     super();
     this.context = context;
     this.clusterPodTransformer = clusterPodTransformer;
+    this.mapper = mapper;
   }
 
   public ClusterTransformer() {
     this.context = null;
     this.clusterPodTransformer = null;
+    this.mapper = null;
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override
   public StackGresCluster toCustomResource(@NotNull ClusterDto source,
-      @Nullable StackGresCluster original) {
+                                           @Nullable StackGresCluster original) {
     StackGresCluster transformation = Optional.ofNullable(original)
+        .map(o -> mapper.convertValue(original, StackGresCluster.class))
         .orElseGet(StackGresCluster::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
@@ -144,7 +155,7 @@ public class ClusterTransformer
     transformation.getPostgres().setVersion(source.getPostgres().getVersion());
     transformation.getPostgres().setFlavor(source.getPostgres().getFlavor());
     transformation.getPostgres().setExtensions(Optional.ofNullable(
-        source.getPostgres().getExtensions())
+            source.getPostgres().getExtensions())
         .stream()
         .flatMap(List::stream)
         .map(this::getCustomResourceExtension)
@@ -168,6 +179,36 @@ public class ClusterTransformer
           .setConnectionPoolingConfig(source.getConfigurations().getSgPoolingConfig());
       transformation.getConfiguration().setPostgresConfig(
           source.getConfigurations().getSgPostgresConfig());
+      final ClusterBackupsConfiguration sourceBackupConfiguration = source.getConfigurations()
+          .getBackups();
+      if (sourceBackupConfiguration != null) {
+        transformation.getConfiguration().setBackups(new StackGresClusterBackupConfiguration());
+        transformation.getConfiguration().getBackups()
+            .setCompression(sourceBackupConfiguration.getCompressionMethod());
+        transformation.getConfiguration().getBackups().setCronSchedule(
+            sourceBackupConfiguration.getCronSchedule()
+        );
+        transformation.getConfiguration().getBackups().setRetention(
+            sourceBackupConfiguration.getRetention()
+        );
+        transformation.getConfiguration().getBackups().setObjectStorage(
+            sourceBackupConfiguration.getObjectStorage()
+        );
+        final BaseBackupPerformance sourceBackupPerformance = sourceBackupConfiguration
+            .getPerformance();
+        if (sourceBackupPerformance != null) {
+          transformation.getConfiguration().getBackups()
+              .setPerformance(new StackGresBaseBackupPerformance());
+          transformation.getConfiguration().getBackups()
+              .getPerformance().setMaxDiskBandwitdh(sourceBackupPerformance.getMaxDiskBandwitdh());
+          transformation.getConfiguration().getBackups().getPerformance().setMaxNetworkBandwitdh(
+              sourceBackupPerformance.getMaxNetworkBandwitdh()
+          );
+          transformation.getConfiguration().getBackups().getPerformance().setUploadDiskConcurrency(
+              sourceBackupPerformance.getUploadDiskConcurrency()
+          );
+        }
+      }
     }
 
     transformation.setInstances(source.getInstances());
@@ -257,9 +298,8 @@ public class ClusterTransformer
         .setDisablePostgresUtil(source.getPods().getDisablePostgresUtil());
 
     targetPod.setScheduling(Optional.ofNullable(source.getPods().getScheduling())
-        .map(sourceScheduling -> {
-          return new ClusterPodSchedulingConverter().to(sourceScheduling);
-        }).orElse(null));
+        .map(sourceScheduling -> new ClusterPodSchedulingConverter().to(sourceScheduling))
+        .orElse(null));
     transformation.setDistributedLogs(
         getCustomResourceDistributedLogs(source.getDistributedLogs()));
 
@@ -292,13 +332,12 @@ public class ClusterTransformer
     }).collect(ImmutableList.toImmutableList());
   }
 
-  private io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction
-      getCustomResourceNonProduction(ClusterNonProduction source) {
+  private StackGresClusterNonProduction getCustomResourceNonProduction(
+      ClusterNonProduction source) {
     if (source == null) {
       return null;
     }
-    io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction transformation =
-        new io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction();
+    StackGresClusterNonProduction transformation = new StackGresClusterNonProduction();
     transformation.setDisableClusterPodAntiAffinity(source.getDisableClusterPodAntiAffinity());
     transformation.setEnabledFeatureGates(source.getEnabledFeatureGates());
     return transformation;
@@ -345,6 +384,7 @@ public class ClusterTransformer
     StackGresClusterDistributedLogs transformation =
         new StackGresClusterDistributedLogs();
     transformation.setDistributedLogs(source.getDistributedLogs());
+    transformation.setRetention(source.getRetention());
     return transformation;
   }
 
@@ -358,7 +398,7 @@ public class ClusterTransformer
     transformation.getPostgres().setVersion(source.getPostgres().getVersion());
     transformation.getPostgres().setFlavor(source.getPostgres().getFlavor());
     transformation.getPostgres().setExtensions(Optional.ofNullable(
-        source.getPostgres().getExtensions())
+            source.getPostgres().getExtensions())
         .stream()
         .flatMap(List::stream)
         .map(this::getResourceExtension)
@@ -385,6 +425,41 @@ public class ClusterTransformer
         source.getConfiguration().getPostgresConfig());
     transformation.setPrometheusAutobind(source.getPrometheusAutobind());
     transformation.setSgInstanceProfile(source.getResourceProfile());
+
+    final StackGresClusterBackupConfiguration sourceBackupConfiguration = source.getConfiguration()
+        .getBackups();
+
+    if (sourceBackupConfiguration != null) {
+      transformation.getConfigurations().setBackups(new ClusterBackupsConfiguration());
+      transformation.getConfigurations().getBackups().setCompressionMethod(
+          sourceBackupConfiguration.getCompression()
+      );
+
+      transformation.getConfigurations().getBackups().setObjectStorage(
+          sourceBackupConfiguration.getObjectStorage()
+      );
+
+      transformation.getConfigurations().getBackups().setCronSchedule(
+          sourceBackupConfiguration.getCronSchedule()
+      );
+
+      transformation.getConfigurations().getBackups().setRetention(
+          sourceBackupConfiguration.getRetention()
+      );
+      final StackGresBaseBackupPerformance sourceBackupPerformance = sourceBackupConfiguration
+          .getPerformance();
+
+      if (sourceBackupPerformance != null) {
+        transformation.getConfigurations().getBackups().setPerformance(new BaseBackupPerformance());
+        transformation.getConfigurations().getBackups().getPerformance().setMaxDiskBandwitdh(
+            sourceBackupPerformance.getMaxDiskBandwitdh()
+        );
+        transformation.getConfigurations().getBackups().getPerformance()
+            .setMaxNetworkBandwitdh(sourceBackupPerformance.getMaxNetworkBandwitdh());
+        transformation.getConfigurations().getBackups().getPerformance()
+            .setUploadDiskConcurrency(sourceBackupPerformance.getUploadDiskConcurrency());
+      }
+    }
 
     final StackGresClusterInitData sourceInitData = source.getInitData();
     if (sourceInitData != null) {
@@ -476,9 +551,8 @@ public class ClusterTransformer
     }
 
     targetPod.setScheduling(Optional.ofNullable(sourcePod.getScheduling())
-        .map(sourcePodScheduling -> {
-          return new ClusterPodSchedulingConverter().from(sourcePodScheduling);
-        }).orElse(null));
+        .map(sourcePodScheduling -> new ClusterPodSchedulingConverter()
+            .from(sourcePodScheduling)).orElse(null));
 
     transformation.setDistributedLogs(
         getResourceDistributedLogs(source.getDistributedLogs()));
@@ -549,6 +623,7 @@ public class ClusterTransformer
     }
     ClusterDistributedLogs transformation = new ClusterDistributedLogs();
     transformation.setDistributedLogs(source.getDistributedLogs());
+    transformation.setRetention(source.getRetention());
     return transformation;
   }
 
