@@ -58,6 +58,8 @@ e2e_test_install() {
         value: "false" 
       - name: CYPRESS_namespace
         value: $CLUSTER_NAMESPACE
+      - name: CYPRESS_BASE_URL
+        value: "https://$SERVICE.$OPERATOR_NAMESPACE/admin"
     restartPolicy: Always
     terminationGracePeriodSeconds: 0
 EOF
@@ -85,13 +87,11 @@ e2e_test() {
 }
 
 cypress_chrome_tests(){
-  RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser chrome --env resourcename="$RANDOM_RESOURCE"
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser chrome
 }
 
 cypress_firefox_tests(){
-  RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser firefox --env resourcename="$RANDOM_RESOURCE"
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser firefox
 }
 
 check_index_on_not_found_resource(){
