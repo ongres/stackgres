@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: maintenance-vacuum-freeze
+  namespace: demo-db
+spec:
+  schedule: "30 01 * * 6"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: postgres-util
+            env:
+            - name: PGUSER
+              value: "postgres"
+            - name: PGDATABASE
+              value: "demo"
+            - name: PGHOST
+              value: "demo-db.demo-db.svc"
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: demo-db
+                  key: superuser-password
+            image: ongres/postgres-util:v14.0-build-6.7
+            command: ["psql"]
+            args: ["-p","5432","-c","vacuum freeze analyze"]
+          restartPolicy: Never
+

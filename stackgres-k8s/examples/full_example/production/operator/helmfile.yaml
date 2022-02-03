@@ -1,0 +1,36 @@
+repositories:
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: stackgres-charts
+    url: https://stackgres.io/downloads/stackgres-k8s/stackgres/helm/
+
+helmDefaults:
+  wait: true
+  createNamespace: true
+  cleanupOnFail: true
+
+releases:
+- name: prometheus-operator
+  namespace: monitoring
+  chart: prometheus-community/kube-prometheus-stack
+  disableValidation: true
+
+- name: stackgres-operator
+  namespace: stackgres
+  version: 1.1.0
+  chart: stackgres-charts/stackgres-operator
+  set:
+    - name: grafana.autoEmbed
+      value: true
+    - name: grafana.webHost
+      value: prometheus-operator-grafana.monitoring
+    - name: grafana.secretNamespace
+      value: monitoring
+    - name: grafana.secretName
+      value: prometheus-operator-grafana
+    - name: grafana.secretUserKey
+      value: admin-user
+    - name: grafana.secretPasswordKey
+      value: admin-password
+    - name: adminui.service.type
+      value: LoadBalancer

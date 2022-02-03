@@ -1,0 +1,8 @@
+apiVersion: stackgres.io/v1
+kind: SGInstanceProfile
+metadata:
+  namespace: demo-db
+  name: size-m
+spec:
+  cpu: "37"
+  memory: "150Gi"
