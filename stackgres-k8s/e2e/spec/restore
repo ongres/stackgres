@@ -168,7 +168,7 @@ spec:
 EOF
 
   cat << EOF > "$LOG_PATH/alter-restore-cluster.yaml"
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $ALTER_CLUSTER_NAME
@@ -211,7 +211,7 @@ check_restore_default_values(){
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" 
 
   cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME

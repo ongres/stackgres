@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -45,4 +46,21 @@ public class ClusterDbOpsRestartStatus {
     return StackGresUtil.toPrettyYaml(this);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterDbOpsRestartStatus that = (ClusterDbOpsRestartStatus) o;
+    return Objects.equals(initialInstances, that.initialInstances)
+        && Objects.equals(primaryInstance, that.primaryInstance);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(initialInstances, primaryInstance);
+  }
 }

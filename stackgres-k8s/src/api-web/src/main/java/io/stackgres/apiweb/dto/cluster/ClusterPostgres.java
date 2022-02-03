@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -67,4 +68,23 @@ public class ClusterPostgres {
     return StackGresUtil.toPrettyYaml(this);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterPostgres that = (ClusterPostgres) o;
+    return Objects.equals(version, that.version)
+        && Objects.equals(flavor, that.flavor)
+        && Objects.equals(extensions, that.extensions)
+        && Objects.equals(ssl, that.ssl);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(version, flavor, extensions, ssl);
+  }
 }

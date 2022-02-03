@@ -5,8 +5,10 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.List;
 import java.util.Objects;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -29,6 +31,10 @@ public class StackGresClusterConfiguration {
 
   @JsonProperty("sgBackupConfig")
   private String backupConfig;
+
+  @JsonProperty("backups")
+  @Valid
+  private List<StackGresClusterBackupConfiguration> backups;
 
   public String getPostgresConfig() {
     return postgresConfig;
@@ -54,9 +60,17 @@ public class StackGresClusterConfiguration {
     this.backupConfig = backupConfig;
   }
 
+  public List<StackGresClusterBackupConfiguration> getBackups() {
+    return backups;
+  }
+
+  public void setBackups(List<StackGresClusterBackupConfiguration> backups) {
+    this.backups = backups;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(backupConfig, connectionPoolingConfig, postgresConfig);
+    return Objects.hash(backupConfig, connectionPoolingConfig, postgresConfig, backups);
   }
 
   @Override
@@ -70,7 +84,8 @@ public class StackGresClusterConfiguration {
     StackGresClusterConfiguration other = (StackGresClusterConfiguration) obj;
     return Objects.equals(backupConfig, other.backupConfig)
         && Objects.equals(connectionPoolingConfig, other.connectionPoolingConfig)
-        && Objects.equals(postgresConfig, other.postgresConfig);
+        && Objects.equals(postgresConfig, other.postgresConfig)
+        && Objects.equals(backups, other.backups);
   }
 
   @Override

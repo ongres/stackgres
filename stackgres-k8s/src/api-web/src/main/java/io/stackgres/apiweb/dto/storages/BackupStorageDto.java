@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.storages;
 
+import java.util.Objects;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -84,4 +86,23 @@ public class BackupStorageDto {
     return StackGresUtil.toPrettyYaml(this);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    BackupStorageDto that = (BackupStorageDto) o;
+    return Objects.equals(type, that.type) && Objects.equals(s3, that.s3)
+        && Objects.equals(s3Compatible, that.s3Compatible)
+        && Objects.equals(gcs, that.gcs)
+        && Objects.equals(azureBlob, that.azureBlob);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(type, s3, s3Compatible, gcs, azureBlob);
+  }
 }

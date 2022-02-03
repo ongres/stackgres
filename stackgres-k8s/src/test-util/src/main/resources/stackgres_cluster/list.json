@@ -21,7 +21,16 @@
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf",
-          "sgBackupConfig": "backupconf"
+          "sgBackupConfig": "backupconf",
+          "backups": [{
+            "compression": "lz4",
+            "cronSchedule": "*/1 * * * *",
+            "retention": 5,
+            "performance":{
+              "uploadDiskConcurrency": 1
+            },
+            "sgObjectStorage": "backupconf"
+          }]
         },
         "prometheusAutobind": true,
         "sgInstanceProfile": "size-xs",

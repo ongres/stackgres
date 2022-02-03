@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -133,4 +134,29 @@ public class ClusterDbOpsMajorVersionUpgradeStatus {
     return StackGresUtil.toPrettyYaml(this);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterDbOpsMajorVersionUpgradeStatus that = (ClusterDbOpsMajorVersionUpgradeStatus) o;
+    return Objects.equals(initialInstances, that.initialInstances)
+        && Objects.equals(primaryInstance, that.primaryInstance)
+        && Objects.equals(sourcePostgresVersion, that.sourcePostgresVersion)
+        && Objects.equals(targetPostgresVersion, that.targetPostgresVersion)
+        && Objects.equals(locale, that.locale)
+        && Objects.equals(encoding, that.encoding)
+        && Objects.equals(dataChecksum, that.dataChecksum)
+        && Objects.equals(link, that.link) && Objects.equals(clone, that.clone)
+        && Objects.equals(check, that.check);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(initialInstances, primaryInstance, sourcePostgresVersion,
+        targetPostgresVersion, locale, encoding, dataChecksum, link, clone, check);
+  }
 }

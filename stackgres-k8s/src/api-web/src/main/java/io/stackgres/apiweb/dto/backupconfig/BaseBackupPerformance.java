@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.backupconfig;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -54,4 +56,22 @@ public class BaseBackupPerformance {
     return StackGresUtil.toPrettyYaml(this);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    BaseBackupPerformance that = (BaseBackupPerformance) o;
+    return Objects.equals(maxNetworkBandwitdh, that.maxNetworkBandwitdh)
+        && Objects.equals(maxDiskBandwitdh, that.maxDiskBandwitdh)
+        && Objects.equals(uploadDiskConcurrency, that.uploadDiskConcurrency);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(maxNetworkBandwitdh, maxDiskBandwitdh, uploadDiskConcurrency);
+  }
 }

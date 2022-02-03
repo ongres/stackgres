@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -154,5 +155,34 @@ public class ClusterSpec {
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterSpec that = (ClusterSpec) o;
+    return instances == that.instances && Objects.equals(postgres, that.postgres)
+        && Objects.equals(configurations, that.configurations)
+        && Objects.equals(sgInstanceProfile, that.sgInstanceProfile)
+        && Objects.equals(initData, that.initData)
+        && Objects.equals(distributedLogs, that.distributedLogs)
+        && Objects.equals(toInstallPostgresExtensions, that.toInstallPostgresExtensions)
+        && Objects.equals(pods, that.pods)
+        && Objects.equals(prometheusAutobind, that.prometheusAutobind)
+        && Objects.equals(nonProduction, that.nonProduction)
+        && Objects.equals(postgresServices, that.postgresServices)
+        && Objects.equals(metadata, that.metadata);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(postgres, instances, configurations, sgInstanceProfile,
+        initData, distributedLogs, toInstallPostgresExtensions, pods, prometheusAutobind,
+        nonProduction, postgresServices, metadata);
   }
 }

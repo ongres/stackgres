@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.Objects;
+
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotEmpty;
@@ -87,5 +89,25 @@ public class ClusterScriptFrom {
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterScriptFrom that = (ClusterScriptFrom) o;
+    return Objects.equals(secretScript, that.secretScript)
+        && Objects.equals(secretKeyRef, that.secretKeyRef)
+        && Objects.equals(configMapScript, that.configMapScript)
+        && Objects.equals(configMapKeyRef, that.configMapKeyRef);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(secretScript, secretKeyRef, configMapScript, configMapKeyRef);
   }
 }
