@@ -148,7 +148,7 @@ h1, h2, h3, h4, h5, h6 {
     color: #fff;
 }
 
-.form button.textBtn {
+.form button.textBtn, button.plain {
     padding: 0;
     background: transparent;
     color: var(--blue);

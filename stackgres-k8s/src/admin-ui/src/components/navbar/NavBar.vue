@@ -22,18 +22,7 @@
 				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g transform="translate(-90 -152)"><rect width="2" height="2" rx="1" transform="translate(103 152) rotate(90)"/><rect width="2" height="2" rx="1" transform="translate(103 174) rotate(90)"/><rect width="2" height="2" rx="1" transform="translate(114 165) rotate(180)"/><rect width="2" height="2" rx="1" transform="translate(92 165) rotate(180)"/><rect width="2" height="2" rx="1" transform="translate(111.778 155.636) rotate(135)"/><rect width="2" height="2" rx="1" transform="translate(95.05 172.364) rotate(135)"/><rect width="2" height="2" rx="1" transform="translate(93.636 154.222) rotate(45)"/><rect width="2" height="2" rx="1" transform="translate(110.364 170.95) rotate(45)"/><path d="M102,156a8,8,0,1,0,8,8A8,8,0,0,0,102,156Zm-5.336,8A5.343,5.343,0,0,1,102,158.664v10.672A5.343,5.343,0,0,1,96.664,164Z" transform="translate(0 0)"/></g></svg>
 			</div>
 
-			<div id="notifications" class="hasTooltip">
-				<a href="javascript:void(0)" title="Notifications">
-					<span class="loader"></span>
-					<span class="count zero">0</span>
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M11.877 16.75a.918.918 0 00-.225-.026 1.013 1.013 0 00-.984.783.812.812 0 01-.158.35.6.6 0 01-.467.179h-.1a.579.579 0 01-.469-.156.881.881 0 01-.174-.38 1.008 1.008 0 00-1.988.213.95.95 0 00.022.2A2.518 2.518 0 009.81 20h.155c.055 0 .105.006.148.006a2.529 2.529 0 002.523-2.07.955.955 0 00-.13-.744 1 1 0 00-.629-.442zm6.108-2.332a6.6 6.6 0 00-.479-.527l-.01-.01c-.757-.77-1.696-1.723-1.696-5.181 0-5.52-2.942-6.791-4.207-7.08l-.019-.005h-.01v-.071a1.563 1.563 0 00-3.126 0v.066h-.006l-.019.005C7.148 1.907 4.2 3.18 4.2 8.7c0 3.45-.935 4.405-1.687 5.173a6.06 6.06 0 00-.5.545 1.283 1.283 0 00-.257.968 1.307 1.307 0 00.521.87 1.365 1.365 0 00.81.264h13.852a1.352 1.352 0 00.941-.409 1.291 1.291 0 00.105-1.689zm-2.572.137H4.568a6.173 6.173 0 00.9-1.475 10.979 10.979 0 00.728-4.394 6.858 6.858 0 01.977-3.973 2.783 2.783 0 011.679-1.174 2.63 2.63 0 001.179-.612 2.153 2.153 0 001.09.609A2.768 2.768 0 0112.8 4.7a6.877 6.877 0 01.983 3.986 10.966 10.966 0 00.737 4.409 6.18 6.18 0 00.893 1.46z"/></svg>
-				</a>
-
-				<div class="tooltip">
-					<span>Notifications</span>
-					<p class="zero message">There are no new notifications.</p>
-				</div>
-			</div>
+			<NotificationsArea></NotificationsArea>
 
 			<div id="reload" @click="fetchAPI()">
 				<svg xmlns="http://www.w3.org/2000/svg" width="20.001" height="20" viewBox="0 0 20.001 20"><g transform="translate(0 0)"><path d="M1.053,11.154A1.062,1.062,0,0,1,0,10.089,9.989,9.989,0,0,1,16.677,2.567l.484-.484a.486.486,0,0,1,.2-.121.541.541,0,0,1,.663.343l1.318,3.748a.522.522,0,0,1,.007.327.5.5,0,0,1-.627.323L18.7,6.7l-3.743-1.32a.531.531,0,0,1-.206-.13.52.52,0,0,1-.016-.733l.464-.465A7.9,7.9,0,0,0,2.092,10.1a1.04,1.04,0,0,1-1.039,1.057Z"/><path d="M18.947,8.844A1.063,1.063,0,0,1,20,9.91,9.989,9.989,0,0,1,3.323,17.434l-.484.484a.476.476,0,0,1-.2.121.541.541,0,0,1-.663-.343L.659,13.948a.522.522,0,0,1-.007-.327.5.5,0,0,1,.627-.323l.022.008,3.743,1.32a.531.531,0,0,1,.206.13.52.52,0,0,1,.016.733l-.464.465A7.9,7.9,0,0,0,17.908,9.9a1.04,1.04,0,0,1,1.039-1.057Z"/></g></svg>
@@ -164,16 +153,23 @@
 </template>
 
 <script>
-	import store from '../store'
-	import router from '../router'
+	import store from '../../store'
+	import router from '../../router'
 	import axios from 'axios'
-	import { mixin } from './mixins/mixin'
+	import { mixin } from '../mixins/mixin'
+
+	/* Child Components */
+	import NotificationsArea from './NotificationsArea.vue'
 
 
     export default {
         name: 'NavBar',
 
 		mixins: [mixin],
+
+		components: {
+			NotificationsArea
+		},
 
 		data: function() {
 			return {
@@ -396,7 +392,10 @@
 					.catch(function (error) {
 						console.log(error.response);
 						vc.cancelClone();
-						vc.notify(error.response.data,'error',cloneKind.toLowerCase());
+
+						if(typeof error.response != 'undefined') {
+							vc.notify(error.response.data,'error',cloneKind.toLowerCase());
+						}
 
 					});
 				}
@@ -441,7 +440,7 @@
 							redirect: ''
 						});
 
-						vc.notify('Resource <strong>'+item.name+'</strong> deleted successfully', 'message', item.kind);
+						vc.notify('Resource <strong>"'+item.name+'"</strong> deleted successfully', 'message', item.kind);
 
 						if( (typeof item.redirect !== 'undefined') && item.redirect.length)
 							router.push(item.redirect);
@@ -451,7 +450,10 @@
 					})
 					.catch(function (error) {
 						console.log(error);
-						vc.notify(error.response.data,'error',item.kind);
+						if(typeof error.response != 'undefined') {
+							vc.notify(error.response.data,'error',item.kind);
+						}
+						
 						vc.checkAuthError(error)
 					});
 				} else {
