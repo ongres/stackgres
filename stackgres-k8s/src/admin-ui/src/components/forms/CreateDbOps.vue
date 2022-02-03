@@ -72,7 +72,7 @@
 
                 <div class="col">            
                     <label for="spec.runAt">Run At</label>
-                    <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="runAtTimezone" data-field="spec.runAt">
+                    <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" v-model="runAtTimezone" data-field="spec.runAt">
                     <span class="helpTooltip" :data-tooltip="(timezone == 'local') ? getTooltip('sgdbops.spec.runAt').replace('UTC ','') : getTooltip('sgdbops.spec.runAt')"></span>
                 </div>
 
@@ -97,7 +97,7 @@
 
                 <template  v-if="( tzOffset && ( timezone == 'utc' ) )">
                     <div class="warning">
-                        Bear in mind <strong>"Run At"</strong> times are expressed in UTC (Coordinated Universal Time). That's {{ tzOffset }} your current timezone.
+                        Bear in mind <strong>"Run At"</strong> times are expressed in UTC (Coordinated Universal Time). That's <strong>{{ tzOffset }}</strong> your current timezone.
                     </div>
 
                     <div class="clearfix"></div>
@@ -687,6 +687,7 @@
                 name: 'sgdbop-' + vc.getDbopDateString(),
                 sgCluster: '',
                 runAt: '',
+                runAtTimezone: '',
                 timeout: {
                     d: 0,
                     h: 0,
@@ -807,15 +808,11 @@
                 if(offset == 0) {
                     return false
                 } else if (offset > 0) {
-                    return offset.toString().substring(1) + ( (offset > 1) ? ' hours' : 'hour') + ' ahead';
+                    return offset.toString().substring(1) + ( (offset > 1) ? ' hours' : ' hour') + ' ahead';
                 } else if (offset < 0) {
-                    return offset.toString().substring(1) + ( (offset < -1) ? ' hours' : 'hour') + ' behind';
+                    return offset.toString().substring(1) + ( (offset < -1) ? ' hours' : ' hour') + ' behind';
                 }
 
-            },
-
-            runAtTimezone() {
-                return this.runAt.length ? moment.utc(this.runAt).local().format('YYYY-MM-DD HH:mm:ss') : ''
             },
 
             timezone () {
@@ -1067,12 +1064,11 @@
                                 format: 'YYYY-MM-DD HH:mm:ss'
                             }
                         }, function(start, end, label) {
-                            vc.runAt = (store.state.timezone == 'local') ? start.utc().format() : ( start.format('YYYY-MM-DDTHH:mm:ss') + 'Z' )
+                            vc.runAt = (store.state.timezone == 'local') ? start.utc().format() : ( start.format('YYYY-MM-DDTHH:mm:ss') + 'Z' );
+                            vc.runAtTimezone = (store.state.timezone == 'local') ? moment.utc(vc.runAt).local().format('YYYY-MM-DD HH:mm:ss') : vc.runAt.replace('T',' ').replace('Z','');
                         });
                     }
                 });
-
-                
 
                 $(document).on('click','.daterangepicker .cancelBtn', function() {
                     $('.datePicker').val('');
