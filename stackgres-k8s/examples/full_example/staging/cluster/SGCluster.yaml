@@ -1,0 +1,39 @@
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  namespace: demo-db
+  name: demo-db
+spec:
+  postgres:
+    version: '14.1'
+    extensions:
+    - name: 'pg_repack'
+    - name: 'pg_trgm'
+  instances: 1
+  sgInstanceProfile: 'size-m'
+  pods:
+    persistentVolume:
+      size: '1.8Ti'
+      storageClass: 'ssd-data'
+    scheduling:
+      tolerations:
+        - key: "stackgres"
+          operator: "Exists"
+          effect: "NoSchedule"
+  configurations:
+    sgPostgresConfig: 'pgconfig'
+    sgPoolingConfig: 'poolconfig'
+    sgBackupConfig: 'backupconfig'
+  distributedLogs:
+    sgDistributedLogs: 'distributedlogs'
+  initialData:
+    scripts:
+    - name: create-demo-database
+      script: |
+        create database demo owner postgres;
+  postgresServices:
+    primary:
+      type: ClusterIP
+    replicas:
+      type: ClusterIP
+  prometheusAutobind: true

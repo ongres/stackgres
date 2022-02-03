@@ -1,0 +1,27 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: demo-db-replicas-pdb
+  namespace: demo-db
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: StackGresCluster
+      cluster-name: demo-db
+      cluster: "true"
+      role: replica
+---
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: demo-db-primary-pdb
+  namespace: demo-db
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: StackGresCluster
+      cluster-name: demo-db
+      cluster: "true"
+      role: master

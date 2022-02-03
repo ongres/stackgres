@@ -1,0 +1,41 @@
+apiVersion: stackgres.io/v1
+kind: SGPostgresConfig
+metadata:
+  namespace: demo-db
+  name: pgconfig
+spec:
+  postgresVersion: "14"
+  postgresql.conf:
+    shared_buffers: '34GB'
+    random_page_cost: '1'
+    checkpoint_timeout: '15min'
+    max_connections: '600'
+    work_mem: '16MB'
+    effective_cache_size: '100GB'
+    max_wal_size: '100GB'
+    min_wal_size: '20GB'
+    max_worker_processes: '36'
+    max_parallel_workers_per_gather: '4'
+    max_parallel_workers: '36'
+    autovacuum_vacuum_scale_factor : '0.05'
+    autovacuum_analyze_scale_factor : '0.02'
+    autovacuum_max_workers: '8'
+    log_min_duration_statement: '1000'
+    log_checkpoints: 'on'
+    log_connections: 'on'
+    log_disconnections: 'on'
+    idle_in_transaction_session_timeout: '600000'
+    checkpoint_completion_target: '0.9'
+    default_statistics_target: '250'
+    hot_standby_feedback: 'on'
+    shared_preload_libraries: 'pg_repack'
+    max_logical_replication_workers: '12'
+    max_sync_workers_per_subscription: '2'
+    autovacuum: 'on'
+    max_parallel_maintenance_workers: '8'
+    maintenance_work_mem: '8GB'
+    vacuum_cost_limit: '1000'
+    autovacuum_vacuum_cost_limit: '1000'
+    geqo_threshold: '16'
+    join_collapse_limit: '16'
+    autovacuum_freeze_max_age: '500000000'
