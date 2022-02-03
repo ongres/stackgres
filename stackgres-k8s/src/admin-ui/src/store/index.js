@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import Vuex from 'vuex'
+import Vuex, { Store } from 'vuex'
 import axios from 'axios'
 
 Vue.use(Vuex);
@@ -52,6 +52,11 @@ export default new Vuex.Store({
     },
     confirmDeleteName: '',
     restartCluster: {},
+    notifications: {
+      show: false,
+      showAll: false,
+      messages: []
+    }
   },
 
   mutations: {
@@ -361,6 +366,24 @@ export default new Vuex.Store({
         state.restartCluster = cluster;
       } else {
         state.restartCluster = {};
+      }
+    },
+
+    addNotification(state, notification) {
+      state.notifications.messages.unshift(notification);
+      
+      setTimeout( () => {
+        state.notifications.show = true;
+      }, 10)
+      
+    },
+
+    toggleNotifications(state, showAll = false) {
+      state.notifications.show = !state.notifications.show;
+      state.notifications.showAll = state.notifications.show && showAll;
+
+      if(!state.notifications.show) {
+        state.notifications.messages.forEach( (m) => {m.show = false})
       }
     }
     

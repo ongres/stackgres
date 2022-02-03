@@ -275,13 +275,10 @@ $(document).ready(function(){
   
   });
 
-  $(document).on("click", "#main, #side", function(e) {
+  $(document).on("click", function(e) {
 
-    if($(this).prop("id") != "notifications") {
-      $("#notifications.hasTooltip.active").removeClass("active");
-      $("#notifications.hasTooltip .message.show").removeClass("show");
-      $("#selected--zg-ul-select.open").removeClass("open");
-      $("#be-select.active").removeClass("active");
+    if( store.state.notifications.show && !$(e.target).parents().addBack().is('#notifications')) {
+      store.commit('toggleNotifications');
     }
 
     if($('#clone.show').length && !$(e.target).parents().addBack().is('.cloneCRD'))
@@ -381,18 +378,6 @@ $(document).ready(function(){
 
   // Run
   $('#be-select').ulSelect();
-
-  // Uncheck checkboxes by default
-  //$('.switch input[type="checkbox"]').removeAttr('checked');
-
-  $(document).on('click', '.message .remove', function(){
-    $(this).parent().detach();
-   
-    $("#notifications .count").text(parseInt($("#notifications .count").text(),10)-1);
-    
-    if(parseInt($("#notifications .count").text(),10) == 0)
-      $("#notifications .tooltip .zero").show();
-  });
 
   $("form").submit(function(e){
     e.preventDefault(); 

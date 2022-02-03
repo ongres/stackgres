@@ -2112,7 +2112,7 @@
                     $('#postgresVersion [data-val="latest"]').addClass('active');
 
                     setTimeout(function(){
-                        vc.notify('The <strong>postgres flavor</strong> you requested is not available on the <strong>postgres version</strong> you selected. Choose a different version or your cluster will be created with the latest one avalable.', 'message', 'sgclusters', false);
+                        vc.notify('The <strong>postgres flavor</strong> you requested is not available on the <strong>postgres version</strong> you selected. Choose a different version or your cluster will be created with the latest one avalable.', 'message', 'sgclusters');
                     },100);
                 }
 
@@ -2152,7 +2152,7 @@
 
                     if(typeof config == 'undefined') {
                         setTimeout(function(){
-                            vc.notify('The <strong>postgres configuration</strong> you selected is not available for this <strong>postgres version</strong>. Choose a new configuration from the list or a default configuration will be created for you.', 'message', 'sgclusters', false);
+                            vc.notify('The <strong>postgres configuration</strong> you selected is not available for this <strong>postgres version</strong>. Choose a new configuration from the list or a default configuration will be created for you.', 'message', 'sgclusters');
                         },100)
                         vc.pgConfig = '';
                     }
@@ -2167,7 +2167,7 @@
 
                     if(typeof bk == 'undefined') {
                         setTimeout(function(){
-                            vc.notify('The <strong>initialization backup</strong> you selected is not available for this postgres version. Choose a new backup from the list or no data will be restored.', 'message', 'sgclusters', false);
+                            vc.notify('The <strong>initialization backup</strong> you selected is not available for this postgres version. Choose a new backup from the list or no data will be restored.', 'message', 'sgclusters');
                         },100)
                         vc.restoreBackup = '';
                     }
@@ -2180,7 +2180,7 @@
                 if( (vc.postgresVersion != 'latest') && (!Object.keys(vc.postgresVersionsList[vc.flavor]).includes(vc.shortPostgresVersion) || !vc.postgresVersionsList[vc.flavor][vc.shortPostgresVersion].includes(vc.postgresVersion)) ) {
                     
                     setTimeout(function(){
-                        vc.notify('The <strong>postgres version</strong> you selected is not available for this <strong>postgres flavor</strong>. Please choose a new version or your cluster will be created with the latest version available', 'message', 'sgclusters', false);
+                        vc.notify('The <strong>postgres version</strong> you selected is not available for this <strong>postgres flavor</strong>. Please choose a new version or your cluster will be created with the latest version available', 'message', 'sgclusters');
                     },100)
                     
                     vc.postgresVersion = 'latest';
