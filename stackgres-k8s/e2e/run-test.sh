@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. "$(dirname "$0")/e2e"
+. "${0%/*}/e2e"
 
 echo "Utils loaded:"
 e2e_list_utils | while read UTIL_PATH

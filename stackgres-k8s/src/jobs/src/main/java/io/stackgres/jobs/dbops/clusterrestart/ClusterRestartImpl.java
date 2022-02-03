@@ -329,10 +329,6 @@ public class ClusterRestartImpl implements ClusterRestart {
       RestartReasons reasons = getRestartReasons(clusterRestartState, pod);
       for (RestartReason reason : reasons.getReasons()) {
         switch (reason) {
-          case OPERATOR_VERSION:
-            LOGGER.info("Pod {} requires restart due to operator version change",
-                pod.getMetadata().getName());
-            break;
           case PATRONI:
             LOGGER.info("Pod {} requires restart due to patroni's indication",
                 pod.getMetadata().getName());

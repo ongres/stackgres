@@ -1,0 +1,229 @@
+#!/bin/sh
+
+e2e_exclusive_lock() {
+  true
+}
+
+e2e_test_install() {
+  E2E_SKIP_OPERATOR_INSTALL=false reinstall_operator_if_not_as_expected
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+
+  create_baseline_cluster
+  install_pgbench
+  
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+}
+
+install_pgbench() {
+  cat << EOF > "$LOG_PATH/pgpass"
+$CLUSTER_NAME-primary.$CLUSTER_NAMESPACE.svc:5432:pgbench:pguser:pguser
+$CLUSTER_NAME-replicas.$CLUSTER_NAMESPACE.svc:5432:pgbench:pguser:pguser
+EOF
+
+  cat << EOF > "$LOG_PATH/pg_service.conf"
+[pgbench]
+host=$CLUSTER_NAME-primary.$CLUSTER_NAMESPACE.svc
+port=5432
+dbname=pgbench
+[pgbenchreplica]
+host=$CLUSTER_NAME-replicas.$CLUSTER_NAMESPACE.svc
+port=5432
+dbname=pgbench
+EOF
+
+  kubectl create secret generic pgbench --from-file=.pgpass="$LOG_PATH/pgpass" \
+    --from-file=.pg_service.conf="$LOG_PATH/pg_service.conf" -n "$CLUSTER_NAMESPACE"
+
+  cat << EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pgbench
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+  containers:
+  - name: pgbench
+    image: "ongres/postgres-util:v13.4-build-6.6"
+    imagePullPolicy: IfNotPresent
+    command:
+    - sleep
+    - "1000000"
+    env:
+      - name: PGSERVICE
+        value: pgbench
+      - name: PGSERVICEFILE
+        value: /var/lib/postgresql/.pg_service.conf
+    volumeMounts:
+    - name: workdir
+      mountPath: /var/lib/postgresql/.pgpass
+      subPath: .pgpass
+    - name: creds
+      mountPath: /var/lib/postgresql/.pg_service.conf
+      subPath: .pg_service.conf
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "250m"
+      limits:
+        memory: "256Mi"
+        cpu: "500m"
+  initContainers:
+  - name: install
+    image: "ongres/kubectl:v1.19.14-build-6.6"
+    command:
+    - "/bin/bash"
+    - "-ecx"
+    - |
+      cp /creds/.pgpass /work-dir/.pgpass
+      chmod 600 /work-dir/.pgpass
+    volumeMounts:
+    - name: creds
+      mountPath: "/creds/.pgpass"
+      subPath: .pgpass
+    - name: workdir
+      mountPath: /work-dir
+  volumes:
+  - name: workdir
+    emptyDir:
+  - name: creds
+    secret:
+      secretName: pgbench
+EOF
+
+}
+
+e2e_test(){
+  run_test "Create baseline benchmark" create_baseline_data
+  run_test "Create target benchmark" create_target_data
+  run_test "Check that difference between is lower than 5%" compare_results
+}
+
+init_pgbench(){
+  kubectl exec pgbench -c pgbench -n "$CLUSTER_NAMESPACE" -- pgbench -i -U pguser pgbench > /dev/null
+}
+
+run_pgbench(){
+  local OUTPUT
+  OUTPUT="$(kubectl exec pgbench -c pgbench -n "$CLUSTER_NAMESPACE" -- pgbench -U pguser pgbench -T 20 -C)"
+  echo "$OUTPUT"
+}
+
+create_baseline_data(){
+  init_pgbench
+
+  run_pgbench > "$LOG_PATH/bench_baseline"
+}
+
+create_target_data(){
+
+  reset_sgcluster
+
+  init_pgbench
+ 
+  run_pgbench > "$LOG_PATH/bench_target" &
+  PG_BENCH_PID=$!
+  
+  add_sgcluster_annotation  
+
+  RECONCILIATION_IGNORE_ANNOTATION="stackgres.io/reconciliation-pause"
+  kubectl annotate sgcluster "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" "$RECONCILIATION_IGNORE_ANNOTATION=true"
+
+  wait $PG_BENCH_PID
+
+}
+
+read_transactions_actually_processed(){
+  FILENAME="$1"
+  grep "number of transactions actually processed" "$FILENAME" \
+    | awk '{ print $6 }' \
+    | awk -F "\r" '{ print $1 }'
+}
+
+compare_results(){
+  BASE_TRANSACTIONS=$(read_transactions_actually_processed "$LOG_PATH/bench_baseline")
+  ACTUAL_TRANSACTIONS=$(read_transactions_actually_processed "$LOG_PATH/bench_target")
+  THRESHOLD=5
+
+  DIFFERENCE=$((100 - ((ACTUAL_TRANSACTIONS * 100) / BASE_TRANSACTIONS)))
+
+  if [ "$DIFFERENCE" -lt "5" ]
+  then
+    echo "SUCCESS. Difference between benchmark is lower than $THRESHOLD%"
+  else
+    echo "FAIL. Difference between benchmark is greater than $THRESHOLD%, actual difference: $DIFFERENCE"
+    return 1
+  fi
+
+}
+
+create_baseline_cluster(){
+
+  cat << EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pgbench-credentials
+  namespace: $CLUSTER_NAMESPACE
+stringData:
+  pgbench-create-user-sql: "CREATE USER pguser WITH PASSWORD 'pguser';"
+EOF
+  
+  cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  name: $CLUSTER_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  instances: 2
+  postgres:
+    version: 'latest'
+  pods:
+    persistentVolume: 
+      size: '1Gi'
+  initialData:
+    scripts:
+    - name: create-pgbench-user
+      scriptFrom:
+        secretKeyRef:
+          name: pgbench-credentials
+          key: pgbench-create-user-sql
+    - name: create-pgbench-database
+      script: |
+        CREATE DATABASE pgbench OWNER pguser;
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
+EOF
+
+}
+
+reset_sgcluster(){
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+
+  wait_pods_terminated "$CLUSTER_NAMESPACE" 1 
+
+  create_baseline_cluster
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  
+}
+
+add_sgcluster_annotation(){
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type='json' \
+    -p '[
+      {"op": "add", "path": "/spec/metadata", "value": {}},
+      {"op": "add", "path": "/spec/metadata/annotations", "value": {}},
+      {"op": "add", "path": "/spec/metadata/annotations/allResources", "value": {}},
+      {"op": "add", "path": "/spec/metadata/annotations/allResources/test", "value": "test"}
+    ]'
+}
+

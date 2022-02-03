@@ -3,6 +3,10 @@ apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: {{ .Release.Name }}
+  {{- if .Values.cluster.version }}
+  annotations:
+    stackgres.io/operatorVersion: "{{ .Values.cluster.version }}"
+  {{- end }}
 spec:
   instances: {{ .Values.cluster.instances }}
   postgres:

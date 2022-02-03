@@ -45,12 +45,14 @@ create_or_replace_cluster() {
     helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_CHART_PATH" \
         --reuse-values \
         $E2E_CLUSTER_OPTS \
+        $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
         --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
   else
     create_namespace_if_not_exists "$NAMESPACE"
     helm install "$RELEASE" "$CLUSTER_CHART_PATH" \
       --namespace "$NAMESPACE" \
       $E2E_CLUSTER_OPTS \
+      $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
       --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
   fi
 }

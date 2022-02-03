@@ -8,6 +8,9 @@ metadata:
     helm.sh/hook: "pre-install"
     meta.helm.sh/release-name: {{ .Release.Name }}
     meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  {{- if .Values.cluster.version }}
+    stackgres.io/operatorVersion: "{{ .Values.cluster.version }}"
+  {{- end }}
   labels:
     app.kubernetes.io/managed-by: "Helm"
   {{- end }}

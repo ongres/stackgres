@@ -9,12 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -22,6 +24,8 @@ import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -56,6 +60,11 @@ public class DistributedLogsStatusManager
     } else {
       updateCondition(getFalsePendingRestart(), source);
     }
+    if (isPendingUpgrade(source)) {
+      updateCondition(getClusterRequiresUpgrade(), source);
+    } else {
+      updateCondition(getFalsePendingUpgrade(), source);
+    }
     return source;
   }
 
@@ -79,10 +88,6 @@ public class DistributedLogsStatusManager
         clusterPodStatuses, clusterStatefulSet, clusterPods);
     for (RestartReason reason : reasons.getReasons()) {
       switch (reason) {
-        case OPERATOR_VERSION:
-          LOGGER.debug("Distributed Logs {} requires restart due to operator version change",
-              getDistributedLogsId(distributedLogs));
-          break;
         case PATRONI:
           LOGGER.debug("Distributed Logs {} requires restart due to patroni's indication",
               getDistributedLogsId(distributedLogs));
@@ -100,6 +105,24 @@ public class DistributedLogsStatusManager
       }
     }
     return reasons.requiresRestart();
+  }
+
+  /**
+   * Check pending upgrade status condition.
+   */
+  public boolean isPendingUpgrade(StackGresDistributedLogs distributedLogs) {
+    if (Optional.of(distributedLogs.getMetadata())
+        .map(ObjectMeta::getAnnotations)
+        .stream()
+        .map(Map::entrySet)
+        .flatMap(Set::stream)
+        .anyMatch(e -> e.getKey().equals(StackGresContext.VERSION_KEY)
+            && !e.getValue().equals(StackGresProperty.OPERATOR_VERSION.getString()))) {
+      LOGGER.debug("Distributed Logs {} requires restart due to operator version change",
+          getDistributedLogsId(distributedLogs));
+      return true;
+    }
+    return false;
   }
 
   private Optional<StatefulSet> getClusterStatefulSet(StackGresDistributedLogs cluster) {
@@ -153,5 +176,13 @@ public class DistributedLogsStatusManager
 
   protected StackGresDistributedLogsCondition getPodRequiresRestart() {
     return DistributedLogsStatusCondition.POD_REQUIRES_RESTART.getCondition();
+  }
+
+  protected StackGresDistributedLogsCondition getFalsePendingUpgrade() {
+    return DistributedLogsStatusCondition.FALSE_PENDING_UPGRADE.getCondition();
+  }
+
+  protected StackGresDistributedLogsCondition getClusterRequiresUpgrade() {
+    return DistributedLogsStatusCondition.CLUSTER_REQUIRES_UPGRADE.getCondition();
   }
 }
