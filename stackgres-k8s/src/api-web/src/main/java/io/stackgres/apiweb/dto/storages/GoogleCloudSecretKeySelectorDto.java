@@ -18,7 +18,7 @@ import io.stackgres.common.crd.SecretKeySelector;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class GoogleCloudSecretKeySelector {
+public class GoogleCloudSecretKeySelectorDto {
 
   @JsonProperty("serviceAccountJSON")
   @NotNull(message = "The serviceAccountJsonKey is required")

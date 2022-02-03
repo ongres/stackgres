@@ -17,7 +17,7 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AwsS3Storage {
+public class AzureBlobStorageDto {
 
   @JsonProperty("bucket")
   @NotNull(message = "The bucket is required")
@@ -26,16 +26,10 @@ public class AwsS3Storage {
   @JsonProperty("path")
   private String path;
 
-  @JsonProperty("awsCredentials")
+  @JsonProperty("azureCredentials")
   @NotNull(message = "The credentials is required")
   @Valid
-  private AwsCredentials credentials;
-
-  @JsonProperty("region")
-  private String region;
-
-  @JsonProperty("storageClass")
-  private String storageClass;
+  private AzureBlobStorageCredentialsDto credentials;
 
   public String getBucket() {
     return bucket;
@@ -53,28 +47,12 @@ public class AwsS3Storage {
     this.path = path;
   }
 
-  public AwsCredentials getCredentials() {
+  public AzureBlobStorageCredentialsDto getCredentials() {
     return credentials;
   }
 
-  public void setCredentials(AwsCredentials credentials) {
+  public void setCredentials(AzureBlobStorageCredentialsDto credentials) {
     this.credentials = credentials;
-  }
-
-  public String getRegion() {
-    return region;
-  }
-
-  public void setRegion(String region) {
-    this.region = region;
-  }
-
-  public String getStorageClass() {
-    return storageClass;
-  }
-
-  public void setStorageClass(String storageClass) {
-    this.storageClass = storageClass;
   }
 
   @Override

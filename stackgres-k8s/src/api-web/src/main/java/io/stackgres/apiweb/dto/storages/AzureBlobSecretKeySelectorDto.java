@@ -18,7 +18,7 @@ import io.stackgres.common.crd.SecretKeySelector;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class AzureBlobSecretKeySelector {
+public class AzureBlobSecretKeySelectorDto {
 
   @JsonProperty("storageAccount")
   @NotNull(message = "The account is required")

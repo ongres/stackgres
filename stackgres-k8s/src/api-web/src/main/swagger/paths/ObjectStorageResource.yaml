@@ -1,0 +1,90 @@
+paths:
+  /stackgres/sgobjectstorages:
+    get:
+      tags:
+        - sgobjectstorages
+      summary: List sgobjectstorages
+      description: |
+        List sgobjectstorages and read values from the referenced secrets.
+
+        ### RBAC permissions required
+
+        * sgobjectstorages list
+        * secrets get
+      security:
+      - JWT: []
+    put:
+      tags:
+        - sgobjectstorages
+      summary: Update a sgobjectstorages
+      description: |
+        Update a sgobjectstorages.
+         If values are provided referenced secrets are created/patched or a secret named as
+         the sgobjectstorages with `-secrets` suffix is created/patched if no secret is
+         referenced.
+
+        ### RBAC permissions required
+
+        * sgobjectstorages patch
+        * secrets get, create, patch
+      security:
+      - JWT: []
+    post:
+      tags:
+        - sgobjectstorages
+      summary: Create a sgobjectstorages
+      description: |
+        Create a sgobjectstorages.
+         If values are provided referenced secrets are created/patched or a secret named as
+         the sgbackupconfig with `-secrets` suffix is created/patched if no secret is
+         referenced.
+
+        ### RBAC permissions required
+
+        * sgobjectstorages create
+        * secrets get, create, patch
+      security:
+      - JWT: []
+    delete:
+      tags:
+        - sgobjectstorages
+      summary: Delete a sgobjectstorages
+      description: |
+        Delete a sgobjectstorages.
+         If a secret named as the sgbackupconfig with `-secrets` suffix is found, it will be
+         deleted also.
+
+
+        ### RBAC permissions required
+
+        * sgobjectstorages delete
+        * secrets get, delete
+      security:
+      - JWT: []
+  /stackgres/namespaces/{namespace}/sgobjectstorages/{name}:
+    get:
+      tags:
+        - sgobjectstorages
+      summary: Get a sgobjectstorages
+      description: |
+        Get a sgobjectstorages and read values from the referenced secrets.
+
+        ### RBAC permissions required
+
+        * sgobjectstorages get
+        * secrets get
+      parameters:
+        - name: namespace
+          description: The namespace to retrieve the resource from
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: name
+          description: The name of the resource to retrieve
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - JWT: []

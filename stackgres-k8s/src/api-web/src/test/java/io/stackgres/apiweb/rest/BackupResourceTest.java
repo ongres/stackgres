@@ -14,6 +14,7 @@ import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.backup.BackupDto;
 import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
 import io.stackgres.apiweb.transformer.BackupConfigTransformer;
+import io.stackgres.apiweb.transformer.BackupStorageTransformer;
 import io.stackgres.apiweb.transformer.BackupTransformer;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
@@ -38,7 +39,9 @@ class BackupResourceTest extends AbstractCustomResourceTest
   @Override
   protected AbstractResourceTransformer<BackupDto, StackGresBackup> getTransformer() {
     final BackupTransformer backupTransformer = new BackupTransformer();
-    backupTransformer.setBackupConfigTransformer(new BackupConfigTransformer());
+    backupTransformer.setBackupConfigTransformer(
+        new BackupConfigTransformer(new BackupStorageTransformer())
+    );
     return backupTransformer;
   }
 

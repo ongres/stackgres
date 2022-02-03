@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.CommonDefinition;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("rawtypes")
@@ -41,10 +42,10 @@ class CrdMatchTest {
       String group = crdTree.get("spec").get("group").asText();
 
       var matchingSchema = StreamSupport.stream(
-          Spliterators.spliteratorUnknownSize(
-              crdInstallVersions.elements(),
-              Spliterator.ORDERED),
-          false)
+              Spliterators.spliteratorUnknownSize(
+                  crdInstallVersions.elements(),
+                  Spliterator.ORDERED),
+              false)
           .filter(crdInstallVersion -> {
             String version = crdInstallVersion.get("name").asText();
             return Objects.equals(group + "/" + version, apiVersion);
@@ -59,19 +60,31 @@ class CrdMatchTest {
   @Test
   void crdVersion_ShouldMatchConfiguredVersion() throws IOException {
     withEveryYaml(crdTree -> {
+      if (Objects.equals(
+          crdTree.get("spec").get("names").get("kind").asText(),
+          StackGresObjectStorage.KIND)) {
+        /*
+         * Skipping this test because the SGObjectStorage because we don't v1beta1 version
+         * released at the moment
+         */
+        return;
+      }
       JsonNode crdInstallVersions = crdTree.get("spec").get("versions");
       crdInstallVersions.elements();
-
       Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
 
       boolean isThereASchemaThatMatches = StreamSupport.stream(
-          Spliterators.spliteratorUnknownSize(
-              crdInstallVersions.elements(),
-              Spliterator.ORDERED),
-          false)
-          .anyMatch(crdInstallVersion -> Objects.equals(CRD_VERSION,
-              crdInstallVersion.get("name").asText())
-              && Objects.equals(CRD_VERSION, HasMetadata.getVersion(clazz)));
+              Spliterators.spliteratorUnknownSize(
+                  crdInstallVersions.elements(),
+                  Spliterator.ORDERED),
+              false)
+          .anyMatch(crdInstallVersion -> Objects.equals(
+                  CRD_VERSION,
+                  crdInstallVersion.get("name").asText()
+              ) && Objects.equals(
+                  CRD_VERSION,
+                  HasMetadata.getVersion(clazz))
+          );
 
       assertTrue(isThereASchemaThatMatches,
           "At least one schema should have the version " + CRD_VERSION);

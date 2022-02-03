@@ -17,7 +17,7 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class GoogleCloudCredentials {
+public class GoogleCloudCredentialsDto {
 
   @JsonProperty("fetchCredentialsFromMetadataService")
   private boolean fetchCredentialsFromMetadataService;
@@ -28,7 +28,7 @@ public class GoogleCloudCredentials {
   @JsonProperty("secretKeySelectors")
   @NotNull(message = "The secretKeySelectors are required")
   @Valid
-  private GoogleCloudSecretKeySelector secretKeySelectors;
+  private GoogleCloudSecretKeySelectorDto secretKeySelectors;
 
   public boolean isFetchCredentialsFromMetadataService() {
     return fetchCredentialsFromMetadataService;
@@ -46,11 +46,11 @@ public class GoogleCloudCredentials {
     this.serviceAccountJsonKey = serviceAccountJsonKey;
   }
 
-  public GoogleCloudSecretKeySelector getSecretKeySelectors() {
+  public GoogleCloudSecretKeySelectorDto getSecretKeySelectors() {
     return secretKeySelectors;
   }
 
-  public void setSecretKeySelectors(GoogleCloudSecretKeySelector secretKeySelectors) {
+  public void setSecretKeySelectors(GoogleCloudSecretKeySelectorDto secretKeySelectors) {
     this.secretKeySelectors = secretKeySelectors;
   }
 
