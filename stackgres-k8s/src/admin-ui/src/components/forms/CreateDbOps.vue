@@ -1017,10 +1017,11 @@
                 
                 if(!vc.nameEdited) {
                     let opCount = store.state.dbOps.filter(op => (op.data.metadata.namespace == vc.$route.params.namespace)).length + 1;
-                    vc.name = ((vc.sgCluster != '') ? (vc.sgCluster + '-') : '');
-                    vc.name += ( (vc.op != '') ? (vc.op + '-') : '');
-                    vc.name += opCount;
-                    vc.name = vc.name.substring(0,20);
+                    
+                    vc.name = ((vc.sgCluster != '') ? (vc.sgCluster) : '');
+                    vc.name += ( (vc.op != '') ? ('-' + vc.op) : '').toLowerCase();
+                    vc.name = vc.name.substring(0,18);
+                    vc.name += ('-' + opCount);
                 } 
             },
 
