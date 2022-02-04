@@ -56,7 +56,7 @@ e2e_test_install() {
         value: "$PASSWORD"
       - name: CYPRESS_VIDEO
         value: "false" 
-      - name: CYPRESS_namespace
+      - name: CYPRESS_k8s_namespace
         value: $CLUSTER_NAMESPACE
       - name: CYPRESS_BASE_URL
         value: "https://$SERVICE.$OPERATOR_NAMESPACE/admin"
