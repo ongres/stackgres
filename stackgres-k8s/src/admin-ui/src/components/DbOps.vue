@@ -509,6 +509,15 @@
                             </tr>
                             <tr>
                                 <td class="label">
+                                    Run At
+                                    <span class="helpTooltip" :data-tooltip="(timezone == 'local') ? getTooltip('sgdbops.spec.runAt').replace('UTC ','') : getTooltip('sgdbops.spec.runAt')"></span>
+                                </td>
+                                <td colspan="2">
+                                    {{ op.data.spec.hasOwnProperty('runAt') ? op.data.spec.runAt : 'ASAP' }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
                                     Max Retries
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.maxRetries')"></span>
                                 </td>
