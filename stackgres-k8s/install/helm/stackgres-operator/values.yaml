@@ -74,6 +74,8 @@ cert:
 authentication:
   user: admin
 #  password: <operator admin password>
+  secretRef:
+    name: ""
 
 prometheus:
   allowAutobind: true

@@ -88,7 +88,7 @@ spec:
             value: "true"
           {{ end }}
           - name: AUTHENTICATION_SECRET_NAME
-            value: "{{ .Values.restapi.name }}"
+            value: "{{ .Values.authentication.secretRef.name | default .Values.restapi.name }}"
           - name: SG_CONTAINER_REGISTRY
             value: "{{ .Values.containerRegistry }}"
           - name: SG_IMAGE_PULL_POLICY

@@ -72,7 +72,7 @@ spec:
             value: "true"
           {{- end }}
           - name: AUTHENTICATION_SECRET_NAME
-            value: "{{ .Values.restapi.name }}"
+            value: "{{ .Values.authentication.secretRef.name | default .Values.restapi.name }}"
           {{- if .Capabilities.APIVersions.Has "project.openshift.io/v1" }}
           - name: USE_ARBITRARY_USER
             value: "true"
