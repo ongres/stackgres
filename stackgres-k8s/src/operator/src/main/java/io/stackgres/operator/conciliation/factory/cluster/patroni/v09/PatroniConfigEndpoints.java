@@ -66,9 +66,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     for (String bl : PostgresBlocklist.getBlocklistParameters()) {
       userParams.remove(bl);
     }
-    for (Map.Entry<String, String> userParam : userParams.entrySet()) {
-      params.put(userParam.getKey(), userParam.getValue());
-    }
+    params.putAll(userParams);
 
     params.put("port", String.valueOf(EnvoyUtil.PG_PORT));
 

@@ -34,22 +34,18 @@ public abstract class AbstractDefaultConfigKeeper
 
   @PostConstruct
   public void init() {
-
     this.installedResources = factories.stream()
         .map(DefaultCustomResourceFactory::buildResource)
         .map(CustomResource::getMetadata)
         .collect(Collectors.groupingBy(ObjectMeta::getNamespace,
             Collectors.mapping(ObjectMeta::getName, Collectors.toSet())));
-
   }
 
   @Override
   public void validate(T review) throws ValidationFailed {
-
     final AdmissionRequest<R> request = review.getRequest();
     switch (request.getOperation()) {
       case UPDATE:
-
         final R object = request.getObject();
 
         String updateNamespace = object.getMetadata().getNamespace();

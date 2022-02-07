@@ -21,8 +21,7 @@ import org.slf4j.LoggerFactory;
 
 public interface MutationResource<T extends AdmissionReview<?>> {
 
-  Logger logger = LoggerFactory
-      .getLogger(MutationResource.class);
+  Logger logger = LoggerFactory.getLogger(MutationResource.class);
 
   AdmissionReviewResponse mutate(T admissionReview);
 

@@ -5,91 +5,100 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-class BlocklistValidatorTest {
+class PgConfigBlocklistValidatorTest extends AbstractPgConfigReview {
 
   private static String[] BLOCKLISTED_PROPERTIES =
       PostgresBlocklist.getBlocklistParameters().toArray(new String[0]);
 
-  private BlocklistValidator validator = new BlocklistValidator();
+  private @NotNull PgConfigValidator validator = new PgConfigBlocklistValidator();
 
   @Test
-  void givenValidConfigurationCreation_shouldNotFail() throws ValidationFailed {
-    PgConfigReview review = JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig.json",
-        PgConfigReview.class);
-
-    validator.validate(review);
+  void givenValidConfigurationCreation_shouldNotFail() {
+    assertDoesNotThrow(() -> validator.validate(validConfigReview()));
   }
 
   @Test
-  void givenValidConfigurationUpdate_shouldNotFail() throws ValidationFailed {
-    PgConfigReview review =
-        JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
-            PgConfigReview.class);
-
-    validator.validate(review);
+  void givenValidConfigurationUpdate_shouldNotFail() {
+    assertDoesNotThrow(() -> validator.validate(validConfigUpdate()));
   }
 
   @Test
-  void givenConfigurationDeletion_shouldNotFail() throws ValidationFailed {
-    PgConfigReview review = JsonUtil.readFromJson("pgconfig_allow_request/pgconfig_delete.json",
-        PgConfigReview.class);
-
-    validator.validate(review);
+  void givenConfigurationDeletion_shouldNotFail() {
+    assertDoesNotThrow(() -> validator.validate(validConfigDelete()));
   }
 
   @Test
   void givenCreationWithBlocklistedProperties_shouldFail() {
-    PgConfigReview review = JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig.json",
-        PgConfigReview.class);
+    PgConfigReview review = validConfigReview();
 
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
     String[] blocklistedProperties = addBlocklistProperties(pgConfig);
 
-    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
-      validator.validate(review);
-    });
+    validateThrows(review, blocklistedProperties);
+  }
 
-    String errorMessage = ex.getResult().getMessage();
-    assertEquals("Invalid postgres configuration, properties: "
-        + String.join(", ", blocklistedProperties)
-        + " cannot be settled", errorMessage);
+  @ParameterizedTest
+  @MethodSource("provideBlockedParameter")
+  void givenCreationWithBlocklistedProperties_shouldFail(String parameter) {
+    PgConfigReview review = validConfigReview();
+
+    StackGresPostgresConfig pgConfig = review.getRequest().getObject();
+    pgConfig.getSpec().getPostgresqlConf().put(parameter, "I'm being naughty");
+
+    validateThrows(review, parameter);
   }
 
   @Test
   void givenUpdateWithBlocklistedProperties_shouldFail() {
-    PgConfigReview review =
-        JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
-            PgConfigReview.class);
+    PgConfigReview review = validConfigUpdate();
 
     StackGresPostgresConfig pgConfig = review.getRequest().getObject();
     String[] blocklistedProperties = addBlocklistProperties(pgConfig);
 
-    assertThrows(ValidationFailed.class, () -> {
-      validator.validate(review);
-    });
+    validateThrows(review, blocklistedProperties);
+  }
 
+  @ParameterizedTest
+  @MethodSource("provideBlockedParameter")
+  void givenUpdateWithBlocklistedProperties_shouldFail(String parameter) {
+    PgConfigReview review = validConfigUpdate();
+
+    StackGresPostgresConfig pgConfig = review.getRequest().getObject();
+    pgConfig.getSpec().getPostgresqlConf().put(parameter, "I'm being naughty");
+
+    validateThrows(review, parameter);
+  }
+
+  private void validateThrows(PgConfigReview review, String... parameters) {
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
     });
 
     String errorMessage = ex.getResult().getMessage();
     assertEquals("Invalid postgres configuration, properties: "
-        + String.join(", ", blocklistedProperties)
+        + String.join(", ", parameters)
         + " cannot be settled", errorMessage);
+    assertEquals(400, ex.getResult().getCode());
   }
 
   private String[] addBlocklistProperties(StackGresPostgresConfig pgConfig) {
@@ -107,6 +116,11 @@ class BlocklistValidatorTest {
         .getSpec().getPostgresqlConf().put(b, "I'm being naughty"));
 
     return blocklistProperties.toArray(new String[0]);
+  }
+
+  private static Stream<Arguments> provideBlockedParameter() {
+    return Arrays.stream(BLOCKLISTED_PROPERTIES)
+        .map(t -> Arguments.of(t));
   }
 
 }

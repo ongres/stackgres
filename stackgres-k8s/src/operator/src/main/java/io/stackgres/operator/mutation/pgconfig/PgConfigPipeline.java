@@ -29,16 +29,12 @@ public class PgConfigPipeline implements JsonPatchMutationPipeline<PgConfigRevie
 
   @Override
   public Optional<String> mutate(PgConfigReview review) {
-
     List<JsonPatchOperation> operations = new ArrayList<>();
 
     mutators.forEach(pgConfigMutator -> operations.addAll(pgConfigMutator.mutate(review)));
 
-    if (operations.isEmpty()) {
-      return Optional.empty();
-    } else {
-      return Optional.of(join(operations));
-    }
-
+    return operations.isEmpty()
+        ? Optional.empty()
+        : Optional.of(join(operations));
   }
 }

@@ -35,7 +35,9 @@ public enum ErrorType {
   INVALID_SECRET("invalid-secret",
       "Invalid secret"),
   EXTENSION_NOT_FOUND("extension-not-found",
-      "Extension not found");
+      "Extension not found"),
+  PG_CONFIG_PARAMETER("postgres-parameter",
+      "The postgres configuration contains invalid parameters"),;
 
   private String uri;
   private String title;

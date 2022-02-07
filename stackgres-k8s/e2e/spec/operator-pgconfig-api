@@ -59,6 +59,10 @@ e2e_test() {
 
   run_test "Check that pgconfig changes are reflected in the api" test_api_updated_pgconfig_is_visible
 
+  run_test "Postgres config update with the api and mutated value" test_mutate_pgconfig_with_api
+
+  run_test "Check that pgconfig changes are reflected in the api and mutated value" test_api_mutate_pgconfig_is_visible
+
   run_test "Check pgconfig deletion with api" test_delete_pgconfig_with_api
 
   run_test "Check that pgconfig deletions with the API are reflected in the API" test_api_delete_pgconfig_is_invible
@@ -218,6 +222,10 @@ update_pg_config_paramter_with_api() {
   fi
 }
 
+get_pgconfig_from_api() {
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgpgconfigs/$PGCONFIG" -n "$CLUSTER_NAMESPACE"
+}
+
 test_update_pgconfig_with_api() {
   create_pgconfig
 
@@ -233,10 +241,6 @@ test_update_pgconfig_with_api() {
   fi
 }
 
-get_pgconfig_from_api() {
-  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgpgconfigs/$PGCONFIG" -n "$CLUSTER_NAMESPACE"
-}
-
 test_api_updated_pgconfig_is_visible() {
   update_pg_config_paramter_with_api 'shared_buffers' '"512MB"'
 
@@ -246,6 +250,34 @@ test_api_updated_pgconfig_is_visible() {
     echo "Postgres config updates are being reflected in the api"
   else
     echo "Postgres config updates aren't being reflected in the api"
+    return 1
+  fi
+}
+
+test_mutate_pgconfig_with_api() {
+  create_pgconfig
+
+  update_pg_config_paramter_with_api 'work_mem' '"32768kB"'
+
+  if kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o "jsonpath={.spec['postgresql\.conf'].work_mem}" \
+    | grep -q '^32MB$'
+  then
+    echo "Postgres config was updated with mutated value"
+  else
+    echo "Postgres config was not updated with mutated value"
+    return 1
+  fi
+}
+
+test_api_mutate_pgconfig_is_visible() {
+  update_pg_config_paramter_with_api 'work_mem' '"32768kB"'
+
+  if get_pgconfig_from_api | jq '.spec["postgresql.conf"]' -r \
+    | grep -q "work_mem='32MB'"
+  then
+    echo "Postgres config updates are being reflected in the api with mutated value"
+  else
+    echo "Postgres config updates aren't being reflected in the api with mutated value"
     return 1
   fi
 }
@@ -295,7 +327,6 @@ test_api_delete_pgconfig_is_invible() {
 }
 
 test_constraint_violation_api_error() {
-
   INVALID_PGCONFIG="$(cat "$LOG_PATH/default-pgconfig.json" | jq 'del (.spec.postgresVersion)' )"
 
   echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-pgconfig.json"
@@ -318,9 +349,8 @@ test_constraint_violation_api_error() {
     EXPECTED_ERROR_DETAIL="Required value"
     assert_api_error "$ERROR_RESPONSE"
   fi
-
-
 }
+
 test_authentication_api_error() {
   local HTTP_STATUS
 

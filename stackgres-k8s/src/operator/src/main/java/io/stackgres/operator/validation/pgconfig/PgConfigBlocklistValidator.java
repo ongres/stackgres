@@ -5,12 +5,12 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
-import java.util.Map;
 import java.util.Set;
 
 import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.validation.ValidationType;
@@ -19,27 +19,24 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 
 @Singleton
 @ValidationType(ErrorType.PG_CONFIG_BLOCKLIST)
-public class BlocklistValidator implements PgConfigValidator {
+public class PgConfigBlocklistValidator implements PgConfigValidator {
 
   private static final Set<String> BLOCKLIST = PostgresBlocklist.getBlocklistParameters();
 
   @Override
   public void validate(PgConfigReview review) throws ValidationFailed {
-
     Operation operation = review.getRequest().getOperation();
     if (operation == Operation.CREATE || operation == Operation.UPDATE) {
-      Map<String, String> confProperties = review.getRequest()
-          .getObject().getSpec().getPostgresqlConf();
+      final StackGresPostgresConfig conf = review.getRequest().getObject();
 
-      String[] blocklistedProperties = confProperties.keySet().stream()
-          .filter(BLOCKLIST::contains).toArray(String[]::new);
-      int blocklistCount = blocklistedProperties.length;
+      String[] blocklistedProperties = conf.getSpec().getPostgresqlConf()
+          .keySet().stream().filter(BLOCKLIST::contains).toArray(String[]::new);
 
-      if (blocklistCount > 0) {
-        throw new ValidationFailed("Invalid postgres configuration, properties: "
-            + String.join(", ", blocklistedProperties) + " cannot be settled");
+      if (blocklistedProperties.length > 0) {
+        fail(conf.getKind(), ErrorType.getErrorTypeUri(ErrorType.PG_CONFIG_BLOCKLIST),
+            "Invalid postgres configuration, properties: "
+                + String.join(", ", blocklistedProperties) + " cannot be settled");
       }
-
     }
   }
 }

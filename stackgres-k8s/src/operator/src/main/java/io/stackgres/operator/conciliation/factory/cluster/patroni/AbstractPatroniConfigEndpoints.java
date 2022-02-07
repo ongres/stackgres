@@ -10,6 +10,8 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableMap;
+import com.ongres.pgconfig.validator.GucValidator;
+import com.ongres.pgconfig.validator.PgParameter;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.LabelFactoryForCluster;
@@ -30,8 +32,8 @@ public abstract class AbstractPatroniConfigEndpoints
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  public AbstractPatroniConfigEndpoints(JsonMapper objectMapper,
-                                LabelFactoryForCluster<StackGresCluster> labelFactory) {
+  protected AbstractPatroniConfigEndpoints(JsonMapper objectMapper,
+      LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.objectMapper = objectMapper;
     this.labelFactory = labelFactory;
   }
@@ -50,7 +52,7 @@ public abstract class AbstractPatroniConfigEndpoints
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(PatroniUtil.configName(context))
         .withLabels(labels)
-        .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
+        .withAnnotations(Map.of(PATRONI_CONFIG_KEY, patroniConfigJson))
         .endMetadata()
         .build());
   }
@@ -63,7 +65,18 @@ public abstract class AbstractPatroniConfigEndpoints
 
     Map<String, String> params = getPostgresParameters(context, pgConfig);
 
-    return params;
+    return normalizeParams(pgConfig.getSpec().getPostgresVersion(), params);
+  }
+
+  private Map<String, String> normalizeParams(String postgresVersion,
+      Map<String, String> params) {
+    final GucValidator val = GucValidator.forVersion(postgresVersion);
+    final var builder = ImmutableMap.<String, String>builderWithExpectedSize(params.size());
+    params.forEach((name, setting) -> {
+      PgParameter parameter = val.parameter(name, setting);
+      builder.put(parameter.getName(), parameter.getSetting());
+    });
+    return builder.build();
   }
 
   protected abstract Map<String, String> getPostgresParameters(StackGresClusterContext context,

@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.stackgres.apiweb.rest.utils.Kubernetes16StatusParser;
 import io.stackgres.apiweb.rest.utils.StatusParser;
 import io.stackgres.common.ErrorType;
 import org.slf4j.Logger;
@@ -115,7 +116,7 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
       if (causes != null) {
         causes.forEach(c -> {
           fields.add(c.getField());
-          fieldCauses.add(c.getMessage());
+          fieldCauses.add("· " + Kubernetes16StatusParser.cleanupMessage(c.getMessage()));
         });
       }
     }
@@ -142,7 +143,7 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
       if (causes != null) {
         causes.forEach(c -> {
           fields.add(c.getField());
-          fieldCauses.add(c.getMessage());
+          fieldCauses.add("· " + Kubernetes16StatusParser.cleanupMessage(c.getMessage()));
         });
       }
     }

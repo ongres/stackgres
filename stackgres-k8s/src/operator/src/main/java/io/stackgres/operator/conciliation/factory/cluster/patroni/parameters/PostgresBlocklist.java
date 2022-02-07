@@ -6,8 +6,8 @@
 package io.stackgres.operator.conciliation.factory.cluster.patroni.parameters;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableSet;
 import io.stackgres.common.StackGresUtil;
 
 public class PostgresBlocklist {
@@ -18,7 +18,7 @@ public class PostgresBlocklist {
       .keySet().stream()
       .map(Object::toString)
       .filter(e -> !e.isBlank())
-      .collect(ImmutableSet.toImmutableSet());
+      .collect(Collectors.toUnmodifiableSet());
 
   private PostgresBlocklist() {}
 
