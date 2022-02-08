@@ -27,13 +27,13 @@
             <div class="row-50">
                 <div class="col">
                     <label for="metadata.name">Operation Name <span class="req">*</span></label>
-                    <input v-model="name" required data-field="metadata.name" autocomplete="off" @keyup="nameEdited = true">
+                    <input v-model="name" required data-field="metadata.name" autocomplete="off">
                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.metadata.name')"></span>
                 </div>
 
                 <div class="col">
                     <label for="spec.sgCluster">Target Cluster <span class="req">*</span></label>
-                    <select v-model="sgCluster" required data-field="spec.sgCluster" @change="setDefaultName()">
+                    <select v-model="sgCluster" required data-field="spec.sgCluster">
                         <option disabled value="">Choose a Cluster</option>
                         <template v-for="cluster in allClusters">
                             <option v-if="cluster.data.metadata.namespace == $route.params.namespace">{{ cluster.data.metadata.name }}</option>
@@ -57,7 +57,7 @@
                         <template v-for="operation in ['benchmark', 'vacuum', 'repack', 'securityUpgrade', 'minorVersionUpgrade', 'majorVersionUpgrade', 'restart']">
                             <label class="dbopIcon" :class="[operation, ( (op == operation) && 'active' )]" :for="operation" :data-field="'spec.op' + operation">
                                 {{ splitUppercase(operation) }}
-                                <input type="radio" v-model="op" data-field="spec.op" :value="operation" :id="operation" @change="setDefaultName()">
+                                <input type="radio" v-model="op" data-field="spec.op" :value="operation" :id="operation">
                             </label>
                         </template>
                     </div>
@@ -683,8 +683,7 @@
             return {
                 previewCRD: {},
                 showSummary: false,
-                nameEdited: false,
-                name: 'sgdbop-' + vc.getDbopDateString(),
+                name: 'op' + vc.getDateString(),
                 sgCluster: '',
                 runAt: '',
                 runAtTimezone: '',
@@ -1010,27 +1009,6 @@
                         break;
                 }
 
-            },
-
-            setDefaultName() {
-                const vc = this;
-                
-                if(!vc.nameEdited) {
-                    let opCount = store.state.dbOps.filter(op => (op.data.metadata.namespace == vc.$route.params.namespace)).length + 1;
-                    vc.name = ((vc.sgCluster != '') ? (vc.sgCluster + '-') : '');
-                    vc.name += ( (vc.op != '') ? (vc.op + '-') : '');
-                    vc.name += opCount;
-                    vc.name = vc.name.substring(0,20);
-                } 
-            },
-
-            getDbopDateString() {
-                const vc = this;
-
-                var date = vc.getDateString().replaceAll('-','');
-                var newDate = [date.slice(0,8), '-', date.slice(8,-2)].join('');
-
-                return newDate
             }
 
         },
