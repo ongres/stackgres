@@ -3,7 +3,7 @@
 #
 # Follow those steps to install and start crc in Ubuntu 20.04:
 # 
-#     sudo wget https://dl.fedoraproject.org/pub/alt/okd-crc/release/linux-amd64/crc -O /usr/local/bin
+#     sudo wget https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/crc/1.39.0/crc-linux-amd64.tar.xz -O - | sudo tar xf --strip-components=1 -C /usr/local/bin/ -f - crc
 #     sudo chmod a+x /usr/local/bin/crc
 #     sudo apt install qemu-kvm libvirt-daemon libvirt-daemon-system network-manager
 #     crc config set skip-check-daemon-systemd-unit true
