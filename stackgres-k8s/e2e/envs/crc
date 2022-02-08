@@ -22,10 +22,9 @@ then
   >&2 echo "Warning: using kubernetes version 1.22.3 since e2e default $DEFAULT_K8S_VERSION is not available for crc"
   K8S_VERSION=1.22.3
 fi
-export K8S_OPENSHIFT_VERSION="${K8S_OPENSHIFT_VERSION:-3.11.0}"
 export K8S_CRC_CPUS="${K8S_CRC_CPUS:-4}"
 export K8S_CRC_MEMORY="${K8S_CRC_MEMORY:-9216}"
-export K8S_CRC_DISK="${K8S_CRC_DISK:-31}"
+export K8S_CRC_DISK="${K8S_CRC_DISK:-60}"
 
 get_k8s_env_version() {
   echo "crc version $(crc version | head -n 1 | cut -d ' ' -f 4)"
@@ -33,15 +32,13 @@ get_k8s_env_version() {
 }
 
 update_crc_config() {
-  eval "$(crc oc-env)"
-
   if ! timeout -s KILL 10s $(crc console --credentials | cut -d "'" -f 2 | grep kubeadmin) > /dev/null 2>&1
   then
     wait_until eval "crc status | grep '^OpenShift:[[:space:]]\+Running[[:space:]]'"
     wait_until eval "timeout -s KILL 10s $(crc console --credentials | cut -d "'" -f 2 | grep kubeadmin) > /dev/null 2>&1"
   fi
 
-  # oc adm policy add-scc-to-user hostmount-anyuid -n default -z default
+  # ~/.crc/bin/oc/oc adm policy add-scc-to-user hostmount-anyuid -n default -z default
 }
 
 update_k8s_config() {
@@ -51,7 +48,7 @@ update_k8s_config() {
     echo "Can not use crc environment from docker"
     exit 1
   else
-    oc config view --raw > "$HOME/.kube/config-oc"
+    ~/.crc/bin/oc/oc config view --raw > "$HOME/.kube/config-oc"
   fi
 
   (
@@ -154,12 +151,14 @@ load_image_k8s() {
     return
   fi
 
-  echo "Loading image $1 in crc environemnt"
-  docker save "$1" | crc_run_on_node podman load
-  if crc_run_on_node podman inspect "localhost/$1" > /dev/null 2>&1
-  then
-    crc_run_on_node podman tag "localhost/$1" "docker.io/$1"
-  fi
+  echo "Loading images in crc environemnt is not supported"
+  return 1
+  # echo "Loading image $1 in crc environemnt"
+  # docker save "$1" | crc_run_on_node podman load
+  # if crc_run_on_node podman inspect "localhost/$1" > /dev/null 2>&1
+  # then
+  #   crc_run_on_node podman tag "localhost/$1" "docker.io/$1"
+  # fi
 }
 
 pull_image_k8s() {
@@ -195,7 +194,7 @@ crc_start_debug_node() {
 }
 
 crc_run_on_node() {
-  local NODE
+  local NODE PID
   NODE="$(kubectl get node -o name)"
   NODE="$(printf '%s' "$NODE" | head -n 1)"
 

@@ -1,0 +1,393 @@
+#!/bin/sh
+
+export K8S_NAME="${K8S_NAME:-microshift}"
+export K8S_MICROSHIFT_VERSION="${K8S_MICROSHIFT_VERSION:-4.8.0-0.microshift-2022-03-11-124751}"
+if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
+then
+  >&2 echo "Warning: using kubernetes version 1.21.1 since e2e default $DEFAULT_K8S_VERSION is not available for microshift"
+  K8S_VERSION=1.21.1
+fi
+
+get_k8s_env_version() {
+  echo "microshift version $K8S_MICROSHIFT_VERSION"
+  echo
+}
+
+update_k8s_config() {
+  mkdir -p "$HOME/.kube"
+  docker cp "$K8S_NAME":/var/lib/microshift/resources/kubeadmin/kubeconfig ~/.kube/config-oc
+
+  (
+  export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
+  if [ -s "$KUBECONFIG" ]
+  then
+    KUBECONFIG="$HOME/.kube/config-oc":"$KUBECONFIG" \
+      kubectl config view --raw > "$HOME/.kube/config-merged"
+    mv "$HOME/.kube/config-merged" "$KUBECONFIG"
+  else
+    mv "$HOME/.kube/config-oc" "$KUBECONFIG"
+  fi
+  chmod 700 "$KUBECONFIG"
+  )
+
+  wait_until kubectl annotate --overwrite \
+    storageclass kubevirt-hostpath-provisioner \
+    storageclass.kubernetes.io/is-default-class=true
+}
+
+reuse_k8s() {
+  local RESULT
+  local EXIT_CODE
+
+  if ! docker ps | grep -q " $K8S_NAME$"
+  then
+    reset_k8s
+  fi
+
+  echo "Reusing microshift environment"
+  update_k8s_config
+}
+
+reset_k8s() {
+  if [ "$K8S_VERSION" != 1.21.1 ]
+  then
+    echo "Only kubernetes version 1.21.1 is available for microshift environment"
+    return 1
+  fi
+
+  echo "Setting up microshift environment..."
+
+  docker rm -fv "$K8S_NAME" || true
+  docker run -d --rm \
+    --name "$K8S_NAME" \
+    --privileged \
+    -v "$K8S_CACHE_PATH":/var/lib \
+    -p 6443:6443 \
+    quay.io/microshift/microshift-aio:"$K8S_MICROSHIFT_VERSION"
+  docker exec "$K8S_NAME" sh -c 'dnf -q -y install podman'
+
+  update_k8s_config
+
+  echo "...done"
+}
+
+delete_k8s() {
+  echo "Deleting microshift environment..."
+
+  docker rm -fv "$K8S_NAME"
+
+  echo "...done"
+}
+
+load_image_k8s() {
+  local IMAGE_ID
+  IMAGE_ID="$( (docker inspect --format '{{ .ID }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
+  local CRC_IMAGE_ID
+  CRC_IMAGE_ID="$( (microshift_run_on_node crictl inspecti -o json "$1" 2>/dev/null || printf '{"status": {"id": "unknown"}}') | jq -r '"sha256:" + .status.id' | grep -v '^$')"
+  if [ "$IMAGE_ID" = unknown ] && [ "$KIND_IMAGE_ID" != unknown ]
+  then
+    echo "Image $1 already loaded in microshift environemnt"
+    return
+  fi
+  if [ "$CRC_IMAGE_ID" = "$IMAGE_ID" ]
+  then
+    echo "Image $1 already loaded in microshift environemnt"
+    return
+  fi
+
+  echo "Loading image $1 in microshift environemnt"
+  docker save "$1" | microshift_run_on_node podman load
+  if microshift_run_on_node podman inspect "localhost/$1" > /dev/null 2>&1
+  then
+    microshift_run_on_node podman tag "localhost/$1" "docker.io/$1"
+  fi
+}
+
+pull_image_k8s() {
+  local AUTH
+  AUTH="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json" \
+    | grep -F "${1%%/*}" | head -n 1 | cut -d '|' -f 2)"
+  if [ -n "$AUTH" ]
+  then
+    microshift_run_on_node crictl pull --auth "$AUTH" "$1"
+  else
+    microshift_run_on_node crictl pull "$1"
+  fi
+
+  echo "Pulled image $1 in microshift environemnt"
+}
+
+tag_image_k8s() {
+  microshift_run_on_node podman tag "$1" "$2"
+
+  echo "Tagged image $1 as $2 in microshift environemnt"
+}
+
+microshift_run_on_node() {
+  docker exec -i "$K8S_NAME" "$@"
+}
+
+excluded_namespaces() {
+  echo "default"
+  echo "kube-node-lease"
+  echo "kube-public"
+  echo "kube-system"
+  echo "kubevirt-hostpath-provisioner"
+  echo "openshift"
+  echo "openshift-controller-manager"
+  echo "openshift-dns"
+  echo "openshift-infra"
+  echo "openshift-ingress"
+  echo "openshift-node"
+  echo "openshift-service-ca"
+}
+
+excluded_validatingwebhookconfigurations() {
+  true
+}
+
+excluded_mutatingwebhookconfigurations() {
+  true
+}
+
+excluded_customresourcedefinitions() {
+  echo "builds.config.openshift.io"
+  echo "clusterresourcequotas.quota.openshift.io"
+  echo "configs.imageregistry.operator.openshift.io"
+  echo "imagecontentsourcepolicies.operator.openshift.io"
+  echo "images.config.openshift.io"
+  echo "proxies.config.openshift.io"
+  echo "rolebindingrestrictions.authorization.openshift.io"
+  echo "securitycontextconstraints.security.openshift.io"
+}
+
+excluded_podsecuritypolicies() {
+  true
+}
+
+excluded_clusterroles() {
+  echo "admin"
+  echo "basic-user"
+  echo "cluster-admin"
+  echo "cluster-debugger"
+  echo "cluster-reader"
+  echo "cluster-status"
+  echo "edit"
+  echo "flannel"
+  echo "kubevirt-hostpath-provisioner"
+  echo "openshift-dns"
+  echo "openshift-ingress-router"
+  echo "registry-admin"
+  echo "registry-editor"
+  echo "registry-viewer"
+  echo "self-access-reviewer"
+  echo "self-provisioner"
+  echo "storage-admin"
+  echo "sudoer"
+  echo "system:aggregate-to-admin"
+  echo "system:aggregate-to-edit"
+  echo "system:aggregate-to-view"
+  echo "system:auth-delegator"
+  echo "system:basic-user"
+  echo "system:build-strategy-custom"
+  echo "system:build-strategy-docker"
+  echo "system:build-strategy-jenkinspipeline"
+  echo "system:build-strategy-source"
+  echo "system:certificates.k8s.io:certificatesigningrequests:nodeclient"
+  echo "system:certificates.k8s.io:certificatesigningrequests:selfnodeclient"
+  echo "system:certificates.k8s.io:kube-apiserver-client-approver"
+  echo "system:certificates.k8s.io:kube-apiserver-client-kubelet-approver"
+  echo "system:certificates.k8s.io:kubelet-serving-approver"
+  echo "system:certificates.k8s.io:legacy-unknown-approver"
+  echo "system:controller:attachdetach-controller"
+  echo "system:controller:certificate-controller"
+  echo "system:controller:clusterrole-aggregation-controller"
+  echo "system:controller:cronjob-controller"
+  echo "system:controller:daemon-set-controller"
+  echo "system:controller:deployment-controller"
+  echo "system:controller:disruption-controller"
+  echo "system:controller:endpoint-controller"
+  echo "system:controller:endpointslice-controller"
+  echo "system:controller:endpointslicemirroring-controller"
+  echo "system:controller:ephemeral-volume-controller"
+  echo "system:controller:expand-controller"
+  echo "system:controller:generic-garbage-collector"
+  echo "system:controller:horizontal-pod-autoscaler"
+  echo "system:controller:job-controller"
+  echo "system:controller:namespace-controller"
+  echo "system:controller:node-controller"
+  echo "system:controller:persistent-volume-binder"
+  echo "system:controller:pod-garbage-collector"
+  echo "system:controller:pv-protection-controller"
+  echo "system:controller:pvc-protection-controller"
+  echo "system:controller:replicaset-controller"
+  echo "system:controller:replication-controller"
+  echo "system:controller:resourcequota-controller"
+  echo "system:controller:root-ca-cert-publisher"
+  echo "system:controller:route-controller"
+  echo "system:controller:service-account-controller"
+  echo "system:controller:service-ca-cert-publisher"
+  echo "system:controller:service-controller"
+  echo "system:controller:statefulset-controller"
+  echo "system:controller:ttl-after-finished-controller"
+  echo "system:controller:ttl-controller"
+  echo "system:deployer"
+  echo "system:discovery"
+  echo "system:heapster"
+  echo "system:image-auditor"
+  echo "system:image-builder"
+  echo "system:image-pruner"
+  echo "system:image-puller"
+  echo "system:image-pusher"
+  echo "system:image-signer"
+  echo "system:kube-aggregator"
+  echo "system:kube-controller-manager"
+  echo "system:kube-dns"
+  echo "system:kube-scheduler"
+  echo "system:kubelet-api-admin"
+  echo "system:master"
+  echo "system:monitoring"
+  echo "system:node"
+  echo "system:node-admin"
+  echo "system:node-bootstrapper"
+  echo "system:node-problem-detector"
+  echo "system:node-proxier"
+  echo "system:node-reader"
+  echo "system:oauth-token-deleter"
+  echo "system:openshift:aggregate-to-admin"
+  echo "system:openshift:aggregate-to-basic-user"
+  echo "system:openshift:aggregate-to-cluster-reader"
+  echo "system:openshift:aggregate-to-edit"
+  echo "system:openshift:aggregate-to-storage-admin"
+  echo "system:openshift:aggregate-to-view"
+  echo "system:openshift:controller:build-config-change-controller"
+  echo "system:openshift:controller:build-controller"
+  echo "system:openshift:controller:cluster-quota-reconciliation-controller"
+  echo "system:openshift:controller:default-rolebindings-controller"
+  echo "system:openshift:controller:deployer-controller"
+  echo "system:openshift:controller:deploymentconfig-controller"
+  echo "system:openshift:controller:horizontal-pod-autoscaler"
+  echo "system:openshift:controller:image-import-controller"
+  echo "system:openshift:controller:image-trigger-controller"
+  echo "system:openshift:controller:origin-namespace-controller"
+  echo "system:openshift:controller:pv-recycler-controller"
+  echo "system:openshift:controller:resourcequota-controller"
+  echo "system:openshift:controller:service-ca"
+  echo "system:openshift:controller:service-ingress-ip-controller"
+  echo "system:openshift:controller:service-serving-cert-controller"
+  echo "system:openshift:controller:serviceaccount-controller"
+  echo "system:openshift:controller:serviceaccount-pull-secrets-controller"
+  echo "system:openshift:controller:template-instance-controller"
+  echo "system:openshift:controller:template-instance-finalizer-controller"
+  echo "system:openshift:controller:template-service-broker"
+  echo "system:openshift:controller:unidling-controller"
+  echo "system:openshift:discovery"
+  echo "system:openshift:public-info-viewer"
+  echo "system:openshift:templateservicebroker-client"
+  echo "system:persistent-volume-provisioner"
+  echo "system:public-info-viewer"
+  echo "system:router"
+  echo "system:scope-impersonation"
+  echo "system:sdn-manager"
+  echo "system:sdn-reader"
+  echo "system:service-account-issuer-discovery"
+  echo "system:volume-scheduler"
+  echo "system:webhook"
+  echo "view"
+}
+
+excluded_clusterrolebindings() {
+  echo "basic-users"
+  echo "cluster-admin"
+  echo "cluster-admins"
+  echo "cluster-readers"
+  echo "cluster-status-binding"
+  echo "flannel"
+  echo "kubevirt-hostpath-provisioner"
+  echo "openshift-dns"
+  echo "openshift-ingress-router"
+  echo "self-access-reviewers"
+  echo "self-provisioners"
+  echo "system:basic-user"
+  echo "system:build-strategy-docker-binding"
+  echo "system:build-strategy-jenkinspipeline-binding"
+  echo "system:build-strategy-source-binding"
+  echo "system:controller:attachdetach-controller"
+  echo "system:controller:certificate-controller"
+  echo "system:controller:clusterrole-aggregation-controller"
+  echo "system:controller:cronjob-controller"
+  echo "system:controller:daemon-set-controller"
+  echo "system:controller:deployment-controller"
+  echo "system:controller:disruption-controller"
+  echo "system:controller:endpoint-controller"
+  echo "system:controller:endpointslice-controller"
+  echo "system:controller:endpointslicemirroring-controller"
+  echo "system:controller:ephemeral-volume-controller"
+  echo "system:controller:expand-controller"
+  echo "system:controller:generic-garbage-collector"
+  echo "system:controller:horizontal-pod-autoscaler"
+  echo "system:controller:job-controller"
+  echo "system:controller:namespace-controller"
+  echo "system:controller:node-controller"
+  echo "system:controller:persistent-volume-binder"
+  echo "system:controller:pod-garbage-collector"
+  echo "system:controller:pv-protection-controller"
+  echo "system:controller:pvc-protection-controller"
+  echo "system:controller:replicaset-controller"
+  echo "system:controller:replication-controller"
+  echo "system:controller:resourcequota-controller"
+  echo "system:controller:root-ca-cert-publisher"
+  echo "system:controller:route-controller"
+  echo "system:controller:service-account-controller"
+  echo "system:controller:service-ca-cert-publisher"
+  echo "system:controller:service-controller"
+  echo "system:controller:statefulset-controller"
+  echo "system:controller:ttl-after-finished-controller"
+  echo "system:controller:ttl-controller"
+  echo "system:deployer"
+  echo "system:discovery"
+  echo "system:image-builder"
+  echo "system:image-puller"
+  echo "system:kube-controller-manager"
+  echo "system:kube-dns"
+  echo "system:kube-scheduler"
+  echo "system:masters"
+  echo "system:monitoring"
+  echo "system:node"
+  echo "system:node-admins"
+  echo "system:node-bootstrapper"
+  echo "system:node-proxier"
+  echo "system:node-proxiers"
+  echo "system:oauth-token-deleters"
+  echo "system:openshift:controller:build-config-change-controller"
+  echo "system:openshift:controller:build-controller"
+  echo "system:openshift:controller:cluster-quota-reconciliation-controller"
+  echo "system:openshift:controller:default-rolebindings-controller"
+  echo "system:openshift:controller:deployer-controller"
+  echo "system:openshift:controller:deploymentconfig-controller"
+  echo "system:openshift:controller:horizontal-pod-autoscaler"
+  echo "system:openshift:controller:image-import-controller"
+  echo "system:openshift:controller:image-trigger-controller"
+  echo "system:openshift:controller:origin-namespace-controller"
+  echo "system:openshift:controller:pv-recycler-controller"
+  echo "system:openshift:controller:resourcequota-controller"
+  echo "system:openshift:controller:service-ca"
+  echo "system:openshift:controller:service-ingress-ip-controller"
+  echo "system:openshift:controller:service-serving-cert-controller"
+  echo "system:openshift:controller:serviceaccount-controller"
+  echo "system:openshift:controller:serviceaccount-pull-secrets-controller"
+  echo "system:openshift:controller:template-instance-controller"
+  echo "system:openshift:controller:template-instance-controller:admin"
+  echo "system:openshift:controller:template-instance-finalizer-controller"
+  echo "system:openshift:controller:template-instance-finalizer-controller:admin"
+  echo "system:openshift:controller:template-service-broker"
+  echo "system:openshift:controller:unidling-controller"
+  echo "system:openshift:discovery"
+  echo "system:openshift:public-info-viewer"
+  echo "system:public-info-viewer"
+  echo "system:scope-impersonation"
+  echo "system:sdn-readers"
+  echo "system:service-account-issuer-discovery"
+  echo "system:volume-scheduler"
+  echo "system:webhooks"
+}
