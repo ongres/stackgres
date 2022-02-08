@@ -509,6 +509,26 @@
                             </tr>
                             <tr>
                                 <td class="label">
+                                    Run At
+                                    <span class="helpTooltip" :data-tooltip="(timezone == 'local') ? getTooltip('sgdbops.spec.runAt').replace('UTC ','') : getTooltip('sgdbops.spec.runAt')"></span>
+                                </td>
+                                <td colspan="2" class="timestamp">
+                                    <template v-if="op.data.spec.hasOwnProperty('runAt')">
+                                        <span class='date'>
+                                            {{ op.data.spec.runAt | formatTimestamp('date') }}
+                                        </span>
+                                        <span class='time'>
+                                            {{ op.data.spec.runAt | formatTimestamp('time') }}
+                                        </span>
+                                        <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                    </template>
+                                    <template v-else>
+                                        <span>ASAP</span>
+                                    </template>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
                                     Max Retries
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.maxRetries')"></span>
                                 </td>
