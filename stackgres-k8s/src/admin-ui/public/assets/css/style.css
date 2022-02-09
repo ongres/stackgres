@@ -2142,7 +2142,7 @@ ul.selector li {
     margin-bottom: 2px;
 }
 
-.form input, .form select, .form textarea, ul.select {
+.form input, .form select, .form textarea, ul.select, .namespaceSelector {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -2206,6 +2206,7 @@ ul.select.active li.selected {
     background: #fbfbfb;
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
+    width: calc(100% + 20px);
 }
 
 ul.select a {
@@ -2386,7 +2387,7 @@ label.switch {
     transition: all .3s ease-out;
 }
 
-.form select, ul.select {
+.form select, ul.select, .namespaceSelector {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
