@@ -121,7 +121,7 @@
             </div>
             <hr/>
             <div class="textCenter pad">
-                <select class="namespaceSelector" v-model="selectedNamespace" @change="goTo(selectedNamespace)">
+                <select class="plain" v-model="selectedNamespace" @change="goTo(selectedNamespace)">
                     <option disabled selected value="">Or select a namespace...</option>
                     <option v-for="namespace in namespaces" :value="'/' + namespace">
                         {{ namespace }}
@@ -247,7 +247,7 @@ export default {
         transform: rotate(-45deg)
     }
 
-    .namespaceSelector {
+    select.plain {
         width: 250px;
         border: 1px solid var(--borderColor);
         background-color: rgba(122, 123, 133, .10);
