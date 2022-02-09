@@ -1,12 +1,48 @@
 describe('Create SGBackupConfig', () => {
-   
-    const host = Cypress.env('host')
-    const resourcename = Cypress.env('resourcename')
+
+    const namespace = Cypress.env('k8s_namespace')
+    let resourceName;
     
-    beforeEach( () => {
+    before( () => {
         cy.login()
-        cy.visit(host + '/default/sgbackupconfigs/new')
-    })
+
+        resourceName = Cypress._.random(0, 1e6)
+    });
+
+    beforeEach( () => {
+        Cypress.Cookies.preserveOnce('sgToken')
+        cy.visit(namespace + '/sgbackupconfigs/new')
+    });
+
+    after( () => {
+        cy.deleteCRD('sgbackupconfigs', {
+            metadata: {
+                name: 's3-' + resourceName,
+                namespace: namespace
+            }
+        });
+
+        cy.deleteCRD('sgbackupconfigs', {
+            metadata: {
+                name: 's3compatible-' + resourceName,
+                namespace: namespace
+            }
+        });
+
+        cy.deleteCRD('sgbackupconfigs', {
+            metadata: {
+                name: 'gcs-' + resourceName,
+                namespace: namespace
+            }
+        });
+
+        cy.deleteCRD('sgbackupconfigs', {
+            metadata: {
+                name: 'azure-' + resourceName,
+                namespace: namespace
+            }
+        });
+    });
     
     it('Create SGBackupConfig form should be visible', () => {
         cy.get('form#createBackupConfig')
@@ -22,7 +58,7 @@ describe('Create SGBackupConfig', () => {
         
         // Name
         cy.get('[data-field="metadata.name"]')
-            .type('s3-' + resourcename)
+            .type('s3-' + resourceName)
         
         
         // Backup Schedule
@@ -76,19 +112,19 @@ describe('Create SGBackupConfig', () => {
             .click()
 
         cy.get('[data-field="spec.storage.s3.bucket"]')
-            .type(resourcename)
+            .type(resourceName)
 
         cy.get('[data-field="spec.storage.s3.path"]')
-            .type('//' + resourcename)
+            .type('//' + resourceName)
 
         cy.get('[data-field="spec.storage.s3.region"]')
-            .type(resourcename)
+            .type(resourceName)
 
         cy.get('[data-field="spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId"]')
-            .type(resourcename)
+            .type(resourceName)
 
         cy.get('[data-field="spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey"]')
-            .type(resourcename)
+            .type(resourceName)
         
         
         // Submit
@@ -98,11 +134,11 @@ describe('Create SGBackupConfig', () => {
         //Notification appears
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Backup configuration "s3-' + resourcename + '" created successfully')
+                expect($notification).contain('Backup configuration "s3-' + resourceName + '" created successfully')
         })
         
         // Test user redirection
-        cy.location('pathname').should('eq', '/admin/default/sgbackupconfigs')
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgbackupconfigs')
         
     });
 
@@ -111,7 +147,7 @@ describe('Create SGBackupConfig', () => {
     it('Creating a Amazon S3 Compatible SGBackupConfig should be possible', () => {
         // Name
         cy.get('[data-field="metadata.name"]')
-            .type('s3compatible-' + resourcename)
+            .type('s3compatible-' + resourceName)
         
         
         // Backup Schedule
@@ -144,22 +180,22 @@ describe('Create SGBackupConfig', () => {
             .click()
 
         cy.get('[data-field="spec.storage.s3Compatible.bucket"]')
-            .type(resourcename)
+            .type(resourceName)
 
         cy.get('[data-field="spec.storage.s3Compatible.path"]')
-            .type('//' + resourcename)
+            .type('//' + resourceName)
 
         cy.get('[data-field="spec.storage.s3Compatible.endpoint"]')
-            .type('https://' + resourcename)
+            .type('https://' + resourceName)
 
         cy.get('[data-field="spec.storage.s3Compatible.region"]')
-            .type(resourcename)
+            .type(resourceName)
 
         cy.get('[data-field="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId"]')
-            .type(resourcename)
+            .type(resourceName)
 
         cy.get('[data-field="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey"]')
-            .type(resourcename)
+            .type(resourceName)
 
         cy.get('#enablePathStyleAddressing')
             .click()
@@ -172,11 +208,11 @@ describe('Create SGBackupConfig', () => {
         //Notification appears
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Backup configuration "s3compatible-' + resourcename + '" created successfully')
+                expect($notification).contain('Backup configuration "s3compatible-' + resourceName + '" created successfully')
         })
         
         // Test user redirection
-        cy.location('pathname').should('eq', '/admin/default/sgbackupconfigs')
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgbackupconfigs')
     });
 
 
@@ -184,7 +220,7 @@ describe('Create SGBackupConfig', () => {
     it('Creating a GCS SGBackupConfig should be possible', () => {
         // Name
         cy.get('[data-field="metadata.name"]')
-            .type('gcs-' + resourcename)
+            .type('gcs-' + resourceName)
         
         
         // Backup Schedule
@@ -217,10 +253,10 @@ describe('Create SGBackupConfig', () => {
             .click()
 
         cy.get('[data-field="spec.storage.gcs.bucket"]')
-            .type(resourcename)
+            .type(resourceName)
 
         cy.get('[data-field="spec.storage.gcs.path"]')
-            .type('//' + resourcename)
+            .type('//' + resourceName)
 
         cy.get('#fetchGCSCredentials')
             .click()
@@ -233,11 +269,11 @@ describe('Create SGBackupConfig', () => {
         //Notification appears
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Backup configuration "gcs-' + resourcename + '" created successfully')
+                expect($notification).contain('Backup configuration "gcs-' + resourceName + '" created successfully')
         })
         
         // Test user redirection
-        cy.location('pathname').should('eq', '/admin/default/sgbackupconfigs')
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgbackupconfigs')
     });
 
 
@@ -245,7 +281,7 @@ describe('Create SGBackupConfig', () => {
     it('Creating a Azure Blob SGBackupConfig should be possible', () => {
         // Name
         cy.get('[data-field="metadata.name"]')
-            .type('azure-' + resourcename)
+            .type('azure-' + resourceName)
         
         
         // Backup Schedule
@@ -278,16 +314,16 @@ describe('Create SGBackupConfig', () => {
             .click()
 
         cy.get('[data-field="spec.storage.azureBlob.bucket"]')
-            .type(resourcename)
+            .type(resourceName)
 
         cy.get('[data-field="spec.storage.azureBlob.path"]')
-            .type('//' + resourcename)
+            .type('//' + resourceName)
 
         cy.get('[data-field="spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount"]')
-            .type(resourcename)
+            .type(resourceName)
 
         cy.get('[data-field="spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey"]')
-            .type(resourcename)
+            .type(resourceName)
        
         
         // Submit
@@ -297,13 +333,11 @@ describe('Create SGBackupConfig', () => {
         //Notification appears
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Backup configuration "azure-' + resourcename + '" created successfully')
+                expect($notification).contain('Backup configuration "azure-' + resourceName + '" created successfully')
         })
         
         // Test user redirection
-        cy.location('pathname').should('eq', '/admin/default/sgbackupconfigs')
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgbackupconfigs')
     });
-
-
 })
     

@@ -1,4 +1,4 @@
-Cypress.Commands.add("login", () => {
+Cypress.Commands.add('login', () => {
     cy.request({
         method: 'POST',
         url: Cypress.env('api') + '/auth/login',
@@ -10,4 +10,87 @@ Cypress.Commands.add("login", () => {
     .then( (resp) => {
         cy.setCookie('sgToken', resp.body.access_token);
     })
-})
+});
+
+Cypress.Commands.add('createCRD', (kind, crd) => {
+    cy.getCookie('sgToken').then((cookie) => {
+        cy.request({
+            method: 'POST',
+            url: Cypress.env('api') + '/' + kind,
+            headers: {
+                Authorization: 'Bearer ' + cookie.value,
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            body: crd
+        })   
+    })    
+});
+
+Cypress.Commands.add('deleteCRD', (kind, crd) => {
+    cy.getCookie('sgToken').then((cookie) => {
+        cy.request({
+            method: 'DELETE',
+            url: Cypress.env('api') + '/' + kind,
+            headers: {
+                Authorization: 'Bearer ' + cookie.value,
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            },
+            body: crd
+        })   
+    }) 
+});
+
+function getResources(kind) {
+    cy.getCookie('sgToken').then((cookie) => {
+        cy.request({
+            method: 'GET',
+            url: Cypress.env('api') + '/' + kind,
+            headers: {
+                Authorization: 'Bearer ' + cookie.value,
+                'Content-Type': 'application/json',
+                Accept: 'application/json'
+            }
+        }).then((resp)=> {
+            return cy.wrap(resp.body)
+        })   
+    }) 
+};
+
+Cypress.Commands.add('getResources', getResources);
+
+Cypress.Commands.add('deleteCluster', (namespace, clusterName) => {
+    cy.getResources('sgclusters').then(resp => {
+        let cluster = resp.find(el => (el.metadata.namespace === namespace) && (el.metadata.name === clusterName))
+        
+        cy.deleteCRD('sgclusters', {
+            metadata: {
+                name: cluster.metadata.name,
+                namespace: cluster.metadata.namespace
+            }
+        })
+        .then( () => {
+            cy.deleteCRD('sginstanceprofiles', {
+                metadata: {
+                    name: cluster.spec.sgInstanceProfile,
+                    namespace: cluster.metadata.namespace
+                }
+            });
+        
+            cy.deleteCRD('sgpgconfigs', {
+                metadata: {
+                    name: cluster.spec.configurations.sgPostgresConfig,
+                    namespace: cluster.metadata.namespace
+                }
+            });
+        
+            cy.deleteCRD('sgpoolconfigs', {
+                metadata: {
+                    name: cluster.spec.configurations.sgPoolingConfig,
+                    namespace: cluster.metadata.namespace
+                }
+            })
+        })
+    })
+});

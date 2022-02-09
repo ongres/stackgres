@@ -1,12 +1,34 @@
 describe('Create SGDistributedLog', () => {
 
-    const host = Cypress.env('host')
-    const resourcename = Cypress.env('resourcename')
+    const namespace = Cypress.env('k8s_namespace')
+    let resourceName;
+
+    before( () => {
+        cy.login()
+
+        resourceName = Cypress._.random(0, 1e6)
+    });
 
     beforeEach( () => {
-        cy.login()
-        cy.visit(host + '/default/sgdistributedlogs/new')
-    })
+        Cypress.Cookies.preserveOnce('sgToken')
+        cy.visit(namespace + '/sgdistributedlogs/new')
+    });
+
+    after( () => {
+        cy.deleteCRD('sgdistributedlogs', {
+            metadata: {
+                name: 'basic-' + resourceName,
+                namespace: namespace
+            }
+        });
+
+        cy.deleteCRD('sgdistributedlogs', {
+            metadata: {
+                name: 'advanced-' + resourceName,
+                namespace: namespace
+            }
+        });
+    });
 
     it('Create SGDistributedLog form should be visible', () => {
         cy.get('form#createLogsServer')
@@ -16,7 +38,7 @@ describe('Create SGDistributedLog', () => {
     it('Creating a basic SGDistributedLog should be possible', () => {
         // Test SGDistributedLog Name
         cy.get('[data-field="metadata.name"]')
-            .type('basic-' + resourcename)
+            .type('basic-' + resourceName)
 
         // Test Submit form
         cy.get('form#createLogsServer button[type="submit"]')
@@ -24,8 +46,11 @@ describe('Create SGDistributedLog', () => {
         
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Logs server "basic-' + resourcename + '" created successfully')
+                expect($notification).contain('Logs server "basic-' + resourceName + '" created successfully')
             })
+        
+            // Test user redirection
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgdistributedlogs')
     });
 
     it('Creating an advanced SGDistributedLog should be possible', () => {
@@ -36,7 +61,7 @@ describe('Create SGDistributedLog', () => {
         
         // Test SGDistributedLog Name
         cy.get('input[data-field="metadata.name"]')
-            .type('advanced-' + resourcename)
+            .type('advanced-' + resourceName)
         
         // Test Volume Size
         cy.get('input[data-field="spec.persistentVolume.size"]')
@@ -102,12 +127,10 @@ describe('Create SGDistributedLog', () => {
         
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Logs server "advanced-' + resourcename + '" created successfully')
+                expect($notification).contain('Logs server "advanced-' + resourceName + '" created successfully')
             })
 
         // Test user redirection
-        cy.location('pathname').should('eq', '/admin/default/sgdistributedlogs')
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgdistributedlogs')
     }); 
-    
-
   })
