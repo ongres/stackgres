@@ -38,7 +38,7 @@ EOF
 for CRD in ../../src/common/src/main/resources/crds/*.yaml
 do
   cat "$CRD" >> "target/templates/stackgres-operator-demo.yml"
-  echo --- >> "target/templates/stackgres-operator-demo.yml"
+  printf '\n---\n' >> "target/templates/stackgres-operator-demo.yml"
 done
 
 helm template --namespace stackgres stackgres-operator \
