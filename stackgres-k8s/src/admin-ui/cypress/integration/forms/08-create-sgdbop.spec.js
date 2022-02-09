@@ -7,9 +7,7 @@ describe('Create SGDbOp', () => {
     before( () => {
         cy.login()
 
-        generateRandomString = () => Cypress._.random(0, 1e6)
-
-        resourceName = generateRandomString()
+        resourceName = Cypress._.random(0, 1e6);
         clusterName = 'cluster-' + resourceName;
         pgConfigName = 'pgconfig-' + resourceName;
 
