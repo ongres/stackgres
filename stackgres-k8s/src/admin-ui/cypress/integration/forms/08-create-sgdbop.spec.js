@@ -3,6 +3,7 @@ describe('Create SGDbOp', () => {
     const namespace = Cypress.env('k8s_namespace')
     let resourceName;
     let clusterName;
+    let pgConfigName;
 
     before( () => {
         cy.login()
