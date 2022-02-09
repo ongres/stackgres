@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -40,7 +39,7 @@ import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @InitContainer(ClusterInitContainer.RESET_PATRONI_INIT)
 public class PatroniResetInit implements ContainerFactory<StackGresClusterContainerContext> {
 
@@ -54,7 +53,7 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
 
   @Inject
   public PatroniResetInit(
-      @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+      @OperatorVersionBinder
           PatroniServices patroniServices,
       @ProviderName(VolumeMountProviderName.POSTGRES_DATA)
           VolumeMountsProvider<ContainerContext> postgresDataMounts,

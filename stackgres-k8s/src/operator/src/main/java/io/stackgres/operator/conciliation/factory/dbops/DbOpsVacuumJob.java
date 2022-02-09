@@ -20,7 +20,6 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsVacuum;
@@ -34,7 +33,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniService
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @OpJob("vacuum")
 public class DbOpsVacuumJob extends DbOpsJob {
 

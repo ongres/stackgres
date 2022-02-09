@@ -51,12 +51,8 @@ public abstract class GeneratorTest {
     cluster.getMetadata().getAnnotations().put("stackgres.io/operatorVersion",
         version.getVersion());
     cluster.getSpec().setPostgres(new StackGresClusterPostgres());
-    String defaultPostgreVersion;
-    if (version.ordinal() <= StackGresVersion.V09_LAST.ordinal()) {
-      defaultPostgreVersion = "12.6";
-    } else {
-      defaultPostgreVersion = StackGresComponent.POSTGRESQL.getLatest().findLatestVersion();
-    }
+    String defaultPostgreVersion = StackGresComponent.POSTGRESQL
+        .getOrThrow(version).findLatestVersion();
     cluster.getSpec().getPostgres().setVersion(defaultPostgreVersion);
     cluster.getSpec().setPod(new StackGresClusterPod());
     cluster.getSpec().getPod().setPersistentVolume(new StackGresPodPersistentVolume());

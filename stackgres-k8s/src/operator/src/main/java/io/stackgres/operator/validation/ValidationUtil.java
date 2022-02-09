@@ -12,7 +12,7 @@ import java.util.function.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
+import io.stackgres.common.StackGresVersion;
 
 public interface ValidationUtil {
 
@@ -26,7 +26,7 @@ public interface ValidationUtil {
   String DISTRIBUTED_LOGS_VALIDATION_PATH = VALIDATION_PATH + "/sgdistributedlogs";
   String DBOPS_VALIDATION_PATH = VALIDATION_PATH + "/sgdbops";
 
-  Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>> SUPPORTED_POSTGRES_VERSIONS
+  Map<StackGresComponent, Map<StackGresVersion, List<String>>> SUPPORTED_POSTGRES_VERSIONS
       = ImmutableList.of(
           StackGresComponent.POSTGRESQL,
           StackGresComponent.BABELFISH

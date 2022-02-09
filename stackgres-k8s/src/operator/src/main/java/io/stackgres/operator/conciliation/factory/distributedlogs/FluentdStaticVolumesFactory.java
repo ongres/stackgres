@@ -9,7 +9,6 @@ import java.util.stream.Stream;
 
 import javax.inject.Singleton;
 
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.StaticVolumeFactory;
@@ -17,7 +16,7 @@ import io.stackgres.operator.conciliation.factory.VolumePair;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class FluentdStaticVolumesFactory
     implements StaticVolumeFactory<StackGresDistributedLogsContext> {
 

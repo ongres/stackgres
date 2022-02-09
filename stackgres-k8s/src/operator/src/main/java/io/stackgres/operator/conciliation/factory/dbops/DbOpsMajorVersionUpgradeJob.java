@@ -27,7 +27,6 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -39,7 +38,7 @@ import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V095, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @OpJob("majorVersionUpgrade")
 public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
 

@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresDistributedLogsUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.resource.ResourceUtil;
@@ -30,7 +29,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Pos
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class PatroniConfigEndpoints
     implements ResourceGenerator<StackGresDistributedLogsContext> {
 

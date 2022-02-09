@@ -17,7 +17,6 @@ import javax.inject.Singleton;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
-import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -33,7 +32,7 @@ import org.jooq.lambda.tuple.Tuple2;
 public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
-  private final Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+  private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       supportedPostgresVersions;
   private final String errorPostgresMismatchUri;
   private final String errorForbiddenUpdateUri;
@@ -46,7 +45,7 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
 
   public DbOpsMinorVersionUpgradeValidator(
       CustomResourceFinder<StackGresCluster> clusterFinder,
-      Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+      Map<StackGresComponent, Map<StackGresVersion, List<String>>>
           orderedSupportedPostgresVersions) {
     this.clusterFinder = clusterFinder;
     this.supportedPostgresVersions = orderedSupportedPostgresVersions;
@@ -112,7 +111,7 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
 
   private boolean isPostgresVersionSupported(StackGresCluster cluster, String version) {
     return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
-        .get(StackGresVersion.getStackGresVersion(cluster).getMinorVersion())
+        .get(StackGresVersion.getStackGresVersion(cluster))
         .contains(version);
   }
 

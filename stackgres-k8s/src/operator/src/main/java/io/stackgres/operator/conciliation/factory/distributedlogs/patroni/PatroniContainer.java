@@ -36,7 +36,6 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -57,7 +56,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLog
 import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @RunningContainer(ClusterRunningContainer.PATRONI)
 public class PatroniContainer implements ContainerFactory<DistributedLogsContainerContext> {
 

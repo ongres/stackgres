@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.prometheus.Endpoint;
 import io.stackgres.common.prometheus.NamespaceSelector;
@@ -35,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class PrometheusIntegration implements ResourceGenerator<StackGresClusterContext> {
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;

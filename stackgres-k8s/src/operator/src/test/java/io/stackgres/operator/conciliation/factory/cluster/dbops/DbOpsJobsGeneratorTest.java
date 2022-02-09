@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -30,7 +29,7 @@ import org.junit.jupiter.api.Test;
 class DbOpsJobsGeneratorTest {
 
   @Inject
-  @OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V11)
+  @OperatorVersionBinder
   DbOpsJobsGenerator dbOpsJobsGenerator;
 
   StackGresCluster cluster;

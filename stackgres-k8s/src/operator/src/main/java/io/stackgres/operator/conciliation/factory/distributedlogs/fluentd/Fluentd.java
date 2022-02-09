@@ -39,7 +39,6 @@ import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.distributedlogs.PatroniTableFields;
@@ -66,7 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @RunningContainer(ClusterRunningContainer.FLUENTD)
 public class Fluentd implements ContainerFactory<DistributedLogsContainerContext>,
     ResourceGenerator<StackGresDistributedLogsContext>,

@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
 import io.stackgres.common.component.Component;
 import io.stackgres.common.component.Components;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -32,10 +31,10 @@ public enum StackGresComponent {
 
   public static final String LATEST = "latest";
 
-  final Map<StackGresMinorVersion, Component> componentMap;
+  final Map<StackGresVersion, Component> componentMap;
 
   StackGresComponent() {
-    ImmutableMap.Builder<StackGresMinorVersion, Component> componentMapBuilder =
+    ImmutableMap.Builder<StackGresVersion, Component> componentMapBuilder =
         ImmutableMap.builder();
     Stream.of(Components.values())
         .flatMap(cs -> Stream.of(cs)
@@ -47,12 +46,16 @@ public enum StackGresComponent {
     this.componentMap = componentMapBuilder.build();
   }
 
+  public Component getOldest() {
+    return getOrThrow(StackGresVersion.OLDEST);
+  }
+
   public Component getLatest() {
-    return getOrThrow(StackGresMinorVersion.LATEST);
+    return getOrThrow(StackGresVersion.LATEST);
   }
 
   public boolean has(StackGresCluster cluster) {
-    return get(StackGresVersion.getStackGresVersion(cluster).getMinorVersion()).isPresent();
+    return get(StackGresVersion.getStackGresVersion(cluster)).isPresent();
   }
 
   public Component get(StackGresCluster cluster) {
@@ -63,22 +66,18 @@ public enum StackGresComponent {
     return getOrThrow(StackGresVersion.getStackGresVersion(distributedLogs));
   }
 
-  public Optional<Component> get(StackGresMinorVersion version) {
+  public Optional<Component> get(StackGresVersion version) {
     return Optional.of(this.componentMap)
         .map(map -> map.get(version));
   }
 
   public Component getOrThrow(StackGresVersion version) {
-    return getOrThrow(version.getMinorVersion());
-  }
-
-  private Component getOrThrow(StackGresMinorVersion version) {
     return get(version)
         .orElseThrow(() -> new IllegalArgumentException(
-            "StackGres minor version " + version + " not supported"));
+            "StackGres version " + version + " not supported"));
   }
 
-  public Map<StackGresMinorVersion, Component> getComponentVersions() {
+  public Map<StackGresVersion, Component> getComponentVersions() {
     return componentMap;
   }
 

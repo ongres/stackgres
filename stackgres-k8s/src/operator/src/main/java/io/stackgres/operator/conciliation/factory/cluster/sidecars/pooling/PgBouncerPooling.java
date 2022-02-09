@@ -31,7 +31,6 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
@@ -57,7 +56,7 @@ import org.jetbrains.annotations.NotNull;
 
 @Sidecar("connection-pooling")
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @RunningContainer(ClusterRunningContainer.PGBOUNCER)
 public class PgBouncerPooling extends AbstractPgPooling {
 

@@ -24,7 +24,6 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -40,7 +39,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 
 @Sidecar(AbstractFluentBit.NAME)
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @RunningContainer(ClusterRunningContainer.FLUENT_BIT)
 public class FluentBit extends AbstractFluentBit {
 

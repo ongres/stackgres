@@ -30,7 +30,6 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
@@ -45,7 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> {
 
   public static final int PATRONI_LOG_FILE_SIZE = 256 * 1024 * 1024;

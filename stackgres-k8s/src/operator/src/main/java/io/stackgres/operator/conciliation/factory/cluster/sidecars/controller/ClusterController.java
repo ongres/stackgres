@@ -26,7 +26,6 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -44,7 +43,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 
 @Singleton
 @Sidecar(ClusterController.NAME)
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @RunningContainer(ClusterRunningContainer.CLUSTER_CONTROLLER)
 public class ClusterController implements ContainerFactory<StackGresClusterContainerContext> {
 

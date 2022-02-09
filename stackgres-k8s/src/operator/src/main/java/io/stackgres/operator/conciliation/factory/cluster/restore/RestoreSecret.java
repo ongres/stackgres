@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -34,7 +33,7 @@ import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFac
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class RestoreSecret
     implements VolumeFactory<StackGresClusterContext> {
 

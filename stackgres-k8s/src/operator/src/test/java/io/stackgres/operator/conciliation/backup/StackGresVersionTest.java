@@ -37,7 +37,7 @@ class StackGresVersionTest {
 
     var version = StackGresVersion.getStackGresVersion(backup);
 
-    assertEquals(StackGresVersion.V10, version);
+    assertEquals(StackGresVersion.V_1_0, version);
   }
 
   @Test
@@ -46,7 +46,7 @@ class StackGresVersionTest {
 
     var version = StackGresVersion.getStackGresVersion(backup);
 
-    assertEquals(StackGresVersion.V10, version);
+    assertEquals(StackGresVersion.V_1_0, version);
   }
 
   @Test
@@ -56,7 +56,7 @@ class StackGresVersionTest {
     IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
         () -> StackGresVersion.getStackGresVersion(backup));
 
-    assertEquals("Invalid version 0.1", ex.getMessage());
+    assertEquals("Invalid version 0.1-SNAPSHOT", ex.getMessage());
   }
 
   @Test

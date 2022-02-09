@@ -13,7 +13,6 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -21,7 +20,7 @@ import io.stackgres.operator.conciliation.factory.Decorator;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class OwnerReferenceDecorator implements Decorator<StackGresClusterContext> {
 
   @Override

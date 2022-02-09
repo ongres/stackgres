@@ -12,14 +12,13 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @OpJob("benchmark")
 public class DbOpsBenchmarkJob implements JobFactory {
 

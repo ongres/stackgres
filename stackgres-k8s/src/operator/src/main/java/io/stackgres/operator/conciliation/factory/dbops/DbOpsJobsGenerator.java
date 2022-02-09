@@ -14,7 +14,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -23,7 +22,7 @@ import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class DbOpsJobsGenerator implements ResourceGenerator<StackGresDbOpsContext> {
 
   private final DbOpsJobsDiscoverer jobsDiscoverer;

@@ -17,7 +17,6 @@ import javax.inject.Singleton;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
-import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -38,7 +37,7 @@ public class DbOpsMajorVersionUpgradeValidator implements DbOpsValidator {
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
-  private final Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+  private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       supportedPostgresVersions;
   private final String errorCrReferencerUri;
   private final String errorPostgresMismatchUri;
@@ -54,7 +53,7 @@ public class DbOpsMajorVersionUpgradeValidator implements DbOpsValidator {
   public DbOpsMajorVersionUpgradeValidator(
       CustomResourceFinder<StackGresCluster> clusterFinder,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
-      Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+      Map<StackGresComponent, Map<StackGresVersion, List<String>>>
           orderedSupportedPostgresVersions) {
     this.clusterFinder = clusterFinder;
     this.postgresConfigFinder = postgresConfigFinder;
@@ -141,7 +140,7 @@ public class DbOpsMajorVersionUpgradeValidator implements DbOpsValidator {
 
   private boolean isPostgresVersionSupported(StackGresCluster cluster, String version) {
     return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
-        .get(StackGresVersion.getStackGresVersion(cluster).getMinorVersion())
+        .get(StackGresVersion.getStackGresVersion(cluster))
         .contains(version);
   }
 

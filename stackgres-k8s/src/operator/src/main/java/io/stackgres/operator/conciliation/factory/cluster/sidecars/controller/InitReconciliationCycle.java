@@ -17,7 +17,6 @@ import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresController;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
@@ -25,7 +24,7 @@ import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @InitContainer(ClusterInitContainer.RECONCILIATION_CYCLE)
 public class InitReconciliationCycle implements ContainerFactory<StackGresClusterContainerContext> {
 

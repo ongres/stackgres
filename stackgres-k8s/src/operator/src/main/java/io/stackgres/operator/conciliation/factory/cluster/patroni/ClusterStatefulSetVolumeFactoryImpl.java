@@ -11,12 +11,11 @@ import java.util.stream.Collectors;
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.Volume;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class ClusterStatefulSetVolumeFactoryImpl
     implements ClusterStatefulSetVolumeFactory<StackGresClusterContext> {
 

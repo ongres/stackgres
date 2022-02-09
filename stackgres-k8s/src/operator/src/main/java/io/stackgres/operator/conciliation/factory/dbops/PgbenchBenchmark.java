@@ -22,7 +22,6 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
@@ -35,7 +34,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniServices;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @BenchmarkJob("pgbench")
 public class PgbenchBenchmark extends DbOpsJob {
 

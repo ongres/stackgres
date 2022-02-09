@@ -34,7 +34,6 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -55,7 +54,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @RunningContainer(ClusterRunningContainer.PATRONI)
 public class Patroni implements ContainerFactory<StackGresClusterContainerContext> {
 

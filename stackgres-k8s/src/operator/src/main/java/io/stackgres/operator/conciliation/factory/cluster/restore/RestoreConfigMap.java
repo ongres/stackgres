@@ -22,7 +22,6 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
@@ -41,7 +40,7 @@ import io.stackgres.operator.conciliation.factory.cluster.backup.AbstractBackupC
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class RestoreConfigMap extends AbstractBackupConfigMap
     implements VolumeFactory<StackGresClusterContext> {
 

@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
@@ -31,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class PatroniInitScriptConfigMap implements
     VolumeFactory<StackGresDistributedLogsContext> {
 

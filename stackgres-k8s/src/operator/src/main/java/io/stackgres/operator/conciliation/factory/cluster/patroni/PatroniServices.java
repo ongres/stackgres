@@ -27,7 +27,6 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -41,7 +40,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class PatroniServices implements
     ResourceGenerator<StackGresClusterContext> {
 
