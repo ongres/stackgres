@@ -17,6 +17,8 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.stackgres.common.ClusterLabelFactory;
+import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.testutil.JsonUtil;
@@ -33,6 +35,8 @@ class ClusterStatefulSetComparatorTest {
   @Mock
   private ResourceScanner<Pod> podScanner;
 
+  private ClusterLabelFactory labelFactory;
+
   private ClusterStatefulSetComparator comparator;
 
   private StatefulSet required;
@@ -40,7 +44,8 @@ class ClusterStatefulSetComparatorTest {
 
   @BeforeEach
   void setUp() {
-    comparator = new ClusterStatefulSetComparator(podScanner);
+    labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
+    comparator = new ClusterStatefulSetComparator(podScanner, labelFactory);
     required = JsonUtil.readFromJson("statefulset/required.json",
         StatefulSet.class);
     deployed = JsonUtil.readFromJson("statefulset/deployed.json",

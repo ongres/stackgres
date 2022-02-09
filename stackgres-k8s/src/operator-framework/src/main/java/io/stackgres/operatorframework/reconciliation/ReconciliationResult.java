@@ -16,11 +16,25 @@ public class ReconciliationResult<R> {
   private final ImmutableList<Exception> exceptions;
 
   public ReconciliationResult() {
-    this(null);
+    this((R) null);
   }
 
   public ReconciliationResult(R result) {
     this(result, ImmutableList.of());
+  }
+
+  public ReconciliationResult(Exception exception) {
+    this(null, exception);
+  }
+
+  public ReconciliationResult(R result,
+      Exception exception) {
+    this(result, ImmutableList.of(exception));
+  }
+
+  public ReconciliationResult(
+      ImmutableList<Exception> exceptions) {
+    this(null, exceptions);
   }
 
   public ReconciliationResult(R result,

@@ -28,11 +28,11 @@ public class ClusterLabelFactory extends AbstractLabelFactoryForCluster<StackGre
     return labelMapper;
   }
 
-  public static Map<String, String> patroniClusterLabels(String clusterUid, String clusterName) {
-    return ImmutableMap.of(StackGresContext.APP_KEY, StackGresContext.CLUSTER_APP_NAME,
-        StackGresContext.CLUSTER_NAME_KEY, clusterName,
-        StackGresContext.CLUSTER_UID_KEY, clusterUid,
-        StackGresContext.CLUSTER_KEY, StackGresContext.RIGHT_VALUE);
+  @Override
+  public Map<String, String> patroniReplicaLabels(StackGresCluster resource) {
+    return ImmutableMap.<String, String>builder().putAll(super.patroniReplicaLabels(resource))
+        .put(PatroniUtil.NOLOADBALANCE_TAG, PatroniUtil.FALSE_TAG_VALUE)
+        .build();
   }
 
 }

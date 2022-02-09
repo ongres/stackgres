@@ -17,7 +17,9 @@ public enum ClusterControllerProperty implements StackGresPropertyReader {
   CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES(
       "stackgres.clusterSkipOverwriteSharedLibraries"),
   CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER(
-      "stackgres.clusterReconcilePgBouncer");
+      "stackgres.clusterReconcilePgBouncer"),
+  CLUSTER_CONTROLLER_RECONCILE_PATRONI(
+      "stackgres.clusterReconcilePatroni");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(ClusterControllerProperty.class);

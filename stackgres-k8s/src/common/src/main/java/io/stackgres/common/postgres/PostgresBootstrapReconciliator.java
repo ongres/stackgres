@@ -8,7 +8,6 @@ package io.stackgres.common.postgres;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -36,7 +35,7 @@ public abstract class PostgresBootstrapReconciliator {
     this.podName = podName;
   }
 
-  public ReconciliationResult<Boolean> reconcile(KubernetesClient client, ClusterContext context)
+  public ReconciliationResult<Void> reconcile(KubernetesClient client, ClusterContext context)
       throws Exception {
     if (context.getCluster().getStatus() != null) {
       if (context.getCluster().getStatus().getArch() != null
@@ -53,7 +52,7 @@ public abstract class PostgresBootstrapReconciliator {
               + " but this instance is " + ExtensionUtil.OS_DETECTOR.getArch()
               + "/" + ExtensionUtil.OS_DETECTOR.getOs());
         }
-        return new ReconciliationResult<Boolean>(true);
+        return new ReconciliationResult<>();
       }
     }
     try {
@@ -83,9 +82,9 @@ public abstract class PostgresBootstrapReconciliator {
             context.getCluster().getStatus().getOs());
       }
     } catch (Exception ex) {
-      return new ReconciliationResult<Boolean>(false, ImmutableList.of(ex));
+      return new ReconciliationResult<>(ex);
     }
-    return new ReconciliationResult<Boolean>(true);
+    return new ReconciliationResult<>();
   }
 
   protected abstract void onClusterBootstrapped(KubernetesClient client);

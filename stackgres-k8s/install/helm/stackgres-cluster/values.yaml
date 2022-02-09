@@ -23,6 +23,14 @@ cluster:
       # privateKeySecretKeySelector:
       #   name:
       #   key:
+  replication:
+    mode: ASYNC
+    role: HA_READ
+    # syncNodeCount: 1
+    # groups:
+    # - name: group-1
+    #   role: HA_READ
+    #   instances: 1
   sgInstanceProfile: size-xs
   postgresServices:
     primary:

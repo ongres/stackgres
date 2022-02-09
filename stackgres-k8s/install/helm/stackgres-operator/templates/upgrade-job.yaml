@@ -8,9 +8,9 @@ metadata:
     scope: init
     job: upgrade
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook": pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    "helm.sh/hook-weigth": "-100"
+    "helm.sh/hook-weight": "1"
 spec:
   template:
     metadata:
@@ -36,7 +36,6 @@ spec:
           - "/bin/bash"
           - "-ecx"
           - |
-            {{- if .Release.IsUpgrade }}
             cat << 'EOF' > /tmp/prometheus-postgres-exporter-init.sql
 {{ $.Files.Get "prometheus-postgres-exporter-init.sql" | indent 12 }}
             EOF
@@ -59,5 +58,4 @@ spec:
                         sh -c "PGPASSWORD='$POSTGRES_PASSWORD' psql -h '${CLUSTER#*:}-primary'"
                   fi
                 done
-            {{- end }}
       restartPolicy: OnFailure

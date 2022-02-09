@@ -9,6 +9,7 @@ import java.util.Properties;
 
 public enum OperatorProperty implements StackGresPropertyReader {
 
+  DISABLE_RECONCILIATION("stackgres.disableReconciliation"),
   OPERATOR_NAME("stackgres.operatorName"),
   OPERATOR_NAMESPACE("stackgres.operatorNamespace"),
   OPERATOR_IP("stackgres.operatorIP"),

@@ -9,6 +9,10 @@
     "postgres": {
       "version": "11.5"
     },
+    "replication": {
+      "mode": "ASYNC",
+      "role": "HA_READ"
+    },
     "sgInstanceProfile": "size-xs",
     "initialData": {
       "restore": {

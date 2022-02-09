@@ -18,6 +18,10 @@
         "postgres": {
           "version": "11.5"
         },
+        "replication": {
+          "mode": "ASYNC",
+          "role": "HA_READ"
+        },
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf",
@@ -101,6 +105,10 @@
         "instances": 1,
         "postgres": {
           "version": "11.5"
+        },
+        "replication": {
+          "mode": "ASYNC",
+          "role": "HA_READ"
         },
         "configurations": {
           "sgPostgresConfig": "postgresconf",

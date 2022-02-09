@@ -5,7 +5,6 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -17,9 +16,11 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableMap;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
+import io.stackgres.common.PatroniUtil;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
@@ -182,7 +183,7 @@ class ClusterSwitchoverHandlerImplTest {
   }
 
   @Test
-  void switchoverWithNoHealthyReplicas_shouldFail() {
+  void switchoverWithNoHealthyReplicas_switchoverShouldBeSkipped() {
 
     when(patroniApiHandler.getClusterMembers(any(), any()))
         .thenReturn(Uni.createFrom().item(List.of(
@@ -206,14 +207,23 @@ class ClusterSwitchoverHandlerImplTest {
                 .host("127.0.0.2")
                 .apiUrl("http://127.0.0.4:8008/patroni")
                 .port(7433)
+                .build(),
+            ImmutableClusterMember.builder()
+                .name("member-2")
+                .clusterName(TEST_CLUSTER_NAME)
+                .namespace(TEST_NAMESPACE_NAME)
+                .state(MemberState.RUNNING)
+                .role(MemberRole.REPlICA)
+                .host("127.0.0.3")
+                .apiUrl("http://127.0.0.4:8008/patroni")
+                .port(7433)
+                .tags(ImmutableMap.of(PatroniUtil.NOFAILOVER_TAG, PatroniUtil.TRUE_TAG_VALUE))
                 .build())));
 
-    assertThrows(FailoverException.class,
-        () -> switchoverHandler
-            .performSwitchover("member-0", TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
-            .await().indefinitely());
+    switchoverHandler.performSwitchover("member-0", TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
+        .await().indefinitely();
 
-    verify(patroniApiHandler).getClusterMembers(any(), any());
+    verify(patroniApiHandler).getClusterMembers(TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME);
     verify(patroniApiHandler, never()).performSwitchover(any(), any());
   }
 

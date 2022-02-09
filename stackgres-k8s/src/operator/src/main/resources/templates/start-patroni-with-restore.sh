@@ -68,6 +68,7 @@ postgresql:
     checkpoint: 'fast'
 watchdog:
   mode: off
+tags: {}
 EOF
 
 cat << EOF > "$PATRONI_CONFIG_PATH/bootstrap"

@@ -14,6 +14,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.smallrye.mutiny.Uni;
+import io.stackgres.common.PatroniUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,52 +31,54 @@ public class ClusterSwitchoverHandlerImpl implements ClusterSwitchoverHandler {
 
   @Override
   public Uni<Void> performSwitchover(String leader, String clusterName, String clusterNamespace) {
-
     return patroniApi.getClusterMembers(clusterName, clusterNamespace)
-        .chain(members -> doSwitchOver(members, leader));
-
+        .chain(members -> doSwitchover(members, leader))
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
+        .indefinitely();
   }
 
-  private Uni<Void> doSwitchOver(List<ClusterMember> members, String givenLeader) {
-    if (members.size() == 1) {
+  private Uni<Void> doSwitchover(List<ClusterMember> members, String givenLeader) {
+    Optional<ClusterMember> candidate = members.stream()
+        .filter(member -> member.getRole().map(MemberRole.REPlICA::equals).orElse(false))
+        .filter(member -> member.getState().map(MemberState.RUNNING::equals).orElse(false))
+        .filter(member -> member.getTags()
+            .filter(tags -> tags.entrySet().stream().anyMatch(
+                tag -> tag.getKey().equals(PatroniUtil.NOFAILOVER_TAG)
+                && tag.getValue().equals(PatroniUtil.TRUE_TAG_VALUE)))
+            .isEmpty())
+        .min((m1, m2) -> {
+          if (m1.getLag().isPresent() && m2.getLag().isPresent()) {
+            return m1.getLag().get().compareTo(m2.getLag().get());
+          } else if (m1.getLag().isPresent() && m2.getLag().isEmpty()) {
+            return -1;
+          } else if (m1.getLag().isEmpty() && m2.getLag().isPresent()) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
+
+    if (candidate.isEmpty()) {
+      LOGGER.info("No candidate primary found. Skipping switchover");
       return Uni.createFrom().voidItem();
     } else {
       Optional<ClusterMember> leader = members.stream()
           .filter(member -> member.getRole().map(MemberRole.LEADER::equals).orElse(false))
           .findFirst();
 
-      Optional<ClusterMember> candidate = members.stream()
-          .filter(member -> member.getRole().map(MemberRole.REPlICA::equals).orElse(false))
-          .filter(member -> member.getState().map(MemberState.RUNNING::equals).orElse(false))
-          .min((m1, m2) -> {
-            if (m1.getLag().isPresent() && m2.getLag().isPresent()) {
-              return m1.getLag().get().compareTo(m2.getLag().get());
-            } else if (m1.getLag().isPresent() && m2.getLag().isEmpty()) {
-              return -1;
-            } else if (m1.getLag().isEmpty() && m2.getLag().isPresent()) {
-              return 1;
-            } else {
-              return 0;
-            }
-          });
-
-      if (leader.isPresent() && candidate.isPresent()) {
+      if (leader.isPresent()) {
         ClusterMember actualLeader = leader.get();
         if (Objects.equals(actualLeader.getName(), givenLeader)) {
-          return Uni.createFrom().emitter(em -> patroniApi
-              .performSwitchover(leader.get(), candidate.get())
-              .onFailure()
-              .retry()
-              .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
-              .indefinitely()
-              .subscribe().with(item -> em.complete(null), em::fail));
+          return patroniApi.performSwitchover(leader.get(), candidate.get());
         } else {
           LOGGER.info("Leader of the cluster is not {} anymore. Skipping switchover", givenLeader);
           return Uni.createFrom().voidItem();
         }
-
       } else {
-        return Uni.createFrom().failure(() -> new FailoverException("Cluster not healthy"));
+        return Uni.createFrom().failure(() -> new FailoverException(
+            "Leader was not found just before performing the switchover"));
       }
     }
   }

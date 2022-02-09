@@ -82,9 +82,9 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
         .collect(Collectors.toList());
 
     for (StackGresClusterInstalledExtension installedExtension : extensionToUninstall) {
-      ExtensionUninstaller extensionUninstaller = extensionManager.getExtensionUninstaller(
-          context, installedExtension);
       try {
+        ExtensionUninstaller extensionUninstaller = extensionManager.getExtensionUninstaller(
+            context, installedExtension);
         if (!skipSharedLibrariesOverwrites) {
           if (extensionUninstaller.isExtensionInstalled()) {
             LOGGER.info("Removing extension {}",

@@ -49,13 +49,20 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
 
   @Override
   protected PatroniConfig getPatroniConfig(StackGresClusterContext context) {
+    final StackGresCluster cluster = context.getCluster();
     PatroniConfig patroniConf = new PatroniConfig();
     patroniConf.setTtl(30);
     patroniConf.setLoopWait(10);
     patroniConf.setRetryTimeout(10);
-    if (getPostgresFlavorComponent(context.getSource()) != StackGresComponent.BABELFISH) {
+    if (getPostgresFlavorComponent(cluster) != StackGresComponent.BABELFISH) {
       patroniConf.setCheckTimeline(true);
     }
+    patroniConf.setSynchronousMode(
+        cluster.getSpec().getReplication().isSynchronousMode());
+    patroniConf.setSynchronousModeStrict(
+        cluster.getSpec().getReplication().isStrictSynchronousMode());
+    patroniConf.setSynchronousModeCount(
+        cluster.getSpec().getReplication().getSyncNodeCount());
     patroniConf.setPostgresql(new PatroniConfig.PostgreSql());
     patroniConf.getPostgresql().setUsePgRewind(true);
     patroniConf.getPostgresql().setParameters(getPostgresConfigValues(context));

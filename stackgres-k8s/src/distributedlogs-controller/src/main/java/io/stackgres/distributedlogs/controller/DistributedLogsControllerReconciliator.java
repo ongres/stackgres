@@ -78,7 +78,7 @@ public class DistributedLogsControllerReconciliator
   protected ReconciliationResult<Void> reconcile(KubernetesClient client,
       StackGresDistributedLogsContext context) throws Exception {
     boolean statusUpdated = false;
-    ReconciliationResult<Boolean> postgresBootstrapReconciliationResult =
+    ReconciliationResult<Void> postgresBootstrapReconciliationResult =
         postgresBootstrapReconciliator.reconcile(client, context);
     ReconciliationResult<Boolean> extensionReconciliationResult =
         extensionReconciliator.reconcile(client, context);

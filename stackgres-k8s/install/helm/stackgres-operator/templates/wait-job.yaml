@@ -10,7 +10,7 @@ metadata:
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    "helm.sh/hook-weigth": "100"
+    "helm.sh/hook-weight": "100"
 spec:
   template:
     metadata:
@@ -36,13 +36,11 @@ spec:
           - "/bin/bash"
           - "-ecx"
           - |
-            kubectl wait job -n '{{ .Release.Namespace }}' -l app=stackgres-operator,scope=init --for condition=Complete
+            kubectl set env -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}' DISABLE_RECONCILIATION-
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
-            {{- if and .Values.deploy.restapi }}
-            kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
-            {{- end }}
             kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
             {{- if and .Values.deploy.restapi }}
+            kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
             kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
             {{- end }}
             {{- if .Values.extensions.cache.enabled }}

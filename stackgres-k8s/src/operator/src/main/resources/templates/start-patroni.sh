@@ -39,6 +39,7 @@ postgresql:
     checkpoint: 'fast'
 watchdog:
   mode: off
+tags: {}
 EOF
 
 export LC_ALL=C.UTF-8

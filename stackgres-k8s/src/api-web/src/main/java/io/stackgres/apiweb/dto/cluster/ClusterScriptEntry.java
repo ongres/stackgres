@@ -7,11 +7,6 @@ package io.stackgres.apiweb.dto.cluster;
 
 import java.util.Objects;
 
-import javax.validation.Valid;
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotEmpty;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -22,24 +17,13 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class ClusterScriptEntry {
 
-  @NotEmpty
   private String name;
 
-  @NotEmpty
   private String database;
 
-  @NotEmpty
   private String script;
 
-  @Valid
   private ClusterScriptFrom scriptFrom;
-
-  @JsonIgnore
-  @AssertTrue(message = "script and scriptFrom are mutually exclusive and one of them is required.")
-  public boolean areScriptAndScriptFromMutuallyExclusiveAndOneRequired() {
-    return (script != null && scriptFrom == null) // NOPMD
-        || (script == null && scriptFrom != null); // NOPMD
-  }
 
   public String getName() {
     return name;

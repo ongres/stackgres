@@ -133,6 +133,7 @@ public class TransformerTestUtil {
    * @param <S>         the source generic type
    * @return the created tuple
    */
+  @SuppressWarnings("unchecked")
   public static <T, S> TransformerTuple<T, S> fillTupleWithRandomData(
       Class<T> targetClazz, Class<S> sourceClazz) {
 

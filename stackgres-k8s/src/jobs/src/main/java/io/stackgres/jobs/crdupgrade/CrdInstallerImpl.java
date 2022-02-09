@@ -60,7 +60,6 @@ public class CrdInstallerImpl implements CrdInstaller {
       updateAlreadyInstalledVersions(currentCrd, installedCrd);
       customResourceDefinitionResourceWriter.update(installedCrd);
       LOGGER.info("CRD {}. Patched", name);
-
     } else {
       LOGGER.info("CRD {} is not present, installing it", name);
       customResourceDefinitionResourceWriter.create(currentCrd);

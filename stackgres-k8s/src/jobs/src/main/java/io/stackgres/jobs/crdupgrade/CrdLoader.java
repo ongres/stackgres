@@ -12,8 +12,10 @@ import org.jetbrains.annotations.NotNull;
 
 public interface CrdLoader {
 
+  List<CustomResourceDefinition> scanDefinitions();
+
   CustomResourceDefinition load(@NotNull String kind);
 
-  List<CustomResourceDefinition> scanDefinitions();
+  void updateExistingCustomResources(@NotNull CustomResourceDefinition customResourceDefinition);
 
 }

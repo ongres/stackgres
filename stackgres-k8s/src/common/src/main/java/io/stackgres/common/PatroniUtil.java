@@ -37,6 +37,11 @@ public interface PatroniUtil {
   String STANDBY_LEADER_ROLE = "standby_leader";
   String SYNC_STANDBY_ROLE = "sync_standby";
 
+  String NOLOADBALANCE_TAG = "noloadbalance";
+  String NOFAILOVER_TAG = "nofailover";
+  String TRUE_TAG_VALUE = "true";
+  String FALSE_TAG_VALUE = "false";
+
   String SUFFIX = "-patroni";
   String READ_WRITE_SERVICE = "-primary";
   String READ_ONLY_SERVICE = "-replicas";

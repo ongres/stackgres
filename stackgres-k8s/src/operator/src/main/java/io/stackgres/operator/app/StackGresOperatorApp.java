@@ -11,7 +11,9 @@ import javax.inject.Inject;
 
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.app.ReconciliationClock;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,20 +22,31 @@ public class StackGresOperatorApp {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StackGresOperatorApp.class);
 
+  private OperatorPropertyContext operatorPropertyContext;
   private OperatorWatcherHandler operatorWatchersHandler;
   private ReconciliationClock reconciliationClock;
   private OperatorBootstrap operatorBootstrap;
 
   void onStart(@Observes StartupEvent ev) {
-    operatorBootstrap.bootstrap();
-    operatorWatchersHandler.startWatchers();
-    reconciliationClock.start();
+    if (!operatorPropertyContext.getBoolean(OperatorProperty.DISABLE_RECONCILIATION)) {
+      LOGGER.info("The reconciliation is starting...");
+      operatorBootstrap.bootstrap();
+      operatorWatchersHandler.startWatchers();
+      reconciliationClock.start();
+    }
   }
 
   void onStop(@Observes ShutdownEvent ev) {
-    LOGGER.info("The application is stopping...");
-    operatorWatchersHandler.stopWatchers();
-    reconciliationClock.stop();
+    if (!operatorPropertyContext.getBoolean(OperatorProperty.DISABLE_RECONCILIATION)) {
+      LOGGER.info("The reconciliation is stopping...");
+      operatorWatchersHandler.stopWatchers();
+      reconciliationClock.stop();
+    }
+  }
+
+  @Inject
+  public void setOperatorPropertyContext(OperatorPropertyContext operatorPropertyContext) {
+    this.operatorPropertyContext = operatorPropertyContext;
   }
 
   @Inject

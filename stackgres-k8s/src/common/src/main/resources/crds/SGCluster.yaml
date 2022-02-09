@@ -154,7 +154,106 @@ spec:
                   minimum: 1
                   maximum: 16
                   description: |
-                    Number of StackGres instances for the cluster. Each instance contains one Postgres server. Out of all of the Postgres servers, one is elected as the master, the rest remain as read-only replicas.
+                    Number of StackGres instances for the cluster. Each instance contains one Postgres server.
+                     Out of all of the Postgres servers, one is elected as the primary, the rest remain as read-only replicas.
+                replication:
+                  type: object
+                  description: |
+                    This section allow to configure Postgres replication and HA roles
+                  properties:
+                    mode:
+                      type: string
+                      description: |
+                        The replication mode applied to the whole cluster.
+                        Possible values are:
+                        * `ASYNC` (default)
+                        * `SYNC`
+                        * `SYNC_STRICT`
+                        
+                        ### `ASYNC` Mode
+                        
+                        When in asynchronous mode the cluster is allowed to lose some committed transactions.
+                         When the primary server fails or becomes unavailable for any other reason a sufficiently healthy standby
+                         will automatically be promoted to primary. Any transactions that have not been replicated to that standby
+                         remain in a "forked timeline" on the primary, and are effectively unrecoverable (the data is still there,
+                         but recovering it requires a manual recovery effort by data recovery specialists).
+                        
+                        ### `SYNC` Mode
+                        
+                        When in synchronous mode a standby will not be promoted unless it is certain that the standby contains all
+                         transactions that may have returned a successful commit status to client (clients can change the behavior
+                         per transaction using PostgreSQL’s `synchronous_commit` setting. Transactions with `synchronous_commit`
+                         values of `off` and `local` may be lost on fail over, but will not be blocked by replication delays). This
+                         means that the system may be unavailable for writes even though some servers are available. System
+                         administrators can still use manual failover commands to promote a standby even if it results in transaction
+                         loss.
+                        
+                        Synchronous mode does not guarantee multi node durability of commits under all circumstances. When no suitable
+                         standby is available, primary server will still accept writes, but does not guarantee their replication. When
+                         the primary fails in this mode no standby will be promoted. When the host that used to be the primary comes
+                         back it will get promoted automatically, unless system administrator performed a manual failover. This behavior
+                         makes synchronous mode usable with 2 node clusters.
+                        
+                        When synchronous mode is used and a standby crashes, commits will block until the primary is switched to standalone
+                         mode. Manually shutting down or restarting a standby will not cause a commit service interruption. Standby will
+                         signal the primary to release itself from synchronous standby duties before PostgreSQL shutdown is initiated.
+                        
+                        ### `SYNC_STRICT` Mode
+                        
+                        When it is absolutely necessary to guarantee that each write is stored durably on at least two nodes, use the strict
+                         synchronous mode. This mode prevents synchronous replication to be switched off on the primary when no synchronous
+                         standby candidates are available. As a downside, the primary will not be available for writes (unless the Postgres
+                         transaction explicitly turns off `synchronous_mode` parameter), blocking all client write requests until at least one
+                         synchronous replica comes up.
+
+                        **Note**: Because of the way synchronous replication is implemented in PostgreSQL it is still possible to lose
+                         transactions even when using strict synchronous mode. If the PostgreSQL backend is cancelled while waiting to acknowledge
+                         replication (as a result of packet cancellation due to client timeout or backend failure) transaction changes become
+                         visible for other backends. Such changes are not yet replicated and may be lost in case of standby promotion.
+                    role:
+                      type: string
+                      description: |
+                        This role is applied to the instances of the implicit replication group that is composed by `.spec.instances` number of instances.
+                        Possible values are:
+                        * `HA_READ` (default)
+                        * `HA`
+                        The primary instance will be elected among all the replication groups that are either `HA` or `HA_READ`.
+                        Only if the role is set to `READONLY` or `HA_READ` instances of such replication group will be exposed via the replicas service.
+                    syncNodeCount:
+                      type: integer
+                      minimum: 1
+                      description: |
+                        Number of synchronous standby instances. It is set to 1 by default. Only setteable if mode is `SYNC` or `SYNC_STRICT`.
+                    groups:
+                      type: array
+                      description: |
+                        StackGres support replication groups where a group of a specified number of instances could have different replication role.
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: The name of the replication group. If not set will default to the `group-<index>`.
+                          role:
+                            type: string
+                            description: |
+                              This role is applied to the instances of this replication group.
+                              Possible values are:
+                              * `HA_READ`
+                              * `HA`
+                              * `READONLY`
+                              The primary instance will be elected among all the replication groups that are either `HA` or `HA_READ`.
+                              Only if the role is set to `READONLY` or `HA_READ` instances of such replication group will be exposed via the replicas service.
+                          instances:
+                            type: integer
+                            minimum: 1
+                            maximum: 16
+                            description: |
+                              Number of StackGres instances for this replication group.
+                              
+                              The total number of instance of a cluster is always `.spec.instances` and at least 1 instance must always be present in any
+                               replication group with the role of `HA` or `HA_READ`.
+                        required: ["role", "instances"]
                 sgInstanceProfile:
                   type: string
                   description: |
@@ -748,6 +847,9 @@ spec:
                       name:
                         type: string
                         description: The name of the pod.
+                      replicationGroup:
+                        type: integer
+                        description: Indicate the replication group this Pod belongs to.
                       pendingRestart:
                         type: boolean
                         description: Indicate if the pod requires restart

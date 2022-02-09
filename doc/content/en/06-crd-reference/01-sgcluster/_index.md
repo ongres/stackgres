@@ -25,6 +25,7 @@ ___
 |:-------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------------------------|:-------------------------------------------------------------------|
 | instances                                                                                  | ✓        | ✓         | integer  |                                     | {{< crd-field-description SGCluster.spec.instances >}}             |
 | [postgres](#postgres)                                                                      |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.postgres >}}              |
+| [replication](#replication)                                                                |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.replication >}}           |
 | [sgInstanceProfile]({{% relref "/06-crd-reference/02-sginstanceprofile" %}})               |          | ✓         | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}}     |
 | [metadata](#metadata)                                                                      |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.metadata >}}              |
 | [postgresServices](#postgres-services)                                                     |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.postgresServices >}}      |
@@ -129,6 +130,22 @@ spec:
 |:----------|----------|-----------|:---------|:---------|:------------|
 | name      | ✓        | ✓         | string   |          | {{< crd-field-description SGCluster.spec.postgres.ssl.privateKeySecretKeySelector.name >}} |
 | key       | ✓        | ✓         | string   |          | {{< crd-field-description SGCluster.spec.postgres.ssl.privateKeySecretKeySelector.key >}} |
+
+## Replication
+
+| Property                            | Required | Updatable | Type     | Default  | Description |
+|:------------------------------------|----------|-----------|:---------|:---------|:------------|
+| mode                                |          | ✓         | string   |          | {{< crd-field-description SGCluster.spec.replication.mode >}}       |
+| role                                |          | ✓         | string   |          | {{< crd-field-description SGCluster.spec.replication.role >}}       |
+| [groups](#replication-group)        |          | ✓         | array    |          | {{< crd-field-description SGCluster.spec.replication.groups >}}     |
+
+## Replication group
+
+| Property                            | Required | Updatable | Type     | Default  | Description |
+|:------------------------------------|----------|-----------|:---------|:---------|:------------|
+| name                                |          | ✓         | string   |          | {{< crd-field-description SGCluster.spec.replication.groups.items.name >}}       |
+| role                                |          | ✓         | string   |          | {{< crd-field-description SGCluster.spec.replication.groups.items.role >}}       |
+| instances                           |          | ✓         | integer  |          | {{< crd-field-description SGCluster.spec.replication.groups.items.instances >}}  |
 
 ### Metadata
 

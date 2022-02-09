@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-cr-updater"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: stackgres-operator
+    scope: init
+    job: cr-updater
+  annotations:
+    "helm.sh/hook": post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "2"
+spec:
+  template:
+    metadata:
+      labels:
+        app: stackgres-operator
+        scope: init
+        job: cr-updater
+    spec:
+      serviceAccountName: {{ .Release.Name }}-cr-updater
+      containers:
+      - name: "{{ .Values.jobs.name }}"
+        image: "{{ .Values.jobs.image.name }}:{{ .Values.jobs.image.tag }}"
+        imagePullPolicy: "{{ .Values.jobs.image.pullPolicy }}"
+        env:
+          - name: OPERATOR_NAME
+            value: "{{ .Release.Name }}"
+          - name: OPERATOR_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: CR_UPDATER
+            value: "true"
+          {{- if .Values.developer.extraOpts }}
+          - name: APP_OPTS
+            value: '{{ range .Values.developer.extraOpts }}{{ . }} {{ end }}'
+          {{- end }}
+        {{- with .Values.jobs.resources }}
+        resources:
+        {{- toYaml . | nindent 10 }}
+        {{- end }}
+      restartPolicy: OnFailure

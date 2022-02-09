@@ -14,6 +14,8 @@ import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.jobs.app.JobsProperty;
+import io.stackgres.jobs.crdupgrade.CrUpdater;
+import io.stackgres.jobs.crdupgrade.CrUpdaterImpl;
 import io.stackgres.jobs.crdupgrade.CrdInstaller;
 import io.stackgres.jobs.crdupgrade.CrdInstallerImpl;
 import io.stackgres.jobs.crdupgrade.CrdLoader;
@@ -26,9 +28,11 @@ import io.stackgres.jobs.dbops.DbOpLauncher;
 @QuarkusMain
 public class Main implements QuarkusApplication {
 
+  boolean crdUpgrade = JobsProperty.CRD_UPGRADE.getBoolean();
   boolean conversionWebhooks =
       JobsProperty.CONVERSION_WEBHOOKS.getBoolean();
-  boolean crdUpgrade = JobsProperty.CRD_UPGRADE.getBoolean();
+  boolean crUpdater =
+      JobsProperty.CR_UPDATER.getBoolean();
 
   boolean dbOpsJob = JobsProperty.DATABASE_OPERATION_JOB.getBoolean();
 
@@ -66,6 +70,11 @@ public class Main implements QuarkusApplication {
           crdLoader);
 
       webhookConfigurator.configureWebhooks();
+    }
+
+    if (crUpdater) {
+      CrUpdater crUpdater = new CrUpdaterImpl(crdLoader);
+      crUpdater.updateExistingCustomResources();
     }
 
     if (dbOpsJob) {

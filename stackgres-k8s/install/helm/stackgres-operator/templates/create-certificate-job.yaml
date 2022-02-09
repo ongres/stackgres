@@ -9,9 +9,9 @@ metadata:
     scope: init
     job: create-certificate
   annotations:
-    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook": pre-install,pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-weight": "1"
 spec:
   template:
     metadata:
@@ -55,10 +55,10 @@ spec:
             DNS.3 = {{ .Release.Name }}.{{ .Release.Namespace }}.svc
             DNS.4 = {{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
             EOF
-
+            
             K8S_VERSION="$(kubectl get node --template '{{ "{{ (index .items 0).status.nodeInfo.kubeletVersion }}" }}')"
             K8S_VERSION="${K8S_VERSION#v}"
-
+            
             if [ "$(echo "$K8S_VERSION" | tr . '\n' \
                 | while read NUMBER; do printf '%05d' "$NUMBER"; done)" \
               -ge "$(echo "1.21.0" | tr . '\n' \
@@ -75,7 +75,7 @@ spec:
                   -config /tmp/csr.conf
             fi
             openssl rsa -in /tmp/root.key -pubout -out /tmp/root.pem
-
+            
             cat << EOF | kubectl create -f -
             $(
             if [ "$(echo "$K8S_VERSION" | tr . '\n' \
@@ -107,7 +107,7 @@ spec:
             fi
             )
             EOF
-
+            
             if ! kubectl get csr '{{ .Release.Name }}' -o yaml|grep -q '^    type: Approved$'
             then
               {{- if .Values.cert.autoapprove }}
@@ -130,17 +130,17 @@ spec:
               sleep 5
             done
             echo "certificate generated"
-
+            
             KEY="$(cat /tmp/root.key | base64 | tr -d '\n')"
             PUB="$(cat /tmp/root.pem | base64 | tr -d '\n')"
             CRT="$(kubectl get csr '{{ .Release.Name }}' --template '{{ "{{ .status.certificate }}" }}')"
-
+            
             if [ -z "$CRT" ]
             then
               echo "Certificate not found in CSR!"
               exit 1
             fi
-
+            
             {{- $_ := set .Values.cert "crt" "${CRT}" }}
             {{- $_ := set .Values.cert "key" "${KEY}" }}
             cat << EOF > /tmp/validating-webhook-configuration.yaml
@@ -154,7 +154,7 @@ spec:
             EOF
             {{- $_ := set .Values.cert "crt" nil }}
             {{- $_ := set .Values.cert "key" nil }}
-
+            
             kubectl apply -f /tmp/validating-webhook-configuration.yaml
             kubectl apply -f /tmp/mutating-webhook-configuration.yaml
             kubectl apply -f /tmp/certificate-secret.yaml
@@ -176,7 +176,7 @@ spec:
             DNS.3 = {{ .Values.restapi.name  }}.{{ .Release.Namespace }}.svc
             DNS.4 = {{ .Values.restapi.name  }}.{{ .Release.Namespace }}.svc.cluster.local
             EOF
-
+            
             openssl req -new -nodes -text -keyout /tmp/web.key \
                 -subj "/CN={{ .Values.restapi.name  }}.{{ .Release.Namespace }}" \
                 -out /tmp/server-web.csr \
@@ -198,7 +198,7 @@ spec:
             {{- $_ := set .Values.cert "webKey" nil }}
             {{- $_ := set .Values.cert "jwtRsaKey" nil }}
             {{- $_ := set .Values.cert "jwtRsaPub" nil }}
-
+            
             kubectl apply -f /tmp/web-certificate-secret.yaml
             {{- end }}
       restartPolicy: OnFailure

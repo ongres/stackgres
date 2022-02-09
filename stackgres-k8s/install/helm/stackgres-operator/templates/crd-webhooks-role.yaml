@@ -4,7 +4,7 @@ kind: ClusterRole
 metadata:
   name: {{ .Release.Name }}-crd-webhooks
   annotations:
-    "helm.sh/hook": post-upgrade,post-install
+    "helm.sh/hook": pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 rules:
 - apiGroups: ["", "apps", "extensions", "rbac.authorization.k8s.io", "batch"] # "" indicates the core API group

@@ -9,14 +9,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableMap;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonArray;
@@ -25,6 +28,7 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
 import io.vertx.mutiny.ext.web.codec.BodyCodec;
+import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +77,7 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
                   .port(getIntegerOrEmpty(member, "port"))
                   .timeline(getIntegerOrEmpty(member, "timeline"))
                   .lag(getIntegerOrEmpty(member, "lag"))
+                  .tags(getMapOrEmpty(member, "tags"))
                   .build())
               .map(ClusterMember.class::cast)
               .collect(Collectors.toUnmodifiableList());
@@ -95,6 +100,18 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
   private Optional<Integer> getIntegerOrEmpty(JsonObject object, String key) {
     try {
       return Optional.ofNullable(object.getInteger(key));
+    } catch (ClassCastException ex) {
+      return Optional.empty();
+    }
+  }
+
+  private Optional<Map<String, String>> getMapOrEmpty(JsonObject object, String key) {
+    try {
+      return Optional.ofNullable(object.getJsonObject(key))
+          .map(jsonObject -> Seq.seq(jsonObject.fieldNames())
+              .collect(ImmutableMap.toImmutableMap(
+                  Function.identity(),
+                  name -> jsonObject.getValue(name).toString())));
     } catch (ClassCastException ex) {
       return Optional.empty();
     }

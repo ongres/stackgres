@@ -23,6 +23,16 @@ public interface KubernetesClientUtil {
   /**
    * Retry on conflict (409) error with back-off.
    */
+  static void retryOnConflict(Runnable runnable) {
+    retryOnConflict((Supplier<Void>) () -> {
+      runnable.run();
+      return null;
+    });
+  }
+
+  /**
+   * Retry on conflict (409) error with back-off.
+   */
   static <T> T retryOnConflict(Supplier<T> supplier) {
     int retry = 0;
     while (true) {

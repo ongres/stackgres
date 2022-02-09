@@ -39,7 +39,7 @@ public class StackGresExtensions {
 
   @JsonIgnore
   @AssertTrue(message = "elements of extensions must have a unique name.")
-  public boolean haveExtensionsUniqueNames() {
+  public boolean isExtensionsUniqueNames() {
     return Seq.seq(extensions)
         .grouped(StackGresExtension::getName)
         .noneMatch(group -> group.v2.count() > 1);
@@ -47,7 +47,7 @@ public class StackGresExtensions {
 
   @JsonIgnore
   @AssertTrue(message = "elements of extensions must belong to an element in publishers.")
-  public boolean allExtensionsBelongsToPublisher() {
+  public boolean isExtensionsBelongsToPublisher() {
     return extensions.stream()
         .allMatch(extension -> publishers.stream()
             .anyMatch(publisher -> publisher.getId().equals(extension.getPublisher())));

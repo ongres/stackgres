@@ -25,6 +25,9 @@ public class ClusterSpec {
   @JsonProperty("instances")
   private int instances;
 
+  @JsonProperty("replication")
+  private ClusterReplication replication;
+
   @JsonProperty("configurations")
   private ClusterConfiguration configurations;
 
@@ -69,6 +72,14 @@ public class ClusterSpec {
 
   public void setInstances(int instances) {
     this.instances = instances;
+  }
+
+  public ClusterReplication getReplication() {
+    return replication;
+  }
+
+  public void setReplication(ClusterReplication replication) {
+    this.replication = replication;
   }
 
   public ClusterConfiguration getConfigurations() {
