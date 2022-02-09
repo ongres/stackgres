@@ -53,231 +53,229 @@
 		<div class="content noScroll">
 			<div id="logs">
 				<div class="toolbar">
-					<div class="searchBar" :class="(textFilters.text.length ? 'filtered' : '')" >
-						<input id="keyword" v-model="textFilters.text" class="search" placeholder="Search text..." autocomplete="off">
-						<a @click="getLogs()" class="btn">APPLY</a>
-						<a @click="textFilters.text = ''" class="btn clear border keyword" v-if="textFilters.text.length">RESET</a>
+					<div class="floatLeft">
+						<div class="filter filters columns" :data-filtered="isFiltered">
+							<span class="toggle">FILTER</span>
+
+							<ul class="options">
+								<li class="columns">
+									<span class="title">Type</span>
+									<ul class="options">
+										<li class="column">
+											<label for="logTypePg">
+												<span>Postgres</span>
+												<input v-model="filters.logType.pg" type="checkbox" id="logTypePg"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="logTypePatroni">
+												<span>Patroni</span>
+												<input v-model="filters.logType.pa" type="checkbox" id="logTypePatroni"/>
+											</label>
+										</li>
+									</ul>
+								</li>
+
+								<li class="columns">
+									<span class="title">Role</span>
+									<ul class="options">
+										<li class="column">
+											<label for="rolePrimary">
+												<span>Primary</span>
+												<input v-model="filters.role.primary" type="checkbox" id="rolePrimary"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="roleReplica">
+												<span>Replica</span>
+												<input v-model="filters.role.replica" type="checkbox" id="roleReplica"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="rolePromoted">
+												<span>Promoted</span>
+												<input v-model="filters.role.promoted" type="checkbox" id="rolePromoted"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="roleDemoted">
+												<span>Demoted</span>
+												<input v-model="filters.role.demoted" type="checkbox" id="roleDemoted"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="roleUninitialized">
+												<span>Uninitialized</span>
+												<input v-model="filters.role.uninitialized" type="checkbox" id="roleUninitialized"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="roleStandby">
+												<span>Standby</span>
+												<input v-model="filters.role.standby" type="checkbox" id="roleStandby"/>
+											</label>
+										</li>
+									</ul>
+								</li>
+
+								<li class="columns">
+									<span class="title">Error Level</span>
+									<ul class="options">
+										<li class="column">
+											<label for="errorLevelPanic">
+												<span>PANIC</span>
+												<input v-model="filters.errorLevel.PANIC" type="checkbox" id="errorLevelPanic"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="errorLevelCritical">
+												<span>CRITICAL</span>
+												<input v-model="filters.errorLevel.CRITICAL" type="checkbox" id="errorLevelCritical"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="errorLevelFatal">
+												<span>FATAL</span>
+												<input v-model="filters.errorLevel.FATAL" type="checkbox" id="errorLevelFatal"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="errorLevelLog">
+												<span>LOG</span>
+												<input v-model="filters.errorLevel.LOG" type="checkbox" id="errorLevelLog"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="errorLevelError">
+												<span>ERROR</span>
+												<input v-model="filters.errorLevel.ERROR" type="checkbox" id="errorLevelError"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="errorLevelWarning">
+												<span>WARNING</span>
+												<input v-model="filters.errorLevel.WARNING" type="checkbox" id="errorLevelWarning"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="errorLevelNotice">
+												<span>NOTICE</span>
+												<input v-model="filters.errorLevel.NOTICE" type="checkbox" id="errorLevelNotice"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="errorLevelInfo">
+												<span>INFO</span>
+												<input v-model="filters.errorLevel.INFO" type="checkbox" id="errorLevelInfo"/>
+											</label>
+										</li>
+										<li class="column">
+											<label for="errorLevelDebug">
+												<span>DEBUG</span>
+												<input v-model="filters.errorLevel.DEBUG" type="checkbox" id="errorLevelDebug"/>
+											</label>
+										</li>
+									</ul>
+								</li>
+								<li class="textFilter">
+									<span class="title">Pod Name</span>
+									<input v-model="textFilters.podName" class="search" placeholder="Search pod name...">
+								</li>
+								<li class="textFilter">
+									<span class="title">User Name</span>
+									<input v-model="textFilters.userName" class="search" placeholder="Search user name...">
+								</li>
+								<li class="textFilter">
+									<span class="title">Database Name</span>
+									<input v-model="textFilters.databaseName" class="search" placeholder="Search database name...">
+									<!-- <span class="btn clear border" @click="textFilters.databaseName = ''" v-if="textFilters.databaseName.length">×</span> -->
+								</li>
+								<li>
+									<hr>
+									<a class="btn" @click="getLogs(false)">APPLY</a> <a class="btn clear border" @click="clearFilters('filters')">RESET</a>
+								</li>
+							</ul>
+						</div>
+
+						<div class="filter columns" :data-filtered="(typeof (Object.keys(showColumns).find(k => !showColumns[k])) !== 'undefined')">
+							<span class="toggle">COLUMNS</span>
+
+							<ul class="options">
+								<li class="column">
+									<label for="viewLogType">
+										<span>Log Type</span>
+										<input v-model="showColumns.logType" type="checkbox" id="viewLogType"/>
+									</label>
+								</li>
+								<li class="column">
+									<label for="viewPodName">
+										<span>Pod Name</span>
+										<input v-model="showColumns.podName" type="checkbox" id="viewPodName"/>
+									</label>
+								</li>
+								<li class="column">
+									<label for="viewRole">
+										<span>Role</span>
+										<input v-model="showColumns.role" type="checkbox" id="viewRole"/>
+									</label>
+								</li>
+								<li class="column">
+									<label for="viewLogMessage">
+										<span>Message</span>
+										<input v-model="showColumns.message" type="checkbox" id="viewLogMessage"/>
+									</label>
+								</li>
+								<li class="column">
+									<label for="viewUserName">
+										<span>User</span>
+										<input v-model="showColumns.userName" type="checkbox" id="viewUserName"/>
+									</label>
+								</li>
+								<li class="column">
+									<label for="viewDatabaseName">
+										<span>Database</span>
+										<input v-model="showColumns.databaseName" type="checkbox" id="viewDatabaseName"/>
+									</label>
+								</li>
+								<li class="column">
+									<label for="viewProcessId">
+										<span>Process ID</span>
+										<input v-model="showColumns.processId" type="checkbox" id="viewProcessId"/>
+									</label>
+								</li>
+								<li class="column">
+									<label for="viewConnectionFrom">
+										<span>Connection From</span>
+										<input v-model="showColumns.connectionFrom" type="checkbox" id="viewConnectionFrom"/>
+									</label>
+								</li>
+								<li class="column">
+									<label for="viewApplicationName">
+										<span>Application</span>
+										<input v-model="showColumns.applicationName" type="checkbox" id="viewApplicationName"/>
+									</label>
+								</li>
+							</ul>
+						</div>
+
+						<div class="searchBar" :class="(textFilters.text.length ? 'filtered' : '')" >
+							<input id="keyword" v-model="textFilters.text" class="search" placeholder="Search text..." autocomplete="off">
+							<button class="btn" @click="getLogs()">APPLY</button>
+							<button @click="textFilters.text = ''" class="btn clear border keyword" v-if="textFilters.text.length">CLEAR</button>
+						</div>
 					</div>
 
-					<div class="filter" :data-filtered="datePicker.length > 0">
-						<span class="toggle date">DATE RANGE <input v-model="datePicker" id="datePicker" autocomplete="off" @focus="initDatePicker()"></span>
-					</div>
-
-					<div class="filter filters columns" :data-filtered="isFiltered">
-						<span class="toggle">FILTER</span>
-
-						<ul class="options">
-							<li class="columns">
-								<span class="title">Type</span>
-								<ul class="options">
-									<li class="column">
-										<label for="logTypePg">
-											<span>Postgres</span>
-											<input v-model="filters.logType.pg" type="checkbox" id="logTypePg"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="logTypePatroni">
-											<span>Patroni</span>
-											<input v-model="filters.logType.pa" type="checkbox" id="logTypePatroni"/>
-										</label>
-									</li>
-								</ul>
-							</li>
-
-							<li class="columns">
-								<span class="title">Role</span>
-								<ul class="options">
-									<li class="column">
-										<label for="rolePrimary">
-											<span>Primary</span>
-											<input v-model="filters.role.primary" type="checkbox" id="rolePrimary"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="roleReplica">
-											<span>Replica</span>
-											<input v-model="filters.role.replica" type="checkbox" id="roleReplica"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="rolePromoted">
-											<span>Promoted</span>
-											<input v-model="filters.role.promoted" type="checkbox" id="rolePromoted"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="roleDemoted">
-											<span>Demoted</span>
-											<input v-model="filters.role.demoted" type="checkbox" id="roleDemoted"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="roleUninitialized">
-											<span>Uninitialized</span>
-											<input v-model="filters.role.uninitialized" type="checkbox" id="roleUninitialized"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="roleStandby">
-											<span>Standby</span>
-											<input v-model="filters.role.standby" type="checkbox" id="roleStandby"/>
-										</label>
-									</li>
-								</ul>
-							</li>
-
-							<li class="columns">
-								<span class="title">Error Level</span>
-								<ul class="options">
-									<li class="column">
-										<label for="errorLevelPanic">
-											<span>PANIC</span>
-											<input v-model="filters.errorLevel.PANIC" type="checkbox" id="errorLevelPanic"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelCritical">
-											<span>CRITICAL</span>
-											<input v-model="filters.errorLevel.CRITICAL" type="checkbox" id="errorLevelCritical"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelFatal">
-											<span>FATAL</span>
-											<input v-model="filters.errorLevel.FATAL" type="checkbox" id="errorLevelFatal"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelLog">
-											<span>LOG</span>
-											<input v-model="filters.errorLevel.LOG" type="checkbox" id="errorLevelLog"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelError">
-											<span>ERROR</span>
-											<input v-model="filters.errorLevel.ERROR" type="checkbox" id="errorLevelError"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelWarning">
-											<span>WARNING</span>
-											<input v-model="filters.errorLevel.WARNING" type="checkbox" id="errorLevelWarning"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelNotice">
-											<span>NOTICE</span>
-											<input v-model="filters.errorLevel.NOTICE" type="checkbox" id="errorLevelNotice"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelInfo">
-											<span>INFO</span>
-											<input v-model="filters.errorLevel.INFO" type="checkbox" id="errorLevelInfo"/>
-										</label>
-									</li>
-									<li class="column">
-										<label for="errorLevelDebug">
-											<span>DEBUG</span>
-											<input v-model="filters.errorLevel.DEBUG" type="checkbox" id="errorLevelDebug"/>
-										</label>
-									</li>
-								</ul>
-							</li>
-							<li class="textFilter">
-								<span class="title">Pod Name</span>
-								<input v-model="textFilters.podName" class="search" placeholder="Search pod name...">
-								<!-- <span class="btn clear border" @click="textFilters.podName = ''" v-if="textFilters.podName.length">×</span> -->
-							</li>
-							<li class="textFilter">
-								<span class="title">User Name</span>
-								<input v-model="textFilters.userName" class="search" placeholder="Search user name...">
-								<!-- <span class="btn clear border" @click="textFilters.userName = ''" v-if="textFilters.userName.length">×</span> -->
-							</li>
-							<li class="textFilter">
-								<span class="title">Database Name</span>
-								<input v-model="textFilters.databaseName" class="search" placeholder="Search database name...">
-								<!-- <span class="btn clear border" @click="textFilters.databaseName = ''" v-if="textFilters.databaseName.length">×</span> -->
-							</li>
-							<li>
-								<hr>
-								<a class="btn" @click="getLogs(false)">APPLY</a> <a class="btn clear border" @click="clearFilters('filters')">RESET</a>
+					<div id="dateFilters" class="floatRight" :data-filtered="( (datePicker.length > 0) && !Object.keys(timeRange).length )">
+						<ul id="timeRange">
+							<li v-for="time in timeRangeOptions" :class="( ((timeRange.number == time.number) && (timeRange.unit == time.unit) ) && 'active')">
+								<button class="plain" @click="( (!Object.keys(timeRange).length || ( Object.keys(timeRange).length && (timeRange.unit != time.unit) && (timeRange.number != time.number) ) ) ? setTimeRange(time.number, time.unit) : clearDateFilters())">{{ time.number + time.unit }}</button>
 							</li>
 						</ul>
+						<span class="toggle date">
+							<svg xmlns="http://www.w3.org/2000/svg" width="15.002" height="16.503"><g fill="none" stroke="#7a7b85" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><path d="M2.25 2.251h10.5a1.5 1.5 0 0 1 1.5 1.5v10.5a1.5 1.5 0 0 1-1.5 1.5H2.25a1.5 1.5 0 0 1-1.5-1.5v-10.5a1.5 1.5 0 0 1 1.5-1.5ZM10.501.75v3M4.5.75v3M.75 6.751h13.5"/></g></svg>
+							<input v-model="datePicker" id="datePicker" autocomplete="off" @focus="initDatePicker()">
+						</span>
 					</div>
-
-					<div class="filter columns" :data-filtered="(typeof (Object.keys(showColumns).find(k => !showColumns[k])) !== 'undefined')">
-						<span class="toggle">VISIBLE FIELDS</span>
-
-						<ul class="options">
-							<li class="column">
-								<label for="viewLogType">
-									<span>Log Type</span>
-									<input v-model="showColumns.logType" type="checkbox" id="viewLogType"/>
-								</label>
-							</li>
-							<li class="column">
-								<label for="viewPodName">
-									<span>Pod Name</span>
-									<input v-model="showColumns.podName" type="checkbox" id="viewPodName"/>
-								</label>
-							</li>
-							<li class="column">
-								<label for="viewRole">
-									<span>Role</span>
-									<input v-model="showColumns.role" type="checkbox" id="viewRole"/>
-								</label>
-							</li>
-							<li class="column">
-								<label for="viewLogMessage">
-									<span>Message</span>
-									<input v-model="showColumns.message" type="checkbox" id="viewLogMessage"/>
-								</label>
-							</li>
-							<li class="column">
-								<label for="viewUserName">
-									<span>User</span>
-									<input v-model="showColumns.userName" type="checkbox" id="viewUserName"/>
-								</label>
-							</li>
-							<li class="column">
-								<label for="viewDatabaseName">
-									<span>Database</span>
-									<input v-model="showColumns.databaseName" type="checkbox" id="viewDatabaseName"/>
-								</label>
-							</li>
-							<li class="column">
-								<label for="viewProcessId">
-									<span>Process ID</span>
-									<input v-model="showColumns.processId" type="checkbox" id="viewProcessId"/>
-								</label>
-							</li>
-							<li class="column">
-								<label for="viewConnectionFrom">
-									<span>Connection From</span>
-									<input v-model="showColumns.connectionFrom" type="checkbox" id="viewConnectionFrom"/>
-								</label>
-							</li>
-							<li class="column">
-								<label for="viewApplicationName">
-									<span>Application</span>
-									<input v-model="showColumns.applicationName" type="checkbox" id="viewApplicationName"/>
-								</label>
-							</li>
-						</ul>
-					</div>
-
-					<!--<div class=calendar>
-						<ul>
-							<li><span class="shortcut" @click="setTime('1m')">1 m</span></li>
-							<li><span class="shortcut" @click="setTime('30m')">30 m</span></li>
-							<li><span class="shortcut" @click="setTime('3h')">3 h</span></li>
-							<li><span class="shortcut" @click="setTime('1d')">1 d</span></li>
-							<li><span><svg xmlns="http://www.w3.org/2000/svg" width="15.002" height="16.503" viewBox="0 0 15.002 16.503"><g transform="translate(-3.75 -2.25)"><path d="M6,6H16.5A1.5,1.5,0,0,1,18,7.5V18a1.5,1.5,0,0,1-1.5,1.5H6A1.5,1.5,0,0,1,4.5,18V7.5A1.5,1.5,0,0,1,6,6Z" transform="translate(0 -1.499)" fill="none" stroke="#7a7b85" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M24,3V6" transform="translate(-9.749)" fill="none" stroke="#7a7b85" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M12,3V6" transform="translate(-3.75)" fill="none" stroke="#7a7b85" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M4.5,15H18" transform="translate(0 -5.999)" fill="none" stroke="#7a7b85" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></g></svg> <input v-model="datePicker" id="datePicker" autocomplete="off"></span></li>
-						</ul>
-					</div>-->
 				</div>
 
 				<div class="logsContainer monoFont">
@@ -571,6 +569,41 @@
 				datePicker: '',
 				dateStart: '',
 				dateEnd: '',
+				timeRange: {},
+				timeRangeOptions: [
+					{
+						number: 15,
+						unit: 'm'
+					},
+					{
+						number: 30,
+						unit: 'm'
+					},
+					{
+						number: 1,
+						unit: 'h'
+					},
+					{
+						number: 2,
+						unit: 'h'
+					},
+					{
+						number: 6,
+						unit: 'h'
+					},
+					{
+						number: 24,
+						unit: 'h'
+					},
+					{
+						number: 1,
+						unit: 'w'
+					},
+					{
+						number: 1,
+						unit: 'M'
+					}
+				],
 				showColumns: {
 					errorLevel: true,
 					logTime: true,
@@ -655,10 +688,6 @@
 				$(document).on('keyup', 'input.search', function(e){
 					if (e.keyCode === 13)
 						vc.getLogs();
-				});
-				
-				$(document).on('click', '#datePicker', function(){
-					$(this).parent().toggleClass('open');
 				});
 
 			});
@@ -824,6 +853,7 @@
 					} else {
 						vc.logs = response.data;
 						vc.lastScroll = 0;
+						$('.scroller')[0].scrollTop = 0;
 					}
 
 					$('.records').removeClass('loading');
@@ -860,25 +890,6 @@
 				} else if (vc.pooling) {
 					clearInterval(vc.pooling);
 					vc.pooling = null;
-				}
-
-			},
-
-			setTime(time) {
-
-				const vc = this;
-
-				switch(time) {
-
-					case '1d':
-						vc.dateStart = vc.logs[0].logTime + ',' + vc.logs[0].logTimeIndex;
-						date.setHours(23,59,59,59);
-						vc.dateEnd = date.format('YYYY-MM-DDTHH:mm:ss');
-						
-						$('#datePicker').data('daterangepicker').setStartDate(vc.dateStart);
-						$('#datePicker').data('daterangepicker').setEndDate(vc.dateEnd);
-						break;
-
 				}
 
 			},
@@ -927,7 +938,7 @@
 						"timePicker": true,
 						"timePicker24Hour": true,
 						"timePickerSeconds": true,
-						"opens": "left",
+						"opens": "right",
 						"maxDate": new Date(),
 						locale: {
 							cancelLabel: "RESET"
@@ -942,6 +953,7 @@
 							vc.dateEnd = moment.utc(end).format('YYYY-MM-DDTHH:mm:ss') + 'Z'
 						}
 						vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
+						vc.timeRange = {};
 						vc.getLogs(false, true);
 
 					});
@@ -958,21 +970,47 @@
 					$('#datePicker').on('hide.daterangepicker', function(ev, picker) {
 						$('#datePicker').parent().removeClass('open');
 
-						if(vc.datePicker.length)
-							$('.daterangepicker td.deactivate').removeClass('deactivate')
+						if(vc.datePicker.length) {
+							$('.daterangepicker td.deactivate').removeClass('deactivate');
+						}
 					});
 
 					$('#datePicker').on('cancel.daterangepicker', function(ev, picker) {
-						vc.datePicker = '';
-						vc.dateStart = '';
-						vc.dateEnd = '';
-						vc.liveMonitoring = true;
-
-						vc.getLogs();
+						vc.clearDateFilters();
 						$('#datePicker').parent().removeClass('open');
 					});
 				}
 
+			},
+
+			clearDateFilters() {
+				const vc = this;
+
+				vc.datePicker = '';
+				vc.dateStart = '';
+				vc.dateEnd = '';
+				vc.liveMonitoring = true;
+				vc.timeRange = {};
+
+				vc.getLogs();
+			},
+
+			setTimeRange(number, unit) {
+				const vc = this;
+
+				if(!$('.daterangepicker').length) {
+					vc.initDatePicker();
+				}
+
+				let now = moment();
+				vc.dateStart = moment.utc(now).subtract(number, unit).format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+				vc.dateEnd = moment.utc(now).format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+				vc.timeRange = {'number': number, 'unit': unit};
+				vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
+
+				$('#datePicker').data('daterangepicker').setEndDate(now);
+				$('#datePicker').data('daterangepicker').setStartDate(now.subtract(number, unit));
+				vc.getLogs(false, true);
 			}
 
 		},
@@ -1011,37 +1049,6 @@
 		--message: #E8E8E8;
 	}	
 
-	ul.legend {
-		position: sticky;
-		top: 0;
-		background: var(--bgColor);
-		box-shadow: 0 10px 40px rgb(255 255 255 / 90%);
-		z-index: 1;
-		font-size: 14px;
-		padding: 10px 0 0;
-	}
-
-	.darkmode ul.legend {
-		box-shadow: 0 10px 60px rgb(23 23 23 / 90%);
-	}
-
-	ul.legend li {
-		display: inline-block;
-		margin: 5px 10px;
-		padding: 0;
-		border: 0;
-	}
-
-	ul.legend span.helpTooltip {
-		margin-left: 5px;
-	}
-
-	ul.errorLevelLegend li {
-		width: 50%;
-		float: left;
-		text-transform: uppercase;
-	}
-
 	.records:after {
 		opacity: 0;
 		display: block;
@@ -1065,16 +1072,6 @@
 	.darkmode .records.loading:after {
 		background: url('/assets/img/loader.gif') center center no-repeat rgba(0,0,0,.5);
 		background-size: 70%;
-	}
-
-	#log > .daterangepicker {
-		margin-top: 63px;
-		margin-right: 0;
-	}
-
-
-	#log .calendar li span {
-		position: relative;
 	}
 
 	.records {
@@ -1293,12 +1290,7 @@
 		display: inline-block;
 		width: 100%;
 	}
-
-	/* .log.open .details {
-		background: var(--activeBg);
-		padding: 10px 0;
-	} */
-
+	
 	span.closeDetails {
 		font-weight: bold;
 		color: var(--blue);
@@ -1347,6 +1339,39 @@
 		position: relative;
 	}
 
+	#logs .daterangepicker {
+		top: 273px !important;
+		right: 40px !important;
+		left: auto !important;
+	}
+
+	@media screen and (min-width: 2500px) {
+		ul.fields li {
+			width: 21.75%;;
+		}
+
+		span.closeDetails {
+			width: calc(100% - 255px);
+		}
+	}
+
+	@media screen and (max-width: 1800px) {
+		ul.fields li {
+			width: 47%;
+		}
+
+		ul.fields li.logMessage {
+			width: 96%;
+		}
+
+		span.closeDetails {
+			margin-right: 3%;
+			width: calc(99% - 245px);
+		}
+	}
+</style>
+
+<style scoped>
 	.logOptions {
 		padding: 10px 10px 0;
 		border-top: 1px solid var(--borderColor);
@@ -1377,33 +1402,93 @@
 		margin: 0;
 	}
 
-	@media screen and (min-width: 2500px) {
-		ul.fields li {
-			width: 21.75%;;
-		}
-
-		span.closeDetails {
-			width: calc(100% - 255px);
-		}
-	}
-
-	@media screen and (max-width: 1800px) {
-		ul.fields li {
-			width: 47%;
-		}
-
-		ul.fields li.logMessage {
-			width: 96%;
-		}
-
-		span.closeDetails {
-			margin-right: 3%;
-			width: calc(99% - 245px);
-		}
-	}
-
 	.scroller {
 		height: 100%;
 	}
 
+	#timeRange {
+		list-style: none;
+    	display: inline-block;
+	}
+
+	#timeRange li {
+		display: inline-block;
+		margin-right: -1px;
+	}
+
+	#timeRange li:hover, #timeRange li.active {
+		position: relative;
+		z-index: 2;
+	}
+
+	#timeRange button {
+		padding: 0 12px;
+		border: 1px solid var(--borderColor);
+    	border-radius: 0;
+		font-weight: normal;
+		color: var(--gray4);
+		font-size: 12px;
+		height: 30px;
+		line-height: 30px;
+		text-transform: none;
+		width: 50px;
+		text-align: center;
+	}
+
+	#timeRange li:first-child button {
+		border-top-left-radius: 5px;
+		border-bottom-left-radius: 5px;
+	}
+
+	#timeRange button:hover, #timeRange li.active button {
+		color: var(--baseColor);
+		border-color: var(--baseColor);
+		background: rgba(0, 173, 181, .25);
+	}
+
+	.toggle.date {
+		border-top-left-radius: 0;
+		border-bottom-left-radius: 0;
+		margin-left: 0;
+		height: 30px;
+	}
+
+	.toggle.date svg {
+		transform: translate(-4px, 3px) scale(.85);
+	}
+
+	.toggle.date:hover svg path, .toggle.date.open svg path, [data-filtered="true"] .toggle.date svg path {
+		stroke: var(--baseColor);
+	}
+
+	ul.legend {
+		position: sticky;
+		top: 0;
+		background: var(--bgColor);
+		box-shadow: 0 10px 40px rgb(255 255 255 / 90%);
+		z-index: 1;
+		font-size: 14px;
+		padding: 10px 0 0;
+	}
+
+	.darkmode ul.legend {
+		box-shadow: 0 10px 60px rgb(23 23 23 / 90%);
+	}
+
+	ul.legend li {
+		display: inline-block;
+		margin: 5px 10px;
+		padding: 0;
+		border: 0;
+	}
+
+	ul.legend span.helpTooltip {
+		margin-left: 5px;
+	}
+
+	ul.errorLevelLegend li {
+		width: 50%;
+		float: left;
+		text-transform: uppercase;
+	}
 </style>
