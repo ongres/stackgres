@@ -41,7 +41,7 @@
                 <div class="toolbar">
                     <div class="searchBar">
                         <input id="keyword" v-model="filters.keyword" class="search" placeholder="Search by name..." autocomplete="off">
-                        <a @click="filterOps('keyword')" class="btn" v-if="filters.keyword.length">APPLY</a>
+                        <a @click="filterOps('keyword')" class="btn">APPLY</a>
                         <a @click="clearFilters('keyword')" class="btn clear border keyword" v-if="filters.keyword.length">CLEAR</a>
                     </div>
 

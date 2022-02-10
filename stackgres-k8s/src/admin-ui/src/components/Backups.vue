@@ -105,8 +105,8 @@
 					<div class="toolbar">
 						<div class="searchBar">
 							<input id="keyword" v-model="filters.keyword" class="search" placeholder="Search Backup..." autocomplete="off">
-							<a @click="filterBackups('keyword')" class="btn" v-if="filters.keyword.length">APPLY</a>
-							<a @click="clearFilters('keyword')" class="btn clear border keyword" v-if="filters.keyword.length">CLEAR</a>
+							<button @click="filterBackups('keyword')" class="btn">APPLY</button>
+							<button @click="clearFilters('keyword')" class="btn clear border keyword" v-if="filters.keyword.length">CLEAR</button>
 						</div>
 
 						<router-link v-if="isCluster && iCan('create','sgbackups',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/sgbackups/new'" title="Add New Backup" class="btn addClusterBackup">Add Backup</router-link>
@@ -1083,6 +1083,7 @@
 				if(!vc.datePickerLoaded) {
 						
 					$('#datePicker').daterangepicker({
+						"parentEl": "#backups",
 						"autoApply": true,
 						"timePicker": true,
 						"timePicker24Hour": true,
@@ -1220,5 +1221,17 @@
 
 	table.resizable th[data-type="lifecycle"] {
 		max-width: 240px;
+	}
+</style>
+
+<style>
+	#backups .daterangepicker {
+		top: 220px !important;
+		left: 390px !important;
+		right: auto !important;
+	}
+
+	.cluster #backups .daterangepicker {
+		top: 275px !important;
 	}
 </style>

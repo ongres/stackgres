@@ -403,6 +403,10 @@ svg.background circle {
     float: right;
 }
 
+.floatLeft {
+    float: left;
+}
+
 .xsPad {
     padding: 10px;
 }
@@ -3475,10 +3479,14 @@ table.backups .details > td {
 .toolbar {
     font-size: 12px;
     margin-bottom: 20px;
+    display: inline-block;
+    width: 100%;
+    border-bottom: 1px solid var(--borderColor);
+    padding-bottom: 15px;
 }
 
 #keyword {
-    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjEiIGlkPSJDYXBhXzEiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI4LjkzMSAyOC45MzIiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDI4LjkzMSAyOC45MzI7IiB4bWw6c3BhY2U9InByZXNlcnZlIiBjbGFzcz0iIj48Zz48Zz4KCTxwYXRoIGQ9Ik0yOC4zNDQsMjUuNTE4bC02LjExNC02LjExNWMxLjQ4Ni0yLjA2NywyLjMwMy00LjUzNywyLjMwMy03LjEzN2MwLTMuMjc1LTEuMjc1LTYuMzU1LTMuNTk0LTguNjcyICAgQzE4LjYyNSwxLjI3OCwxNS41NDMsMCwxMi4yNjYsMEM4Ljk5LDAsNS45MDksMS4yNzUsMy41OTMsMy41OTRDMS4yNzcsNS45MDksMC4wMDEsOC45OSwwLjAwMSwxMi4yNjYgICBjMCwzLjI3NiwxLjI3NSw2LjM1NiwzLjU5Miw4LjY3NGMyLjMxNiwyLjMxNiw1LjM5NiwzLjU5NCw4LjY3MywzLjU5NGMyLjU5OSwwLDUuMDY3LTAuODEzLDcuMTM2LTIuMzAzbDYuMTE0LDYuMTE1ICAgYzAuMzkyLDAuMzkxLDAuOTAyLDAuNTg2LDEuNDE0LDAuNTg2YzAuNTEzLDAsMS4wMjQtMC4xOTUsMS40MTQtMC41ODZDMjkuMTI1LDI3LjU2NCwyOS4xMjUsMjYuMjk5LDI4LjM0NCwyNS41MTh6IE02LjQyMiwxOC4xMTEgICBjLTEuNTYyLTEuNTYyLTIuNDIxLTMuNjM5LTIuNDIxLTUuODQ2UzQuODYsNy45ODMsNi40MjIsNi40MjFjMS41NjEtMS41NjIsMy42MzYtMi40MjIsNS44NDQtMi40MjJzNC4yODQsMC44Niw1Ljg0NSwyLjQyMiAgIGMxLjU2MiwxLjU2MiwyLjQyMiwzLjYzOCwyLjQyMiw1Ljg0NXMtMC44NTksNC4yODMtMi40MjIsNS44NDZjLTEuNTYyLDEuNTYyLTMuNjM2LDIuNDItNS44NDUsMi40MlM3Ljk4MSwxOS42NzIsNi40MjIsMTguMTExeiIgZGF0YS1vcmlnaW5hbD0iIzAwMDAwMCIgY2xhc3M9ImFjdGl2ZS1wYXRoIiBzdHlsZT0iZmlsbDojN0E3Qjg1IiBkYXRhLW9sZF9jb2xvcj0iIzAwMDAwMCI+PC9wYXRoPgo8L2c+PC9nPiA8L3N2Zz4=);
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHZpZXdCb3g9IjAgMCAyOC45MzEgMjguOTMyIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAyOC45MzEgMjguOTMyOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgY2xhc3M9IiI+PGc+PGc+Cgk8cGF0aCBkPSJNMjguMzQ0LDI1LjUxOGwtNi4xMTQtNi4xMTVjMS40ODYtMi4wNjcsMi4zMDMtNC41MzcsMi4zMDMtNy4xMzdjMC0zLjI3NS0xLjI3NS02LjM1NS0zLjU5NC04LjY3MiAgIEMxOC42MjUsMS4yNzgsMTUuNTQzLDAsMTIuMjY2LDBDOC45OSwwLDUuOTA5LDEuMjc1LDMuNTkzLDMuNTk0QzEuMjc3LDUuOTA5LDAuMDAxLDguOTksMC4wMDEsMTIuMjY2ICAgYzAsMy4yNzYsMS4yNzUsNi4zNTYsMy41OTIsOC42NzRjMi4zMTYsMi4zMTYsNS4zOTYsMy41OTQsOC42NzMsMy41OTRjMi41OTksMCw1LjA2Ny0wLjgxMyw3LjEzNi0yLjMwM2w2LjExNCw2LjExNSAgIGMwLjM5MiwwLjM5MSwwLjkwMiwwLjU4NiwxLjQxNCwwLjU4NmMwLjUxMywwLDEuMDI0LTAuMTk1LDEuNDE0LTAuNTg2QzI5LjEyNSwyNy41NjQsMjkuMTI1LDI2LjI5OSwyOC4zNDQsMjUuNTE4eiBNNi40MjIsMTguMTExICAgYy0xLjU2Mi0xLjU2Mi0yLjQyMS0zLjYzOS0yLjQyMS01Ljg0NlM0Ljg2LDcuOTgzLDYuNDIyLDYuNDIxYzEuNTYxLTEuNTYyLDMuNjM2LTIuNDIyLDUuODQ0LTIuNDIyczQuMjg0LDAuODYsNS44NDUsMi40MjIgICBjMS41NjIsMS41NjIsMi40MjIsMy42MzgsMi40MjIsNS44NDVzLTAuODU5LDQuMjgzLTIuNDIyLDUuODQ2Yy0xLjU2MiwxLjU2Mi0zLjYzNiwyLjQyLTUuODQ1LDIuNDJTNy45ODEsMTkuNjcyLDYuNDIyLDE4LjExMXoiIGRhdGEtb3JpZ2luYWw9IiMwMDAwMDAiIGNsYXNzPSJhY3RpdmUtcGF0aCIgc3R5bGU9ImZpbGw6IzA2MDUyOCIgZGF0YS1vbGRfY29sb3I9IiMwMDAwMDAiPjwvcGF0aD4KPC9nPjwvZz4gPC9zdmc+);
     border: 1px solid var(--gray2);
     color: var(--gray4);
     padding: 0 15px 0 35px;
@@ -3487,8 +3495,13 @@ table.backups .details > td {
     background-position: 10px center;
     background-repeat: no-repeat;
     border-radius: 6px;
-    width: 300px;
+    width: 250px;
     max-width: 50%;
+    margin-right: 5px;
+}
+
+.darkmode #keyword {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHZpZXdCb3g9IjAgMCAyOC45MzEgMjguOTMyIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAyOC45MzEgMjguOTMyOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgY2xhc3M9IiI+PGc+PGc+Cgk8cGF0aCBkPSJNMjguMzQ0LDI1LjUxOGwtNi4xMTQtNi4xMTVjMS40ODYtMi4wNjcsMi4zMDMtNC41MzcsMi4zMDMtNy4xMzdjMC0zLjI3NS0xLjI3NS02LjM1NS0zLjU5NC04LjY3MiAgIEMxOC42MjUsMS4yNzgsMTUuNTQzLDAsMTIuMjY2LDBDOC45OSwwLDUuOTA5LDEuMjc1LDMuNTkzLDMuNTk0QzEuMjc3LDUuOTA5LDAuMDAxLDguOTksMC4wMDEsMTIuMjY2ICAgYzAsMy4yNzYsMS4yNzUsNi4zNTYsMy41OTIsOC42NzRjMi4zMTYsMi4zMTYsNS4zOTYsMy41OTQsOC42NzMsMy41OTRjMi41OTksMCw1LjA2Ny0wLjgxMyw3LjEzNi0yLjMwM2w2LjExNCw2LjExNSAgIGMwLjM5MiwwLjM5MSwwLjkwMiwwLjU4NiwxLjQxNCwwLjU4NmMwLjUxMywwLDEuMDI0LTAuMTk1LDEuNDE0LTAuNTg2QzI5LjEyNSwyNy41NjQsMjkuMTI1LDI2LjI5OSwyOC4zNDQsMjUuNTE4eiBNNi40MjIsMTguMTExICAgYy0xLjU2Mi0xLjU2Mi0yLjQyMS0zLjYzOS0yLjQyMS01Ljg0NlM0Ljg2LDcuOTgzLDYuNDIyLDYuNDIxYzEuNTYxLTEuNTYyLDMuNjM2LTIuNDIyLDUuODQ0LTIuNDIyczQuMjg0LDAuODYsNS44NDUsMi40MjIgICBjMS41NjIsMS41NjIsMi40MjIsMy42MzgsMi40MjIsNS44NDVzLTAuODU5LDQuMjgzLTIuNDIyLDUuODQ2Yy0xLjU2MiwxLjU2Mi0zLjYzNiwyLjQyLTUuODQ1LDIuNDJTNy45ODEsMTkuNjcyLDYuNDIyLDE4LjExMXoiIGRhdGEtb3JpZ2luYWw9IiMwMDAwMDAiIGNsYXNzPSJhY3RpdmUtcGF0aCIgc3R5bGU9ImZpbGw6I2ZmZiIgZGF0YS1vbGRfY29sb3I9IiMwMDAwMDAiPjwvcGF0aD4KPC9nPjwvZz4gPC9zdmc+);
 }
 
 #keyword:focus {
@@ -3497,8 +3510,9 @@ table.backups .details > td {
 
 .toolbar .filter {
     width: auto;
-    float: right;
+    float: left;
     position: relative;
+    margin-right: 15px;
 }
 
 .toolbar .toggle {
@@ -3513,10 +3527,6 @@ table.backups .details > td {
     cursor: pointer;
     user-select: none;
     position: relative;
-}
-
-.toolbar .toggle {
-    margin-left: 15px;
 }
 
 .toolbar .toggle:hover, .toolbar .toggle.active, .filter.filtered:not(.open) .toggle, [data-filtered="true"] .toggle {
@@ -3561,7 +3571,7 @@ table.backups .details > td {
     display: none;
     position: absolute;
     z-index: 10;
-    right: 0;
+    left: 0;
     border: 1px solid var(--gray1);
     background: #fff;
     margin-top: 10px;
@@ -4057,18 +4067,11 @@ td.operation.Reset > span {
 }
 
 .daterangepicker:not(.single) {
-    top: 170px !important;
-    left: auto !important;
-    right: 40px !important;
     font-family: "Nunito", sans-serif !important;
     border-radius: 6px !important;
     border-color: var(--gray1);
     box-shadow: 0 0 20px rgba(0,0,0,.05);
     padding: 20px !important;
-}
-
-#logs .daterangepicker {
-    top: 273px !important;
 }
 
 .daterangepicker tbody {
@@ -4134,7 +4137,7 @@ td.operation.Reset > span {
     border-color: var(--gray2);
 }
 
-.daterangepicker:before, .daterangepicker:after {
+.daterangepicker:before, .daterangepicker:after, .daterangepicker .drp-selected {
     display: none !important;
 }
 
