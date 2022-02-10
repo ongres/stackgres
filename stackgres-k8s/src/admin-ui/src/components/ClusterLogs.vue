@@ -572,35 +572,35 @@
 				timeRange: {},
 				timeRangeOptions: [
 					{
-						number: 15,
+						number: '15',
 						unit: 'm'
 					},
 					{
-						number: 30,
+						number: '30',
 						unit: 'm'
 					},
 					{
-						number: 1,
+						number: '1',
 						unit: 'h'
 					},
 					{
-						number: 2,
+						number: '2',
 						unit: 'h'
 					},
 					{
-						number: 6,
+						number: '6',
 						unit: 'h'
 					},
 					{
-						number: 24,
+						number: '24',
 						unit: 'h'
 					},
 					{
-						number: 1,
+						number: '1',
 						unit: 'w'
 					},
 					{
-						number: 1,
+						number: '1',
 						unit: 'M'
 					}
 				],
@@ -1002,7 +1002,7 @@
 					vc.initDatePicker();
 				}
 				
-				if( !timeRange.hasOwnProperty('unit') || (timeRange.hasOwnProperty('unit') && (timeRange.unit != unit) && (timeRange.number != number) ) ) {
+				if( !vc.timeRange.hasOwnProperty('unit') || (vc.timeRange.hasOwnProperty('unit') && ( (vc.timeRange.number + vc.timeRange.unit) != (number + unit) ) ) ) {
 
 					let now = moment();
 					vc.dateStart = moment.utc(now).subtract(number, unit).format('YYYY-MM-DDTHH:mm:ss') + 'Z';
