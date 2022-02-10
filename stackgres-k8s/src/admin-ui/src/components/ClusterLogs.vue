@@ -268,7 +268,7 @@
 					<div id="dateFilters" class="floatRight" :data-filtered="( (datePicker.length > 0) && !Object.keys(timeRange).length )">
 						<ul id="timeRange">
 							<li v-for="time in timeRangeOptions" :class="( ((timeRange.number == time.number) && (timeRange.unit == time.unit) ) && 'active')">
-								<button class="plain" @click="( (!Object.keys(timeRange).length || ( Object.keys(timeRange).length && (timeRange.unit != time.unit) && (timeRange.number != time.number) ) ) ? setTimeRange(time.number, time.unit) : clearDateFilters())">{{ time.number + time.unit }}</button>
+								<button class="plain" @click="setTimeRange(time.number, time.unit)">{{ time.number + time.unit }}</button>
 							</li>
 						</ul>
 						<span class="toggle date">
@@ -1001,16 +1001,23 @@
 				if(!$('.daterangepicker').length) {
 					vc.initDatePicker();
 				}
+				
+				if( !timeRange.hasOwnProperty('unit') || (timeRange.hasOwnProperty('unit') && (timeRange.unit != unit) && (timeRange.number != number) ) ) {
 
-				let now = moment();
-				vc.dateStart = moment.utc(now).subtract(number, unit).format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-				vc.dateEnd = moment.utc(now).format('YYYY-MM-DDTHH:mm:ss') + 'Z';
-				vc.timeRange = {'number': number, 'unit': unit};
-				vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
+					let now = moment();
+					vc.dateStart = moment.utc(now).subtract(number, unit).format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+					vc.dateEnd = moment.utc(now).format('YYYY-MM-DDTHH:mm:ss') + 'Z';
+					vc.timeRange = {'number': number, 'unit': unit};
+					vc.datePicker = vc.dateStart+' / '+vc.dateEnd;
 
-				$('#datePicker').data('daterangepicker').setEndDate(now);
-				$('#datePicker').data('daterangepicker').setStartDate(now.subtract(number, unit));
-				vc.getLogs(false, true);
+					$('#datePicker').data('daterangepicker').setEndDate(now);
+					$('#datePicker').data('daterangepicker').setStartDate(now.subtract(number, unit));
+					vc.getLogs(false, true);
+
+				} else {
+					vc.clearDateFilters();
+				}
+
 			}
 
 		},
