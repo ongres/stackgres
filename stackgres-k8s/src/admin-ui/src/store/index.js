@@ -53,7 +53,6 @@ export default new Vuex.Store({
     confirmDeleteName: '',
     restartCluster: {},
     notifications: {
-      show: false,
       showAll: false,
       messages: []
     }
@@ -371,20 +370,17 @@ export default new Vuex.Store({
 
     addNotification(state, notification) {
       state.notifications.messages.unshift(notification);
-      
-      setTimeout( () => {
-        state.notifications.show = true;
-      }, 10)
-      
     },
 
     toggleNotifications(state, showAll = false) {
-      state.notifications.show = !state.notifications.show;
-      state.notifications.showAll = state.notifications.show && showAll;
-
-      if(!state.notifications.show) {
-        state.notifications.messages.forEach( (m) => {m.show = false})
-      }
+      let now = new Date();
+      now = new Date(now.setMilliseconds(now.getMilliseconds() - 100));
+      state.notifications.showAll = showAll;
+      state.notifications.messages.forEach( (m) => {
+        if (now > new Date(m.timestamp)) { 
+          m.show  = false 
+        } 
+      });
     }
     
   }

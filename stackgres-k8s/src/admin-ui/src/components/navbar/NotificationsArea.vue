@@ -1,36 +1,39 @@
 <template>
-    <div id="notifications" class="hasTooltip hideOnClick" :class="notifications.show && 'active'">
-        <button class="plain" title="Notifications" @click="toggleNotifications()">
+    <div id="notifications" :class="( (notifications.showAll || hasNotifications ) && 'active')">
+        <button class="plain" title="Notifications" @click="toggleNotifications(hasNotifications ? false : !notifications.showAll)">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M11.877 16.75a.918.918 0 00-.225-.026 1.013 1.013 0 00-.984.783.812.812 0 01-.158.35.6.6 0 01-.467.179h-.1a.579.579 0 01-.469-.156.881.881 0 01-.174-.38 1.008 1.008 0 00-1.988.213.95.95 0 00.022.2A2.518 2.518 0 009.81 20h.155c.055 0 .105.006.148.006a2.529 2.529 0 002.523-2.07.955.955 0 00-.13-.744 1 1 0 00-.629-.442zm6.108-2.332a6.6 6.6 0 00-.479-.527l-.01-.01c-.757-.77-1.696-1.723-1.696-5.181 0-5.52-2.942-6.791-4.207-7.08l-.019-.005h-.01v-.071a1.563 1.563 0 00-3.126 0v.066h-.006l-.019.005C7.148 1.907 4.2 3.18 4.2 8.7c0 3.45-.935 4.405-1.687 5.173a6.06 6.06 0 00-.5.545 1.283 1.283 0 00-.257.968 1.307 1.307 0 00.521.87 1.365 1.365 0 00.81.264h13.852a1.352 1.352 0 00.941-.409 1.291 1.291 0 00.105-1.689zm-2.572.137H4.568a6.173 6.173 0 00.9-1.475 10.979 10.979 0 00.728-4.394 6.858 6.858 0 01.977-3.973 2.783 2.783 0 011.679-1.174 2.63 2.63 0 001.179-.612 2.153 2.153 0 001.09.609A2.768 2.768 0 0112.8 4.7a6.877 6.877 0 01.983 3.986 10.966 10.966 0 00.737 4.409 6.18 6.18 0 00.893 1.46z"/></svg>
         </button>
 
-        <div class="tooltip" v-if="notifications.show">
+        <div class="tooltip">
             <span>Notifications</span>
-            <button class="close plain" @click="toggleNotifications()">Close</button>
-            <p class="zero message" v-if="!notifications.messages.length">There are no new notifications.</p>
-            <template v-for="notification in notifications.messages">
-                <div class="message show" v-if="notification.show || notifications.showAll">
-                    <span class="icon" :class="notification.level" v-html="icons[notification.kind]"></span>
-                    <span class="kind" :class="notification.level">
-                        {{ notification.level }}
-                    </span>
-                    <span class="timestamp small floatRight">
-                        <span class='date'>
-                            {{ notification.timestamp | formatTimestamp('date') }}
+            <button class="close plain" @click="toggleNotifications(false)">Close</button>
+
+            <template v-for="(notification, index) in notifications.messages">
+                <template v-if="notification.show || notifications.showAll">
+                    <div class="message show">
+                        <span class="icon" :class="notification.level" v-html="icons[notification.kind]"></span>
+                        <span class="kind" :class="notification.level">
+                            {{ notification.level }}
                         </span>
-                        <span class='time'>
-                            {{ notification.timestamp | formatTimestamp('time') }}
+                        <span class="timestamp small floatRight">
+                            <span class='date'>
+                                {{ notification.timestamp.toISOString() | formatTimestamp('date') }}
+                            </span>
+                            <span class='time'>
+                                {{ notification.timestamp.toISOString() | formatTimestamp('time') }}
+                            </span>
                         </span>
-                    </span>
-                    <div class="title" v-html="notification.message.content"></div>
-                    <div v-if="notification.message.hasOwnProperty('details')" class="details">
-                        {{ notification.message.content }}
+                        <div class="title" v-html="notification.message.content"></div>
+                        <div v-if="notification.message.hasOwnProperty('details')" class="details">
+                            {{ notification.message.content }}
+                        </div>
+                        <a v-if="notification.message.hasOwnProperty('type')" :href="message.type" title="More Info" target="_blank" class="doclink newTab">
+                            More Info
+                        </a>
                     </div>
-                    <a v-if="notification.message.hasOwnProperty('type')" :href="message.type" title="More Info" target="_blank" class="doclink newTab">
-                        More Info
-                    </a>
-                </div>
+                </template>
             </template>
+            <p class="zero message" v-if="!notifications.messages.length && notifications.showAll">There are no new notifications.</p>
         </div>
     </div>
 </template>
@@ -61,15 +64,19 @@
 
 		computed: {
 
-			notifications () {
+			notifications() {
 				return store.state.notifications
-			}
+			},
+
+            hasNotifications() {
+                return store.state.notifications.messages.filter(n => (n.show == true)).length
+            }
         },
 
         methods: {
 
-            toggleNotifications() {
-                store.commit('toggleNotifications', true);
+            toggleNotifications(showAll) {
+                store.commit('toggleNotifications', showAll);
             }
 
         }
