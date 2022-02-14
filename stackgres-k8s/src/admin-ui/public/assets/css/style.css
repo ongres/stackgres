@@ -1199,7 +1199,7 @@ footer {
     cursor: pointer;
 }
 
-#reload.active svg path, #notifications.active a svg path {
+#reload.active svg path, #notifications.active svg path {
     fill: var(--blue);
     transition: fill .3s ease-in;
 }
@@ -1208,31 +1208,6 @@ footer {
     transform: rotate(720deg);
     transition: transform 2s ease-in-out;
 }
-
-#notifications .count {
-    position: absolute;
-    top: 15px;
-    left: 11px;
-    width: 21px;
-    height: 21px;
-    z-index: 1;
-    background: var(--blue);
-    border-radius: 100%;
-    line-height: 15px;
-    color: #fff;
-    text-align: center;
-    font-size: 10px;
-    border: 3px solid #fff;
-    display: none;
-}
-
-#notifications .count.zero {
-    display: none;
-}
-
-/* #notifications.active .count:not(.zero) {
-    display: block;
-} */
 
 .tooltip > span {
     display: block;

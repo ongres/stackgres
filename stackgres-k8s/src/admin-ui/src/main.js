@@ -277,7 +277,7 @@ $(document).ready(function(){
 
   $(document).on("click", function(e) {
 
-    if( store.state.notifications.show && !$(e.target).parents().addBack().is('#notifications')) {
+    if(!$(e.target).parents().addBack().is('#notifications')) {
       store.commit('toggleNotifications');
     }
 

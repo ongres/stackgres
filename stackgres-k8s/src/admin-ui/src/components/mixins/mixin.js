@@ -619,8 +619,9 @@ export const mixin = {
       },
 
       notify (message, type = 'message', crd = 'general') {
-      
-        $('#nav .active').removeClass('active');
+        let now = new Date();
+
+        $('#nav .active:not(#notifications').removeClass('active');
         $('.form .alert').removeClass('alert');
 
         store.commit('addNotification', {
@@ -631,7 +632,7 @@ export const mixin = {
             ...(message.hasOwnProperty('details') && {details: message.details}),
             ...(message.hasOwnProperty('type') && {link: message.type}),
           },
-          timestamp: new Date().toISOString(),
+          timestamp: now,
           show: true
         });
 
