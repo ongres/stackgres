@@ -19,6 +19,9 @@ public class ClusterRestoreFromBackup {
   @JsonProperty("uid")
   private String uid;
 
+  @JsonProperty("name")
+  private String name;
+
   @JsonProperty("pointInTimeRecovery")
   private ClusterRestorePitr pointInTimeRecovery;
 
@@ -28,6 +31,14 @@ public class ClusterRestoreFromBackup {
 
   public void setUid(String uid) {
     this.uid = uid;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   public ClusterRestorePitr getPointInTimeRecovery() {

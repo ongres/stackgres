@@ -1,0 +1,139 @@
+{
+  "kind": "AdmissionReview",
+  "request": {
+    "uid": "c2f4a2a1-3939-11ea-be74-0242ac110002",
+    "kind": {
+      "kind": "SGBackup",
+      "group": "stackgres.io",
+      "version": "v1"
+    },
+    "resource": {
+      "group": "stackgres.io",
+      "resource": "sgbackups",
+      "version": "v1"
+    },
+    "subResource": null,
+    "requestKind": null,
+    "requestResource": null,
+    "requestSubResource": null,
+    "name": null,
+    "namespace": "backup-with-default-storage",
+    "operation": "UPDATE",
+    "userInfo": {
+      "groups": [
+        "system:serviceaccounts",
+        "system:serviceaccounts:backup-with-default-storage",
+        "system:authenticated"
+      ],
+      "uid": "7683f3c9-3939-11ea-be74-0242ac110002",
+      "username": "system:serviceaccount:backup-with-default-storage:backup-with-default-storage-patroni"
+    },
+    "object": {
+      "kind": "SGBackup",
+      "apiVersion": "stackgres.io/v1",
+      "metadata": {
+        "name": "backup-with-default-storage-bded7e9a-3939-11ea-be74-0242ac110002",
+        "namespace": "backup-with-default-storage",
+        "ownerReferences": [
+          {
+            "apiVersion": "batch/v1",
+            "kind": "CronJob",
+            "name": "backup-with-default-storage-backup",
+            "uid": "769faf87-3939-11ea-be74-0242ac110002"
+          }
+        ]
+      },
+      "spec": {
+        "sgCluster": "backup-with-default-storage",
+        "managedLifecycle": false
+      },
+      "status": {
+        "sgBackupConfig": {
+          "baseBackups": {
+            "compression": "lz4"
+          },
+          "storage": {
+            "s3Compatible": {
+              "awsCredentials": {
+                "secretKeySelectors": {
+                  "accessKeyId": {
+                    "key": "accesskey",
+                    "name": "minio"
+                  },
+                  "secretAccessKey": {
+                    "key": "secretkey",
+                    "name": "minio"
+                  }
+                }
+              },
+              "endpoint": "http://minio.stackgres:9000",
+              "enablePathStyleAddressing": true,
+              "bucket": "stackgres",
+              "region": "k8s"
+            },
+            "type": "s3Compatible"
+          }
+        },
+        "process": {
+          "status": "Running",
+          "jobPod": "backup-with-default-storage-backup-1579273020-svf9b"
+        }
+      }
+    },
+    "oldObject": {
+      "kind": "SGBackup",
+      "apiVersion": "stackgres.io/v1",
+      "metadata": {
+        "name": "backup-with-default-storage-bded7e9a-3939-11ea-be74-0242ac110002",
+        "namespace": "backup-with-default-storage",
+        "ownerReferences": [
+          {
+            "apiVersion": "batch/v1",
+            "kind": "CronJob",
+            "name": "backup-with-default-storage-backup",
+            "uid": "769faf87-3939-11ea-be74-0242ac110002"
+          }
+        ]
+      },
+      "spec": {
+        "sgCluster": "backup-with-default-storage",
+        "managedLifecycle": false
+      },
+      "status": {
+        "sgBackupConfig": {
+          "baseBackups": {
+            "compression": "lz4"
+          },
+          "storage": {
+            "s3Compatible": {
+              "awsCredentials": {
+                "secretKeySelectors": {
+                  "accessKeyId": {
+                    "key": "accesskey",
+                    "name": "minio"
+                  },
+                  "secretAccessKey": {
+                    "key": "secretkey",
+                    "name": "minio"
+                  }
+                }
+              },
+              "endpoint": "http://minio.stackgres:9000",
+              "enablePathStyleAddressing": true,
+              "bucket": "stackgres",
+              "region": "k8s"
+            },
+            "type": "s3Compatible"
+          }
+        },
+        "process": {
+          "status": "Running",
+          "jobPod": "backup-with-default-storage-backup-1579273020-svf9b"
+        }
+      }
+    },
+    "options": null,
+    "dryRun": false
+  },
+  "apiVersion": "admission.k8s.io/v1"
+}

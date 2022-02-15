@@ -620,6 +620,8 @@ class ClusterResourceMockedTest extends
           assertNotNull(dtoInitData.getRestore());
           assertEquals(resourceInitData.getRestore().getFromBackup().getUid(),
               dtoInitData.getRestore().getFromBackup().getUid());
+          assertEquals(resourceInitData.getRestore().getFromBackup().getName(),
+              dtoInitData.getRestore().getFromBackup().getName());
           assertEquals(resourceInitData.getRestore().getDownloadDiskConcurrency(),
               dtoInitData.getRestore().getDownloadDiskConcurrency());
         } else {
@@ -821,6 +823,8 @@ class ClusterResourceMockedTest extends
           assertNotNull(resourceRestore);
           assertEquals(dtoRestore.getFromBackup().getUid(),
               resourceRestore.getFromBackup().getUid());
+          assertEquals(dtoRestore.getFromBackup().getName(),
+              resourceRestore.getFromBackup().getName());
         } else {
           assertNull(resourceRestore);
         }

@@ -29,7 +29,7 @@ public class StackGresClusterRestore implements KubernetesResource {
 
   @JsonProperty("fromBackup")
   @Valid
-  @NotNull(message = "fromBackup configuration cannot be null")
+  @NotNull(message = "fromBackup cannot be null")
   private StackGresClusterRestoreFromBackup fromBackup;
 
   public Integer getDownloadDiskConcurrency() {

@@ -504,7 +504,11 @@ spec:
                             uid:
                               type: string
                               description: |
-                                When set to the UID of an existing [SGBackup](https://stackgres.io/doc/latest/reference/crd/sgbackup), the cluster is initialized by restoring the backup data to it. If not set, the cluster is initialized empty. The selected backup must be in the same namespace.
+                                When set to the UID of an existing [SGBackup](https://stackgres.io/doc/latest/reference/crd/sgbackup), the cluster is initialized by restoring the backup data to it. If not set, the cluster is initialized empty. This field is deprecated.
+                            name:
+                              type: string
+                              description: |
+                                When set to the name of an existing [SGBackup](https://stackgres.io/doc/latest/reference/crd/sgbackup), the cluster is initialized by restoring the backup data to it. If not set, the cluster is initialized empty. The selected backup must be in the same namespace.
                             pointInTimeRecovery:
                               type: object
                               description: |

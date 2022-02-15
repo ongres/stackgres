@@ -55,7 +55,7 @@
         "initialData": {
           "restore": {
             "fromBackup": {
-              "uid": "d7e660a9-377c-11ea-b04b-0242ac110004"
+              "name": "backup-with-default-storage-0-296"
             }
           }
         },
@@ -98,7 +98,7 @@
         "initialData": {
           "restore": {
             "fromBackup": {
-              "uid": "d7e660a9-377c-11ea-b04b-0242ac110004"
+              "name": "backup-with-default-storage-0-296"
             }
           }
         },

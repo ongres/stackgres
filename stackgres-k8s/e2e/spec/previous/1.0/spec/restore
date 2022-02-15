@@ -34,7 +34,10 @@ EOF
   
   wait_until is_backup_phase "Completed"
 
-  BACKUP_UID="$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_NAME" -o=jsonpath='{.metadata.uid}')"
+  kubectl create ns "$CLUSTER_NAMESPACE"
+  kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_NAME" -o json \
+    | jq ".metadata.namespace = \"$CLUSTER_NAMESPACE\"" \
+    | kubectl create -f -
 
   BACKUP_PITR_DATE="$(date +%Y-%m-%dT%H:%M:%SZ --utc)"
   sleep 2
@@ -45,7 +48,7 @@ EOF
   kubectl create namespace "$CLUSTER_NAMESPACE" || true
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set cluster.initialData.restore.fromBackup.uid="$BACKUP_UID"
+    --set cluster.initialData.restore.fromBackup.name="$BACKUP_NAME"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
@@ -182,7 +185,7 @@ spec:
     restore:
       downloadDiskConcurrency: 1
       fromBackup:
-        uid: $BACKUP_UID
+        name: $BACKUP_NAME
 EOF
 
   if ERROR_MESSAGE="$(kubectl apply -f "$LOG_PATH/alter-restore-cluster.yaml" 2>&1)"
@@ -222,7 +225,7 @@ spec:
   initialData:
     restore:
       fromBackup:
-        uid: $BACKUP_UID
+        name: $BACKUP_NAME
 EOF
 
   assert_default_value "downloadDiskConcurrency" "1"
@@ -252,7 +255,7 @@ assert_default_value(){
 check_restore_using_pitr() {
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
-    --set-string cluster.initialData.restore.fromBackup.uid="$BACKUP_UID" \
+    --set-string cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
     --set-string cluster.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp="$BACKUP_PITR_DATE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1

@@ -358,7 +358,7 @@ By default, stackgres it's creates as an empty database. To create a cluster wit
 
 | Property                                   | Required | Updatable | Type     | Default | Description |
 |:-------------------------------------------|----------|-----------|:---------|:--------|:------------|
-| uid                                        | ✓        |           | string   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.uid >}} |
+| name                                       | ✓        |           | string   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.name >}} |
 | [pointInTimeRecovery](#pitr-configuration) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.pointInTimeRecovery >}} |
 
 ### PITR configuration

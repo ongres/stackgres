@@ -12,6 +12,7 @@ import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.BackupReview;
@@ -39,9 +40,13 @@ public class ClusterValidator implements BackupValidator {
     switch (review.getRequest().getOperation()) {
       case CREATE: {
         StackGresBackup backup = review.getRequest().getObject();
-        String cluster = backup != null ? backup.getSpec().getSgCluster() : null;
-        checkIfClusterExists(review, "Cluster " + cluster
-            + " not found");
+        String clusterName = backup.getSpec().getSgCluster();
+        if (Optional.ofNullable(backup)
+            .map(StackGresBackup::getStatus)
+            .map(StackGresBackupStatus::getBackupConfig)
+            .isEmpty()) {
+          checkIfClusterExists(review, "Cluster " + clusterName + " not found");
+        }
         break;
       }
       case UPDATE: {
