@@ -6,5 +6,5 @@ url: intro/extensions
 
 The table below contains the list of all avaiable extensions:
 
-<script src="{{<relurl url="/js/stackgres-postgres-extensions-list.js">}}"></script>
+<script src="{{<relurl url="/js/stackgres-postgres-extensions-list-v1.js">}}"></script>
 <div class="postgresExtensions">Loading extensions info...</div>
