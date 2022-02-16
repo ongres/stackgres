@@ -41,9 +41,8 @@ Create the Kubernetes Cluster:
     --vcn-id $vnc_id \
     --endpoint-subnet-id $endpoint_subnet_id \
     --service-lb-subnet-ids '["'$lb_subnet_id'"]' \
-    --persistent-volume-freeform-tags '{"stackgres" : "OKE"}' \
-    --service-lb-freeform-tags '{"stackgres" : "OKE"}' \
-    --endpoint-public-ip-enabled true
+    --endpoint-public-ip-enabled true \
+    --persistent-volume-freeform-tags '{"stackgres" : "OKE"}'
 ```
 
 Output will be similar to this:
@@ -67,7 +66,7 @@ After the Cluster creation, create the node pool for the kubernetes worknodes:
     --node-image-id $(oci compute image list --operating-system 'Oracle Linux' --operating-system-version 7.9 --sort-by TIMECREATED --compartment-id $compartment_id --query data[1].id --raw-output) \
     --node-boot-volume-size-in-gbs 50 \
     --size 3 \
-    --placement-configs '[{"availabilityDomain": "'$(oci iam availability-domain list --compartment-id $compartment_id --query data[0].name --raw-output)'", "subnetId": "'$nodes_subnet_id'"}]'
+    --placement-configs '[{"availabilityDomain": "'$(oci iam availability-domain list --compartment-id $compartment_id --query data[0].name --raw-output)'", "subnetId": "'$nodes_subnet_id'"}]' 
 ```
 
 Output will be similar to this:
@@ -76,6 +75,13 @@ Output will be similar to this:
    {
   "opc-work-request-id": "ocid1.clustersworkrequest.oc1.[OCI-Regions].aaaaaaaa2p26em5geexn..."
    }
+```
+
+> After the cluster provisioning is highly recommand to change the default Kubernetes storage class:
+
+```bash
+  kubectl patch storageclass oci -p '{"metadata": {"annotations":{"storageclass.beta.kubernetes.io/is-default-class":"false"}}}'
+  kubectl patch storageclass oci-bv -p '{"metadata": {"annotations":{"storageclass.beta.kubernetes.io/is-default-class":"true"}}}'
 ```
 
 To cleanup the kubernetes cluster you may issue following:
