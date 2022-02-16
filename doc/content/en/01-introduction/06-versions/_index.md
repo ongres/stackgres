@@ -103,7 +103,7 @@ showToc: true
 
 ### Additional extensions included on StackGres
 
-* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
+* [Extensions list]({{% relref "/01-introduction/08-extensions/02-v1" %}})
 
 ## StackGres 1.0.0-RC1
 
@@ -122,7 +122,7 @@ showToc: true
 
 ### Additional extensions included on StackGres
 
-* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
+* [Extensions list]({{% relref "/01-introduction/08-extensions/02-v1" %}})
 
 ## StackGres 1.0.0-beta3
 
@@ -140,7 +140,7 @@ showToc: true
 
 ### Additional extensions included on StackGres
 
-* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
+* [Extensions list]({{% relref "/01-introduction/08-extensions/01-v0" %}})
 
 ## StackGres 1.0.0-beta2
 
@@ -158,7 +158,7 @@ showToc: true
 
 ### Additional extensions included on StackGres
 
-* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
+* [Extensions list]({{% relref "/01-introduction/08-extensions/01-v0" %}})
 
 ## StackGres 1.0.0-beta1
 
@@ -176,7 +176,7 @@ showToc: true
 
 ### Additional extensions included on StackGres
 
-* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
+* [Extensions list]({{% relref "/01-introduction/08-extensions/01-v0" %}})
 
 ## StackGres 1.0.0-alpha4
 
@@ -194,7 +194,7 @@ showToc: true
 
 ### Additional extensions included on StackGres
 
-* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
+* [Extensions list]({{% relref "/01-introduction/08-extensions/01-v0" %}})
 
 ## StackGres 1.0.0-alpha3
 
@@ -212,7 +212,7 @@ showToc: true
 
 ### Additional extensions included on StackGres
 
-* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
+* [Extensions list]({{% relref "/01-introduction/08-extensions/01-v0" %}})
 
 ## StackGres 1.0.0-alpha2
 
