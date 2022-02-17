@@ -5091,7 +5091,7 @@ a.disabled {
     padding: 5px 0 0 10px;
 }
 
-.icon.invisible a {
+td.icon.invisible a {
     position: relative;
     display: inline-block;
     top: -2px;
@@ -5100,8 +5100,12 @@ a.disabled {
     background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNSAxNSI+PGcgZmlsbD0iIzM2QThGRiI+PHBhdGggZD0iTS4zMDEgMTQuN2MtLjItLjItLjMtLjQtLjMtLjdWMy4yYzAtLjYuNS0xIDEtMWg1LjRjLjYgMCAxIC41IDEgMXMtLjUgMS0xIDFoLTQuNFYxM2g4LjhWOC42YzAtLjYuNS0xIDEtMXMxIC41IDEgMVYxNGMwIC42LS41IDEtMSAxaC0xMC44Yy0uMyAwLS41LS4xLS43LS4zeiIvPjxwYXRoIGQ9Ik0xNS4wMDEgNi40VjFjMC0uNi0uNS0xLTEtMWgtNS40Yy0uNiAwLTEgLjQtMSAxcy40IDEgMSAxaDIuOWwtNS4xIDUuMWMtLjQuNC0uNCAxIDAgMS40LjQuNCAxIC40IDEuNCAwbDUuMi01djIuOWMwIC42LjQgMSAxIDEgLjUuMSAxLS40IDEtMXoiLz48L2c+PC9zdmc+)  no-repeat !important;
 }
 
-.icon.invisible a:hover {
+td.icon.invisible a:hover {
     background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNSAxNSI+PGcgZmlsbD0iIzVhZDJmZiI+PHBhdGggZD0iTS4zMDEgMTQuN2MtLjItLjItLjMtLjQtLjMtLjdWMy4yYzAtLjYuNS0xIDEtMWg1LjRjLjYgMCAxIC41IDEgMXMtLjUgMS0xIDFoLTQuNFYxM2g4LjhWOC42YzAtLjYuNS0xIDEtMXMxIC41IDEgMVYxNGMwIC42LS41IDEtMSAxaC0xMC44Yy0uMyAwLS41LS4xLS43LS4zeiIvPjxwYXRoIGQ9Ik0xNS4wMDEgNi40VjFjMC0uNi0uNS0xLTEtMWgtNS40Yy0uNiAwLTEgLjQtMSAxcy40IDEgMSAxaDIuOWwtNS4xIDUuMWMtLjQuNC0uNCAxIDAgMS40LjQuNCAxIC40IDEuNCAwbDUuMi01djIuOWMwIC42LjQgMSAxIDEgLjUuMSAxLS40IDEtMXoiLz48L2c+PC9zdmc+)  no-repeat !important;
+}
+
+th.icon.invisible a:hover svg g {
+    fill: var(--baseLightColor);
 }
 
 .card  thead:hover .icon, .card tr:hover .icon {
