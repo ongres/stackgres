@@ -1024,9 +1024,13 @@
             },
 
             setRunAt() {
-                let runAtTimezone = moment(this.runAtTimezone);
-
-                this.runAt = (store.state.timezone == 'local') ? runAtTimezone.utc().format() : ( runAtTimezone.format('YYYY-MM-DDTHH:mm:ss') + 'Z' );
+                if(this.runAtTimezone.length) {
+                    let runAtTimezone = moment(this.runAtTimezone);
+                    
+                    this.runAt = (store.state.timezone == 'local') ? runAtTimezone.utc().format() : ( runAtTimezone.format('YYYY-MM-DDTHH:mm:ss') + 'Z' );
+                } else {
+                    this.runAt = ''
+                }
             }
 
         },
