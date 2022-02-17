@@ -165,7 +165,7 @@ class PersistentVolumeSizeReconciliatorTest {
      * finders
      */
     prepareSts(clusterName, namespace, "256Mi");
-    var pvc = preparePvcRead(clusterName, podName, namespace, "256Mi");
+    preparePvcRead(clusterName, podName, namespace, "256Mi");
 
     pvcReconciliator.reconcile();
 

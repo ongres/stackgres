@@ -27,7 +27,6 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ImmutableStorageConfig;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StorageConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
@@ -39,7 +38,7 @@ import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class ClusterStatefulSet
     implements ResourceGenerator<StackGresClusterContext> {
 

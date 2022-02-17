@@ -7,13 +7,12 @@ package io.stackgres.operator.conciliation.factory.distributedlogs;
 
 import javax.inject.Singleton;
 
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolumesFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class DistributedLogsPatroniStaticVolumesFactory
     extends PatroniStaticVolumesFactory<StackGresDistributedLogsContext> {
 }

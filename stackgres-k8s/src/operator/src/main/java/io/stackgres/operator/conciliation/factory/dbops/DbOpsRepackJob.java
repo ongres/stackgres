@@ -23,7 +23,6 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -36,7 +35,7 @@ import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V095, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @OpJob("repack")
 public class DbOpsRepackJob extends DbOpsJob {
 

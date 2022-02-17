@@ -7,11 +7,10 @@ package io.stackgres.operator.conciliation.factory.cluster;
 
 import javax.inject.Singleton;
 
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class ClusterAnnotationDecorator extends AbstractClusterAnnotationDecorator {
 
 

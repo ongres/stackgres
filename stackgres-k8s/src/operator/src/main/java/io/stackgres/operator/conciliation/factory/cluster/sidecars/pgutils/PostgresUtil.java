@@ -14,7 +14,6 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -28,7 +27,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 
 @Sidecar(StackgresClusterContainers.POSTGRES_UTIL)
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @RunningContainer(ClusterRunningContainer.POSTGRES_UTIL)
 public class PostgresUtil extends AbstractPostgresUtil {
 

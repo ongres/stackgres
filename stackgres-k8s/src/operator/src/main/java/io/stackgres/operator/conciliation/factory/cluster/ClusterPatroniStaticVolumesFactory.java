@@ -7,13 +7,12 @@ package io.stackgres.operator.conciliation.factory.cluster;
 
 import javax.inject.Singleton;
 
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolumesFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A3, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class ClusterPatroniStaticVolumesFactory
     extends PatroniStaticVolumesFactory<StackGresClusterContext> {
 }

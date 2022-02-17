@@ -5,7 +5,6 @@
 
 package io.stackgres.common;
 
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -20,65 +19,33 @@ import org.jooq.lambda.Seq;
 
 public enum StackGresVersion {
 
-  V09("0.9"),
-  V091("0.9.1"),
-  V092("0.9.2"),
-  V093("0.9.3"),
-  V094("0.9.4"),
-  V095("0.9.5"),
-  V09_LAST("0.9.5"),
-  V10A1("1.0.0-alpha1"),
-  V10A2("1.0.0-alpha2"),
-  V10A3("1.0.0-alpha3"),
-  V10A4("1.0.0-alpha4"),
-  V10B1("1.0.0-beta1"),
-  V10B2("1.0.0-beta2"),
-  V10B3("1.0.0-beta3"),
-  V10RC1("1.0.0-RC1"),
-  V10("1.0.0"),
-  V11B1("1.1.0-beta1"),
-  V11RC1("1.1.0-RC1"),
-  V11RC2("1.1.0-RC2"),
-  V11("1.1.0"),
-  V12("1.2.0");
+  V_1_0("1.0"),
+  V_1_1("1.1"),
+  V_1_2("1.2");
+
+  public static final StackGresVersion OLDEST = Seq.of(StackGresVersion.values())
+      .findFirst().orElseThrow();
 
   public static final StackGresVersion LATEST = Seq.of(StackGresVersion.values())
       .findLast().orElseThrow();
 
-  public enum StackGresMinorVersion {
-    V09("0.9"),
-    V10("1.0"),
-    V11("1.1"),
-    V12("1.2");
-
-    public static final StackGresMinorVersion LATEST = Seq.of(StackGresMinorVersion.values())
-        .findLast().orElseThrow();
-
-    final String version;
-
-    StackGresMinorVersion(String version) {
-      this.version = version;
-    }
-
-    public String getVersion() {
-      return version;
-    }
-
-    static StackGresMinorVersion ofVersion(String version) {
-      return Stream.of(values())
-          .filter(minorVersion -> version.startsWith(minorVersion.version))
-          .findAny()
-          .orElseThrow(() -> new IllegalArgumentException(
-              "Missing minor version for version " + version));
-    }
-  }
-
-  private final String version;
-  private final StackGresMinorVersion minorVersion;
+  final String version;
 
   StackGresVersion(String version) {
     this.version = version;
-    this.minorVersion = StackGresMinorVersion.ofVersion(version);
+  }
+
+  public String getVersion() {
+    return version;
+  }
+
+  static StackGresVersion ofVersion(String version) {
+    return Stream.of(values())
+        .filter(minorVersion -> version.startsWith(minorVersion.version + ".")
+            || version.equals(minorVersion.version))
+        .findAny()
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Invalid version " + version));
   }
 
   public static <T extends CustomResource<?, ?>> StackGresVersion getStackGresVersion(
@@ -107,34 +74,8 @@ public enum StackGresVersion {
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getAnnotations)
         .map(annotations -> annotations.get(StackGresContext.VERSION_KEY))
-        .map(StackGresVersion::parseVersion)
+        .map(StackGresVersion::ofVersion)
         .orElse(StackGresVersion.LATEST);
-  }
-
-  private static StackGresVersion parseVersion(String clusterVersion) {
-    String version = sanitizeVersion(clusterVersion);
-    return Arrays.stream(StackGresVersion.values())
-        .filter(historyVersion -> historyVersion.version.equals(version))
-        .findFirst()
-        .orElseThrow(
-            () -> new IllegalArgumentException("Invalid version " + version));
-  }
-
-  private static String sanitizeVersion(String version) {
-    String snapshotSuffix = "-SNAPSHOT";
-    if (version.endsWith(snapshotSuffix)) {
-      return version.substring(0, version.length() - snapshotSuffix.length());
-    } else {
-      return version;
-    }
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public StackGresMinorVersion getMinorVersion() {
-    return minorVersion;
   }
 
 }

@@ -20,14 +20,13 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresProperty;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @OpJob("minorVersionUpgrade")
 public class DbOpsMinorVersionUpgradeJob implements JobFactory {
 

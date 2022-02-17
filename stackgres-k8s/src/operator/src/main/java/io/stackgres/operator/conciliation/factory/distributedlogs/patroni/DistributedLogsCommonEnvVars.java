@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.distributedlogs.patroni.v09;
+package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
 import java.util.Arrays;
 import java.util.List;

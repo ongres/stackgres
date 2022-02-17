@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -54,17 +54,17 @@ class PostgresVersionValidatorTest {
       StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().toList();
   private static final List<String> SUPPORTED_BABELFISH_VERSIONS =
       StackGresComponent.BABELFISH.getLatest().getOrderedVersions().toList();
-  private static final Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+  private static final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       ALL_SUPPORTED_POSTGRES_VERSIONS =
       ImmutableMap.of(
           StackGresComponent.POSTGRESQL, ImmutableMap.of(
-              StackGresMinorVersion.LATEST,
+              StackGresVersion.LATEST,
               Seq.of(StackGresComponent.LATEST)
               .append(StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions())
               .append(SUPPORTED_POSTGRES_VERSIONS)
               .collect(ImmutableList.toImmutableList())),
           StackGresComponent.BABELFISH, ImmutableMap.of(
-              StackGresMinorVersion.LATEST,
+              StackGresVersion.LATEST,
               Seq.of(StackGresComponent.LATEST)
               .append(StackGresComponent.BABELFISH.getLatest().getOrderedMajorVersions())
               .append(SUPPORTED_BABELFISH_VERSIONS)

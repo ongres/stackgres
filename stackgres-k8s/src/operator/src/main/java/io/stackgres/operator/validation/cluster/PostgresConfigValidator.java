@@ -22,7 +22,6 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
-import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -40,7 +39,7 @@ public class PostgresConfigValidator implements ClusterValidator {
 
   private final CustomResourceFinder<StackGresPostgresConfig> configFinder;
 
-  private final Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+  private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       supportedPostgresVersions;
 
   private final String errorCrReferencerUri;
@@ -58,7 +57,7 @@ public class PostgresConfigValidator implements ClusterValidator {
 
   public PostgresConfigValidator(
       CustomResourceFinder<StackGresPostgresConfig> configFinder,
-      Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+      Map<StackGresComponent, Map<StackGresVersion, List<String>>>
           orderedSupportedPostgresVersions,
       OperatorPropertyContext operatorPropertyContext) {
     this.configFinder = configFinder;
@@ -188,7 +187,7 @@ public class PostgresConfigValidator implements ClusterValidator {
 
   private boolean isPostgresVersionSupported(StackGresCluster cluster, String version) {
     return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
-        .get(StackGresVersion.getStackGresVersion(cluster).getMinorVersion())
+        .get(StackGresVersion.getStackGresVersion(cluster))
         .contains(version);
   }
 

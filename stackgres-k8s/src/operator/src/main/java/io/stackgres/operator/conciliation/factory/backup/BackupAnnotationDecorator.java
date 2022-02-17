@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpec;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
@@ -34,7 +33,7 @@ import io.stackgres.operator.conciliation.factory.AnnotationDecorator;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V09, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class BackupAnnotationDecorator extends AnnotationDecorator<StackGresBackupContext> {
 
   @Override

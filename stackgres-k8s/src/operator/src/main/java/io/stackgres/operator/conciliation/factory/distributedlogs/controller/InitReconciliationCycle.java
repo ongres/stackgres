@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresController;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
@@ -37,7 +36,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.FluentdStaticV
 import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 @InitContainer(ClusterInitContainer.RECONCILIATION_CYCLE)
 public class InitReconciliationCycle implements ContainerFactory<DistributedLogsContainerContext> {
 

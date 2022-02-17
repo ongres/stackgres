@@ -34,7 +34,6 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -55,7 +54,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniRoleGen
 import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V12)
+@OperatorVersionBinder
 public class PodTemplateSpecFactory
     implements PodTemplateFactory<StackGresClusterContainerContext> {
 

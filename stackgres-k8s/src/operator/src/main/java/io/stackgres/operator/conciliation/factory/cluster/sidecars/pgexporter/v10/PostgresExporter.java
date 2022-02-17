@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar(PostgresExporter.NAME)
-@OperatorVersionBinder(startAt = StackGresVersion.V10A1, stopAt = StackGresVersion.V10)
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_0, stopAt = StackGresVersion.V_1_0)
 @RunningContainer(ClusterRunningContainer.POSTGRES_EXPORTER)
 public class PostgresExporter implements ContainerFactory<StackGresClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
@@ -185,7 +185,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
         .withNamespace(context.getSource().getMetadata().getNamespace())
         .withLabels(labelFactory.genericLabels(context.getSource()))
         .endMetadata()
-        .withData(ImmutableMap.of("queries-0.9.yaml",
+        .withData(ImmutableMap.of("queries-1.0.yaml",
             Unchecked.supplier(() -> Resources
                 .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
                     "/prometheus-postgres-exporter/queries.yaml")),

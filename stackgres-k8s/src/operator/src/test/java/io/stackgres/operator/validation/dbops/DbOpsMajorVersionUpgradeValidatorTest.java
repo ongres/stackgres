@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
-import io.stackgres.common.StackGresVersion.StackGresMinorVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -46,11 +45,11 @@ class DbOpsMajorVersionUpgradeValidatorTest {
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
       StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().toList();
-  private static final Map<StackGresComponent, Map<StackGresMinorVersion, List<String>>>
+  private static final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       ALL_SUPPORTED_POSTGRES_VERSIONS =
       ImmutableMap.of(
           StackGresComponent.POSTGRESQL, ImmutableMap.of(
-              StackGresMinorVersion.LATEST,
+              StackGresVersion.LATEST,
               Seq.of(StackGresComponent.LATEST)
               .append(StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions())
               .append(SUPPORTED_POSTGRES_VERSIONS)
