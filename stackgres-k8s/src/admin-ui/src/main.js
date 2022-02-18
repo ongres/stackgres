@@ -285,7 +285,7 @@ $(document).ready(function(){
       store.commit('setCloneCRD', {});
 
     if($('#restartCluster').length && !$(e.target).parents().addBack().is('.restartCluster'))
-      store.commit('setRestartCluster', {namespace: '', name: ''})
+      store.commit('setRestartCluster', {namespace: '', name: '', restartName: ''})
 
   });
   

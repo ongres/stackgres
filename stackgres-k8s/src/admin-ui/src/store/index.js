@@ -360,7 +360,7 @@ export default new Vuex.Store({
       document.cookie = "sgView=" + state.view + "; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict;";
     },
 
-    setRestartCluster (state, cluster) {
+    setRestartCluster (state, cluster, restartName) {
       if( cluster.namespace.length && cluster.name.length ) {
         state.restartCluster = cluster;
       } else {
