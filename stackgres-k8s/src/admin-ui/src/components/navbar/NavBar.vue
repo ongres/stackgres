@@ -147,7 +147,7 @@
                 confirm your URL is correct and try again
             </p>
             <br/>
-            <router-link to="/" class="btn">Go to default Dashboard</router-link>
+            <router-link to="/" class="btn">Go to Namespaces Overview</router-link>
         </div>
 	</aside>
 </template>
