@@ -72,7 +72,7 @@
 
                 <div class="col">            
                     <label for="spec.runAt">Run At</label>
-                    <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" v-model="runAtTimezone" data-field="spec.runAt">
+                    <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" v-model="runAtTimezone" data-field="spec.runAt" @change="setRunAt()">
                     <span class="helpTooltip" :data-tooltip="(timezone == 'local') ? getTooltip('sgdbops.spec.runAt').replace('UTC ','') : getTooltip('sgdbops.spec.runAt')"></span>
                 </div>
 
@@ -95,8 +95,16 @@
                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.timeout')"></span>
                 </div>
 
+                <template v-if="runAtTimezone.length && !isRunAtValid">
+                    <div class="warning topAnchor orange">
+                        This value does not comply with the standard ISO 8601 date. Please format your date as <strong>YYYY-MM-DD HH:MM:SS</strong>.
+                    </div>
+
+                    <div class="clearfix"></div>
+                </template>
+
                 <template  v-if="( tzOffset && ( timezone == 'utc' ) )">
-                    <div class="warning">
+                    <div class="warning topAnchor">
                         Bear in mind <strong>"Run At"</strong> times are expressed in UTC (Coordinated Universal Time). That's <strong>{{ tzOffset }}</strong> your current timezone.
                     </div>
 
@@ -824,6 +832,10 @@
 
             pgConfigs() {
                 return store.state.pgConfig.filter(pgconfig => (pgconfig.data.metadata.namespace == this.$route.params.namespace))
+            },
+
+            isRunAtValid() {
+                return moment(this.runAtTimezone).isValid()
             }
 
         },
@@ -1009,6 +1021,16 @@
                         break;
                 }
 
+            },
+
+            setRunAt() {
+                if(this.runAtTimezone.length) {
+                    let runAtTimezone = moment(this.runAtTimezone);
+                    
+                    this.runAt = (store.state.timezone == 'local') ? runAtTimezone.utc().format() : ( runAtTimezone.format('YYYY-MM-DDTHH:mm:ss') + 'Z' );
+                } else {
+                    this.runAt = ''
+                }
             }
 
         },
@@ -1122,6 +1144,10 @@
 
     fieldset > .warning:first-child:last-child {
        margin-bottom: 5px;
+    }
+
+    .warning.orange {
+        margin-bottom: 20px;
     }
 
 </style>
