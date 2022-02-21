@@ -7,7 +7,7 @@ description: Oracle Cloud Infrastructure Container Engine for Kubernetes (OKE) i
 
 In this section you show how to create a [Container Engine for Kubernetes](https://www.oracle.com/br/cloud-native/container-engine-kubernetes/).
 
-Assuming that you already had created an [Virtual Cloud Network](https://docs.oracle.com/en-us/iaas/Content/Network/Concepts/landing.htm) with the [pre-requisites](https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengprerequisites.htm) to create an OKE and has the [OCI-CLI](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/cliconcepts.htm) configured.
+Assuming that you already had created a [Virtual Cloud Network](https://docs.oracle.com/en-us/iaas/Content/Network/Concepts/landing.htm) with the [pre-requisites](https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengprerequisites.htm) to create an OKE and has the [OCI-CLI](https://docs.oracle.com/en-us/iaas/Content/API/Concepts/cliconcepts.htm) configured.
 
 * Compartment: Select or create a compartment to allocate the deployment
 * Cluster name: stackgres
