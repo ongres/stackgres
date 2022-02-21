@@ -171,11 +171,6 @@
 		},
 		methods: {
 			
-		},
-
-		created: function() {
-			if(!this.$route.params.hasOwnProperty('namespace'))
-				router.push('/default/sgclusters')
 		}
 	}
 </script>
