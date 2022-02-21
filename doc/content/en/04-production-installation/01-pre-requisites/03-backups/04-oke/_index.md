@@ -39,7 +39,7 @@ Add the user to the group:
   --user-id $(oci iam user list --name stackgres-demo-k8s-user --query data[0].id --raw-output)
 ```
 
-OCI Object Storage has API compability with AWS S3, but first you need to discovery what compartment this compatibility is configured:
+OCI Object Storage has API compability with AWS S3, but first you need to find out what compartment this compatibility is configured:
 
 ```bash
   export s3compartment_id=$(oci os ns get-metadata --query 'data."default-s3-compartment-id"' --raw-output)
