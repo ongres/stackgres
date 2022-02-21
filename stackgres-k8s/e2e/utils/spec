@@ -347,7 +347,10 @@ e2e_after_run_test() {
 calculate_spec_hashes() {
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" generate_image_hashes
 
-  local JVM_IMAGE_MODULE_HASH NATIVE_IMAGE_MODULE_HASH UI_IMAGE_MODULE_HASH
+  local HELM_MODULE_HASH JVM_IMAGE_MODULE_HASH NATIVE_IMAGE_MODULE_HASH UI_IMAGE_MODULE_HASH
+  HELM_MODULE_HASH="$(
+    grep '^helm=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes" \
+      | cut -d = -f 2)"
   JVM_IMAGE_MODULE_HASH="$(
     grep '^jvm-image=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes" \
       | cut -d = -f 2)"
@@ -360,7 +363,8 @@ calculate_spec_hashes() {
   local SPEC_PLATFORM
   SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform)"
   # shellcheck disable=SC2015
-  [ -n "$JVM_IMAGE_MODULE_HASH" ] \
+  [ -n "$HELM_MODULE_HASH" ] \
+    && [ -n "$JVM_IMAGE_MODULE_HASH" ] \
     && [ -n "$UI_IMAGE_MODULE_HASH" ] \
     && [ -n "$NATIVE_IMAGE_MODULE_HASH" ] \
     && [ -n "$SPEC_PLATFORM" ] \
@@ -407,6 +411,7 @@ calculate_spec_hashes() {
             get_extensions_index_hash
           fi
           )
+          printf '%s\n' "$HELM_MODULE_HASH"
           if [ "${IMAGE_TAG%-jvm}" = "$IMAGE_TAG" ]
           then
             printf '%s\n' "$NATIVE_IMAGE_MODULE_HASH"
