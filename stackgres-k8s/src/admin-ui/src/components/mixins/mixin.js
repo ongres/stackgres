@@ -1208,7 +1208,7 @@ export const mixin = {
         
       },
 
-      setRestartCluster(namespace = '', name = '', restartName = '') {
+      setRestartCluster(namespace = '', name = '') {
         store.commit('setRestartCluster', {
           namespace: namespace, 
           name: name,
