@@ -629,7 +629,7 @@ export const mixin = {
           level: type,
           message: {
             content: message.hasOwnProperty('title') ? message.title : message,
-            ...(message.hasOwnProperty('details') && {details: message.details}),
+            ...(message.hasOwnProperty('detail') && {details: message.detail}),
             ...(message.hasOwnProperty('type') && {link: message.type}),
           },
           timestamp: now,
