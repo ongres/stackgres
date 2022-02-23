@@ -7,7 +7,7 @@
                 confirm your URL is correct and try again
             </p>
             <br/>
-            <router-link to="/" class="btn">Go to Namespaces Overview</router-link>
+            <router-link to="/" class="btn">Go to Homepage</router-link>
         </div>
     </div>
 </template>
