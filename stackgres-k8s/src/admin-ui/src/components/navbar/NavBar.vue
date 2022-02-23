@@ -124,7 +124,7 @@
 			<div id="restartCluster" v-if="restartCluster.hasOwnProperty('name')">
 				<h3 class="title">Restart Cluster</h3>
 				<p>
-					This operation will create a new <strong>RESTART sgdbop</strong> with the name <strong>restart-{{ restartsCount + 1 }}</strong> and the cluster <strong>{{ restartCluster.name }}</strong> will be restarted as soon as posible.
+					This operation will create a new <strong>RESTART sgdbop</strong> with the name <strong>{{ restartCluster.restartName }}</strong> and the cluster <strong>{{ restartCluster.name }}</strong> will be restarted as soon as posible.
 				</p><br/>
 				
 				<p><strong>Are you sure you want to proceed?</strong></p><br/>
@@ -302,10 +302,6 @@
 
 			restartCluster() {
 				return store.state.restartCluster
-			},
-
-			restartsCount() {
-				return store.state.dbOps.filter(op => ( (op.data.spec.op == 'restart') && (op.data.metadata.namespace == store.state.currentNamespace) ) ).length
 			}
 			
 		},
@@ -470,11 +466,9 @@
 			executeClusterRestart() {
 				const vc = this;
 
-				let opCount = store.state.dbOps.filter(op => ( (op.data.spec.op == 'restart') && (op.data.metadata.namespace == store.state.currentNamespace) ) ).length + 1;
-
 				let dbOp = {
 					metadata: {
-						name: 'restart-' + opCount,
+						name: store.state.restartCluster.restartName,
 						namespace: store.state.restartCluster.namespace
 					},
 					spec: {

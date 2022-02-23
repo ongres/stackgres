@@ -1209,7 +1209,11 @@ export const mixin = {
       },
 
       setRestartCluster(namespace = '', name = '') {
-        store.commit('setRestartCluster', {namespace: namespace, name: name})
+        store.commit('setRestartCluster', {
+          namespace: namespace, 
+          name: name,
+          restartName: 'op' + this.getDateString()
+        })
       },
 
       checkRequired() {
