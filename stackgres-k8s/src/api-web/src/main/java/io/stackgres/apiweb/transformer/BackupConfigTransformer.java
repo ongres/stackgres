@@ -11,16 +11,15 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigSpec;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigStatus;
 import io.stackgres.apiweb.dto.backupconfig.BaseBackupConfig;
-import io.stackgres.apiweb.dto.backupconfig.BaseBackupPerformance;
 import io.stackgres.apiweb.dto.storages.BackupStorageDto;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupPerformance;
 import io.stackgres.common.crd.storages.BackupStorage;
 
 @ApplicationScoped
@@ -28,10 +27,14 @@ public class BackupConfigTransformer
     extends AbstractDependencyResourceTransformer<BackupConfigDto, StackGresBackupConfig> {
 
   private final Transformer<BackupStorageDto, BackupStorage> storageTransformer;
+  private final ObjectMapper objectMapper;
 
   @Inject
-  public BackupConfigTransformer(Transformer<BackupStorageDto, BackupStorage> storageTransformer) {
+  public BackupConfigTransformer(
+      Transformer<BackupStorageDto, BackupStorage> storageTransformer,
+      ObjectMapper objectMapper) {
     this.storageTransformer = storageTransformer;
+    this.objectMapper = objectMapper;
   }
 
   @Override
@@ -59,23 +62,9 @@ public class BackupConfigTransformer
     }
     StackGresBackupConfigSpec transformation = new StackGresBackupConfigSpec();
     Optional.ofNullable(source.getBaseBackups())
-        .ifPresent(sourceBaseBackup -> {
-          final StackGresBaseBackupConfig baseBackup = new StackGresBaseBackupConfig();
-          transformation.setBaseBackups(baseBackup);
-          baseBackup.setCompression(source.getBaseBackups().getCompressionMethod());
-          baseBackup.setCronSchedule(sourceBaseBackup.getCronSchedule());
-          baseBackup.setRetention(sourceBaseBackup.getRetention());
-        });
-
-    Optional.ofNullable(source.getBaseBackups())
-        .map(BaseBackupConfig::getPerformance)
-        .ifPresent(sourcePerformance -> {
-          final StackGresBaseBackupPerformance performance = new StackGresBaseBackupPerformance();
-          transformation.getBaseBackups().setPerformance(performance);
-          performance.setMaxDiskBandwitdh(sourcePerformance.getMaxDiskBandwitdh());
-          performance.setMaxNetworkBandwitdh(sourcePerformance.getMaxNetworkBandwitdh());
-          performance.setUploadDiskConcurrency(sourcePerformance.getUploadDiskConcurrency());
-        });
+        .ifPresent(sourceBaseBackup -> transformation.setBaseBackups(
+            objectMapper.convertValue(sourceBaseBackup, StackGresBaseBackupConfig.class)
+        ));
 
     transformation.setStorage(getCustomResourceStorage(source.getStorage()));
     return transformation;
@@ -92,25 +81,12 @@ public class BackupConfigTransformer
       return null;
     }
     BackupConfigSpec transformation = new BackupConfigSpec();
-    Optional.ofNullable(source.getBaseBackups())
-        .ifPresent(sourceBaseBackup -> {
-          final BaseBackupConfig baseBackup = new BaseBackupConfig();
-          baseBackup.setCompressionMethod(sourceBaseBackup.getCompression());
-          baseBackup.setCronSchedule(sourceBaseBackup.getCronSchedule());
-          baseBackup.setRetention(sourceBaseBackup.getRetention());
-          transformation.setBaseBackup(baseBackup);
-        });
 
     Optional.ofNullable(source.getBaseBackups())
-        .map(StackGresBaseBackupConfig::getPerformance)
-        .ifPresent(sourcePerformance -> {
-          final BaseBackupPerformance performance = new BaseBackupPerformance();
-          performance.setMaxDiskBandwitdh(sourcePerformance.getMaxDiskBandwitdh());
-          performance.setMaxNetworkBandwitdh(sourcePerformance.getMaxNetworkBandwitdh());
-          performance.setUploadDiskConcurrency(sourcePerformance.getUploadDiskConcurrency());
-
-          transformation.getBaseBackups().setPerformance(performance);
-        });
+        .ifPresent(sourceBaseBackup -> transformation.setBaseBackup(
+            objectMapper.convertValue(sourceBaseBackup,
+                BaseBackupConfig.class)
+        ));
 
     transformation.setStorage(getResourceStorage(source.getStorage()));
     return transformation;

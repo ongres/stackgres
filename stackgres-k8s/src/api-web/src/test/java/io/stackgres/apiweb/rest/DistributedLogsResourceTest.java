@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
@@ -39,7 +40,9 @@ class DistributedLogsResourceTest
   @Override
   protected AbstractDependencyResourceTransformer<DistributedLogsDto, StackGresDistributedLogs>
       getTransformer() {
-    return new DistributedLogsTransformer();
+    return new DistributedLogsTransformer(
+        JsonMapper.builder().build()
+    );
   }
 
   @Override

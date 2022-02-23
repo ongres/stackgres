@@ -39,8 +39,10 @@ class BabelfishFlavorValidatorTest {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(BABELFISH_VERSION);
     review.getRequest().getObject().getSpec().getPostgres().setFlavor(
         StackGresPostgresFlavor.BABELFISH.toString());
-    review.getRequest().getObject().getSpec().setNonProduction(new StackGresClusterNonProduction());
-    review.getRequest().getObject().getSpec().getNonProduction()
+    review.getRequest().getObject().getSpec().setNonProductionOptions(
+        new StackGresClusterNonProduction()
+    );
+    review.getRequest().getObject().getSpec().getNonProductionOptions()
         .setEnabledFeatureGates(Lists.newArrayList(
             StackGresFeatureGates.BABELFISH_FLAVOR.toString()));
     validator.validate(review);

@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.stackgres.apiweb.dto.extension.Extension;
 import io.stackgres.apiweb.dto.extension.ExtensionsDto;
 import io.stackgres.apiweb.transformer.ExtensionsTransformer;
@@ -117,7 +118,8 @@ class ExtensionsResourceTest {
         .filter(target -> Objects.equals(target.getPostgresVersion(), "11.9"))
         .forEach(target -> target.setPostgresVersion(SECOND_PG_VERSION));
     resource = new ExtensionsResource(clusterExtensionMetadataManager,
-        new ExtensionsTransformer(clusterExtensionMetadataManager));
+        new ExtensionsTransformer(clusterExtensionMetadataManager,
+            JsonMapper.builder().build()));
   }
 
   @Test

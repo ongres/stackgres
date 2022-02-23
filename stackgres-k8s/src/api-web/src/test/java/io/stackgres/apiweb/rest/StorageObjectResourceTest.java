@@ -95,9 +95,10 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
   protected AbstractDependencyResourceTransformer<
       ObjectStorageDto,
       StackGresObjectStorage> getTransformer() {
+    final JsonMapper build = JsonMapper.builder().build();
     return new ObjectStorageTransformer(
-        new BackupStorageTransformer(),
-        new JsonMapper()
+        new BackupStorageTransformer(build),
+        build
     );
   }
 

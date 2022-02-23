@@ -47,7 +47,7 @@ public class ClusterSpec {
   private Boolean prometheusAutobind;
 
   @JsonProperty("nonProductionOptions")
-  private ClusterNonProduction nonProduction;
+  private ClusterNonProduction nonProductionOptions;
 
   @JsonProperty("postgresServices")
   private ClusterPostgresServices postgresServices;
@@ -95,12 +95,12 @@ public class ClusterSpec {
     this.prometheusAutobind = prometheusAutobind;
   }
 
-  public ClusterNonProduction getNonProduction() {
-    return nonProduction;
+  public ClusterNonProduction getNonProductionOptions() {
+    return nonProductionOptions;
   }
 
-  public void setNonProduction(ClusterNonProduction nonProduction) {
-    this.nonProduction = nonProduction;
+  public void setNonProductionOptions(ClusterNonProduction nonProductionOptions) {
+    this.nonProductionOptions = nonProductionOptions;
   }
 
   public ClusterPod getPods() {
@@ -174,7 +174,7 @@ public class ClusterSpec {
         && Objects.equals(toInstallPostgresExtensions, that.toInstallPostgresExtensions)
         && Objects.equals(pods, that.pods)
         && Objects.equals(prometheusAutobind, that.prometheusAutobind)
-        && Objects.equals(nonProduction, that.nonProduction)
+        && Objects.equals(nonProductionOptions, that.nonProductionOptions)
         && Objects.equals(postgresServices, that.postgresServices)
         && Objects.equals(metadata, that.metadata);
   }
@@ -183,6 +183,6 @@ public class ClusterSpec {
   public int hashCode() {
     return Objects.hash(postgres, instances, configurations, sgInstanceProfile,
         initData, distributedLogs, toInstallPostgresExtensions, pods, prometheusAutobind,
-        nonProduction, postgresServices, metadata);
+        nonProductionOptions, postgresServices, metadata);
   }
 }

@@ -7,6 +7,7 @@ package io.stackgres.apiweb.transformer;
 
 import java.util.Random;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.stackgres.apiweb.dto.storages.AwsCredentialsDto;
 import io.stackgres.apiweb.dto.storages.AwsS3CompatibleStorageDto;
 import io.stackgres.apiweb.dto.storages.AwsS3StorageDto;
@@ -34,7 +35,9 @@ import org.junit.jupiter.api.Test;
 
 class BackupStorageTransformerTest {
 
-  Transformer<BackupStorageDto, BackupStorage> storageTransformer = new BackupStorageTransformer();
+  Transformer<BackupStorageDto, BackupStorage> storageTransformer = new BackupStorageTransformer(
+      JsonMapper.builder().build()
+  );
 
   public static TransformerTuple<BackupStorageDto, BackupStorage> createS3BackupStorage() {
     BackupStorage crdBackupStorage = new BackupStorage();

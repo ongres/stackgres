@@ -11,6 +11,7 @@ import java.util.function.Function;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.extension.Extension;
 import io.stackgres.apiweb.dto.extension.ExtensionPublisher;
 import io.stackgres.apiweb.dto.extension.ExtensionsDto;
@@ -29,21 +30,25 @@ public class ExtensionsTransformer {
 
   private final ClusterExtensionMetadataManager clusterExtensionMetadataManager;
 
+  private final ObjectMapper mapper;
+
   @Inject
-  public ExtensionsTransformer(ClusterExtensionMetadataManager clusterExtensionMetadataManager) {
+  public ExtensionsTransformer(ClusterExtensionMetadataManager clusterExtensionMetadataManager,
+                               ObjectMapper mapper) {
     super();
     this.clusterExtensionMetadataManager = clusterExtensionMetadataManager;
+    this.mapper = mapper;
   }
 
   public ExtensionsDto toDto(Collection<StackGresExtensionMetadata> extensionMetadataList,
-      StackGresCluster cluster) {
+                             StackGresCluster cluster) {
     ExtensionsDto transformation = new ExtensionsDto();
     transformation.setExtensions(Seq.seq(extensionMetadataList)
-        .grouped(extensionMetadata -> extensionMetadata.getExtension())
+        .grouped(StackGresExtensionMetadata::getExtension)
         .map(Tuple2::v1)
         .map(extension -> getExtension(extension, cluster)).toList());
     transformation.setPublishers(Seq.seq(extensionMetadataList)
-        .grouped(extensionMetadata -> extensionMetadata.getPublisher())
+        .grouped(StackGresExtensionMetadata::getPublisher)
         .map(Tuple2::v1)
         .map(this::getExtensionPublisher).toList());
     return transformation;
@@ -66,22 +71,16 @@ public class ExtensionsTransformer {
     extension.setRepository(source.getRepository());
     transformation.setVersions(
         Seq.seq(clusterExtensionMetadataManager.getExtensionsAnyVersion(cluster, extension, false))
-        .map(StackGresExtensionMetadata::getVersion)
-        .map(StackGresExtensionVersion::getVersion)
-        .grouped(Function.identity())
-        .map(Tuple2::v1)
-        .toList());
+            .map(StackGresExtensionMetadata::getVersion)
+            .map(StackGresExtensionVersion::getVersion)
+            .grouped(Function.identity())
+            .map(Tuple2::v1)
+            .toList());
     return transformation;
   }
 
   private ExtensionPublisher getExtensionPublisher(StackGresExtensionPublisher source) {
-    ExtensionPublisher transformation = new ExtensionPublisher();
-    transformation.setId(source.getId());
-    transformation.setName(source.getName());
-    transformation.setEmail(source.getEmail());
-    transformation.setUrl(source.getUrl());
-    transformation.setPublicKey(source.getPublicKey());
-    return transformation;
+    return mapper.convertValue(source, ExtensionPublisher.class);
   }
 
 }

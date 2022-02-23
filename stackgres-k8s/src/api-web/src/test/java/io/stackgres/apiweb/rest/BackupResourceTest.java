@@ -10,6 +10,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.backup.BackupDto;
 import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
@@ -38,11 +39,13 @@ class BackupResourceTest extends AbstractCustomResourceTest
 
   @Override
   protected AbstractResourceTransformer<BackupDto, StackGresBackup> getTransformer() {
-    final BackupTransformer backupTransformer = new BackupTransformer();
-    backupTransformer.setBackupConfigTransformer(
-        new BackupConfigTransformer(new BackupStorageTransformer())
+    final JsonMapper mapper = JsonMapper.builder().build();
+    return new BackupTransformer(
+        new BackupConfigTransformer(
+            new BackupStorageTransformer(mapper),
+            mapper),
+        mapper
     );
-    return backupTransformer;
   }
 
   @Override

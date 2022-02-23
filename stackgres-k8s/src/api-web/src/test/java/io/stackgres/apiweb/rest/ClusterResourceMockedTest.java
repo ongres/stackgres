@@ -448,8 +448,7 @@ class ClusterResourceMockedTest extends
   @Override
   protected ClusterTransformer getTransformer() {
     return new ClusterTransformer(
-        configContext, new ClusterPodTransformer(),
-        new JsonMapper());
+        configContext, new ClusterPodTransformer(), JsonMapper.builder().build());
   }
 
   @Override

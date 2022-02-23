@@ -5,7 +5,8 @@
 
 package io.stackgres.apiweb.transformer;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Map;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.stackgres.apiweb.dto.configmap.ConfigMapDto;
 
@@ -15,7 +16,7 @@ public class ConfigMapMapper {
     ConfigMapDto configMapDto = new ConfigMapDto();
     configMapDto.setMetadata(MetadataMapper.map(configMap.getMetadata()));
     if (configMap.getData() != null) {
-      configMapDto.setData(ImmutableMap.copyOf(configMap.getData()));
+      configMapDto.setData(Map.copyOf(configMap.getData()));
     }
     return configMapDto;
   }

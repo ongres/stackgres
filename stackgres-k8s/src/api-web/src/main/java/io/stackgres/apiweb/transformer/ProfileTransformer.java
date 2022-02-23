@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.profile.ProfileDto;
 import io.stackgres.apiweb.dto.profile.ProfileSpec;
 import io.stackgres.apiweb.dto.profile.ProfileStatus;
@@ -20,9 +22,17 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 public class ProfileTransformer
     extends AbstractDependencyResourceTransformer<ProfileDto, StackGresProfile> {
 
+  private final ObjectMapper mapper;
+
+  @Inject
+  public ProfileTransformer(ObjectMapper mapper) {
+    this.mapper = mapper;
+  }
+
   @Override
   public StackGresProfile toCustomResource(ProfileDto source, StackGresProfile original) {
     StackGresProfile transformation = Optional.ofNullable(original)
+        .map(crd -> mapper.convertValue(crd, StackGresProfile.class))
         .orElseGet(StackGresProfile::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
@@ -39,23 +49,11 @@ public class ProfileTransformer
   }
 
   private StackGresProfileSpec getCustomResourceSpec(ProfileSpec source) {
-    if (source == null) {
-      return null;
-    }
-    StackGresProfileSpec transformation = new StackGresProfileSpec();
-    transformation.setCpu(source.getCpu());
-    transformation.setMemory(source.getMemory());
-    return transformation;
+    return mapper.convertValue(source, StackGresProfileSpec.class);
   }
 
   private ProfileSpec getResourceSpec(StackGresProfileSpec source) {
-    if (source == null) {
-      return null;
-    }
-    ProfileSpec transformation = new ProfileSpec();
-    transformation.setCpu(source.getCpu());
-    transformation.setMemory(source.getMemory());
-    return transformation;
+    return mapper.convertValue(source, ProfileSpec.class);
   }
 
   private ProfileStatus getResourceStatus(List<String> clusters) {

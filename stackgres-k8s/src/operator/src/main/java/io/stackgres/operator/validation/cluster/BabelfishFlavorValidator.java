@@ -34,7 +34,7 @@ public class BabelfishFlavorValidator implements ClusterValidator {
         .orElse(false);
     boolean hasBabelfishFlavorFeatureGateEnabled = Optional.of(review.getRequest().getObject())
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getNonProduction)
+        .map(StackGresClusterSpec::getNonProductionOptions)
         .map(StackGresClusterNonProduction::getEnabledFeatureGates)
         .map(featureGates -> featureGates.contains(
             StackGresFeatureGates.BABELFISH_FLAVOR.toString()))

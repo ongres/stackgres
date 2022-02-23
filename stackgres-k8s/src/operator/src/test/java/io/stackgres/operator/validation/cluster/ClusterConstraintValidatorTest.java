@@ -560,9 +560,9 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void givenValidFeatureGate_shouldPass() throws ValidationFailed {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setNonProduction(
+    review.getRequest().getObject().getSpec().setNonProductionOptions(
         new StackGresClusterNonProduction());
-    review.getRequest().getObject().getSpec().getNonProduction().setEnabledFeatureGates(
+    review.getRequest().getObject().getSpec().getNonProductionOptions().setEnabledFeatureGates(
         Lists.newArrayList(StackGresFeatureGates.BABELFISH_FLAVOR.toString()));
 
     validator.validate(review);
@@ -571,9 +571,9 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void givenInvalidFeatureGate_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setNonProduction(
+    review.getRequest().getObject().getSpec().setNonProductionOptions(
         new StackGresClusterNonProduction());
-    review.getRequest().getObject().getSpec().getNonProduction().setEnabledFeatureGates(
+    review.getRequest().getObject().getSpec().getNonProductionOptions().setEnabledFeatureGates(
         Lists.newArrayList("glassfish-flavor"));
 
     checkErrorCause(StackGresClusterNonProduction.class,

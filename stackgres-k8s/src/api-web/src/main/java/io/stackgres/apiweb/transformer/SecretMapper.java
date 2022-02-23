@@ -5,7 +5,8 @@
 
 package io.stackgres.apiweb.transformer;
 
-import com.google.common.collect.ImmutableList;
+import java.util.List;
+
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.apiweb.dto.secret.SecretDto;
 
@@ -14,7 +15,7 @@ public class SecretMapper {
   public static SecretDto map(Secret secret) {
     SecretDto secretDto = new SecretDto();
     secretDto.setMetadata(MetadataMapper.map(secret.getMetadata()));
-    secretDto.setKeys(ImmutableList.copyOf(secret.getData().keySet()));
+    secretDto.setKeys(List.copyOf(secret.getData().keySet()));
     return secretDto;
   }
 

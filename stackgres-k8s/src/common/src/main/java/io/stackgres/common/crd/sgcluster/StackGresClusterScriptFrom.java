@@ -11,6 +11,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -24,6 +25,7 @@ import io.stackgres.common.validation.FieldReference.ReferencedField;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonIgnoreProperties({"secretScript", "configMapScript"})
 public class StackGresClusterScriptFrom {
 
   @JsonProperty("secretKeyRef")

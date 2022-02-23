@@ -17,9 +17,10 @@ import org.junit.jupiter.api.Test;
 
 public class ObjectStorageTransformerTest {
 
+  private final JsonMapper mapper = JsonMapper.builder().build();
   ObjectStorageTransformer transformer = new ObjectStorageTransformer(
-      new BackupStorageTransformer(),
-      new JsonMapper()
+      new BackupStorageTransformer(JsonMapper.builder().build()),
+      mapper
   );
 
   public static TransformerTuple<ObjectStorageDto, StackGresObjectStorage> createObjectStorage() {
