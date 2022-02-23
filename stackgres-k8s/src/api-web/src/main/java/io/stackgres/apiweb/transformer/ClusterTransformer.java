@@ -50,10 +50,10 @@ public class ClusterTransformer
   }
 
   public ClusterTransformer() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.context = null;
     this.clusterPodTransformer = null;
     this.mapper = null;
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

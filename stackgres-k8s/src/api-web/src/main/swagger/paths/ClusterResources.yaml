@@ -25,6 +25,8 @@ paths:
         ### RBAC permissions required
 
         * sgclusters patch
+        * secrets get, create, patch
+        * configmaps get, create, patch
       security:
       - JWT: []
     post:

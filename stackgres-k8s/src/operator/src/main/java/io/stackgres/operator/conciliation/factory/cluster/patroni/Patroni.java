@@ -231,7 +231,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
                 .map(ConfigMap::getData)
                 .map(data -> data.get(StackGresUtil.MD5SUM_KEY))
                 .findFirst()
-                .get())
+                .orElseThrow())
             .build())
         .withLivenessProbe(new ProbeBuilder()
             .withHttpGet(new HTTPGetActionBuilder()

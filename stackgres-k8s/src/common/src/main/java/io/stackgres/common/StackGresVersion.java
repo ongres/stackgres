@@ -14,6 +14,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgscript.StackGresScript;
 import org.jooq.lambda.Seq;
 
 public enum StackGresVersion {
@@ -98,6 +99,10 @@ public enum StackGresVersion {
 
   public static StackGresVersion getStackGresVersion(StackGresDistributedLogs distributedLogs) {
     return getStackGresVersionFromResource(distributedLogs);
+  }
+
+  public static StackGresVersion getStackGresVersion(StackGresScript script) {
+    return getStackGresVersionFromResource(script);
   }
 
   private static StackGresVersion getStackGresVersionFromResource(HasMetadata resource) {

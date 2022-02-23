@@ -31,9 +31,9 @@ import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterInfoDto;
 import io.stackgres.apiweb.dto.cluster.ClusterInitData;
-import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
-import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
+import io.stackgres.apiweb.dto.script.ScriptEntry;
+import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.resource.ResourceTransactionHandler;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.PatroniUtil;
@@ -213,7 +213,7 @@ public class ClusterResource
             .filter(entry -> entry.v1.getScriptFrom() != null)
             .filter(entry -> entry.v1.getScriptFrom().getConfigMapScript() != null)
             .map(tuple -> {
-              ClusterScriptFrom clusterScriptFrom = tuple.v1.getScriptFrom();
+              ScriptFrom clusterScriptFrom = tuple.v1.getScriptFrom();
               ConfigMapKeySelector configMapKeyRef = clusterScriptFrom.getConfigMapKeyRef();
               final String configMapScript = clusterScriptFrom.getConfigMapScript();
               if (configMapKeyRef != null) {
@@ -253,7 +253,7 @@ public class ClusterResource
             .filter(entry -> entry.v1.getScriptFrom() != null)
             .filter(entry -> entry.v1.getScriptFrom().getSecretScript() != null)
             .map(tuple -> {
-              ClusterScriptFrom clusterScriptFrom = tuple.v1.getScriptFrom();
+              ScriptFrom clusterScriptFrom = tuple.v1.getScriptFrom();
               SecretKeySelector secretKeyRef = clusterScriptFrom.getSecretKeyRef();
 
               final String secretScript = ResourceUtil
@@ -289,7 +289,7 @@ public class ClusterResource
 
   private Tuple2<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
       Consumer<ConfigMapKeySelector>>> extractConfigMapInfo(
-      ClusterDto resource, Tuple2<ClusterScriptEntry, Long> script) {
+      ClusterDto resource, Tuple2<ScriptEntry, Long> script) {
     return Tuple.<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
         Consumer<ConfigMapKeySelector>>>tuple(
         scriptResourceName(resource, script),
@@ -301,7 +301,7 @@ public class ClusterResource
             script.v1.getScriptFrom()::setConfigMapKeyRef));
   }
 
-  private String scriptResourceName(ClusterDto resource, Tuple2<ClusterScriptEntry, Long> tuple) {
+  private String scriptResourceName(ClusterDto resource, Tuple2<ScriptEntry, Long> tuple) {
     return tuple.v1.getName() != null
         ? tuple.v1.getName()
         : resource.getMetadata().getName() + "-init-script-" + tuple.v2;

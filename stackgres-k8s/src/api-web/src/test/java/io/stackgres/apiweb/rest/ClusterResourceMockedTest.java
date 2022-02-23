@@ -59,12 +59,12 @@ import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
 import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
 import io.stackgres.apiweb.dto.cluster.ClusterRestore;
-import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
-import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecLabels;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
+import io.stackgres.apiweb.dto.script.ScriptEntry;
+import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.resource.ClusterDtoFinder;
 import io.stackgres.apiweb.resource.ClusterDtoScanner;
 import io.stackgres.apiweb.resource.ClusterStatsDtoFinder;
@@ -243,7 +243,7 @@ class ClusterResourceMockedTest extends
   void createClusterWithSecretScriptReference_shouldNotFail() {
     dto = getClusterInlineScripts();
 
-    ClusterScriptEntry entry = buildSecretScriptEntry();
+    ScriptEntry entry = buildSecretScriptEntry();
 
     dto.getSpec().getInitData().setScripts(Collections.singletonList(entry));
 
@@ -260,7 +260,7 @@ class ClusterResourceMockedTest extends
     Secret createdSecret = secretArgument.getValue();
     assertEquals(dto.getMetadata().getNamespace(), createdSecret.getMetadata().getNamespace());
 
-    final ClusterScriptFrom scriptFrom = entry.getScriptFrom();
+    final ScriptFrom scriptFrom = entry.getScriptFrom();
     final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
 
     assertEquals(secretKeyRef.getName(), createdSecret.getMetadata().getName());
@@ -275,7 +275,7 @@ class ClusterResourceMockedTest extends
   void createClusterWithSecretScript_shouldNotFail() {
     dto = getClusterInlineScripts();
 
-    ClusterScriptEntry entry = buildSecretScriptEntry();
+    ScriptEntry entry = buildSecretScriptEntry();
     entry.getScriptFrom().setSecretKeyRef(null);
 
     dto.getSpec().getInitData().setScripts(Collections.singletonList(entry));
@@ -293,7 +293,7 @@ class ClusterResourceMockedTest extends
     Secret createdSecret = secretArgument.getValue();
     assertEquals(dto.getMetadata().getNamespace(), createdSecret.getMetadata().getNamespace());
 
-    final ClusterScriptFrom scriptFrom = entry.getScriptFrom();
+    final ScriptFrom scriptFrom = entry.getScriptFrom();
     final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
 
     assertEquals(secretKeyRef.getName(), createdSecret.getMetadata().getName());
@@ -307,7 +307,7 @@ class ClusterResourceMockedTest extends
   @Test
   void createClusterWithConfigMapScriptReference_shouldNotFail() {
     dto = getClusterInlineScripts();
-    ClusterScriptEntry entry = buildConfigMapScriptEntry();
+    ScriptEntry entry = buildConfigMapScriptEntry();
 
     dto.getSpec().getInitData().setScripts(Collections.singletonList(entry));
 
@@ -324,7 +324,7 @@ class ClusterResourceMockedTest extends
     ConfigMap createdSecret = secretArgument.getValue();
     assertEquals(dto.getMetadata().getNamespace(), createdSecret.getMetadata().getNamespace());
 
-    final ClusterScriptFrom scriptFrom = entry.getScriptFrom();
+    final ScriptFrom scriptFrom = entry.getScriptFrom();
     final ConfigMapKeySelector configMapKeyRef = scriptFrom.getConfigMapKeyRef();
     assertEquals(configMapKeyRef.getName(), createdSecret.getMetadata().getName());
     assertTrue(createdSecret.getData().containsKey(configMapKeyRef.getKey()));
@@ -333,11 +333,11 @@ class ClusterResourceMockedTest extends
 
   }
 
-  private ClusterScriptEntry buildSecretScriptEntry() {
-    ClusterScriptEntry entry = new ClusterScriptEntry();
+  private ScriptEntry buildSecretScriptEntry() {
+    ScriptEntry entry = new ScriptEntry();
     entry.setScript(null);
 
-    final ClusterScriptFrom scriptFrom = new ClusterScriptFrom();
+    final ScriptFrom scriptFrom = new ScriptFrom();
     entry.setScriptFrom(scriptFrom);
     scriptFrom.setSecretScript("CREATE DATABASE test");
 
@@ -352,12 +352,12 @@ class ClusterResourceMockedTest extends
     return entry;
   }
 
-  private ClusterScriptEntry buildConfigMapScriptEntry() {
-    ClusterScriptEntry entry = new ClusterScriptEntry();
+  private ScriptEntry buildConfigMapScriptEntry() {
+    ScriptEntry entry = new ScriptEntry();
 
     entry.setScript(null);
 
-    final ClusterScriptFrom scriptFrom = new ClusterScriptFrom();
+    final ScriptFrom scriptFrom = new ScriptFrom();
     entry.setScriptFrom(scriptFrom);
     scriptFrom.setConfigMapScript("CREATE DATABASE test");
 
@@ -695,13 +695,13 @@ class ClusterResourceMockedTest extends
 
           Seq.zip(dtoInitData.getScripts(), resourceInitData.getScripts())
               .forEach(entryTuple -> {
-                ClusterScriptEntry dtoEntry = entryTuple.v1;
+                ScriptEntry dtoEntry = entryTuple.v1;
                 StackGresClusterScriptEntry resourceEntry = entryTuple.v2;
                 assertEquals(dtoEntry.getDatabase(), resourceEntry.getDatabase());
                 assertEquals(dtoEntry.getName(), resourceEntry.getName());
                 assertEquals(dtoEntry.getScript(), resourceEntry.getScript());
 
-                final ClusterScriptFrom dtoScriptFrom = dtoEntry.getScriptFrom();
+                final ScriptFrom dtoScriptFrom = dtoEntry.getScriptFrom();
                 final StackGresClusterScriptFrom resourceScriptFrom = resourceEntry.getScriptFrom();
                 if (dtoScriptFrom != null) {
                   assertNotNull(resourceScriptFrom);

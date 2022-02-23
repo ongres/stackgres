@@ -6,9 +6,9 @@
 package io.stackgres.common;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Optional;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
@@ -83,7 +83,7 @@ public interface StackGresDistributedLogsUtil {
         });
     distributedLogsCluster.getSpec().setInitData(new StackGresClusterInitData());
     distributedLogsCluster.getSpec().getInitData().setScripts(
-        ImmutableList.of(new StackGresClusterScriptEntry()));
+        List.of(new StackGresClusterScriptEntry()));
     distributedLogsCluster.getSpec().getInitData().getScripts().get(0).setName(
         "distributed-logs-template");
     distributedLogsCluster.getSpec().getInitData().getScripts().get(0).setDatabase(

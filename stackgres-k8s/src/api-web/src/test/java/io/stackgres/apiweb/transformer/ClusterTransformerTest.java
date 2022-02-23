@@ -22,10 +22,10 @@ import io.stackgres.apiweb.dto.cluster.ClusterPostgres;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresServices;
 import io.stackgres.apiweb.dto.cluster.ClusterReplication;
 import io.stackgres.apiweb.dto.cluster.ClusterReplicationGroup;
-import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
+import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
@@ -198,7 +198,7 @@ class ClusterTransformerTest {
     var initialData = TransformerTestUtil
         .fillTupleWithRandomData(ClusterInitData.class, StackGresClusterInitData.class);
     var scripts = TransformerTestUtil.generateRandomListTuple(
-        ClusterScriptEntry.class, StackGresClusterScriptEntry.class
+        ScriptEntry.class, StackGresClusterScriptEntry.class
     );
     initialData.target().setScripts(scripts.target());
     initialData.source().setScripts(scripts.source());
@@ -243,6 +243,10 @@ class ClusterTransformerTest {
   void testClusterTransformation() {
 
     var tuple = createCluster();
+    tuple.getTarget().getSpec().getInitData().getScripts().forEach(script -> {
+      script.setId(null);
+      script.setVersion(null);
+    });
     TransformerTestUtil.assertTransformation(transformer, tuple);
 
   }

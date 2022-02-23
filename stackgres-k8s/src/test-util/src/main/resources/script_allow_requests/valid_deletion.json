@@ -1,0 +1,35 @@
+{
+  "kind": "AdmissionReview",
+  "request": {
+    "uid": "437f8f7e-f4e2-11e9-9885-0242ac110002",
+    "kind": {
+      "kind": "SGScript",
+      "group": "stackgres.io",
+      "version": "v1"
+    },
+    "resource": {
+      "group": "stackgres.io",
+      "resource": "sgscripts",
+      "version": "v1"
+    },
+    "subResource": null,
+    "requestKind": null,
+    "requestResource": null,
+    "requestSubResource": null,
+    "name": "stackgres",
+    "namespace": "postgresql",
+    "operation": "DELETE",
+    "userInfo": {
+      "groups": [
+        "system:masters",
+        "system:authenticated"
+      ],
+      "username": "kubernetes-admin"
+    },
+    "object": null,
+    "oldObject": null,
+    "options": null,
+    "dryRun": false
+  },
+  "apiVersion": "admission.k8s.io/v1"
+}
