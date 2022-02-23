@@ -55,7 +55,7 @@
                 <div class="col">
                     <div class="optionBoxes">
                         <template v-for="operation in ['benchmark', 'vacuum', 'repack', 'securityUpgrade', 'minorVersionUpgrade', 'majorVersionUpgrade', 'restart']">
-                            <label class="dbopIcon" :class="[operation, ( (op == operation) && 'active' )]" :for="operation" :data-field="'spec.op' + operation">
+                            <label class="dbopIcon" :class="[operation, ( (op == operation) && 'active' )]" :for="operation" data-field="spec.op">
                                 {{ splitUppercase(operation) }}
                                 <input type="radio" v-model="op" data-field="spec.op" :value="operation" :id="operation">
                             </label>
@@ -841,10 +841,10 @@
         },
 
         created: function() {
-            $(document).on('click', '.opList label', function(){    
+            $(document).on('click', '.optionBoxes label', function(){    
 				$(this).addClass('active');
-                $('.opList label').not($(this)).removeClass('active');
-                $('.opList label').removeClass('notValid');
+                $('.optionBoxes label').not($(this)).removeClass('active');
+                $('.optionBoxes label').removeClass('notValid');
 			});
         },
 
