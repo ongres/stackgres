@@ -7,3 +7,4 @@ SGInstanceProfile.yaml
 SGPoolingConfig.yaml
 SGPostgresConfig.yaml
 SGObjectStorage.yaml
+SGScript.yaml

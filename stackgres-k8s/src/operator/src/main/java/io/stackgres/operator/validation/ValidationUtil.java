@@ -26,6 +26,7 @@ public interface ValidationUtil {
   String DISTRIBUTED_LOGS_VALIDATION_PATH = VALIDATION_PATH + "/sgdistributedlogs";
   String DBOPS_VALIDATION_PATH = VALIDATION_PATH + "/sgdbops";
   String OBJECT_STORAGE_VALIDATION_PATH = VALIDATION_PATH + "/sgobjectstorage";
+  String SCRIPT_VALIDATION_PATH = VALIDATION_PATH + "/sgscript";
 
   Map<StackGresComponent, Map<StackGresVersion, List<String>>> SUPPORTED_POSTGRES_VERSIONS =
       Stream.of(StackGresComponent.POSTGRESQL, StackGresComponent.BABELFISH)

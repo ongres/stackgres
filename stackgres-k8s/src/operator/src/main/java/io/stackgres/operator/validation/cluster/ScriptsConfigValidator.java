@@ -110,10 +110,10 @@ public class ScriptsConfigValidator implements ClusterValidator {
         Set<String> configMapKeys = ImmutableSet.<String>builder()
             .addAll(Optional.ofNullable(scriptConfigMap.get().getData())
                 .map(Map::keySet)
-                .orElse(ImmutableSet.of()))
+                .orElse(Set.of()))
             .addAll(Optional.ofNullable(scriptConfigMap.get().getBinaryData())
                 .map(Map::keySet)
-                .orElse(ImmutableSet.of()))
+                .orElse(Set.of()))
             .build();
 
         if (!configMapKeys.contains(configMapRef.getKey())) {

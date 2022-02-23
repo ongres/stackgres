@@ -1,0 +1,145 @@
+  {
+  "kind": "AdmissionReview",
+  "request": {
+    "uid": "e1bf674a-f85f-4305-ba25-271aba55e9b3",
+    "kind": {
+      "kind": "SGScript",
+      "group": "stackgres.io",
+      "version": "v1"
+    },
+    "resource": {
+      "group": "stackgres.io",
+      "resource": "sgscripts",
+      "version": "v1"
+    },
+    "subResource": null,
+    "requestKind": {
+      "kind": "SGScript",
+      "group": "stackgres.io",
+      "version": "v1"
+    },
+    "requestResource": {
+      "group": "stackgres.io",
+      "resource": "sgscripts",
+      "version": "v1"
+    },
+    "requestSubResource": null,
+    "name": null,
+    "namespace": "default",
+    "operation": "UPDATE",
+    "userInfo": {
+      "groups": [
+        "system:serviceaccounts",
+        "system:serviceaccounts:kube-system",
+        "system:authenticated"
+      ],
+      "uid": "516bc998-9eca-4176-945e-61c53c0fce28",
+      "username": "system:serviceaccount:kube-system:tiller"
+    },
+    "object": {
+      "kind": "SGScript",
+      "apiVersion": "stackgres.io/v1",
+      "metadata": {
+        "creationTimestamp": "2019-09-27T09:09:34Z",
+        "generation": 1,
+        "name": "stackgres",
+        "namespace": "default",
+        "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+      },
+      "spec": {
+        "managedVersions": true,
+        "scripts": [{
+          "name": "test",
+          "id": 0,
+          "version": 0,
+          "script": "CREATE DATABASE test;"
+        },{
+          "id": 1,
+          "version": 0,
+          "scriptFrom": {
+            "secretKeyRef": {
+              "name": "test",
+              "key": "test"
+            }
+          }
+        },{
+          "id": 2,
+          "version": 0,
+          "scriptFrom": {
+            "configMapKeyRef": {
+              "name": "test",
+              "key": "test"
+            }
+          }
+        }]
+      },
+      "status": {
+        "lastId": 2,
+        "scripts": [{
+          "id": 0
+        },{
+          "id": 1
+        },{
+          "id": 2
+        }]
+      }
+    },
+    "oldObject": {
+      "kind": "SGScript",
+      "apiVersion": "stackgres.io/v1",
+      "metadata": {
+        "creationTimestamp": "2019-09-27T09:09:34Z",
+        "generation": 1,
+        "name": "stackgres",
+        "namespace": "default",
+        "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+      },
+      "spec": {
+        "managedVersions": true,
+        "scripts": [{
+          "name": "test",
+          "id": 0,
+          "version": 0,
+          "script": "CREATE DATABASE test;"
+        },{
+          "id": 1,
+          "version": 0,
+          "scriptFrom": {
+            "secretKeyRef": {
+              "name": "test",
+              "key": "test"
+            }
+          }
+        },{
+          "id": 2,
+          "version": 0,
+          "scriptFrom": {
+            "configMapKeyRef": {
+              "name": "test",
+              "key": "test"
+            }
+          }
+        }]
+      },
+      "status": {
+        "lastId": 2,
+        "scripts": [{
+          "id": 0
+        },{
+          "id": 1
+        },{
+          "id": 2
+        }]
+      }
+    },
+    "options": {
+      "kind": "CreateOptions",
+      "apiVersion": "meta.k8s.io/v1",
+      "metadata": {},
+      "spec": null,
+      "status": null
+    },
+    "dryRun": false
+  },
+  "apiVersion": "admission.k8s.io/v1"
+}

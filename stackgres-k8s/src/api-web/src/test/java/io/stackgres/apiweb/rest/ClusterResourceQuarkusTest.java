@@ -29,8 +29,8 @@ import io.stackgres.apiweb.dto.backupconfig.BaseBackupPerformance;
 import io.stackgres.apiweb.dto.cluster.ClusterBackupsConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
-import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
-import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
+import io.stackgres.apiweb.dto.script.ScriptEntry;
+import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
@@ -193,7 +193,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
   @Test
   void givenACreationWithConfigMapsScripts_shouldNotFail() {
-    ClusterScriptEntry entry = getConfigMapScriptEntry();
+    ScriptEntry entry = getConfigMapScriptEntry();
     clusterDto.getSpec().getInitData().setScripts(Collections.singletonList(entry));
 
     given()
@@ -216,7 +216,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
   @Test
   void givenACreationWithSecretScripts_shouldNotFail() {
-    ClusterScriptEntry entry = getSecretScriptEntry();
+    ScriptEntry entry = getSecretScriptEntry();
     clusterDto.getSpec().getInitData().setScripts(Collections.singletonList(entry));
 
     given()
@@ -227,7 +227,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .post("/stackgres/sgclusters")
         .then().statusCode(204);
 
-    final ClusterScriptFrom scriptFrom = entry.getScriptFrom();
+    final ScriptFrom scriptFrom = entry.getScriptFrom();
     final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
     Secret secret = mockServer.getClient().secrets().inNamespace("test")
         .withName(secretKeyRef.getName())
@@ -241,8 +241,8 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
   @Test
   void givenACreationWithSecretAndConfigMapScripts_shouldNotFail() {
-    ClusterScriptEntry secretScriptEntry = getSecretScriptEntry();
-    ClusterScriptEntry configMapScriptEntry = getConfigMapScriptEntry();
+    ScriptEntry secretScriptEntry = getSecretScriptEntry();
+    ScriptEntry configMapScriptEntry = getConfigMapScriptEntry();
 
     clusterDto.getSpec().getInitData().setScripts(ImmutableList
         .of(secretScriptEntry, configMapScriptEntry));
@@ -255,7 +255,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .post("/stackgres/sgclusters")
         .then().statusCode(204);
 
-    final ClusterScriptFrom secretScriptFrom = secretScriptEntry.getScriptFrom();
+    final ScriptFrom secretScriptFrom = secretScriptEntry.getScriptFrom();
     final SecretKeySelector secretKeyRef = secretScriptFrom.getSecretKeyRef();
     Secret secret = mockServer.getClient().secrets().inNamespace("test")
         .withName(secretKeyRef.getName())
@@ -266,7 +266,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     assertEquals(secretScriptFrom.getSecretScript(),
         new String(actualScript, StandardCharsets.UTF_8));
 
-    final ClusterScriptFrom configMapScriptFrom = configMapScriptEntry.getScriptFrom();
+    final ScriptFrom configMapScriptFrom = configMapScriptEntry.getScriptFrom();
     final ConfigMapKeySelector configMapKeyRef = configMapScriptFrom.getConfigMapKeyRef();
     ConfigMap configMap = mockServer.getClient().configMaps().inNamespace("test")
         .withName(configMapKeyRef.getName())
@@ -278,10 +278,10 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         configMap.getData().get(configMapKeyRef.getKey()));
   }
 
-  private ClusterScriptEntry getSecretScriptEntry() {
-    ClusterScriptEntry entry = new ClusterScriptEntry();
+  private ScriptEntry getSecretScriptEntry() {
+    ScriptEntry entry = new ScriptEntry();
     entry.setName("init");
-    final ClusterScriptFrom scriptFrom = new ClusterScriptFrom();
+    final ScriptFrom scriptFrom = new ScriptFrom();
     scriptFrom.setSecretScript("CREATE DATABASE test");
     final SecretKeySelector secretMapKeyRef = new SecretKeySelector();
     scriptFrom.setSecretKeyRef(secretMapKeyRef);
@@ -291,10 +291,10 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     return entry;
   }
 
-  private ClusterScriptEntry getConfigMapScriptEntry() {
-    ClusterScriptEntry entry = new ClusterScriptEntry();
+  private ScriptEntry getConfigMapScriptEntry() {
+    ScriptEntry entry = new ScriptEntry();
     entry.setName("init");
-    final ClusterScriptFrom scriptFrom = new ClusterScriptFrom();
+    final ScriptFrom scriptFrom = new ScriptFrom();
     scriptFrom.setConfigMapScript("CREATE DATABASE test");
     final ConfigMapKeySelector configMapKeyRef = new ConfigMapKeySelector();
     scriptFrom.setConfigMapKeyRef(configMapKeyRef);

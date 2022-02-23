@@ -13,6 +13,7 @@ import javax.validation.Valid;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
@@ -24,7 +25,7 @@ public class ClusterInitData {
   private ClusterRestore restore;
 
   @Valid
-  private List<ClusterScriptEntry> scripts;
+  private List<ScriptEntry> scripts;
 
   public ClusterRestore getRestore() {
     return restore;
@@ -34,11 +35,11 @@ public class ClusterInitData {
     this.restore = restore;
   }
 
-  public List<ClusterScriptEntry> getScripts() {
+  public List<ScriptEntry> getScripts() {
     return scripts;
   }
 
-  public void setScripts(List<ClusterScriptEntry> scripts) {
+  public void setScripts(List<ScriptEntry> scripts) {
     this.scripts = scripts;
   }
 

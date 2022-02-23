@@ -36,7 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ClusterConciliatorTest extends ConciliatorTest<StackGresCluster> {
 
-  private static final StackGresCluster cluster = JsonUtil
+  private final StackGresCluster cluster = JsonUtil
       .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
 
   @Mock

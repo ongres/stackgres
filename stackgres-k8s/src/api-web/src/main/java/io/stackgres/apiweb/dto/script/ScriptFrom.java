@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.dto.cluster;
+package io.stackgres.apiweb.dto.script;
 
 import java.util.Objects;
 
@@ -17,7 +17,7 @@ import io.stackgres.common.crd.SecretKeySelector;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterScriptFrom {
+public class ScriptFrom {
 
   private String secretScript;
 
@@ -60,27 +60,27 @@ public class ClusterScriptFrom {
   }
 
   @Override
-  public String toString() {
-    return StackGresUtil.toPrettyYaml(this);
+  public int hashCode() {
+    return Objects.hash(configMapKeyRef, configMapScript, secretKeyRef, secretScript);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof ScriptFrom)) {
       return false;
     }
-    ClusterScriptFrom that = (ClusterScriptFrom) o;
-    return Objects.equals(secretScript, that.secretScript)
-        && Objects.equals(secretKeyRef, that.secretKeyRef)
-        && Objects.equals(configMapScript, that.configMapScript)
-        && Objects.equals(configMapKeyRef, that.configMapKeyRef);
+    ScriptFrom other = (ScriptFrom) obj;
+    return Objects.equals(configMapKeyRef, other.configMapKeyRef)
+        && Objects.equals(configMapScript, other.configMapScript)
+        && Objects.equals(secretKeyRef, other.secretKeyRef)
+        && Objects.equals(secretScript, other.secretScript);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(secretScript, secretKeyRef, configMapScript, configMapKeyRef);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 }
