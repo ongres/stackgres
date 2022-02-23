@@ -322,6 +322,7 @@ public class ClusterTransformer
     }
     StackGresClusterRestoreFromBackup transformation = new StackGresClusterRestoreFromBackup();
     transformation.setUid(source.getUid());
+    transformation.setName(source.getName());
     transformation.setPointInTimeRecovery(getCustomResourceRestorePitr(
         source.getPointInTimeRecovery()));
     return transformation;
@@ -528,6 +529,7 @@ public class ClusterTransformer
     }
     ClusterRestoreFromBackup transformation = new ClusterRestoreFromBackup();
     transformation.setUid(source.getUid());
+    transformation.setName(source.getName());
     transformation.setPointInTimeRecovery(getResourceRestorePitr(source.getPointInTimeRecovery()));
     return transformation;
   }

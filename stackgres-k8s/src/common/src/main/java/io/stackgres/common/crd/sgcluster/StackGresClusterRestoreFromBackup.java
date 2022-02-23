@@ -8,14 +8,17 @@ package io.stackgres.common.crd.sgcluster;
 import java.util.Objects;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.AssertTrue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -25,12 +28,25 @@ public class StackGresClusterRestoreFromBackup implements KubernetesResource {
   private static final long serialVersionUID = 1L;
 
   @JsonProperty("uid")
-  @NotNull(message = "uid configuration cannot be null")
   private String uid;
+
+  @JsonProperty("name")
+  private String name;
 
   @JsonProperty("pointInTimeRecovery")
   @Valid
   private StackGresClusterRestorePitr pointInTimeRecovery;
+
+  @ReferencedField("name")
+  interface Name extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "name cannot be null",
+      payload = { Name.class })
+  public boolean isNameNotNullOrUidNotNull() {
+    return (name != null && uid == null) // NOPMD
+        || (name == null && uid != null); // NOPMD
+  }
 
   public String getUid() {
     return uid;
@@ -38,6 +54,14 @@ public class StackGresClusterRestoreFromBackup implements KubernetesResource {
 
   public void setUid(String uid) {
     this.uid = uid;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   public StackGresClusterRestorePitr getPointInTimeRecovery() {
@@ -49,21 +73,22 @@ public class StackGresClusterRestoreFromBackup implements KubernetesResource {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresClusterRestoreFromBackup)) {
       return false;
     }
-    StackGresClusterRestoreFromBackup that = (StackGresClusterRestoreFromBackup) o;
-    return Objects.equals(pointInTimeRecovery, that.pointInTimeRecovery)
-        && Objects.equals(uid, that.uid);
+    StackGresClusterRestoreFromBackup other = (StackGresClusterRestoreFromBackup) obj;
+    return Objects.equals(name, other.name)
+        && Objects.equals(pointInTimeRecovery, other.pointInTimeRecovery)
+        && Objects.equals(uid, other.uid);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(pointInTimeRecovery, uid);
+    return Objects.hash(name, pointInTimeRecovery, uid);
   }
 
   @Override

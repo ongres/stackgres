@@ -17,7 +17,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
-import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -46,7 +46,7 @@ class RestoreConfigValidatorTest {
           .map(number -> String.format("%02d", number)).toString();
 
   @Mock
-  private CustomResourceScanner<StackGresBackup> scanner;
+  private CustomResourceFinder<StackGresBackup> finder;
 
   private RestoreConfigValidator validator;
 
@@ -55,7 +55,7 @@ class RestoreConfigValidatorTest {
   @BeforeEach
   void setUp() {
 
-    validator = new RestoreConfigValidator(scanner);
+    validator = new RestoreConfigValidator(finder);
     backupList = JsonUtil
         .readFromJson("backup/list.json", StackGresBackupList.class);
   }
@@ -70,12 +70,12 @@ class RestoreConfigValidatorTest {
         .readFromJson("backup/list.json", StackGresBackupList.class);
     backupList.getItems().get(0).getStatus().getBackupInformation()
         .setPostgresVersion(firstPgMajorVersionNumber);
-    when(scanner.findResources())
-        .thenReturn(Optional.of(backupList.getItems()));
+    when(finder.findByNameAndNamespace(anyString(), anyString()))
+        .thenReturn(Optional.of(backupList.getItems().get(0)));
 
     validator.validate(review);
 
-    verify(scanner).findResources();
+    verify(finder).findByNameAndNamespace(anyString(), anyString());
 
   }
 
@@ -86,14 +86,14 @@ class RestoreConfigValidatorTest {
 
     StackGresCluster cluster = review.getRequest().getObject();
     StackGresClusterRestore restoreConfig = cluster.getSpec().getInitData().getRestore();
-    String stackgresBackup = restoreConfig.getFromBackup().getUid();
+    String backupName = restoreConfig.getFromBackup().getName();
 
-    when(scanner.findResources()).thenReturn(Optional.empty());
+    when(finder.findByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.empty());
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-        "Backup uid " + stackgresBackup + " not found");
+        "Backup name " + backupName + " not found");
 
-    verify(scanner).findResources();
+    verify(finder).findByNameAndNamespace(anyString(), anyString());
 
   }
 
@@ -102,25 +102,39 @@ class RestoreConfigValidatorTest {
 
     final StackGresClusterReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(secondPgMajorVersion);
-    String stackgresBackup = review.getRequest()
-        .getObject().getSpec().getInitData().getRestore().getFromBackup().getUid();
+    String backupName = review.getRequest()
+        .getObject().getSpec().getInitData().getRestore().getFromBackup().getName();
 
     StackGresBackup backup = backupList.getItems().stream()
-        .filter(b -> b.getMetadata().getUid().equals(stackgresBackup))
+        .filter(b -> b.getMetadata().getName().equals(backupName))
         .findFirst().orElseThrow(AssertionError::new);
 
     backup.getStatus().getBackupInformation().setPostgresVersion(
         firstPgMajorVersionNumber);
 
-    when(scanner.findResources())
-        .thenReturn(Optional.of(backupList.getItems()));
+    when(finder.findByNameAndNamespace(anyString(), anyString()))
+        .thenReturn(Optional.of(backupList.getItems().get(0)));
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-        "Cannot restore from backup " + stackgresBackup
+        "Cannot restore from backup " + backupName
             + " because it comes from an incompatible postgres version");
 
-    verify(scanner).findResources();
+    verify(finder).findByNameAndNamespace(anyString(), anyString());
 
+  }
+
+  @Test
+  void givenACreationWithBackupFromAndUid_shouldFail() {
+    final StackGresClusterReview review = getCreationReview();
+    review.getRequest().getObject().getSpec().getInitData().getRestore()
+        .getFromBackup().setName(null);
+    review.getRequest().getObject().getSpec().getInitData().getRestore()
+        .getFromBackup().setUid("23442867-377d-11ea-b04b-0242ac110004");
+
+    ValidationUtils.assertValidationFailed(() -> validator.validate(review),
+        "uid is deprecated, use name instead!");
+
+    verify(finder, never()).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test
@@ -131,7 +145,7 @@ class RestoreConfigValidatorTest {
 
     validator.validate(review);
 
-    verify(scanner, never()).findResources(anyString());
+    verify(finder, never()).findByNameAndNamespace(anyString(), anyString());
 
   }
 
@@ -143,7 +157,7 @@ class RestoreConfigValidatorTest {
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         "Cannot update cluster's restore configuration");
 
-    verify(scanner, never()).findResources();
+    verify(finder, never()).findByNameAndNamespace(anyString(), anyString());
 
   }
 

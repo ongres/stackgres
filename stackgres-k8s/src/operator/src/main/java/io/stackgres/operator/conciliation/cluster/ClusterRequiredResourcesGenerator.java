@@ -10,6 +10,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -143,15 +144,16 @@ public class ClusterRequiredResourcesGenerator
             .findByNameAndNamespace(poolingConfigName, clusterNamespace));
 
     // The logic here is return an empty if there is no StackGresClusterRestore
-    // if the uid match return that backup and if the backup is not found return a dummy object,
+    // if the name match return that backup and if the backup is not found return a dummy object,
     // the dummy object is for the cases when the restore is done but the backup is deleted.
     // This way the template don't change after a reconciliation cycle requiring a restart.
     final Optional<StackGresBackup> restoreBackup = Optional
         .ofNullable(config.getSpec().getInitData())
         .map(StackGresClusterInitData::getRestore)
         .flatMap(restore -> backupScanner.getResources().stream()
-            .filter(backup -> backup.getMetadata().getUid()
-                .equals(restore.getFromBackup().getUid()))
+            .filter(backup -> Objects.equals(
+                backup.getMetadata().getName(),
+                restore.getFromBackup().getName()))
             .findFirst()
             .or(() -> Optional.of(new StackGresBackup())));
 

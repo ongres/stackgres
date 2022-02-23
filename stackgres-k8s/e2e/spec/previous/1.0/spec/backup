@@ -22,8 +22,6 @@ e2e_test() {
 
   run_test "Checking that backup is working" check_backup_is_working
 
-  run_test "Checking single backup job is running at a time" check_single_backup_job
-
   run_test "Checking that backup retention is working" check_backup_retention_is_working
 
   run_test "Checking that backup is working after killing storage provider service" check_backup_after_kill_storage_provider_service

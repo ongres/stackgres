@@ -92,7 +92,7 @@ cluster:
   #restore:
   #  initialData:
   #    fromBackup:
-  #      uid:
+  #      name:
   #      pointInTimeRecovery:
   #        restoreToTimestamp:
   #    downloadDiskConcurrency:

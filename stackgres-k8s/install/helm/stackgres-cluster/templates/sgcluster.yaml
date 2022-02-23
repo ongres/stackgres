@@ -63,7 +63,7 @@ spec:
   {{- if .Values.cluster.initialData.restore }}
     restore:
       fromBackup:
-        uid: {{ .Values.cluster.initialData.restore.fromBackup.uid }}
+        name: {{ .Values.cluster.initialData.restore.fromBackup.name }}
         {{- if .Values.cluster.initialData.restore.fromBackup.pointInTimeRecovery }}
         pointInTimeRecovery:
           restoreToTimestamp: {{ .Values.cluster.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp }}
