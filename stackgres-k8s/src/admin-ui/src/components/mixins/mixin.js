@@ -568,21 +568,32 @@ export const mixin = {
         return true;
       },
   
-      iCan( action, kind, namespace = '' ) {
+      iCan( action = 'any', kind, namespace = '' ) {
         
-        if(namespace.length) {
-          var iCan = false;
+        if(namespace.length) { // If filtered by namespace
+          let permissions = store.state.permissions.allowed.namespaced.find(p => (p.namespace == namespace));
+
+          return (
+            (typeof permissions != 'undefined') && (
+              ( (action == 'any') && permissions.resources[kind].length) ||
+              ( (action != 'any') && permissions.resources[kind].includes(action) )
+            )
+          )
           
-          store.state.permissions.allowed.namespaced.forEach(function( ns ){
-            if( (ns.namespace == namespace) && ns.resources.hasOwnProperty(kind) && (ns.resources[kind].includes(action)) ) {
-              iCan = true;
-              return false
-            }
-          });
+        } else if(!['namespaces', 'storageclasses'].includes(kind)) { // For CRDs when no namespace indicated
           
-          return iCan
+          return (store.state.permissions.allowed.namespaced.find(p => 
+            (p.resources[kind].length) ).length > 0
+          );
+
+        } else if(['namespaces', 'storageclasses'].includes(kind)) {
+
+          return store.state.permissions.allowed.unnamespaced[kind].includes(action)
+        
         } else {
+          
           return !store.state.permissions.forbidden.includes(kind)
+          
         }
   
       },
