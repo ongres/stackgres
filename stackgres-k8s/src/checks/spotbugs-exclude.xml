@@ -32,6 +32,11 @@
     <Bug pattern="SE_BAD_FIELD" />
   </Match>
 
+  <!--  Java 17: Security Manager is deprecated for Removal -->
+  <Match>
+    <Bug pattern="DP_DO_INSIDE_DO_PRIVILEGED" />
+  </Match>
+
   <!-- Return values should not be ignored when they contain the operation status code,
        ignores ArrayBlockingQueue.offer() return value. -->
   <Match>
@@ -74,6 +79,19 @@
       <And>
         <Class name="io.stackgres.apiweb.resource.ClusterDtoScanner$Transformer" />
         <Method name="transform" />
+      </And>
+    </Or>
+  </Match>
+
+  <!-- Correct use-case of Jackson -->
+  <Match>
+    <Bug pattern="BC_UNCONFIRMED_CAST_OF_RETURN_VALUE" />
+    <Or>
+      <And>
+        <Class name="io.stackgres.common.JsonMapperProvider" />
+      </And>
+      <And>
+        <Class name="io.stackgres.common.YamlMapperProvider" />
       </And>
     </Or>
   </Match>

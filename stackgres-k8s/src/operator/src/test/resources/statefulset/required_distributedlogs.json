@@ -300,7 +300,7 @@
           "imagePullPolicy" : "IfNotPresent",
           "livenessProbe" : {
             "httpGet" : {
-              "path" : "/health/live",
+              "path" : "/q/health/live",
               "port" : 8080,
               "scheme" : "HTTP"
             },
@@ -311,7 +311,7 @@
           "name" : "distributedlogs-controller",
           "readinessProbe" : {
             "httpGet" : {
-              "path" : "/health/ready",
+              "path" : "/q/health/ready",
               "port" : 8080,
               "scheme" : "HTTP"
             },

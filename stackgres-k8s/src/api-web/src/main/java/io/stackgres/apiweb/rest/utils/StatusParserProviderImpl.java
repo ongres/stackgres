@@ -57,7 +57,7 @@ public class StatusParserProviderImpl implements StatusParserProvider {
   }
 
   private Optional<Integer> getMinorVersion() {
-    return Optional.ofNullable(client.getVersion())
+    return Optional.ofNullable(client.getKubernetesVersion())
         .map(VersionInfo::getMinor)
         .map(VERSION_PATTERN::matcher)
         .filter(Matcher::find)

@@ -24,14 +24,13 @@ import org.slf4j.helpers.MessageFormatter;
 public class DbOpsReconciliator
     extends AbstractReconciliator<StackGresDbOps> {
 
+  public DbOpsReconciliator() {
+    super(StackGresDbOps.KIND);
+  }
+
   private EventEmitter<StackGresDbOps> eventController;
 
   private PatchResumer<StackGresDbOps> patchResumer;
-
-  @Override
-  protected String getReconciliationName() {
-    return StackGresDbOps.KIND;
-  }
 
   void onStart(@Observes StartupEvent ev) {
     start();

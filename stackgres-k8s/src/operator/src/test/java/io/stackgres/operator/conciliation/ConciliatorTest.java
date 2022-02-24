@@ -27,11 +27,12 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StringUtil;
 import io.stackgres.operator.cluster.factory.KubernetessMockResourceGenerationUtil;
 import io.stackgres.operator.conciliation.comparator.StackGresAbstractComparator;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 
 public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
 
-  private static final ObjectMapper MAPPER = new ObjectMapper();
+  private static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
 
   protected ComparisonDelegator<T> resourceComparator = new ComparisonDelegator<>() {
     private final StackGresAbstractComparator comparator = new StackGresAbstractComparator() {

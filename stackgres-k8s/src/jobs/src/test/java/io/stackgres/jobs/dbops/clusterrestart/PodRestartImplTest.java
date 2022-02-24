@@ -33,7 +33,7 @@ import org.mockito.Mockito;
 @QuarkusTest
 class PodRestartImplTest {
 
-  private static final int MAX_RETRY_ATTEMPTS = 10;
+  private static final int MAX_RETRY_ATTEMPTS = 11;
 
   @Inject
   PodRestartImpl podRestart;
@@ -88,7 +88,7 @@ class PodRestartImplTest {
 
     podRestart.restartPod(clusterName, pod).subscribe()
       .withSubscriber(UniAssertSubscriber.create())
-      .await()
+      .awaitItem()
       .assertCompleted();
     InOrder inOrder = Mockito.inOrder(podWriter, podWatcher);
     inOrder.verify(podWatcher).waitUntilIsCreated(podName, podNamespace);
@@ -127,7 +127,7 @@ class PodRestartImplTest {
 
     UniAssertSubscriber<Pod> subscriber = podRestart.restartPod(clusterName, pod).subscribe()
         .withSubscriber(UniAssertSubscriber.create())
-        .await()
+        .awaitItem()
         .assertCompleted();
     assertEquals("3", subscriber.getItem().getMetadata().getCreationTimestamp());
   }
@@ -142,7 +142,7 @@ class PodRestartImplTest {
 
     podRestart.restartPod(clusterName, pod).subscribe()
         .withSubscriber(UniAssertSubscriber.create())
-        .await()
+        .awaitFailure()
         .assertFailed();
     verify(podWatcher, times(1)).waitUntilIsCreated(anyString(), anyString());
     verify(podWriter, times(MAX_RETRY_ATTEMPTS)).delete(any());
@@ -163,7 +163,7 @@ class PodRestartImplTest {
 
     podRestart.restartPod(clusterName, pod).subscribe()
         .withSubscriber(UniAssertSubscriber.create())
-        .await()
+        .awaitFailure()
         .assertFailed();
     verify(podWatcher, times(1)).waitUntilIsCreated(anyString(), anyString());
     verify(podWriter, times(MAX_RETRY_ATTEMPTS)).delete(pod);
@@ -191,7 +191,7 @@ class PodRestartImplTest {
 
     podRestart.restartPod(clusterName, pod).subscribe()
         .withSubscriber(UniAssertSubscriber.create())
-        .await()
+        .awaitFailure()
         .assertFailed();
     verify(podWatcher, times(1)).waitUntilIsCreated(anyString(), anyString());
     verify(podWriter, times(MAX_RETRY_ATTEMPTS)).delete(pod);
@@ -220,7 +220,7 @@ class PodRestartImplTest {
 
     podRestart.restartPod(clusterName, pod).subscribe()
         .withSubscriber(UniAssertSubscriber.create())
-        .await()
+        .awaitItem()
         .assertCompleted();
     verify(podWatcher, times(1)).waitUntilIsCreated(anyString(), anyString());
     verify(podWriter, times(2)).delete(pod);

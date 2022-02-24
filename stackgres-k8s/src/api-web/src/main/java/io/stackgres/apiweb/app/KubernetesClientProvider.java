@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.app;
 
 import javax.enterprise.context.RequestScoped;
+import javax.enterprise.inject.Alternative;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
@@ -13,7 +14,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.quarkus.arc.AlternativePriority;
+import io.quarkus.arc.Priority;
 import org.eclipse.microprofile.jwt.Claim;
 import org.eclipse.microprofile.jwt.Claims;
 import org.slf4j.Logger;
@@ -30,7 +31,8 @@ public class KubernetesClientProvider {
 
   @Produces
   @RequestScoped
-  @AlternativePriority(1)
+  @Alternative
+  @Priority(1)
   public KubernetesClient create() {
     Config config;
     if (null != impersonate) {

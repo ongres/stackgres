@@ -5,11 +5,11 @@
 
 package io.stackgres.operator.conversion;
 
+import java.util.List;
+
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableList;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.testutil.JsonUtil;
@@ -17,8 +17,6 @@ import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class SgPoolingConfigConversionPipelineTest {
-
-  protected static final JsonMapper MAPPER = new JsonMapper();
 
   @Inject
   @Conversion(StackGresPoolingConfig.KIND)
@@ -44,20 +42,18 @@ class SgPoolingConfigConversionPipelineTest {
   void resourceConversionWithBackupFromVersion1beta1ToVersion1_shouldNotFail() {
     ObjectNode fromVersion1beta1 = getFromVersion1beta1Resource();
     ObjectNode toVersion1 = getToVersion1Resource();
-    JsonUtil.assertJsonEquals(toVersion1,
-        pipeline.convert(
-            ConversionUtil.API_VERSION_1,
-            ImmutableList.of(fromVersion1beta1)).get(0));
+
+    var converted = pipeline.convert(ConversionUtil.API_VERSION_1, List.of(fromVersion1beta1));
+    JsonUtil.assertJsonEquals(toVersion1, converted.get(0));
   }
 
   @Test
   void resourceConversionWithBackupFromVersion1ToVersion1beta1_shouldNotFail() {
     ObjectNode fromVersion1 = getFromVersion1Resource();
     ObjectNode toVersion1beta1 = getToVersion1beta1Resource();
-    JsonUtil.assertJsonEquals(toVersion1beta1,
-        pipeline.convert(
-            ConversionUtil.API_VERSION_1BETA1,
-            ImmutableList.of(fromVersion1)).get(0));
+
+    var converted = pipeline.convert(ConversionUtil.API_VERSION_1BETA1, List.of(fromVersion1));
+    JsonUtil.assertJsonEquals(toVersion1beta1, converted.get(0));
   }
 
 }

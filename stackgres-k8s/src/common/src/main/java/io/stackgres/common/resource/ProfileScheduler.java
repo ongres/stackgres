@@ -6,10 +6,7 @@
 package io.stackgres.common.resource;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 
@@ -17,14 +14,8 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 public class ProfileScheduler
     extends AbstractCustomResourceScheduler<StackGresProfile, StackGresProfileList> {
 
-  @Inject
-  public ProfileScheduler(KubernetesClient client) {
-    super(client, StackGresProfile.class, StackGresProfileList.class);
-  }
-
   public ProfileScheduler() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+    super(StackGresProfile.class, StackGresProfileList.class);
   }
 
 }

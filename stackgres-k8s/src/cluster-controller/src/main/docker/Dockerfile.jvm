@@ -1,18 +1,22 @@
 ARG BASE_IMAGE
 FROM "$BASE_IMAGE"
-  USER root
+  USER root:root
   WORKDIR '/app/'
-  COPY 'target/stackgres-cluster-controller-runner.jar' '/app/stackgres-cluster-controller.jar'
-  COPY 'target/lib/' '/app/lib/'
-  COPY 'src/main/docker/stackgres-cluster-controller.jvm.sh' '/app/stackgres-cluster-controller.sh'
-  RUN chown nobody:nobody '/app/' -R
-  RUN chmod 775 '/app'
-  RUN chmod 775 '/app/stackgres-cluster-controller.sh'
 
-  CMD '/app/stackgres-cluster-controller.sh'
+  COPY 'src/main/docker/stackgres-cluster-controller.jvm.sh' '/app/stackgres-cluster-controller.sh'
+
+  COPY 'target/quarkus-app/lib/' '/app/lib/'
+  COPY 'target/quarkus-app/*.jar' '/app/'
+  COPY 'target/quarkus-app/app/' '/app/app/'
+  COPY 'target/quarkus-app/quarkus/' '/app/quarkus/'
+
+  RUN chown -R jboss:jboss '/app'
+  RUN chmod 755 '/app'
+  RUN chmod 755 '/app/stackgres-cluster-controller.sh'
+
+  ENV HOME=/app LANG=C.utf8
+  USER jboss:jboss
   EXPOSE 8080
   EXPOSE 8443
-  USER nobody
-  ENV LANG="C.UTF-8"
-  ENV LC_ALL="C.UTF-8"
 
+  CMD '/app/stackgres-cluster-controller.sh'

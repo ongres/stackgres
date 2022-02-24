@@ -9,8 +9,7 @@ build:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
         --copy stackgres-k8s/ci/build/target/junit-build.hashes.xml \
-        --copy stackgres-k8s/src/.mvn \
-        --copy .m2/repository \
+        --copy .m2 \
         --extract stackgres-operator-framework:'stackgres-k8s/src/operator-framework/target/surefire-reports/TEST-*.xml' \
         --extract stackgres-common:'stackgres-k8s/src/common/target/surefire-reports/TEST-*.xml' \
         --extract stackgres-operator:'stackgres-k8s/src/operator/target/surefire-reports/TEST-*.xml' \
@@ -29,11 +28,12 @@ build:
   cache:
     - key: hashes
       paths:
-      - stackgres-k8s/ci/build/target/*
-    - key: java
+        - stackgres-k8s/ci/build/target/*
+    - key:
+        files:
+          - stackgres-k8s/src/pom.xml
       paths:
-      - stackgres-k8s/src/.mvn
-      - .m2/repository
+        - .m2/
   artifacts:
     expire_in: 1 week
     when: always

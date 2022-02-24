@@ -40,15 +40,18 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
 
   private KubernetesClient client;
 
+  private final String reconciliationName;
+
   private final ExecutorService executorService;
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
 
   private final CompletableFuture<Void> stopped = new CompletableFuture<>();
   private boolean close = false;
 
-  public AbstractReconciliator() {
+  protected AbstractReconciliator(String reconciliationName) {
+    this.reconciliationName = reconciliationName;
     this.executorService = Executors.newSingleThreadExecutor(
-        r -> new Thread(r, getReconciliationName() + "-ReconciliationLoop"));
+        r -> new Thread(r, reconciliationName + "-ReconciliationLoop"));
   }
 
   protected void start() {
@@ -63,7 +66,9 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     stopped.join();
   }
 
-  protected abstract String getReconciliationName();
+  protected String getReconciliationName() {
+    return reconciliationName;
+  }
 
   @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE",
       justification = "We do not care if queue is already filled")

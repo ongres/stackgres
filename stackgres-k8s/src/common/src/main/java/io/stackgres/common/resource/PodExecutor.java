@@ -27,7 +27,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import okhttp3.Response;
 
 @ApplicationScoped
 public class PodExecutor {
@@ -87,9 +86,6 @@ public class PodExecutor {
       this.container = container;
       this.errorCodeStream = errorCodeStream;
     }
-
-    @Override
-    public void onOpen(Response response) {}
 
     @Override
     public void onFailure(Throwable t, Response response) {

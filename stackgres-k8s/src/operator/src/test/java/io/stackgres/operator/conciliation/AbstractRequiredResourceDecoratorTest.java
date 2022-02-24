@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
@@ -43,7 +44,8 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
   }
 
   @Test
-  void shouldGetAnExceededNameMessage_OnceUsingAnExceededMaxLengthName() throws IOException {
+  void shouldGetAnExceededNameMessage_OnceUsingAnExceededMaxLengthName()
+      throws JsonProcessingException, IOException {
     String invalidClusterName =
         getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom(usingCrdFilename()) + 1);
     getResource().getMetadata().setName(invalidClusterName);

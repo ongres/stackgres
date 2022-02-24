@@ -32,6 +32,10 @@ import org.slf4j.helpers.MessageFormatter;
 public class ClusterReconciliator
     extends AbstractReconciliator<StackGresCluster> {
 
+  public ClusterReconciliator() {
+    super(StackGresCluster.KIND);
+  }
+
   private StatusManager<StackGresCluster, StackGresClusterCondition> statusManager;
 
   private EventEmitter<StackGresCluster> eventController;
@@ -39,11 +43,6 @@ public class ClusterReconciliator
   private CustomResourceScheduler<StackGresCluster> clusterScheduler;
 
   private ClusterPatchResumer patchResumer;
-
-  @Override
-  protected String getReconciliationName() {
-    return StackGresCluster.KIND;
-  }
 
   void onStart(@Observes StartupEvent ev) {
     start();

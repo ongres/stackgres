@@ -7,8 +7,6 @@ package io.stackgres.common;
 
 import java.util.Properties;
 
-import org.jooq.lambda.Unchecked;
-
 public enum ClusterControllerProperty implements StackGresPropertyReader {
 
   CLUSTER_NAMESPACE("stackgres.clusterNamespace"),
@@ -22,8 +20,7 @@ public enum ClusterControllerProperty implements StackGresPropertyReader {
       "stackgres.clusterReconcilePgBouncer");
 
   private static final Properties APPLICATION_PROPERTIES =
-      Unchecked.supplier(() -> StackGresPropertyReader
-          .readApplicationProperties(ClusterControllerProperty.class)).get();
+      StackGresPropertyReader.readApplicationProperties(ClusterControllerProperty.class);
 
   private final String propertyName;
 

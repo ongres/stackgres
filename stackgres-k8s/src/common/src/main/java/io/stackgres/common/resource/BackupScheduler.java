@@ -6,10 +6,7 @@
 package io.stackgres.common.resource;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 
@@ -17,14 +14,8 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 public class BackupScheduler
     extends AbstractCustomResourceScheduler<StackGresBackup, StackGresBackupList> {
 
-  @Inject
-  public BackupScheduler(KubernetesClient client) {
-    super(client, StackGresBackup.class, StackGresBackupList.class);
-  }
-
   public BackupScheduler() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+    super(StackGresBackup.class, StackGresBackupList.class);
   }
 
 }

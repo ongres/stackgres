@@ -84,7 +84,7 @@ class PodWatcherImplTest {
     var pod = podWatcher.waitUntilIsCreated(podName, namespace)
         .runSubscriptionOn(Executors.newSingleThreadExecutor())
         .subscribe().withSubscriber(UniAssertSubscriber.create())
-        .await()
+        .awaitItem()
         .assertCompleted().getItem();
 
     assertEquals(podName, pod.getMetadata().getName());
@@ -107,7 +107,7 @@ class PodWatcherImplTest {
             .endMetadata()
             .build());
 
-    Pod pod = subscriber.await().assertCompleted().getItem();
+    Pod pod = subscriber.awaitItem().assertCompleted().getItem();
 
     assertEquals(podName, pod.getMetadata().getName());
   }
@@ -118,7 +118,7 @@ class PodWatcherImplTest {
     podWatcher.waitUntilIsRemoved(podName, namespace)
         .runSubscriptionOn(Executors.newSingleThreadExecutor())
         .subscribe().withSubscriber(UniAssertSubscriber.create())
-        .await()
+        .awaitItem()
         .assertCompleted();
   }
 
@@ -141,7 +141,7 @@ class PodWatcherImplTest {
 
     client.pods().inNamespace(namespace).withName(podName).delete();
 
-    subscriber.await().assertCompleted();
+    subscriber.awaitItem().assertCompleted();
   }
 
   @Test
@@ -158,7 +158,7 @@ class PodWatcherImplTest {
     Pod returnedPod = podWatcher.waitUntilIsReplaced(pod)
         .runSubscriptionOn(Executors.newSingleThreadExecutor())
         .subscribe().withSubscriber(UniAssertSubscriber.create())
-        .await()
+        .awaitItem()
         .assertCompleted().getItem();
 
     assertEquals(podName, returnedPod.getMetadata().getName());
@@ -189,7 +189,7 @@ class PodWatcherImplTest {
         .create(new PodBuilder().withNewMetadata()
             .withName(podName).endMetadata().build());
 
-    Pod returnedPod = subscriber.await().assertCompleted().getItem();
+    Pod returnedPod = subscriber.awaitItem().assertCompleted().getItem();
 
     assertEquals(podName, pod.getMetadata().getName());
     assertNotEquals(pod.getMetadata().getCreationTimestamp(),
@@ -213,7 +213,7 @@ class PodWatcherImplTest {
     var returnedPod = podWatcher.waitUntilIsReady(clusterName, podName, namespace, false)
         .runSubscriptionOn(Executors.newSingleThreadExecutor())
         .subscribe().withSubscriber(UniAssertSubscriber.create())
-        .await()
+        .awaitItem()
         .assertCompleted().getItem();
 
     assertEquals(podName, returnedPod.getMetadata().getName());
@@ -249,7 +249,7 @@ class PodWatcherImplTest {
             .endCondition()
             .endStatus().build());
 
-    Pod returnedPod = subscriber.await().assertCompleted().getItem();
+    Pod returnedPod = subscriber.awaitItem().assertCompleted().getItem();
 
     assertEquals(podName, returnedPod.getMetadata().getName());
   }
@@ -293,7 +293,7 @@ class PodWatcherImplTest {
             .endCondition()
             .endStatus().build());
 
-    Pod returnedPod = subscriber.await().assertCompleted().getItem();
+    Pod returnedPod = subscriber.awaitItem().assertCompleted().getItem();
 
     assertEquals(podName, returnedPod.getMetadata().getName());
   }
@@ -324,7 +324,7 @@ class PodWatcherImplTest {
     podWatcher.waitUntilIsReady(clusterName, podName, namespace, true)
         .runSubscriptionOn(Executors.newSingleThreadExecutor())
         .subscribe().withSubscriber(UniAssertSubscriber.create())
-        .await()
+        .awaitFailure()
         .assertFailedWith(StatefulSetChangedException.class, null);
   }
 

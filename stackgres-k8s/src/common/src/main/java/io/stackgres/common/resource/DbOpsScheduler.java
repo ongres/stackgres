@@ -6,10 +6,7 @@
 package io.stackgres.common.resource;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsList;
 
@@ -17,14 +14,8 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsList;
 public class DbOpsScheduler
     extends AbstractCustomResourceScheduler<StackGresDbOps, StackGresDbOpsList> {
 
-  @Inject
-  public DbOpsScheduler(KubernetesClient client) {
-    super(client, StackGresDbOps.class, StackGresDbOpsList.class);
-  }
-
   public DbOpsScheduler() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+    super(StackGresDbOps.class, StackGresDbOpsList.class);
   }
 
   @Override
@@ -35,4 +26,5 @@ public class DbOpsScheduler
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
         .replace(resource);
   }
+
 }

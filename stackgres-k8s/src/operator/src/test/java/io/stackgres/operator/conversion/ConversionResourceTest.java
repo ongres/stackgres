@@ -14,16 +14,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 public abstract class ConversionResourceTest<T extends CustomResource<?, ?>> {
 
-  protected static final JsonMapper MAPPER = new JsonMapper();
+  protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
 
   protected ConversionResource conversionResource;
 

@@ -82,7 +82,6 @@ class ClusterInstanceManagerImplTest {
 
   @Test
   void givenACleanCluster_increaseInstancesShouldWaitUntilTheNewPodIsCreated() {
-
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
     final Pod newPod = podTestUtil.buildReplicaPod(cluster, 3);
@@ -130,12 +129,10 @@ class ClusterInstanceManagerImplTest {
     InOrder order = inOrder(podWatcher);
 
     order.verify(podWatcher).waitUntilIsReady(clusterName, newPodName, namespace, false);
-
   }
 
   @Test
   void givenAClusterWithAFarDisruptablePod_itShouldWaitForTheRightPodToBeCreated() {
-
     podTestUtil.preparePods(cluster, 5, 0, 1);
     configureNonDisruptablePod(5);
     final Pod newPod = podTestUtil.buildReplicaPod(cluster, 2);
@@ -159,7 +156,6 @@ class ClusterInstanceManagerImplTest {
 
   @Test
   void givenACleanCluster_itShouldWaitForTheRightPodToBeDeleted() {
-
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
     Pod replicaToDelete = podTestUtil.buildReplicaPod(cluster, 2);
@@ -311,7 +307,6 @@ class ClusterInstanceManagerImplTest {
 
   @Test
   void givenAIncreasingInstanceFailure_operationShouldBeRetried() {
-
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
     final Pod newPod = podTestUtil.buildReplicaPod(cluster, 3);
@@ -332,12 +327,10 @@ class ClusterInstanceManagerImplTest {
         initialInstances + 1, actualInstances);
 
     verify(clusterScheduler, times(2)).update(any());
-
   }
 
   @Test
   void givenADecreasingInstanceFailure_operationShouldBeRetried() {
-
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
     final Pod newPod = podTestUtil.buildReplicaPod(cluster, 3);
@@ -358,12 +351,13 @@ class ClusterInstanceManagerImplTest {
         initialInstances - 1, actualInstances);
 
     verify(clusterScheduler, times(2)).update(any());
-
   }
 
   private void configureNonDisruptablePod(int index) {
     Pod primaryPod = podTestUtil.buildNonDisruptablePrimaryPod(cluster, index);
-    mockServer.getClient().pods().inNamespace(namespace).replace(primaryPod);
+    mockServer.getClient().pods().inNamespace(namespace)
+        .withName(primaryPod.getMetadata().getName())
+        .replace(primaryPod);
   }
 
   private void configureNewPodCreated(Pod newPod) {
@@ -376,7 +370,6 @@ class ClusterInstanceManagerImplTest {
     kubeDb.watchCluster(clusterName, namespace, cluster -> mockServer.getClient().pods()
         .inNamespace(namespace)
         .delete(podToDelete));
-
   }
 
   private void configureCreationPodWatchers() {

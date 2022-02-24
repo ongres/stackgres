@@ -20,6 +20,7 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,7 @@ import org.mockito.Mock;
 public abstract class DefaultStateMutatorTest
       <R extends CustomResource<?, ?>, T extends AdmissionReview<R>> {
 
-  protected static final ObjectMapper mapper = new ObjectMapper();
+  protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
 
   protected DefaultStateMutator<R, T> mutator;
 
@@ -42,6 +43,7 @@ public abstract class DefaultStateMutatorTest
     when(factory.buildResource()).thenReturn(getDefaultResource());
     mutator = getMutatorInstance();
     mutator.setFactory(factory);
+    mutator.setObjectMapper(MAPPER);
     mutator.init();
   }
 
@@ -82,7 +84,7 @@ public abstract class DefaultStateMutatorTest
 
     T review = getEmptyReview();
 
-    JsonNode crJson = mapper.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -91,7 +93,7 @@ public abstract class DefaultStateMutatorTest
 
     JsonNode targetNode = getConfJson(newConfig);
 
-    JsonNode defaultTarget = mapper.createObjectNode()
+    JsonNode defaultTarget = MAPPER.createObjectNode()
         .setAll(Seq.seq(getConfigParameters(factory.buildResource()))
             .map(t -> t.map2(TextNode::new)).toMap(Tuple2::v1, Tuple2::v2));
 

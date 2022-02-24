@@ -5,40 +5,24 @@
 
 package io.stackgres.apiweb.dto;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.common.StackGresUtil;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.immutables.value.Value;
+import org.immutables.value.Value.Style.ImplementationVisibility;
 
-@RegisterForReflection
-public class ApplicationDto {
+@JsonDeserialize(builder = ApplicationDto.Builder.class)
+@Value.Immutable
+@Value.Style(visibility = ImplementationVisibility.PACKAGE)
+public interface ApplicationDto {
 
-  private String name;
+  String name();
 
-  private String publisher;
+  String publisher();
 
-  public ApplicationDto(String name, String publisher) {
-    this.name = name;
-    this.publisher = publisher;
+  class Builder extends ImmutableApplicationDto.Builder {
   }
 
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getPublisher() {
-    return publisher;
-  }
-
-  public void setPublisher(String publisher) {
-    this.publisher = publisher;
-  }
-
-  @Override
-  public String toString() {
-    return StackGresUtil.toPrettyYaml(this);
+  static Builder builder() {
+    return new Builder();
   }
 
 }

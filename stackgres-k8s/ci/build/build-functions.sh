@@ -11,7 +11,8 @@ message_and_exit() {
   exit "$2"
 }
 
-export LC_ALL=C
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
 
 cd "$(dirname "$0")/../../.." || message_and_exit "Can not change to directory $(dirname "$0")/../../.."
 

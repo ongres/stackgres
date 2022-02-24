@@ -91,16 +91,21 @@ class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
         .statusCode(200)
         .body("find { it.metadata.name == '%s' }.spec.pgBouncer.'pgbouncer.ini'",
             RestAssured.withArgs(resource.getMetadata().getName()),
-            Matchers.equalTo("[databases]\n"
-                + "foodb = dbname=bardb pool_size=10\n"
-                + "sgdb = pool_mode=statement max_db_connections=1000\n\n"
-                + "[users]\n"
-                + "user1 = max_user_connections=30\n"
-                + "user2 = pool_mode=session max_user_connections=100\n\n"
-                + "[pgbouncer]\n"
-                + "default_pool_size = 200\n"
-                + "max_client_conn = 200\n"
-                + "pool_mode = transaction\n\n"));
+            Matchers.equalTo("""
+                [databases]
+                foodb = dbname=bardb pool_size=10
+                sgdb = pool_mode=statement max_db_connections=1000
+
+                [users]
+                user1 = max_user_connections=30
+                user2 = pool_mode=session max_user_connections=100
+
+                [pgbouncer]
+                default_pool_size = 200
+                max_client_conn = 200
+                pool_mode = transaction
+
+                """));
   }
 
   @Test
@@ -116,16 +121,21 @@ class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
         .statusCode(200)
         .body("spec.pgBouncer.'pgbouncer.ini'",
             RestAssured.withArgs(resource.getMetadata().getName()),
-            Matchers.equalTo("[databases]\n"
-                + "foodb = dbname=bardb pool_size=10\n"
-                + "sgdb = pool_mode=statement max_db_connections=1000\n\n"
-                + "[users]\n"
-                + "user1 = max_user_connections=30\n"
-                + "user2 = pool_mode=session max_user_connections=100\n\n"
-                + "[pgbouncer]\n"
-                + "default_pool_size = 200\n"
-                + "max_client_conn = 200\n"
-                + "pool_mode = transaction\n\n"));
+            Matchers.equalTo("""
+                [databases]
+                foodb = dbname=bardb pool_size=10
+                sgdb = pool_mode=statement max_db_connections=1000
+
+                [users]
+                user1 = max_user_connections=30
+                user2 = pool_mode=session max_user_connections=100
+
+                [pgbouncer]
+                default_pool_size = 200
+                max_client_conn = 200
+                pool_mode = transaction
+
+                """));
   }
 
   @Test
@@ -144,16 +154,21 @@ class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
         .statusCode(204);
 
     dto.getSpec().getPgBouncer()
-        .setParameters("[databases]\n"
-            + "bardb = dbname=foodb pool_size=100\n"
-            + "sgdb = pool_mode=statement max_db_connections=500\n\n"
-            + "[users]\n"
-            + "user1 = max_user_connections=30 pool_mode=transaction\n"
-            + "user2 = pool_mode=session max_user_connections=50\n\n"
-            + "[pgbouncer]\n"
-            + "default_pool_size = 300\n"
-            + "max_client_conn = 400\n"
-            + "pool_mode = transaction\n\n");
+        .setParameters("""
+            [databases]
+            bardb = dbname=foodb pool_size=100
+            sgdb = pool_mode=statement max_db_connections=500
+
+            [users]
+            user1 = max_user_connections=30 pool_mode=transaction
+            user2 = pool_mode=session max_user_connections=50
+
+            [pgbouncer]
+            default_pool_size = 300
+            max_client_conn = 400
+            pool_mode = transaction
+
+            """);
 
     given()
         .header(AUTHENTICATION_HEADER)

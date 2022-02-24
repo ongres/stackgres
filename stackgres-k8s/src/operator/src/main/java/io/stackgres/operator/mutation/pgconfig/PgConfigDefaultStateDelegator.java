@@ -14,8 +14,8 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.PgConfigReview;
@@ -26,6 +26,8 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 @ApplicationScoped
 public class PgConfigDefaultStateDelegator implements PgConfigMutator {
 
+  @Inject
+  ObjectMapper objectMapper;
   private PostgresDefaultFactoriesProvider defaultFactoriesProducer;
 
   @Override
@@ -40,14 +42,9 @@ public class PgConfigDefaultStateDelegator implements PgConfigMutator {
         .map(StackGresPostgresConfig::getSpec)
         .map(StackGresPostgresConfigSpec::getPostgresVersion)
         .map(factoriesMap::get)
-        .map(factory -> {
-          PgConfigDefaultStateMutator mutator = new PgConfigDefaultStateMutator();
-          mutator.setFactory(factory);
-          mutator.init();
-          return mutator;
-        })
+        .map(factory -> PgConfigDefaultStateMutator.create(factory, objectMapper))
         .map(mutator -> mutator.mutate(review))
-        .orElse(ImmutableList.of());
+        .orElse(List.of());
   }
 
   @Inject

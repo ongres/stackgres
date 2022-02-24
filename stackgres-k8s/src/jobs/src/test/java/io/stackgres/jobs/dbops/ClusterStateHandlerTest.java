@@ -44,7 +44,6 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.DbOpsEventEmitter;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartImpl;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
-import io.stackgres.jobs.dbops.clusterrestart.ImmutableClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableRestartEventForTest;
 import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
 import io.stackgres.jobs.dbops.clusterrestart.PodTestUtil;
@@ -309,7 +308,7 @@ public abstract class ClusterStateHandlerTest {
 
     dbOps = kubeDb.addOrReplaceDbOps(dbOps);
 
-    var expectedClusterState = ImmutableClusterRestartState.builder()
+    var expectedClusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -350,7 +349,7 @@ public abstract class ClusterStateHandlerTest {
 
     dbOps = kubeDb.addOrReplaceDbOps(dbOps);
 
-    var expectedClusterState = ImmutableClusterRestartState.builder()
+    var expectedClusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -535,7 +534,6 @@ public abstract class ClusterStateHandlerTest {
     );
   }
 
-  @SafeVarargs
   private void verifyEventEmission(RestartEventType... events) {
     final InOrder inOrder = inOrder(eventEmitter);
     Arrays.stream(events).forEach(event -> {

@@ -19,7 +19,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -28,6 +27,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
@@ -42,6 +42,7 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.prometheus.PrometheusConfig;
 import io.stackgres.common.prometheus.PrometheusConfigList;
 import io.stackgres.common.prometheus.ServiceMonitor;
 import io.stackgres.common.resource.BackupConfigFinder;
@@ -188,14 +189,14 @@ class ClusterRequiredResourcesGeneratorTest {
       if (resource.getMetadata().getOwnerReferences().size() == 0) {
         fail("Resource " + resource.getMetadata().getName() + " doesn't have any owner");
       }
-      assertTrue(resource.getMetadata().getOwnerReferences().stream().anyMatch(ownerReference
-          -> ownerReference.getApiVersion().equals(HasMetadata.getApiVersion(
-              StackGresCluster.class))
-          && ownerReference.getKind().equals(HasMetadata.getKind(StackGresCluster.class))
-          && ownerReference.getName().equals(cluster.getMetadata().getName())
-          && ownerReference.getUid().equals(cluster.getMetadata().getUid())
-          && Optional.ofNullable(ownerReference.getBlockOwnerDeletion()).orElse(Boolean.FALSE)
-          .equals(Boolean.FALSE)));
+      assertTrue(resource.getMetadata().getOwnerReferences().stream()
+          .anyMatch(ownerReference -> ownerReference.getApiVersion()
+              .equals(HasMetadata.getApiVersion(StackGresCluster.class))
+              && ownerReference.getKind().equals(HasMetadata.getKind(StackGresCluster.class))
+              && ownerReference.getName().equals(cluster.getMetadata().getName())
+              && ownerReference.getUid().equals(cluster.getMetadata().getUid())
+              && Optional.ofNullable(ownerReference.getBlockOwnerDeletion()).orElse(Boolean.FALSE)
+                  .equals(Boolean.FALSE)));
     });
 
     verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
@@ -445,7 +446,7 @@ class ClusterRequiredResourcesGeneratorTest {
 
   @Test
   void givenADefaultPrometheusInstallation_shouldGenerateServiceMonitors() {
-
+    System.setProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName(), "true");
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
@@ -472,15 +473,16 @@ class ClusterRequiredResourcesGeneratorTest {
 
     var serviceMonitors = generatedResources.stream()
         .filter(r -> r.getKind().equals(ServiceMonitor.KIND))
-        .collect(Collectors.toUnmodifiableList());
+        .count();
 
-    assertEquals(2, serviceMonitors.size());
+    assertEquals(2, serviceMonitors);
     verify(prometheusScanner).findResources();
+    System.clearProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName());
   }
 
   @Test
   void givenAPrometheusInstallationWithNoServiceMonitorSelector_shouldGenerateServiceMonitors() {
-
+    System.setProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName(), "true");
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
@@ -499,19 +501,23 @@ class ClusterRequiredResourcesGeneratorTest {
         .thenReturn(backups);
     mockSecrets(clusterNamespace);
 
-    when(prometheusScanner.findResources()).thenReturn(Optional.of(
+    List<PrometheusConfig> listPrometheus =
         JsonUtil.readFromJson("prometheus/prometheus_list.json", PrometheusConfigList.class)
             .getItems()
-            .stream().peek(pc -> pc.getSpec().setServiceMonitorSelector(null))
-            .collect(Collectors.toUnmodifiableList())));
+            .stream()
+            .peek(pc -> pc.getSpec().setServiceMonitorSelector(null))
+            .toList();
+
+    when(prometheusScanner.findResources()).thenReturn(Optional.of(listPrometheus));
 
     List<HasMetadata> generatedResources = generator.getRequiredResources(cluster);
 
     var serviceMonitors = generatedResources.stream()
-        .filter(r -> r.getKind().equals(ServiceMonitor.KIND))
-        .collect(Collectors.toUnmodifiableList());
+        .filter(r -> r.getKind().equals(HasMetadata.getKind(ServiceMonitor.class)))
+        .count();
 
-    assertEquals(2, serviceMonitors.size());
+    assertEquals(2, serviceMonitors);
+    System.clearProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName());
   }
 
   private void mockSecrets(String clusterNamespace) {

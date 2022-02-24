@@ -69,19 +69,21 @@ class PgbouncerConfigResourceTest extends AbstractDependencyCustomResourceTest
     assertEquals("pgbouncerconf", resource.getMetadata().getName());
     assertEquals("ceaa793f-2d97-48b7-91e4-8086b22f1c4c", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
-    assertEquals("[databases]\n"
-        + "foodb = dbname=bardb pool_size=10\n"
-        + "sgdb = pool_mode=statement max_db_connections=1000\n"
-        + "\n"
-        + "[users]\n"
-        + "user1 = max_user_connections=30\n"
-        + "user2 = pool_mode=session max_user_connections=100\n"
-        + "\n"
-        + "[pgbouncer]\n"
-        + "default_pool_size = 200\n"
-        + "max_client_conn = 100\n"
-        + "pool_mode = 'transaction'\n"
-        + "\n",
+    assertEquals("""
+        [databases]
+        foodb = dbname=bardb pool_size=10
+        sgdb = pool_mode=statement max_db_connections=1000
+
+        [users]
+        user1 = max_user_connections=30
+        user2 = pool_mode=session max_user_connections=100
+
+        [pgbouncer]
+        default_pool_size = 200
+        max_client_conn = 100
+        pool_mode = 'transaction'
+
+        """,
         resource.getSpec().getPgBouncer().getParameters());
     assertNotNull(resource.getStatus());
     assertNotNull(resource.getStatus().getClusters());

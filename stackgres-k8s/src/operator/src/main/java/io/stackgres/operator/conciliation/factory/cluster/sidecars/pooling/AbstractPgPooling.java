@@ -42,8 +42,6 @@ public abstract class AbstractPgPooling
 
   private static final String NAME = "pgbouncer";
 
-  protected final Map<String, String> defaultParameters = getDefaultParameters();
-
   protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject

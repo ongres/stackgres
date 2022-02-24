@@ -115,7 +115,7 @@ class ClusterRestartImplTest {
   void givenACleanState_itShouldRestartAllPods() {
     when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -190,7 +190,7 @@ class ClusterRestartImplTest {
         .thenReturn(Uni.createFrom().item(Optional.empty()));
     primary.getMetadata().getLabels().remove(PatroniUtil.ROLE_KEY);
 
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -263,7 +263,7 @@ class ClusterRestartImplTest {
     replica1.getMetadata().getLabels().put(PatroniUtil.ROLE_KEY,
         PatroniUtil.PRIMARY_ROLE);
 
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -284,7 +284,7 @@ class ClusterRestartImplTest {
     AssertSubscriber<RestartEvent> subscriber = clusterRestart.restartCluster(clusterState)
         .subscribe()
         .withSubscriber(AssertSubscriber.create(2))
-        .await()
+        .awaitFailure()
         .assertFailedWith(RuntimeException.class,
             String.format("Primary instance %s changed from %s",
                 REPLICA_1_POD_NAME, PRIMARY_POD_NAME));
@@ -318,7 +318,7 @@ class ClusterRestartImplTest {
   void givenAClusterWithARestartedPod_shouldNotRestartThatPod() {
     when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -387,7 +387,7 @@ class ClusterRestartImplTest {
   void givenAClusterWithAPodInPendingRestartWithOnlyPendingRestart_shouldOnlyRestartThatPod() {
     when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -443,7 +443,7 @@ class ClusterRestartImplTest {
   void givenAClusterWithPrimaryInPendingRestartWithOnlyPendingRestart_shouldOnlyRestartThatPod() {
     when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -510,7 +510,7 @@ class ClusterRestartImplTest {
   void givenAClusterWithAllReplicasRestarted_shouldRestartOnlyThePrimaryNode() {
     when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -577,7 +577,7 @@ class ClusterRestartImplTest {
   void givenAClusterWithAllReplicasRestartedAndSwitchoverInitiated_shouldNotPerformSwitchover() {
     when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -642,7 +642,7 @@ class ClusterRestartImplTest {
   void givenACleanStateWithReduceImpact_itShouldRestartAllPods() {
     when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -726,7 +726,7 @@ class ClusterRestartImplTest {
   void givenAClusterWithARestartedPodAndReducedImpact_shouldNotRestartThatPod() {
     when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -803,7 +803,7 @@ class ClusterRestartImplTest {
   void givenClusterReplicasRestartedAndSwitchoverReducedImpact_shouldNotPerformSwitchover() {
     when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -867,7 +867,7 @@ class ClusterRestartImplTest {
   void givenAClusterWithAInstancedDecreasedAndReducedImpact_shouldNotDecreaseInstances() {
     when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
@@ -925,7 +925,7 @@ class ClusterRestartImplTest {
   void givenAFailureOnPostgreRestart_itShouldSetStatusAsFailedPostgresRestart() {
     when(clusterWatcher.getAvailablePrimary(CLUSTER_NAME, NAMESPACE))
         .thenReturn(Uni.createFrom().item(Optional.of(PRIMARY_POD_NAME)));
-    ClusterRestartState clusterState = ImmutableClusterRestartState.builder()
+    ClusterRestartState clusterState = ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
         .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))

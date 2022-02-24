@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ClusterLabelFactory;
@@ -46,7 +46,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PatroniConfigEndpointsTest {
 
-  private static final JsonMapper MAPPER = new JsonMapper();
+  private static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
   private final LabelFactoryForCluster<StackGresCluster> labelFactory = new ClusterLabelFactory(
       new ClusterLabelMapper());
   @Mock
@@ -58,8 +58,7 @@ class PatroniConfigEndpointsTest {
 
   @BeforeEach
   void setUp() {
-    generator = new PatroniConfigEndpoints(
-        MAPPER, labelFactory);
+    generator = new PatroniConfigEndpoints(MAPPER, labelFactory);
 
     cluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);

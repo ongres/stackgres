@@ -2,21 +2,23 @@ ARG BASE_IMAGE
 FROM "$BASE_IMAGE"
   USER root:root
   WORKDIR '/app/'
-  COPY 'target/stackgres-jobs-runner' '/app/stackgres-jobs'
-  COPY 'src/main/docker/stackgres-jobs.native.sh' '/app/stackgres-jobs.sh'
-  RUN chmod 775 '/app' -R
-  RUN chmod 775 '/app/stackgres-jobs.sh'
 
   RUN echo 'jboss:x:1000:' >> /etc/group && \
     echo 'jboss:!::' >> /etc/gshadow && \
     echo 'jboss:x:1000:1000::/app:/bin/bash' >> /etc/passwd && \
     echo 'jboss:!!:18655:0:99999:7:::' >> /etc/shadow && \
     echo 'jboss:100000:65536' >> /etc/subgid
+
+  COPY 'src/main/docker/stackgres-jobs.native.sh' '/app/stackgres-jobs.sh'
+  COPY 'target/stackgres-jobs-runner' '/app/stackgres-jobs'
+
+  RUN chown -R jboss:jboss '/app'
+  RUN chmod 755 '/app'
+  RUN chmod 755 '/app/stackgres-jobs.sh'
+
+  ENV HOME=/app LANG=C.utf8
   USER jboss:jboss
-  ENV HOME=/app
-  CMD '/app/stackgres-jobs.sh'
   EXPOSE 8080
   EXPOSE 8443
-  ENV LANG="C.UTF-8"
-  ENV LC_ALL="C.UTF-8"
 
+  CMD '/app/stackgres-jobs.sh'

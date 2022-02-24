@@ -31,8 +31,8 @@ public class ClusterControllerBootstrapImpl implements ClusterControllerBootstra
   @Override
   public void bootstrap() {
     try {
-      if (client.getVersion() != null) {
-        LOGGER.info("Kubernetes version: {}", client.getVersion().getGitVersion());
+      if (client.getKubernetesVersion() != null) {
+        LOGGER.info("Kubernetes version: {}", client.getKubernetesVersion().getGitVersion());
       }
       LOGGER.info("URL of this Kubernetes cluster: {}", client.getMasterUrl());
     } catch (KubernetesClientException e) {

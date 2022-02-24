@@ -14,7 +14,5 @@ then
 fi
 exec /app/stackgres-jobs \
   -Dquarkus.http.host=0.0.0.0 \
-  -Dquarkus.http.port=8080 \
-  -Dquarkus.http.ssl-port=8443 \
   -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
   $APP_OPTS

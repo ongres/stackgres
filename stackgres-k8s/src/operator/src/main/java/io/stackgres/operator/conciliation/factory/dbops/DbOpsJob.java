@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
@@ -54,10 +54,10 @@ public abstract class DbOpsJob implements JobFactory {
   protected final LabelFactoryForDbOps dbOpsLabelFactory;
 
   @Inject
-  public DbOpsJob(ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
+  protected DbOpsJob(ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
       DbOpsEnvironmentVariables clusterEnvironmentVariables,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      LabelFactoryForDbOps dbOpsLabelFactory, JsonMapper jsonMapper) {
+      LabelFactoryForDbOps dbOpsLabelFactory, ObjectMapper jsonMapper) {
     this.podSecurityFactory = podSecurityFactory;
     this.clusterEnvironmentVariables = clusterEnvironmentVariables;
     this.labelFactory = labelFactory;
@@ -247,17 +247,16 @@ public abstract class DbOpsJob implements JobFactory {
                     ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
                     ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
                         volumeMountBuilder -> volumeMountBuilder
-                            .withSubPath(ClusterStatefulSetPath
-                                .LOCAL_BIN_RUN_DBOPS_SH_PATH.filename())
-                            .withMountPath(ClusterStatefulSetPath
-                                .LOCAL_BIN_RUN_DBOPS_SH_PATH.path())
+                            .withSubPath(
+                                ClusterStatefulSetPath.LOCAL_BIN_RUN_DBOPS_SH_PATH.filename())
+                            .withMountPath(
+                                ClusterStatefulSetPath.LOCAL_BIN_RUN_DBOPS_SH_PATH.path())
                             .withReadOnly(true)),
                     ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
                         volumeMountBuilder -> volumeMountBuilder
-                            .withSubPath(ClusterStatefulSetPath
-                                .LOCAL_BIN_SHELL_UTILS_PATH.filename())
-                            .withMountPath(ClusterStatefulSetPath
-                                .LOCAL_BIN_SHELL_UTILS_PATH.path())
+                            .withSubPath(
+                                ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
+                            .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
                             .withReadOnly(true)),
                     ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
                         volumeMountBuilder -> volumeMountBuilder
@@ -331,16 +330,15 @@ public abstract class DbOpsJob implements JobFactory {
                     ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
                         volumeMountBuilder -> volumeMountBuilder
                             .withSubPath(
-                                ClusterStatefulSetPath
-                                    .LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH.filename())
+                                ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH
+                                    .filename())
                             .withMountPath(
-                                ClusterStatefulSetPath
-                                    .LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH.path())
+                                ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH.path())
                             .withReadOnly(true)),
                     ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
                         volumeMountBuilder -> volumeMountBuilder
-                            .withSubPath(ClusterStatefulSetPath
-                                .LOCAL_BIN_SHELL_UTILS_PATH.filename())
+                            .withSubPath(
+                                ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
                             .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
                             .withReadOnly(true)))
                 .addAllToVolumeMounts(Optional.ofNullable(getSetResultScript())

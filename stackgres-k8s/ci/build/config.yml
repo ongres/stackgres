@@ -5,8 +5,8 @@ modules:
   stackgres-parent: &stackgres-parent
     type: java
     path: stackgres-k8s/src/.
-    target_image: alpine:3.13.5
-    build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.2
+    target_image: alpine:3.13.7
+    build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.3
     sources:
       - stackgres-k8s/src/pom.xml
       - stackgres-k8s/src/checks
@@ -19,19 +19,17 @@ modules:
       MAVEN_CLI_OPTS: |
         --batch-mode
         --errors
-        --fail-at-end
         --show-version
         -Dmaven.repo.local=/project/.m2/repository
+        -Dmaven.user.home=/project/.m2
         -DinstallAtEnd=true
         -DdeployAtEnd=true
-        -Dsurefire.useFile=false
         -Dsurefire.useFile=false
         -DtrimStackTrace=false
     build_commands:
       - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -P safer -f "$MODULE_PATH/pom.xml" -N'
     cache:
-      - stackgres-k8s/src/.mvn
-      - .m2/repository
+      - .m2/
     artifacts:
       - stackgres-k8s/src/target
       - .m2/repository/io/stackgres/stackgres-parent
@@ -113,7 +111,7 @@ modules:
   admin-ui:
     type: ui
     path: stackgres-k8s/src/admin-ui
-    target_image: alpine:3.13.5
+    target_image: alpine:3.13.7
     build_image: node:14.17
     sources:
       - stackgres-k8s/src/admin-ui/babel.config.js
@@ -140,15 +138,14 @@ modules:
     type: native
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: alpine:3.13.5
+    target_image: alpine:3.13.7
     build_image: *jdk_build_image
     build_env:
       <<: *mvn_build_env
     build_commands:
       - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS package -DskipTests -P native -f "$MODULE_PATH/pom.xml" -N'
     cache:
-      - stackgres-k8s/src/.mvn
-      - .m2/repository
+      - .m2/
     artifacts:
       - stackgres-k8s/src/operator/target/stackgres-operator-runner
   restapi-native:
@@ -175,7 +172,7 @@ modules:
     type: jvm-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8/openjdk-11:1.3-15
+    target_image: registry.access.redhat.com/ubi8/openjdk-17:1.11
     dockerfile: &jvm-image-args
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.jvm
       args:
@@ -183,9 +180,8 @@ modules:
       seds:
         - "s#^\\( *COPY\\) \\+'#\\1 './$MODULE_PATH/#"
     artifacts:
-      - stackgres-k8s/src/operator/target/stackgres-operator-runner.jar
       - stackgres-k8s/src/operator/src/main/docker/stackgres-operator.jvm.sh
-      - stackgres-k8s/src/operator/target/lib
+      - stackgres-k8s/src/operator/target/quarkus-app
   restapi-jvm-image:
     <<: *jvm-image
     path: stackgres-k8s/src/api-web
@@ -193,9 +189,8 @@ modules:
       <<: *jvm-image-args
       path: stackgres-k8s/src/api-web/src/main/docker/Dockerfile.jvm
     artifacts:
-      - stackgres-k8s/src/api-web/target/stackgres-restapi-runner.jar
       - stackgres-k8s/src/api-web/src/main/docker/stackgres-restapi.jvm.sh
-      - stackgres-k8s/src/api-web/target/lib
+      - stackgres-k8s/src/api-web/target/quarkus-app
   jobs-jvm-image:
     <<: *jvm-image
     path: stackgres-k8s/src/jobs
@@ -203,9 +198,8 @@ modules:
       <<: *jvm-image-args
       path: stackgres-k8s/src/jobs/src/main/docker/Dockerfile.jvm
     artifacts:
-      - stackgres-k8s/src/jobs/target/stackgres-jobs-runner.jar
       - stackgres-k8s/src/jobs/src/main/docker/stackgres-jobs.jvm.sh
-      - stackgres-k8s/src/jobs/target/lib
+      - stackgres-k8s/src/jobs/target/quarkus-app
   cluster-controller-jvm-image:
     <<: *jvm-image
     path: stackgres-k8s/src/cluster-controller
@@ -213,9 +207,8 @@ modules:
       <<: *jvm-image-args
       path: stackgres-k8s/src/cluster-controller/src/main/docker/Dockerfile.jvm
     artifacts:
-      - stackgres-k8s/src/cluster-controller/target/stackgres-cluster-controller-runner.jar
       - stackgres-k8s/src/cluster-controller/src/main/docker/stackgres-cluster-controller.jvm.sh
-      - stackgres-k8s/src/cluster-controller/target/lib
+      - stackgres-k8s/src/cluster-controller/target/quarkus-app
   distributedlogs-controller-jvm-image:
     <<: *jvm-image
     path: stackgres-k8s/src/distributedlogs-controller
@@ -223,14 +216,13 @@ modules:
       <<: *jvm-image-args
       path: stackgres-k8s/src/distributedlogs-controller/src/main/docker/Dockerfile.jvm
     artifacts:
-      - stackgres-k8s/src/distributedlogs-controller/target/stackgres-distributedlogs-controller-runner.jar
       - stackgres-k8s/src/distributedlogs-controller/src/main/docker/stackgres-distributedlogs-controller.jvm.sh
-      - stackgres-k8s/src/distributedlogs-controller/target/lib
+      - stackgres-k8s/src/distributedlogs-controller/target/quarkus-app
   admin-ui-image:
     type: ui-image
     platform_dependent: true
     path: stackgres-k8s/src/admin-ui
-    target_image: registry.access.redhat.com/ubi8/nginx-118:1-42
+    target_image: registry.access.redhat.com/ubi8/nginx-120:1
     dockerfile:
       path: stackgres-k8s/src/admin-ui/docker/Dockerfile
       args:
@@ -243,7 +235,7 @@ modules:
     type: native-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8-minimal:8.4-210
+    target_image: registry.access.redhat.com/ubi8-minimal:8.5
     dockerfile: &native-image-args
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.native
       args:
@@ -291,7 +283,7 @@ modules:
       - stackgres-k8s/src/distributedlogs-controller/src/main/docker/stackgres-distributedlogs-controller.native.sh
   helm-packages:
     type: helm
-    target_image: alpine:3.13.5
+    target_image: alpine:3.13.7
     sources:
       - stackgres-k8s/install/helm/stackgres-operator
       - stackgres-k8s/install/helm/stackgres-cluster
@@ -305,7 +297,7 @@ modules:
       - stackgres-k8s/install/helm/target/packages
   helm-templates:
     type: helm
-    target_image: alpine:3.13.5
+    target_image: alpine:3.13.7
     sources:
       - stackgres-k8s/install/helm/stackgres-operator
       - stackgres-k8s/install/helm/stackgres-cluster
@@ -319,7 +311,7 @@ modules:
       - stackgres-k8s/install/helm/target/templates
   documentation:
     type: documentation
-    target_image: alpine:3.13.5
+    target_image: alpine:3.13.7
     sources:
       - doc/build.sh
       - doc/config.toml

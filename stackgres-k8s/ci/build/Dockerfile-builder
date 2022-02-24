@@ -7,8 +7,9 @@
 #
 ###
 
-FROM ghcr.io/graalvm/graalvm-ce:java11-21.0.0.2
-  RUN gu install native-image
-  RUN microdnf install python3-pip jq
+FROM ghcr.io/graalvm/graalvm-ce:ol8-java17-21.3.1
+  ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+  RUN gu --auto-yes install native-image
+  RUN microdnf --nodocs install python3-pip jq util-linux
   RUN pip3 install yamllint yq
-  RUN microdnf install util-linux
+  RUN microdnf clean all

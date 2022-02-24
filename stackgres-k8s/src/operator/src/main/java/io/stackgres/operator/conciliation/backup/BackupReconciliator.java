@@ -37,6 +37,10 @@ import org.slf4j.helpers.MessageFormatter;
 public class BackupReconciliator
     extends AbstractReconciliator<StackGresBackup> {
 
+  public BackupReconciliator() {
+    super(StackGresBackup.KIND);
+  }
+
   private EventEmitter<StackGresBackup> eventController;
 
   private PatchResumer<StackGresBackup> patchResumer;
@@ -46,11 +50,6 @@ public class BackupReconciliator
   private CustomResourceFinder<StackGresCluster> clusterFinder;
 
   private CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
-
-  @Override
-  protected String getReconciliationName() {
-    return StackGresBackup.KIND;
-  }
 
   void onStart(@Observes StartupEvent ev) {
     start();

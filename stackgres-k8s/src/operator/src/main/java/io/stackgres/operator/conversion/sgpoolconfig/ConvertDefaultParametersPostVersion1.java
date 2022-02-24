@@ -42,6 +42,7 @@ public class ConvertDefaultParametersPostVersion1 implements Converter {
             ObjectNode parameters = Optional.ofNullable(node.get("spec"))
                 .map(spec -> spec.get("pgBouncer"))
                 .map(spec -> spec.get("pgbouncer.ini"))
+                .map(spec -> spec.has("pgbouncer") ? spec.get("pgbouncer") : spec)
                 .map(ObjectNode.class::cast)
                 .orElse(node.objectNode());
             ArrayNode defaultParameters = node.arrayNode();

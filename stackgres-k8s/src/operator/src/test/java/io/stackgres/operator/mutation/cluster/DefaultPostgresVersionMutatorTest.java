@@ -32,7 +32,7 @@ class DefaultPostgresVersionMutatorTest {
   private static final String POSTGRES_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().findFirst().get();
 
-  protected static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+  protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
 
   protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
@@ -46,6 +46,7 @@ class DefaultPostgresVersionMutatorTest {
         .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
 
     mutator = new DefaultPostgresVersionMutator();
+    mutator.setObjectMapper(MAPPER);
     mutator.init();
   }
 
@@ -64,7 +65,7 @@ class DefaultPostgresVersionMutatorTest {
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
 
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);
@@ -81,7 +82,7 @@ class DefaultPostgresVersionMutatorTest {
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
 
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);
@@ -96,7 +97,7 @@ class DefaultPostgresVersionMutatorTest {
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
 
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);
@@ -112,7 +113,7 @@ class DefaultPostgresVersionMutatorTest {
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
 
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);

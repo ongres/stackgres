@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
@@ -97,7 +97,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   @Mock
   private ResourceFinder<Endpoints> endpointsFinder;
 
-  private JsonMapper objectMapper = new JsonMapper();
+  private ObjectMapper objectMapper = JsonUtil.JSON_MAPPER;
 
   private ClusterStatefulSetReconciliationHandler handler;
 
@@ -638,7 +638,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
             });
 
     lenient().doAnswer(arguments -> {
-      podList.remove((Pod) arguments.getArgument(0));
+      podList.remove(arguments.getArgument(0));
       return null;
     }).when(podWriter).delete(any());
   }

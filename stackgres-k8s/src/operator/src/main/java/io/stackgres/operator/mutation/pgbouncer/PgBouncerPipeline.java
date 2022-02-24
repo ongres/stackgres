@@ -33,10 +33,8 @@ public class PgBouncerPipeline implements JsonPatchMutationPipeline<PoolingRevie
 
     mutators.forEach(mutator -> operations.addAll(mutator.mutate(review)));
 
-    if (operations.isEmpty()) {
-      return Optional.empty();
-    } else {
-      return Optional.of(join(operations));
-    }
+    return operations.isEmpty()
+        ? Optional.empty()
+        : Optional.of(join(operations));
   }
 }

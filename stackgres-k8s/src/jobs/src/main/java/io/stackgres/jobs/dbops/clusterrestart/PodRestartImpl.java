@@ -38,10 +38,10 @@ public class PodRestartImpl implements PodRestart {
 
     return podWatcher.waitUntilIsCreated(podName, podNamespace)
         .onItem()
-        .invoke(foundPod -> podWriter.delete(foundPod))
-        .chain(foundPod -> podWatcher.waitUntilIsReplaced(foundPod))
+        .invoke(podWriter::delete)
+        .chain(podWatcher::waitUntilIsReplaced)
         .chain(() -> podWatcher.waitUntilIsReady(name, podName, podNamespace, true))
-        .onFailure(failure -> failure instanceof StatefulSetChangedException)
+        .onFailure(StatefulSetChangedException.class::isInstance)
         .retry().indefinitely()
         .onFailure()
         .transform(failure -> {

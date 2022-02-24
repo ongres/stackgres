@@ -5,29 +5,35 @@
 
 package io.stackgres.common;
 
-import javax.enterprise.context.ApplicationScoped;
+import java.util.function.Supplier;
+
+import javax.inject.Singleton;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import io.quarkus.arc.Unremovable;
+import io.fabric8.kubernetes.client.utils.Serialization;
 
-@ApplicationScoped
-@Unremovable
-public class YamlMapperProvider {
+@Singleton
+public class YamlMapperProvider implements Supplier<YAMLMapper> {
 
-  private static final YAMLMapper YAML_MAPPER = createYamlMapper();
+  private static final YAMLMapper YAML_MAPPER = YAMLMapper.builder(new YAMLFactory()
+      .disable(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID))
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+      .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+      .disable(Feature.WRITE_DOC_START_MARKER)
+      .build();
 
-  private static YAMLMapper createYamlMapper() {
-    YAMLMapper yamlMapper = new YAMLMapper();
-    yamlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    yamlMapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
-    yamlMapper.disable(Feature.WRITE_DOC_START_MARKER);
-    return yamlMapper;
+  static {
+    YAML_MAPPER.registerModules(Serialization.UNMATCHED_FIELD_TYPE_MODULE);
   }
 
-  public YAMLMapper yamlMapper() {
+  @Override
+  public YAMLMapper get() {
     return YAML_MAPPER;
   }
 

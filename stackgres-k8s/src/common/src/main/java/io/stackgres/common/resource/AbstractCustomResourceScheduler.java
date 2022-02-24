@@ -18,36 +18,37 @@ import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?, ?>,
     L extends CustomResourceList<T>>
     implements CustomResourceScheduler<T> {
 
+  @NotNull
   private final Class<T> customResourceClass;
+  @NotNull
   private final Class<L> customResourceListClass;
 
   @Inject
   KubernetesClient client;
 
   protected AbstractCustomResourceScheduler(
-      KubernetesClient client,
-      Class<T> customResourceClass,
-      Class<L> customResourceListClass) {
-    this.client = client;
+      @NotNull Class<T> customResourceClass,
+      @NotNull Class<L> customResourceListClass) {
     this.customResourceClass = customResourceClass;
     this.customResourceListClass = customResourceListClass;
   }
 
   @Override
   public T create(T resource) {
-    return getCustomResourceEndpoints(client)
+    return getCustomResourceEndpoints()
         .inNamespace(resource.getMetadata().getNamespace())
         .create(resource);
   }
 
   @Override
   public T update(T resource) {
-    return getCustomResourceEndpoints(client)
+    return getCustomResourceEndpoints()
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getMetadata().getName())
         .patch(resource);
@@ -57,7 +58,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
   public T update(T resource, BiConsumer<T, T> setter) {
     return KubernetesClientUtil.retryOnConflict(
         () -> {
-          T resourceOverwrite = getCustomResourceEndpoints(client)
+          T resourceOverwrite = getCustomResourceEndpoints()
               .inNamespace(resource.getMetadata().getNamespace())
               .withName(resource.getMetadata().getName())
               .get();
@@ -70,7 +71,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
                 + ": resource not found");
           }
           setter.accept(resourceOverwrite, resource);
-          return getCustomResourceEndpoints(client)
+          return getCustomResourceEndpoints()
               .inNamespace(resource.getMetadata().getNamespace())
               .withName(resource.getMetadata().getName())
               .lockResourceVersion(resourceOverwrite.getMetadata().getResourceVersion())
@@ -88,14 +89,13 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
 
   @Override
   public void delete(T resource) {
-    getCustomResourceEndpoints(client)
+    getCustomResourceEndpoints()
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getMetadata().getName())
         .delete();
   }
 
-  private Namespaceable<NonNamespaceOperation<T, L, Resource<T>>> getCustomResourceEndpoints(
-      KubernetesClient client) {
+  private Namespaceable<NonNamespaceOperation<T, L, Resource<T>>> getCustomResourceEndpoints() {
     return client.resources(customResourceClass, customResourceListClass);
   }
 

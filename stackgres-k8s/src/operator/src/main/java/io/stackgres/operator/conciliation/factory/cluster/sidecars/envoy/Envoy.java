@@ -33,7 +33,6 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.ObjectMapperProvider;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -64,12 +63,12 @@ public class Envoy extends AbstractEnvoy {
 
   @Inject
   public Envoy(YamlMapperProvider yamlMapperProvider,
-      ObjectMapperProvider objectMapperProvider,
+      ObjectMapper jsonMapper,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       @ProviderName(CONTAINER_USER_OVERRIDE)
       VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
     super(yamlMapperProvider, labelFactory);
-    this.objectMapper = objectMapperProvider.objectMapper();
+    this.objectMapper = jsonMapper;
     this.containerUserOverrideMounts = containerUserOverrideMounts;
   }
 
@@ -104,6 +103,7 @@ public class Envoy extends AbstractEnvoy {
     return container.build();
   }
 
+  @Override
   protected Stream<ImmutableVolumePair> buildExtraVolumes(StackGresClusterContext context) {
     return sslVolume(context);
   }
@@ -136,7 +136,7 @@ public class Envoy extends AbstractEnvoy {
   protected HasMetadata buildSource(StackGresClusterContext context) {
     final StackGresCluster stackGresCluster = context.getSource();
 
-    YAMLMapper yamlMapper = yamlMapperProvider.yamlMapper();
+    YAMLMapper yamlMapper = yamlMapperProvider.get();
     final ObjectNode envoyConfig;
     try {
       envoyConfig = (ObjectNode) yamlMapper
