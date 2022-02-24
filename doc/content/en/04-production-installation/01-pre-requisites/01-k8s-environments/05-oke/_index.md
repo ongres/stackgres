@@ -1,7 +1,7 @@
 ---
 title: "OKE"
 weight: 5
-url: install/prerequisites/k8s/gke
+url: install/prerequisites/k8s/oke
 description: Oracle Cloud Infrastructure Container Engine for Kubernetes (OKE) is a fully-managed, scalable, and highly available service that you can use to deploy your containerized applications to the cloud.
 ---
 
