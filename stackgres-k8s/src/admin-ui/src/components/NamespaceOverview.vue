@@ -20,7 +20,11 @@
                             </router-link>
                         </th>
                         <th class="icon invisible">
-                            <router-link :to="'/' + $route.params.namespace + '/sgclusters/new'" title="Create Cluster">
+                            <router-link 
+                                :to="'/' + $route.params.namespace + '/sgclusters/new'"
+                                title="Create Cluster"
+                                v-if="iCan('create', 'sgclusters', $route.params.namespace)"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
                             </router-link>
                         </th>
@@ -66,7 +70,11 @@
                             </router-link>
                         </th>
                         <th class="icon invisible">
-                            <router-link :to="'/' + $route.params.namespace + '/sginstanceprofiles/new'" title="Create Instance Profile">
+                            <router-link 
+                                :to="'/' + $route.params.namespace + '/sginstanceprofiles/new'" 
+                                title="Create Instance Profile" 
+                                v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
                             </router-link>
                         </th>
@@ -112,7 +120,11 @@
                             </router-link>
                         </th>
                         <th class="icon invisible">
-                            <router-link :to="'/' + $route.params.namespace + '/sgpgconfigs/new'" title="Create Postgres Configuration">
+                            <router-link 
+                                :to="'/' + $route.params.namespace + '/sgpgconfigs/new'" 
+                                title="Create Postgres Configuration"
+                                v-if="iCan('create','sgpgconfigs', $route.params.namespace)"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
                             </router-link>
                         </th>
@@ -158,7 +170,11 @@
                             </router-link>
                         </th>
                         <th class="icon invisible">
-                            <router-link :to="'/' + $route.params.namespace + '/sgpoolconfigs/new'" title="Create Pooling Configuration">
+                            <router-link 
+                                :to="'/' + $route.params.namespace + '/sgpoolconfigs/new'" 
+                                title="Create Pooling Configuration"
+                                v-if="iCan('create', 'sgpoolconfigs', $route.params.namespace)"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
                             </router-link>
                         </th>
@@ -204,7 +220,11 @@
                             </router-link>
                         </th>
                         <th class="icon invisible">
-                            <router-link :to="'/' + $route.params.namespace + '/sgbackupconfigs/new'" title="Create Backup Configuration">
+                            <router-link 
+                                :to="'/' + $route.params.namespace + '/sgbackupconfigs/new'" 
+                                title="Create Backup Configuration"
+                                v-if="iCan('create', 'sgbackupconfigs', $route.params.namespace)"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
                             </router-link>
                         </th>
@@ -250,7 +270,11 @@
                             </router-link>
                         </th>
                         <th class="icon invisible">
-                            <router-link :to="'/' + $route.params.namespace + '/sgdistributedlogs/new'" title="Create Logs Server">
+                            <router-link 
+                                :to="'/' + $route.params.namespace + '/sgdistributedlogs/new'" 
+                                title="Create Logs Server"
+                                v-if="iCan('create', 'sgdistributedlogs', $route.params.namespace)"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
                             </router-link>
                         </th>
@@ -296,7 +320,11 @@
                             </router-link>
                         </th>
                         <th class="icon invisible">
-                            <router-link :to="'/' + $route.params.namespace + '/sgbackups/new'" title="Create Backup">
+                            <router-link
+                                :to="'/' + $route.params.namespace + '/sgbackups/new'" 
+                                title="Create Backup"
+                                v-if="iCan('create', 'sgbackups', $route.params.namespace)"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
                             </router-link>
                         </th>
@@ -343,7 +371,11 @@
                             </router-link>
                         </th>
                         <th class="icon invisible">
-                            <router-link :to="'/' + $route.params.namespace + '/sgdbops/new'" title="Create Database Operation">
+                            <router-link 
+                                :to="'/' + $route.params.namespace + '/sgdbops/new'" 
+                                title="Create Database Operation"
+                                v-if="iCan('create', 'sgdbops', $route.params.namespace)"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
                             </router-link>
                         </th>
