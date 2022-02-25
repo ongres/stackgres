@@ -503,4 +503,31 @@ describe('Create SGDbOp', () => {
         // Test user redirection
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgdbops')
     });
+
+    it('notValid class should be added if no op is selected and removed once op is selected', () => {
+        // Submit form without selecting an op
+        cy.get('select[data-field="spec.sgCluster"]')
+            .select(clusterName)
+
+        cy.get('form#createDbops button[type="submit"]')
+            .click()
+
+        // Error notificacion should appear
+        cy.get('#notifications .message.show .kind')
+            .should(($notification) => {
+                expect($notification).contain('error')
+            })
+
+        // notValid class should be added to op boxes
+        cy.get('.optionBoxes label')
+            .should('have.class', 'notValid')
+
+        // notValid class should be removed when op is selected
+        cy.get('label[for="restart"]')
+            .click()
+
+        cy.get('.optionBoxes label')
+            .should('not.have.class', 'notValid')
+    });
+    
   })
