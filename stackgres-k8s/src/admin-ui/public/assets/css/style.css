@@ -1397,14 +1397,24 @@ footer .tooltip p {
     line-height: 1.2;
 }
 
-.message .detail {
+.message .details {
     line-height: 1.2;
     word-break: break-word;
+    margin-top: 20px;
 }
 
-.message .doclink {
+.message .doclink, .message .doclink:hover {
     font-weight: bold;
+    display: inline-block;
+    margin-top: 20px;
+    background-position: right !important;
+    background-size: 15px !important;
+}
+
+.message .doclink span {
+    margin-right: 20px;
     position: relative;
+    top: 1px;
 }
 
 #nav .doclink svg {
@@ -1425,12 +1435,12 @@ footer .tooltip p {
     padding: 6px 10px;
 }
 
-.message .kind.error {
+.message.show.error .kind {
     background: rgba(255, 38, 0, .25);
     color: #FF2600;
 }
 
-.message .kind.message {
+.message.message .kind {
     background: rgba(0, 173, 181, .25);
     color: var(--blue);
 }
@@ -1443,11 +1453,11 @@ footer .tooltip p {
     border: 0;
 }
 
-.message .icon.error path {
-    fill: #FF2600;
+.message.show.error .icon path {
+    fill: #FF2600 !important;
 }
 
-.message .icon.message path {
+.message.message .icon path {
     fill: var(--blue);
 }
 

@@ -10,9 +10,9 @@
 
             <template v-for="(notification, index) in notifications.messages">
                 <template v-if="notification.show || notifications.showAll">
-                    <div class="message show">
-                        <span class="icon" :class="notification.level" v-html="icons[notification.kind]"></span>
-                        <span class="kind" :class="notification.level">
+                    <div class="message show" :class="notification.level">
+                        <span class="icon" v-html="icons[notification.kind]"></span>
+                        <span class="kind">
                             {{ notification.level }}
                         </span>
                         <span class="timestamp small floatRight">
@@ -25,10 +25,10 @@
                         </span>
                         <div class="title" v-html="notification.message.content"></div>
                         <div v-if="notification.message.hasOwnProperty('details')" class="details">
-                            {{ notification.message.content }}
+                            <strong>Details:</strong> {{ notification.message.details }}
                         </div>
-                        <a v-if="notification.message.hasOwnProperty('type')" :href="message.type" title="More Info" target="_blank" class="doclink newTab">
-                            More Info
+                        <a v-if="notification.message.hasOwnProperty('link')" :href="notification.message.link" title="More Info" target="_blank" class="doclink newTab">
+                            <span>More Info</span>
                         </a>
                     </div>
                 </template>
