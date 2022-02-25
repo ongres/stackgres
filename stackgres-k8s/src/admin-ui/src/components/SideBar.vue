@@ -32,7 +32,7 @@
 		</div>
 
 		<div id="sets" v-if="!notFound && currentPath.namespace.length">
-			<div v-if="iCan('','sgclusters')" class="set clu" :class="currentPath.component.includes('Cluster') ? 'active' : ''" >
+			<div v-if="iCan('any','sgclusters', currentPath.namespace)" class="set clu" :class="currentPath.component.includes('Cluster') ? 'active' : ''" >
 				<ul>
 					<li class="crdName">
 						<router-link :to="'/' + currentPath.namespace + '/sgclusters'" title="Clusters Overview" class="view nav-item">
@@ -62,7 +62,7 @@
 				</ul>
 			</div>
 
-			<div v-if="iCan('','sginstanceprofiles')" class="prof set" :class="currentPath.component.includes('Profile') ? 'active' : ''">
+			<div v-if="iCan('any','sginstanceprofiles', currentPath.namespace)" class="prof set" :class="currentPath.component.includes('Profile') ? 'active' : ''">
 				<ul>
 					<li class="crdName">
 						<router-link :to="'/' + currentPath.namespace + '/sginstanceprofiles'" class="nav-item">
@@ -92,7 +92,7 @@
 				</div>
 			</div>
 				
-			<div v-if="iCan('','sgpgconfigs')" class="pg set subset" :class="currentPath.component.includes('PgConfig') ? 'active' : ''" >
+			<div v-if="iCan('any','sgpgconfigs', currentPath.namespace)" class="pg set subset" :class="currentPath.component.includes('PgConfig') ? 'active' : ''" >
 				<ul>
 					<li class="crdName">
 						<router-link :to="'/' + currentPath.namespace + '/sgpgconfigs'" class="nav-item">
@@ -115,7 +115,7 @@
 				</ul>		
 			</div>
 
-			<div v-if="iCan('','sgpoolconfigs')" class="pool set subset" :class="currentPath.component.includes('PoolConfig') ? 'active' : ''" >
+			<div v-if="iCan('any','sgpoolconfigs', currentPath.namespace)" class="pool set subset" :class="currentPath.component.includes('PoolConfig') ? 'active' : ''" >
 				<ul>
 					<li class="crdName">
 						<router-link :to="'/' + currentPath.namespace + '/sgpoolconfigs'" class="nav-item">
@@ -138,7 +138,7 @@
 				</ul>
 			</div>
 
-			<div v-if="iCan('','sgbackupconfigs')" class="backup set subset" :class="currentPath.component.includes('BackupConfig') ? 'active' : ''" >
+			<div v-if="iCan('any','sgbackupconfigs', currentPath.namespace)" class="backup set subset" :class="currentPath.component.includes('BackupConfig') ? 'active' : ''" >
 				<ul>
 					<li class="crdName">
 						<router-link :to="'/' + currentPath.namespace + '/sgbackupconfigs'" class="nav-item">
@@ -161,7 +161,7 @@
 				</ul>
 			</div>
 			
-			<div v-if="iCan('', 'sgdistributedlogs')" class="set logs" :class="currentPath.component.includes('LogsServer') ? 'active' : ''" >
+			<div v-if="iCan('any', 'sgdistributedlogs', currentPath.namespace)" class="set logs" :class="currentPath.component.includes('LogsServer') ? 'active' : ''" >
 				<ul>
 					<li class="crdName">
 						<router-link :to="'/' + currentPath.namespace + '/sgdistributedlogs'" title="Logs Servers" class="nav-item">
@@ -184,7 +184,7 @@
 				</ul>
 			</div>
 
-			<div v-if="iCan('','sgbackups')" class="set backups" :class="( currentPath.component.includes('Backups') && !currentPath.component.includes('Cluster') ) ? 'active' : ''" >
+			<div v-if="iCan('any','sgbackups', currentPath.namespace)" class="set backups" :class="( currentPath.component.includes('Backups') && !currentPath.component.includes('Cluster') ) ? 'active' : ''" >
 				<ul>
 					<li class="crdName">	
 						<router-link :to="'/' + currentPath.namespace + '/sgbackups'" title="Backups" class="nav-item">
@@ -199,7 +199,7 @@
 				</ul>
 			</div>
 
-			<div class="set dbops" :class="currentPath.component.includes('DbOps') ? 'active' : ''" >
+			<div v-if="iCan('any','sgdbops', currentPath.namespace)"  class="set dbops" :class="currentPath.component.includes('DbOps') ? 'active' : ''" >
 				<ul>
 					<li class="crdName">
 						<router-link :to="'/' + currentPath.namespace + '/sgdbops'" title="Database Operations" class="nav-item">

@@ -38,7 +38,7 @@ export default new Vuex.Store({
     permissions: {
       allowed: {
         namespaced: [],
-        unnamespaced: []
+        unnamespaced: {}
       },
       forbidden: []
     },
