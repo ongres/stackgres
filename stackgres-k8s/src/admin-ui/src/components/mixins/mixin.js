@@ -1259,13 +1259,19 @@ export const mixin = {
       
       getDateString() {
         let fullDate = new Date();
-        let timeString = (store.state.timezone == 'local' ? fullDate.toLocaleTimeString().replaceAll(':','-') : fullDate.toUTCString().slice(fullDate.toUTCString().lastIndexOf(' ') - 8, fullDate.toUTCString().lastIndexOf(' ')).replaceAll(':','-'));
+        let timeString = '';
+        let dayString = '';
         let localeMonth = fullDate.getMonth()+1;
-        let dayString = (store.state.timezone == 'local' ? (fullDate.getFullYear() + '-' + localeMonth.toString().padStart(2, '0') + '-' + fullDate.getDate().toString().padStart(2, '0'))  : fullDate.toISOString().slice(0, fullDate.toISOString().indexOf('T')));
-
-        let dateString = dayString + '-' + timeString
-
-        return dateString
+        
+        if (store.state.timezone == 'local') {
+          timeString = fullDate.toLocaleTimeString([], { hour12: false });
+          dayString = fullDate.getFullYear() + '-' + localeMonth.toString().padStart(2, '0') + '-' + fullDate.getDate().toString().padStart(2, '0');
+        } else {
+          timeString = fullDate.getUTCHours() + ':' + fullDate.getUTCMinutes() + ':' + fullDate.getUTCSeconds()
+          dayString = fullDate.toISOString().slice(0, fullDate.toISOString().indexOf('T'));
+        }
+          
+        return dayString + '-' + timeString.replaceAll(':','-')
       }
 
     },
