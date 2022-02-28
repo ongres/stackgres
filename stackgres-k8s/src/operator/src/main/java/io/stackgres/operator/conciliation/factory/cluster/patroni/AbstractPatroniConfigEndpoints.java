@@ -68,6 +68,15 @@ public abstract class AbstractPatroniConfigEndpoints
     return normalizeParams(pgConfig.getSpec().getPostgresVersion(), params);
   }
 
+  @NotNull
+  public Map<String, String> getPostgresRecoveryConfigValues(StackGresClusterContext context) {
+    StackGresPostgresConfig pgConfig = context.getPostgresConfig();
+
+    Map<String, String> params = getPostgresRecoveryParameters(context, pgConfig);
+
+    return normalizeParams(pgConfig.getSpec().getPostgresVersion(), params);
+  }
+
   private Map<String, String> normalizeParams(String postgresVersion,
       Map<String, String> params) {
     final GucValidator val = GucValidator.forVersion(postgresVersion);
@@ -81,6 +90,9 @@ public abstract class AbstractPatroniConfigEndpoints
 
   protected abstract Map<String, String> getPostgresParameters(StackGresClusterContext context,
       StackGresPostgresConfig pgConfig);
+
+  protected abstract Map<String, String> getPostgresRecoveryParameters(
+      StackGresClusterContext context, StackGresPostgresConfig pgConfig);
 
   protected boolean isBackupConfigurationPresent(StackGresClusterContext context) {
     return context.getBackupConfig()

@@ -94,6 +94,20 @@ class PatroniConfigEndpointsTest {
   }
 
   @Test
+  void getPostgresRecoveryConfigValues_shouldConfigureBackupParametersIfArePresent() {
+    when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
+    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getSource()).thenReturn(cluster);
+
+    Map<String, String> pgRecoveryParams = generator.getPostgresRecoveryConfigValues(context);
+
+    assertTrue(pgRecoveryParams.containsKey("restore_command"));
+    final String expected = "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(cluster)
+        + "' -- wal-g wal-fetch %f %p";
+    assertEquals(expected, pgRecoveryParams.get("restore_command"));
+  }
+
+  @Test
   void getPostgresConfigValues_shouldNotConfigureBackupParametersIfAreNotPresent() {
     when(context.getBackupConfig()).thenReturn(Optional.empty());
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
