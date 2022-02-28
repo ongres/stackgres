@@ -560,7 +560,7 @@ $(document).ready(function(){
       $('[data-field="' + field + '"]').removeClass('notValid');
     }
   })
-
+  
   $(document).on('click','.copyClipboard', function(){
     let el = $(this)
     let copyText = document.getElementById('copyText');
