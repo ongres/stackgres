@@ -122,7 +122,7 @@ describe('Create SGDbOp', () => {
             .should('be.visible')
     });  
 
-    /* it('Creating a Benchmark SGDbOps should be possible', () => {
+    it('Creating a Benchmark SGDbOps should be possible', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
             .clear()
@@ -502,7 +502,7 @@ describe('Create SGDbOp', () => {
         
         // Test user redirection
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgdbops')
-    }); */
+    });
 
     it('notValid class should be added if no op is selected and removed once op is selected', () => {
         // Submit form without selecting an op
