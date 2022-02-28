@@ -556,7 +556,8 @@ $(document).ready(function(){
   // Remove notValid class from changed fields
   $(document).on('change keyup','.notValid', function(){
     if( (($(this).val() != '') && ($(this).val() != null)) || ($(this).is('label') && $(this).find('input[type="checkbox"]').is(':checked'))  ) {
-      $(this).removeClass('notValid');
+      let field = $(this).data('field');
+      $('[data-field="' + field + '"]').removeClass('notValid');
     }
   })
 

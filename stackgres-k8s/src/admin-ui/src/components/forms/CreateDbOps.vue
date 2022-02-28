@@ -840,14 +840,6 @@
 
         },
 
-        created: function() {
-            $(document).on('click', '.optionBoxes label', function(){    
-				$(this).addClass('active');
-                $('.optionBoxes label').not($(this)).removeClass('active');
-                $('.optionBoxes label').removeClass('notValid');
-			});
-        },
-
         methods: {
 
             getIsoDuration( duration ) {
