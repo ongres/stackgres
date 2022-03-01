@@ -26,9 +26,6 @@ build:
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
      stale_schedule, job_execution_timeout, archived_failure, unmet_prerequisites, scheduler_failure, data_integrity_failure ] 
   cache:
-    - key: hashes
-      paths:
-        - stackgres-k8s/ci/build/target/*
     - key:
         files:
           - stackgres-k8s/src/pom.xml
@@ -42,6 +39,7 @@ build:
         - stackgres-k8s/ci/build/target/junit-build.hashes.xml
         - stackgres-k8s/src/*/target/surefire-reports/TEST-*.xml
     paths:
+        - stackgres-k8s/ci/build/target/*
         - stackgres-k8s/src/api-web/target/swagger*
         - stackgres-k8s/ci/build/target
 
@@ -50,6 +48,8 @@ build ui:
   stage: build 2
   tags:
     - stackgres-runner
+  dependencies:
+    - build
   script:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
@@ -57,9 +57,6 @@ build ui:
         admin-ui
   retry: 2
   cache:
-    - key: hashes
-      paths:
-      - stackgres-k8s/ci/build/target/*
     - key: node
       paths:
       - stackgres-k8s/src/admin-ui/node_modules
@@ -69,6 +66,8 @@ build documentation:
   stage: build 2
   tags:
     - stackgres-runner
+  dependencies:
+    - build
   script:
     - |
       [ "$DEBUG" != true ] || set -x
@@ -86,10 +85,6 @@ build documentation:
         --extract documentation:doc/public \
         documentation
   retry: 2
-  cache:
-    - key: hashes
-      paths:
-      - stackgres-k8s/ci/build/target/*
   artifacts:
     expire_in: 1 week
     when: always
@@ -101,16 +96,14 @@ build helm packages:
   stage: build 2
   tags:
     - stackgres-runner
+  dependencies:
+    - build
   script:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
         --extract helm-packages:stackgres-k8s/install/helm/target/packages \
         helm-packages
   retry: 2
-  cache:
-    - key: hashes
-      paths:
-      - stackgres-k8s/ci/build/target/*
   artifacts:
     expire_in: 1 week
     when: always
@@ -122,16 +115,14 @@ build helm templates:
   stage: build 2
   tags:
     - stackgres-runner
+  dependencies:
+    - build
   script:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
         --extract helm-templates:stackgres-k8s/install/helm/target/templates \
         helm-templates
   retry: 2
-  cache:
-    - key: hashes
-      paths:
-      - stackgres-k8s/ci/build/target/*
   artifacts:
     expire_in: 1 week
     when: always
