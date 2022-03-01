@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.storages;
 
+import java.util.Objects;
+
 import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -57,4 +59,22 @@ public class AwsCredentialsDto {
     return StackGresUtil.toPrettyYaml(this);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    AwsCredentialsDto that = (AwsCredentialsDto) o;
+    return Objects.equals(accessKey, that.accessKey)
+        && Objects.equals(secretKey, that.secretKey)
+        && Objects.equals(secretKeySelectors, that.secretKeySelectors);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(accessKey, secretKey, secretKeySelectors);
+  }
 }

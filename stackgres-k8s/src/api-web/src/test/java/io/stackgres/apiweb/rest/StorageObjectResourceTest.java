@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
@@ -28,7 +29,6 @@ import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -95,7 +95,10 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
   protected AbstractDependencyResourceTransformer<
       ObjectStorageDto,
       StackGresObjectStorage> getTransformer() {
-    return new ObjectStorageTransformer(new BackupStorageTransformer());
+    return new ObjectStorageTransformer(
+        new BackupStorageTransformer(),
+        new JsonMapper()
+    );
   }
 
   @Override
@@ -128,14 +131,12 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
   }
 
   @Test
-  @Disabled //Disabled because it requires changes in the SGCluster to work
   @Override
   void listShouldReturnAllDtos() {
     super.listShouldReturnAllDtos();
   }
 
   @Test
-  @Disabled //Disabled because it requires changes in the SGCluster to work
   @Override
   void getOfAnExistingDtoShouldReturnTheExistingDto() {
     super.getOfAnExistingDtoShouldReturnTheExistingDto();

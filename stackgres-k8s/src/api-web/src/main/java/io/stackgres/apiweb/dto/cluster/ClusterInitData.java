@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
+import java.util.Objects;
 
 import javax.validation.Valid;
 
@@ -44,5 +45,23 @@ public class ClusterInitData {
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterInitData that = (ClusterInitData) o;
+    return Objects.equals(restore, that.restore)
+        && Objects.equals(scripts, that.scripts);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(restore, scripts);
   }
 }

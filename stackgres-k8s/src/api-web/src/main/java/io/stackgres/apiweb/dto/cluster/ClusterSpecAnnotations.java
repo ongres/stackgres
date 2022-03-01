@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.Map;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -72,4 +73,24 @@ public class ClusterSpecAnnotations {
     return StackGresUtil.toPrettyYaml(this);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterSpecAnnotations that = (ClusterSpecAnnotations) o;
+    return Objects.equals(allResources, that.allResources)
+        && Objects.equals(clusterPods, that.clusterPods)
+        && Objects.equals(services, that.services)
+        && Objects.equals(primaryService, that.primaryService)
+        && Objects.equals(replicasService, that.replicasService);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(allResources, clusterPods, services, primaryService, replicasService);
+  }
 }

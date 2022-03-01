@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -82,4 +84,23 @@ public class ClusterCondition {
         .toString();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterCondition that = (ClusterCondition) o;
+    return Objects.equals(lastTransitionTime, that.lastTransitionTime)
+        && Objects.equals(message, that.message)
+        && Objects.equals(reason, that.reason)
+        && Objects.equals(status, that.status) && Objects.equals(type, that.type);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(lastTransitionTime, message, reason, status, type);
+  }
 }

@@ -6,6 +6,8 @@
 package io.stackgres.apiweb.rest;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -19,6 +21,9 @@ import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
@@ -45,11 +50,11 @@ public class ObjectStorageResource extends AbstractRestServiceDependency<ObjectS
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
+              content = {@Content(
                   mediaType = "application/json",
                   array = @ArraySchema(schema = @Schema(
                       implementation = ObjectStorageDto.class
-                  ))) })
+                  )))})
       })
   @Override
   public @NotNull List<ObjectStorageDto> list() {
@@ -92,11 +97,23 @@ public class ObjectStorageResource extends AbstractRestServiceDependency<ObjectS
 
   @Override
   public boolean belongsToCluster(StackGresObjectStorage resource, StackGresCluster cluster) {
-    /*
-     * TODO the changes of the SGCluster to support SGObjectResource haven't been done, therefore
-     *  we should return to this, once the changes have been made.
-     */
-    return false;
+    String storageNamespace = resource.getMetadata().getNamespace();
+    String clusterNamespace = cluster.getMetadata().getNamespace();
+
+    if (!Objects.equals(storageNamespace, clusterNamespace)) {
+      return false;
+    }
+
+    String storageName = resource.getMetadata().getName();
+    return Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getConfiguration)
+        .map(StackGresClusterConfiguration::getBackups)
+        .map(backupConfigurations -> backupConfigurations.stream()
+            .map(StackGresClusterBackupConfiguration::getObjectStorage)
+            .anyMatch(ref -> Objects.equals(ref, storageName))
+        )
+        .orElse(false);
   }
 
   private void setSecretKeySelectors(ObjectStorageDto resource) {

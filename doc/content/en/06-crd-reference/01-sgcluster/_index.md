@@ -313,12 +313,12 @@ Holds scheduling configuration for StackGres pods to have.
 
 Custom configurations to be applied to the cluster.
 
-| Property                                                                                  | Required | Updatable | Type     | Default           | Description |
-|:------------------------------------------------------------------------------------------|----------|-----------|:---------|:------------------|:------------|
-| [sgPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}})           |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} |
-| [sgPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}})  |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}} |
-| [sgBackupConfig]({{% relref "06-crd-reference/05-sgbackupconfig" %}})                     |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}} |
-
+| Property                                                                  | Required | Updatable | Type     | Default           | Description |
+|:--------------------------------------------------------------------------|----------|-----------|:---------|:------------------|:------------|
+| [sgPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}) |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} |
+| [sgPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}})   |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}}  |
+| [sgBackupConfig]({{% relref "06-crd-reference/05-sgbackupconfig" %}})     |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}}   |
+| [backups](#backups-configuration)                                         |          | ✓         | array    |                   | {{< crd-field-description SGCluster.spec.configurations.backups >}}          |
 Example:
 
 ``` yaml
@@ -334,6 +334,44 @@ spec:
     sgBackupConfig: 'backupconf'
 
 ```
+
+### Backups Configuration
+
+| Property                                                                  | Required | Updatable | Type     | Default           | Description |
+|:--------------------------------------------------------------------------|----------|-----------|:---------|:------------------|:------------|
+| compression                                                               |          | ✓         | string   | lz4               | {{< crd-field-description SGCluster.spec.configurations.backups.items.compression >}}     |
+| cronSchedule                                                              |          | ✓         | string   | 05:00 UTC         | {{< crd-field-description SGCluster.spec.configurations.backups.items.cronSchedule >}}    |
+| [performance](#backup-performance)                                        |          | ✓         | object   |                   | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance >}}     |
+| retention                                                                 |          | ✓         | integer  | 5                 | {{< crd-field-description SGCluster.spec.configurations.backups.items.retention >}}       |
+| [sgObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}})   | ✓        | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.backups.items.sgObjectStorage >}} |
+
+Example:
+``` yaml
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  name: stackgres
+spec:
+  configurations:
+    backups:
+    - retention: 5
+      cronSchedule: 0 5 * * *
+      compression: lz4
+      performance:
+        maxDiskBandwitdh: 26214400 #25 MB per seceod
+        maxNetworkBandwitdh: 52428800 #50 MB per second
+        uploadDiskConcurrency: 2
+      sgObjectStorage: objectstorageconf
+
+```
+
+#### Backup Performance
+
+| Property                               | Required | Updatable |Type     | Default   | Description |
+|:---------------------------------------|----------|-----------|:--------|:----------|:------------|
+| maxDiskBandwitdh                       |          | ✓         | integer | unlimited | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxDiskBandwitdh >}}      |
+| maxNetworkBandwitdh                    |          | ✓         | integer | unlimited | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxNetworkBandwitdh >}}   |
+| uploadDiskConcurrency                  |          | ✓         | integer | 1         | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.uploadDiskConcurrency >}} |
 
 ## Initial Data Configuration
 Specifies the cluster initialization data configurations

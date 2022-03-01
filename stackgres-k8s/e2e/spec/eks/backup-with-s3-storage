@@ -124,7 +124,7 @@ restore_from_backup() {
   BACKUP_UID="$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.metadata.uid}')"
 
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $RESTORED_CLUSTER_NAME

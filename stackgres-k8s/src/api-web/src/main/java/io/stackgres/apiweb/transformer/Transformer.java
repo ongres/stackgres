@@ -5,7 +5,7 @@
 
 package io.stackgres.apiweb.transformer;
 
-public interface Transformer<S, T> {
+public interface Transformer<T, S> {
 
   S toSource(T target);
 

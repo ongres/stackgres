@@ -35,7 +35,7 @@ import io.stackgres.common.crd.storages.GoogleCloudStorage;
 public class BackupStorageTransformer implements Transformer<BackupStorageDto, BackupStorage> {
 
   @Override
-  public BackupStorageDto toSource(BackupStorage target) {
+  public BackupStorageDto toTarget(BackupStorage target) {
     if (target == null) {
       return null;
     }
@@ -53,7 +53,7 @@ public class BackupStorageTransformer implements Transformer<BackupStorageDto, B
   }
 
   @Override
-  public BackupStorage toTarget(BackupStorageDto source) {
+  public BackupStorage toSource(BackupStorageDto source) {
     if (source == null) {
       return null;
     }

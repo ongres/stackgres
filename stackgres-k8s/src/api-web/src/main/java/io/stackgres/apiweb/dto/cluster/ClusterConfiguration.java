@@ -5,6 +5,9 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.List;
+import java.util.Objects;
+
 import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -27,6 +30,9 @@ public class ClusterConfiguration {
 
   @JsonProperty("sgBackupConfig")
   private String sgBackupConfig;
+
+  @JsonProperty("backups")
+  private List<ClusterBackupsConfiguration> backups;
 
   public String getSgPostgresConfig() {
     return sgPostgresConfig;
@@ -52,8 +58,36 @@ public class ClusterConfiguration {
     this.sgBackupConfig = sgBackupConfig;
   }
 
+  public List<ClusterBackupsConfiguration> getBackups() {
+    return backups;
+  }
+
+  public void setBackups(List<ClusterBackupsConfiguration> backups) {
+    this.backups = backups;
+  }
+
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClusterConfiguration that = (ClusterConfiguration) o;
+    return Objects.equals(sgPostgresConfig, that.sgPostgresConfig)
+        && Objects.equals(sgPoolingConfig, that.sgPoolingConfig)
+        && Objects.equals(sgBackupConfig, that.sgBackupConfig)
+        && Objects.equals(backups, that.backups);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(sgPostgresConfig, sgPoolingConfig, sgBackupConfig, backups);
   }
 }

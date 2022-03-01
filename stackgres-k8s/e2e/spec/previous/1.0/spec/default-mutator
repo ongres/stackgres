@@ -438,7 +438,7 @@ EOF
 create_empty_cluster_with_default_pgbouncer() {
   kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$PGBOUNCER_CLUSTER_NAME" --ignore-not-found
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $PGBOUNCER_CLUSTER_NAME
@@ -471,7 +471,7 @@ EOF
   kubectl delete sgclusters -n "$CLUSTER_NAMESPACE" "$PGBOUNCER_CLUSTER_NAME"
 
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $REUSED_CLUSTER_NAME
@@ -506,7 +506,7 @@ EOF
 
 create_empty_cluster_with_no_sidecars() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $NOSIDECARS_CLUSTER_NAME
@@ -556,7 +556,7 @@ EOF
 
 create_empty_cluster() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -661,7 +661,7 @@ EOF
 
 update_empty_cluster() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -724,7 +724,7 @@ EOF
 
 create_empty_cluster_on_operator_namespace() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -759,7 +759,7 @@ EOF
 
 create_cluster_with_previous_postgres_version() {
   cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME

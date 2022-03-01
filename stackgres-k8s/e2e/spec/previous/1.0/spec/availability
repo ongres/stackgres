@@ -175,7 +175,7 @@ stringData:
 EOF
   
   cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME

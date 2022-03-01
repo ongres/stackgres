@@ -7,6 +7,7 @@ package io.stackgres.apiweb.app.postgres.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -72,4 +73,22 @@ public class PostgresService implements KubernetesResource {
     return StackGresUtil.toPrettyYaml(this);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    PostgresService that = (PostgresService) o;
+    return Objects.equals(enabled, that.enabled)
+        && Objects.equals(type, that.type)
+        && Objects.equals(externalIPs, that.externalIPs);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(enabled, type, externalIPs);
+  }
 }

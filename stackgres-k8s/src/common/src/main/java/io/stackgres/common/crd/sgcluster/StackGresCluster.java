@@ -24,7 +24,7 @@ import io.stackgres.common.crd.CommonDefinition;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
 @Group(CommonDefinition.GROUP)
-@Version(CommonDefinition.VERSION)
+@Version(StackGresCluster.VERSION)
 @Kind(StackGresCluster.KIND)
 public final class StackGresCluster
     extends CustomResource<StackGresClusterSpec, StackGresClusterStatus>
@@ -33,6 +33,8 @@ public final class StackGresCluster
   private static final long serialVersionUID = -5276087851826599719L;
 
   public static final String KIND = "SGCluster";
+
+  public static final String VERSION = "v2beta1";
 
   @JsonProperty("spec")
   @NotNull(message = "The specification is required")

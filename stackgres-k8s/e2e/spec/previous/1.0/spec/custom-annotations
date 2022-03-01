@@ -39,7 +39,7 @@ direct_custom_annotations(){
   local OTHER_POD_RANDOM_VALUE="$(random_string)"
   local OTHER_SERVICE_RANDOM_VALUE="$(random_string)"
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -71,7 +71,7 @@ EOF
   wait_until check_service_annotation "replicas" "$SERVICE_RANDOM_VALUE"
 
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -194,7 +194,7 @@ create_cluster_with_api(){
 
 create_api_custom_annotations(){
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -239,7 +239,7 @@ get_api_custom_annotations() {
   local SERVICE_RANDOM_VALUE="$(random_string)"
 
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v2beta1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME

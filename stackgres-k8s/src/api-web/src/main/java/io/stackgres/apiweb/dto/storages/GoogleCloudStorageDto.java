@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.storages;
 
+import java.util.Objects;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -60,4 +62,21 @@ public class GoogleCloudStorageDto {
     return StackGresUtil.toPrettyYaml(this);
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    GoogleCloudStorageDto that = (GoogleCloudStorageDto) o;
+    return Objects.equals(bucket, that.bucket) && Objects.equals(path, that.path)
+        && Objects.equals(credentials, that.credentials);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(bucket, path, credentials);
+  }
 }
