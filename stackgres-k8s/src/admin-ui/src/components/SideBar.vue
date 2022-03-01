@@ -207,7 +207,7 @@
 							<h3 :class="isCollapsed ? 'submenuTitle' : ''">Database Operations</h3>
 						</router-link>
 
-						<router-link :to="'/' + currentPath.namespace + '/sgdbops/new'" class="addnew">
+						<router-link :to="'/' + currentPath.namespace + '/sgdbops/new'" class="addnew" v-if="iCan('create', 'sgdbops', currentPath.namespace)">
 							<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19"><g transform="translate(-573 -706)"><g transform="translate(573 706)" fill="none" stroke="#00adb5" stroke-width="2"><circle cx="9.5" cy="9.5" r="9.5" stroke="none"/><circle cx="9.5" cy="9.5" r="8.5" fill="none"/></g><g transform="translate(-30.5 28.8)"><g transform="translate(609 686)" fill="#00adb5" stroke="#00adb5" stroke-width="1"><rect width="8" height="1.4" rx="0.7" stroke="none"/><rect x="0.5" y="0.5" width="7" height="0.4" rx="0.2" fill="none"/></g><g transform="translate(613.7 682.7) rotate(90)" fill="#00adb5" stroke="#00adb5" stroke-width="1"><rect width="8" height="1.4" rx="0.7" stroke="none"/><rect x="0.5" y="0.5" width="7" height="0.4" rx="0.2" fill="none"/></g></g></g></svg>
 						</router-link>
 					</li>
