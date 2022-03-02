@@ -22,12 +22,12 @@
 
             <div class="actions">
                 <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgdbops/" target="_blank" title="SGDbOps Documentation">SGDbOps Documentation</a>
-                <div>
+                <div class="crdActionLinks">
                     <template v-if="$route.params.hasOwnProperty('name')">
                         <a v-if="iCan('delete','sgdbops',$route.params.namespace)" title="Delete Operation" @click="deleteCRD('sgdbops',$route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/sgdbops')">
                             Delete Operation
                         </a>
-                        <router-link class="borderLeft" :to="'/' + $route.params.namespace + '/sgdbops'" title="Close Operation Details">Close Operation Details</router-link>
+                        <router-link :to="'/' + $route.params.namespace + '/sgdbops'" title="Close Operation Details">Close Operation Details</router-link>
                     </template>
                     <template v-else>
                         <router-link v-if="iCan('create','sgdbops',$route.params.namespace)"  :to="'/' + $route.params.namespace + '/sgdbops/new'" class="add">Add New</router-link>

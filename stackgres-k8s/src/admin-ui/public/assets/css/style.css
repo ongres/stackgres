@@ -1588,7 +1588,7 @@ header .actions a {
     margin-left: 15px;
 }
 
-a.borderLeft {
+.crdActionLinks a:last-of-type:not(:first-of-type) {
     border-left: 1px solid var(--borderColor);
     padding-left: 15px;
 }

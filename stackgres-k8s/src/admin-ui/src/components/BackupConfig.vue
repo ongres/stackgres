@@ -22,7 +22,7 @@
 
 			<div class="actions">
 				<a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgbackupconfig/" target="_blank" title="SGBackupConfig Documentation">SGBackupConfig Documentation</a>
-				<div>
+				<div class="crdActionLinks">
 					<template v-if="$route.params.hasOwnProperty('name')">
 						<template v-for="conf in config" v-if="conf.name == $route.params.name">
 							<router-link v-if="iCan('patch','sgbackupconfigs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgbackupconfig/' + conf.name + '/edit'" title="Edit Configuration">
@@ -34,7 +34,7 @@
 							<a v-if="iCan('delete','sgbackupconfigs',$route.params.namespace)" @click="deleteCRD('sgbackupconfigs',$route.params.namespace, conf.name, '/' + $route.params.namespace + '/sgbackupconfigs')" title="Delete Configuration"  :class="conf.data.status.clusters.length ? 'disabled' : ''">
 								Delete Configuration
 							</a>
-							<router-link class="borderLeft" :to="'/' + $route.params.namespace + '/sgbackupconfigs'" title="Close Details">Close Details</router-link>
+							<router-link :to="'/' + $route.params.namespace + '/sgbackupconfigs'" title="Close Details">Close Details</router-link>
 						</template>
 					</template>
 					<template v-else>

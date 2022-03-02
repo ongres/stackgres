@@ -30,11 +30,11 @@
 
 				<div class="actions" v-if="(typeof cluster.data !== 'undefined')">
 					<a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgcluster/" target="_blank" title="SGCluster Documentation">SGCluster Documentation</a>
-					<div>
+					<div class="crdActionLinks">
 						<a v-if="iCan('create','sgclusters',$route.params.namespace)" class="cloneCRD" @click="cloneCRD('SGClusters', $route.params.namespace, $route.params.name)">Clone Cluster Configuration</a>
 						<router-link v-if="iCan('patch','sgclusters',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/edit'">Edit Cluster</router-link>
 						<a v-if="iCan('delete','sgclusters',$route.params.namespace)" @click="deleteCRD('sgclusters', $route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/sgclusters')" :class="$route.params.namespace + '/sgclusters'">Delete Cluster</a>
-						<a @click="setRestartCluster($route.params.namespace, $route.params.name)" class="restartCluster borderLeft" title="Restart Cluster">Restart Cluster</a>
+						<a @click="setRestartCluster($route.params.namespace, $route.params.name)" class="restartCluster" title="Restart Cluster">Restart Cluster</a>
 					</div>
 				</div>
 
@@ -82,7 +82,7 @@
 
 			<div class="actions">
 				<a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgbackup/" target="_blank" title="SGBackup Documentation">SGBackup Documentation</a>
-				<div>
+				<div class="crdActionLinks">
 					<template v-if="$route.params.hasOwnProperty('backupname')">
 						<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + '/sgbackup/' + $route.params.backupname + '/edit'" title="Edit Backup">
 							Edit Backup
@@ -90,7 +90,7 @@
 						<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, $route.params.backupname, '/' + $route.params.namespace + '/sgbackups')" title="Delete Backup">
 							Delete Backup
 						</a>
-						<router-link class="borderLeft" :to="'/' + $route.params.namespace + '/sgbackups'" title="Close Details">Close Details</router-link>
+						<router-link :to="'/' + $route.params.namespace + '/sgbackups'" title="Close Details">Close Details</router-link>
 					</template>
 					<template v-else>
 						<router-link v-if="iCan('create','sgbackups',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgbackups/new'" class="add">Add New</router-link>
@@ -332,14 +332,14 @@
 					<div class="relative">
 						<h2>Backup Details</h2>
 						<template v-if="isCluster">
-							<div class="titleLinks">
+							<div class="titleLinks crdActionLinks">
 								<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup">
 									Edit Backup
 								</router-link>
 								<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, $route.params.backupname, '/' + $route.params.namespace + '/sgbackups')" title="Delete Backup">
 									Delete Backup
 								</a>
-								<router-link class="borderLeft" :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackups'" title="Close Details">Close Details</router-link>
+								<router-link :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackups'" title="Close Details">Close Details</router-link>
 							</div>
 						</template>
 					</div>

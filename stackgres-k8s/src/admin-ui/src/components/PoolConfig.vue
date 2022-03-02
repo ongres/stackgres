@@ -22,7 +22,7 @@
 
 			<div class="actions">
 				<a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgpoolingconfig/" target="_blank" title="SGPoolingConfig Documentation">SGPoolingConfig Documentation</a>
-				<div>
+				<div class="crdActionLinks">
 					<template v-if="$route.params.hasOwnProperty('name')">
 						<template v-for="conf in config" v-if="conf.name == $route.params.name">
 							<router-link v-if="iCan('patch','sgpoolconfigs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgpoolconfig/' + conf.name + '/edit'" title="Edit Configuration">
@@ -34,7 +34,7 @@
 							<a v-if="iCan('delete','sgpoolconfigs',$route.params.namespace)" @click="deleteCRD('sgpoolconfigs',$route.params.namespace, conf.name, '/' + $route.params.namespace + '/sgpoolconfigs')" title="Delete Configuration" :class="conf.data.status.clusters.length ? 'disabled' : ''">
 								Delete Configuration
 							</a>
-							<router-link class="borderLeft" :to="'/' + $route.params.namespace + '/sgpoolconfigs'" title="Close Details">Close Details</router-link>
+							<router-link :to="'/' + $route.params.namespace + '/sgpoolconfigs'" title="Close Details">Close Details</router-link>
 						</template>
 					</template>
 					<template v-else>

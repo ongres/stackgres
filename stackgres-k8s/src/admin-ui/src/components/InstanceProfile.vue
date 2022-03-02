@@ -23,7 +23,7 @@
 			<div class="actions">
 				<a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sginstanceprofile/" target="_blank" title="SGInstanceProfile Documentation">SGInstanceProfile Documentation</a>
 
-				<div>
+				<div class="crdActionLinks">
 					<template v-if="$route.params.hasOwnProperty('name')">
 						<template v-for="conf in config" v-if="conf.name == $route.params.name">
 							<router-link v-if="iCan('patch','sginstanceprofiles',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sginstanceprofile/' + conf.name + '/edit'" title="Edit Profile">
@@ -35,7 +35,7 @@
 							<a v-if="iCan('delete','sginstanceprofiles',$route.params.namespace)" @click="deleteCRD('sginstanceprofiles',$route.params.namespace, conf.name, '/' + $route.params.namespace + '/sginstanceprofiles')" title="Delete Profile" :class="conf.data.status.clusters.length ? 'disabled' : ''">
 								Delete Profile
 							</a>
-							<router-link class="borderLeft" :to="'/' + $route.params.namespace + '/sginstanceprofiles'" title="Close Details">Close Details</router-link>
+							<router-link :to="'/' + $route.params.namespace + '/sginstanceprofiles'" title="Close Details">Close Details</router-link>
 						</template>
 					</template>
 					<template v-else>
