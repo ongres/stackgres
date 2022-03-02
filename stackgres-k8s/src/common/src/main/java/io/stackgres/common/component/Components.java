@@ -18,7 +18,7 @@ public enum Components {
 
   V_1_0(StackGresVersion.V_1_0, ComponentsV10.values()),
   V_1_1(StackGresVersion.V_1_1, ComponentsV11.values()),
-  V_1_2(StackGresVersion.V_1_2, ComponentsV11.values());
+  V_1_2(StackGresVersion.V_1_2, ComponentsV12.values());
 
   final StackGresVersion version;
   final List<ComponentWrapper> components;
@@ -68,8 +68,8 @@ public enum Components {
         StackGresProperty.SG_IMAGE_PATRONI,
         "%1$s/ongres/patroni:v%2$s-%4$s-build-%3$s",
         new Component[] {
-            Components.ComponentsV11.POSTGRESQL.getComponent(),
-            Components.ComponentsV11.BABELFISH.getComponent(),
+            Components.ComponentsV12.POSTGRESQL.getComponent(),
+            Components.ComponentsV12.BABELFISH.getComponent(),
         })),
     POSTGRES_UTIL(new Component(ComponentVersionReader.V_1_2.versionReader, "postgresql",
         StackGresProperty.SG_IMAGE_POSTGRES_UTIL,
@@ -92,7 +92,11 @@ public enum Components {
         "%1$s/ongres/fluentd:v%2$s-build-%3$s")),
     KUBECTL(new Component(ComponentVersionReader.V_1_2.versionReader, "kubectl",
         StackGresProperty.SG_IMAGE_KUBECTL,
-        "%1$s/ongres/kubectl:v%2$s-build-%3$s"));
+        "%1$s/ongres/kubectl:v%2$s-build-%3$s")),
+    BABELFISH_COMPASS(new Component(ComponentVersionReader.V_1_2.versionReader,
+        "babelfish-compass",
+        StackGresProperty.SG_IMAGE_BABELFISH_COMPASS,
+        "%1$s/ongres/babelfish-compass:v%2$s-build-%3$s"));
 
     final Component component;
 

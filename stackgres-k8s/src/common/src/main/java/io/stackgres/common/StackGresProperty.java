@@ -24,7 +24,8 @@ public enum StackGresProperty implements StackGresPropertyReader {
   SG_IMAGE_FLUENTD("stackgres.imageFluentd"),
   SG_IMAGE_CLUSTER_CONTROLLER("stackgres.imageClusterController"),
   SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER("stackgres.imageDistributedlogsController"),
-  SG_IMAGE_KUBECTL("stackgres.imageKubectl");
+  SG_IMAGE_KUBECTL("stackgres.imageKubectl"),
+  SG_IMAGE_BABELFISH_COMPASS("stackgres.imageBabelfishCompass");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(StackGresProperty.class);

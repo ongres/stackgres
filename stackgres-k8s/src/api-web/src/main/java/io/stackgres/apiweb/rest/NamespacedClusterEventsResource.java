@@ -6,11 +6,13 @@
 package io.stackgres.apiweb.rest;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -34,6 +36,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters")
@@ -81,8 +84,9 @@ public class NamespacedClusterEventsResource {
         .toList();
   }
 
-  private boolean isClusterEvent(EventDto event, String namespace, String name,
+  private boolean isClusterEvent(EventDto event, String namespace, @NotNull String name,
       Map<String, List<ObjectMeta>> relatedResources) {
+    Pattern namePattern = Pattern.compile(ResourceUtil.getNameWithIndexPattern(name));
     ObjectReference involvedObject = event.getInvolvedObject();
     return Objects.equals(involvedObject.getNamespace(), namespace)
         && ((Objects.equals(involvedObject.getKind(), StackGresCluster.KIND)
@@ -90,10 +94,10 @@ public class NamespacedClusterEventsResource {
             || (Objects.equals(involvedObject.getKind(), "StatefulSet")
                 && Objects.equals(involvedObject.getName(), name))
             || (Objects.equals(involvedObject.getKind(), "Pod")
-                && Objects.nonNull(involvedObject.getName())
-                && involvedObject.getName().matches(ResourceUtil.getNameWithIndexPattern(name)))
+                && involvedObject.getName() != null
+                && namePattern.matcher(involvedObject.getName()).matches())
             || (Optional.ofNullable(relatedResources.get(involvedObject.getKind()))
-                .stream().flatMap(relatedResource -> relatedResource.stream())
+                .stream().flatMap(Collection::stream)
                 .anyMatch(relatedResource -> Objects
                     .equals(relatedResource.getNamespace(), involvedObject.getNamespace())
                     && Objects.equals(relatedResource.getName(), involvedObject.getName())

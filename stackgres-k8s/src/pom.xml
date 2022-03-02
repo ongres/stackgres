@@ -57,8 +57,6 @@
     <stackgres.operatorVersion>${project.version}</stackgres.operatorVersion>
     <stackgres.documentation.uri>https://stackgres.io/doc/</stackgres.documentation.uri>
     <stackgres.documentation.errorsPath>/api/responses/error#</stackgres.documentation.errorsPath>
-    <quarkus.http.ssl.certificate.file>/etc/operator/certs/server.crt</quarkus.http.ssl.certificate.file>
-    <quarkus.http.ssl.certificate.key-file>/etc/operator/certs/root.key</quarkus.http.ssl.certificate.key-file>
     <stackgres.conversionWebhooks>false</stackgres.conversionWebhooks>
     <stackgres.crdUpgrade>false</stackgres.crdUpgrade>
     <stackgres.containerRegistry>docker.io</stackgres.containerRegistry>
@@ -79,15 +77,14 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>2.7.3.Final</quarkus.version>
+    <quarkus.version>2.7.5.Final</quarkus.version>
     <kubernetes-client.version>5.12.1</kubernetes-client.version>
     <jool.version>0.9.14</jool.version>
     <immutables.version>2.9.0</immutables.version>
     <checkstyle.version>9.3</checkstyle.version>
-    <spotbugs.version>4.5.3</spotbugs.version>
-    <pmd.version>6.42.0</pmd.version>
+    <spotbugs.version>4.6.0</spotbugs.version>
+    <pmd.version>6.43.0</pmd.version>
     <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
-    <jersey.version>2.32</jersey.version>
     <fluent-process.version>1.0.1</fluent-process.version>
     <jooq.version>3.13.4</jooq.version>
     <jetbrains-annotations.version>23.0.0</jetbrains-annotations.version>
@@ -100,7 +97,7 @@
     <org.tukaani.xz.version>1.9</org.tukaani.xz.version>
     <pgconfig-validator.version>1.3.0</pgconfig-validator.version>
     <!-- Plugins versions -->
-    <compiler-plugin.version>3.10.0</compiler-plugin.version>
+    <compiler-plugin.version>3.10.1</compiler-plugin.version>
     <jar-plugin.version>3.2.2</jar-plugin.version>
     <clean-plugin.version>3.1.0</clean-plugin.version>
     <resources-plugin.version>3.1.0</resources-plugin.version>
@@ -111,7 +108,7 @@
     <pmd-plugin.version>3.16.0</pmd-plugin.version>
     <enforcer-plugin.version>3.0.0</enforcer-plugin.version>
     <dependency-plugin.version>3.1.1</dependency-plugin.version>
-    <docker-maven-plugin.version>0.39.0</docker-maven-plugin.version>
+    <docker-maven-plugin.version>0.39.1</docker-maven-plugin.version>
     <jandex-maven-plugin.version>1.2.2</jandex-maven-plugin.version>
     <build-helper-maven-plugin.version>3.3.0</build-helper-maven-plugin.version>
     <swagger-maven-plugin.version>2.1.6</swagger-maven-plugin.version>
