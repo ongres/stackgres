@@ -59,6 +59,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     patroniConf.setPostgresql(new PatroniConfig.PostgreSql());
     patroniConf.getPostgresql().setUsePgRewind(true);
     patroniConf.getPostgresql().setParameters(getPostgresConfigValues(context));
+    patroniConf.getPostgresql().setRecoveryConf(getPostgresRecoveryConfigValues(context));
     return patroniConf;
   }
 
@@ -83,6 +84,10 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
           "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(context
               .getSource()) + "'"
               + " -- wal-g wal-push %p");
+      params.put("restore_command",
+          "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(context
+              .getSource()) + "'"
+              + " -- wal-g wal-fetch %f %p");
     } else {
       params.put("archive_command", "/bin/true");
     }
@@ -111,6 +116,20 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     params.put("wal_log_hints", "on");
     params.put("archive_mode", "on");
 
+    return params;
+  }
+
+  @Override
+  protected Map<String, String> getPostgresRecoveryParameters(StackGresClusterContext context,
+      StackGresPostgresConfig pgConfig) {
+    Map<String, String> params = new HashMap<>();
+
+    if (isBackupConfigurationPresent(context)) {
+      params.put("restore_command",
+          "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(context
+              .getSource()) + "'"
+              + " -- wal-g wal-fetch %f %p");
+    }
     return params;
   }
 

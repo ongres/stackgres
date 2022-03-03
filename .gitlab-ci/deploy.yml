@@ -146,6 +146,8 @@ deploy distributedlogs-controller native image:
 deploy helm packages and templates:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: deploy
+  dependencies:
+    - build
   script:
     - |
       set -e
@@ -161,10 +163,6 @@ deploy helm packages and templates:
         "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/helm"
       aws s3 sync ./stackgres-k8s/install/helm/target/public/ s3://$S3_BUCKET_NAME/
       aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*'
-  cache:
-    - key: hashes
-      paths:
-      - stackgres-k8s/ci/build/target/*
   only:
     variables:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
@@ -177,15 +175,13 @@ pages:
   environment:
     name: development
     url: https://ongresinc.gitlab.io/stackgres/
+  dependencies:
+    - build
   script:
     - sh stackgres-k8s/ci/build/build-gitlab.sh extract documentation doc/public
     - tar cC doc public | tar x
     - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
   retry: 2
-  cache:
-    - key: hashes
-      paths:
-      - stackgres-k8s/ci/build/target/*
   artifacts:
     paths:
     - public

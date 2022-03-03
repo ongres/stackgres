@@ -147,6 +147,9 @@ public class PatroniConfig {
     @JsonProperty("parameters")
     private Map<String, String> parameters;
 
+    @JsonProperty("recovery_conf")
+    private Map<String, String> recoveryConf;
+
     public Boolean getUseSlots() {
       return useSlots;
     }
@@ -171,9 +174,17 @@ public class PatroniConfig {
       this.parameters = parameters;
     }
 
+    public Map<String, String> getRecoveryConf() {
+      return recoveryConf;
+    }
+
+    public void setRecoveryConf(Map<String, String> recoveryConf) {
+      this.recoveryConf = recoveryConf;
+    }
+
     @Override
     public int hashCode() {
-      return Objects.hash(parameters, usePgRewind, useSlots);
+      return Objects.hash(parameters, recoveryConf, usePgRewind, useSlots);
     }
 
     @Override
@@ -181,14 +192,12 @@ public class PatroniConfig {
       if (this == obj) {
         return true;
       }
-      if (obj == null) {
-        return false;
-      }
       if (!(obj instanceof PostgreSql)) {
         return false;
       }
       PostgreSql other = (PostgreSql) obj;
       return Objects.equals(parameters, other.parameters)
+          && Objects.equals(recoveryConf, other.recoveryConf)
           && Objects.equals(usePgRewind, other.usePgRewind)
           && Objects.equals(useSlots, other.useSlots);
     }
