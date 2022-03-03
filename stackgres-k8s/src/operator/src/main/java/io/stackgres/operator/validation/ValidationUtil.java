@@ -25,6 +25,7 @@ public interface ValidationUtil {
   String PROFILE_VALIDATION_PATH = VALIDATION_PATH + "/sginstanceprofile";
   String DISTRIBUTED_LOGS_VALIDATION_PATH = VALIDATION_PATH + "/sgdistributedlogs";
   String DBOPS_VALIDATION_PATH = VALIDATION_PATH + "/sgdbops";
+  String OBJECT_STORAGE_VALIDATION_PATH = VALIDATION_PATH + "/sgobjectstorages";
 
   Map<StackGresComponent, Map<StackGresVersion, List<String>>> SUPPORTED_POSTGRES_VERSIONS
       = ImmutableList.of(

@@ -7,6 +7,7 @@ package io.stackgres.operator.initialization;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -22,6 +23,7 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.operator.validation.DefaultCustomResourceHolder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -40,6 +42,9 @@ public abstract class InitializerTest<T extends CustomResource<?, ?>> {
   @Mock
   protected CustomResourceScanner<T> resourceScanner;
 
+  @Mock
+  protected DefaultCustomResourceHolder<T> holder;
+
   private AbstractDefaultCustomResourceInitializer<T> initializer;
 
   private T defaultCustomResource;
@@ -52,6 +57,7 @@ public abstract class InitializerTest<T extends CustomResource<?, ?>> {
     initializer.customResourceScheduler = customResourceScheduler;
     initializer.resourceScanner = resourceScanner;
     initializer.factoryProvider = factoryProvider;
+    initializer.holder = holder;
     when(factoryProvider.getFactories()).thenReturn(Collections.singletonList(resourceFactory));
     defaultCustomResource = configureDefaultCR();
     resourceNamespace = defaultCustomResource.getMetadata().getNamespace();
@@ -74,15 +80,17 @@ public abstract class InitializerTest<T extends CustomResource<?, ?>> {
 
   @Test
   void givenNoResourceCreated_itShouldCreateANewOne() {
-    T defaultCustomResource = configureDefaultCR();
-
     when(resourceScanner.getResources(resourceNamespace))
         .thenReturn(new ArrayList<>());
 
     when(resourceFactory.buildResource()).thenReturn(defaultCustomResource);
+    when(holder.isDefaultCustomResource(defaultCustomResource))
+        .thenReturn(false);
+    doNothing().when(holder).holdDefaultCustomResource(defaultCustomResource);
 
     doReturn(defaultCustomResource).when(customResourceScheduler).create(defaultCustomResource);
 
+    initializer.onStart(null);
     initializer.initialize();
 
     verify(resourceScanner).getResources(anyString());
@@ -98,7 +106,11 @@ public abstract class InitializerTest<T extends CustomResource<?, ?>> {
         .thenReturn(Collections.singletonList(defaultCustomResource));
 
     when(resourceFactory.buildResource()).thenReturn(defaultCustomResource);
+    when(holder.isDefaultCustomResource(defaultCustomResource))
+        .thenReturn(true);
+    doNothing().when(holder).holdDefaultCustomResource(defaultCustomResource);
 
+    initializer.onStart(null);
     initializer.initialize();
 
     verify(resourceScanner).getResources(anyString());

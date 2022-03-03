@@ -41,9 +41,4 @@ class DefaultBackupConfigKeeperTest
         BackupConfigReview.class);
   }
 
-  @Override
-  protected StackGresBackupConfig getDefault() {
-    return JsonUtil.readFromJson("backup_config/default.json",
-        StackGresBackupConfig.class);
-  }
 }

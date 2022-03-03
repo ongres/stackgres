@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.backup;
 
-import java.io.IOException;
-
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -63,7 +61,7 @@ public class BackupRequiredResourceDecoratorTest
   }
 
   @Override
-  protected StackGresBackupContext getResourceContext() throws IOException {
+  protected StackGresBackupContext getResourceContext() {
     return ImmutableStackGresBackupContext.builder()
         .source(resource)
         .cluster(cluster)
