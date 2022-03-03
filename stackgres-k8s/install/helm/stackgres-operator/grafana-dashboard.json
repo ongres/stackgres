@@ -20,12 +20,12 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "8.1.2"
+      "version": "7.1.5"
     },
     {
       "type": "panel",
       "id": "graph",
-      "name": "Graph (old)",
+      "name": "Graph",
       "version": ""
     },
     {
@@ -71,7 +71,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1638301532479,
+  "iteration": 1646304743813,
   "links": [],
   "panels": [
     {
@@ -98,7 +98,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -133,7 +133,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -203,7 +203,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -240,7 +240,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -313,7 +313,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -351,7 +351,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -424,7 +424,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -459,7 +459,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -532,7 +532,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -569,7 +569,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -649,7 +649,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -685,7 +685,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -757,7 +757,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -794,7 +794,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -867,7 +867,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -903,7 +903,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -976,7 +976,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -1013,7 +1013,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1086,7 +1086,7 @@
           "decimals": 2,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -1122,7 +1122,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1190,7 +1190,7 @@
           "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -1225,7 +1225,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1320,7 +1320,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -1355,7 +1355,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1430,7 +1430,7 @@
           "description": "Total amount of data written to temporary files by queries in this database. All temporary files are counted, regardless of why the temporary file was created, and regardless of the log_temp_files setting.",
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -1467,7 +1467,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1535,7 +1535,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -1571,7 +1571,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1653,7 +1653,7 @@
           "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -1687,7 +1687,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -1760,6 +1760,12 @@
           "dashes": false,
           "datasource": "${DS_PROMETHEUS}",
           "decimals": 0,
+          "fieldConfig": {
+            "defaults": {
+              "custom": {}
+            },
+            "overrides": []
+          },
           "fill": 1,
           "fillGradient": 0,
           "gridPos": {
@@ -1789,7 +1795,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -1880,7 +1886,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -1916,7 +1922,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2007,7 +2013,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -2043,7 +2049,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2113,7 +2119,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -2149,7 +2155,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2219,7 +2225,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -2255,7 +2261,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2324,7 +2330,7 @@
           "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -2360,7 +2366,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2439,7 +2445,7 @@
           "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -2475,7 +2481,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2568,7 +2574,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -2602,7 +2608,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2675,7 +2681,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -2708,7 +2714,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2819,8 +2825,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "custom": {},
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -2853,7 +2858,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "7.3.5",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -2933,8 +2938,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "custom": {},
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -2967,7 +2971,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "7.3.5",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -3053,8 +3057,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "custom": {},
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -3087,7 +3090,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "7.3.5",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -3204,8 +3207,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "custom": {},
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -3239,7 +3241,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "7.3.5",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -3307,8 +3309,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "custom": {},
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -3341,7 +3342,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "7.3.5",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -3433,6 +3434,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -3486,7 +3488,7 @@
             "text": {},
             "textMode": "name"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "targets": [
             {
               "expr": "pg_static{instance=~\"${instance}:9187\"}",
@@ -3510,6 +3512,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -3563,7 +3566,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "targets": [
             {
               "expr": "process_start_time_seconds{instance=~\"${instance}:9187\"} * 1000",
@@ -3585,6 +3588,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -3638,7 +3642,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "targets": [
             {
               "expr": "SUM(pg_stat_database_tup_fetched{datname=~\"$datname\", instance=~\"${instance}:9187\"})",
@@ -3659,6 +3663,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -3712,7 +3717,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "targets": [
             {
               "expr": "SUM(pg_stat_database_tup_inserted{datname=~\"$datname\", instance=~\"${instance}:9187\"})",
@@ -3735,6 +3740,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -3788,7 +3794,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "targets": [
             {
               "expr": "SUM(pg_stat_database_tup_updated{datname=~\"$datname\", instance=~\"${instance}:9187\"})",
@@ -3809,6 +3815,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -3862,7 +3869,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "targets": [
             {
               "expr": "pg_settings_max_connections{instance=~\"${instance}:9187\"}",
@@ -3885,8 +3892,7 @@
           "description": "Average user and system CPU time spent in seconds.",
           "fieldConfig": {
             "defaults": {
-              "custom": {},
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -3918,7 +3924,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "7.3.5",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -3986,8 +3992,7 @@
           "description": "Virtual and Resident memory size in bytes, averages over 5 min interval",
           "fieldConfig": {
             "defaults": {
-              "custom": {},
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -4019,7 +4024,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "7.3.5",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -4096,8 +4101,7 @@
           "description": "Number of open file descriptors",
           "fieldConfig": {
             "defaults": {
-              "custom": {},
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -4129,7 +4133,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "7.3.5",
+          "pluginVersion": "7.1.5",
           "pointradius": 5,
           "points": false,
           "renderer": "flot",
@@ -4197,8 +4201,7 @@
           "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
-              "custom": {},
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -4231,7 +4234,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "7.3.5",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -4305,8 +4308,7 @@
           "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
-              "custom": {},
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -4339,7 +4341,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "7.3.5",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -4407,7 +4409,7 @@
       "type": "row"
     },
     {
-      "collapsed": true,
+      "collapsed": false,
       "datasource": "${DS_PROMETHEUS}",
       "fieldConfig": {
         "defaults": {},
@@ -4420,749 +4422,695 @@
         "y": 6
       },
       "id": 32,
-      "panels": [
-        {
-          "cacheTimeout": null,
-          "datasource": "${DS_PROMETHEUS}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [
-                {
-                  "options": {
-                    "0": {
-                      "index": 0,
-                      "text": "Leader"
-                    },
-                    "1": {
-                      "index": 1,
-                      "text": "Replica"
-                    }
-                  },
-                  "type": "value"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "string"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 6,
-            "x": 0,
-            "y": 7
-          },
-          "id": 42,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "options": {
-            "colorMode": "none",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "horizontal",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.1.2",
-          "targets": [
-            {
-              "exemplar": true,
-              "expr": "pg_replication_is_replica{instance=~\"${instance}:9187\"}",
-              "format": "time_series",
-              "interval": "",
-              "intervalFactor": 1,
-              "legendFormat": "",
-              "refId": "A"
-            }
-          ],
-          "title": "Role",
-          "type": "stat"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "${DS_PROMETHEUS}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [
-                {
-                  "options": {
-                    "match": "null",
-                    "result": {
-                      "text": "N/A"
-                    }
-                  },
-                  "type": "special"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "bytes"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 6,
-            "y": 7
-          },
-          "id": 44,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "options": {
-            "colorMode": "none",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "horizontal",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.1.2",
-          "targets": [
-            {
-              "expr": "pg_settings_maintenance_work_mem_bytes{instance=~\"${instance}:9187\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "refId": "A"
-            }
-          ],
-          "title": "Maintenance Work Mem",
-          "type": "stat"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "${DS_PROMETHEUS}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [
-                {
-                  "options": {
-                    "match": "null",
-                    "result": {
-                      "text": "N/A"
-                    }
-                  },
-                  "type": "special"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "bytes"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 9,
-            "y": 7
-          },
-          "id": 46,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "options": {
-            "colorMode": "none",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "horizontal",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.1.2",
-          "targets": [
-            {
-              "expr": "pg_settings_work_mem_bytes{instance=~\"${instance}:9187\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "legendFormat": "",
-              "refId": "A"
-            }
-          ],
-          "title": "Work Mem",
-          "type": "stat"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "${DS_PROMETHEUS}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "decimals": 1,
-              "mappings": [
-                {
-                  "options": {
-                    "match": "null",
-                    "result": {
-                      "text": "N/A"
-                    }
-                  },
-                  "type": "special"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "bytes"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 12,
-            "y": 7
-          },
-          "id": 48,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "options": {
-            "colorMode": "none",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "horizontal",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.1.2",
-          "targets": [
-            {
-              "expr": "pg_settings_max_wal_size_bytes{instance=~\"${instance}:9187\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "refId": "A"
-            }
-          ],
-          "title": "Max WAL Size",
-          "type": "stat"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "${DS_PROMETHEUS}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [
-                {
-                  "options": {
-                    "match": "null",
-                    "result": {
-                      "text": "N/A"
-                    }
-                  },
-                  "type": "special"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "none"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 15,
-            "y": 7
-          },
-          "id": 50,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "options": {
-            "colorMode": "none",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "horizontal",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.1.2",
-          "targets": [
-            {
-              "expr": "pg_settings_random_page_cost{instance=~\"${instance}:9187\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "refId": "A"
-            }
-          ],
-          "title": "Random Page Cost",
-          "type": "stat"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "${DS_PROMETHEUS}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [
-                {
-                  "options": {
-                    "match": "null",
-                    "result": {
-                      "text": "N/A"
-                    }
-                  },
-                  "type": "special"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "none"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 2,
-            "x": 18,
-            "y": 7
-          },
-          "id": 52,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "options": {
-            "colorMode": "none",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "horizontal",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.1.2",
-          "targets": [
-            {
-              "expr": "pg_settings_seq_page_cost{instance=~\"${instance}:9187\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "refId": "A"
-            }
-          ],
-          "title": "Seq Page Cost",
-          "type": "stat"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "${DS_PROMETHEUS}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [
-                {
-                  "options": {
-                    "match": "null",
-                    "result": {
-                      "text": "N/A"
-                    }
-                  },
-                  "type": "special"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "none"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 4,
-            "x": 20,
-            "y": 7
-          },
-          "id": 56,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "options": {
-            "colorMode": "none",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "horizontal",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.1.2",
-          "targets": [
-            {
-              "expr": "pg_settings_max_parallel_workers{instance=~\"${instance}:9187\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "refId": "A"
-            }
-          ],
-          "title": "Max Parallel Workers",
-          "type": "stat"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "${DS_PROMETHEUS}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [
-                {
-                  "options": {
-                    "match": "null",
-                    "result": {
-                      "text": "N/A"
-                    }
-                  },
-                  "type": "special"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "bytes"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 0,
-            "y": 10
-          },
-          "id": 40,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "options": {
-            "colorMode": "none",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "horizontal",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.1.2",
-          "targets": [
-            {
-              "expr": "pg_settings_shared_buffers_bytes{instance=~\"${instance}:9187\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "refId": "A"
-            }
-          ],
-          "title": "Shared Buffers",
-          "type": "stat"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "${DS_PROMETHEUS}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [
-                {
-                  "options": {
-                    "match": "null",
-                    "result": {
-                      "text": "N/A"
-                    }
-                  },
-                  "type": "special"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "bytes"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 3,
-            "y": 10
-          },
-          "id": 244,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "options": {
-            "colorMode": "none",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "horizontal",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.1.2",
-          "targets": [
-            {
-              "expr": "pg_settings_shared_buffers_bytes{instance=~\"${instance}:9187\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "refId": "A"
-            }
-          ],
-          "title": "Shared Buffers",
-          "type": "stat"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "${DS_PROMETHEUS}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [
-                {
-                  "options": {
-                    "match": "null",
-                    "result": {
-                      "text": "N/A"
-                    }
-                  },
-                  "type": "special"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "none"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 6,
-            "y": 10
-          },
-          "id": 54,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "options": {
-            "colorMode": "none",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "horizontal",
-            "reduceOptions": {
-              "calcs": [
-                "mean"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.1.2",
-          "targets": [
-            {
-              "expr": "pg_settings_max_worker_processes{instance=~\"${instance}:9187\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "refId": "A"
-            }
-          ],
-          "title": "Max Worker Processes",
-          "type": "stat"
-        }
-      ],
+      "panels": [],
       "title": "Settings",
       "type": "row"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "index": 0,
+                  "text": "Leader"
+                },
+                "1": {
+                  "index": 1,
+                  "text": "Replica"
+                }
+              },
+              "text": "Leader",
+              "type": 1,
+              "value": "0"
+            },
+            {
+              "from": "",
+              "id": null,
+              "text": "Replica",
+              "to": "",
+              "type": 1,
+              "value": "1"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "string"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 6,
+        "x": 0,
+        "y": 7
+      },
+      "id": 42,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "value"
+      },
+      "pluginVersion": "7.1.5",
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "pg_replication_is_replica{instance=~\"${instance}:9187\"}",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Role",
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "decimals": 1,
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 6,
+        "y": 7
+      },
+      "id": 44,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.1.5",
+      "targets": [
+        {
+          "expr": "pg_settings_maintenance_work_mem_bytes{instance=~\"${instance}:9187\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "title": "Maintenance Work Mem",
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 9,
+        "y": 7
+      },
+      "id": 46,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.1.5",
+      "targets": [
+        {
+          "expr": "pg_settings_work_mem_bytes{instance=~\"${instance}:9187\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Work Mem",
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "decimals": 1,
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 12,
+        "y": 7
+      },
+      "id": 48,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.1.5",
+      "targets": [
+        {
+          "expr": "pg_settings_max_wal_size_bytes{instance=~\"${instance}:9187\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "title": "Max WAL Size",
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 15,
+        "y": 7
+      },
+      "id": 50,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.1.5",
+      "targets": [
+        {
+          "expr": "pg_settings_random_page_cost{instance=~\"${instance}:9187\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "title": "Random Page Cost",
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 2,
+        "x": 18,
+        "y": 7
+      },
+      "id": 52,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.1.5",
+      "targets": [
+        {
+          "expr": "pg_settings_seq_page_cost{instance=~\"${instance}:9187\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "title": "Seq Page Cost",
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 4,
+        "x": 20,
+        "y": 7
+      },
+      "id": 56,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.1.5",
+      "targets": [
+        {
+          "expr": "pg_settings_max_parallel_workers{instance=~\"${instance}:9187\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "title": "Max Parallel Workers",
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 0,
+        "y": 10
+      },
+      "id": 40,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.1.5",
+      "targets": [
+        {
+          "expr": "pg_settings_shared_buffers_bytes{instance=~\"${instance}:9187\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "title": "Shared Buffers",
+      "type": "stat"
+    },
+    {
+      "cacheTimeout": null,
+      "datasource": "${DS_PROMETHEUS}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 3,
+        "y": 10
+      },
+      "id": 54,
+      "interval": null,
+      "links": [],
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "text": {},
+        "textMode": "auto"
+      },
+      "pluginVersion": "7.1.5",
+      "targets": [
+        {
+          "expr": "pg_settings_max_worker_processes{instance=~\"${instance}:9187\"}",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "title": "Max Worker Processes",
+      "type": "stat"
     },
     {
       "collapsed": true,
@@ -5175,7 +5123,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 7
+        "y": 13
       },
       "id": 92,
       "panels": [
@@ -5593,7 +5541,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 8
+        "y": 14
       },
       "id": 116,
       "panels": [
@@ -6024,7 +5972,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 15
       },
       "id": 130,
       "panels": [
@@ -6341,7 +6289,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 16
       },
       "id": 104,
       "panels": [
@@ -6775,7 +6723,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 11
+        "y": 17
       },
       "id": 88,
       "panels": [
@@ -7374,7 +7322,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 12
+        "y": 18
       },
       "id": 80,
       "panels": [
@@ -7657,7 +7605,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 13
+        "y": 19
       },
       "id": 72,
       "panels": [
@@ -7670,7 +7618,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -7703,7 +7651,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -7771,7 +7719,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -7806,7 +7754,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -7875,7 +7823,7 @@
           "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -7908,7 +7856,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -7974,7 +7922,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -8007,7 +7955,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -8074,7 +8022,7 @@
           "decimals": 0,
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -8107,7 +8055,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -8173,7 +8121,7 @@
           "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -8208,7 +8156,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -8274,7 +8222,7 @@
           "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
-              "links": []
+              "custom": {}
             },
             "overrides": []
           },
@@ -8306,7 +8254,7 @@
             "alertThreshold": true
           },
           "percentage": false,
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.1.5",
           "pointradius": 2,
           "points": false,
           "renderer": "flot",
@@ -8370,7 +8318,7 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 30,
+  "schemaVersion": 26,
   "style": "dark",
   "tags": [
     "postgres",
@@ -8398,6 +8346,7 @@
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
+        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -8421,6 +8370,7 @@
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
+        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -8444,6 +8394,7 @@
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
+        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -8467,6 +8418,7 @@
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
+        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -8490,6 +8442,7 @@
         "skipUrlSync": false,
         "sort": 1,
         "tagValuesQuery": "",
+        "tags": [],
         "tagsQuery": "",
         "type": "query",
         "useTags": false
@@ -8508,7 +8461,7 @@
     ]
   },
   "time": {
-    "from": "now-12h",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {
@@ -8539,5 +8492,5 @@
   "timezone": "utc",
   "title": "StackGres Dashboard",
   "uid": "000000041",
-  "version": 5
+  "version": 8
 }
