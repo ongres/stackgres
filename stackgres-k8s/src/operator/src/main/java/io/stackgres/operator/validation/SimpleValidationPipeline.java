@@ -7,7 +7,6 @@ package io.stackgres.operator.validation;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import javax.enterprise.inject.Instance;
 
@@ -40,7 +39,7 @@ public class SimpleValidationPipeline<T extends AdmissionReview<?>, V extends Va
       } else {
         return v1ValidationType.value().compareTo(v2ValidationType.value());
       }
-    }).collect(Collectors.toUnmodifiableList());
+    }).toList();
 
   }
 

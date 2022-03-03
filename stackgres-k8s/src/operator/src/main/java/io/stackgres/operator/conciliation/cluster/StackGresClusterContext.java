@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.cluster;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -18,6 +19,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
@@ -91,6 +93,20 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
         .toList();
   }
 
+  default Optional<String> getBackupPath() {
+    return Optional.of(getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getConfiguration)
+        .map(StackGresClusterConfiguration::getBackupPath)
+        .or(() -> Optional.of(getCluster())
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getConfiguration)
+            .map(StackGresClusterConfiguration::getBackups)
+            .map(List::stream)
+            .flatMap(Stream::findFirst)
+            .map(StackGresClusterBackupConfiguration::getPath));
+  }
+
   default Optional<BackupConfiguration> getBackupConfiguration() {
     if (getObjectStorageConfig().isPresent()) {
       return Optional.of(getCluster())
@@ -112,11 +128,6 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
                   .orElse(null)
           ));
     } else {
-      String path = Optional.of(getCluster())
-          .map(StackGresCluster::getSpec)
-          .map(StackGresClusterSpec::getConfiguration)
-          .map(StackGresClusterConfiguration::getBackupPath)
-          .orElseThrow();
       return getBackupConfig()
           .map(StackGresBackupConfig::getSpec)
           .map(StackGresBackupConfigSpec::getBaseBackups)
@@ -124,7 +135,11 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
               bc.getRetention(),
               bc.getCronSchedule(),
               bc.getCompression(),
-              path,
+              Optional.of(getCluster())
+                  .map(StackGresCluster::getSpec)
+                  .map(StackGresClusterSpec::getConfiguration)
+                  .map(StackGresClusterConfiguration::getBackupPath)
+                  .orElse(null),
               Optional.ofNullable(bc.getPerformance())
                   .map(bp -> new BackupPerformance(
                       bp.getMaxNetworkBandwitdh(),

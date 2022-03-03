@@ -75,7 +75,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   protected static final Logger LOGGER = LoggerFactory.getLogger(
       ClusterStatefulSetReconciliationHandlerTest.class);
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory =
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory =
       new ClusterLabelFactory(new ClusterLabelMapper());
 
   @Mock
@@ -99,7 +99,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   @Mock
   private ResourceFinder<Endpoints> endpointsFinder;
 
-  private ObjectMapper objectMapper = JsonUtil.JSON_MAPPER;
+  private final ObjectMapper objectMapper = JsonUtil.JSON_MAPPER;
 
   private ClusterStatefulSetReconciliationHandler handler;
 

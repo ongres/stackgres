@@ -57,6 +57,7 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
   }
 
   default BackupConfiguration getBackupConfiguration() {
+
     if (getObjectStorage().isPresent()) {
       return Optional.of(getCluster())
           .map(StackGresCluster::getSpec)

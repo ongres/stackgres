@@ -8,6 +8,7 @@ package io.stackgres.operator.mutation.cluster;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
@@ -70,10 +71,10 @@ public class DefaultBackupPathMutator implements ClusterMutator {
       final StackGresCluster cluster = review.getRequest().getObject();
       final StackGresClusterConfiguration configuration =
           Optional.ofNullable(cluster.getSpec().getConfiguration())
-          .orElseGet(() -> new StackGresClusterConfiguration());
+              .orElseGet(StackGresClusterConfiguration::new);
 
       ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
-      if (configuration.getBackupConfig() != null && configuration.getBackupPath() == null) {
+      if (isBackupConfigured(configuration) && configuration.getBackupPath() == null) {
         final long version = StackGresVersion.getStackGresVersionAsNumber(cluster);
         final String backupPath;
         if (version <= VERSION_1_1) {
@@ -102,11 +103,27 @@ public class DefaultBackupPathMutator implements ClusterMutator {
     return ImmutableList.of();
   }
 
+  private boolean isBackupConfigured(StackGresClusterConfiguration configuration) {
+    return isBackupConfSettled(configuration) || isObjectStorageSettled(configuration);
+  }
+
+  private boolean isBackupConfSettled(StackGresClusterConfiguration configuration) {
+    return configuration.getBackupConfig() != null;
+  }
+
+  private boolean isObjectStorageSettled(StackGresClusterConfiguration configuration) {
+    return Objects.nonNull(configuration.getBackups())
+        && !configuration.getBackups().isEmpty()
+        && configuration.getBackups().stream()
+        .map(StackGresClusterBackupConfiguration::getObjectStorage)
+        .anyMatch(Objects::nonNull);
+  }
+
   private String getBackupPathPre_1_2(final StackGresClusterConfiguration configuration,
-      final StackGresCluster cluster) {
+                                      final StackGresCluster cluster) {
     var storage = backupConfigFinder.findByNameAndNamespace(
-        configuration.getBackupConfig(),
-        cluster.getMetadata().getNamespace())
+            configuration.getBackupConfig(),
+            cluster.getMetadata().getNamespace())
         .map(StackGresBackupConfig::getSpec)
         .map(StackGresBackupConfigSpec::getStorage);
     if (storage.isPresent()) {

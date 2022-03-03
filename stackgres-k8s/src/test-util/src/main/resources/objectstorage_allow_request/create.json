@@ -1,23 +1,23 @@
 {
   "kind": "AdmissionReview",
   "request": {
-    "uid": "af38063c-f66f-11e9-8982-0242ac110002",
+    "uid": "c2f4a2a1-3939-11ea-be74-0242ac110002",
     "kind": {
       "kind": "SGObjectStorage",
       "group": "stackgres.io",
-      "version": "v1"
+      "version": "v1beta1"
     },
     "resource": {
       "group": "stackgres.io",
       "resource": "sgobjectstorages",
-      "version": "v1"
+      "version": "v1beta1"
     },
     "subResource": null,
     "requestKind": null,
     "requestResource": null,
     "requestSubResource": null,
     "name": null,
-    "namespace": "postgresql",
+    "namespace": "stackgres",
     "operation": "CREATE",
     "userInfo": {
       "groups": [
@@ -29,8 +29,8 @@
       "username": "system:serviceaccount:kube-system:tiller"
     },
     "object": {
-      "apiVersion": "stackgres.io/v1",
       "kind": "SGObjectStorage",
+      "apiVersion": "stackgres.io/v1",
       "metadata": {
         "creationTimestamp": "2019-11-08T14:46:41Z",
         "generation": 1,
