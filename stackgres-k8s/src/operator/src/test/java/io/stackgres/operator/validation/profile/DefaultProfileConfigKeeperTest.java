@@ -39,9 +39,4 @@ class DefaultProfileConfigKeeperTest extends DefaultKeeperTest<StackGresProfile,
         .readFromJson("sgprofile_allow_request/update.json", SgProfileReview.class);
   }
 
-  @Override
-  protected StackGresProfile getDefault() {
-    return JsonUtil
-        .readFromJson("stackgres_profiles/size-s.json", StackGresProfile.class);
-  }
 }

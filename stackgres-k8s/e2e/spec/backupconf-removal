@@ -4,7 +4,17 @@ e2e_test_install() {
   NODE_LABEL_KEY="$(random_string)"
   NODE_LABEL_VALUE="$(random_string)"
 
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-minio" \
+     --from-literal=accesskey=test --from-literal=secretkey=test
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string configurations.backupconfig.storage.s3Compatible.bucket=test \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name="$CLUSTER_NAME-minio" \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=accesskey \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name="$CLUSTER_NAME-minio" \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=secretkey \
+    --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *' \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
 }
 

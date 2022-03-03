@@ -41,9 +41,4 @@ class DefaultPoolingConfigKeeperTest
         PoolingReview.class);
   }
 
-  @Override
-  protected StackGresPoolingConfig getDefault() {
-    return JsonUtil.readFromJson("pooling_config/default.json",
-        StackGresPoolingConfig.class);
-  }
 }
