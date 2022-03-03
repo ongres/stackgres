@@ -16,7 +16,10 @@ e2e_test_install() {
   wait_pods_terminated "$CLUSTER_NAMESPACE" 2
 
   generate_mock_data
-  seq 1 16 | while read -r INDEX; do rotate_wal_file; done
+  for INDEX in $(seq 1 16)
+  do
+    rotate_wal_file > /dev/null
+  done
 }
 
 e2e_test() {
