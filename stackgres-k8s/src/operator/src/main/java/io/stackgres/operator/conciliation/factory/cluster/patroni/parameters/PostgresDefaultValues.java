@@ -31,13 +31,19 @@ public class PostgresDefaultValues {
     Objects.requireNonNull(pgVersion, "pgVersion parameter is null");
     int majorVersion = Integer.parseInt(pgVersion.split("\\.")[0]);
     if (majorVersion >= 13) {
-      return PostgresVersion.PG_13_VALUES.propFile;
+      return copy(PostgresVersion.PG_13_VALUES.propFile);
     }
-    return PostgresVersion.PG_DEFAULT_VALUES.propFile;
+    return copy(PostgresVersion.PG_DEFAULT_VALUES.propFile);
   }
 
   public static @NotNull Map<String, String> getDefaultValues(@NotNull String pgVersion) {
     return Maps.fromProperties(getProperties(pgVersion));
+  }
+
+  private static Properties copy(Properties p) {
+    Properties copy = new Properties();
+    copy.putAll(p);
+    return copy;
   }
 
 }

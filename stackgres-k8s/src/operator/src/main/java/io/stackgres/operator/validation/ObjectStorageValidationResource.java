@@ -22,7 +22,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationReso
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path(ValidationUtil.OBJECTSTORAGE_VALIDATION_PATH)
+@Path(ValidationUtil.OBJECT_STORAGE_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ObjectStorageValidationResource implements ValidationResource<ObjectStorageReview> {
@@ -30,25 +30,20 @@ public class ObjectStorageValidationResource implements ValidationResource<Objec
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ObjectStorageValidationResource.class);
 
-  private ValidationPipeline<ObjectStorageReview> validationPipeline;
+  private ValidationPipeline<ObjectStorageReview> pipeline;
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("Object storage validation resource started");
   }
 
-  /**
-   * Admission Web hook callback.
-   */
-  @POST
   @Override
+  @POST
   public AdmissionReviewResponse validate(ObjectStorageReview admissionReview) {
-    return validate(admissionReview, validationPipeline);
-
+    return validate(admissionReview, pipeline);
   }
 
   @Inject
-  public void setValidationPipeline(
-      @Any ValidationPipeline<ObjectStorageReview> validationPipeline) {
-    this.validationPipeline = validationPipeline;
+  public void setPipeline(@Any ValidationPipeline<ObjectStorageReview> pipeline) {
+    this.pipeline = pipeline;
   }
 }

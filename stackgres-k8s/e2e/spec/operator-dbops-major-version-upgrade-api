@@ -18,9 +18,9 @@ e2e_test_install() {
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set configurations.backupconfig.create=true \
     --set-string configurations.backupconfig.storage.s3Compatible.bucket=test \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name=test \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name="$CLUSTER_NAME-minio" \
     --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=accesskey \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name=test \
+    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name="$CLUSTER_NAME-minio" \
     --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=secretkey \
     --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *'
 

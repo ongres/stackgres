@@ -41,9 +41,4 @@ class DefaultPgConfigKeeperTest
         PgConfigReview.class);
   }
 
-  @Override
-  protected StackGresPostgresConfig getDefault() {
-    return JsonUtil.readFromJson("postgres_config/default_postgres.json",
-        StackGresPostgresConfig.class);
-  }
 }

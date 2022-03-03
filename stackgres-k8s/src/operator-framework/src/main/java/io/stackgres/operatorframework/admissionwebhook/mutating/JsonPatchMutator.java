@@ -57,7 +57,7 @@ public interface JsonPatchMutator<T> {
     while (!jsonNodeStack.isEmpty()) {
       List<Tuple3<JsonNode, JsonPointer, JsonNode>> jsonNodes = new ArrayList<>(jsonNodeStack);
       jsonNodeStack.clear();
-      jsonNodes.stream().forEach(t -> Seq.seq(t.v3.fieldNames())
+      jsonNodes.forEach(t -> Seq.seq(t.v3.fieldNames())
           .forEach(field -> {
             JsonPointer propertyPointer = t.v2.append(field);
             JsonNode propertyDefaultValue = t.v3.get(field);
