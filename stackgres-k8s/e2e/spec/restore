@@ -115,7 +115,7 @@ check_backup_can_be_restored() {
     --set cluster.initialData.restore.fromBackup.name="$BACKUP_NAME"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 }
 
 check_init_data_after_restore() {

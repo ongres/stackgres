@@ -5,6 +5,9 @@
 
 package io.stackgres.common.crd.sgobjectstorage;
 
+import java.io.Serial;
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -27,12 +30,13 @@ public class StackGresObjectStorage extends CustomResource<BackupStorage, Void>
   public static final String VERSION = "v1beta1";
   public static final String KIND = "SGObjectStorage";
 
+  @Serial
   private static final long serialVersionUID = 1L;
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof StackGresObjectStorage other &&
-        Objects.equals(spec, other.spec);
+    return obj instanceof StackGresObjectStorage other
+        && Objects.equals(spec, other.spec);
   }
 
   @Override

@@ -1,0 +1,29 @@
+{
+  "apiVersion": "stackgres.io/v1",
+  "kind": "SGObjectStorage",
+  "metadata": {
+    "name": "objtorage",
+    "namespace": "stackgres"
+  },
+  "spec": {
+    "s3Compatible": {
+      "awsCredentials": {
+        "secretKeySelectors": {
+          "accessKeyId": {
+            "key": "accesskey",
+            "name": "minio"
+          },
+          "secretAccessKey": {
+            "key": "secretkey",
+            "name": "minio"
+          }
+        }
+      },
+      "endpoint": "http://minio.stackgres:9000",
+      "enablePathStyleAddressing": true,
+      "bucket": "stackgres",
+      "region": "k8s"
+    },
+    "type": "s3Compatible"
+  }
+}

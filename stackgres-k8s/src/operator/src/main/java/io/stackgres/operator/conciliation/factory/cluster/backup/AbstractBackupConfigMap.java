@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.factory.cluster.backup;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.BackupStorageUtil;
@@ -24,8 +23,6 @@ import io.stackgres.common.crd.storages.GoogleCloudCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterStatefulSet;
-import org.jooq.lambda.Unchecked;
-import org.jooq.lambda.fi.util.function.CheckedFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,12 +48,16 @@ public abstract class AbstractBackupConfigMap {
         .map(BackupConfiguration::performance)
         .ifPresent(performance -> {
           Optional.ofNullable(performance.maxNetworkBandwitdh())
-              .ifPresent(maxNetworkBandwitdh -> backupEnvVars.put(
-                  "WALG_NETWORK_RATE_LIMIT", convertEnvValue(maxNetworkBandwitdh)));
+              .ifPresent(maxNetworkBandwitdh -> backupEnvVars
+                  .put(
+                      "WALG_NETWORK_RATE_LIMIT",
+                      BackupStorageUtil.convertEnvValue(maxNetworkBandwitdh)));
 
           Optional.ofNullable(performance.maxDiskBandwitdh())
-              .ifPresent(maxDiskBandwitdh -> backupEnvVars.put(
-                  "WALG_DISK_RATE_LIMIT", convertEnvValue(maxDiskBandwitdh)));
+              .ifPresent(maxDiskBandwitdh -> backupEnvVars
+                  .put(
+                      "WALG_DISK_RATE_LIMIT",
+                      BackupStorageUtil.convertEnvValue(maxDiskBandwitdh)));
 
           Optional.ofNullable(performance.uploadDiskConcurrency())
               .ifPresent(uploadDiskConcurrency -> backupEnvVars.put(
@@ -72,76 +73,75 @@ public abstract class AbstractBackupConfigMap {
   }
 
   protected Map<String, String> getBackupEnvVars(ClusterContext context,
-                                                 String name, String namespace,
+                                                 String path,
                                                  BackupStorage storage) {
 
     Optional<AwsS3Storage> storageForS3 = storage.getS3Opt();
     if (storageForS3.isPresent()) {
-      return getS3StorageEnvVars(namespace, name, storageForS3.get());
+      return getS3StorageEnvVars(path, storageForS3.get());
     }
 
     Optional<AwsS3CompatibleStorage> storageForS3Compatible = storage.getS3CompatibleOpt();
     if (storageForS3Compatible.isPresent()) {
       return getS3CompatibleStorageEnvVars(
-          namespace, name, storageForS3Compatible.get());
+          path, storageForS3Compatible.get());
     }
 
     Optional<GoogleCloudStorage> storageForGcs = storage.getGcsOpt();
     if (storageForGcs.isPresent()) {
-      return getGcsStorageEnvVars(context, namespace, name, storageForGcs.get());
+      return getGcsStorageEnvVars(context, path, storageForGcs.get());
     }
 
     Optional<AzureBlobStorage> storageForAzureBlob = storage.getAzureBlobOpt();
     return storageForAzureBlob.map(
-        azureBlobStorage -> getAzureBlobStorageEnvVars(namespace, name, azureBlobStorage))
+            azureBlobStorage -> getAzureBlobStorageEnvVars(path, azureBlobStorage))
         .orElseGet(Map::of);
 
   }
 
-  private Map<String, String> getS3StorageEnvVars(String namespace,
-                                                  String name,
+  private Map<String, String> getS3StorageEnvVars(String path,
                                                   AwsS3Storage storageForS3) {
+
     return Map.of(
-        "WALG_S3_PREFIX", getFromS3(storageForS3, AwsS3Storage::getPrefix)
-            + "/" + namespace + "/" + name,
-        "AWS_REGION", getFromS3(storageForS3, AwsS3Storage::getRegion),
-        "WALG_S3_STORAGE_CLASS", getFromS3(storageForS3, AwsS3Storage::getStorageClass)
+        "WALG_S3_PREFIX", BackupStorageUtil.getPrefixForS3(path, storageForS3),
+        "AWS_REGION", BackupStorageUtil.getFromS3(
+            storageForS3, AwsS3Storage::getRegion),
+        "WALG_S3_STORAGE_CLASS", BackupStorageUtil.getFromS3(
+            storageForS3, AwsS3Storage::getStorageClass)
     );
   }
 
   private Map<String, String> getS3CompatibleStorageEnvVars(
-      String namespace,
-      String name,
+      String path,
       AwsS3CompatibleStorage storageForS3Compatible) {
 
     return Map.of(
-        "WALG_S3_PREFIX", getFromS3Compatible(storageForS3Compatible,
-            AwsS3CompatibleStorage::getPrefix)
-            + "/" + namespace + "/" + name,
-        "AWS_REGION", getFromS3Compatible(storageForS3Compatible,
-            AwsS3CompatibleStorage::getRegion),
-        "AWS_ENDPOINT", getFromS3Compatible(storageForS3Compatible,
-            AwsS3CompatibleStorage::getEndpoint),
-        "ENDPOINT_HOSTNAME", getFromS3Compatible(
+        "WALG_S3_PREFIX", BackupStorageUtil
+            .getPrefixForS3Compatible(path, storageForS3Compatible),
+        "AWS_REGION", BackupStorageUtil.getFromS3Compatible(
+            storageForS3Compatible, AwsS3CompatibleStorage::getRegion),
+        "AWS_ENDPOINT", BackupStorageUtil.getFromS3Compatible(
+            storageForS3Compatible, AwsS3CompatibleStorage::getEndpoint),
+        "ENDPOINT_HOSTNAME", BackupStorageUtil.getFromS3Compatible(
             storageForS3Compatible, AwsS3CompatibleStorage::getEndpoint,
             StackGresUtil::getHostFromUrl),
-        "ENDPOINT_PORT", getFromS3Compatible(
+        "ENDPOINT_PORT", BackupStorageUtil.getFromS3Compatible(
             storageForS3Compatible, AwsS3CompatibleStorage::getEndpoint,
             StackGresUtil::getPortFromUrl),
-        "AWS_S3_FORCE_PATH_STYLE", getFromS3Compatible(storageForS3Compatible,
-            AwsS3CompatibleStorage::isForcePathStyle),
-        "WALG_S3_STORAGE_CLASS", getFromS3Compatible(storageForS3Compatible,
-            AwsS3CompatibleStorage::getStorageClass)
+        "AWS_S3_FORCE_PATH_STYLE", BackupStorageUtil.getFromS3Compatible(
+            storageForS3Compatible, AwsS3CompatibleStorage::isForcePathStyle),
+        "WALG_S3_STORAGE_CLASS", BackupStorageUtil.getFromS3Compatible(
+            storageForS3Compatible, AwsS3CompatibleStorage::getStorageClass)
     );
   }
 
   private Map<String, String> getGcsStorageEnvVars(ClusterContext context,
-                                                   String namespace, String name,
+                                                   String path,
                                                    GoogleCloudStorage storageForGcs) {
 
     Map<String, String> backupEnvVars = new HashMap<>();
-    backupEnvVars.put("WALG_GS_PREFIX", getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix)
-        + "/" + namespace + "/" + name);
+    backupEnvVars.put("WALG_GS_PREFIX", BackupStorageUtil.getPrefixForGcs(
+        path, storageForGcs));
     if (!Optional.of(storageForGcs)
         .map(GoogleCloudStorage::getCredentials)
         .map(GoogleCloudCredentials::isFetchCredentialsFromMetadataService)
@@ -156,57 +156,10 @@ public abstract class AbstractBackupConfigMap {
         + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 
-  private Map<String, String> getAzureBlobStorageEnvVars(String namespace, String name,
+  private Map<String, String> getAzureBlobStorageEnvVars(String path,
                                                          AzureBlobStorage storageForAzureBlob) {
-    return Map.of("WALG_AZ_PREFIX", getFromAzureBlob(
-        storageForAzureBlob, AzureBlobStorage::getPrefix)
-        + "/" + namespace + "/" + name);
-  }
-
-  private <T> String getFromS3(AwsS3Storage storageFor,
-                               Function<AwsS3Storage, T> getter) {
-    return Optional.of(storageFor)
-        .map(getter)
-        .map(this::convertEnvValue)
-        .orElse("");
-  }
-
-  private <T> String getFromS3Compatible(AwsS3CompatibleStorage storageFor,
-                                         Function<AwsS3CompatibleStorage, T> getter) {
-    return Optional.of(storageFor)
-        .map(getter)
-        .map(this::convertEnvValue)
-        .orElse("");
-  }
-
-  private <T, R> String getFromS3Compatible(AwsS3CompatibleStorage storageFor,
-                                            Function<AwsS3CompatibleStorage, T> getter,
-                                            CheckedFunction<T, R> transformer) {
-    return Optional.of(storageFor)
-        .map(getter)
-        .map(Unchecked.function(transformer))
-        .map(this::convertEnvValue)
-        .orElse("");
-  }
-
-  private <T> String getFromGcs(GoogleCloudStorage storageFor,
-                                Function<GoogleCloudStorage, T> getter) {
-    return Optional.of(storageFor)
-        .map(getter)
-        .map(this::convertEnvValue)
-        .orElse("");
-  }
-
-  private <T> String getFromAzureBlob(AzureBlobStorage storageFor,
-                                      Function<AzureBlobStorage, T> getter) {
-    return Optional.of(storageFor)
-        .map(getter)
-        .map(this::convertEnvValue)
-        .orElse("");
-  }
-
-  protected <T> String convertEnvValue(T value) {
-    return value.toString();
+    return Map.of("WALG_AZ_PREFIX", BackupStorageUtil.getPrefixForAzureBlob(
+        path, storageForAzureBlob));
   }
 
 }

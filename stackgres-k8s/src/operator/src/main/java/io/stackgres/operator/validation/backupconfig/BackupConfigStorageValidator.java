@@ -13,11 +13,13 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.storages.AwsCredentials;
 import io.stackgres.common.crd.storages.AzureBlobStorageCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudCredentials;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.BackupConfigReview;
+import io.stackgres.operator.validation.DefaultCustomResourceHolder;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -31,10 +33,14 @@ public class BackupConfigStorageValidator implements BackupConfigValidator {
 
   private final ResourceFinder<Secret> secretFinder;
 
+  private final DefaultCustomResourceHolder<StackGresBackupConfig> holder;
+
   @Inject
-  public BackupConfigStorageValidator(ResourceFinder<Secret> secretFinder) {
+  public BackupConfigStorageValidator(ResourceFinder<Secret> secretFinder,
+                                      DefaultCustomResourceHolder<StackGresBackupConfig> holder) {
     super();
     this.secretFinder = secretFinder;
+    this.holder = holder;
   }
 
   @Override
@@ -43,13 +49,17 @@ public class BackupConfigStorageValidator implements BackupConfigValidator {
     Operation operation = review.getRequest().getOperation();
     if (operation == Operation.CREATE || operation == Operation.UPDATE) {
 
-      String namespace = review.getRequest().getObject().getMetadata().getNamespace();
-      String storageType = review.getRequest().getObject().getSpec().getStorage().getType();
+      final StackGresBackupConfig object = review.getRequest().getObject();
+      if (holder.isDefaultCustomResource(object)) {
+        return;
+      }
+      String namespace = object.getMetadata().getNamespace();
+      String storageType = object.getSpec().getStorage().getType();
 
       if (storageType.equals("s3")
-          && review.getRequest().getObject().getSpec()
+          && object.getSpec()
           .getStorage().getS3() != null) {
-        AwsCredentials credentials = review.getRequest().getObject().getSpec()
+        AwsCredentials credentials = object.getSpec()
             .getStorage().getS3().getAwsCredentials();
         checkSecret(namespace, storageType,
             "accessKeyId", credentials.getSecretKeySelectors().getAccessKeyId());
@@ -57,10 +67,10 @@ public class BackupConfigStorageValidator implements BackupConfigValidator {
             "secretAccessKey", credentials.getSecretKeySelectors().getSecretAccessKey());
       }
 
-      if (storageType.equals("s3compatible")
-          && review.getRequest().getObject().getSpec()
+      if (storageType.equals("s3Compatible")
+          && object.getSpec()
           .getStorage().getS3Compatible() != null) {
-        AwsCredentials credentials = review.getRequest().getObject().getSpec()
+        AwsCredentials credentials = object.getSpec()
             .getStorage().getS3Compatible().getAwsCredentials();
         checkSecret(namespace, storageType,
             "accessKeyId", credentials.getSecretKeySelectors().getAccessKeyId());
@@ -69,9 +79,9 @@ public class BackupConfigStorageValidator implements BackupConfigValidator {
       }
 
       if (storageType.equals("azureblob")
-          && review.getRequest().getObject().getSpec()
+          && object.getSpec()
           .getStorage().getAzureBlob() != null) {
-        AzureBlobStorageCredentials credentials = review.getRequest().getObject().getSpec()
+        AzureBlobStorageCredentials credentials = object.getSpec()
             .getStorage().getAzureBlob().getAzureCredentials();
         checkSecret(namespace, storageType,
             "account", credentials.getSecretKeySelectors().getAccount());
@@ -80,10 +90,10 @@ public class BackupConfigStorageValidator implements BackupConfigValidator {
       }
 
       if (storageType.equals("gcs")
-          && review.getRequest().getObject().getSpec().getStorage().getGcs() != null
-          && review.getRequest().getObject().getSpec().getStorage().getGcs().getCredentials()
+          && object.getSpec().getStorage().getGcs() != null
+          && object.getSpec().getStorage().getGcs().getCredentials()
           .getSecretKeySelectors() != null) {
-        GoogleCloudCredentials credentials = review.getRequest().getObject().getSpec()
+        GoogleCloudCredentials credentials = object.getSpec()
             .getStorage().getGcs().getCredentials();
         checkSecret(namespace, storageType,
             "serviceAccountJsonKey",
@@ -93,7 +103,8 @@ public class BackupConfigStorageValidator implements BackupConfigValidator {
   }
 
   private void checkSecret(String namespace, String storageType, String selectorName,
-      SecretKeySelector secretKeySelector) throws ValidationFailed {
+                           SecretKeySelector secretKeySelector) throws ValidationFailed {
+
     Optional<Secret> secret = secretFinder.findByNameAndNamespace(
         secretKeySelector.getName(), namespace);
     if (!secret.isPresent()) {

@@ -97,12 +97,10 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
             backup.getStatus().getInternalName());
 
         data.putAll(getBackupEnvVars(context,
-            cluster.getMetadata().getNamespace(),
-            cluster.getMetadata().getName(),
             Optional.of(backup)
-            .map(StackGresBackup::getStatus)
-            .map(StackGresBackupStatus::getBackupPath)
-            .orElseThrow(),
+                .map(StackGresBackup::getStatus)
+                .map(StackGresBackupStatus::getBackupPath)
+                .orElseThrow(),
             backup.getStatus().getBackupConfig()));
 
         Optional.ofNullable(cluster.getSpec())
@@ -129,12 +127,12 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
   private Map<String, String> getBackupEnvVars(
       StackGresClusterContext context,
-      String namespace,
-      String sgCluster,
       String path,
       StackGresBackupConfigSpec backupConfig) {
     Map<String, String> result = new HashMap<>(
-        getBackupEnvVars(context, namespace, sgCluster, backupConfig.getStorage())
+        getBackupEnvVars(context,
+            path,
+            backupConfig.getStorage())
     );
     if (backupConfig.getBaseBackups() != null) {
       result.putAll(

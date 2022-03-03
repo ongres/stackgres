@@ -48,7 +48,7 @@ public interface ValidationResource<T extends AdmissionReview<?>> {
     } catch (ValidationFailed validationFailed) {
       Status result = validationFailed.getResult();
       logger.error("cannot proceed with request "
-          + requestUid.toString() + " cause: " + result.getMessage());
+          + requestUid + " cause: " + result.getMessage());
       response.setAllowed(false);
       response.setStatus(result);
     }

@@ -23,7 +23,7 @@ public interface BackupStorageUtil {
 
   static String getPrefixForS3(
       String path,
-      Optional<AwsS3Storage> storageForS3) {
+      AwsS3Storage storageForS3) {
     return composePrefix(
         getFromS3(storageForS3, AwsS3Storage::getPrefix),
         path);
@@ -31,7 +31,7 @@ public interface BackupStorageUtil {
 
   static String getPrefixForS3Compatible(
       String path,
-      Optional<AwsS3CompatibleStorage> storageForS3Compatible) {
+      AwsS3CompatibleStorage storageForS3Compatible) {
     return composePrefix(
         getFromS3Compatible(storageForS3Compatible, AwsS3CompatibleStorage::getPrefix),
         path);
@@ -39,7 +39,7 @@ public interface BackupStorageUtil {
 
   static String getPrefixForGcs(
       String path,
-      Optional<GoogleCloudStorage> storageForGcs) {
+      GoogleCloudStorage storageForGcs) {
     return composePrefix(
         getFromGcs(storageForGcs, GoogleCloudStorage::getPrefix),
         path);
@@ -47,7 +47,7 @@ public interface BackupStorageUtil {
 
   static String getPrefixForAzureBlob(
       String path,
-      Optional<AzureBlobStorage> storageForAzureBlob) {
+      AzureBlobStorage storageForAzureBlob) {
     return composePrefix(
         getFromAzureBlob(storageForAzureBlob, AzureBlobStorage::getPrefix),
         path);
@@ -158,54 +158,53 @@ public interface BackupStorageUtil {
   }
 
   static <T> String getFromS3(
-      Optional<AwsS3Storage> storageFor,
+      AwsS3Storage storageFor,
       Function<AwsS3Storage, T> getter) {
-    return storageFor
-        .map(getter)
-        .map(BackupStorageUtil::convertEnvValue)
-        .orElse("");
+    return BackupStorageUtil.convertEnvValue(getter.apply(storageFor));
   }
 
   static <T> String getFromS3Compatible(
-      Optional<AwsS3CompatibleStorage> storageFor,
+      AwsS3CompatibleStorage storageFor,
       Function<AwsS3CompatibleStorage, T> getter) {
-    return storageFor
-        .map(getter)
-        .map(BackupStorageUtil::convertEnvValue)
-        .orElse("");
+    return BackupStorageUtil.convertEnvValue(
+        getter.apply(storageFor)
+    );
+
   }
 
   static <T, R> String getFromS3Compatible(
-      Optional<AwsS3CompatibleStorage> storageFor,
+      AwsS3CompatibleStorage storageFor,
       Function<AwsS3CompatibleStorage, T> getter,
       CheckedFunction<T, R> transformer) {
-    return storageFor
-        .map(getter)
-        .map(Unchecked.function(transformer))
-        .map(BackupStorageUtil::convertEnvValue)
-        .orElse("");
+    return BackupStorageUtil.convertEnvValue(
+        Unchecked.function(transformer).apply(
+            getter.apply(storageFor)
+        )
+    );
   }
 
   static <T> String getFromGcs(
-      Optional<GoogleCloudStorage> storageFor,
+      GoogleCloudStorage storageFor,
       Function<GoogleCloudStorage, T> getter) {
-    return storageFor
-        .map(getter)
-        .map(BackupStorageUtil::convertEnvValue)
-        .orElse("");
+    return BackupStorageUtil.convertEnvValue(
+      getter.apply(storageFor)
+    );
   }
 
   static <T> String getFromAzureBlob(
-      Optional<AzureBlobStorage> storageFor,
+      AzureBlobStorage storageFor,
       Function<AzureBlobStorage, T> getter) {
-    return storageFor
-        .map(getter)
-        .map(BackupStorageUtil::convertEnvValue)
-        .orElse("");
+    return BackupStorageUtil.convertEnvValue(
+        getter.apply(storageFor)
+    );
   }
 
   static <T> String convertEnvValue(T value) {
-    return value.toString();
+    if (value != null) {
+      return value.toString();
+    } else {
+      return "";
+    }
   }
 
 }

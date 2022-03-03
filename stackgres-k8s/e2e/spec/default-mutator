@@ -267,6 +267,9 @@ EOF
 }
 
 create_empty_sgbackupconfig() {
+  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "minio" \
+     --from-literal=accesskey=test --from-literal=secretkey=test
+     
   kubectl delete sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
 apiVersion: stackgres.io/v1

@@ -6,9 +6,7 @@
 package io.stackgres.operator.conciliation.factory.cluster.backup;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -22,9 +20,6 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -79,8 +74,7 @@ public class BackupConfigMap extends AbstractBackupConfigMap
         .ifPresent(storage -> data.putAll(
                 getBackupEnvVars(
                     context,
-                    cluster.getMetadata().getNamespace(),
-                    cluster.getMetadata().getName(),
+                    context.getBackupPath().orElseThrow(),
                     storage
                 )
             )

@@ -16,5 +16,4 @@ public interface ObjectStorageValidator extends Validator<ObjectStorageReview> {
   default void fail(String reason, String message) throws ValidationFailed {
     fail(HasMetadata.getKind(StackGresObjectStorage.class), reason, message);
   }
-
 }

@@ -130,19 +130,19 @@ webhooks:
         path: '/stackgres/validation/sgdbops'
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1beta1"]
-  - name: sgobjectstorage.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgobjectstorages.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
-        resources: ["sgobjectstorage"]
+        resources: ["sgobjectstorages"]
     failurePolicy: Fail
     clientConfig:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgobjectstorage'
+        path: '/stackgres/validation/sgobjectstorages'
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1beta1"]
 {{- end }}
