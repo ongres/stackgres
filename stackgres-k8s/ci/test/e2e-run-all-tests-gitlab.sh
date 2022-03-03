@@ -119,8 +119,8 @@ run_all_tests_loop() {
 
   echo "Extracting helm packages and templates..."
 
-  sh stackgres-k8s/ci/build/build-functions.sh extract helm-packages stackgres-k8s/install/helm/template/packages
-  sh stackgres-k8s/ci/build/build-functions.sh extract helm-templates stackgres-k8s/install/helm/template/templates
+  sh stackgres-k8s/ci/build/build-functions.sh extract helm-packages stackgres-k8s/install/helm/target/packages
+  sh stackgres-k8s/ci/build/build-functions.sh extract helm-templates stackgres-k8s/install/helm/target/templates
 
   echo 'done'
 
