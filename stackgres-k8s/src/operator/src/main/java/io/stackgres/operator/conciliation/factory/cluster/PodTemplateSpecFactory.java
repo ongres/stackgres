@@ -197,7 +197,7 @@ public class PodTemplateSpecFactory
 
   private Boolean isClusterPodAntiAffinityEnabled(StackGresCluster cluster) {
     return Optional.ofNullable(
-        cluster.getSpec().getNonProduction())
+        cluster.getSpec().getNonProductionOptions())
         .map(StackGresClusterNonProduction::getDisableClusterPodAntiAffinity)
         .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
         .orElse(true);

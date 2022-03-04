@@ -118,8 +118,8 @@ class ClusterTransformerTest {
     target.setPrometheusAutobind(prometheusAutobind);
 
     var nonProductions = createNonProductionOptions();
-    source.setNonProduction(nonProductions.getSource());
-    target.setNonProduction(nonProductions.getTarget());
+    source.setNonProductionOptions(nonProductions.getSource());
+    target.setNonProductionOptions(nonProductions.getTarget());
 
     var services = createPostgresServices();
     source.setPostgresServices(services.getSource());

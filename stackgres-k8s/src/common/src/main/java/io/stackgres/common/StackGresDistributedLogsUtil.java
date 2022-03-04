@@ -94,8 +94,8 @@ public interface StackGresDistributedLogsUtil {
                 "/distributed-logs-template.sql"),
                 StandardCharsets.UTF_8)
             .read()).get());
-    distributedLogsCluster.getSpec().setNonProduction(new StackGresClusterNonProduction());
-    distributedLogsCluster.getSpec().getNonProduction().setDisableClusterPodAntiAffinity(
+    distributedLogsCluster.getSpec().setNonProductionOptions(new StackGresClusterNonProduction());
+    distributedLogsCluster.getSpec().getNonProductionOptions().setDisableClusterPodAntiAffinity(
         Optional.ofNullable(distributedLogs.getSpec().getNonProduction())
             .map(StackGresDistributedLogsNonProduction::getDisableClusterPodAntiAffinity)
             .orElse(false));

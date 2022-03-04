@@ -8,6 +8,7 @@ package io.stackgres.apiweb.rest;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.profile.ProfileDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
@@ -34,7 +35,9 @@ class ProfileResourceTest extends AbstractDependencyCustomResourceTest
 
   @Override
   protected AbstractDependencyResourceTransformer<ProfileDto, StackGresProfile> getTransformer() {
-    return new ProfileTransformer();
+    return new ProfileTransformer(
+        JsonMapper.builder().build()
+    );
   }
 
   @Override

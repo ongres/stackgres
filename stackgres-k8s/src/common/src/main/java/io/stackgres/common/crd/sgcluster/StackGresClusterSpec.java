@@ -149,11 +149,11 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.prometheusAutobind = prometheusAutobind;
   }
 
-  public StackGresClusterNonProduction getNonProduction() {
+  public StackGresClusterNonProduction getNonProductionOptions() {
     return nonProductionOptions;
   }
 
-  public void setNonProduction(StackGresClusterNonProduction nonProduction) {
+  public void setNonProductionOptions(StackGresClusterNonProduction nonProduction) {
     this.nonProductionOptions = nonProduction;
   }
 
