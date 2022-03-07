@@ -22,7 +22,7 @@
 
             <div class="actions">
                 <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgdistributedlogs/" target="_blank" title="SGDistributedLogs Documentation">SGDistributedLogs Documentation</a>
-                <div>
+                <div class="crdActionLinks">
 					<template v-if="$route.params.hasOwnProperty('name')">
 						<template v-for="cluster in clusters" v-if="cluster.name == $route.params.name">
 							<router-link v-if="iCan('patch','sgdistributedlogs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.data.metadata.name + '/edit'" title="Edit Logs Cluster">
@@ -34,7 +34,7 @@
                             <a v-if="iCan('delete','sgdistributedlogs',$route.params.namespace)" @click="deleteCRD('sgdistributedlogs',$route.params.namespace, cluster.data.metadata.name, '/' + $route.params.namespace + '/sgdistributedlogs')" title="Delete Configuration" :class="cluster.data.status.clusters.length ? 'disabled' : ''">
                                 Delete Logs Cluster
                             </a>
-                            <router-link class="borderLeft" :to="'/' + $route.params.namespace + '/sgdistributedlogs'" title="Close Details">Close Details</router-link>
+                            <router-link :to="'/' + $route.params.namespace + '/sgdistributedlogs'" title="Close Details">Close Details</router-link>
 						</template>
 					</template>
 					<template v-else>
