@@ -47,7 +47,7 @@ check_label(){
 direct_custom_labels(){
   local RANDOM_VALUE="$(random_string)"
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v2beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -117,7 +117,7 @@ create_cluster_with_api(){
 
 create_api_custom_labels(){
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v2beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -155,7 +155,7 @@ EOF
 get_api_custom_labels() {
   local RANDOM_VALUE="$(random_string)"
   cat <<EOF | kubectl apply -f -
-apiVersion: stackgres.io/v2beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
