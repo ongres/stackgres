@@ -138,6 +138,26 @@ Vue.directive('columns-resizable', {
   }
 });
 
+// Check color scheme preferences
+if ( getCookie('sgTheme') === 'dark' ) {
+  console.log('Switching to darkmode');
+  store.commit('setTheme', 'dark');
+  $('body').addClass('darkmode');
+  $('#darkmode').addClass('active');
+}
+
+// Check timezone preferences
+if ( getCookie('sgTimezone') === 'utc' ) {
+  console.log('Switching to UTC timezone');
+  store.commit('toggleTimezone');
+}
+
+// Check view preferences
+if ( getCookie('sgView') === 'collapsed' ) {
+  console.log('Switching to collapsed sidebar view');
+  store.commit('toggleView');
+}
+
 const vm = new Vue({
   router,
   store,
@@ -151,28 +171,6 @@ const vm = new Vue({
     init: false
   }
 }).$mount('#app')
-
-var urlParams = new URLSearchParams(window.location.search);
-
-// Check URL Params
-if( urlParams.has('darkmode') || (getCookie('sgTheme') === 'dark') ) {
-  console.log('Switching to darkmode');
-  store.commit('setTheme', 'dark');
-  $('body').addClass('darkmode');
-  $('#darkmode').addClass('active');
-}
-
-// Check timezone preferences
-if( getCookie('sgTimezone') === 'utc') {
-  console.log('Switching to UTC timezone');
-  store.commit('toggleTimezone');
-}
-
-// Check view preferences
-if( getCookie('sgView') === 'collapsed') {
-  console.log('Switching to collapsed sidebar view');
-  store.commit('toggleView');
-}
 
 Vue.filter('prettyCRON', function (value) {
   return prettyCron.toString(value)
