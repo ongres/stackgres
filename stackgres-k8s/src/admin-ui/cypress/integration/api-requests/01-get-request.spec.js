@@ -71,7 +71,7 @@ describe('Load StackGres version', () => {
                 name: dbopName,
                 namespace: namespace
             }
-        });
+        })
     });
 
     it('GET can-i', () => {
@@ -92,6 +92,14 @@ describe('Load StackGres version', () => {
 
     it('GET sgclusters', () => {
         cy.getResources('sgclusters');
+    });
+
+    it('GET sgcluster events', () => {
+        cy.getResources('namespaces/' + namespace + '/sgclusters/' + clusterName + '/events');
+    });
+
+    it('GET sgcluster stats', () => {
+        cy.getResources('namespaces/' + namespace + '/sgclusters/' + clusterName + '/stats');
     });
 
     it('GET sginstanceprofiles', () => {
@@ -126,7 +134,7 @@ describe('Load StackGres version', () => {
         cy.getResources('sgdbops');
     });
 
-    it('GET dbop events', () => {
+    it('GET sgdbop events', () => {
         cy.getResources('namespaces/' + namespace + '/sgdbops/' + dbopName + '/events');
     });
 
