@@ -26,10 +26,10 @@ import io.stackgres.common.crd.sgcluster.StackGresReplicationMode;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.ClusterRequiredResourceDecorator;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -88,12 +88,10 @@ public abstract class GeneratorTest {
 
   @BeforeEach
   void setUp() {
-    stackGresProfile = JsonUtil.readFromJson("stackgres_profiles/size-xs.json",
-        StackGresProfile.class);
+    stackGresProfile = Fixtures.instanceProfile().loadSizeXs().get();
     stackGresProfile.getMetadata().setNamespace(CLUSTER_NAMESPACE);
 
-    stackGresPostgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
-        StackGresPostgresConfig.class);
+    stackGresPostgresConfig = Fixtures.postgresConfig().loadDefault().get();
 
     cluster = new StackGresCluster();
     cluster.getMetadata().setUid(CLUSTER_UID);

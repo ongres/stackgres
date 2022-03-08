@@ -7,9 +7,9 @@ package io.stackgres.operator.validation.distributedlogs;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.PersistentVolumeSizeExpansionValidator;
 import io.stackgres.operator.validation.PersistentVolumeSizeExpansionValidatorTest;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,8 +20,7 @@ class DistributedLogsPersistentVolumeSizeExpansionValidatorTest extends
 
   @Override
   protected StackGresDistributedLogsReview getAdmissionReview() {
-    return JsonUtil.readFromJson("distributedlogs_allow_request/update.json",
-        StackGresDistributedLogsReview.class);
+    return AdmissionReviewFixtures.distributedLogs().loadUpdate().get();
   }
 
   @Override

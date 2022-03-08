@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 
 class PoolingBlocklistValidatorTest {
@@ -22,8 +22,7 @@ class PoolingBlocklistValidatorTest {
   private PgBouncerBlocklistValidator validator = new PgBouncerBlocklistValidator();
 
   private static final PoolingReview getCreatePoolingReview() {
-    return JsonUtil.readFromJson("pooling_allow_request/create.json",
-        PoolingReview.class);
+    return AdmissionReviewFixtures.poolingConfig().loadCreate().get();
   }
 
   @Test

@@ -12,7 +12,7 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgscript.StackGresScript;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,8 +22,7 @@ class StackGresVersionTest {
 
   @BeforeEach
   void setUp() {
-    script = JsonUtil
-        .readFromJson("stackgres_script/default.json", StackGresScript.class);
+    script = Fixtures.script().loadDefault().get();
   }
 
   @Test

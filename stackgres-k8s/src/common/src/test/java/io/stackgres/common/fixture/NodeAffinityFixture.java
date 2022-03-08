@@ -13,10 +13,6 @@ import io.fabric8.kubernetes.api.model.NodeSelector;
 import io.fabric8.kubernetes.api.model.NodeSelectorBuilder;
 import io.fabric8.kubernetes.api.model.PreferredSchedulingTerm;
 import io.stackgres.common.crd.NodeAffinity;
-import io.stackgres.fixture.NodeSelectorFixture;
-import io.stackgres.fixture.NodeSelectorRequirementFixture;
-import io.stackgres.fixture.NodeSelectorTermFixture;
-import io.stackgres.fixture.PreferredSchedulingTermFixture;
 
 public class NodeAffinityFixture {
 

@@ -22,7 +22,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operator.validation.AbstractExtensionsValidator;
 import io.stackgres.operator.validation.ExtensionReview;
@@ -34,7 +34,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @Singleton
 @ValidationType(ErrorType.EXTENSION_NOT_FOUND)
 public class DbOpsMajorVersionUpgradeExtensionValidator
-    extends AbstractExtensionsValidator<StackGresDbOpsReview>
+    extends AbstractExtensionsValidator<DbOpsReview>
     implements DbOpsValidator {
 
   private final ClusterExtensionMetadataManager extensionMetadataManager;
@@ -54,7 +54,7 @@ public class DbOpsMajorVersionUpgradeExtensionValidator
   }
 
   @Override
-  public void validate(StackGresDbOpsReview review) throws ValidationFailed {
+  public void validate(DbOpsReview review) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.CREATE
         && review.getRequest().getObject().getSpec().isOpMajorVersionUpgrade()) {
       validateExtensions(review);
@@ -62,7 +62,7 @@ public class DbOpsMajorVersionUpgradeExtensionValidator
   }
 
   @Override
-  protected ExtensionReview getExtensionReview(StackGresDbOpsReview review) {
+  protected ExtensionReview getExtensionReview(DbOpsReview review) {
     StackGresCluster cluster = getCluster(review);
     String pgVersion = review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
         .getPostgresVersion();
@@ -82,7 +82,7 @@ public class DbOpsMajorVersionUpgradeExtensionValidator
         .build();
   }
 
-  private StackGresCluster getCluster(StackGresDbOpsReview review) {
+  private StackGresCluster getCluster(DbOpsReview review) {
     String clusterName = review.getRequest().getObject().getSpec().getSgCluster();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
     return clusterFinder.findByNameAndNamespace(clusterName, namespace)

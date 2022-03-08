@@ -15,7 +15,7 @@ import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.exception.KubernetesExceptionMapper;
 import io.stackgres.apiweb.rest.utils.Kubernetes16StatusParser;
 import io.stackgres.common.ErrorType;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,7 @@ class KubernetesExceptionMapperTest {
 
   @Test
   void kubernetes16Validations_shouldBeParsed() {
-    Status status = JsonUtil.readFromJson("kube_status/status-1.16.4.json", Status.class);
+    Status status = Fixtures.kubeStatus().load1_16_4().get();
 
     Response response = mapper.toResponse(new KubernetesClientException("error", 422, status));
 
@@ -73,7 +73,7 @@ class KubernetesExceptionMapperTest {
 
   @Test
   void kubernetesInvalidNameValidation_shouldBeParsed() {
-    Status status = JsonUtil.readFromJson("kube_status/invalid_cluster_name.json", Status.class);
+    Status status = Fixtures.kubeStatus().loadInvalidClusterName().get();
 
     Response response = mapper.toResponse(new KubernetesClientException(status));
 
@@ -90,7 +90,7 @@ class KubernetesExceptionMapperTest {
 
   @Test
   void kubernetesInvalidDnsValidation_shouldBeParsed() {
-    Status status = JsonUtil.readFromJson("kube_status/invalid_dns_name.json", Status.class);
+    Status status = Fixtures.kubeStatus().loadInvalidDnsName().get();
 
     Response response = mapper.toResponse(new KubernetesClientException(status));
 
@@ -108,7 +108,7 @@ class KubernetesExceptionMapperTest {
 
   @Test
   void kubernetesAlreadyExists_shouldBeParsed() {
-    Status status = JsonUtil.readFromJson("kube_status/already-exists.json", Status.class);
+    Status status = Fixtures.kubeStatus().loadAlreadyExists().get();
 
     Response response = mapper.toResponse(new KubernetesClientException("error", 409, status));
 

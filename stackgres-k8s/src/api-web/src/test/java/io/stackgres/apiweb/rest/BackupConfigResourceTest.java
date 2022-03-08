@@ -14,14 +14,14 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
+import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.BackupConfigTransformer;
 import io.stackgres.apiweb.transformer.BackupStorageTransformer;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,14 +47,12 @@ class BackupConfigResourceTest extends AbstractDependencyCustomResourceTest
 
   @Override
   protected CustomResourceList<StackGresBackupConfig> getCustomResourceList() {
-    return JsonUtil
-        .readFromJson("backup_config/list.json", StackGresBackupConfigList.class);
+    return Fixtures.backupConfigList().loadDefault().get();
   }
 
   @Override
   protected BackupConfigDto getResourceDto() {
-    return JsonUtil
-        .readFromJson("backup_config/dto.json", BackupConfigDto.class);
+    return DtoFixtures.backupConfig().loadDefault().get();
   }
 
   @Override
@@ -107,8 +105,8 @@ class BackupConfigResourceTest extends AbstractDependencyCustomResourceTest
   @Test
   void createBackupConfigWithGoogleIdentity_shouldNotFail() {
 
-    BackupConfigDto backupConfigDto = JsonUtil
-        .readFromJson("backup_config/google_identity_config.json", BackupConfigDto.class);
+    BackupConfigDto backupConfigDto = DtoFixtures.backupConfig()
+        .loadGoogleIdentityConfig().get();
 
     resourceDto = backupConfigDto;
 

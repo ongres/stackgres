@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
@@ -20,6 +20,7 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ class DefaultPostgresVersionMutatorTest {
   private static final String POSTGRES_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
 
-  protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
+  protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
   protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
@@ -42,11 +43,10 @@ class DefaultPostgresVersionMutatorTest {
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
-    review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     mutator = new DefaultPostgresVersionMutator();
-    mutator.setObjectMapper(MAPPER);
+    mutator.setObjectMapper(JSON_MAPPER);
     mutator.init();
   }
 
@@ -65,7 +65,7 @@ class DefaultPostgresVersionMutatorTest {
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
 
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);
@@ -82,7 +82,7 @@ class DefaultPostgresVersionMutatorTest {
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
 
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);
@@ -97,7 +97,7 @@ class DefaultPostgresVersionMutatorTest {
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
 
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);
@@ -113,7 +113,7 @@ class DefaultPostgresVersionMutatorTest {
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
 
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);

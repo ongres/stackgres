@@ -21,14 +21,10 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
-import io.stackgres.operator.fixture.SecretFixture;
-import io.stackgres.operator.fixture.StackGresClusterFixture;
-import io.stackgres.operator.fixture.StackGresPoolingConfigFixture;
-import io.stackgres.operator.fixture.StackGresPostgresConfigFixture;
-import io.stackgres.operator.fixture.StackGresProfileFixture;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
@@ -48,12 +44,12 @@ class ClusterRequiredResourceDecoratorTest
 
   @BeforeEach
   public void setup() {
-    this.resource = new StackGresClusterFixture().build("default");
-    this.pgConfig = new StackGresPostgresConfigFixture().build("default_postgres");
-    this.profile = new StackGresProfileFixture().build("size-s");
+    this.resource = Fixtures.cluster().loadDefault().withLatestPostgresVersion().get();
+    this.pgConfig = Fixtures.postgresConfig().loadDefault().get();
+    this.profile = Fixtures.instanceProfile().loadSizeS().get();
     this.backupConfig = ofNullable(null);
-    this.pooling = ofNullable(new StackGresPoolingConfigFixture().build("default"));
-    this.secret = ofNullable(new SecretFixture().build("minio"));
+    this.pooling = ofNullable(Fixtures.poolingConfig().loadDefault().get());
+    this.secret = ofNullable(Fixtures.secret().loadMinio().get());
   }
 
   @Override

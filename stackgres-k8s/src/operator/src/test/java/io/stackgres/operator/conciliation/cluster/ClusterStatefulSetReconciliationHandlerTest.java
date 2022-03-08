@@ -50,6 +50,7 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceWriter;
@@ -99,7 +100,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   @Mock
   private ResourceFinder<Endpoints> endpointsFinder;
 
-  private final ObjectMapper objectMapper = JsonUtil.JSON_MAPPER;
+  private ObjectMapper objectMapper = JsonUtil.jsonMapper();
 
   private ClusterStatefulSetReconciliationHandler handler;
 
@@ -118,8 +119,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     handler = new ClusterStatefulSetReconciliationHandler(
         labelFactory, statefulSetFinder, statefulSetWriter,
         podScanner, podWriter, pvcScanner, pvcWriter, endpointsFinder, objectMapper);
-    requiredStatefulSet = JsonUtil
-        .readFromJson("statefulset/required.json", StatefulSet.class);
+    requiredStatefulSet = Fixtures.statefulSet().loadRequired().get();
 
     cluster = new StackGresCluster();
     cluster.setMetadata(new ObjectMeta());
@@ -127,8 +127,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     cluster.getMetadata().setName(requiredStatefulSet.getMetadata().getName());
     cluster.setSpec(new StackGresClusterSpec());
 
-    deployedStatefulSet = JsonUtil
-        .readFromJson("statefulset/deployed.json", StatefulSet.class);
+    deployedStatefulSet = Fixtures.statefulSet().loadDeployed().get();
   }
 
   @Test

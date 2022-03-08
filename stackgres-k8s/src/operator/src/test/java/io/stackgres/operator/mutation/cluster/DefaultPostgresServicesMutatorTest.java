@@ -12,7 +12,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
@@ -22,6 +22,7 @@ import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,7 @@ import org.opentest4j.AssertionFailedError;
 
 class DefaultPostgresServicesMutatorTest {
 
-  protected static final ObjectMapper JSON_MAPPER = JsonUtil.JSON_MAPPER;
+  protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
   protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
@@ -39,8 +40,7 @@ class DefaultPostgresServicesMutatorTest {
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
-    review = JsonUtil.readFromJson("cluster_allow_requests/valid_creation.json",
-        StackGresClusterReview.class);
+    review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     mutator = new DefaultPostgresServicesMutator();
     mutator.setObjectMapper(JSON_MAPPER);
@@ -92,9 +92,7 @@ class DefaultPostgresServicesMutatorTest {
 
   @Test
   void clusterWithNoPostgresService_shouldSetValue() {
-    StackGresClusterReview review =
-        JsonUtil.readFromJson("cluster_allow_requests/valid_creation.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
     review.getRequest().getObject().getSpec().setPostgresServices(null);
 
     StackGresCluster actualCluster = mutate(review);

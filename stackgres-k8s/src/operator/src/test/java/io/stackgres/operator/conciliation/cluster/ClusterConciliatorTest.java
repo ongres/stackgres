@@ -19,13 +19,13 @@ import java.util.Random;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.Conciliator;
 import io.stackgres.operator.conciliation.ConciliatorTest;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,8 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ClusterConciliatorTest extends ConciliatorTest<StackGresCluster> {
 
-  private final StackGresCluster cluster = JsonUtil
-      .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+  private static final StackGresCluster cluster = Fixtures.cluster().loadDefault().get();
 
   @Mock
   private RequiredResourceGenerator<StackGresCluster> requiredResourceGenerator;

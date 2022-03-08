@@ -10,10 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,8 +25,7 @@ class PgConfigUpdateValidatorTest {
 
   @BeforeEach
   void setUp() throws NoSuchFieldException {
-    review = JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
-        PgConfigReview.class);
+    review = AdmissionReviewFixtures.postgresConfig().loadUpdate().get();
 
     validator = new PgConfigUpdateValidator();
     validator.init();

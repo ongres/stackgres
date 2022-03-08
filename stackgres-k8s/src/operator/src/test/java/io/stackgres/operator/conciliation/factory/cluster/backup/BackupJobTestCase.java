@@ -19,6 +19,7 @@ import io.stackgres.common.LabelMapperForCluster;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.backup.BackupPerformance;
 import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
@@ -26,7 +27,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.backup.BackupJob;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -66,9 +66,8 @@ public class BackupJobTestCase {
             kubectl);
     backupJob = new BackupJob(envFactoryDiscoverer, backupLabelFactory, labelFactory,
         backupPodSecurityFactory, kubectl);
-    sgBackup = JsonUtil.readFromJson("backup/default.json", StackGresBackup.class);
-    sgCluster =
-        JsonUtil.readFromJson("stackgres_cluster/scheduling_backup.json", StackGresCluster.class);
+    sgBackup = Fixtures.backup().loadDefault().get();
+    sgCluster = Fixtures.cluster().loadSchedulingBackup().get();
     backupPerformance = new BackupPerformance(10L, 10L, 1);
     backupConfig =
         new BackupConfiguration(5, "* * * 5 *", "10", "/tmp", backupPerformance);

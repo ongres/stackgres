@@ -8,15 +8,14 @@ package io.stackgres.operator.resource;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.testutil.JsonUtil;
 
 //@Mock
 public class MockProfileFinder implements CustomResourceFinder<StackGresProfile> {
 
   @Override
   public Optional<StackGresProfile> findByNameAndNamespace(String name, String namespace) {
-    return Optional.of(JsonUtil
-        .readFromJson("stackgres_profiles/size-xs.json",  StackGresProfile.class));
+    return Optional.of(Fixtures.instanceProfile().loadSizeXs().get());
   }
 }

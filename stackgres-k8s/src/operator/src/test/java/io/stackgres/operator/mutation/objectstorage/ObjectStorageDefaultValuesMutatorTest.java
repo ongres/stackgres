@@ -14,10 +14,11 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.crd.storages.BackupStorage;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,21 +34,19 @@ class ObjectStorageDefaultValuesMutatorTest
 
   @Override
   protected ObjectStorageReview getEmptyReview() {
-    final ObjectStorageReview review = JsonUtil
-        .readFromJson("objectstorage_allow_request/create.json", ObjectStorageReview.class);
+    final ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
     review.getRequest().getObject().setSpec(new BackupStorage());
     return review;
   }
 
   @Override
   protected ObjectStorageReview getDefaultReview() {
-    return JsonUtil.readFromJson("objectstorage_allow_request/create.json",
-        ObjectStorageReview.class);
+    return AdmissionReviewFixtures.objectStorage().loadCreate().get();
   }
 
   @Override
   protected StackGresObjectStorage getDefaultResource() {
-    return JsonUtil.readFromJson("objectstorage/default.json", StackGresObjectStorage.class);
+    return Fixtures.objectStorage().loadDefault().get();
   }
 
   @Override

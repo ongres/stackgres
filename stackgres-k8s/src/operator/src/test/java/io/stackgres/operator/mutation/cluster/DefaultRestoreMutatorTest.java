@@ -16,7 +16,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
@@ -24,6 +24,7 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DefaultRestoreMutatorTest {
 
-  protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
+  protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
   protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
@@ -51,8 +52,7 @@ class DefaultRestoreMutatorTest {
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
 
-    review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     defaultRestoreValues = new Properties();
 
@@ -67,7 +67,7 @@ class DefaultRestoreMutatorTest {
 
     mutator = new DefaultRestoreMutator();
     mutator.setDefaultRestoreFactory(defaultRestoreFactory);
-    mutator.setObjectMapper(MAPPER);
+    mutator.setObjectMapper(JSON_MAPPER);
     mutator.init();
 
   }
@@ -95,7 +95,7 @@ class DefaultRestoreMutatorTest {
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
 
     JsonPatch jp = new JsonPatch(operations);
     JsonNode newConfig = jp.apply(crJson);

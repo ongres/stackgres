@@ -31,9 +31,8 @@ import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.WebClientFactory.WebClient;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
-import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.extension.ExtensionManager.ExtensionInstaller;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -100,9 +99,7 @@ public class ExtensionManagerTest {
   }
 
   private StackGresExtensions getExtensions() throws Exception {
-    StackGresExtensions extensions = JsonUtil
-        .readFromJson("extension_metadata/index.json",
-            StackGresExtensions.class);
+    StackGresExtensions extensions = Fixtures.extensionMetadata().loadDefault().get();
     extensions.getPublishers().get(0).setPublicKey(IOUtils.toString(
         getClass().getResourceAsStream("/test.pub"), StandardCharsets.UTF_8));
     extensions.getExtensions().add(getExtension());
@@ -140,9 +137,7 @@ public class ExtensionManagerTest {
   }
 
   private StackGresCluster getCluster() {
-    StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/list.json",
-            StackGresClusterList.class)
+    StackGresCluster cluster = Fixtures.clusterList().loadDefault().get()
         .getItems().get(0);
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     return cluster;

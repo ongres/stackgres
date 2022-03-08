@@ -17,10 +17,10 @@ import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptFrom;
 import io.stackgres.common.crd.sgscript.StackGresScriptTransactionIsolationLevel;
 import io.stackgres.operator.common.StackGresScriptReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 
 class ScriptConstraintValidatorTest extends ConstraintValidationTest<StackGresScriptReview> {
@@ -32,15 +32,14 @@ class ScriptConstraintValidatorTest extends ConstraintValidationTest<StackGresSc
 
   @Override
   protected StackGresScriptReview getValidReview() {
-    return JsonUtil.readFromJson("script_allow_requests/valid_creation.json",
-        StackGresScriptReview.class);
+    return AdmissionReviewFixtures.script()
+        .loadCreate().get();
   }
 
   @Override
   protected StackGresScriptReview getInvalidReview() {
-    final StackGresScriptReview review = JsonUtil
-        .readFromJson("script_allow_requests/valid_creation.json",
-            StackGresScriptReview.class);
+    final StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadCreate().get();
 
     review.getRequest().getObject().setSpec(null);
     return review;

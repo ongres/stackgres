@@ -32,35 +32,32 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsSecurityUpgrade;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsVacuum;
 import io.stackgres.common.validation.ValidEnum;
-import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbOpsReview> {
+class DbOpsConstraintValidatorTest extends ConstraintValidationTest<DbOpsReview> {
 
   @Override
-  protected ConstraintValidator<StackGresDbOpsReview> buildValidator() {
+  protected ConstraintValidator<DbOpsReview> buildValidator() {
     return new DbOpsConstraintValidator();
   }
 
   @Override
-  protected StackGresDbOpsReview getValidReview() {
-    return JsonUtil.readFromJson("dbops_allow_requests/valid_pgbench_creation.json",
-        StackGresDbOpsReview.class);
+  protected DbOpsReview getValidReview() {
+    return AdmissionReviewFixtures.dbOps().loadPgbenchCreate().get();
   }
 
   @Override
-  protected StackGresDbOpsReview getInvalidReview() {
-    final StackGresDbOpsReview review = JsonUtil
-        .readFromJson("dbops_allow_requests/valid_pgbench_creation.json",
-            StackGresDbOpsReview.class);
+  protected DbOpsReview getInvalidReview() {
+    final DbOpsReview review = AdmissionReviewFixtures.dbOps().loadPgbenchCreate().get();
 
     review.getRequest().getObject().setSpec(null);
     return review;
@@ -68,7 +65,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
 
   @Test
   void nullSpec_shouldFail() {
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     review.getRequest().getObject().setSpec(null);
 
     checkNotNullErrorCause(StackGresDbOps.class, "spec", review);
@@ -76,7 +73,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
 
   @Test
   void nullSgCluster_shouldFail() {
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setSgCluster(null);
 
     checkErrorCause(StackGresDbOpsSpec.class, "spec.sgCluster",
@@ -86,7 +83,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
   @Test
   void nullOp_shouldFail() {
 
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setOp(null);
 
     checkErrorCause(StackGresDbOpsSpec.class, "spec.op",
@@ -96,7 +93,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
   @Test
   void wrongOp_shouldFail() {
 
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setOp("test");
 
     checkErrorCause(StackGresDbOpsSpec.class, "spec.op",
@@ -106,7 +103,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
   @Test
   void wrongRunAt_shouldFail() {
 
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setRunAt("2018-01-01 01:02:03");
 
     checkErrorCause(StackGresDbOpsSpec.class, "spec.runAt",
@@ -116,7 +113,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
   @Test
   void wrongTimeout_shouldFail() {
 
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setTimeout("10s");
 
     checkErrorCause(StackGresDbOpsSpec.class, "spec.timeout",
@@ -126,7 +123,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
   @Test
   void negativeTimeout_shouldFail() {
 
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setTimeout("-PT1M");
 
     checkErrorCause(StackGresDbOpsSpec.class, "spec.timeout",
@@ -136,7 +133,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
   @Test
   void invalidLowMaxRetries_shouldFail() {
 
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setMaxRetries(-1);
 
     checkErrorCause(StackGresDbOpsSpec.class, "spec.maxRetries",
@@ -147,7 +144,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
   @Test
   void invalidHighMaxRetries_shouldFail() {
 
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setMaxRetries(11);
 
     checkErrorCause(StackGresDbOpsSpec.class, "spec.maxRetries",
@@ -157,7 +154,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
 
   @Test
   void invalidDuration_shouldFailWithMessage() {
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getBenchmark().getPgbench().setDuration("P5M");
 
     ValidationFailed assertThrows = assertThrows(ValidationFailed.class,
@@ -171,7 +168,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
   @ParameterizedTest(name = "op: {0} section: {1}")
   @MethodSource("dbOpsOperationsMatrix")
   void opThatDontMatchSection_shouldFailWithMessage(DbOpsOperation op, DbOpsOperation section) {
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     StackGresDbOpsSpec spec = review.getRequest().getObject().getSpec();
     spec.setOp(op.toString());
 
@@ -259,7 +256,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
   @ParameterizedTest(name = "op: {0} section: {1}")
   @MethodSource("dbOpsOperationsSameMatrix")
   void opThatMatchSection_shouldNotFail(DbOpsOperation op, DbOpsOperation section) {
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     StackGresDbOpsSpec spec = review.getRequest().getObject().getSpec();
     spec.setOp(op.toString());
 

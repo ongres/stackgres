@@ -7,9 +7,9 @@ package io.stackgres.operator.validation.cluster;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.PersistentVolumeSizeExpansionValidator;
 import io.stackgres.operator.validation.PersistentVolumeSizeExpansionValidatorTest;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,8 +19,7 @@ class ClusterPersistentVolumeSizeExpansionValidatorTest extends
 
   @Override
   protected StackGresClusterReview getAdmissionReview() {
-    return JsonUtil.readFromJson("cluster_allow_requests/valid_update.json",
-        StackGresClusterReview.class);
+    return AdmissionReviewFixtures.cluster().loadUpdate().get();
   }
 
   @Override

@@ -19,8 +19,8 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProd
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileRequests;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,9 +42,8 @@ class PatroniRequirementsFactoryTest {
   @BeforeEach
   void setUp() {
     patroniRequirementsFactory = new PatroniRequirementsFactory();
-    distributedLogs = JsonUtil.readFromJson("distributedlogs/default.json",
-        StackGresDistributedLogs.class);
-    profile = JsonUtil.readFromJson("stackgres_profiles/size-s.json", StackGresProfile.class);
+    distributedLogs = Fixtures.distributedLogs().loadDefault().get();
+    profile = Fixtures.instanceProfile().loadSizeS().get();
   }
 
   @Test

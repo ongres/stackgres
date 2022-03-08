@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation;
 
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,9 +21,7 @@ class DistributedLogsMutationResourceTest
     resource.setPipeline(pipeline);
     this.resource = resource;
 
-    review = JsonUtil
-        .readFromJson("distributedlogs_allow_request/create.json",
-            StackGresDistributedLogsReview.class);
+    review = AdmissionReviewFixtures.distributedLogs().loadCreate().get();
   }
 
 }

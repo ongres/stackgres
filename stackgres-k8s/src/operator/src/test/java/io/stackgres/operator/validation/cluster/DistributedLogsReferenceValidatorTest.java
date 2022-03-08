@@ -16,11 +16,12 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,16 +45,14 @@ class DistributedLogsReferenceValidatorTest {
   void setUp() throws Exception {
     validator = new DistributedLogsValidator(distributedLogsFinder);
 
-    distributedLogs = JsonUtil.readFromJson("distributedlogs/default.json",
-        StackGresDistributedLogs.class);
+    distributedLogs = Fixtures.distributedLogs().loadDefault().get();
 
   }
 
   @Test
   void givenValidStackGresReferenceOnCreation_shouldNotFail() throws ValidationFailed {
 
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     String distributedLogsName =
         review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
@@ -71,8 +70,7 @@ class DistributedLogsReferenceValidatorTest {
   @Test
   void giveInvalidStackGresReferenceOnCreation_shouldFail() {
 
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     String distributedLogsName =
         review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
@@ -95,9 +93,8 @@ class DistributedLogsReferenceValidatorTest {
   @Test
   void giveAnAttemptToUpdateToAnUnknownProfile_shouldFail() {
 
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/distributed_logs_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadDistributedLogsUpdate().get();
 
     String distributedLogsName =
         review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
@@ -121,16 +118,14 @@ class DistributedLogsReferenceValidatorTest {
   @Test
   void giveAnAttemptToUpdateToAnKnownProfile_shouldNotFail() throws ValidationFailed {
 
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/distributed_logs_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadDistributedLogsUpdate().get();
 
     String distributedLogsName =
         review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    StackGresDistributedLogs distributedLogs = JsonUtil.readFromJson("distributedlogs/default.json",
-        StackGresDistributedLogs.class);
+    StackGresDistributedLogs distributedLogs = Fixtures.distributedLogs().loadDefault().get();
 
     when(distributedLogsFinder.findByNameAndNamespace(distributedLogsName, namespace))
         .thenReturn(Optional.of(distributedLogs));
@@ -144,9 +139,8 @@ class DistributedLogsReferenceValidatorTest {
   @Test
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
 
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/distributed_logs_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadDistributedLogsUpdate().get();
     review.getRequest().setOperation(Operation.DELETE);
 
     validator.validate(review);

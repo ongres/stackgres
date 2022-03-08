@@ -6,8 +6,8 @@
 package io.stackgres.operator.validation;
 
 import io.stackgres.operator.common.BackupConfigReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,11 +25,9 @@ class BackupConfigValidationResourceTest extends ValidationResourceTest<BackupCo
     resource.setValidationPipeline(pipeline);
     this.resource = resource;
 
-    review = JsonUtil
-        .readFromJson("backupconfig_allow_request/create.json", BackupConfigReview.class);
+    review = AdmissionReviewFixtures.backupConfig().loadCreate().get();
 
-    deleteReview = JsonUtil.readFromJson("backupconfig_allow_request/delete.json",
-        BackupConfigReview.class);
+    deleteReview = AdmissionReviewFixtures.backupConfig().loadDelete().get();
   }
 
   @Test

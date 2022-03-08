@@ -14,9 +14,9 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,8 +41,8 @@ class HugePagesMountsTest {
   @BeforeEach
   void setUp() {
     hugePagesMounts = new HugePagesMounts();
-    profile = JsonUtil.readFromJson("stackgres_profiles/size-s.json", StackGresProfile.class);
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    profile = Fixtures.instanceProfile().loadSizeS().get();
+    cluster = Fixtures.cluster().loadDefault().get();
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
   }
 

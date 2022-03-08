@@ -26,9 +26,9 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractProfileDecoratorTestCase;
-import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,10 +55,8 @@ class ClusterProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
 
   @BeforeEach
   void setUp() {
-    cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
-    profile = JsonUtil
-        .readFromJson("stackgres_profiles/size-xs.json", StackGresProfile.class);
+    cluster = Fixtures.cluster().loadDefault().get();
+    profile = Fixtures.instanceProfile().loadSizeXs().get();
 
     final ObjectMeta metadata = cluster.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,

@@ -22,10 +22,10 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.event.DistributedLogsEventEmitter;
 import io.stackgres.common.event.EventEmitterType;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.DistributedLogsFinder;
 import io.stackgres.distributedlogs.common.ExtensionEventReason;
 import io.stackgres.operatorframework.resource.EventReason;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,8 +44,7 @@ class ExtensionEventEmitterImplTest {
   @Inject
   ExtensionEventEmitterImpl extensionEventEmitter;
 
-  StackGresDistributedLogs distributedLogs = JsonUtil.readFromJson(
-      "distributedlogs/default.json", StackGresDistributedLogs.class);
+  StackGresDistributedLogs distributedLogs = Fixtures.distributedLogs().loadDefault().get();
 
   StackGresClusterInstalledExtension extension;
 

@@ -1,0 +1,48 @@
+{
+  "kind": "SGDbOps",
+  "apiVersion": "stackgres.io/v1",
+  "metadata": {
+    "annotations": {
+      "stackgres.io/operatorVersion": "1.1.0"
+    },
+    "creationTimestamp": "2019-09-27T09:09:34Z",
+    "generation": 1,
+    "name": "stackgres",
+    "namespace": "default",
+    "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+  },
+  "spec": {
+    "sgCluster": "stackgres",
+    "op": "pgbench",
+    "pgbench": {
+    }
+  },
+  "status": {
+    "benchmark": {
+      "pgbench": {
+        "scaleFactor": 50,
+        "transactionsProcessed": 500,
+        "latency": {
+          "average": {
+            "value": 10.01,
+            "unit": "ms"
+          },
+          "standardDeviation": {
+            "value": 10.02,
+            "unit": "ms"
+          }
+        },
+        "transactionsPerSecond": {
+          "includingConnectionsEstablishing": {
+            "value": 100.89,
+            "unit": "tps"
+          },
+          "excludingConnectionsEstablishing": {
+            "value": 200.98,
+            "unit": "tps"
+          }
+        }
+      }
+    }
+  }
+}

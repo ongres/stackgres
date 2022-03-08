@@ -36,6 +36,7 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,9 +64,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void createScriptAlreadyValid_shouldDoNothing() throws JsonPatchException {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation_with_managed_sql.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadCreateWithManagedSql().get();
 
     JsonNode expectedCluster = JsonUtil.toJson(review.getRequest().getObject());
 
@@ -87,9 +87,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void createClusterWithDefaultScript_shouldDoNothing() throws JsonPatchException {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation_with_managed_sql.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadCreateWithManagedSql().get();
 
     review.getRequest().getObject().getSpec().getManagedSql().setScripts(
         review.getRequest().getObject().getSpec().getManagedSql().getScripts().subList(0, 1));
@@ -115,9 +114,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void createClusterWithoutStatus_shouldAddStatusWithDefaultScript() throws JsonPatchException {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation_with_managed_sql.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadCreateWithManagedSql().get();
 
     review.getRequest().getObject().getSpec().getManagedSql().setScripts(null);
     review.getRequest().getObject().getStatus().getManagedSql().setScripts(null);
@@ -158,9 +156,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void createClusterWithouIds_shouldAddThem() throws JsonPatchException {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation_with_managed_sql.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadCreateWithManagedSql().get();
     review.getRequest().getObject().getStatus().getManagedSql().getScripts().get(0)
         .setScripts(null);
     review.getRequest().getObject().getStatus().getManagedSql().getScripts().get(1)
@@ -195,9 +192,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void updateClusterWithWithoutModification_shouldDoNothing() throws JsonPatchException {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_update_with_managed_sql.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadUpdateWithManagedSql().get();
 
     JsonNode expectedCluster = JsonUtil.toJson(review.getRequest().getObject());
 
@@ -219,9 +215,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void updateClusterWithNoScripts_shouldAddDefaultScript() throws JsonPatchException {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_update_with_managed_sql.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadUpdateWithManagedSql().get();
 
     review.getRequest().getObject().getSpec().getManagedSql().setScripts(
         null);
@@ -258,9 +253,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void updateClusterWithoutStatus_shouldAddDefaultScriptAndStatus() throws JsonPatchException {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_update_with_managed_sql.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadUpdateWithManagedSql().get();
 
     review.getRequest().getObject().getSpec().getManagedSql().setScripts(null);
     review.getRequest().getObject().getStatus().getManagedSql().setScripts(null);
@@ -297,9 +291,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void updateClusterAddingAnEntry_shouldSetIdAndVersion() throws JsonPatchException {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_update_with_managed_sql.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadUpdateWithManagedSql().get();
 
     review.getRequest().getObject().getSpec().getManagedSql().getScripts()
         .add(1, new StackGresClusterManagedScriptEntry());
@@ -331,9 +324,8 @@ class ScriptsConfigMutatorTest {
   @Test
   void updateClusterFromInitialScripts_shouldRemoveInitialScriptsAndAddManagedSql()
       throws JsonPatchException {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_update_with_managed_sql.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadUpdateWithManagedSql().get();
 
     review.getRequest().getObject().getMetadata().setAnnotations(new HashMap<>());
     review.getRequest().getObject().getMetadata().getAnnotations().put(
@@ -390,9 +382,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void updateClusterRemovingAnEntry_shouldRemoveItsStatus() throws JsonPatchException {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_update_with_managed_sql.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadUpdateWithManagedSql().get();
 
     review.getRequest().getObject().getSpec().getManagedSql().getScripts().remove(1);
     StackGresCluster expected = JsonUtil.copy(review.getRequest().getObject());

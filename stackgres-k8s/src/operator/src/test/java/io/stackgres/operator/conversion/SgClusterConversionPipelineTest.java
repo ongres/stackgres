@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -31,19 +32,19 @@ class SgClusterConversionPipelineTest {
   ConversionPipeline pipeline;
 
   ObjectNode getFromVersion1Resource() {
-    return JsonUtil.readFromJsonAsJson("stackgres_cluster/from_version1.json");
+    return Fixtures.jsonCluster().loadFromVersion1().get();
   }
 
   ObjectNode getToVersion1beta1Resource() {
-    return JsonUtil.readFromJsonAsJson("stackgres_cluster/to_version1beta1.json");
+    return Fixtures.jsonCluster().loadToVersion1beta1().get();
   }
 
   ObjectNode getFromVersion1beta1Resource() {
-    return JsonUtil.readFromJsonAsJson("stackgres_cluster/from_version1beta1.json");
+    return Fixtures.jsonCluster().loadFromVersion1beta1().get();
   }
 
   ObjectNode getToVersion1Resource() {
-    return JsonUtil.readFromJsonAsJson("stackgres_cluster/to_version1.json");
+    return Fixtures.jsonCluster().loadToVersion1().get();
   }
 
   @Test

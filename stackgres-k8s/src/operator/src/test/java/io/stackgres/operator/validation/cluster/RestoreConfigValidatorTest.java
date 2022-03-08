@@ -17,11 +17,12 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,8 +57,7 @@ class RestoreConfigValidatorTest {
   void setUp() {
 
     validator = new RestoreConfigValidator(finder);
-    backupList = JsonUtil
-        .readFromJson("backup/list.json", StackGresBackupList.class);
+    backupList = Fixtures.backupList().loadDefault().get();
   }
 
   @Test
@@ -66,8 +66,7 @@ class RestoreConfigValidatorTest {
     final StackGresClusterReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(firstPgMajorVersion);
 
-    StackGresBackupList backupList = JsonUtil
-        .readFromJson("backup/list.json", StackGresBackupList.class);
+    StackGresBackupList backupList = Fixtures.backupList().loadDefault().get();
     backupList.getItems().get(0).getStatus().getBackupInformation()
         .setPostgresVersion(firstPgMajorVersionNumber);
     when(finder.findByNameAndNamespace(anyString(), anyString()))
@@ -102,15 +101,12 @@ class RestoreConfigValidatorTest {
 
     final StackGresClusterReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(secondPgMajorVersion);
-    String backupName = review.getRequest()
-        .getObject().getSpec().getInitData().getRestore().getFromBackup().getName();
+    final String backupName = backupList.getItems().get(0).getMetadata().getName();
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setName(backupName);
 
-    StackGresBackup backup = backupList.getItems().stream()
-        .filter(b -> b.getMetadata().getName().equals(backupName))
-        .findFirst().orElseThrow(AssertionError::new);
-
-    backup.getStatus().getBackupInformation().setPostgresVersion(
-        firstPgMajorVersionNumber);
+    backupList.getItems().get(0).getStatus().getBackupInformation()
+        .setPostgresVersion(firstPgMajorVersionNumber);
 
     when(finder.findByNameAndNamespace(anyString(), anyString()))
         .thenReturn(Optional.of(backupList.getItems().get(0)));
@@ -162,15 +158,11 @@ class RestoreConfigValidatorTest {
   }
 
   private StackGresClusterReview getCreationReview() {
-    return JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json",
-            StackGresClusterReview.class);
+    return AdmissionReviewFixtures.cluster().loadCreate().get();
   }
 
   private StackGresClusterReview getUpdateReview() {
-    return JsonUtil
-        .readFromJson("cluster_allow_requests/restore_config_update.json",
-            StackGresClusterReview.class);
+    return AdmissionReviewFixtures.cluster().loadRestoreConfigUpdate().get();
   }
 
 }

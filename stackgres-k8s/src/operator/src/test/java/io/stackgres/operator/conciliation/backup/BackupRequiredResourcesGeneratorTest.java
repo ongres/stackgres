@@ -34,11 +34,11 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.BackupConfigFinder;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ObjectStorageFinder;
 import io.stackgres.common.resource.ProfileConfigFinder;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,20 +72,16 @@ class BackupRequiredResourcesGeneratorTest {
 
   @BeforeEach
   void setUp() {
-    backup = JsonUtil
-        .readFromJson("backup/default.json", StackGresBackup.class);
-    cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    backup = Fixtures.backup().loadDefault().get();
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.getLatest()
         .getLatestVersion());
     cluster.getMetadata().setNamespace(backup.getMetadata().getNamespace());
     cluster.getMetadata().setName(backup.getSpec().getSgCluster());
-    profile = JsonUtil
-        .readFromJson("stackgres_profiles/size-xs.json", StackGresProfile.class);
-    backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
+    profile = Fixtures.instanceProfile().loadSizeXs().get();
+    backupConfig = Fixtures.backupConfig().loadDefault().get();
     backupConfig.getMetadata().setNamespace(backup.getMetadata().getNamespace());
-    objectStorage = JsonUtil.readFromJson("objectstorage/default.json",
-        StackGresObjectStorage.class);
+    objectStorage = Fixtures.objectStorage().loadDefault().get();
   }
 
   @Test

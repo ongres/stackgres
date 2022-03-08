@@ -12,7 +12,7 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.NodeSelector;
 import io.fabric8.kubernetes.api.model.PreferredSchedulingTerm;
-import io.stackgres.common.fixture.StackGresClusterPodSchedulingFixture;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,9 +27,8 @@ class StackGresClusterPodSchedulingTest {
 
   @BeforeEach
   public void setup() {
-    StackGresClusterPodScheduling podNodeAffinityScheduling =
-        new StackGresClusterPodSchedulingFixture()
-            .loadPodNodeAffinityScheduling();
+    StackGresClusterPodScheduling podNodeAffinityScheduling = Fixtures.cluster().scheduling()
+        .loadDefault().get();
     this.nodeAffinityRequiredDuringScheduling = podNodeAffinityScheduling
         .getNodeAffinity()
         .getRequiredDuringSchedulingIgnoredDuringExecution();

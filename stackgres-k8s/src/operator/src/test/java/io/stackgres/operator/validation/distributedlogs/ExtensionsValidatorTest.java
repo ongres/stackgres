@@ -20,10 +20,10 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.extension.ExtensionRequest;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -102,15 +102,11 @@ class ExtensionsValidatorTest {
   }
 
   private StackGresDistributedLogsReview getCreationReview() {
-    return JsonUtil
-        .readFromJson("distributedlogs_allow_request/create.json",
-            StackGresDistributedLogsReview.class);
+    return AdmissionReviewFixtures.distributedLogs().loadCreate().get();
   }
 
   private StackGresDistributedLogsReview getUpdateReview() {
-    return JsonUtil
-        .readFromJson("distributedlogs_allow_request/update.json",
-            StackGresDistributedLogsReview.class);
+    return AdmissionReviewFixtures.distributedLogs().loadUpdate().get();
   }
 
   private StackGresClusterInstalledExtension getInstalledExtension(String name) {

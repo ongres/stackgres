@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation;
 
 import io.stackgres.operator.common.PoolingReview;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +21,7 @@ class SgPgBouncerMutationResourceTest extends MutationResourceTest<PoolingReview
     resource.setPipeline(pipeline);
     this.resource = resource;
 
-    review = JsonUtil
-        .readFromJson("pooling_allow_request/create.json", PoolingReview.class);
+    review = AdmissionReviewFixtures.poolingConfig().loadCreate().get();
   }
 
   @Override

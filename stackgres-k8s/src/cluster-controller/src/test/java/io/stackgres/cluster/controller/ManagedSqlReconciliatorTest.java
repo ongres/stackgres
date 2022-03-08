@@ -40,6 +40,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryScriptStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlStatus;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
@@ -91,15 +92,9 @@ public class ManagedSqlReconciliatorTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    script = JsonUtil
-        .readFromJson("stackgres_script/default.json",
-            StackGresScript.class);
-    patroniEndpoints = JsonUtil
-        .readFromJson("endpoints/patroni.json",
-            Endpoints.class);
-    patroniConfigEndpoints = JsonUtil
-        .readFromJson("endpoints/patroni_config.json",
-            Endpoints.class);
+    script = Fixtures.script().loadDefault().get();
+    patroniEndpoints = Fixtures.endpoints().loadPatroni().get();
+    patroniConfigEndpoints = Fixtures.endpoints().loadPatroniConfig().get();
     when(propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME)).thenReturn(
             patroniEndpoints.getMetadata().getAnnotations().get(PatroniUtil.LEADER_KEY));
@@ -141,9 +136,7 @@ public class ManagedSqlReconciliatorTest {
 
   @Test
   void testReconciliationWithReconciliationFlagFalse_doesNothing() throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     when(context.getCluster()).thenReturn(cluster);
     reset(propertyContext);
     when(propertyContext.getBoolean(
@@ -162,9 +155,7 @@ public class ManagedSqlReconciliatorTest {
 
   @Test
   void testReconciliationWithoutScripts_doesNothing() throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadDefault().get();
     when(context.getCluster()).thenReturn(cluster);
 
     reconciliator.reconcile(client, context);
@@ -179,9 +170,7 @@ public class ManagedSqlReconciliatorTest {
 
   @Test
   void testReconciliationWithSomeScripts_executeThemAndUpdateTheStatus() throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
@@ -305,9 +294,7 @@ public class ManagedSqlReconciliatorTest {
 
   @Test
   void testReconciliationWithAlreadyRunScript_executeOthersAndUpdateTheStatus() throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     cluster.getStatus().getManagedSql().getScripts().get(0).setStartedAt(Instant.now().toString());
     cluster.getStatus().getManagedSql().getScripts().get(0).setScripts(new ArrayList<>());
     cluster.getStatus().getManagedSql().getScripts().get(0).getScripts()
@@ -409,9 +396,7 @@ public class ManagedSqlReconciliatorTest {
 
   @Test
   void testReconciliationWithNewScriptVersion_executeItAndUpdateTheStatus() throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     cluster.getStatus().getManagedSql().getScripts().get(0).setStartedAt(Instant.now().toString());
     cluster.getStatus().getManagedSql().getScripts().get(0).setScripts(new ArrayList<>());
     cluster.getStatus().getManagedSql().getScripts().get(0).getScripts()
@@ -543,9 +528,7 @@ public class ManagedSqlReconciliatorTest {
   @Test
   void testReconciliationWithAFailingScript_executeUpToTheFailingScriptAndUpdateTheStatus()
       throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
@@ -646,9 +629,7 @@ public class ManagedSqlReconciliatorTest {
   @Test
   void testReconciliationWithAHashMismatch_shouldDoNothing()
       throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     script.getStatus().getScripts().get(0).setHash("wrong");
     when(context.getCluster()).thenReturn(cluster);
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
@@ -671,9 +652,7 @@ public class ManagedSqlReconciliatorTest {
   @Test
   void testReconciliationWithContinueOnFailure_executeThemAndUpdateTheStatus()
       throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     script.getSpec().setContinueOnError(true);
     script.getSpec().getScripts().get(0).setRetryOnError(true);
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
@@ -804,9 +783,7 @@ public class ManagedSqlReconciliatorTest {
   @Test
   void testReconciliationOfFailedScriptWithoutRetryOnError_skipExecutionAfterAFailure()
       throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     script.getSpec().setContinueOnError(false);
     script.getSpec().getScripts().get(0).setRetryOnError(false);
     cluster.getStatus().getManagedSql().getScripts().get(0).setScripts(new ArrayList<>());
@@ -843,9 +820,7 @@ public class ManagedSqlReconciliatorTest {
   @Test
   void testReconciliationOfScriptWithIntentWithoutRetryOnError_skipExecutionAfterAFailure()
       throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     script.getSpec().setContinueOnError(false);
     script.getSpec().getScripts().get(0).setRetryOnError(false);
     cluster.getStatus().getManagedSql().getScripts().get(0).setScripts(new ArrayList<>());
@@ -878,9 +853,7 @@ public class ManagedSqlReconciliatorTest {
   @Test
   void testReconciliationOfFailedScriptWithRetryOnError_executeAfterAFailure()
       throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     script.getSpec().setContinueOnError(false);
     script.getSpec().getScripts().get(0).setRetryOnError(true);
     cluster.getStatus().getManagedSql().getScripts().get(0).setScripts(new ArrayList<>());
@@ -1022,9 +995,7 @@ public class ManagedSqlReconciliatorTest {
   @Test
   void testReconciliationOfReFailedScriptWithRetryOnError_retryTheFailedScriptOnly()
       throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     script.getSpec().setContinueOnError(false);
     script.getSpec().getScripts().get(0).setRetryOnError(true);
     cluster.getStatus().getManagedSql().getScripts().get(0).setScripts(new ArrayList<>());
@@ -1114,9 +1085,7 @@ public class ManagedSqlReconciliatorTest {
   @Test
   void testReconciliationOfScriptWithIntentWithRetryOnError_executeAfterAFailure()
       throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     script.getSpec().setContinueOnError(false);
     script.getSpec().getScripts().get(0).setRetryOnError(true);
     cluster.getStatus().getManagedSql().getScripts().get(0).setScripts(new ArrayList<>());
@@ -1252,9 +1221,7 @@ public class ManagedSqlReconciliatorTest {
   @Test
   void testReconciliationWithContinueOnManagedScriptError_executeThemAndUpdateTheStatus()
       throws Exception {
-    final StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     script.getSpec().setScripts(script.getSpec().getScripts().subList(0, 1));
     script.getStatus().setScripts(script.getStatus().getScripts().subList(0, 1));
     cluster.getSpec().getManagedSql().setContinueOnScriptError(true);
@@ -1376,9 +1343,7 @@ public class ManagedSqlReconciliatorTest {
       ArrayList<StackGresClusterManagedSqlStatus> actualUpdatedManagedSqlStatusList) {
     var updater = (BiConsumer<StackGresCluster, StackGresCluster>)
         invocation.getArgument(1);
-    var updatedCluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
+    var updatedCluster = Fixtures.cluster().loadManagedSql().get();
     updater.accept(updatedCluster, cluster);
     actualUpdatedManagedSqlStatusList.add(
         JsonUtil.copy(updatedCluster.getStatus().getManagedSql()));

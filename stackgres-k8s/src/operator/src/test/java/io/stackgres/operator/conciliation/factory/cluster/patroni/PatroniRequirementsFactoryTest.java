@@ -19,8 +19,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileRequests;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,8 +42,8 @@ class PatroniRequirementsFactoryTest {
   @BeforeEach
   void setUp() {
     patroniRequirementsFactory = new PatroniRequirementsFactory();
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
-    profile = JsonUtil.readFromJson("stackgres_profiles/size-s.json", StackGresProfile.class);
+    cluster = Fixtures.cluster().loadDefault().get();
+    profile = Fixtures.instanceProfile().loadSizeS().get();
   }
 
   @Test

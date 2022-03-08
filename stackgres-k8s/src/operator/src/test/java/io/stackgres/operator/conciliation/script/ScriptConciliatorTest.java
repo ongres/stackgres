@@ -11,11 +11,11 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.Conciliator;
 import io.stackgres.operator.conciliation.ConciliatorTest;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -24,8 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ScriptConciliatorTest extends ConciliatorTest<StackGresScript> {
 
-  private final StackGresScript script = JsonUtil
-      .readFromJson("stackgres_script/default.json", StackGresScript.class);
+  private final StackGresScript script = Fixtures.script().loadDefault().get();
 
   @Mock
   private RequiredResourceGenerator<StackGresScript> requiredResourceGenerator;

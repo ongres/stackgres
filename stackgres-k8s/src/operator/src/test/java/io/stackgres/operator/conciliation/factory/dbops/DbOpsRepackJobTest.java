@@ -6,13 +6,15 @@
 package io.stackgres.operator.conciliation.factory.dbops;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.fixture.Fixtures;
 
 @QuarkusTest
 class DbOpsRepackJobTest extends DbOpsJobTestCase {
 
   @Override
-  String fixturePath() {
-    return "stackgres_dbops/dbops_repack.json";
+  StackGresDbOps getDbOps() {
+    return Fixtures.dbOps().loadRepack().get();
   }
 
 }

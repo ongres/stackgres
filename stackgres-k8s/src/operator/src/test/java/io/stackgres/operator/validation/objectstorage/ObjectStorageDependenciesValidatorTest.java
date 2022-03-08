@@ -7,9 +7,9 @@ package io.stackgres.operator.validation.objectstorage;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -24,33 +24,28 @@ class ObjectStorageDependenciesValidatorTest
 
   @Override
   protected ObjectStorageReview getReview_givenAReviewCreation_itShouldDoNothing() {
-    return JsonUtil.readFromJson("objectstorage_allow_request/create.json",
-        ObjectStorageReview.class);
+    return AdmissionReviewFixtures.objectStorage().loadCreate().get();
   }
 
   @Override
   protected ObjectStorageReview getReview_givenAReviewUpdate_itShouldDoNothing() {
-    return JsonUtil.readFromJson("objectstorage_allow_request/update.json",
-        ObjectStorageReview.class);
+    return AdmissionReviewFixtures.objectStorage().loadUpdate().get();
   }
 
   @Override
   protected ObjectStorageReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
-    return JsonUtil.readFromJson("objectstorage_allow_request/delete.json",
-        ObjectStorageReview.class);
+    return AdmissionReviewFixtures.objectStorage().loadDelete().get();
   }
 
   @Override
   protected ObjectStorageReview
       getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt() {
-    return JsonUtil.readFromJson("objectstorage_allow_request/delete.json",
-        ObjectStorageReview.class);
+    return AdmissionReviewFixtures.objectStorage().loadDelete().get();
   }
 
   @Override
   protected ObjectStorageReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
-    return JsonUtil.readFromJson("objectstorage_allow_request/delete.json",
-        ObjectStorageReview.class);
+    return AdmissionReviewFixtures.objectStorage().loadDelete().get();
   }
 
   @Override

@@ -6,7 +6,7 @@
 package io.stackgres.operator.conversion;
 
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -15,7 +15,7 @@ class SgBackupConversionResourceTest extends ConversionResourceTest<StackGresBac
 
   @Override
   protected StackGresBackup getCustomResource() {
-    return JsonUtil.readFromJson("stackgres_backup/default.json", StackGresBackup.class);
+    return Fixtures.backup().loadDefault().get();
   }
 
   @Override

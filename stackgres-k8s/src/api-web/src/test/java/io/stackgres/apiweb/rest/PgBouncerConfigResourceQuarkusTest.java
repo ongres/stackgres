@@ -13,10 +13,11 @@ import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import io.stackgres.testutil.StringUtils;
 import org.hamcrest.Matchers;
@@ -58,11 +59,11 @@ class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
   }
 
   private PoolingConfigDto getDto() {
-    return JsonUtil.readFromJson("pooling_config/dto.json", PoolingConfigDto.class);
+    return DtoFixtures.poolingConfig().loadDefault().get();
   }
 
   private StackGresPoolingConfig getCustomResource() {
-    return JsonUtil.readFromJson("pooling_config/default.json", StackGresPoolingConfig.class);
+    return Fixtures.poolingConfig().loadDefault().get();
   }
 
   @Test

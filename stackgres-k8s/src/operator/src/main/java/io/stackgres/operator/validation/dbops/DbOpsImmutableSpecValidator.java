@@ -9,7 +9,7 @@ import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
@@ -18,7 +18,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 public class DbOpsImmutableSpecValidator implements DbOpsValidator {
 
   @Override
-  public void validate(StackGresDbOpsReview review) throws ValidationFailed {
+  public void validate(DbOpsReview review) throws ValidationFailed {
 
     switch (review.getRequest().getOperation()) {
       case UPDATE:

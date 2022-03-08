@@ -21,10 +21,11 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
-import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,7 +75,7 @@ class DbOpsMinorVersionUpgradeValidatorTest {
     validator = new DbOpsMinorVersionUpgradeValidator(clusterFinder,
         ALL_SUPPORTED_POSTGRES_VERSIONS);
 
-    cluster = getDefaultCluster();
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().getPostgres().setVersion(SECOND_PG_MINOR_VERSION);
@@ -82,7 +83,7 @@ class DbOpsMinorVersionUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionOnCreation_shouldNotFail() throws ValidationFailed {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMinorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -98,7 +99,7 @@ class DbOpsMinorVersionUpgradeValidatorTest {
 
   @Test
   void givenSameStackGresVersionOnCreation_shouldNotFail() throws Exception {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMinorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -115,7 +116,7 @@ class DbOpsMinorVersionUpgradeValidatorTest {
 
   @Test
   void givenInvalidStackGresVersionOnCreation_shouldFail() {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMinorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -135,16 +136,8 @@ class DbOpsMinorVersionUpgradeValidatorTest {
         resultMessage);
   }
 
-  private StackGresDbOpsReview getCreationReview() {
-    return JsonUtil
-        .readFromJson("dbops_allow_requests/valid_minor_version_upgrade_creation.json",
-            StackGresDbOpsReview.class);
-  }
-
-  private StackGresCluster getDefaultCluster() {
-    return JsonUtil
-        .readFromJson("stackgres_cluster/default.json",
-            StackGresCluster.class);
+  private DbOpsReview getCreationReview() {
+    return AdmissionReviewFixtures.dbOps().loadMinorVersionUpgradeCreate().get();
   }
 
 }

@@ -7,37 +7,35 @@ package io.stackgres.operator.conversion;
 
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class SgPostgresConfigConversionPipelineTest {
 
-  protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
-
   @Inject
   @Conversion(StackGresPostgresConfig.KIND)
   protected ConversionPipeline pipeline;
 
   ObjectNode getFromVersion1Resource() {
-    return JsonUtil.readFromJsonAsJson("postgres_config/from_version1.json");
+    return Fixtures.jsonPostgresConfig().loadFromVersion1().get();
   }
 
   ObjectNode getToVersion1beta1Resource() {
-    return JsonUtil.readFromJsonAsJson("postgres_config/to_version1beta1.json");
+    return Fixtures.jsonPostgresConfig().loadToVersion1beta1().get();
   }
 
   ObjectNode getFromVersion1beta1Resource() {
-    return JsonUtil.readFromJsonAsJson("postgres_config/from_version1beta1.json");
+    return Fixtures.jsonPostgresConfig().loadFromVersion1beta1().get();
   }
 
   ObjectNode getToVersion1Resource() {
-    return JsonUtil.readFromJsonAsJson("postgres_config/to_version1.json");
+    return Fixtures.jsonPostgresConfig().loadToVersion1().get();
   }
 
   @Test

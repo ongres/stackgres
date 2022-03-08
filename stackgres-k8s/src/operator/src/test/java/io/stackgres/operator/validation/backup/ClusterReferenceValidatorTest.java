@@ -19,11 +19,12 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,16 +48,14 @@ class ClusterReferenceValidatorTest {
   void setUp() throws Exception {
     validator = new ClusterValidator(clusterFinder);
 
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
-        StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
 
   }
 
   @Test
   void givenValidStackGresReferenceOnCreation_shouldNotFail() throws ValidationFailed {
 
-    final BackupReview review = JsonUtil
-        .readFromJson("backup_allow_request/create.json", BackupReview.class);
+    final BackupReview review = AdmissionReviewFixtures.backup().loadCreate().get();
     review.getRequest().getObject().getStatus().setBackupConfig(null);
 
     String clusterName =
@@ -76,8 +75,7 @@ class ClusterReferenceValidatorTest {
   void givenComposedStackGresReferenceOnCreationWithRequiredStatus_shouldNotFail()
       throws ValidationFailed {
 
-    final BackupReview review = JsonUtil
-        .readFromJson("backup_allow_request/create.json", BackupReview.class);
+    final BackupReview review = AdmissionReviewFixtures.backup().loadCreate().get();
     review.getRequest().getObject().getSpec().setSgCluster(
         StackGresUtil.getRelativeId(
             cluster.getMetadata().getName(),
@@ -96,8 +94,7 @@ class ClusterReferenceValidatorTest {
   @Test
   void giveInvalidStackGresReferenceOnCreation_shouldFail() {
 
-    final BackupReview review = JsonUtil
-        .readFromJson("backup_allow_request/create.json", BackupReview.class);
+    final BackupReview review = AdmissionReviewFixtures.backup().loadCreate().get();
     review.getRequest().getObject().getStatus().setBackupConfig(null);
 
     String clusterName =
@@ -122,8 +119,7 @@ class ClusterReferenceValidatorTest {
   void giveInvalidStackGresReferenceOnCreationWithStatusBackupConfig_shouldNotFail()
       throws ValidationFailed {
 
-    final BackupReview review = JsonUtil
-        .readFromJson("backup_allow_request/create.json", BackupReview.class);
+    final BackupReview review = AdmissionReviewFixtures.backup().loadCreate().get();
 
     String clusterName =
         review.getRequest().getObject().getSpec().getSgCluster();
@@ -137,8 +133,7 @@ class ClusterReferenceValidatorTest {
   @Test
   void giveAnAttemptToUpdateReferencedCluster_shouldFail() {
 
-    final BackupReview review = JsonUtil
-        .readFromJson("backup_allow_request/update.json", BackupReview.class);
+    final BackupReview review = AdmissionReviewFixtures.backup().loadUpdate().get();
     review.getRequest().getObject().getStatus().setBackupConfig(null);
 
     review.getRequest().getObject().getSpec().setSgCluster("test");
@@ -158,8 +153,7 @@ class ClusterReferenceValidatorTest {
   @Test
   void giveAnAttemptToUpdateManagedLifecycle_shouldNotFail() throws ValidationFailed {
 
-    final BackupReview review = JsonUtil
-        .readFromJson("backup_allow_request/update.json", BackupReview.class);
+    final BackupReview review = AdmissionReviewFixtures.backup().loadUpdate().get();
     review.getRequest().getObject().getStatus().setBackupConfig(null);
 
     review.getRequest().getObject().getSpec().setManagedLifecycle(
@@ -174,8 +168,7 @@ class ClusterReferenceValidatorTest {
   @Test
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
 
-    final BackupReview review = JsonUtil
-        .readFromJson("backup_allow_request/create.json", BackupReview.class);
+    final BackupReview review = AdmissionReviewFixtures.backup().loadCreate().get();
     review.getRequest().setOperation(Operation.DELETE);
 
     validator.validate(review);

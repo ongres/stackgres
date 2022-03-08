@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;
@@ -57,11 +58,9 @@ class ScriptStatusManagerTest {
   @BeforeEach
   void setUp() {
     statusManager = new ScriptStatusManager(configMapFinder, secretFinder);
-    expectedScript = JsonUtil
-        .readFromJson("stackgres_script/default.json", StackGresScript.class);
+    expectedScript = Fixtures.script().loadDefault().get();
     expectedScripts = expectedScript.getSpec().getScripts();
-    script = JsonUtil
-        .readFromJson("stackgres_script/default.json", StackGresScript.class);
+    script = Fixtures.script().loadDefault().get();
     scripts = expectedScript.getSpec().getScripts();
   }
 

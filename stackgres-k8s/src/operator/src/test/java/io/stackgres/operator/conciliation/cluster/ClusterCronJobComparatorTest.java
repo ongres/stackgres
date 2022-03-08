@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
 import io.stackgres.common.StringUtil;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,10 +24,8 @@ class ClusterCronJobComparatorTest {
 
   @BeforeEach
   void setUp() {
-    required = JsonUtil.readFromJson("cronjobs/required.json",
-        CronJob.class);
-    deployed = JsonUtil.readFromJson("cronjobs/deployed.json",
-        CronJob.class);
+    required = Fixtures.cronJob().loadRequired().get();
+    deployed = Fixtures.cronJob().loadDeployed().get();
   }
 
   @Test

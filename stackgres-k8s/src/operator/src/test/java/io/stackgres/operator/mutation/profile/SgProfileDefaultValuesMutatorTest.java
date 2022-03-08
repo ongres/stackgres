@@ -8,10 +8,11 @@ package io.stackgres.operator.mutation.profile;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -26,16 +27,14 @@ class SgProfileDefaultValuesMutatorTest
 
   @Override
   protected SgProfileReview getEmptyReview() {
-    SgProfileReview review = JsonUtil
-        .readFromJson("sgprofile_allow_request/create.json", SgProfileReview.class);
+    SgProfileReview review = AdmissionReviewFixtures.instanceProfile().loadCreate().get();
     review.getRequest().getObject().setSpec(new StackGresProfileSpec());
     return review;
   }
 
   @Override
   protected SgProfileReview getDefaultReview() {
-    SgProfileReview review = JsonUtil
-        .readFromJson("sgprofile_allow_request/create.json", SgProfileReview.class);
+    SgProfileReview review = AdmissionReviewFixtures.instanceProfile().loadCreate().get();
     review.getRequest().getObject().getSpec().setContainers(null);
     review.getRequest().getObject().getSpec().setInitContainers(null);
     return review;
@@ -43,8 +42,7 @@ class SgProfileDefaultValuesMutatorTest
 
   @Override
   protected StackGresProfile getDefaultResource() {
-    StackGresProfile profile = JsonUtil.readFromJson("stackgres_profiles/size-xs.json",
-        StackGresProfile.class);
+    var profile = Fixtures.instanceProfile().loadSizeXs().get();
     profile.getSpec().setContainers(null);
     profile.getSpec().setInitContainers(null);
     return profile;

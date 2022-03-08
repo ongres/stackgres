@@ -28,9 +28,9 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ProfileConfigFinder;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -52,16 +52,13 @@ class DbOpsRequiredResourcesGeneratorTest {
 
   @BeforeEach
   void setUp() {
-    dbOps = JsonUtil
-        .readFromJson("stackgres_dbops/dbops_restart.json", StackGresDbOps.class);
-    cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    dbOps = Fixtures.dbOps().loadRestart().get();
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
         .getLatest().getLatestVersion());
     cluster.getMetadata().setNamespace(dbOps.getMetadata().getNamespace());
     cluster.getMetadata().setName(dbOps.getSpec().getSgCluster());
-    profile = JsonUtil
-        .readFromJson("stackgres_profiles/size-xs.json", StackGresProfile.class);
+    profile = Fixtures.instanceProfile().loadSizeXs().get();
   }
 
   @Test

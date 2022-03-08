@@ -29,6 +29,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
@@ -87,11 +88,10 @@ class ExtensionsMutatorTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    review = AdmissionReviewFixtures.cluster().loadCreate().get();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
 
-    mutator = new ExtensionsMutator(extensionMetadataManager, JsonUtil.JSON_MAPPER,
+    mutator = new ExtensionsMutator(extensionMetadataManager, JsonUtil.jsonMapper(),
         ALL_SUPPORTED_POSTGRES_VERSIONS);
 
     extensions = Seq.of(

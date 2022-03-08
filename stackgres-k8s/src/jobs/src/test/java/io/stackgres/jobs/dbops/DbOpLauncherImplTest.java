@@ -41,12 +41,12 @@ import io.stackgres.common.crd.sgdbops.DbOpsOperation;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.lock.LockAcquirerImpl;
 import io.stackgres.jobs.dbops.lock.LockRequest;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.jobs.dbops.securityupgrade.SecurityUpgradeJob;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,11 +88,9 @@ class DbOpLauncherImplTest {
     randomDbOpsName = StringUtils.getRandomString();
     randomClusterName = StringUtils.getRandomClusterName();
 
-    dbOps = JsonUtil.readFromJson("stackgres_dbops/dbops_securityupgrade.json",
-        StackGresDbOps.class);
+    dbOps = Fixtures.dbOps().loadSecurityUpgrade().get();
 
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
-        StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
 
     dbOps.getMetadata().setNamespace(namespace);
     dbOps.getMetadata().setName(randomDbOpsName);

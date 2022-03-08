@@ -5,15 +5,39 @@
 
 package io.stackgres.common.fixture;
 
-import static java.lang.String.format;
-
 import io.fabric8.kubernetes.api.model.Secret;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.fixture.Fixture;
 
-public class SecretFixture {
+public class SecretFixture extends Fixture<Secret> {
 
-  public Secret build(String jsonFilename) {
-    return JsonUtil.readFromJson(format("secret/%s.json", jsonFilename), Secret.class);
+  public SecretFixture loadDefault() {
+    fixture = readFromJson(SECRET_SECRET_JSON);
+    return this;
+  }
+
+  public SecretFixture loadPatroni() {
+    fixture = readFromJson(SECRET_PATRONI_JSON);
+    return this;
+  }
+
+  public SecretFixture loadBackup() {
+    fixture = readFromJson(SECRET_BACKUP_SECRET_JSON);
+    return this;
+  }
+
+  public SecretFixture loadBackupWithManagedFields() {
+    fixture = readFromJson(SECRET_BACKUP_SECRET_WITH_MANAGED_FIELDS_JSON);
+    return this;
+  }
+
+  public SecretFixture loadMinio() {
+    fixture = readFromJson(SECRET_MINIO_JSON);
+    return this;
+  }
+
+  public SecretFixture loadAuthentication() {
+    fixture = readFromJson(SECRET_PATRONI_JSON);
+    return this;
   }
 
 }

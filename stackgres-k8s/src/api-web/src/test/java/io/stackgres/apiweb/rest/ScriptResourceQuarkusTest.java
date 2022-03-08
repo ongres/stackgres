@@ -24,6 +24,7 @@ import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.http.ContentType;
 import io.stackgres.apiweb.dto.Metadata;
+import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.script.ScriptDto;
 import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.apiweb.dto.script.ScriptFrom;
@@ -31,8 +32,8 @@ import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptList;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ScriptScheduler;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -79,14 +80,11 @@ class ScriptResourceQuarkusTest implements AuthenticatedResourceTest {
   }
 
   private ScriptDto getScriptInlineScripts() {
-    return JsonUtil.readFromJson(
-        "stackgres_script/inline_scripts.json", ScriptDto.class);
+    return DtoFixtures.script().loadDefault().get();
   }
 
   private StackGresScript getScript() {
-    StackGresScript script = JsonUtil.readFromJson(
-        "stackgres_script/default.json", StackGresScript.class);
-    return script;
+    return Fixtures.script().loadDefault().get();
   }
 
   @Test

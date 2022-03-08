@@ -20,7 +20,7 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
@@ -55,7 +55,7 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
   }
 
   @Override
-  public void validate(StackGresDbOpsReview review) throws ValidationFailed {
+  public void validate(DbOpsReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case CREATE:
         StackGresDbOps dbOps = review.getRequest().getObject();

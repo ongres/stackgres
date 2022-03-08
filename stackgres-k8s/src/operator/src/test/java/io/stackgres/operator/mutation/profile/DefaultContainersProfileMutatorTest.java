@@ -17,7 +17,9 @@ import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.github.fge.jsonpatch.ReplaceOperation;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,11 +35,9 @@ class DefaultContainersProfileMutatorTest {
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
-    review = JsonUtil.readFromJson("sgprofile_allow_request/create.json",
-        SgProfileReview.class);
+    review = AdmissionReviewFixtures.instanceProfile().loadCreate().get();
 
-    defaultProfile = JsonUtil.readFromJson("stackgres_profiles/size-xs.json",
-        StackGresProfile.class);
+    defaultProfile = Fixtures.instanceProfile().loadSizeXs().get();
 
     mutator = new DefaultContainersProfileMutator(() -> defaultProfile);
     mutator.init();

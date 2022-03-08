@@ -22,7 +22,7 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,11 +47,11 @@ class PatroniApiMetadataFinderImplTest {
   void setUp() {
     clusterName = StringUtils.getRandomClusterName();
     namespace = StringUtils.getRandomNamespace();
-    secret = JsonUtil.readFromJson("secrets/authentication.json", Secret.class);
+    secret = Fixtures.secret().loadAuthentication().get();
     secret.getMetadata().setName(clusterName);
     secret.getMetadata().setNamespace(namespace);
 
-    patroniService = JsonUtil.readFromJson("services/patroni-rest.json", Service.class);
+    patroniService = Fixtures.service().loadPatroniRest().get();
     patroniService.getMetadata().setNamespace(namespace);
     patroniService.getMetadata().setName(clusterName + "-rest");
 

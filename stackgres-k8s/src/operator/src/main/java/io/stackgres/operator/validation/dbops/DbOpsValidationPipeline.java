@@ -10,21 +10,21 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.validation.SimpleValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 
 @ApplicationScoped
-public class DbOpsValidationPipeline implements ValidationPipeline<StackGresDbOpsReview> {
+public class DbOpsValidationPipeline implements ValidationPipeline<DbOpsReview> {
 
-  private SimpleValidationPipeline<StackGresDbOpsReview, DbOpsValidator> genericPipeline;
+  private SimpleValidationPipeline<DbOpsReview, DbOpsValidator> genericPipeline;
 
   /**
    * Validate all {@code Validator}s in sequence.
    */
   @Override
-  public void validate(StackGresDbOpsReview review) throws ValidationFailed {
+  public void validate(DbOpsReview review) throws ValidationFailed {
     genericPipeline.validate(review);
 
   }

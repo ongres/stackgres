@@ -26,10 +26,11 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgrad
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
-import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -88,7 +89,7 @@ class DbOpsMajorVersionUpgradeValidatorTest {
     validator = new DbOpsMajorVersionUpgradeValidator(clusterFinder, postgresConfigFinder,
         ALL_SUPPORTED_POSTGRES_VERSIONS);
 
-    cluster = getDefaultCluster();
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().getPostgres().setVersion(SECOND_PG_MAJOR_VERSION);
@@ -99,7 +100,7 @@ class DbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionOnCreation_shouldNotFail() throws ValidationFailed {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -127,7 +128,7 @@ class DbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionFromStatusOnCreation_shouldNotFail() throws ValidationFailed {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -148,7 +149,7 @@ class DbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenSameStackGresVersionOnCreation_shouldFail() {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -174,7 +175,7 @@ class DbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenInvalidStackGresVersionOnCreation_shouldFail() {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -200,7 +201,7 @@ class DbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenInvalidStackGresMajorVersionOnCreation_shouldFail() {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         SECOND_PG_MAJOR_VERSION);
 
@@ -226,7 +227,7 @@ class DbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionButWrongConfigOnCreation_shouldFail() throws ValidationFailed {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -252,7 +253,7 @@ class DbOpsMajorVersionUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionButMissingConfigOnCreation_shouldFail() throws ValidationFailed {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion(
         FIRST_PG_MINOR_VERSION);
 
@@ -271,22 +272,12 @@ class DbOpsMajorVersionUpgradeValidatorTest {
     assertEquals("SGPostgresConfig postgresconf not found", resultMessage);
   }
 
-  private StackGresDbOpsReview getCreationReview() {
-    return JsonUtil
-        .readFromJson("dbops_allow_requests/valid_major_version_upgrade_creation.json",
-            StackGresDbOpsReview.class);
-  }
-
-  private StackGresCluster getDefaultCluster() {
-    return JsonUtil
-        .readFromJson("stackgres_cluster/default.json",
-            StackGresCluster.class);
+  private DbOpsReview getCreationReview() {
+    return AdmissionReviewFixtures.dbOps().loadMajorVersionUpgradeCreate().get();
   }
 
   private StackGresPostgresConfig getDefaultPostgresConfig() {
-    return JsonUtil
-        .readFromJson("postgres_config/default_postgres.json",
-            StackGresPostgresConfig.class);
+    return Fixtures.postgresConfig().loadDefault().get();
   }
 
 }
