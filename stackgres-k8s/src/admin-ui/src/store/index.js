@@ -27,6 +27,7 @@ export default new Vuex.Store({
     sgpoolconfigs: [],
     sgbackupconfigs: [],
     sginstanceprofiles: [],
+    sgobjectstorages: [],
     storageClasses: [],
     logs: [],
     sgdistributedlogs: [],
@@ -193,6 +194,17 @@ export default new Vuex.Store({
       }
 
     },
+    updateObjectStorages ( state, config ) {
+
+      let index = state.sgobjectstorages.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
+
+      if ( typeof index !== "undefined" ) {
+        index.data = config.data;
+      } else {
+        state.sgobjectstorages.push( config );    
+      }
+
+    },
     updateBackupConfig ( state, config ) {
 
       let index = state.sgbackupconfigs.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
@@ -221,7 +233,7 @@ export default new Vuex.Store({
     },
 
     flushResource(state, resource) {
-      //state[resource].length = 0;
+      state[resource].length = 0;
     },
 
     setDeleteItem (state, item) {
