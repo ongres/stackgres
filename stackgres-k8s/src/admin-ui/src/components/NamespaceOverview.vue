@@ -226,6 +226,62 @@
                 </table>
             </div>
 
+            <div class="card" v-if="iCan('any', 'sgobjectstorages', $route.params.namespace)">
+                <table class="fullWidth">
+                    <thead>
+                        <th class="crdName">
+                            <template v-if="iCan('list', 'sgobjectstorages', $route.params.namespace)">
+                                <router-link :to="'/' + $route.params.namespace + '/sgobjectstorages'" title="Object Storage Configurations List">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26.5 18.8"><g fill="#36A8FF"><path d="M1 4.8h10.5c.5 0 1-.4 1-1s-.4-1-1-1H1c-.5 0-1 .4-1 1s.5 1 1 1zM14.8 7.6c.5 0 1-.4 1-1V4.8h4.3c.5 0 1-.4 1-1s-.4-1-1-1h-4.3V1c0-.5-.4-1-1-1s-1 .4-1 1v5.7c.1.5.5.9 1 .9zM1 11h4.3v1.9c0 .5.4 1 1 1s1-.4 1-1V7.1c0-.5-.4-1-1-1s-1 .4-1 1V9H1c-.5 0-1 .5-1 1s.4.9 1 1c-.1 0 0 0 0 0zM7.7 15.3H1c-.5 0-1 .4-1 .9s.4 1 .9 1h6.8c.5 0 1-.4 1-.9 0-.6-.4-1-1-1z"/><g><path d="M14.275 18.7c-.8.1-1.6-.1-2.3-.6-.7-.4-1.2-1-1.5-1.7-.4-.8-.6-1.6-.6-2.5 0-.9.2-1.8.5-2.6.3-.7.9-1.3 1.5-1.7.7-.4 1.5-.6 2.3-.6.8 0 1.6.2 2.3.6.7.4 1.2 1 1.5 1.7.5.8.7 1.7.7 2.6 0 .9-.2 1.8-.5 2.6-.4.7-.9 1.2-1.6 1.6-.7.5-1.5.7-2.3.6zm0-1.6c.7 0 1.4-.3 1.8-.8.5-.7.7-1.6.6-2.4.1-.9-.2-1.7-.6-2.4-.5-.6-1.1-.9-1.8-.9s-1.4.3-1.8.9c-.4.7-.7 1.5-.6 2.4-.1.8.2 1.7.6 2.4.4.5 1.1.8 1.8.8zM22.875 18.7c-.6 0-1.3-.1-1.9-.2-.5-.1-1-.4-1.4-.7 0-.1-.1-.2-.2-.3-.1-.2-.1-.3-.1-.5s.1-.4.2-.6c.1-.2.3-.2.4-.3h.3c.1 0 .2.1.3.2.3.2.7.4 1.1.5.5.3.9.3 1.3.3s.9-.1 1.3-.3c.3-.2.5-.5.4-.9 0-.3-.2-.5-.4-.7-.5-.2-1-.4-1.5-.5-.6-.1-1.3-.3-1.9-.6-.4-.2-.8-.5-1-.9-.2-.3-.3-.8-.3-1.2 0-.5.2-1.1.5-1.5.3-.5.8-.8 1.3-1.1.6-.3 1.2-.4 1.8-.4 1.1 0 2.1.3 3 1l.3.3c.1.1.1.3.1.4 0 .2-.1.4-.2.6-.1.2-.3.2-.4.3h-.3c-.1 0-.2-.1-.3-.2-.3-.2-.6-.4-1-.5-.4-.1-.7-.2-1.1-.2-.4 0-.9.1-1.2.3-.3.2-.5.5-.4.9 0 .2.1.4.2.5.2.2.4.3.6.4.1.1.5.2.9.3.9.2 1.7.5 2.5 1 .5.4.8 1.1.8 1.7 0 .5-.1 1.1-.4 1.5-.3.5-.8.8-1.3 1-.7.3-1.3.5-2 .4z"/></g></g></svg>
+                                    <span>SGObjectStorage <i class="length">{{ objectstorages.length }}</i></span>
+                                </router-link>
+                            </template>
+                            <template v-else>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26.5 18.8"><g fill="#36A8FF"><path d="M1 4.8h10.5c.5 0 1-.4 1-1s-.4-1-1-1H1c-.5 0-1 .4-1 1s.5 1 1 1zM14.8 7.6c.5 0 1-.4 1-1V4.8h4.3c.5 0 1-.4 1-1s-.4-1-1-1h-4.3V1c0-.5-.4-1-1-1s-1 .4-1 1v5.7c.1.5.5.9 1 .9zM1 11h4.3v1.9c0 .5.4 1 1 1s1-.4 1-1V7.1c0-.5-.4-1-1-1s-1 .4-1 1V9H1c-.5 0-1 .5-1 1s.4.9 1 1c-.1 0 0 0 0 0zM7.7 15.3H1c-.5 0-1 .4-1 .9s.4 1 .9 1h6.8c.5 0 1-.4 1-.9 0-.6-.4-1-1-1z"/><g><path d="M14.275 18.7c-.8.1-1.6-.1-2.3-.6-.7-.4-1.2-1-1.5-1.7-.4-.8-.6-1.6-.6-2.5 0-.9.2-1.8.5-2.6.3-.7.9-1.3 1.5-1.7.7-.4 1.5-.6 2.3-.6.8 0 1.6.2 2.3.6.7.4 1.2 1 1.5 1.7.5.8.7 1.7.7 2.6 0 .9-.2 1.8-.5 2.6-.4.7-.9 1.2-1.6 1.6-.7.5-1.5.7-2.3.6zm0-1.6c.7 0 1.4-.3 1.8-.8.5-.7.7-1.6.6-2.4.1-.9-.2-1.7-.6-2.4-.5-.6-1.1-.9-1.8-.9s-1.4.3-1.8.9c-.4.7-.7 1.5-.6 2.4-.1.8.2 1.7.6 2.4.4.5 1.1.8 1.8.8zM22.875 18.7c-.6 0-1.3-.1-1.9-.2-.5-.1-1-.4-1.4-.7 0-.1-.1-.2-.2-.3-.1-.2-.1-.3-.1-.5s.1-.4.2-.6c.1-.2.3-.2.4-.3h.3c.1 0 .2.1.3.2.3.2.7.4 1.1.5.5.3.9.3 1.3.3s.9-.1 1.3-.3c.3-.2.5-.5.4-.9 0-.3-.2-.5-.4-.7-.5-.2-1-.4-1.5-.5-.6-.1-1.3-.3-1.9-.6-.4-.2-.8-.5-1-.9-.2-.3-.3-.8-.3-1.2 0-.5.2-1.1.5-1.5.3-.5.8-.8 1.3-1.1.6-.3 1.2-.4 1.8-.4 1.1 0 2.1.3 3 1l.3.3c.1.1.1.3.1.4 0 .2-.1.4-.2.6-.1.2-.3.2-.4.3h-.3c-.1 0-.2-.1-.3-.2-.3-.2-.6-.4-1-.5-.4-.1-.7-.2-1.1-.2-.4 0-.9.1-1.2.3-.3.2-.5.5-.4.9 0 .2.1.4.2.5.2.2.4.3.6.4.1.1.5.2.9.3.9.2 1.7.5 2.5 1 .5.4.8 1.1.8 1.7 0 .5-.1 1.1-.4 1.5-.3.5-.8.8-1.3 1-.7.3-1.3.5-2 .4z"/></g></g></svg>
+                                <span>SGObjectStorage <i class="length">{{ objectstorages.length }}</i></span>
+                            </template>
+                        </th>
+                        <th class="icon invisible">
+                            <router-link 
+                                :to="'/' + $route.params.namespace + '/sgobjectstorages/new'" 
+                                title="Create Object Storage Configuration"
+                                v-if="iCan('create', 'sgobjectstorages', $route.params.namespace)"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
+                            </router-link>
+                        </th>
+                    </thead>
+                    <tbody>
+                        <template v-if="!objectstorages.length || !iCan('list', 'sgobjectstorages', $route.params.namespace)">
+                            <tr class="no-results">
+                                <td colspan="2" v-if="iCan('create','sgobjectstorages',$route.params.namespace)">
+                                    No configurations have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgobjectstorages/new'" title="Create Object Storage Configuration">create a new one?</router-link>
+                                </td>
+                                <td v-else colspan="2">
+                                    No configurations have been found. You don't have enough permissions to create a new one.
+                                </td>
+                            </tr>
+                        </template>
+                        <template v-else>
+                            <template v-for="config in objectstorages">
+                                <tr>
+                                    <td class="hasTooltip">
+                                        <span>
+                                            <router-link :to="'/' + $route.params.namespace + '/sgobjectstorage/' + config.name" title="Object Storage Configuration Details">
+                                                {{ config.name }}
+                                            </router-link>
+                                        </span>
+                                    </td>
+                                    <td class="icon invisible">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgobjectstorage/' + config.name" title="Object Storage Configuration Details" target="_blank"></router-link>
+                                    </td>
+                                </tr>
+                            </template>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
             <div class="card" v-if="iCan('any', 'sgbackupconfigs', $route.params.namespace)">
                 <table class="fullWidth">
                     <thead>
@@ -252,7 +308,7 @@
                         </th>
                     </thead>
                     <tbody>
-                        <template v-if="!backupconfigs.lengt || !iCan('list', 'sgbackupconfigs', $route.params.namespace)">
+                        <template v-if="!backupconfigs.length || !iCan('list', 'sgbackupconfigs', $route.params.namespace)">
                             <tr class="no-results">
                                 <td colspan="2" v-if="iCan('create','sgbackupconfigs',$route.params.namespace)">
                                     No configurations have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgbackupconfigs/new'" title="Create Backup Configuration">create a new one?</router-link>
@@ -467,21 +523,21 @@ export default {
 
     methods: {
         getOpStatus(op) {
-                const vc = this
-                let status = ''
+            const vc = this
+            let status = ''
 
-                if (vc.hasProp(op, 'data.status.conditions')) {
-                    op.data.status.conditions.forEach(function(cond) {
-                        if(cond.status == 'True') {
-                            status = cond.type
-                            return false
-                        }
-                        
-                    })
-                }
+            if (vc.hasProp(op, 'data.status.conditions')) {
+                op.data.status.conditions.forEach(function(cond) {
+                    if(cond.status == 'True') {
+                        status = cond.type
+                        return false
+                    }
+                    
+                })
+            }
 
-                return status
-            },
+            return status
+        }
     },
 
     computed: {
@@ -499,6 +555,10 @@ export default {
 
         poolconfigs () {
             return store.state.sgpoolconfigs.filter(poolconfig => (poolconfig.data.metadata.namespace == this.$route.params.namespace))
+        },
+
+        objectstorages () {
+            return store.state.sgobjectstorages.filter(config => (config.data.metadata.namespace == this.$route.params.namespace))
         },
 
         backupconfigs () {

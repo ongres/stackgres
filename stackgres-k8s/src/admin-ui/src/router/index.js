@@ -8,6 +8,7 @@ import CreateCluster from '../components/forms/CreateSGClusters.vue'
 import CreateProfile from '../components/forms/CreateSGInstanceProfiles.vue'
 import CreatePgConfig from '../components/forms/CreateSGPgConfigs.vue'
 import CreatePoolConfig from '../components/forms/CreateSGPoolConfigs.vue'
+import CreateObjectStorage from '../components/forms/CreateSGObjectStorages.vue'
 import CreateBackupConfig from '../components/forms/CreateSGBackupConfigs.vue'
 import CreateBackup from '../components/forms/CreateSGBackups.vue'
 import CreateLogsServer from '../components/forms/CreateSGDistributedLogs.vue'
@@ -24,6 +25,7 @@ import ClusterEvents from '../components/ClusterEvents.vue'
 import SGBackups from '../components/SGBackups.vue'
 import SGPgConfigs from '../components/SGPgConfigs.vue'
 import SGPoolConfigs from '../components/SGPoolConfigs.vue'
+import SGObjectStorages from '../components/SGObjectStorages'
 import SGBackupConfigs from '../components/SGBackupConfigs.vue'
 import SGInstanceProfiles from '../components/SGInstanceProfiles.vue'
 import SGDistributedLogs from '../components/SGDistributedLogs.vue'
@@ -130,6 +132,24 @@ const routes = [
     meta: {
       conditionalRoute: false,
       componentName: 'SGBackupConfig'
+    },
+  },
+  { 
+    path: '/:namespace/sgobjectstorages/new', 
+    component: CreateObjectStorage,
+    name: 'CreateObjectStorage',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGObjectStorage'
+    },
+  },
+  { 
+    path: '/:namespace/sgobjectstorage/:name/edit', 
+    component: CreateObjectStorage,
+    name: 'EditObjectStorage',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGObjectStorage'
     },
   },
   { 
@@ -374,6 +394,24 @@ const routes = [
     meta: {
       conditionalRoute: false,
       componentName: 'SGBackupConfig'
+    },
+  },
+  { 
+    path: '/:namespace/sgobjectstorages', 
+    component: SGObjectStorages,
+    name: 'SGObjectStorages',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGObjectStorage'
+    },
+  },
+  { 
+    path: '/:namespace/sgobjectstorage/:name', 
+    component: SGObjectStorages,
+    name: 'SingleObjectStorages',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGObjectStorage'
     },
   },
   {  
