@@ -23,9 +23,9 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.event.ClusterEventEmitter;
 import io.stackgres.common.event.EventEmitterType;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.operatorframework.resource.EventReason;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,8 +44,7 @@ class ExtensionEventEmitterImplTest {
   @Inject
   ExtensionEventEmitterImpl extensionEventEmitter;
 
-  StackGresCluster cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
-      StackGresCluster.class);
+  StackGresCluster cluster = Fixtures.cluster().loadDefault().get();
 
   String podName = ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME.getString();
 

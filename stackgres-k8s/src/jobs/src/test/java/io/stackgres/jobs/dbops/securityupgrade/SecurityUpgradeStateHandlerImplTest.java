@@ -23,10 +23,10 @@ import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSecurityUpgradeStatus;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.AbstractRestartStateHandler;
 import io.stackgres.jobs.dbops.ClusterStateHandlerTest;
 import io.stackgres.jobs.dbops.StateHandler;
-import io.stackgres.testutil.JsonUtil;
 
 @QuarkusTest
 class SecurityUpgradeStateHandlerImplTest extends ClusterStateHandlerTest {
@@ -42,8 +42,7 @@ class SecurityUpgradeStateHandlerImplTest extends ClusterStateHandlerTest {
 
   @Override
   protected StackGresDbOps getDbOps() {
-    return JsonUtil.readFromJson("stackgres_dbops/dbops_securityupgrade.json",
-        StackGresDbOps.class);
+    return Fixtures.dbOps().loadSecurityUpgrade().get();
   }
 
   @Override

@@ -23,11 +23,12 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,8 +57,7 @@ class PostgresVersionValidatorTest {
   @BeforeEach
   void setUp() {
     validator = new PostgresConfigValidator(configFinder);
-    postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
-        StackGresPostgresConfig.class);
+    postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     StackGresDistributedLogs distributedLogs = new StackGresDistributedLogs();
     distributedLogs.setMetadata(new ObjectMeta());
     distributedLogs.getMetadata().setAnnotations(
@@ -68,9 +68,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenValidCreation_shouldNotFail() throws ValidationFailed {
-    final StackGresDistributedLogsReview review = JsonUtil
-        .readFromJson("distributedlogs_allow_request/create.json",
-            StackGresDistributedLogsReview.class);
+    final StackGresDistributedLogsReview review =
+        AdmissionReviewFixtures.distributedLogs().loadCreate().get();
 
     StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
     String postgresConfigName = spec.getConfiguration().getPostgresConfig();
@@ -90,9 +89,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenInconsistentPostgresVersion_shouldFail() {
-    final StackGresDistributedLogsReview review = JsonUtil
-        .readFromJson("distributedlogs_allow_request/create.json",
-            StackGresDistributedLogsReview.class);
+    final StackGresDistributedLogsReview review =
+        AdmissionReviewFixtures.distributedLogs().loadCreate().get();
     postgresConfig.getSpec().setPostgresVersion("10");
 
     StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
@@ -118,18 +116,16 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenSamePostgresVersionUpdate_shouldNotFail() throws ValidationFailed {
-    final StackGresDistributedLogsReview review = JsonUtil
-        .readFromJson("distributedlogs_allow_request/update.json",
-            StackGresDistributedLogsReview.class);
+    final StackGresDistributedLogsReview review =
+        AdmissionReviewFixtures.distributedLogs().loadUpdate().get();
 
     validator.validate(review);
   }
 
   @Test
   void givenInvalidPostgresConfigReference_shouldFail() {
-    final StackGresDistributedLogsReview review = JsonUtil
-        .readFromJson("distributedlogs_allow_request/create.json",
-            StackGresDistributedLogsReview.class);
+    final StackGresDistributedLogsReview review =
+        AdmissionReviewFixtures.distributedLogs().loadCreate().get();
     StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
     String postgresConfigName = spec.getConfiguration().getPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -150,9 +146,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenEmptyPostgresConfigReference_shouldFail() {
-    final StackGresDistributedLogsReview review = JsonUtil
-        .readFromJson("distributedlogs_allow_request/create.json",
-            StackGresDistributedLogsReview.class);
+    final StackGresDistributedLogsReview review =
+        AdmissionReviewFixtures.distributedLogs().loadCreate().get();
 
     StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
     spec.getConfiguration().setPostgresConfig("");
@@ -170,9 +165,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenNoPostgresConfigReference_shouldFail() {
-    final StackGresDistributedLogsReview review = JsonUtil
-        .readFromJson("distributedlogs_allow_request/create.json",
-            StackGresDistributedLogsReview.class);
+    final StackGresDistributedLogsReview review =
+        AdmissionReviewFixtures.distributedLogs().loadCreate().get();
 
     StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
     spec.getConfiguration().setPostgresConfig(null);
@@ -190,9 +184,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenPostgresConfigUpdateWithInvalidVersion_shouldFail() throws ValidationFailed {
-    final StackGresDistributedLogsReview review = JsonUtil
-        .readFromJson("distributedlogs_allow_request/update.json",
-            StackGresDistributedLogsReview.class);
+    final StackGresDistributedLogsReview review =
+        AdmissionReviewFixtures.distributedLogs().loadUpdate().get();
 
     StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
     spec.getConfiguration().setPostgresConfig("test");
@@ -215,9 +208,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenADeleteUpdate_shouldDoNothing() throws ValidationFailed {
-    final StackGresDistributedLogsReview review = JsonUtil
-        .readFromJson("distributedlogs_allow_request/delete.json",
-            StackGresDistributedLogsReview.class);
+    final StackGresDistributedLogsReview review =
+        AdmissionReviewFixtures.distributedLogs().loadDelete().get();
     review.getRequest().setOperation(Operation.DELETE);
 
     validator.validate(review);

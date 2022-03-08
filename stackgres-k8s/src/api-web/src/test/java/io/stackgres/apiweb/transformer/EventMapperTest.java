@@ -14,7 +14,7 @@ import java.time.LocalDate;
 
 import io.fabric8.kubernetes.api.model.Event;
 import io.stackgres.apiweb.dto.event.EventDto;
-import io.stackgres.apiweb.dto.fixture.EventFixture;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +34,7 @@ class EventMapperTest {
 
   @BeforeEach
   void setup() {
-    this.event = new EventFixture().build();
+    this.event = Fixtures.event().loadDefault().get();
   }
 
   @Test

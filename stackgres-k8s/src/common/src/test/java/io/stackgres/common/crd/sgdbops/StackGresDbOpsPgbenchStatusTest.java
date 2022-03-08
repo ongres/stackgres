@@ -7,7 +7,7 @@ package io.stackgres.common.crd.sgdbops;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import io.stackgres.common.fixture.StackGresDbOpsPgbenchStatusFixture;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +23,8 @@ class StackGresDbOpsPgbenchStatusTest {
 
   @BeforeEach
   void setup() {
-    this.status = new StackGresDbOpsPgbenchStatusFixture().build();
+    this.status = Fixtures.dbOps().loadPgbench().get()
+        .getStatus().getBenchmark().getPgbench();
   }
 
   @Test

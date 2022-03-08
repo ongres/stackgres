@@ -7,10 +7,10 @@ package io.stackgres.operator.validation.pooling;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -28,33 +28,28 @@ class PoolingDependenciesValidatorTest
 
   @Override
   protected PoolingReview getReview_givenAReviewCreation_itShouldDoNothing() {
-    return JsonUtil.readFromJson("pooling_allow_request/create.json",
-        PoolingReview.class);
+    return AdmissionReviewFixtures.poolingConfig().loadCreate().get();
   }
 
   @Override
   protected PoolingReview getReview_givenAReviewUpdate_itShouldDoNothing() {
-    return JsonUtil.readFromJson("pooling_allow_request/update.json",
-        PoolingReview.class);
+    return AdmissionReviewFixtures.poolingConfig().loadUpdate().get();
   }
 
   @Override
   protected PoolingReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
-    return JsonUtil.readFromJson("pooling_allow_request/delete.json",
-        PoolingReview.class);
+    return AdmissionReviewFixtures.poolingConfig().loadDelete().get();
   }
 
   @Override
   protected PoolingReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
       throws ValidationFailed {
-    return JsonUtil.readFromJson("pooling_allow_request/delete.json",
-        PoolingReview.class);
+    return AdmissionReviewFixtures.poolingConfig().loadDelete().get();
   }
 
   @Override
   protected PoolingReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
-    return JsonUtil.readFromJson("pooling_allow_request/delete.json",
-        PoolingReview.class);
+    return AdmissionReviewFixtures.poolingConfig().loadDelete().get();
   }
 
   @Override

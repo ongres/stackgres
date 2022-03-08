@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceWriter;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.Test;
 
@@ -108,7 +108,7 @@ class StackGresKubernetesClientTest {
   void givenAManagedListObject_shouldSuccessfullyParseIt() throws JsonProcessingException {
     try (final StackGresDefaultKubernetesClient stackGresKubernetesClient =
         new StackGresDefaultKubernetesClient()) {
-      ObjectNode list = JsonUtil.readFromJsonAsJson("statefulset/k8s-sts-list-response.json");
+      ObjectNode list = Fixtures.jsonStatefulSetList().loadList().get();
 
       var resources = stackGresKubernetesClient.parseListObject(list,
           StatefulSet.class,

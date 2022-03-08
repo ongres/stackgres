@@ -63,6 +63,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecLabels;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
+import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
@@ -83,7 +84,6 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
-import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -94,6 +94,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.PersistentVolumeClaimFinder;
@@ -165,7 +166,7 @@ class ClusterResourceMockedTest extends
   @Override
   @BeforeEach
   void setUp() {
-    scriptTransformer = new ScriptTransformer(JsonUtil.JSON_MAPPER);
+    scriptTransformer = new ScriptTransformer(JsonUtil.jsonMapper());
     super.setUp();
     servicePrimary = new ServiceBuilder()
         .withNewMetadata()
@@ -193,10 +194,9 @@ class ClusterResourceMockedTest extends
         .withData(ImmutableMap.of(
             "script", "CREATE DATABASE test WITH OWNER test"))
         .build();
-    podList = JsonUtil.readFromJson("stackgres_cluster/pods.json", PodList.class);
+    podList = Fixtures.cluster().podList().loadDefault().get();
     logList = new ArrayList<>();
-    clusterWithoutDistributedLogs = JsonUtil.readFromJson(
-        "stackgres_cluster/without_distributed_logs.json", StackGresCluster.class);
+    clusterWithoutDistributedLogs = Fixtures.cluster().loadWithoutDistributedLogs().get();
     executorService = Executors.newWorkStealingPool();
     doAnswer((Answer<Void>) invocation -> {
       executorService.execute(Runnable.class.cast(invocation.getArgument(0)));
@@ -701,22 +701,22 @@ class ClusterResourceMockedTest extends
 
   @Override
   protected CustomResourceList<StackGresCluster> getCustomResourceList() {
-    return JsonUtil.readFromJson("stackgres_cluster/list.json", StackGresClusterList.class);
+    return Fixtures.clusterList().loadDefault().get();
   }
 
   @Override
   protected ClusterDto getDto() {
-    return JsonUtil.readFromJson("stackgres_cluster/dto.json", ClusterDto.class);
+    return DtoFixtures.cluster().loadDefault().get();
   }
 
   private ClusterDto getClusterScriptReference() {
-    return JsonUtil.readFromJson("stackgres_cluster/inline_scripts.json", ClusterDto.class);
+    return DtoFixtures.cluster().loadInlineScripts().get();
   }
 
   @Override
   protected ClusterTransformer getTransformer() {
     return new ClusterTransformer(
-        configContext, new ClusterPodTransformer(), JsonUtil.JSON_MAPPER);
+        configContext, new ClusterPodTransformer(), JsonUtil.jsonMapper());
   }
 
   @Override

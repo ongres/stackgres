@@ -33,6 +33,7 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.AbstractPatroniConfigEndpoints;
@@ -48,7 +49,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PatroniConfigEndpointsTest {
 
-  private static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
+  private static final ObjectMapper MAPPER = JsonUtil.jsonMapper();
   private final LabelFactoryForCluster<StackGresCluster> labelFactory = new ClusterLabelFactory(
       new ClusterLabelMapper());
   @Mock
@@ -62,12 +63,10 @@ class PatroniConfigEndpointsTest {
   void setUp() {
     generator = new PatroniConfigEndpoints(MAPPER, labelFactory);
 
-    cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().setDistributedLogs(null);
-    backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
-    postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
-        StackGresPostgresConfig.class);
+    backupConfig = Fixtures.backupConfig().loadDefault().get();
+    postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
     setDefaultParameters(postgresConfig);
   }
@@ -209,14 +208,11 @@ class PatroniConfigEndpointsTest {
   @Test
   void generatedConfig_shouldNotChangeTooMuchFromPreviousVersion()
       throws JsonProcessingException {
-    var cluster = JsonUtil
-          .readFromJson("upgrade/sgcluster.json", StackGresCluster.class);
+    var cluster = Fixtures.upgrade().cluster().loadDefault().get();
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, StackGresVersion.V_1_1.getVersion());
-    var postgresConfig = JsonUtil.readFromJson("upgrade/sgpgconfig.json",
-        StackGresPostgresConfig.class);
-    var backupConfig = JsonUtil.readFromJson("upgrade/sgbackupconfig.json",
-        StackGresBackupConfig.class);
+    var postgresConfig = Fixtures.upgrade().postgresConfig().loadDefault().get();
+    var backupConfig = Fixtures.upgrade().backupConfig().loadDefault().get();
     when(context.getSource()).thenReturn(cluster);
     when(context.getCluster()).thenReturn(cluster);
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
@@ -226,7 +222,7 @@ class PatroniConfigEndpointsTest {
     var patroniConfig = generator.getPatroniConfig(context);
 
     JsonUtil.assertJsonEquals(
-        JsonUtil.readFromJsonAsJson("upgrade/v1.1/patroni.json"),
+        Fixtures.upgrade().jsonPatroniConfig().loadV1_1().get(),
         MAPPER.valueToTree(patroniConfig));
   }
 

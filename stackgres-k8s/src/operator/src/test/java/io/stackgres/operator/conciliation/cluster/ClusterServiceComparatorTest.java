@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,10 +24,8 @@ class ClusterServiceComparatorTest {
 
   @BeforeEach
   void setUp() {
-    required = JsonUtil.readFromJson("services/required.json",
-        Service.class);
-    deployed = JsonUtil.readFromJson("services/deployed.json",
-        Service.class);
+    required = Fixtures.service().loadRequired().get();
+    deployed = Fixtures.service().loadDeployed().get();
   }
 
   @Test

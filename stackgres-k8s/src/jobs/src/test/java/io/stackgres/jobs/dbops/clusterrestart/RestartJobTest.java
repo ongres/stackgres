@@ -20,10 +20,10 @@ import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,17 +50,14 @@ class RestartJobTest {
 
   @BeforeEach
   void setUp() {
-    cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().setName("test-" + clusterNr.incrementAndGet());
     clusterName = StringUtils.getRandomClusterName();
     clusterNamespace = StringUtils.getRandomNamespace();
     cluster.getMetadata().setName(clusterName);
     cluster.getMetadata().setNamespace(clusterNamespace);
 
-    dbOps =
-        JsonUtil.readFromJson("stackgres_dbops/dbops_restart.json",
-            StackGresDbOps.class);
+    dbOps = Fixtures.dbOps().loadRestart().get();
     dbOps.getMetadata().setNamespace(clusterNamespace);
     dbOps.getMetadata().setName(clusterName);
     dbOps.getSpec().setSgCluster(clusterName);

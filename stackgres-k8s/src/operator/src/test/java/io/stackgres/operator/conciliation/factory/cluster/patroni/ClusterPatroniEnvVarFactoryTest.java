@@ -14,8 +14,8 @@ import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,8 +34,7 @@ class ClusterPatroniEnvVarFactoryTest {
 
   @BeforeEach
   void setUp() {
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
-        StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
   }
 
   @Test

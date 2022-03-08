@@ -30,6 +30,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterBackupsConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
+import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
@@ -39,7 +40,7 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -122,11 +123,11 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
   }
 
   private ClusterDto getClusterInlineScripts() {
-    return JsonUtil.readFromJson("stackgres_cluster/inline_scripts.json", ClusterDto.class);
+    return DtoFixtures.cluster().loadInlineScripts().get();
   }
 
   private StackGresCluster getCluster() {
-    return JsonUtil.readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    return Fixtures.cluster().loadDefault().get();
   }
 
   @Test

@@ -23,17 +23,16 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConfiguration;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.PostgresConfigFinder;
 import io.stackgres.common.resource.ProfileConfigFinder;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.DefaultComparator;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,8 +73,7 @@ class DistributedLogsRequiredResourcesGeneratorTest {
     randomNamespace = StringUtils.getRandomNamespace();
     randomName = StringUtils.getRandomClusterName();
     clusterUid = UUID.randomUUID().toString();
-    connectedClusters = JsonUtil.readFromJson("stackgres_cluster/list.json",
-        StackGresClusterList.class)
+    connectedClusters = Fixtures.clusterList().loadDefault().get()
         .getItems();
     connectedClusters.forEach(c -> {
       c.getMetadata().setName(StringUtils.getRandomClusterName());
@@ -84,19 +82,16 @@ class DistributedLogsRequiredResourcesGeneratorTest {
 
     lenient().when(clusterScanner.getConnectedClusters(any())).thenReturn(connectedClusters);
 
-    distributedLogs = JsonUtil.readFromJson("distributedlogs/default.json",
-        StackGresDistributedLogs.class);
+    distributedLogs = Fixtures.distributedLogs().loadDefault().get();
     final String namespace = distributedLogs.getMetadata().getNamespace();
 
-    postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
-        StackGresPostgresConfig.class);
+    postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     postgresConfig.getSpec()
         .setPostgresVersion(StackGresComponent.POSTGRESQL.getLatest()
             .getLatestMajorVersion());
     postgresConfig.getMetadata().setNamespace(namespace);
 
-    instanceProfile =
-        JsonUtil.readFromJson("stackgres_profiles/size-s.json", StackGresProfile.class);
+    instanceProfile = Fixtures.instanceProfile().loadSizeS().get();
     instanceProfile.getMetadata().setNamespace(namespace);
   }
 

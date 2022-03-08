@@ -13,13 +13,10 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
-import io.stackgres.operator.fixture.StackGresBackupConfigFixture;
-import io.stackgres.operator.fixture.StackGresBackupFixture;
-import io.stackgres.operator.fixture.StackGresClusterFixture;
-import io.stackgres.operator.fixture.StackGresProfileFixture;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
@@ -39,10 +36,10 @@ public class BackupRequiredResourceDecoratorTest
 
   @BeforeEach
   public void setup() {
-    this.resource = new StackGresBackupFixture().build("default");
-    this.cluster = new StackGresClusterFixture().build("default");
-    this.profile = new StackGresProfileFixture().build("size-xs");
-    this.backupConfig = new StackGresBackupConfigFixture().build("default");
+    this.resource = Fixtures.backup().loadDefault().get();
+    this.cluster = Fixtures.cluster().loadDefault().withLatestPostgresVersion().get();
+    this.profile = Fixtures.instanceProfile().loadSizeXs().get();
+    this.backupConfig = Fixtures.backupConfig().loadDefault().get();
   }
 
   @Override

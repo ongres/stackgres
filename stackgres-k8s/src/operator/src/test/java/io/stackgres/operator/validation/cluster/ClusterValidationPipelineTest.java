@@ -10,9 +10,9 @@ import javax.inject.Inject;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ValidationPipelineTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest
@@ -25,9 +25,7 @@ class ClusterValidationPipelineTest
 
   @Override
   public StackGresClusterReview getConstraintViolatingReview() {
-    final StackGresClusterReview review =
-        JsonUtil.readFromJson("cluster_allow_requests/valid_creation.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
     review.getRequest().getObject().getSpec().setInstances(0);
     return review;
   }

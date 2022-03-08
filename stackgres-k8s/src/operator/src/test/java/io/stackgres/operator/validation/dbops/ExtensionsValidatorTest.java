@@ -23,13 +23,14 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.extension.ExtensionRequest;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,8 +81,7 @@ class ExtensionsValidatorTest {
         .map(this::getInstalledExtension)
         .collect(Collectors.toUnmodifiableList());
 
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
-        StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setExtensions(extensions);
   }
 
@@ -97,7 +97,7 @@ class ExtensionsValidatorTest {
 
   @Test
   void givenAValidCreation_shouldPass() throws ValidationFailed {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
 
     when(clusterFinder.findByNameAndNamespace(
         cluster.getMetadata().getName(),
@@ -114,7 +114,7 @@ class ExtensionsValidatorTest {
 
   @Test
   void givenAnUpdate_shouldPass() throws ValidationFailed {
-    final StackGresDbOpsReview review = getUpdateReview();
+    final DbOpsReview review = getUpdateReview();
 
     validator.validate(review);
     verify(clusterFinder, never()).findByNameAndNamespace(
@@ -129,7 +129,7 @@ class ExtensionsValidatorTest {
         cluster.getMetadata().getName(),
         cluster.getMetadata().getNamespace()
     )).thenReturn(Optional.of(cluster));
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
     cluster.getSpec().getPostgres().setExtensions(extensions);
 
     when(extensionMetadataManager.requestExtensionsAnyVersion(
@@ -144,10 +144,8 @@ class ExtensionsValidatorTest {
             + " plpython3u (available 1.0.0)");
   }
 
-  private StackGresDbOpsReview getCreationReview() {
-    StackGresDbOpsReview review = JsonUtil
-        .readFromJson("dbops_allow_requests/valid_major_version_upgrade_creation.json",
-            StackGresDbOpsReview.class);
+  private DbOpsReview getCreationReview() {
+    DbOpsReview review = AdmissionReviewFixtures.dbOps().loadMajorVersionUpgradeCreate().get();
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
         .setPostgresVersion(POSTGRES_VERSION);
     review.getRequest().getObject().getMetadata().setNamespace(
@@ -159,10 +157,8 @@ class ExtensionsValidatorTest {
     return review;
   }
 
-  private StackGresDbOpsReview getUpdateReview() {
-    StackGresDbOpsReview review = JsonUtil
-        .readFromJson("dbops_allow_requests/valid_major_version_upgrade_creation.json",
-            StackGresDbOpsReview.class);
+  private DbOpsReview getUpdateReview() {
+    DbOpsReview review = AdmissionReviewFixtures.dbOps().loadMajorVersionUpgradeCreate().get();
     review.getRequest().setOperation(Operation.UPDATE);
     review.getRequest().setOldObject(review.getRequest().getObject());
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade()

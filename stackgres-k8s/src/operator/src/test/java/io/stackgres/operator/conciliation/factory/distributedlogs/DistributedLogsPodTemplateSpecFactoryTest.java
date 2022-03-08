@@ -13,11 +13,11 @@ import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelMapperForCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -44,8 +44,7 @@ public class DistributedLogsPodTemplateSpecFactoryTest {
   @BeforeEach
   public void setup() {
     openMocks(this);
-    distributedLogs =
-        JsonUtil.readFromJson("distributedlogs/default.json", StackGresDistributedLogs.class);
+    distributedLogs = Fixtures.distributedLogs().loadDefault().get();
 
     distributedLogPodTemplateSpecFactory =
         new DistributedLogsPodTemplateSpecFactory(podSecurityContext, labelFactory,

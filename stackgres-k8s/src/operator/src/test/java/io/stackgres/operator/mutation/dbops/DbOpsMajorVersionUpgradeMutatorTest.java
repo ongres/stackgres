@@ -26,9 +26,10 @@ import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.DbOpsReview;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,10 +53,8 @@ class DbOpsMajorVersionUpgradeMutatorTest {
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
-    review = JsonUtil.readFromJson("dbops_allow_requests/valid_major_version_upgrade_creation.json",
-        DbOpsReview.class);
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
-        StackGresCluster.class);
+    review = AdmissionReviewFixtures.dbOps().loadMajorVersionUpgradeCreate().get();
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().setNamespace(
         review.getRequest().getObject().getMetadata().getNamespace());
 

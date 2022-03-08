@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.StringUtil;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,10 +25,8 @@ class DistributedStatefulSetComparatorTest {
 
   @BeforeEach
   void setUp() {
-    required = JsonUtil.readFromJson("statefulset/required_distributedlogs.json",
-        StatefulSet.class);
-    deployed = JsonUtil.readFromJson("statefulset/deployed_distributedlogs.json",
-        StatefulSet.class);
+    required = Fixtures.statefulSet().loadRequiredDistributedLogs().get();
+    deployed = Fixtures.statefulSet().loadDeployedDistributedLogs().get();
   }
 
   @Test

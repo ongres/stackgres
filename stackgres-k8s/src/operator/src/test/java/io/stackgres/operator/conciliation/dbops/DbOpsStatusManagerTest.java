@@ -23,9 +23,9 @@ import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.Condition;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -88,10 +88,8 @@ class DbOpsStatusManagerTest {
   @BeforeEach
   void setUp() {
     statusManager = new DbOpsStatusManager(jobFinder);
-    expectedDbOps = JsonUtil
-        .readFromJson("stackgres_dbops/dbops_restart.json", StackGresDbOps.class);
-    dbOps = JsonUtil
-        .readFromJson("stackgres_dbops/dbops_restart.json", StackGresDbOps.class);
+    expectedDbOps = Fixtures.dbOps().loadRestart().get();
+    dbOps = Fixtures.dbOps().loadRestart().get();
   }
 
   @Test

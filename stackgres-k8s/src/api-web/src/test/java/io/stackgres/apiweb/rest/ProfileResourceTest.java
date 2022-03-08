@@ -10,12 +10,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.client.CustomResourceList;
+import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.profile.ProfileDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.ProfileTransformer;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.common.crd.sgprofile.StackGresProfileList;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -25,12 +25,12 @@ class ProfileResourceTest extends AbstractDependencyCustomResourceTest
 
   @Override
   protected CustomResourceList<StackGresProfile> getCustomResourceList() {
-    return JsonUtil.readFromJson("stackgres_profiles/list.json", StackGresProfileList.class);
+    return Fixtures.instanceProfileList().loadDefault().get();
   }
 
   @Override
   protected ProfileDto getResourceDto() {
-    return JsonUtil.readFromJson("stackgres_profiles/dto.json", ProfileDto.class);
+    return DtoFixtures.instanceProfile().loadDefault().get();
   }
 
   @Override

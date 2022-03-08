@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation;
 
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,8 +24,7 @@ class PgConfigMutationResourceTest extends MutationResourceTest<PgConfigReview> 
     resource.setPipeline(pipeline);
     this.resource = resource;
 
-    review = JsonUtil
-        .readFromJson("pgconfig_allow_request/valid_pgconfig.json", PgConfigReview.class);
+    review = AdmissionReviewFixtures.postgresConfig().loadCreate().get();
   }
 
   @Override

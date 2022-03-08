@@ -11,7 +11,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
@@ -27,7 +27,7 @@ import org.mockito.Mock;
 public abstract class DefaultValuesMutatorTest
       <R extends CustomResource<?, ?>, T extends AdmissionReview<R>> {
 
-  protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
+  protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
   protected DefaultValuesMutator<R, T> mutator;
 
@@ -39,7 +39,7 @@ public abstract class DefaultValuesMutatorTest
     when(factory.buildResource()).thenReturn(getDefaultResource());
     mutator = getMutatorInstance();
     mutator.setFactory(factory);
-    mutator.setObjectMapper(MAPPER);
+    mutator.setObjectMapper(JSON_MAPPER);
     mutator.init();
   }
 
@@ -80,7 +80,7 @@ public abstract class DefaultValuesMutatorTest
 
     T review = getEmptyReview();
 
-    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 

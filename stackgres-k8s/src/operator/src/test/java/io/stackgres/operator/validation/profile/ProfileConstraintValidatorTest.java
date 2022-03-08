@@ -11,10 +11,10 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -29,14 +29,12 @@ class ProfileConstraintValidatorTest extends ConstraintValidationTest<SgProfileR
 
   @Override
   protected SgProfileReview getValidReview() {
-    return JsonUtil.readFromJson("sgprofile_allow_request/create.json",
-        SgProfileReview.class);
+    return AdmissionReviewFixtures.instanceProfile().loadCreate().get();
   }
 
   @Override
   protected SgProfileReview getInvalidReview() {
-    final SgProfileReview review = JsonUtil.readFromJson("sgprofile_allow_request/create.json",
-        SgProfileReview.class);
+    final SgProfileReview review = AdmissionReviewFixtures.instanceProfile().loadCreate().get();
     review.getRequest().getObject().setSpec(null);
     return review;
   }

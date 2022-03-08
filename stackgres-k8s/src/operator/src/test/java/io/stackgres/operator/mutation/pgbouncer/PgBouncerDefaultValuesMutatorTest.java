@@ -9,10 +9,11 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -27,8 +28,7 @@ class PgBouncerDefaultValuesMutatorTest
 
   @Override
   protected PoolingReview getEmptyReview() {
-    PoolingReview review = JsonUtil
-        .readFromJson("pooling_allow_request/create.json", PoolingReview.class);
+    PoolingReview review = AdmissionReviewFixtures.poolingConfig().loadCreate().get();
     review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni()
         .setParameters(Map.of());
     return review;
@@ -36,14 +36,12 @@ class PgBouncerDefaultValuesMutatorTest
 
   @Override
   protected PoolingReview getDefaultReview() {
-    return JsonUtil
-        .readFromJson("pooling_allow_request/create.json", PoolingReview.class);
+    return AdmissionReviewFixtures.poolingConfig().loadCreate().get();
   }
 
   @Override
   protected StackGresPoolingConfig getDefaultResource() {
-    return JsonUtil.readFromJson("pooling_config/default.json",
-        StackGresPoolingConfig.class);
+    return Fixtures.poolingConfig().loadDefault().get();
   }
 
   @Override

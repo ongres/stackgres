@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.validation.cluster;
 
-import static io.stackgres.testutil.JsonUtil.readFromJson;
 import static org.hamcrest.Matchers.is;
 
 import java.net.URI;
@@ -14,7 +13,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.api.model.storage.StorageClassList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
@@ -32,7 +30,9 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ValidationUtil;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -60,8 +60,7 @@ class ClusterValidationQuarkusTest {
   KubernetesClient client;
 
   private StackGresClusterReview getConstraintClusterReview() {
-    var review = readFromJson("cluster_allow_requests/valid_creation.json",
-        StackGresClusterReview.class);
+    var review = AdmissionReviewFixtures.cluster().loadCreate().get();
     review.getRequest().getObject().getMetadata().setNamespace("test");
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.getPostgres().setExtensions(
@@ -109,7 +108,7 @@ class ClusterValidationQuarkusTest {
             .list();
     client.resources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
         .delete(poolconfList.getItems());
-    var poolConfig = readFromJson("pooling_config/default.json", StackGresPoolingConfig.class);
+    var poolConfig = Fixtures.poolingConfig().loadDefault().get();
     poolConfig.getMetadata().setNamespace("test");
     client.resources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
         .inNamespace(poolConfig.getMetadata().getNamespace())
@@ -121,7 +120,7 @@ class ClusterValidationQuarkusTest {
         .list();
     client.resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
         .delete(bkconfList.getItems());
-    var backupConfig = readFromJson("backup_config/default.json", StackGresBackupConfig.class);
+    var backupConfig = Fixtures.backupConfig().loadDefault().get();
     backupConfig.getMetadata().setNamespace("test");
     client.resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
         .inNamespace(backupConfig.getMetadata().getNamespace())
@@ -133,8 +132,7 @@ class ClusterValidationQuarkusTest {
         .list();
     client.resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
         .delete(pgconfList.getItems());
-    var pgConfig =
-        readFromJson("postgres_config/default_postgres.json", StackGresPostgresConfig.class);
+    var pgConfig = Fixtures.postgresConfig().loadDefault().get();
     pgConfig.getMetadata().setNamespace("test");
     client.resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
         .inNamespace(pgConfig.getMetadata().getNamespace())
@@ -146,7 +144,7 @@ class ClusterValidationQuarkusTest {
             .list();
     client.resources(StackGresProfile.class, StackGresProfileList.class)
         .delete(instanceList.getItems());
-    var instanceConfig = readFromJson("stackgres_profiles/size-xs.json", StackGresProfile.class);
+    var instanceConfig = Fixtures.instanceProfile().loadSizeXs().get();
     instanceConfig.getMetadata().setNamespace("test");
     client.resources(StackGresProfile.class, StackGresProfileList.class)
         .inNamespace(instanceConfig.getMetadata().getNamespace())
@@ -155,7 +153,7 @@ class ClusterValidationQuarkusTest {
 
     StorageClassList storageList = client.storage().storageClasses().list();
     client.storage().storageClasses().delete(storageList.getItems());
-    var storage = readFromJson("storage_class/standard.json", StorageClass.class);
+    var storage = Fixtures.storageClass().loadDefault().get();
     client.storage().storageClasses().create(storage);
   }
 
@@ -206,7 +204,7 @@ class ClusterValidationQuarkusTest {
 
   @Test
   void given_withoutValidStorageClass_shouldFail() {
-    var storage = readFromJson("storage_class/standard.json", StorageClass.class);
+    var storage = Fixtures.storageClass().loadDefault().get();
     client.storage().storageClasses().withName(storage.getMetadata().getName()).delete();
 
     StackGresClusterReview clusterReview = getConstraintClusterReview();

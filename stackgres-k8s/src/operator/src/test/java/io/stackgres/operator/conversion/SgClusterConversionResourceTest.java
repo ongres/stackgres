@@ -6,7 +6,7 @@
 package io.stackgres.operator.conversion;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -15,8 +15,7 @@ class SgClusterConversionResourceTest extends ConversionResourceTest<StackGresCl
 
   @Override
   protected StackGresCluster getCustomResource() {
-    return JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    return Fixtures.cluster().loadDefault().get();
   }
 
   @Override

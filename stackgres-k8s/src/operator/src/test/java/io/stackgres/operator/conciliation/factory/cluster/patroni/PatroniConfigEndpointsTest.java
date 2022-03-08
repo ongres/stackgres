@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ClusterLabelFactory;
@@ -32,6 +32,7 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
@@ -46,7 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PatroniConfigEndpointsTest {
 
-  private static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
+  private static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
   private final LabelFactoryForCluster<StackGresCluster> labelFactory = new ClusterLabelFactory(
       new ClusterLabelMapper());
   @Mock
@@ -58,14 +59,12 @@ class PatroniConfigEndpointsTest {
 
   @BeforeEach
   void setUp() {
-    generator = new PatroniConfigEndpoints(MAPPER, labelFactory);
+    generator = new PatroniConfigEndpoints(JSON_MAPPER, labelFactory);
 
-    cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().setDistributedLogs(null);
-    backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
-    postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
-        StackGresPostgresConfig.class);
+    backupConfig = Fixtures.backupConfig().loadDefault().get();
+    postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
     setDefaultParameters(postgresConfig);
 
@@ -179,7 +178,7 @@ class PatroniConfigEndpointsTest {
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
     assertTrue(annotations.containsKey(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY));
 
-    PatroniConfig patroniConfig = MAPPER
+    PatroniConfig patroniConfig = JSON_MAPPER
         .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();

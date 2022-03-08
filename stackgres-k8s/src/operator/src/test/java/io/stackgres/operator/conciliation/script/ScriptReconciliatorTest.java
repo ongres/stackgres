@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
@@ -29,7 +30,6 @@ import io.stackgres.operator.conciliation.Conciliator;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
-import io.stackgres.testutil.JsonUtil;
 import org.hamcrest.MatcherAssert;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -44,8 +44,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ScriptReconciliatorTest {
 
-  private final StackGresScript script = JsonUtil
-      .readFromJson("stackgres_script/default.json", StackGresScript.class);
+  private final StackGresScript script = Fixtures.script().loadDefault().get();
   @Mock
   CustomResourceScanner<StackGresScript> scriptScanner;
   @Mock

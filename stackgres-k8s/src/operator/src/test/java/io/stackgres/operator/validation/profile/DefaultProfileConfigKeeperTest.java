@@ -7,9 +7,9 @@ package io.stackgres.operator.validation.profile;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.DefaultKeeperTest;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -23,20 +23,17 @@ class DefaultProfileConfigKeeperTest extends DefaultKeeperTest<StackGresProfile,
 
   @Override
   protected SgProfileReview getCreationSample() {
-    return JsonUtil
-        .readFromJson("sgprofile_allow_request/create.json", SgProfileReview.class);
+    return AdmissionReviewFixtures.instanceProfile().loadCreate().get();
   }
 
   @Override
   protected SgProfileReview getDeleteSample() {
-    return JsonUtil
-        .readFromJson("sgprofile_allow_request/delete.json", SgProfileReview.class);
+    return AdmissionReviewFixtures.instanceProfile().loadDelete().get();
   }
 
   @Override
   protected SgProfileReview getUpdateSample() {
-    return JsonUtil
-        .readFromJson("sgprofile_allow_request/update.json", SgProfileReview.class);
+    return AdmissionReviewFixtures.instanceProfile().loadUpdate().get();
   }
 
 }

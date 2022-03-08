@@ -19,13 +19,13 @@ import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,7 +77,7 @@ class PodTemplateSpecFactoryTest {
     this.podTemplateSpecFactory = new PodTemplateSpecFactory(
         podSecurityContext, labelFactory, containerFactoryDiscoverer,
         initContainerFactoryDiscoverer);
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
     when(clusterContext.getSource()).thenReturn(cluster);

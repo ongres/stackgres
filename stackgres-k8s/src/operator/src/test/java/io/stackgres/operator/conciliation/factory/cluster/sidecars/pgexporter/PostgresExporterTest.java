@@ -11,10 +11,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.ImmutableStackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -61,6 +61,6 @@ class PostgresExporterTest {
   }
 
   private StackGresCluster getDefaultCluster() {
-    return JsonUtil.readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    return Fixtures.cluster().loadDefault().get();
   }
 }

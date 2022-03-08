@@ -25,13 +25,12 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
-import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.extension.ExtensionManager.ExtensionInstaller;
 import io.stackgres.common.extension.ExtensionManager.ExtensionUninstaller;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -140,9 +139,7 @@ public class ExtensionReconciliationTest {
   }
 
   private ExtensionReconciliatorContext getContext(Consumer<StackGresCluster> consumer) {
-    StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/list.json",
-            StackGresClusterList.class)
+    StackGresCluster cluster = Fixtures.clusterList().loadDefault().get()
         .getItems().get(0);
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     consumer.accept(cluster);

@@ -12,12 +12,12 @@ import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import io.fabric8.kubernetes.client.CustomResourceList;
+import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.PoolingConfigTransformer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.poolingconfig.PoolingConfigListFixture;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -28,12 +28,12 @@ class PgbouncerConfigResourceTest extends AbstractDependencyCustomResourceTest
 
   @Override
   protected CustomResourceList<StackGresPoolingConfig> getCustomResourceList() {
-    return JsonUtil.readFromJson("pooling_config/list.json", StackGresPoolingConfigList.class);
+    return PoolingConfigListFixture.fixture().loadDefault().get();
   }
 
   @Override
   protected PoolingConfigDto getResourceDto() {
-    return JsonUtil.readFromJson("pooling_config/dto.json", PoolingConfigDto.class);
+    return DtoFixtures.poolingConfig().loadDefault().get();
   }
 
   @Override

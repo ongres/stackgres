@@ -23,7 +23,7 @@ import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,8 +58,7 @@ class LockAcquirerImplTest {
 
   @BeforeEach
   void setUp() {
-    cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().setName("test-" + clusterNr.incrementAndGet());
     clusterName = cluster.getMetadata().getName();
     clusterNamespace = cluster.getMetadata().getNamespace();

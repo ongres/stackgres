@@ -22,6 +22,7 @@ import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntryStatus;
 import io.stackgres.common.crd.sgscript.StackGresScriptStatus;
 import io.stackgres.operator.common.StackGresScriptReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,8 +37,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void createScriptAlreadyValid_shouldDoNothing() throws JsonPatchException {
-    StackGresScriptReview review = JsonUtil
-        .readFromJson("script_allow_requests/valid_creation.json", StackGresScriptReview.class);
+    StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadCreate().get();
 
     JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
 
@@ -55,8 +56,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void createScriptWithNullManagedVersions_shouldSetItToTrue() throws JsonPatchException {
-    StackGresScriptReview review = JsonUtil
-        .readFromJson("script_allow_requests/valid_creation.json", StackGresScriptReview.class);
+    StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadCreate().get();
 
     JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
 
@@ -76,8 +77,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void createScriptWithFalseManagedVersions_shouldDoNothing() throws JsonPatchException {
-    StackGresScriptReview review = JsonUtil
-        .readFromJson("script_allow_requests/valid_creation.json", StackGresScriptReview.class);
+    StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadCreate().get();
     review.getRequest().getObject().getSpec().setManagedVersions(false);
 
     JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
@@ -96,8 +97,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void createScriptWithoutScriptsAndScriptsStatuses_shouldDoNothing() throws JsonPatchException {
-    StackGresScriptReview review = JsonUtil
-        .readFromJson("script_allow_requests/valid_creation.json", StackGresScriptReview.class);
+    StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadCreate().get();
     review.getRequest().getObject().getSpec().setScripts(null);
     review.getRequest().getObject().getStatus().setScripts(null);
 
@@ -117,8 +118,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void createScriptWithoutScriptsAndStatus_shouldDoNothing() throws JsonPatchException {
-    StackGresScriptReview review = JsonUtil
-        .readFromJson("script_allow_requests/valid_creation.json", StackGresScriptReview.class);
+    StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadCreate().get();
     review.getRequest().getObject().getSpec().setScripts(null);
     review.getRequest().getObject().setStatus(null);
 
@@ -138,8 +139,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void createScriptWithouIds_shouldAddThem() throws JsonPatchException {
-    StackGresScriptReview review = JsonUtil
-        .readFromJson("script_allow_requests/valid_creation.json", StackGresScriptReview.class);
+    StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadCreate().get();
 
     final JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
 
@@ -162,8 +163,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void updateScriptWithoutModification_shouldDoNothing() throws JsonPatchException {
-    StackGresScriptReview review = JsonUtil
-        .readFromJson("script_allow_requests/valid_update.json", StackGresScriptReview.class);
+    StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadUpdate().get();
 
     JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
 
@@ -181,8 +182,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void updateScriptRemovingScripts_shouldRemoveTheScriptsStatuses() throws JsonPatchException {
-    StackGresScriptReview review = JsonUtil
-        .readFromJson("script_allow_requests/valid_update.json", StackGresScriptReview.class);
+    StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadUpdate().get();
     review.getRequest().getObject().getSpec().setScripts(null);
     review.getRequest().getOldObject().getSpec().setScripts(null);
 
@@ -205,8 +206,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void updateScriptWithoutStatusAndScriptsStatuses_shouldDoNothing() throws JsonPatchException {
-    StackGresScriptReview review = JsonUtil
-        .readFromJson("script_allow_requests/valid_update.json", StackGresScriptReview.class);
+    StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadUpdate().get();
     review.getRequest().getObject().getSpec().setScripts(null);
     review.getRequest().getObject().getStatus().setScripts(null);
     review.getRequest().getOldObject().getSpec().setScripts(null);
@@ -227,8 +228,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void updateScriptAddingAnEntry_shouldSetIdAndVersion() throws JsonPatchException {
-    StackGresScriptReview review = JsonUtil
-        .readFromJson("script_allow_requests/valid_update.json", StackGresScriptReview.class);
+    StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadUpdate().get();
     review.getRequest().getObject().getSpec().getScripts().add(1, new StackGresScriptEntry());
 
     StackGresScript expected = JsonUtil.copy(review.getRequest().getObject());
@@ -253,8 +254,8 @@ class ScriptsConfigMutatorTest {
 
   @Test
   void updateScriptRemovingAnEntryAndItsStatus_shouldDoNothing() throws JsonPatchException {
-    StackGresScriptReview review = JsonUtil
-        .readFromJson("script_allow_requests/valid_update.json", StackGresScriptReview.class);
+    StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadUpdate().get();
     review.getRequest().getObject().getSpec().getScripts().remove(1);
     review.getRequest().getObject().getStatus().getScripts().remove(1);
 

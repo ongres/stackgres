@@ -6,8 +6,8 @@
 package io.stackgres.operator.validation;
 
 import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,11 +25,9 @@ class SgProfileValidationResourceTest extends ValidationResourceTest<SgProfileRe
     resource.setPipeline(pipeline);
     this.resource = resource;
 
-    review = JsonUtil
-        .readFromJson("sgprofile_allow_request/create.json", SgProfileReview.class);
+    review = AdmissionReviewFixtures.instanceProfile().loadCreate().get();
 
-    deleteReview = JsonUtil
-        .readFromJson("sgprofile_allow_request/delete.json", SgProfileReview.class);
+    deleteReview = AdmissionReviewFixtures.instanceProfile().loadDelete().get();
   }
 
   @Test

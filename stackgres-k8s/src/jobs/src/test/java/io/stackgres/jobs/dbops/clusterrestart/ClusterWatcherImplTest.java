@@ -24,8 +24,8 @@ import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,8 +56,7 @@ class ClusterWatcherImplTest {
   void setUp() {
     namespace = StringUtils.getRandomNamespace();
     clusterName = StringUtils.getRandomClusterName();
-    cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().setNamespace(namespace);
     cluster.getMetadata().setName(clusterName);
     cluster.getSpec().setInstances(3);

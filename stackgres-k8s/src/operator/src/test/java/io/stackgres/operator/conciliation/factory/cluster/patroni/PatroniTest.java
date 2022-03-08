@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -29,7 +30,6 @@ import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -80,7 +80,7 @@ class PatroniTest {
     patroni = new Patroni(patroniEnvironmentVariables, requirementsFactory,
         postgresSocket, postgresExtensions, localBinMounts, restoreMounts, backupMounts,
         hugePagesMounts, volumeDiscoverer);
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
     when(requirementsFactory.createResource(clusterContext)).thenReturn(podResources);

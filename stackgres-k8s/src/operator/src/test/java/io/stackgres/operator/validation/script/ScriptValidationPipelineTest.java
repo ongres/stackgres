@@ -10,9 +10,9 @@ import javax.inject.Inject;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operator.common.StackGresScriptReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ValidationPipelineTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest
@@ -25,9 +25,8 @@ class ScriptValidationPipelineTest
 
   @Override
   public StackGresScriptReview getConstraintViolatingReview() {
-    final StackGresScriptReview review =
-        JsonUtil.readFromJson("script_allow_requests/valid_creation.json",
-            StackGresScriptReview.class);
+    final StackGresScriptReview review = AdmissionReviewFixtures.script()
+        .loadCreate().get();
     return review;
   }
 

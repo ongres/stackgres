@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
+import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.BackupStorageTransformer;
@@ -24,9 +25,9 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorageList;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -69,8 +70,8 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
 
   @Override
   protected CustomResourceList<StackGresObjectStorage> getCustomResourceList() {
-    StackGresBackupConfigList stackGresBackupConfigList = JsonUtil
-        .readFromJson("backup_config/list.json", StackGresBackupConfigList.class);
+    StackGresBackupConfigList stackGresBackupConfigList = Fixtures.backupConfigList()
+        .loadDefault().get();
 
     final StackGresObjectStorageList stackGresObjectStorageList = new StackGresObjectStorageList();
     stackGresObjectStorageList.setMetadata(stackGresBackupConfigList.getMetadata());
@@ -83,8 +84,7 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
 
   @Override
   protected ObjectStorageDto getResourceDto() {
-    final BackupConfigDto backupConfigDto = JsonUtil
-        .readFromJson("backup_config/dto.json", BackupConfigDto.class);
+    final BackupConfigDto backupConfigDto = DtoFixtures.backupConfig().loadDefault().get();
     final ObjectStorageDto objectStorageDto = new ObjectStorageDto();
     objectStorageDto.setMetadata(backupConfigDto.getMetadata());
     objectStorageDto.setSpec(backupConfigDto.getSpec().getStorage());
@@ -146,8 +146,8 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
   @Test
   void createBackupConfigWithGoogleIdentity_shouldNotFail() {
 
-    final BackupConfigDto backupConfigDto = JsonUtil
-        .readFromJson("backup_config/google_identity_config.json", BackupConfigDto.class);
+    final BackupConfigDto backupConfigDto = DtoFixtures.backupConfig()
+        .loadGoogleIdentityConfig().get();
 
     this.resourceDto = convertBackupConfigDtoToStorageObjectDto(backupConfigDto);
 

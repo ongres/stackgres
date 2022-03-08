@@ -12,7 +12,7 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,8 +22,7 @@ class StackGresVersionTest {
 
   @BeforeEach
   void setUp() {
-    dbOps = JsonUtil
-        .readFromJson("stackgres_dbops/dbops_restart.json", StackGresDbOps.class);
+    dbOps = Fixtures.dbOps().loadRestart().get();
   }
 
   @Test

@@ -19,7 +19,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,9 +51,7 @@ public class ExtensionUtilTest {
 
   @BeforeEach
   public void beforeEach() {
-    extensionsMetadata = JsonUtil
-        .readFromJson("extension_metadata/index.json",
-            StackGresExtensions.class);
+    extensionsMetadata = Fixtures.extensionMetadata().loadDefault().get();
     extensionsMetadata.getExtensions().stream()
         .map(StackGresExtension::getVersions)
         .flatMap(List::stream)
@@ -96,9 +94,7 @@ public class ExtensionUtilTest {
         .flatMap(List::stream)
         .filter(target -> Objects.equals(target.getPostgresVersion(), "11.9"))
         .forEach(target -> target.setPostgresVersion(SECOND_PG_VERSION));
-    extensions = Seq.seq(JsonUtil
-        .readListFromJson("extension_metadata/extensions.json",
-            StackGresClusterExtension.class))
+    extensions = Seq.seq(Fixtures.extensionList().loadDefault().get())
         .collect(ImmutableMap.toImmutableMap(
             e -> e.getName() + Optional.ofNullable(e.getVersion())
               .map(v -> "-" + v).orElse(""),

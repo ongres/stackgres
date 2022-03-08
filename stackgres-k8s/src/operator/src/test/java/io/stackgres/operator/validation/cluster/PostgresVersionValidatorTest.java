@@ -32,12 +32,13 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -145,14 +146,12 @@ class PostgresVersionValidatorTest {
   void setUp() {
     validator = new PostgresConfigValidator(configFinder, ALL_SUPPORTED_POSTGRES_VERSIONS,
         new OperatorPropertyContext());
-    postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
-        StackGresPostgresConfig.class);
+    postgresConfig = Fixtures.postgresConfig().loadDefault().get();
   }
 
   @Test
   void givenValidPostgresVersion_shouldNotFail() throws ValidationFailed {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getConfiguration().getPostgresConfig();
@@ -173,8 +172,7 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenValidMajorPostgresVersion_shouldNotFail() throws ValidationFailed {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.getPostgres().setVersion(getMajorPostgresVersion(getRandomPostgresVersion()));
@@ -196,8 +194,7 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenValidLatestPostgresVersion_shouldNotFail() throws ValidationFailed {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.getPostgres().setVersion(StackGresComponent.LATEST);
@@ -219,9 +216,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenNoPostgresVersion_shouldFail() throws ValidationFailed {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/invalid_creation_no_pg_version.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadInvalidCreationNoPgVersion().get();
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -237,9 +233,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenInconsistentPostgresVersion_shouldFail() {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/invalid_creation_pg_version.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadInvalidCreationNoPgVersion().get();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(SECOND_PG_MAJOR_VERSION);
     postgresConfig.getSpec().setPostgresVersion(FIRST_PG_MAJOR_VERSION);
 
@@ -266,9 +261,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenAnEmptyPostgresVersion_shouldFail() {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/invalid_creation_empty_pg_version.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadInvalidCreationEmptyPgVersion().get();
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -284,9 +278,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenInvalidPostgresVersion_shouldFail() {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/invalid_creation_no_pg_version.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadInvalidCreationNoPgVersion().get();
 
     String postgresVersion = getRandomInvalidPostgresVersion();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(postgresVersion);
@@ -304,8 +297,7 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenSamePostgresVersionUpdate_shouldNotFail() throws ValidationFailed {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_update.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadUpdate().get();
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.getPostgres().setVersion(FIRST_PG_MINOR_VERSION);
@@ -316,8 +308,7 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenChangedPostgresFlavorUpdate_shouldFail() throws ValidationFailed {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_update.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadUpdate().get();
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.getPostgres().setVersion(FIRST_BF_MINOR_VERSION);
@@ -335,9 +326,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenMajorPostgresVersionUpdate_shouldFailForUser() throws ValidationFailed {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/major_postgres_version_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadMajorPostgresVersionUpdate().get();
 
     review.getRequest().getObject().getSpec().getPostgres().setVersion(FIRST_PG_MAJOR_VERSION);
     review.getRequest().getOldObject().getSpec().getPostgres().setVersion(SECOND_PG_MAJOR_VERSION);
@@ -354,9 +344,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenMajorPostgresVersionUpdate_shouldPassForDbOps() throws ValidationFailed {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/major_postgres_version_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadMajorPostgresVersionUpdate().get();
     review.getRequest().getObject().getMetadata().setAnnotations(new HashMap<>());
     StackGresUtil.setLock(review.getRequest().getObject(),
         "test", "test", Instant.now().getEpochSecond());
@@ -369,9 +358,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenWrongMajorPostgresVersionUpdate_shouldFail() {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/wrong_major_postgres_version_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadWrongMajorPostgresVersionUpdate().get();
 
     review.getRequest().getObject().getSpec().getPostgres().setVersion(SECOND_PG_MAJOR_VERSION);
     review.getRequest().getOldObject().getSpec().getPostgres().setVersion(FIRST_PG_MAJOR_VERSION);
@@ -386,9 +374,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenMinorPostgresVersionUpdate_shouldFailForUser() throws ValidationFailed {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/minor_postgres_version_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadMinorPostgresVersionUpdate().get();
 
     review.getRequest().getObject().getSpec().getPostgres().setVersion(FIRST_PG_MINOR_VERSION);
     review.getRequest().getOldObject().getSpec().getPostgres().setVersion(SECOND_PG_MINOR_VERSION);
@@ -406,9 +393,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenMinorPostgresVersionUpdate_shouldPassForDbOps() throws ValidationFailed {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/minor_postgres_version_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadMinorPostgresVersionUpdate().get();
 
     review.getRequest().getObject().getMetadata().setAnnotations(new HashMap<>());
     StackGresUtil.setLock(review.getRequest().getObject(),
@@ -422,8 +408,7 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenInvalidPostgresConfigReference_shouldFail() {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(FIRST_PG_MAJOR_VERSION);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
@@ -446,8 +431,7 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenEmptyPostgresConfigReference_shouldFail() {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.getConfiguration().setPostgresConfig("");
@@ -465,8 +449,7 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenNoPostgresConfigReference_shouldFail() {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.getConfiguration().setPostgresConfig(null);
@@ -484,9 +467,8 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenPostgresConfigUpdate_shouldFail() throws ValidationFailed {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/postgres_config_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadPostgresConfigUpdate().get();
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     String postgresProfile = spec.getConfiguration().getPostgresConfig();
@@ -509,9 +491,7 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenADeleteUpdate_shouldDoNothing() throws ValidationFailed {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_deletion.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadDelete().get();
     review.getRequest().setOperation(Operation.DELETE);
 
     validator.validate(review);
@@ -520,9 +500,7 @@ class PostgresVersionValidatorTest {
 
   @Test
   void givenBuggyPostgresVersion_shouldFail() {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     String postgresVersion = getRandomBuggyPostgresVersion();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(postgresVersion);

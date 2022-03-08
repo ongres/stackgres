@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.testutil.GeneratorTestUtil;
 import io.stackgres.testutil.JsonUtil;
@@ -18,23 +19,23 @@ import org.junit.jupiter.api.Test;
 
 class ManagedFieldsReaderTest {
 
-  private final ObjectNode managedFieldsService = JsonUtil
-      .readFromJsonAsJson("services/primary-service-with-managed-fields.json");
+  private final ObjectNode managedFieldsService = Fixtures.jsonService()
+      .loadPrimaryServiceWithManagedFields().get();
 
-  private final ObjectNode cleanedUpService = JsonUtil
-      .readFromJsonAsJson("services/primary-service.json");
+  private final ObjectNode cleanedUpService = Fixtures.jsonService()
+      .loadPrimaryService().get();
 
-  private final ObjectNode managedFieldsSecret = JsonUtil
-      .readFromJsonAsJson("secret/backup-secret-with-managed-fields.json");
+  private final ObjectNode managedFieldsSecret = Fixtures.jsonSecret()
+      .loadBackupWithManagedFields().get();
 
-  private final ObjectNode cleanedUpSecret = JsonUtil
-      .readFromJsonAsJson("secret/backup-secret.json");
+  private final ObjectNode cleanedUpSecret = Fixtures.jsonSecret()
+      .loadBackup().get();
 
-  private final ObjectNode managedFieldsSts = JsonUtil
-      .readFromJsonAsJson("statefulset/statefulset-with-managed-fields.json");
+  private final ObjectNode managedFieldsSts = Fixtures.jsonStatefulSet()
+      .loadWithManagedFields().get();
 
-  private final StatefulSet cleanedUpSta = JsonUtil
-      .readFromJson("statefulset/statefulset-without-managed-fields.json", StatefulSet.class);
+  private final StatefulSet cleanedUpSta = Fixtures.statefulSet()
+      .loadWithoutManagedFields().get();
 
   @Test
   @DisplayName("getOnlyManagedFields should return the same without the fields that are not "
@@ -81,7 +82,7 @@ class ManagedFieldsReaderTest {
   @Test
   @DisplayName("findMatchingItem should return the appropriate item")
   void testFindMatchingItem() throws JsonProcessingException {
-    ArrayNode arrayNode = (ArrayNode) JsonUtil.JSON_MAPPER.readTree(
+    ArrayNode arrayNode = (ArrayNode) JsonUtil.jsonMapper().readTree(
         "[\n"
             + "{\n"
             + "  \"name\": \"pgport\",\n"
@@ -98,14 +99,14 @@ class ManagedFieldsReaderTest {
             + "]"
     );
 
-    ObjectNode key = (ObjectNode) JsonUtil.JSON_MAPPER.readTree(
+    ObjectNode key = (ObjectNode) JsonUtil.jsonMapper().readTree(
         "{\n"
             + "  \"port\": 5433,\n"
             + "  \"protocol\": \"TCP\"\n"
             + "}"
     );
 
-    ObjectNode expectedItem = (ObjectNode) JsonUtil.JSON_MAPPER.readTree(
+    ObjectNode expectedItem = (ObjectNode) JsonUtil.jsonMapper().readTree(
         "{\n"
             + "  \"name\": \"pgreplication\",\n"
             + "  \"port\": 5433,\n"

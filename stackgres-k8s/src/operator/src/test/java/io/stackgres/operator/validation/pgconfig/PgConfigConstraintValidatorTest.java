@@ -10,9 +10,9 @@ import java.util.HashMap;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,15 +27,12 @@ class PgConfigConstraintValidatorTest extends ConstraintValidationTest<PgConfigR
 
   @Override
   protected PgConfigReview getValidReview() {
-    return JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
-        PgConfigReview.class);
+    return AdmissionReviewFixtures.postgresConfig().loadUpdate().get();
   }
 
   @Override
   protected PgConfigReview getInvalidReview() {
-    final PgConfigReview review =
-        JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
-            PgConfigReview.class);
+    final PgConfigReview review = AdmissionReviewFixtures.postgresConfig().loadUpdate().get();
     review.getRequest().getObject().setSpec(null);
     return review;
   }

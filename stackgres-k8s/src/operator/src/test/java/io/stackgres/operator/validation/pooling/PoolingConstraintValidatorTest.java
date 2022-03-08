@@ -10,9 +10,9 @@ import java.util.Map;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
 import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,14 +27,12 @@ class PoolingConstraintValidatorTest extends ConstraintValidationTest<PoolingRev
 
   @Override
   protected PoolingReview getValidReview() {
-    return JsonUtil.readFromJson("pooling_allow_request/create.json",
-        PoolingReview.class);
+    return AdmissionReviewFixtures.poolingConfig().loadCreate().get();
   }
 
   @Override
   protected PoolingReview getInvalidReview() {
-    final PoolingReview review = JsonUtil.readFromJson("pooling_allow_request/create.json",
-        PoolingReview.class);
+    final PoolingReview review = AdmissionReviewFixtures.poolingConfig().loadCreate().get();
     review.getRequest().getObject().setSpec(null);
     return review;
   }

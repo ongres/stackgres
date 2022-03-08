@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsCondition;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
@@ -31,7 +32,6 @@ import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
-import io.stackgres.testutil.JsonUtil;
 import org.hamcrest.MatcherAssert;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -46,8 +46,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DbOpsReconciliatorTest {
 
-  private final StackGresDbOps dbOps = JsonUtil
-      .readFromJson("stackgres_dbops/dbops_restart.json", StackGresDbOps.class);
+  private final StackGresDbOps dbOps = Fixtures.dbOps().loadRestart().get();
   @Mock
   CustomResourceScanner<StackGresDbOps> dbOpsScanner;
   @Mock

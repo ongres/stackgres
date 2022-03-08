@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation;
 
 import io.stackgres.operator.common.SgProfileReview;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +21,7 @@ class SgProfileMutationResourceTest extends MutationResourceTest<SgProfileReview
     resource.setPipeline(pipeline);
     this.resource = resource;
 
-    review = JsonUtil
-        .readFromJson("sgprofile_allow_request/create.json", SgProfileReview.class);
+    review = AdmissionReviewFixtures.instanceProfile().loadCreate().get();
   }
 
   @Override

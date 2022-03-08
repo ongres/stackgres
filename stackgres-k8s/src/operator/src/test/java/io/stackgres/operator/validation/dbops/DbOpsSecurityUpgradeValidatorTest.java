@@ -15,10 +15,11 @@ import java.util.Optional;
 
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
-import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,7 +43,7 @@ class DbOpsSecurityUpgradeValidatorTest {
   void setUp() {
     validator = new DbOpsSecurityUpgradeValidator(clusterFinder);
 
-    cluster = getDefaultCluster();
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.getLatest()
         .getVersion(
             StackGresComponent.POSTGRESQL.getLatest()
@@ -51,7 +52,7 @@ class DbOpsSecurityUpgradeValidatorTest {
 
   @Test
   void givenValidStackGresVersionOnCreation_shouldNotFail() throws ValidationFailed {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
 
     String sgcluster = review.getRequest().getObject().getSpec().getSgCluster();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -65,7 +66,7 @@ class DbOpsSecurityUpgradeValidatorTest {
 
   @Test
   void givenInvalidStackGresVersionOnCreation_shouldFail() {
-    final StackGresDbOpsReview review = getCreationReview();
+    final DbOpsReview review = getCreationReview();
 
     String sgcluster = review.getRequest().getObject().getSpec().getSgCluster();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -84,16 +85,8 @@ class DbOpsSecurityUpgradeValidatorTest {
         + " supported after the upgrade is completed", resultMessage);
   }
 
-  private StackGresDbOpsReview getCreationReview() {
-    return JsonUtil
-        .readFromJson("dbops_allow_requests/valid_security_upgrade_creation.json",
-            StackGresDbOpsReview.class);
-  }
-
-  private StackGresCluster getDefaultCluster() {
-    return JsonUtil
-        .readFromJson("stackgres_cluster/default.json",
-            StackGresCluster.class);
+  private DbOpsReview getCreationReview() {
+    return AdmissionReviewFixtures.dbOps().loadSecurityUpgradeCreate().get();
   }
 
 }

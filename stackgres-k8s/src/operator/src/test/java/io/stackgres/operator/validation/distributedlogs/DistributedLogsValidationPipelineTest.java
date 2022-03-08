@@ -10,9 +10,9 @@ import javax.inject.Inject;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ValidationPipelineTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest
@@ -33,8 +33,7 @@ public class DistributedLogsValidationPipelineTest
   }
 
   private StackGresDistributedLogsReview getValidReview() {
-    return JsonUtil.readFromJson("distributedlogs_allow_request/create.json",
-        StackGresDistributedLogsReview.class);
+    return AdmissionReviewFixtures.distributedLogs().loadCreate().get();
   }
 
   @Override

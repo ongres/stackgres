@@ -19,8 +19,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -48,8 +48,7 @@ class DatabaseOperationEventEmitterImplTest {
     namespace = StringUtils.getRandomNamespace();
     clusterName = StringUtils.getRandomClusterName();
 
-    dbOps = JsonUtil.readFromJson("stackgres_dbops/dbops_securityupgrade.json",
-        StackGresDbOps.class);
+    dbOps = Fixtures.dbOps().loadSecurityUpgrade().get();
 
     dbOps.getMetadata().setName(dbOpsName);
     dbOps.getMetadata().setNamespace(namespace);

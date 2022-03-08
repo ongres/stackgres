@@ -10,10 +10,11 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.mutation.DefaultStateMutator;
 import io.stackgres.operator.mutation.DefaultStateMutatorTest;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -31,22 +32,19 @@ class PgConfigDefaultStateMutatorTest
 
   @Override
   protected PgConfigReview getEmptyReview() {
-    PgConfigReview review = JsonUtil
-        .readFromJson("pgconfig_allow_request/valid_pgconfig.json", PgConfigReview.class);
+    PgConfigReview review = AdmissionReviewFixtures.postgresConfig().loadCreate().get();
     review.getRequest().getObject().getSpec().setPostgresqlConf(new HashMap<>());
     return review;
   }
 
   @Override
   protected PgConfigReview getDefaultReview() {
-    return JsonUtil
-        .readFromJson("pgconfig_allow_request/valid_pgconfig.json", PgConfigReview.class);
+    return AdmissionReviewFixtures.postgresConfig().loadCreate().get();
   }
 
   @Override
   protected StackGresPostgresConfig getDefaultResource() {
-    return JsonUtil.readFromJson("postgres_config/default_postgres.json",
-        StackGresPostgresConfig.class);
+    return Fixtures.postgresConfig().loadDefault().get();
   }
 
   @Override

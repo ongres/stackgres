@@ -20,12 +20,11 @@ import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatusDatabase;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.distributedlogs.common.ImmutableStackGresDistributedLogsContext;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
 import io.stackgres.distributedlogs.configuration.DistributedLogsControllerPropertyContext;
-import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.Assertions;
@@ -67,10 +66,8 @@ public class DistributedLogsClusterReconciliatorTest {
   }
 
   private ImmutableStackGresDistributedLogsContext getDistributedLogsContext() {
-    StackGresDistributedLogs distributedLogs = JsonUtil
-        .readFromJson("distributedlogs/list.json",
-            StackGresDistributedLogsList.class)
-        .getItems().get(0);
+    StackGresDistributedLogs distributedLogs = Fixtures.distributedLogsList()
+        .loadDefault().get().getItems().get(0);
     return ImmutableStackGresDistributedLogsContext.builder()
         .distributedLogs(distributedLogs)
         .cluster(getStackGresCLusterForDistributedLogs(distributedLogs))

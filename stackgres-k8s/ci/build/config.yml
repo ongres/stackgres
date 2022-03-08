@@ -39,7 +39,7 @@ modules:
     target_image: null
     sources:
       - stackgres-k8s/src/operator-framework/pom.xml
-      - stackgres-k8s/src/operator-framework/src
+      - stackgres-k8s/src/operator-framework/src/main
     artifacts:
       - stackgres-k8s/src/operator-framework/target
       - .m2/repository/io/stackgres/stackgres-operator-framework
@@ -48,7 +48,7 @@ modules:
     path: stackgres-k8s/src/test-util/.
     sources:
       - stackgres-k8s/src/test-util/pom.xml
-      - stackgres-k8s/src/test-util/src
+      - stackgres-k8s/src/test-util/src/main
     artifacts:
       - stackgres-k8s/src/test-util/target
       - .m2/repository/io/stackgres/stackgres-test-util
@@ -57,7 +57,7 @@ modules:
     path: stackgres-k8s/src/common/.
     sources:
       - stackgres-k8s/src/common/pom.xml
-      - stackgres-k8s/src/common/src
+      - stackgres-k8s/src/common/src/main
     artifacts:
       - stackgres-k8s/src/common/target
       - .m2/repository/io/stackgres/stackgres-common
@@ -66,7 +66,7 @@ modules:
     path: stackgres-k8s/src/operator/.
     sources:
       - stackgres-k8s/src/operator/pom.xml
-      - stackgres-k8s/src/operator/src
+      - stackgres-k8s/src/operator/src/main
     artifacts:
       - stackgres-k8s/src/operator/target
       - .m2/repository/io/stackgres/stackgres-operator
@@ -75,7 +75,7 @@ modules:
     path: stackgres-k8s/src/api-web/.
     sources:
       - stackgres-k8s/src/api-web/pom.xml
-      - stackgres-k8s/src/api-web/src
+      - stackgres-k8s/src/api-web/src/main
     post_build_commands:
       - 'sh $SHELL_XTRACE stackgres-k8s/src/api-web/src/main/swagger/build.sh'
     artifacts:
@@ -86,7 +86,7 @@ modules:
     path: stackgres-k8s/src/jobs/.
     sources:
       - stackgres-k8s/src/jobs/pom.xml
-      - stackgres-k8s/src/jobs/src
+      - stackgres-k8s/src/jobs/src/main
     artifacts:
       - stackgres-k8s/src/jobs/target
       - .m2/repository/io/stackgres/stackgres-jobs
@@ -95,7 +95,7 @@ modules:
     path: stackgres-k8s/src/cluster-controller/.
     sources:
       - stackgres-k8s/src/cluster-controller/pom.xml
-      - stackgres-k8s/src/cluster-controller/src
+      - stackgres-k8s/src/cluster-controller/src/main
     artifacts:
       - stackgres-k8s/src/cluster-controller/target
       - .m2/repository/io/stackgres/stackgres-cluster-controller
@@ -104,7 +104,7 @@ modules:
     path: stackgres-k8s/src/distributedlogs-controller/.
     sources:
       - stackgres-k8s/src/distributedlogs-controller/pom.xml
-      - stackgres-k8s/src/distributedlogs-controller/src
+      - stackgres-k8s/src/distributedlogs-controller/src/main
     artifacts:
       - stackgres-k8s/src/distributedlogs-controller/target
       - .m2/repository/io/stackgres/stackgres-distributedlogs-controller

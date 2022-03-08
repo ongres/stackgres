@@ -10,16 +10,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 
 class ClusterEndpointComparatorTest {
 
-  private static final ObjectMapper JSON_MAPPER = JsonUtil.JSON_MAPPER;
+  private static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
   private final ClusterEndpointComparator comparator = new ClusterEndpointComparator();
 
@@ -29,11 +30,9 @@ class ClusterEndpointComparatorTest {
   private final Map<String, String> defaultAnnotations = ImmutableMap
       .of("config", JSON_MAPPER.valueToTree(defaultConfig).toString());
 
-  private final Endpoints required = JsonUtil
-      .readFromJson("endpoints/required.json", Endpoints.class);
+  private final Endpoints required = Fixtures.endpoints().loadRequired().get();
 
-  private final Endpoints deployed = JsonUtil
-      .readFromJson("endpoints/deployed.json", Endpoints.class);
+  private final Endpoints deployed = Fixtures.endpoints().loadDeployed().get();
 
   @Test
   void generatedResourceAndRequiredResource_shouldHaveNoDifference() {

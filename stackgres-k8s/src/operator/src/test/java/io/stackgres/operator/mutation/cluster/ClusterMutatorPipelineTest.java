@@ -31,9 +31,10 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -59,11 +60,9 @@ class ClusterMutatorPipelineTest {
 
   @BeforeEach
   void setup() {
-    review = JsonUtil.readFromJson("cluster_allow_requests/valid_creation.json",
-        StackGresClusterReview.class);
+    review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
-    StackGresBackupConfig backupConfig = JsonUtil.readFromJson("backup_config/default.json",
-        StackGresBackupConfig.class);
+    StackGresBackupConfig backupConfig = Fixtures.backupConfig().loadDefault().get();
     Mockito.when(backupConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backupConfig));
   }

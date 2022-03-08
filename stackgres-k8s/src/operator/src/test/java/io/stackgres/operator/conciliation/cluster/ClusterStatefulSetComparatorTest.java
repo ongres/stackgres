@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.ClusterLabelFactory;
 import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.StringUtil;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,10 +46,8 @@ class ClusterStatefulSetComparatorTest {
   void setUp() {
     labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
     comparator = new ClusterStatefulSetComparator(podScanner, labelFactory);
-    required = JsonUtil.readFromJson("statefulset/required.json",
-        StatefulSet.class);
-    deployed = JsonUtil.readFromJson("statefulset/deployed.json",
-        StatefulSet.class);
+    required = Fixtures.statefulSet().loadRequired().get();
+    deployed = Fixtures.statefulSet().loadDeployed().get();
   }
 
   @Test

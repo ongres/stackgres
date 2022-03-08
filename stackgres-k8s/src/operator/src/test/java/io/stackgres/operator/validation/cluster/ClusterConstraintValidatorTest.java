@@ -40,10 +40,10 @@ import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.common.validation.ValidEnum;
 import io.stackgres.common.validation.ValidEnumList;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.gradle.internal.impldep.com.google.common.collect.Lists;
 import org.junit.jupiter.api.Test;
 
@@ -56,15 +56,12 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
 
   @Override
   protected StackGresClusterReview getValidReview() {
-    return JsonUtil.readFromJson("cluster_allow_requests/valid_creation.json",
-        StackGresClusterReview.class);
+    return AdmissionReviewFixtures.cluster().loadCreate().get();
   }
 
   @Override
   protected StackGresClusterReview getInvalidReview() {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     review.getRequest().getObject().setSpec(null);
     return review;

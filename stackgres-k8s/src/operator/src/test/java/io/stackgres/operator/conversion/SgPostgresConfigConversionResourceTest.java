@@ -6,7 +6,7 @@
 package io.stackgres.operator.conversion;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -16,8 +16,7 @@ class SgPostgresConfigConversionResourceTest
 
   @Override
   protected StackGresPostgresConfig getCustomResource() {
-    return JsonUtil.readFromJson("postgres_config/default_postgres.json",
-        StackGresPostgresConfig.class);
+    return Fixtures.postgresConfig().loadDefault().get();
   }
 
   @Override

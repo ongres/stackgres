@@ -17,11 +17,11 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -71,8 +71,7 @@ public abstract class DependenciesValidatorTest
   public void givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
     T review = getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt();
 
-    StackGresClusterList clusterList = JsonUtil.readFromJson("stackgres_cluster/list.json",
-        StackGresClusterList.class);
+    StackGresClusterList clusterList = Fixtures.clusterList().loadDefault().get();
 
     when(clusterScanner.findResources(review.getRequest().getNamespace()))
         .thenReturn(Optional.of(clusterList.getItems()));
@@ -95,8 +94,7 @@ public abstract class DependenciesValidatorTest
   public void givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt() throws ValidationFailed {
     T review = getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt();
 
-    StackGresClusterList clusterList = JsonUtil.readFromJson("stackgres_cluster/list.json",
-        StackGresClusterList.class);
+    StackGresClusterList clusterList = Fixtures.clusterList().loadDefault().get();
     clusterList
         .getItems()
         .stream()

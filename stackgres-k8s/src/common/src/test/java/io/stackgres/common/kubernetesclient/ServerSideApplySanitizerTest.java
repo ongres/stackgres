@@ -7,6 +7,7 @@ package io.stackgres.common.kubernetesclient;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -14,8 +15,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 class ServerSideApplySanitizerTest {
 
-  private final ObjectNode openApi = JsonUtil
-      .readFromJsonXzAsJson("openapi.json.xz");
+  private final ObjectNode openApi = Fixtures.jsonOpenApi().loadDefault().get();
 
   @ParameterizedTest
   @ValueSource(strings = {
@@ -34,8 +34,7 @@ class ServerSideApplySanitizerTest {
       "servicemonitor.json",
   })
   void testSanitizerReturnsSameIntent(String resourceFile) {
-    var resource = JsonUtil.readFromJsonAsJson(
-        "ssa-sanitization/" + resourceFile);
+    var resource = Fixtures.jsonSsaSanitization().load(resourceFile).get();
     var actualResult = new ServerSideApplySanitizer(openApi).sanitize(resource);
     JsonUtil.assertJsonEquals(
         Serialization.asJson(resource),
@@ -54,10 +53,8 @@ class ServerSideApplySanitizerTest {
     "serviceaccount.json,serviceaccount-sanitized.json"
   })
   void testSanitizerReturnsSanitizedIntent(String resourceFile, String sanitizedResourceFile) {
-    var resource = JsonUtil.readFromJsonAsJson(
-        "ssa-sanitization/" + resourceFile);
-    var sanitizedResource = JsonUtil.readFromJsonAsJson(
-        "ssa-sanitization/" + sanitizedResourceFile);
+    var resource = Fixtures.jsonSsaSanitization().load(resourceFile).get();
+    var sanitizedResource = Fixtures.jsonSsaSanitization().load(sanitizedResourceFile).get();
     var actualResult = new ServerSideApplySanitizer(openApi).sanitize(resource);
     JsonUtil.assertJsonEquals(
         Serialization.asJson(sanitizedResource),
