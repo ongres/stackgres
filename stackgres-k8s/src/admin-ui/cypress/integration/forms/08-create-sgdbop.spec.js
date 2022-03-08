@@ -29,12 +29,12 @@ describe('Create SGDbOp', () => {
                 },
                 postgres: {
                     version: "13.3",
-                    extensions: [{
+                    /*extensions: [{
                         name: "pg_repack",
                         version: "1.4.7",
                         publisher: "com.ongres",
                         repository: "https://extensions.stackgres.io/postgres/repository"
-                    }],
+                    }],*/
                     flavor: "vanilla"
                 }
             }  
@@ -109,12 +109,12 @@ describe('Create SGDbOp', () => {
             }
         });
 
-        cy.deleteCRD('sgdbops', {
+        /*cy.deleteCRD('sgdbops', {
             metadata: {
                 name: 'repack-' + resourceName,
                 namespace: namespace
             }
-        });
+        });*/
     });
 
     it('Create SGDbOps form should be visible', () => {
@@ -425,7 +425,7 @@ describe('Create SGDbOp', () => {
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgdbops')
     });
   
-    it('Creating a Repack SGDbOps should be possible', () => {
+    /*it('Creating a Repack SGDbOps should be possible', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
             .clear()
@@ -502,7 +502,7 @@ describe('Create SGDbOp', () => {
         
         // Test user redirection
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgdbops')
-    });
+    });*/
 
     it('notValid class should be added if no op is selected and removed once op is selected', () => {
         // Submit form without selecting an op
