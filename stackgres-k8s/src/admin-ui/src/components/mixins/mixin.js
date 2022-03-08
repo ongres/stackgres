@@ -421,6 +421,61 @@ export const mixin = {
             });
           }
 
+          if ( vc.iCan('list', 'sgobjectstorages') && ( !kind.length || (kind == 'sgobjectstorages') ) ){
+            /* Distributed Logs Data */
+            sgApi
+            .get('sgobjectstorages')
+            .then( function(response){
+  
+              vc.lookupCRDs('sgobjectstorages', response.data);
+    
+              var sgobjectstorages = [];
+    
+              response.data.forEach(function(item, index){
+                sgobjectstorages.push({
+                  name: item.metadata.name,
+                  data: item
+                })
+              })
+  
+              store.commit('updateObjectStorages', logs);
+    
+            }).catch(function(err) {
+              console.log(err);
+              vc.checkAuthError(err);
+            });
+          }
+
+          if ( !store.state.permissions.forbidden.includes('sgobjectstorages') && ( !kind.length || (kind == 'sgobjectstorages')) ) {
+  
+            /* Object Storage */
+            axios
+            .get('/stackgres/sgobjectstorages')
+            .then( function(response) {
+  
+              vc.lookupCRDs('sgobjectstorages', response.data);
+    
+              response.data.forEach( function(item, index) {
+                
+                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                  store.commit('updateNamespaces', item.metadata.namespace);
+                
+                if(!index)
+                  store.commit('flushObjectStorages')
+                  
+                store.commit('updateObjectStorages', { 
+                  name: item.metadata.name,
+                  data: item
+                });
+  
+              });
+    
+            }).catch(function(err) {
+              console.log(err);
+              vc.checkAuthError(err);
+            });
+          }
+
         })
         .catch(function(err) {
           console.log(err);
