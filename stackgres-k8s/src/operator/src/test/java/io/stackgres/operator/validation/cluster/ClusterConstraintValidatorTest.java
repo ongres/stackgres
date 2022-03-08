@@ -10,7 +10,10 @@ import java.util.HashMap;
 import java.util.Random;
 
 import javax.validation.constraints.AssertTrue;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Positive;
 
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -20,6 +23,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationGroup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -27,6 +32,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresFeatureGates;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
+import io.stackgres.common.crd.sgcluster.StackGresReplicationMode;
+import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.common.validation.ValidEnum;
 import io.stackgres.common.validation.ValidEnumList;
 import io.stackgres.operator.common.StackGresClusterReview;
@@ -579,5 +586,195 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     checkErrorCause(StackGresClusterNonProduction.class,
         "spec.nonProductionOptions.enabledFeatureGates",
         review, ValidEnumList.class);
+  }
+
+  @Test
+  void givenMissingReplicationMode_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getReplication().setMode(null);
+
+    checkErrorCause(StackGresClusterReplication.class,
+        "spec.replication.mode",
+        review, ValidEnum.class);
+  }
+
+  @Test
+  void givenMissingReplicationRole_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getReplication().setRole(null);
+
+    checkErrorCause(StackGresClusterReplication.class,
+        "spec.replication.role",
+        review, ValidEnum.class);
+  }
+
+  @Test
+  void givenValidGroup_shouldPass() throws ValidationFailed {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInstances(2);
+    review.getRequest().getObject().getSpec().getReplication().setGroups(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getReplication().getGroups()
+    .add(new StackGresClusterReplicationGroup());
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0)
+    .setName("group-1");
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0)
+    .setRole(StackGresReplicationRole.READONLY.toString());
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0).setInstances(1);
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenGroupWithouName_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInstances(2);
+    review.getRequest().getObject().getSpec().getReplication().setGroups(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getReplication().getGroups()
+    .add(new StackGresClusterReplicationGroup());
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0)
+    .setRole(StackGresReplicationRole.READONLY.toString());
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0).setInstances(1);
+
+    checkErrorCause(StackGresClusterReplicationGroup.class,
+        "spec.replication.groups[0].name",
+        review, NotNull.class, "must not be null");
+  }
+
+  @Test
+  void givenGroupWithouRole_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInstances(2);
+    review.getRequest().getObject().getSpec().getReplication().setGroups(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getReplication().getGroups()
+    .add(new StackGresClusterReplicationGroup());
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0)
+    .setName("group-1");
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0).setInstances(1);
+
+    checkErrorCause(StackGresClusterReplicationGroup.class,
+        "spec.replication.groups[0].role",
+        review, ValidEnum.class);
+  }
+
+  @Test
+  void givenGroupWithouInstancesLessThanOne_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInstances(2);
+    review.getRequest().getObject().getSpec().getReplication().setGroups(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getReplication().getGroups()
+    .add(new StackGresClusterReplicationGroup());
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0)
+    .setName("group-1");
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0)
+    .setRole(StackGresReplicationRole.READONLY.toString());
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0).setInstances(0);
+
+    checkErrorCause(StackGresClusterReplicationGroup.class,
+        "spec.replication.groups[0].instances",
+        review, Positive.class);
+  }
+
+  @Test
+  void givenInstancesEqualsToGroupInstances_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInstances(1);
+    review.getRequest().getObject().getSpec().getReplication().setGroups(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getReplication().getGroups()
+    .add(new StackGresClusterReplicationGroup());
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0)
+    .setName("group-1");
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0)
+    .setRole(StackGresReplicationRole.READONLY.toString());
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0).setInstances(1);
+
+    checkErrorCause(StackGresClusterSpec.class,
+        "spec.instances",
+        "isSupportingInstancesForInstancesInReplicationGroups",
+        review, AssertTrue.class);
+  }
+
+  @Test
+  void givenInstancesLessThanGroupInstances_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInstances(1);
+    review.getRequest().getObject().getSpec().getReplication().setGroups(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getReplication().getGroups()
+    .add(new StackGresClusterReplicationGroup());
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0)
+    .setName("group-1");
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0)
+    .setRole(StackGresReplicationRole.READONLY.toString());
+    review.getRequest().getObject().getSpec().getReplication().getGroups().get(0).setInstances(2);
+
+    checkErrorCause(StackGresClusterSpec.class,
+        "spec.instances",
+        "isSupportingInstancesForInstancesInReplicationGroups",
+        review, AssertTrue.class);
+  }
+
+  @Test
+  void givenInstancesGreatherThanSyncNodeCount_shouldPass() throws ValidationFailed {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInstances(2);
+    review.getRequest().getObject().getSpec().getReplication().setMode(
+        StackGresReplicationMode.SYNC.toString());
+    review.getRequest().getObject().getSpec().getReplication().setSyncNodeCount(1);
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenInstancesEqualsToSyncNodeCount_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInstances(1);
+    review.getRequest().getObject().getSpec().getReplication().setMode(
+        StackGresReplicationMode.SYNC.toString());
+    review.getRequest().getObject().getSpec().getReplication().setSyncNodeCount(1);
+
+    checkErrorCause(StackGresClusterSpec.class,
+        "spec.instances",
+        "isSupportingRequiredSynchronousReplicas",
+        review, AssertTrue.class);
+  }
+
+  @Test
+  void givenInstancesLessThanSyncNodeCount_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInstances(1);
+    review.getRequest().getObject().getSpec().getReplication().setMode(
+        StackGresReplicationMode.SYNC.toString());
+    review.getRequest().getObject().getSpec().getReplication().setSyncNodeCount(2);
+
+    checkErrorCause(StackGresClusterSpec.class,
+        "spec.instances",
+        "isSupportingRequiredSynchronousReplicas",
+        review, AssertTrue.class);
+  }
+
+  @Test
+  void givenNullSyncNodeCount_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInstances(2);
+    review.getRequest().getObject().getSpec().getReplication().setMode(
+        StackGresReplicationMode.SYNC.toString());
+    review.getRequest().getObject().getSpec().getReplication().setSyncNodeCount(null);
+
+    checkErrorCause(StackGresClusterReplication.class,
+        "spec.replication.syncNodeCount",
+        "isSyncNodeCountSetForSyncMode",
+        review, AssertTrue.class);
+  }
+
+  @Test
+  void givenSyncNodeCountLessThanOne_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInstances(2);
+    review.getRequest().getObject().getSpec().getReplication().setMode(
+        StackGresReplicationMode.SYNC.toString());
+    review.getRequest().getObject().getSpec().getReplication().setSyncNodeCount(0);
+
+    checkErrorCause(StackGresClusterReplication.class,
+        "spec.replication.syncNodeCount",
+        review, Min.class, "must be greater than or equal to 1");
   }
 }

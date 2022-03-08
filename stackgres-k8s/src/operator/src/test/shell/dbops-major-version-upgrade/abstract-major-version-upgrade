@@ -95,9 +95,9 @@ kubectl_mock() {
               }
             }'
     ;;
-    ("replace --raw /apis/$CRD_GROUP/v2beta1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME/status -f"*)
+    ("replace --raw /apis/$CRD_GROUP/v1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME/status -f"*)
     ;;
-    ("replace --raw /apis/$CRD_GROUP/v2beta1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME -f"*)
+    ("replace --raw /apis/$CRD_GROUP/v1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME -f"*)
     ;;
     ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME --template={{ if .status }}true{{ else }}false{{ end }}")
     printf '%s' false

@@ -30,6 +30,9 @@ public class StackGresClusterPodStatus implements KubernetesResource {
   @JsonProperty("name")
   private String name;
 
+  @JsonProperty("replicationGroup")
+  private Integer replicationGroup;
+
   @JsonProperty("pendingRestart")
   private Boolean pendingRestart;
 
@@ -39,7 +42,7 @@ public class StackGresClusterPodStatus implements KubernetesResource {
 
   @JsonIgnore
   @AssertTrue(message = "installedPostgresExtensions must contain extensions with unique names.")
-  public boolean haveInstalledPostgresExtensionsUniqueNames() {
+  public boolean isInstalledPostgresExtensionsUniqueNames() {
     return Seq.seq(installedPostgresExtensions)
         .grouped(StackGresClusterInstalledExtension::getName)
         .noneMatch(group -> group.v2.count() > 1);
@@ -51,6 +54,14 @@ public class StackGresClusterPodStatus implements KubernetesResource {
 
   public void setName(String name) {
     this.name = name;
+  }
+
+  public Integer getReplicationGroup() {
+    return replicationGroup;
+  }
+
+  public void setReplicationGroup(Integer replicationGroup) {
+    this.replicationGroup = replicationGroup;
   }
 
   public Boolean getPendingRestart() {
@@ -72,7 +83,7 @@ public class StackGresClusterPodStatus implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(installedPostgresExtensions, name, pendingRestart);
+    return Objects.hash(installedPostgresExtensions, name, pendingRestart, replicationGroup);
   }
 
   @Override
@@ -85,7 +96,8 @@ public class StackGresClusterPodStatus implements KubernetesResource {
     }
     StackGresClusterPodStatus other = (StackGresClusterPodStatus) obj;
     return Objects.equals(installedPostgresExtensions, other.installedPostgresExtensions)
-        && Objects.equals(name, other.name) && Objects.equals(pendingRestart, other.pendingRestart);
+        && Objects.equals(name, other.name) && Objects.equals(pendingRestart, other.pendingRestart)
+        && Objects.equals(replicationGroup, other.replicationGroup);
   }
 
   @Override

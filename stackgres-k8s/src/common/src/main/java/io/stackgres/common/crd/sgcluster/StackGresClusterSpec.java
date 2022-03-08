@@ -7,17 +7,23 @@ package io.stackgres.common.crd.sgcluster;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -27,7 +33,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   private static final long serialVersionUID = -5276087851826599719L;
 
   @JsonProperty("postgres")
-  @NotNull(message = "postgres is required")
+  @NotNull(message = "postgres section is required")
   @Valid
   private StackGresClusterPostgres postgres;
 
@@ -35,13 +41,18 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Positive(message = "You need at least 1 instance in the cluster")
   private int instances;
 
+  @JsonProperty("replication")
+  @NotNull(message = "replication section is required")
+  @Valid
+  private StackGresClusterReplication replication;
+
   @JsonProperty("configurations")
-  @NotNull(message = "cluster configuration cannot be null")
+  @NotNull(message = "configurations section is required")
   @Valid
   private StackGresClusterConfiguration configuration;
 
   @JsonProperty("sgInstanceProfile")
-  @NotNull(message = "resource profile must not be null")
+  @NotNull(message = "resource profile is required")
   private String resourceProfile;
 
   @JsonProperty("initialData")
@@ -49,7 +60,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   private StackGresClusterInitData initData;
 
   @JsonProperty("pods")
-  @NotNull(message = "pod description must be specified")
+  @NotNull(message = "pods section is required")
   @Valid
   private StackGresClusterPod pod;
 
@@ -76,6 +87,57 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Valid
   private StackGresClusterSpecMetadata metadata;
 
+  @ReferencedField("instances")
+  interface Instances extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "The total number of instances must be greather than the number of"
+      + " instances in replication groups", payload = { Instances.class })
+  public boolean isSupportingInstancesForInstancesInReplicationGroups() {
+    return instances > getInstancesInReplicationGroups();
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "The total number of instances must be greather than the number of"
+      + " synchronous replicas", payload = { Instances.class })
+  public boolean isSupportingRequiredSynchronousReplicas() {
+    return replication == null
+        || !replication.isSynchronousMode()
+        || replication.getSyncNodeCount() == null
+        || instances > replication.getSyncNodeCount();
+  }
+
+  @JsonIgnore
+  public int getInstancesInImplicitReplicationGroup() {
+    return instances - getInstancesInReplicationGroups();
+  }
+
+  @JsonIgnore
+  public int getInstancesInReplicationGroups() {
+    if (replication == null
+        || replication.getGroups() == null) {
+      return 0;
+    }
+    return replication.getGroups().stream()
+        .map(StackGresClusterReplicationGroup::getInstances)
+        .reduce(0, (sum, instances) -> sum + instances, (u, v) -> v);
+  }
+
+  @JsonIgnore
+  public List<StackGresClusterReplicationGroup> getReplicationGroups() {
+    StackGresClusterReplicationGroup implicitGroup = new StackGresClusterReplicationGroup();
+    implicitGroup.setRole(Optional.ofNullable(replication)
+        .map(StackGresClusterReplication::getRole)
+        .orElse(StackGresReplicationRole.HA_READ.toString()));
+    implicitGroup.setInstances(getInstancesInImplicitReplicationGroup());
+    return ImmutableList.<StackGresClusterReplicationGroup>builder()
+        .add(implicitGroup)
+        .addAll(Optional.ofNullable(replication)
+            .map(StackGresClusterReplication::getGroups)
+            .orElse(ImmutableList.of()))
+        .build();
+  }
+
   public StackGresClusterPostgres getPostgres() {
     return postgres;
   }
@@ -90,6 +152,14 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   public void setInstances(int instances) {
     this.instances = instances;
+  }
+
+  public StackGresClusterReplication getReplication() {
+    return replication;
+  }
+
+  public void setReplication(StackGresClusterReplication replication) {
+    this.replication = replication;
   }
 
   public StackGresClusterConfiguration getConfiguration() {
@@ -176,7 +246,7 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Override
   public int hashCode() {
     return Objects.hash(configuration, distributedLogs, initData, instances, metadata,
-        nonProductionOptions, pod, postgres, postgresServices, prometheusAutobind,
+        nonProductionOptions, pod, postgres, postgresServices, prometheusAutobind, replication,
         resourceProfile, toInstallPostgresExtensions);
   }
 
@@ -194,10 +264,10 @@ public class StackGresClusterSpec implements KubernetesResource {
         && Objects.equals(initData, other.initData) && instances == other.instances
         && Objects.equals(metadata, other.metadata)
         && Objects.equals(nonProductionOptions, other.nonProductionOptions)
-        && Objects.equals(pod, other.pod)
-        && Objects.equals(postgres, other.postgres)
+        && Objects.equals(pod, other.pod) && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresServices, other.postgresServices)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)
+        && Objects.equals(replication, other.replication)
         && Objects.equals(resourceProfile, other.resourceProfile)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }

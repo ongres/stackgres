@@ -1,4 +1,4 @@
-apiVersion: stackgres.io/v2beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   namespace: demo-db

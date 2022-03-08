@@ -17,6 +17,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.testutil.CrdUtils;
+import org.jetbrains.annotations.NotNull;
 
 public class MockCustomResourceDefinitionFinder
     implements ResourceFinder<CustomResourceDefinition>, CrdLoader {
@@ -69,4 +70,10 @@ public class MockCustomResourceDefinitionFinder
           }
         }).collect(Collectors.toUnmodifiableList());
   }
+
+  @Override
+  public void updateExistingCustomResources(
+      @NotNull CustomResourceDefinition customResourceDefinition) {
+  }
+
 }

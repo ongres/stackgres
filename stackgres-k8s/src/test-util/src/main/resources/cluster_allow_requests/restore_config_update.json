@@ -51,6 +51,10 @@
         "postgres": {
           "version": "11.4"
         },
+        "replication": {
+          "mode": "ASYNC",
+          "role": "HA_READ"
+        },
         "sgInstanceProfile": "size-xs",
         "initialData": {
           "restore": {
@@ -90,6 +94,10 @@
         "instances": 1,
         "postgres": {
           "version": "11.3"
+        },
+        "replication": {
+          "mode": "ASYNC",
+          "role": "HA_READ"
         },
         "configurations": {
           "sgPostgresConfig": "postgresconf",

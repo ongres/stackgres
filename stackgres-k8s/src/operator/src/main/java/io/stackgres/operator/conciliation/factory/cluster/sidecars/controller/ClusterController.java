@@ -35,6 +35,7 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
@@ -112,6 +113,12 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
                     .toString())
                 .build(),
             new EnvVarBuilder()
+                .withName(ClusterControllerProperty
+                    .CLUSTER_CONTROLLER_RECONCILE_PATRONI
+                    .getEnvironmentVariableName())
+                .withValue(Boolean.TRUE.toString())
+                .build(),
+            new EnvVarBuilder()
                 .withName("CLUSTER_CONTROLLER_LOG_LEVEL")
                 .withValue(System.getenv("OPERATOR_LOG_LEVEL"))
                 .build(),
@@ -143,6 +150,11 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
             .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path())
             .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath())
             .build())
+        .addToVolumeMounts(
+            new VolumeMountBuilder()
+                .withName(PatroniStaticVolume.PATRONI_CONFIG.getVolumeName())
+                .withMountPath("/etc/patroni")
+                .build())
         .build();
   }
 

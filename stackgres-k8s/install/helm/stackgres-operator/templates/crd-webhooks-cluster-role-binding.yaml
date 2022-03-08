@@ -4,7 +4,7 @@ metadata:
   name: {{ .Release.Name }}-crd-webhooks
   namespace: {{ .Release.Namespace }}
   annotations:
-    "helm.sh/hook": post-upgrade,post-install
+    "helm.sh/hook": pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 subjects:
 - kind: ServiceAccount

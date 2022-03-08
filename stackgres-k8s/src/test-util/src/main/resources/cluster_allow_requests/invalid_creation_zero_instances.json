@@ -48,6 +48,10 @@
       },
       "spec": {
         "instances": 0,
+        "replication": {
+          "mode": "ASYNC",
+          "role": "HA_READ"
+        },
         "sgInstanceProfile": "size-xs",
         "configurations": {
           "sgPostgresConfig": "postgresconf",

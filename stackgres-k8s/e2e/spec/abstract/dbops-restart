@@ -56,9 +56,14 @@ check_restart_completed() {
   assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 }
 
+check_restart_without_data() {
+  check_restart "$1" "$2" true
+}
+
 check_restart() {
   local RESTARTED_PODS="$1"
   local NOT_RESTARTED_PODS="$2"
+  local SKIP_CHECK_DATA="$3"
 
   check_restart_is_running
 
@@ -131,9 +136,12 @@ check_restart() {
     return 1
   fi
 
-  check_mock_data_samehost "$CLUSTER_NAME"
-  if [ "$INITIAL_INSTANCES" -ge 2 ]
+  if [ "$SKIP_CHECK_DATA" != true ]
   then
-    check_mock_data_replication "$CLUSTER_NAME"
+    check_mock_data_samehost "$CLUSTER_NAME"
+    if [ "$INITIAL_INSTANCES" -ge 2 ]
+    then
+      check_mock_data_replication "$CLUSTER_NAME"
+    fi
   fi
 }

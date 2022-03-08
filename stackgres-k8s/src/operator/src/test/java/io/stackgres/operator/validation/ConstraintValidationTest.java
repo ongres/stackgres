@@ -114,22 +114,40 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
   protected void checkErrorCause(Class<?> outerClass, String fieldPath, T review,
       Class<? extends Annotation> constraint) {
-    checkErrorCause(outerClass, fieldPath, fieldPath, review, constraint);
+    checkErrorCause(outerClass, fieldPath, fieldPath, review, constraint, null);
+  }
+
+  protected void checkErrorCause(Class<?> outerClass, String fieldPath, T review,
+      Class<? extends Annotation> constraint, String message) {
+    checkErrorCause(outerClass, fieldPath, fieldPath, review, constraint, message);
   }
 
   protected void checkErrorCause(Class<?> outerClass, String fieldPath, String validationPath,
       T review, Class<? extends Annotation> constraint) {
-    checkErrorCause(outerClass, new String[] {fieldPath}, validationPath, review, constraint);
+    checkErrorCause(outerClass, new String[] {fieldPath}, validationPath, review, constraint, null);
+  }
+
+  protected void checkErrorCause(Class<?> outerClass, String fieldPath, String validationPath,
+      T review, Class<? extends Annotation> constraint, String message) {
+    checkErrorCause(outerClass, new String[] {fieldPath},
+        validationPath, review, constraint, message);
   }
 
   protected void checkErrorCause(Class<?> outerClass, String[] fieldPaths, String validationPath,
       T review, Class<? extends Annotation> constraint) {
+    checkErrorCause(outerClass, fieldPaths, validationPath, review, constraint, null);
+  }
+
+  protected void checkErrorCause(Class<?> outerClass, String[] fieldPaths, String validationPath,
+      T review, Class<? extends Annotation> constraint, String message) {
 
     String lastField = getLastField(validationPath);
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> validator.validate(review));
 
-    String message = ValidationUtils.getConstraintMessage(outerClass, lastField, constraint);
+    if (message == null) {
+      message = ValidationUtils.getConstraintMessage(outerClass, lastField, constraint);
+    }
 
     ValidationUtils.checkErrorCause(ex.getResult(), fieldPaths, message,
         constraint.getName());

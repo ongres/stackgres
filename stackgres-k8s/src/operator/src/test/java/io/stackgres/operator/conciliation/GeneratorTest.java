@@ -19,8 +19,11 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import io.stackgres.common.crd.sgcluster.StackGresReplicationMode;
+import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.conciliation.cluster.ClusterRequiredResourceDecorator;
@@ -54,6 +57,9 @@ public abstract class GeneratorTest {
     String defaultPostgreVersion = StackGresComponent.POSTGRESQL
         .getOrThrow(version).findLatestVersion();
     cluster.getSpec().getPostgres().setVersion(defaultPostgreVersion);
+    cluster.getSpec().setReplication(new StackGresClusterReplication());
+    cluster.getSpec().getReplication().setMode(StackGresReplicationMode.ASYNC.toString());
+    cluster.getSpec().getReplication().setRole(StackGresReplicationRole.HA_READ.toString());
     cluster.getSpec().setPod(new StackGresClusterPod());
     cluster.getSpec().getPod().setPersistentVolume(new StackGresPodPersistentVolume());
     cluster.getSpec().getPod().getPersistentVolume().setSize("500Mi");

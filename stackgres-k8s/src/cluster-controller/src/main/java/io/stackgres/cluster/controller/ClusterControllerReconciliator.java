@@ -22,6 +22,7 @@ import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.reconciliation.Reconciliator;
@@ -35,8 +36,9 @@ public class ClusterControllerReconciliator
   private final ClusterControllerPostgresBootstrapReconciliator postgresBootstrapReconciliator;
   private final ClusterExtensionReconciliator extensionReconciliator;
   private final PgBouncerReconciliator pgbouncerReconciliator;
-  private final ClusterControllerPropertyContext propertyContext;
   private final ClusterPersistentVolumeSizeReconciliator pvcSizeReconciliator;
+  private final PatroniReconciliator patroniReconciliator;
+  private final String podName;
 
   @Inject
   public ClusterControllerReconciliator(Parameters parameters) {
@@ -44,55 +46,61 @@ public class ClusterControllerReconciliator
     this.postgresBootstrapReconciliator = parameters.postgresBootstrapReconciliator;
     this.extensionReconciliator = parameters.extensionReconciliator;
     this.pgbouncerReconciliator = parameters.pgbouncerReconciliator;
-    this.propertyContext = parameters.propertyContext;
     this.pvcSizeReconciliator = parameters.clusterPersistentVolumeSizeReconciliator;
-
+    this.patroniReconciliator = parameters.patroniReconciliator;
+    this.podName = parameters.propertyContext
+        .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
   }
 
   public ClusterControllerReconciliator() {
     super();
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.propertyContext = null;
     this.clusterScheduler = null;
     this.postgresBootstrapReconciliator = null;
     this.extensionReconciliator = null;
     this.pgbouncerReconciliator = null;
     this.pvcSizeReconciliator = null;
+    this.patroniReconciliator = null;
+    this.podName = null;
   }
 
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
       justification = "False positives")
   @Override
   protected ReconciliationResult<?> reconcile(KubernetesClient client,
-                                              StackGresClusterContext context) throws Exception {
-    ReconciliationResult<Boolean> postgresBootstrapReconciliatorResult =
+      StackGresClusterContext context) throws Exception {
+    final StackGresCluster cluster = context.getCluster();
+    final boolean podStatusMissing = Optional.ofNullable(cluster.getStatus())
+        .map(StackGresClusterStatus::getPodStatuses)
+        .stream()
+        .flatMap(List::stream)
+        .map(StackGresClusterPodStatus::getName)
+        .noneMatch(podName::equals);
+    if (podStatusMissing) {
+      if (cluster.getStatus() == null) {
+        cluster.setStatus(new StackGresClusterStatus());
+      }
+      if (cluster.getStatus().getPodStatuses() == null) {
+        cluster.getStatus().setPodStatuses(new ArrayList<>());
+      }
+      StackGresClusterPodStatus podStatus = new StackGresClusterPodStatus();
+      podStatus.setName(podName);
+      podStatus.setPendingRestart(false);
+      cluster.getStatus().getPodStatuses().add(podStatus);
+    }
+
+    ReconciliationResult<Void> postgresBootstrapReconciliatorResult =
         postgresBootstrapReconciliator.reconcile(client, context);
     ReconciliationResult<Boolean> extensionReconciliationResult =
         extensionReconciliator.reconcile(client, context);
-    ReconciliationResult<Boolean> pgbouncerReconciliationResult =
+    ReconciliationResult<Void> pgbouncerReconciliationResult =
         pgbouncerReconciliator.reconcile(client, context);
-    pvcSizeReconciliator.reconcile();
+    ReconciliationResult<Boolean> patroniReconciliationResult =
+        patroniReconciliator.reconcile(client, context);
 
-    if (extensionReconciliationResult.result().orElse(false)) {
-      final String podName = propertyContext.getString(
-          ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
-      final StackGresCluster cluster = context.getCluster();
-
-      clusterScheduler.update(cluster,
-          (targetCluster, sourceCluster) -> {
-            sourceCluster.getSpec().getToInstallPostgresExtensions().stream()
-                .filter(toInstallExtension -> targetCluster.getSpec()
-                    .getToInstallPostgresExtensions()
-                    .stream().noneMatch(toInstallExtension::equals))
-                .map(toInstallExtension -> Tuple.tuple(toInstallExtension,
-                    targetCluster.getSpec().getToInstallPostgresExtensions().stream()
-                    .filter(targetToInstallExtension -> toInstallExtension.getName()
-                        .equals(targetToInstallExtension.getName()))
-                    .findFirst()))
-                .filter(t -> t.v2.isPresent())
-                .map(t -> t.map2(Optional::get))
-                .forEach(t -> t.v1.setBuild(t.v2.getBuild()));
-          });
+    if (podStatusMissing
+        || extensionReconciliationResult.result().orElse(false)
+        || patroniReconciliationResult.result().orElse(false)) {
       clusterScheduler.updateStatus(cluster,
           StackGresCluster::getStatus, (targetCluster, status) -> {
             var podStatus = Optional.ofNullable(status)
@@ -118,9 +126,30 @@ public class ClusterControllerReconciliator
           });
     }
 
+    if (extensionReconciliationResult.result().orElse(false)) {
+      KubernetesClientUtil.retryOnConflict(() -> clusterScheduler.update(cluster,
+          (targetCluster, sourceCluster) -> {
+            sourceCluster.getSpec().getToInstallPostgresExtensions().stream()
+                .filter(toInstallExtension -> targetCluster.getSpec()
+                    .getToInstallPostgresExtensions()
+                    .stream().noneMatch(toInstallExtension::equals))
+                .map(toInstallExtension -> Tuple.tuple(toInstallExtension,
+                    targetCluster.getSpec().getToInstallPostgresExtensions().stream()
+                    .filter(targetToInstallExtension -> toInstallExtension.getName()
+                        .equals(targetToInstallExtension.getName()))
+                    .findFirst()))
+                .filter(t -> t.v2.isPresent())
+                .map(t -> t.map2(Optional::get))
+                .forEach(t -> t.v1.setBuild(t.v2.getBuild()));
+          }));
+    }
+
+    pvcSizeReconciliator.reconcile();
+
     return postgresBootstrapReconciliatorResult
         .join(extensionReconciliationResult)
-        .join(pgbouncerReconciliationResult);
+        .join(pgbouncerReconciliationResult)
+        .join(patroniReconciliationResult);
   }
 
   private Optional<StackGresClusterPodStatus> findPodStatus(
@@ -139,6 +168,7 @@ public class ClusterControllerReconciliator
     @Inject PgBouncerReconciliator pgbouncerReconciliator;
     @Inject ClusterControllerPropertyContext propertyContext;
     @Inject ClusterPersistentVolumeSizeReconciliator clusterPersistentVolumeSizeReconciliator;
+    @Inject PatroniReconciliator patroniReconciliator;
   }
 
 }

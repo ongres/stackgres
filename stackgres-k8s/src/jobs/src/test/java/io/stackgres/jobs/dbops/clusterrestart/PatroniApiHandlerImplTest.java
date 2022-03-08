@@ -10,9 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -118,24 +115,16 @@ class PatroniApiHandlerImplTest {
   }
 
   private String getClustersResponse() {
-    try {
-      final String response = Files.readString(Path.of("src/test/resources/patroni/clusters.json"))
-          .replaceAll("127\\.0\\.0\\.1:8008", "127.0.0.1:"
-              + mockServer.actualPort());
-      return response;
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    final String response = StringUtils.readString("patroni/clusters.json")
+        .replaceAll("127\\.0\\.0\\.1:8008", "127.0.0.1:"
+            + mockServer.actualPort());
+    return response;
   }
 
   private String getPatroniResponse() {
-    try {
-      String patroniFile = new Random().nextInt(2) == 0 ? "replica" : "primary";
-      return Files.readString(Path.of(String
-          .format("src/test/resources/patroni/patroni-%s.json", patroniFile)));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    String patroniFile = new Random().nextInt(2) == 0 ? "replica" : "primary";
+    return StringUtils.readString(String
+        .format("patroni/patroni-%s.json", patroniFile));
   }
 
   private void preparePatroniMetadata(String username, String password) {

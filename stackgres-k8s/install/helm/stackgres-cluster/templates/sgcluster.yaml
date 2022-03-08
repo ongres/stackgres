@@ -1,5 +1,5 @@
 {{ if .Values.cluster.create }}
-apiVersion: stackgres.io/v2beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: {{ .Release.Name }}
@@ -48,6 +48,24 @@ spec:
         name: {{ .Values.cluster.postgres.ssl.privateKeySecretKeySelector.name }}
         key: {{ .Values.cluster.postgres.ssl.privateKeySecretKeySelector.key }}
       {{- end }}
+    {{- end }}
+  replication:
+    mode: '{{ .Values.cluster.replication.mode }}'
+    role: '{{ .Values.cluster.replication.role }}'
+    {{- if .Values.cluster.replication.syncNodeCount }}
+    syncNodeCount: {{ .Values.cluster.replication.syncNodeCount }}
+    {{- end }}
+    {{- if .Values.cluster.replication.groups }}
+    groups:
+    {{- range .Values.cluster.replication.groups }}
+    - instances: {{ .instances }}
+      {{- if .role }}
+      role: {{ .role }}
+      {{- end }}
+      {{- if .name }}
+      name: {{ .name }}
+      {{- end }}
+    {{- end }}
     {{- end }}
   configurations: 
     sgPostgresConfig: '{{ .Values.cluster.configurations.sgPostgresConfig }}'

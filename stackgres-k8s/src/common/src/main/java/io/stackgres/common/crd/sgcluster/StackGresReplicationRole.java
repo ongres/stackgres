@@ -1,0 +1,37 @@
+/*
+ * Copyright (C) 2019 OnGres, Inc.
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+package io.stackgres.common.crd.sgcluster;
+
+import org.jetbrains.annotations.NotNull;
+
+public enum StackGresReplicationRole {
+
+  HA("HA"),
+  HA_READ("HA_READ"),
+  READONLY("READONLY"),
+  NONE("NONE");
+
+  private final @NotNull String type;
+
+  StackGresReplicationRole(@NotNull String type) {
+    this.type = type;
+  }
+
+  @Override
+  public @NotNull String toString() {
+    return type;
+  }
+
+  public static StackGresReplicationRole fromString(String value) {
+    for (StackGresReplicationRole role : StackGresReplicationRole.values()) {
+      if (role.toString().equals(value)) {
+        return role;
+      }
+    }
+    throw new IllegalArgumentException(value + " can not be converted to a "
+        + StackGresReplicationRole.class.getName());
+  }
+}

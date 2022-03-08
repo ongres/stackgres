@@ -57,7 +57,7 @@ kubectl_mock() {
     ;;
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json")
       echo '{
-          "apiVersion": "stackgres.io/v2beta1",
+          "apiVersion": "stackgres.io/v1",
           "kind": "SGCluster",
           "metadata": {
               "name": "'"$CLUSTER_NAME"'",
@@ -82,7 +82,7 @@ kubectl_mock() {
           }
         }'
     ;;
-    ("replace --raw /apis/$CRD_GROUP/v2beta1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME/status -f"*)
+    ("replace --raw /apis/$CRD_GROUP/v1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME/status -f"*)
 
     ;;
     ("get pods -n $CLUSTER_NAMESPACE -l $CLUSTER_POD_LABELS -o name")

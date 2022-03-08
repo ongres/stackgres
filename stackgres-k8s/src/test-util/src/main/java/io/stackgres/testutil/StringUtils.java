@@ -5,6 +5,9 @@
 
 package io.stackgres.testutil;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Random;
 
@@ -70,5 +73,17 @@ public class StringUtils {
     String clusterName = sanitize(sanitize(getRandomString(size)));
     clusterName = clusterName.replaceAll("^\\d", "a");
     return clusterName;
+  }
+
+  public static String readString(String resource) {
+    try (InputStream is = ClassLoader.getSystemResourceAsStream(resource)) {
+      if (is == null) {
+        throw new IllegalArgumentException("resource " + resource + " not found");
+      }
+
+      return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+    } catch (IOException ex) {
+      throw new IllegalArgumentException("could not open resource " + resource, ex);
+    }
   }
 }

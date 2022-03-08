@@ -7,6 +7,10 @@
     "postgres": {
       "version":"latest"
     },
+    "replication": {
+      "mode": "ASYNC",
+      "role": "HA_READ"
+    },
     "instances":"1",
     "pods":{
       "persistentVolume":{

@@ -17,6 +17,7 @@ public enum JobsProperty implements StackGresPropertyReader {
   OPERATOR_VERSION("stackgres.operatorVersion"),
   CRD_UPGRADE("stackgres.crdUpgrade"),
   CONVERSION_WEBHOOKS("stackgres.conversionWebhooks"),
+  CR_UPDATER("stackgres.crUpdater"),
   DATABASE_OPERATION_JOB("stackgres.databaseOperationJob"),
   DATABASE_OPERATION_CR_NAME("stackgres.databaseOperationCrName"),
   SERVICE_ACCOUNT("stackgres.dbops.serviceAccount"),

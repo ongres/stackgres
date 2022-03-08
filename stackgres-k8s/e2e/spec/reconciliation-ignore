@@ -39,7 +39,7 @@ e2e_test() {
 
 ignore_sgcluster_create(){
     cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v2beta1
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME

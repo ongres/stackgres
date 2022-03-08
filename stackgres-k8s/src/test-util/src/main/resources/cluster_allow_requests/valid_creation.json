@@ -52,6 +52,10 @@
           "version": "11.5",
           "flavor": "vanilla"
         },
+        "replication": {
+          "mode": "ASYNC",
+          "role": "HA_READ"
+        },
         "sgInstanceProfile": "size-xs",
         "initialData": {
           "restore": {

@@ -54,6 +54,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 public interface StackGresUtil {
 
+  String MD5SUM_KEY = "MD5SUM";
   String DATA_SUFFIX = "-data";
   String BACKUP_SUFFIX = "-backup";
   Pattern EMPTY_LINE_PATTERN = Pattern.compile(
@@ -136,7 +137,7 @@ public interface StackGresUtil {
         .getBytes(StandardCharsets.UTF_8));
     return ImmutableMap.<String, String>builder()
         .putAll(data)
-        .put("MD5SUM", HexFormat.of().withUpperCase().formatHex(messageDigest.digest()))
+        .put(MD5SUM_KEY, HexFormat.of().withUpperCase().formatHex(messageDigest.digest()))
         .build();
   }
 

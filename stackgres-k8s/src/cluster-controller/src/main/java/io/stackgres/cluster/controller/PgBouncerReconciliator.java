@@ -13,7 +13,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
@@ -62,7 +61,7 @@ public class PgBouncerReconciliator {
     return new PgBouncerReconciliator(parameters.findAny().get());
   }
 
-  public ReconciliationResult<Boolean> reconcile(KubernetesClient client, ClusterContext context)
+  public ReconciliationResult<Void> reconcile(KubernetesClient client, ClusterContext context)
       throws Exception {
     if (pgbouncerReconciliationEnabled) {
       try {
@@ -76,10 +75,10 @@ public class PgBouncerReconciliator {
         } catch (Exception eventEx) {
           LOGGER.error("An error occurred while sending an event", eventEx);
         }
-        return new ReconciliationResult<Boolean>(false, ImmutableList.of(ex));
+        return new ReconciliationResult<>(ex);
       }
     }
-    return new ReconciliationResult<Boolean>(true);
+    return new ReconciliationResult<>();
   }
 
 }

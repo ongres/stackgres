@@ -46,6 +46,9 @@ public class PatroniConfig {
   @JsonProperty("synchronous_mode_strict")
   private Boolean synchronousModeStrict;
 
+  @JsonProperty("synchronous_mode_count")
+  private Integer synchronousModeCount;
+
   @JsonProperty("postgresql")
   private PostgreSql postgresql;
 
@@ -114,6 +117,14 @@ public class PatroniConfig {
 
   public void setSynchronousModeStrict(Boolean synchronousModeStrict) {
     this.synchronousModeStrict = synchronousModeStrict;
+  }
+
+  public Integer getSynchronousModeCount() {
+    return synchronousModeCount;
+  }
+
+  public void setSynchronousModeCount(Integer synchronousModeCount) {
+    this.synchronousModeCount = synchronousModeCount;
   }
 
   public PostgreSql getPostgresql() {

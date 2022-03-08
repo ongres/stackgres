@@ -27,7 +27,12 @@
       "host": "127.0.0.1",
       "port": 7433,
       "timeline": 10,
-      "lag": 0
+      "lag": 0,
+      "tags": {
+        "noloadbalance": true,
+        "nofailover": true,
+        "mykey": 1
+      }
     }
   ]
 }

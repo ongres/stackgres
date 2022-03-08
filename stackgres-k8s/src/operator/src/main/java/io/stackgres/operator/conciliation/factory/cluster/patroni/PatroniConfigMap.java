@@ -18,9 +18,9 @@ import javax.inject.Singleton;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
-import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
@@ -116,7 +116,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .build();
   }
 
-  public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
+  public @NotNull ConfigMap buildSource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
     final String pgVersion = StackGresComponent.POSTGRESQL.get(cluster).findVersion(
         cluster.getSpec().getPostgres().getVersion());

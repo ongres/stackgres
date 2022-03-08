@@ -5,6 +5,7 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.immutables.value.Value;
@@ -31,4 +32,6 @@ public interface ClusterMember {
   Optional<Integer> getTimeline();
 
   Optional<Integer> getLag();
+
+  Optional<Map<String, String>> getTags();
 }

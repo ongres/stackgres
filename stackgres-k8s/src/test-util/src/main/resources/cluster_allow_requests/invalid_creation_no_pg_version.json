@@ -50,6 +50,10 @@
         "instances": 1,
         "sgInstanceProfile": "size-xs",
         "postgres": {},
+        "replication": {
+          "mode": "ASYNC",
+          "role": "HA_READ"
+        },
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf"

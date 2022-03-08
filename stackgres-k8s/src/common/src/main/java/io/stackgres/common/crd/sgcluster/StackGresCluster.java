@@ -34,7 +34,7 @@ public final class StackGresCluster
 
   public static final String KIND = "SGCluster";
 
-  public static final String VERSION = "v2beta1";
+  public static final String VERSION = "v1";
 
   @JsonProperty("spec")
   @NotNull(message = "The specification is required")

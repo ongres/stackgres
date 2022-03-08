@@ -230,7 +230,8 @@ check_before_operator_upgrade() {
     "sgcluster/$CLUSTER_3_NAME" \
     "sgdistributedlogs/$DISTRIBUTED_LOGS_NAME"
   do
-    if ! kubectl wait -n "$CLUSTER_NAMESPACE" "$RESOURCE" --for condition=PendingRestart --timeout 0
+    if wait_until eval 'kubectl wait -n "$CLUSTER_NAMESPACE" "$RESOURCE" \
+      --for condition=PendingRestart=false --timeout 0'
     then
       echo "SUCCESS. $RESOURCE is not pending restart after creation"
     else
@@ -429,11 +430,12 @@ check_cluster_security_upgrade() {
 }
 
 check_cluster_before_security_upgrade() {
-  if wait_until eval 'kubectl wait "$CLUSTER_CRD" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
+  if wait_until eval 'kubectl wait "$CLUSTER_CRD" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --for condition=PendingUpgrade --timeout 0'
   then
-    echo "SUCCESS. Cluster $CLUSTER_NAME is pending restart after operator upgrade"
+    echo "SUCCESS. Cluster $CLUSTER_NAME is pending upgrade after operator upgrade"
   else
-    echo "FAIL. Cluster $CLUSTER_NAME is not pending restart after operator upgrade"
+    echo "FAIL. Cluster $CLUSTER_NAME is not pending upgrade after operator upgrade"
     return 1
   fi
 
@@ -464,11 +466,12 @@ check_cluster_before_security_upgrade() {
 }
 
 check_cluster_after_security_upgrade() {
-  if wait_until eval '! kubectl wait "$CLUSTER_CRD" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
+  if wait_until eval 'kubectl wait "$CLUSTER_CRD" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --for condition=PendingUpgrade=false --timeout 0'
   then
-    echo "SUCCESS. Cluster $CLUSTER_NAME is not pending restart after security upgrade"
+    echo "SUCCESS. Cluster $CLUSTER_NAME is not pending upgrade after security upgrade"
   else
-    echo "FAIL. Cluster $CLUSTER_NAME is pending restart after security upgrade"
+    echo "FAIL. Cluster $CLUSTER_NAME is pending upgrade after security upgrade"
     return 1
   fi
 
