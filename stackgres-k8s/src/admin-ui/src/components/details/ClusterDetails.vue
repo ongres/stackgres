@@ -144,7 +144,7 @@
                         </td>
                         <td colspan="2">
                             <template v-if="(typeof cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined')">
-                                {{ cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity ? 'ON' : 'OFF' }}
+                                {{ cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity ? 'OFF' : 'ON' }}
                             </template>
                             <template v-else>
                                 OFF
