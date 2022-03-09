@@ -690,7 +690,7 @@
                                 var urlParams = new URLSearchParams(window.location.search);
                                 if(urlParams.has('newtab')) {
                                     opener.fetchParentAPI('sgdistributedlogs');
-                                    vc.notify('Log server <strong>"'+cluster.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your server from the list.', 'message','sgdistributedlogs');
+                                    vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your server from the list.', 'message','sgdistributedlogs');
                                 } else {
                                     vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgdistributedlogs');
                                 }

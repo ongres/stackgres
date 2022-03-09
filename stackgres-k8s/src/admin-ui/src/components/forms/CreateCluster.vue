@@ -513,10 +513,10 @@
                         <div class="col">
                             <label for="spec.distributedLogs.sgDistributedLogs">Distributed Logs</label>
                             <select v-model="distributedLogs" class="distributedLogs" data-field="spec.distributedLogs.sgDistributedLogs" @change="(distributedLogs == 'createNewResource') && createNewResource('sgdistributedlogs')" :set="( (distributedLogs == 'createNewResource') && (distributedLogs = '') )">
-                                <option disabled value="">Select Logs Cluster</option>
+                                <option disabled value="">Select Logs Server</option>
                                 <option v-for="cluster in logsClusters" :value="( (cluster.data.metadata.namespace !== $route.params.namespace) ? cluster.data.metadata.namespace + '.' : '') + cluster.data.metadata.name">{{ cluster.data.metadata.name }}</option>
                                 <option value="" disabled>– OR –</option>
-                                <option value="createNewResource">Create new log server</option>
+                                <option value="createNewResource">Create new logs server</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.sgDistributedLogs')"></span>
                         </div>
