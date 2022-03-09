@@ -140,7 +140,7 @@
                         </td>
                         <td class="label">
                             Cluster Pod Anti Affinity
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity')"></span>
+                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true to allow','When disabled, it allows running')"></span>
                         </td>
                         <td colspan="2">
                             <template v-if="(typeof cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined')">

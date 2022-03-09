@@ -138,7 +138,7 @@
                                     </td>
                                     <td class="label">
                                         Cluster Pod Anti Affinity
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true','Disable this property')"></span>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('If set to `true` it will allow','When disabled, it allows running')"></span>
                                     </td>
                                     <td>{{ cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity ? 'OFF' : 'ON' }}</td>
                                 </tr>
