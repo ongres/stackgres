@@ -112,9 +112,13 @@
                             <tbody>
                                 <tr>
 									<td class="label">Name <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.metadata.name')"></span></td>
-									<td>{{ cluster.name }}</td>
+									<td colspan="2">{{ cluster.name }}</td>
 								</tr>
                                 <tr>
+                                    <td class="label" :rowspan="cluster.data.spec.persistentVolume.hasOwnProperty('storageClass') ? '2' : ''">
+                                        Persistent Volume
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume')"></span>
+                                    </td>
                                     <td class="label">
                                         Volume Size
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume.size')"></span>
@@ -128,9 +132,19 @@
                                     </td>
                                     <td>{{ cluster.data.spec.persistentVolume.storageClass }}</td>
                                 </tr>
+                                <tr v-if="(typeof cluster.data.spec.nonProductionOptions !== 'undefined')">
+                                    <td class="label">
+                                        Non-Production Settings
+                                    </td>
+                                    <td class="label">
+                                        Cluster Pod Anti Affinity
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('If set to `true` it will allow','When disabled, it allows running')"></span>
+                                    </td>
+                                    <td>{{ cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity ? 'OFF' : 'ON' }}</td>
+                                </tr>
                                 <tr v-if="cluster.data.status.clusters.length">
 									<td class="label">Used on  <span class="helpTooltip" :data-tooltip="getTooltip('sgpoosgdistributedlogslingconfig.status.clusters')"></span></td>
-									<td class="usedOn">
+									<td class="usedOn" colspan="2">
 										<ul>
 											<li v-for="cluster in cluster.data.status.clusters">
 												<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster" title="Cluster Details">
