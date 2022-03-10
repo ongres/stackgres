@@ -214,6 +214,24 @@
 				</ul>
 			</div>
 			
+			<ul 
+				class="applications set"
+				v-if="applications.length"
+			>
+				<li class="crdName">
+					<span>
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 19 19"><path fill="#36A8FF" d="M13.7 19H8.8c-.5 0-.9-.4-1-.9 0-.3 0-.7.1-1 0-.1.1-.2.1-.2.2-.3.4-.7.4-1.1 0-.3-.1-.6-.3-.8-.2-.2-.5-.3-.8-.3-.3 0-.6.1-.9.3-.2.2-.3.4-.3.7.1.4.2.7.4 1.1.1.1.1.2.1.3.1.3.1.6.1.9 0 .5-.5 1-1 1H1c-.6 0-1-.4-1-1V5.3c0-.6.4-1 1-1h3.5c-.1-.3-.2-.6-.3-1v-.1c0-.8.3-1.6.9-2.2.6-.7 1.4-1 2.2-1 .9 0 1.7.3 2.3.9.6.6.9 1.4.9 2.3v.1c-.1.3-.1.7-.3 1h3.5c.6 0 1 .4 1 1v3.5c.3-.1.6-.2 1-.3H16c.8 0 1.6.4 2.2 1s.9 1.4.8 2.2c0 .8-.4 1.6-1 2.2-.6.6-1.4.9-2.2.8h-.1c-.3-.1-.6-.1-1-.3V18c0 .6-.4 1-1 1zm-3.5-2h2.5v-3.9c0-.5.4-1 1-1 .3 0 .6 0 .9.1.1 0 .2.1.3.1.3.2.7.4 1.1.4.3 0 .5-.1.7-.3.2-.2.3-.5.4-.8 0-.3-.1-.6-.3-.8-.2-.2-.5-.3-.8-.4-.3.1-.7.2-1.1.4-.1.1-.2.1-.2.1-.3.1-.6.1-1 .1-.5 0-.9-.5-.9-1V6.2h-4c-.5 0-1-.4-1-1 0-.3 0-.6.1-.9 0 0 .1-.1.1-.2.3-.3.4-.7.5-1.1 0-.3-.1-.5-.3-.7-.2-.2-.5-.3-.8-.3-.4 0-.7.1-.9.3-.2.2-.3.5-.3.7.1.4.2.7.4 1.1.1.1.1.2.1.2.1.3.1.7.1 1 0 .5-.5.9-1 .9H2V17h2.5c-.1-.3-.2-.6-.3-1v-.1c0-.8.3-1.6.9-2.2.6-.6 1.4-.9 2.3-.9.8 0 1.6.3 2.2.9.6.6.9 1.4.9 2.3v.1l-.3.9z"/></svg>
+					</span>
+					<h3 :class="isCollapsed ? 'submenuTitle' : ''">Applications</h3>
+				</li>
+				<li>
+					<ul class="crdSubmenu">
+						<li v-for="application in applications">
+							<router-link :to="'/' + currentPath.namespace + '/application/' + application.name" class="item" :title="application.name">{{ application.name }}</router-link>
+						</li>
+					</ul>
+				</li>
+			</ul>
 		</div>
 	</aside>
 </template>
@@ -380,6 +398,10 @@
 				return store.state.profiles;
 			},
 
+			applications () {
+				return store.state.applications;
+			},
+
 			currentPath () {
 				return store.state.currentPath
 			},
@@ -513,8 +535,7 @@
 	}
 
 	.crdSubmenu {
-		/*min-height: 50px;*/
-		max-height: calc(100vh - 580px);
+		max-height: calc(100vh - 680px);
 		overflow: auto;
 	}
 
@@ -736,11 +757,6 @@
 		background-color: var(--bgColor);
 	}
 
-	/*.collapsed .crdSubmenu.show .item {
-		max-width: 349px;
-	}*/
-
-
 	/*Darkmode Adjustments*/
 	.darkmode .collapsed .set.backups .hideCollapsed:hover, .darkmode .collapsed .set.dbops .hideCollapsed:hover {
 		background: #303030 !important;
@@ -760,6 +776,21 @@
 
 	.darkmode .conf, .darkmode .subset {
 		background-color: rgba(211, 211, 211, .02);
+	}
+
+	ul.applications {
+		position: absolute;
+		bottom: 1px;
+		width: 100%;
+		border-top: 1px solid var(--borderColor);
+	}
+
+	ul.applications .crdName {
+		padding-left: 20px;
+	}
+
+	.collapsed ul.applications .crdName {
+		padding-left: 15px;
 	}
 
 </style>

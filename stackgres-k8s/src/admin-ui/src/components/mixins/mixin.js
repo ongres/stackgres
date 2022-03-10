@@ -499,6 +499,22 @@ export const mixin = {
 
         }
 
+        if(!store.state.applications.length) {
+
+          /* Get SG Applications */
+          axios
+          .get('/stackgres/applications')
+          .then( function(response) {
+
+            store.commit('setApplications', response.data.applications);
+  
+          }).catch(function(err) {
+            console.log(err);
+            vc.checkAuthError(err);
+          });
+
+        }
+
         if(!store.state.ready)
           store.commit('setReady',true)
   

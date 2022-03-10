@@ -31,6 +31,9 @@ import DbOps from '../components/DbOps.vue'
 import Grafana from '../components/Grafana.vue'
 import NotFound from '../components/NotFound.vue'
 
+// Applications
+import BabelfishCompass from '../components/applications/BabelfishCompass.vue'
+
 
 Vue.use(VueRouter);
 
@@ -399,6 +402,14 @@ const routes = [
     path: '/:namespace/sgcluster/:name/monitor/:pod', 
     component: Grafana,
     name: 'SingleClusterMonitor',
+    meta: {
+      conditionalRoute: false
+    },
+  },
+  { 
+    path: '/:namespace/application/babelfish-compass/', 
+    component: BabelfishCompass,
+    name: 'BabelfishCompass',
     meta: {
       conditionalRoute: false
     },
