@@ -32,6 +32,7 @@ export default new Vuex.Store({
     logsClusters: [],
     dbOps: [],
     postgresVersions: {},
+    applications: [],
     cloneCRD: {},
     timezone: 'local',
     view: 'normal',
@@ -347,6 +348,10 @@ export default new Vuex.Store({
 
     setPostgresVersions (state, versions) {
       state.postgresVersions = versions;
+    },
+
+    setApplications (state, applications) {
+      state.applications = applications;
     },
 
     toggleTimezone (state) {

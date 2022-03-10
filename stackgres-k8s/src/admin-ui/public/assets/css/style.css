@@ -415,6 +415,10 @@ svg.background circle {
     padding: 20px;
 }
 
+.noPadding {
+    padding: 0 !important;
+}
+
 .clearfix {
     content: "";
     clear: both;
@@ -2231,7 +2235,7 @@ ul.select a.active {
     border-color: var(--blue);
 }
 
-form .warning {
+form .warning, .warningText {
     background: rgba(0,173,181,.05);
     border: 1px solid var(--blue);
     padding: 15px;
@@ -2491,7 +2495,7 @@ fieldset {
 
 .form fieldset h3 {
     display: block;
-    margin-bottom: 20px;
+    margin-bottom: 5px;
 }
 
 .config .form {    
@@ -2581,7 +2585,7 @@ fieldset {
     bottom: 5px;
 }
 
-.form .header h2 {
+.header h2 {
     font-size: 16px;
     display: inline-block;
 }
