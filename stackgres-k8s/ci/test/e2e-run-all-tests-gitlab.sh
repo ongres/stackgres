@@ -8,7 +8,7 @@ set -e
 
 # shellcheck disable=SC2015
 { [ "$IS_WEB" = true ] || [ "$IS_WEB" = false ]; } \
-  && [ -n "$E2E_SUFFIX" ] && [ -n "$E2E_RUN_ONLY" ] \
+  && [ -n "$E2E_JOB" ] && [ -n "$E2E_RUN_ONLY" ] \
   && [ -n "$CI_JOB_ID" ] && [ -n "$CI_PROJECT_ID" ] && [ -d "$CI_PROJECT_DIR" ] \
   && [ -n "$CI_COMMIT_SHORT_SHA" ] && [ -n "$CI_PROJECT_PATH" ] \
   && [ -n "$CI_REGISTRY" ] && [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ] \
@@ -25,8 +25,9 @@ export K8S_DELETE="$([ "$K8S_REUSE" = true ] && echo false || echo true)"
 E2E_FAILURE_RETRY="${E2E_FAILURE_RETRY:-4}"
 E2E_STORE_RESULTS_RETRY="${E2E_STORE_RESULTS_RETRY:-4}"
 
-SUFFIX="$(echo "-$E2E_SUFFIX-$E2E_RUN_ONLY" | tr -d '\n' | tr -c 'a-z0-9' '-' | sed 's/\(-[0-9]\+\)-[0-9]\+$/\1/')"
+SUFFIX="${SUFFIX:-$(echo "-$E2E_JOB-$E2E_RUN_ONLY" | tr -d '\n' | tr -c 'a-z0-9' '-' | sed 's/\(-[0-9]\+\)-[0-9]\+$/\1/')}"
 
+export E2E_SUFFIX="${E2E_SUFFIX:-$SUFFIX}"
 export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_TAG_SUFFIX"
 export KIND_NAME="kind$SUFFIX"
 export K8S_REUSE="${K8S_REUSE:-true}"
@@ -38,10 +39,9 @@ export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
 export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
 export E2E_FORCE_IMAGE_PULL=true
 export K8S_USE_INTERNAL_REPOSITORY=true
-export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
-export E2E_LOCK_PATH="/tmp/e2e-lock$SUFFIX"
 export E2E_DISABLE_CACHE=true
 export E2E_DISABLE_LOGS=true
+export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
 export KIND_LOG=true
 export KIND_LOG_PATH="/tmp/kind-log$SUFFIX"
 export KIND_LOG_RESOURCES=true
@@ -136,34 +136,9 @@ run_all_tests_loop() {
     flock -s /tmp/stackgres-build-restapi-native-executable \
     flock -s /tmp/stackgres-build-jobs-native-executable \
     flock -s /tmp/stackgres-build-distributedlogs-controller-native-executable \
-    flock "/tmp/stackgres-integration-test$SUFFIX" \
-    flock "$E2E_LOCK_PATH" \
+    "$E2E_SHELL" "$0" run_with_e2e_lock \
     timeout -s KILL 3600 \
-    "$E2E_SHELL" -c $([ "$E2E_DEBUG" != true ] || printf '%s' '-x') \
-      "
-      docker run --rm -u 0 -v '${KIND_LOG_PATH%/*}:/source' alpine \
-        rm -rf '/source/${KIND_LOG_PATH##*/}'
-      docker run --rm -u 0 -v '${KIND_LOG_PATH%/*}:/source' alpine \
-        mkdir -p '/source/${KIND_LOG_PATH##*/}'
-      '$E2E_SHELL' $([ "$E2E_DEBUG" != true ] || printf '%s' '-x') stackgres-k8s/e2e/run-all-tests.sh
-      EXIT_CODE=\"\$?\"
-      mkdir -p stackgres-k8s/e2e/target/kind-logs
-      docker run --rm -u 0 -v '$KIND_LOG_PATH:/source/kind-logs' \
-        -v '$(pwd)/stackgres-k8s/e2e/target:/target' alpine \
-        cp -r '/source/kind-logs/.' /target/kind-logs/.
-      docker run --rm -u 0 -v '${KIND_LOG_PATH%/*}:/source' alpine \
-        rm -rf '/source/${KIND_LOG_PATH##*/}'
-      docker run --rm -u 0 \
-        -v '$(pwd)/stackgres-k8s/e2e/target:/target' alpine \
-        chown -R '$(id -u):$(id -g)' '/target/kind-logs'
-      if [ -d stackgres-k8s/e2e/target/kind-logs/kubernetes ]
-      then
-        tar c stackgres-k8s/e2e/target/kind-logs/kubernetes \
-          | xz -v -c > stackgres-k8s/e2e/target/kind-logs/kubernetes.tar.lzma
-        rm -rf stackgres-k8s/e2e/target/kind-logs/kubernetes
-      fi
-      exit \"\$EXIT_CODE\"
-      "
+    "$E2E_SHELL" "$0" run_all_e2e
   echo 'done'
 
   echo
@@ -256,6 +231,70 @@ run_all_tests() {
   sh stackgres-k8s/e2e/e2e show_test_result_summary "$EXIT_CODE"
 
   exit "$EXIT_CODE"
+}
+
+run_with_e2e_lock() {
+  set +e
+  while true
+  do
+    for POSSIBLE_SUFFIX in \
+      -jvm-image-exclusive-1        \
+      -jvm-image-exclusive-2        \
+      -jvm-image-exclusive-3        \
+      -jvm-image-non-exclusive-1    \
+      -jvm-image-non-exclusive-2    \
+      -jvm-image-non-exclusive-3    \
+      -jvm-image-ui-1               \
+      -native-image-exclusive-1     \
+      -native-image-exclusive-2     \
+      -native-image-exclusive-3     \
+      -native-image-non-exclusive-1 \
+      -native-image-non-exclusive-2 \
+      -native-image-non-exclusive-3 \
+      -native-image-ui-1            
+    do
+      SUFFIX="$POSSIBLE_SUFFIX" flock -n "/tmp/stackgres-integration-test$POSSIBLE_SUFFIX" \
+        "$E2E_SHELL" "$0" run_in_e2e_lock "$@"
+      EXIT_CODE="$?"
+      if [ -f "/tmp/stackgres-integration-test$POSSIBLE_SUFFIX-was-locked-by-$CI_JOB_ID" ]
+      then
+        return "$EXIT_CODE"
+      fi
+    done
+  done
+  return 1
+}
+
+run_in_e2e_lock() {
+  touch "/tmp/stackgres-integration-test$SUFFIX-was-locked-by-$CI_JOB_ID"
+  echo "Locked kind with name kind$SUFFIX"
+  "$@"
+}
+
+run_all_e2e() {
+  set +e
+  docker run --rm -u 0 -v "${KIND_LOG_PATH%/*}:/source" alpine \
+    rm -rf "/source/${KIND_LOG_PATH##*/}"
+  docker run --rm -u 0 -v "${KIND_LOG_PATH%/*}:/source" alpine \
+    mkdir -p "/source/${KIND_LOG_PATH##*/}"
+  "$E2E_SHELL" $([ "$E2E_DEBUG" != true ] || printf '%s' '-x') stackgres-k8s/e2e/run-all-tests.sh
+  EXIT_CODE="$?"
+  mkdir -p stackgres-k8s/e2e/target/kind-logs
+  docker run --rm -u 0 -v "$KIND_LOG_PATH:/source/kind-logs" \
+    -v "$(pwd)/stackgres-k8s/e2e/target:/target" alpine \
+    cp -r "/source/kind-logs/." /target/kind-logs/.
+  docker run --rm -u 0 -v "${KIND_LOG_PATH%/*}:/source" alpine \
+    rm -rf "/source/${KIND_LOG_PATH##*/}"
+  docker run --rm -u 0 \
+    -v "$(pwd)/stackgres-k8s/e2e/target:/target" alpine \
+    chown -R "$(id -u):$(id -g)" '/target/kind-logs'
+  if [ -d stackgres-k8s/e2e/target/kind-logs/kubernetes ]
+  then
+    tar c stackgres-k8s/e2e/target/kind-logs/kubernetes \
+      | xz -v -c > stackgres-k8s/e2e/target/kind-logs/kubernetes.tar.lzma
+    rm -rf stackgres-k8s/e2e/target/kind-logs/kubernetes
+  fi
+  return "$EXIT_CODE"
 }
 
 if [ "$#" -gt 0 ]

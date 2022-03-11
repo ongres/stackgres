@@ -6,7 +6,7 @@
     NATIVE_IMAGE_EXTRA_PREFIX: ""
     MAVEN_EXTRA_ARGS: ""
     QUARKUS_NATIVE_NATIVE_IMAGE_XMX: 18g
-  timeout: 12 hour
+  timeout: 1 hour
   dependencies:
     - build
   script:
