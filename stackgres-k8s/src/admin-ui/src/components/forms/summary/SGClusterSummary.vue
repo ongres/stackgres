@@ -283,6 +283,10 @@
                                                 </router-link>
                                             </span>
                                         </li>
+                                        <li v-if="hasProp(cluster, 'data.spec.distributedLogs.retention')">
+                                            <strong class="label">Retention:</strong>
+                                            <span class="value">{{ cluster.data.spec.distributedLogs.retention }}</span>
+                                        </li>
                                     </ul>
                                 </li>
                             </ul>
