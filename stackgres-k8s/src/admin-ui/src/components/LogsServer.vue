@@ -25,14 +25,14 @@
                 <div class="crdActionLinks">
 					<template v-if="$route.params.hasOwnProperty('name')">
 						<template v-for="cluster in clusters" v-if="cluster.name == $route.params.name">
-							<router-link v-if="iCan('patch','sgdistributedlogs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.data.metadata.name + '/edit'" title="Edit Logs Cluster">
-                               Edit Logs Cluster
+							<router-link v-if="iCan('patch','sgdistributedlogs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.data.metadata.name + '/edit'" title="Edit Logs Server">
+                               Edit Logs Server
                             </router-link>
                             <a v-if="iCan('create','sgdistributedlogs',$route.params.namespace)" @click="cloneCRD('SGDistributedLogs', $route.params.namespace, cluster.data.metadata.name)" class="cloneCRD" title="Clone Logs">
-                                Clone Logs Cluster
+                                Clone Logs Server
                             </a>
                             <a v-if="iCan('delete','sgdistributedlogs',$route.params.namespace)" @click="deleteCRD('sgdistributedlogs',$route.params.namespace, cluster.data.metadata.name, '/' + $route.params.namespace + '/sgdistributedlogs')" title="Delete Configuration" :class="cluster.data.status.clusters.length ? 'disabled' : ''">
-                                Delete Logs Cluster
+                                Delete Logs Server
                             </a>
                             <router-link :to="'/' + $route.params.namespace + '/sgdistributedlogs'" title="Close Details">Close Details</router-link>
 						</template>
@@ -66,10 +66,10 @@
                         <template v-if="!clusters.length">
 							<tr class="no-results">
 								<td :colspan="3" v-if="iCan('create','sgdistributedlogs',$route.params.namespace)">
-                                    No logs clusters have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgdistributedlogs/new'" title="Add New Logs Cluster">create a new one?</router-link>
+                                    No logs servers have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgdistributedlogs/new'" title="Add New Logs Server">create a new one?</router-link>
                                 </td>
                                 <td v-else colspan="3">
-                                    No logs clusters have been found. You don't have enough permissions to create a new one
+                                    No logs servers have been found. You don't have enough permissions to create a new one
                                 </td>
 							</tr>
 						</template>
@@ -91,7 +91,7 @@
                                     <td class="actions">
                                         <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" target="_blank" class="newTab"></router-link>
                                         <router-link v-if="iCan('patch','sgdistributedlogs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.data.metadata.name + '/edit'" title="Edit Configuration" class="editCRD"></router-link>
-                                        <a v-if="iCan('create','sgdistributedlogs',$route.params.namespace)" @click="cloneCRD('SGDistributedLogs', $route.params.namespace, cluster.data.metadata.name)" class="cloneCRD" title="Clone Logs Cluster"></a>
+                                        <a v-if="iCan('create','sgdistributedlogs',$route.params.namespace)" @click="cloneCRD('SGDistributedLogs', $route.params.namespace, cluster.data.metadata.name)" class="cloneCRD" title="Clone Logs Server"></a>
                                         <a v-if="iCan('delete','sgdistributedlogs',$route.params.namespace)" @click="deleteCRD('sgdistributedlogs',$route.params.namespace, cluster.data.metadata.name)" class="delete deleteCRD" title="Delete Configuration" :class="cluster.data.status.clusters.length ? 'disabled' : ''"></a>
                                     </td>
                                 </tr>
@@ -105,7 +105,7 @@
                 </div>
             </template>
             <template v-else>
-                <h2>Logs Cluster Details</h2>
+                <h2>Logs Server Details</h2>
                 <template v-for="cluster in clusters" v-if="cluster.name == $route.params.name">
                     <div class="configurationDetails">
                         <table class="crdDetails">

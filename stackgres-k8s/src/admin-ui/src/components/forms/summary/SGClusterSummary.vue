@@ -276,7 +276,7 @@
                                     <strong class="sectionTitle">Distributed Logs</strong>
                                     <ul>
                                         <li>
-                                            <strong class="label">Logs Cluster:</strong>
+                                            <strong class="label">Logs Server:</strong>
                                             <span class="value">
                                                 <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.data.spec.distributedLogs.sgDistributedLogs" target="_blank">
                                                     {{ cluster.data.spec.distributedLogs.sgDistributedLogs }}
