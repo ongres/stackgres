@@ -446,11 +446,10 @@
 		padding-left: 50px;
 	}
 
-	h3, h4 {
+	#side h3, #side h4 {
 		display: inline-block;
 		margin-bottom: 20px;
 		position: relative;
-		cursor: pointer;
 		text-transform: capitalize;
 	}
 
@@ -779,14 +778,12 @@
 	}
 
 	ul.applications {
-		position: absolute;
-		bottom: 1px;
-		width: 100%;
 		border-top: 1px solid var(--borderColor);
+		border-bottom: 1px solid var(--borderColor);
 	}
 
 	ul.applications .crdName {
-		padding-left: 20px;
+		padding-left: 25px;
 	}
 
 	.collapsed ul.applications .crdName {
