@@ -403,6 +403,14 @@ const routes = [
       conditionalRoute: false
     },
   },
+  { 
+    path: '/:namespace/sgcluster/:name/monitor/:pod/:range', 
+    component: Grafana,
+    name: 'SingleClusterMonitorRange',
+    meta: {
+      conditionalRoute: false
+    },
+  },
   {
     path: '*',
     name: 'NotFound',

@@ -43,7 +43,7 @@
 						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/logs'" title="Distributed Logs" class="logs">Logs</router-link>
 					</li>
 					<li v-if="cluster.data.grafanaEmbedded">
-						<router-link id="grafana-btn" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/monitor'" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
+						<router-link id="grafana-btn" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/monitor'" title="Grafana Dashboard" class="grafana router-link-exact-active">Monitoring</router-link>
 					</li>
 					<li>
 						<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/events'" title="Events" class="events">Events</router-link>
@@ -51,23 +51,20 @@
 				</ul>
 
 				<template v-if="cluster.data.pods.length && grafanaUrl.length">
-					<ul id="timeRange" class="select">
-						<li :class="!timeRange.length ? 'selected' : ''">
-							<strong>Choose time range</strong>
-						</li>
-						<li v-for="time in timeRangeOptions" :class="(timeRange == time.range) ? 'selected' : ''">
-							<a :name="time.range" @click="timeRange = time.range">{{ time.label }}</a>
-						</li>
-					</ul>
+					<select class="plain" id="timeRange" v-model="timeRange" @change="goTo('/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/monitor/' + selectedNode + '/' + timeRange)">
+						<option disabled value=""><strong>Choose time range</strong></option>
+						<option v-for="(time, id) in timeRangeOptions" :value="id">
+							{{ time.label }}
+						</option>
+					</select>
 
-					<ul class="select">
-						<li :class="!$route.params.hasOwnProperty('pod') ? 'selected' : ''">
-							<strong>Choose node</strong>
-						</li>
-						<li v-for="pod in cluster.data.pods" :class="( ($route.params.hasOwnProperty('pod') && ($route.params.pod == pod.ip)) ? 'selected' : '')">
-							<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/monitor/' + pod.ip">{{ pod.name }}</router-link>
-						</li>
-					</ul>
+					<select class="plain" v-model="selectedNode" @change="goTo('/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/monitor/' + selectedNode + '/' + timeRange)">
+						<option disabled value=""><strong>Choose node</strong></option>
+						<option v-for="pod in cluster.data.pods" :value="pod.ip">
+							{{ pod.name }}
+							<template v-if="pod.role == 'primary'"><span>(primary)</span></template>
+						</option>
+					</select>
 				</template>
 			</header>
 
@@ -84,6 +81,7 @@
 </template>
 
 <script>
+	import router from '../router'
 	import store from '../store'
 	import { mixin } from './mixins/mixin'
 
@@ -97,46 +95,89 @@
 
 			return {
 				grafanaUrl: '',
-				timeRange: '',
-				timeRangeOptions: [
-					{ label: 'Last 5 minutes', range: '&from=now-5m&to=now' },
-					{ label: 'Last 15 minutes', range: '&from=now-15m&to=now' },
-					{ label: 'Last 30 minutes', range: '&from=now-30m&to=now' },
-					{ label: 'Last 1 hour', range: '&from=now-1h&to=now' },
-					{ label: 'Last 3 hours', range: '&from=now-3h&to=now' },
-					{ label: 'Last 6 hours', range: '&from=now-6h&to=now' },
-					{ label: 'Last 12 hours', range: '&from=now-12h&to=now' },
-					{ label: 'Last 24 hours', range: '&from=now-24h&to=now' },
-					{ label: 'Last 2 days', range: '&from=now-2d&to=now' },
-					{ label: 'Last 7 days', range: '&from=now-7d&to=now' },
-					{ label: 'Last 30 days', range: '&from=now-30d&to=now' },
-					{ label: 'Last 90 days', range: '&from=now-90d&to=now' },
-					{ label: 'Last 6 months', range: '&from=now-6M&to=now' },
-					{ label: 'Last 1 year', range: '&from=now-1y&to=now' },
-					{ label: 'Last 3 years', range: '&from=now-3y&to=now' },
-					{ label: 'Last 5 years', range: '&from=now-5y&to=now' },
-					{ label: 'Yesterday', range: '&from=now-1d%2Fd&to=now-1d%2Fd' },
-					{ label: 'Day before yesterday', range: '&from=now-2d%2Fd&to=now-2d%2Fd' },
-					{ label: 'This day last week', range: '&from=now-7d%2Fd&to=now-7d%2Fd' },
-					{ label: 'Day before yesterday', range: '&from=now-2d%2Fd&to=now-2d%2Fd' },
-					{ label: 'Previous week', range: '&from=now-1w%2Fw&to=now-1w%2Fw' },
-					{ label: 'Previous month', range: '&from=now-1M%2FM&to=now-1M%2FM' },
-					{ label: 'Previous year', range: '&from=now-1y%2Fy&to=now-1y%2Fy' },
-					{ label: 'Today', range: '&from=now%2Fd&to=now%2Fd' },
-					{ label: 'Today so far', range: '&from=now%2Fd&to=now' },
-					{ label: 'This week', range: '&from=now%2Fw&to=now%2Fw' },
-					{ label: 'This week so far', range: '&from=now%2Fw&to=now' },
-					{ label: 'This month', range: '&from=now%2FM&to=now%2FM' },
-					{ label: 'This month so far', range: '&from=now%2FM&to=now' },
-					{ label: 'This year', range: '&from=now%2Fy&to=now%2Fy' },
-					{ label: 'This year so far', range: '&from=now%2Fy&to=now' }
-				]
+				timeRange: this.$route.params.hasOwnProperty('range') ? this.$route.params.range : '',
+				timeRangeOptions: {
+					'last-5-minutes': { label: 'Last 5 minutes', range: '&from=now-5m&to=now' },
+					'last-15-minutes': { label: 'Last 15 minutes', range: '&from=now-15m&to=now' },
+					'last-30-minutes': { label: 'Last 30 minutes', range: '&from=now-30m&to=now' },
+					'last-1-hour': { label: 'Last 1 hour', range: '&from=now-1h&to=now' },
+					'last-3-hours': { label: 'Last 3 hours', range: '&from=now-3h&to=now' },
+					'last-6-hours': { label: 'Last 6 hours', range: '&from=now-6h&to=now' },
+					'last-12-hours': { label: 'Last 12 hours', range: '&from=now-12h&to=now' },
+					'last-24-hours': { label: 'Last 24 hours', range: '&from=now-24h&to=now' },
+					'last-2-days': { label: 'Last 2 days', range: '&from=now-2d&to=now' },
+					'last-7-days': { label: 'Last 7 days', range: '&from=now-7d&to=now' },
+					'last-30-days': { label: 'Last 30 days', range: '&from=now-30d&to=now' },
+					'last-90-days': { label: 'Last 90 days', range: '&from=now-90d&to=now' },
+					'last-6-months': { label: 'Last 6 months', range: '&from=now-6M&to=now' },
+					'last-1-year': { label: 'Last 1 year', range: '&from=now-1y&to=now' },
+					'last-3-years': { label: 'Last 3 years', range: '&from=now-3y&to=now' },
+					'last-5-years': { label: 'Last 5 years', range: '&from=now-5y&to=now' },
+					'yesterday': { label: 'Yesterday', range: '&from=now-1d%2Fd&to=now-1d%2Fd' },
+					'day-before-yesterday': { label: 'Day before yesterday', range: '&from=now-2d%2Fd&to=now-2d%2Fd' },
+					'this-day-last-week': { label: 'This day last week', range: '&from=now-7d%2Fd&to=now-7d%2Fd' },
+					'day-before-yesterday': { label: 'Day before yesterday', range: '&from=now-2d%2Fd&to=now-2d%2Fd' },
+					'previous-week': { label: 'Previous week', range: '&from=now-1w%2Fw&to=now-1w%2Fw' },
+					'previous-month': { label: 'Previous month', range: '&from=now-1M%2FM&to=now-1M%2FM' },
+					'previous-year': { label: 'Previous year', range: '&from=now-1y%2Fy&to=now-1y%2Fy' },
+					'today': { label: 'Today', range: '&from=now%2Fd&to=now%2Fd' },
+					'today-so-far': { label: 'Today so far', range: '&from=now%2Fd&to=now' },
+					'this-week': { label: 'This week', range: '&from=now%2Fw&to=now%2Fw' },
+					'this-week-so-far': { label: 'This week so far', range: '&from=now%2Fw&to=now' },
+					'this-month': { label: 'This month', range: '&from=now%2FM&to=now%2FM' },
+					'this-month-so-far': { label: 'This month so far', range: '&from=now%2FM&to=now' },
+					'this-year': { label: 'This year', range: '&from=now%2Fy&to=now%2Fy' },
+					'this-year-so-far': { label: 'This year so far', range: '&from=now%2Fy&to=now' }
+				},
+				selectedNode: this.$route.params.hasOwnProperty('pod') ? this.$route.params.pod : ''
 			}
 		},
 		
 		computed: {
 
 			clusters () {
+				let vc = this;
+
+				// Read Grafana URL
+				if(!vc.$route.params.hasOwnProperty('pod')) {
+
+					let cluster = store.state.clusters.find(c => ((vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name)));
+					if(typeof cluster != 'undefined') {
+						let primaryNode = cluster.data.pods.find(p => (p.role == 'primary'));
+
+						if(typeof primaryNode != 'undefined') {
+							if(vc.$route.path.endsWith('/'))
+								router.replace(vc.$route.path + primaryNode.ip)
+							else 
+								router.replace(vc.$route.path + '/' + primaryNode.ip)
+						}
+					}
+				} else {
+					$.get("/grafana")
+					.done(function( data, textStatus, jqXHR ) {
+						
+						if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
+							let url = data;
+							url += (url.includes('?') ? '&' : '?') + 'theme=' + vc.theme + vc.timeRange + '&kiosk&var-instance=';
+
+							$.get(url)
+							.done(function(data, textStatus, jqXHR) {
+								vc.grafanaUrl = url;
+							})
+							.fail(function( jqXHR, textStatus, errorThrown ) {
+								vc.notifyGrafanaError();
+							});
+						} else {
+							vc.notifyGrafanaError();
+						}
+					})
+					.fail(function( jqXHR, textStatus, errorThrown ) {
+						if(textStatus == 'error') {
+							vc.notifyGrafanaError();
+						}       
+					})
+				}
+
 				return store.state.clusters
 			},
 
@@ -147,34 +188,6 @@
 		},
 
 		mounted: function() {
-			
-			// Read Grafana URL
-			let vc = this;
-			let url = '';
-
-			$.get("/grafana")
-			.done(function( data, textStatus, jqXHR ) {
-
-				if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
-					url = data;
-					url += (url.includes('?') ? '&' : '?') + 'theme=' + vc.theme + vc.timeRange + '&kiosk&var-instance=';
-
-					$.get(url)
-					.done(function(data, textStatus, jqXHR) {
-						vc.grafanaUrl = url;
-					})
-					.fail(function( jqXHR, textStatus, errorThrown ) {
-						vc.notifyGrafanaError();
-					});
-				} else {
-					vc.notifyGrafanaError();
-				}
-			})
-			.fail(function( jqXHR, textStatus, errorThrown ) {
-				if(textStatus == 'error') {
-					vc.notifyGrafanaError();
-				}       
-			});
 
 		},
 		
@@ -189,49 +202,49 @@
 				},'error')
 				$('#grafana').remove();
 			}
-
 		}
 	}
 </script>
 
 <style scoped>
-	header ul.select {
+	header select {
 		position: absolute;
 		right: 0;
 		top: 102px;
 		background-position-x: 90%;
 		width: 160px;
+		text-align: left;
 	}
 
-	header ul.select.active {
+	header select.active {
 		background-color: var(--bgColor) !important;
 	}
 
-	ul.select li.selected {
+	select li.selected {
 		padding: 0;
 	}
 
-	ul.select.active li.selected a {
+	select.active li.selected a {
 		background: var(--borderColor);
 	}
 
-	ul.select.active li:first-child {
+	select.active li:first-child {
 		border-bottom: 1px solid var(--blue);
 	}
 
-	ul.select.active li.selected {
+	select.active li.selected {
 		border: 0;
 	}
 
-	ul.select:not(.active) a:hover {
+	select:not(.active) a:hover {
 		background: transparent;
 	}
 
-	ul#timeRange {
+	#timeRange {
 		right: 170px;
 	}
 
-	ul#timeRange.active {
+	#timeRange.active {
 	    max-height: 40vh;
 		overflow-y: auto;
 		width: auto;
