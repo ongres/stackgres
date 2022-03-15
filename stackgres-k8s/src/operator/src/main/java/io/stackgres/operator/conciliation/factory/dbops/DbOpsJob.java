@@ -27,9 +27,9 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.DbOpsUtil;
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
@@ -98,8 +98,7 @@ public abstract class DbOpsJob implements JobFactory {
   protected abstract ClusterStatefulSetPath getRunScript();
 
   protected String getSetResultImage(StackGresDbOpsContext context) {
-    return StackGresComponent.KUBECTL.get(context.getCluster())
-        .findLatestImageName();
+    return KubectlUtil.fromClient().getImageName(context.getCluster());
   }
 
   protected ClusterStatefulSetPath getSetResultScript() {
@@ -266,8 +265,7 @@ public abstract class DbOpsJob implements JobFactory {
                 .build(),
             new ContainerBuilder()
                 .withName("set-dbops-result")
-                .withImage(StackGresComponent.KUBECTL.get(context.getCluster())
-                    .findLatestImageName())
+                .withImage(KubectlUtil.fromClient().getImageName(context.getCluster()))
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterEnvironmentVariables

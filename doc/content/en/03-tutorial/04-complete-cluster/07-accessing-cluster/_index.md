@@ -12,7 +12,7 @@ StackGres creates, by default, two Kubernetes services to expose the Postgres cl
 Previously, we connected to the Postgres server by executing `psql` from the `postgres-util` container. That's fine for administration purposes, but users of the database will likely connect via the Postgres protocol from other pods. For this, they will use these services as the endpoint to which to connect. You could use here any application that supports Postgres. For the purpose of this lab, we will again use `psql`, but run from a separate pod that will contain a container that in turn contains `psql`. For example, the very same `postgres-util` container of the StackGres project --but run externally to the StackGres cluster, as a separate pod. Run:
 
 ```
-$ kubectl -n demo run psql --rm -it --image ongres/postgres-util:v14.0-build-6.6 --restart=Never -- psql -h cluster-primary postgres postgres
+$ kubectl -n demo run psql --rm -it --image ongres/postgres-util --restart=Never -- psql -h cluster-primary postgres postgres
 ```
 
 It will ask for a password. Probably you don't need it, so let it fail (e.g. type any password). It will abort. This time we're connecting via Postgres wire protocol, and StackGres configures Postgres to require authentication. The `postgres` (superuser account in Postgres) password is generated randomly when the cluster is created. You can retrieve it from the appropriate secret, named as the cluster, and obtaining the key `"superuser-password"` (note the quoting, it is required as it is using a dash).
@@ -33,7 +33,7 @@ $ PGPASSWORD=$(kubectl -n demo get secret distributedlogs --template '{{ printf 
 ```
 
 ```
-$ kubectl -n demo run psql --env $PGPASSWORD --rm -it --image ongres/postgres-util:v14.0-build-6.6 --restart=Never -- psql -h distributedlogs-primary postgres postgres
+$ kubectl -n demo run psql --env $PGPASSWORD --rm -it --image ongres/postgres-util --restart=Never -- psql -h distributedlogs-primary postgres postgres
 ```
 
 Now that we're in `psql`, we can query the logs with SQL. Let's do that! The following sequence of commands will allow you to list the databases (there will be one per every cluster that is sending logs to this distributed logs server, named `$namespace_$cluster`), connect to the database for our current cluster, count the Postgres log entries, describe the logs table and select all logs of type `ERROR` (you can generate such logs, if you don't have any, by typing any SQL error into the SQL console --of the source cluster, not this one; bear in mind that logs take a few seconds to propagate, may not appear instantly).

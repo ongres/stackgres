@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -92,8 +92,7 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
     return
         new ContainerBuilder()
             .withName("reset-patroni")
-            .withImage(StackGresComponent.KUBECTL.get(clusterContext.getCluster())
-                .findLatestImageName())
+            .withImage(KubectlUtil.fromClient().getImageName(clusterContext.getCluster()))
             .withImagePullPolicy("IfNotPresent")
             .withCommand("/bin/sh", "-ex",
                 ClusterStatefulSetPath.TEMPLATES_PATH.path()

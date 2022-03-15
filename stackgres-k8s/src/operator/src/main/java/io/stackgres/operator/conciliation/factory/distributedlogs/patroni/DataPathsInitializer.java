@@ -11,7 +11,7 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
@@ -28,8 +28,8 @@ public class DataPathsInitializer implements ContainerFactory<DistributedLogsCon
   public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
         .withName("setup-data-paths")
-        .withImage(StackGresComponent.KUBECTL.get(context.getDistributedLogsContext().getSource())
-            .findLatestImageName())
+        .withImage(KubectlUtil.fromClient()
+            .getImageName(context.getDistributedLogsContext().getSource()))
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()

@@ -16,7 +16,7 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
@@ -40,8 +40,7 @@ public class InitPgBouncerAuthFile implements ContainerFactory<StackGresClusterC
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName("pgbouncer-auth-file")
-        .withImage(StackGresComponent.KUBECTL.get(context.getClusterContext().getCluster())
-            .findLatestImageName())
+        .withImage(KubectlUtil.fromClient().getImageName(context.getClusterContext().getCluster()))
         .withCommand("/bin/sh", "-exc",
             ""
                 + "test -f \"" + PGBOUNCER_ADMIN_PASSWORD_PATH + "\"\n"

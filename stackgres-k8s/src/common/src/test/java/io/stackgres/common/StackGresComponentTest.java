@@ -43,10 +43,11 @@ class StackGresComponentTest {
   @ParameterizedTest
   @EnumSource(StackGresComponent.class)
   void getAllBuildVersions_shouldNotFail(StackGresComponent component) {
+    Comparator<String> order = Component::compareBuildVersions;
     component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
         .forEach(c -> {
           assertThat(c.getOrderedBuildVersions().stream()).isNotEmpty();
-          assertThat(c.getOrderedBuildVersions().stream()).isInOrder(Comparator.reverseOrder());
+          assertThat(c.getOrderedBuildVersions().stream()).isInOrder(order.reversed());
         });
   }
 
