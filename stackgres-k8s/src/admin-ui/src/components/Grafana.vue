@@ -70,7 +70,7 @@
 
 			<div class="content grafana">
 				<template v-if="cluster.data.pods.length">
-					<iframe v-if="grafanaUrl.length" :src="(($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? grafanaUrl+$route.params.pod : grafanaUrl+cluster.data.pods[0].ip) + timeRange" id="grafana"></iframe>
+					<iframe v-if="grafanaUrl.length" :src="(grafanaUrl + (($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? $route.params.pod : selectedNode) + ($route.params.hasOwnProperty('range') ? timeRangeOptions[timeRange].range : ''))" id="grafana"></iframe>
 				</template>
 				<div v-else class="no-data">
 					No pods yet available
