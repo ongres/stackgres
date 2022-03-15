@@ -6,10 +6,10 @@
     - build helm templates
   variables:
     IMAGE_TAG_SUFFIX: ""
-    E2E_SUFFIX: ""
+    E2E_JOB: ""
     IS_NATIVE: "false"
     IS_WEB: "false"
-  timeout: 12 hour
+  timeout: 1 hour
   dependencies:
     - build
   script:
@@ -49,10 +49,10 @@
 .e2e tests jvm amd64:
   extends: .e2e tests
   tags:
-    - stackgres-runner-v2
+    - stackgres-e2e-runner
     - linux-amd64
   variables:
-    E2E_SUFFIX: "jvm-image"
+    E2E_JOB: "jvm-image"
     IMAGE_TAG_SUFFIX: "-jvm"
   only:
     variables:
@@ -66,10 +66,10 @@
 .e2e tests native amd64:
   extends: .e2e tests
   tags:
-    - stackgres-runner-v2
+    - stackgres-e2e-runner
     - linux-amd64
   variables:
-    E2E_SUFFIX: "native-image"
+    E2E_JOB: "native-image"
     IMAGE_TAG_SUFFIX: ""
     IS_NATIVE: "true"
   only:
@@ -328,10 +328,10 @@ e2e ui tests native amd64:
 .e2e tests jvm arm64:
   extends: .e2e tests
   tags:
-    - stackgres-runner-v2
+    - stackgres-e2e-runner
     - linux-arm64
   variables:
-    E2E_SUFFIX: "jvm-image"
+    E2E_JOB: "jvm-image"
     IMAGE_TAG_SUFFIX: "-jvm"
   only:
     variables:
@@ -346,10 +346,10 @@ e2e ui tests native amd64:
 .e2e tests native arm64:
   extends: .e2e tests
   tags:
-    - stackgres-runner-v2
+    - stackgres-e2e-runner
     - linux-arm64
   variables:
-    E2E_SUFFIX: "native-image"
+    E2E_JOB: "native-image"
     IMAGE_TAG_SUFFIX: ""
     IS_NATIVE: "true"
   only:

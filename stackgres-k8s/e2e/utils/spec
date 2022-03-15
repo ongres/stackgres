@@ -478,6 +478,7 @@ get_already_passed_tests() {
 store_test_results() {
   [ -n "$E2E_TEST_REGISTRY" ] \
     && [ -n "$E2E_TEST_REGISTRY_PATH" ] \
+    && [ -n "$E2E_SUFFIX" ] \
     && true || false
 
   cat << EOF > "$TARGET_PATH/Dockerfile.e2e"
@@ -489,7 +490,7 @@ EOF
   SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform)"
   # shellcheck disable=SC2046
   docker build -f "$TARGET_PATH/Dockerfile.e2e" \
-    -t "$E2E_TEST_REGISTRY/$E2E_TEST_REGISTRY_PATH/e2e-test-result$SUFFIX:$IMAGE_TAG-$SPEC_PLATFORM" \
+    -t "$E2E_TEST_REGISTRY/$E2E_TEST_REGISTRY_PATH/e2e-test-result$E2E_SUFFIX:$IMAGE_TAG-$SPEC_PLATFORM" \
     $(
       while read -r TEST_NAME
       do
@@ -499,7 +500,7 @@ EOF
       done < "$TARGET_PATH/passed-tests"
     ) \
     "$TARGET_PATH"
-  docker push "$E2E_TEST_REGISTRY/$E2E_TEST_REGISTRY_PATH/e2e-test-result$SUFFIX:$IMAGE_TAG-$SPEC_PLATFORM"
+  docker push "$E2E_TEST_REGISTRY/$E2E_TEST_REGISTRY_PATH/e2e-test-result$E2E_SUFFIX:$IMAGE_TAG-$SPEC_PLATFORM"
   while read -r TEST_NAME
   do
     IMAGE_NAME="$(grep "^$TEST_NAME=" "$TARGET_PATH/test-result-images" \
