@@ -121,6 +121,64 @@
                         </td>
                     </tr>
                     <tr>
+                        <td class="label" :rowspan="( Object.keys(cluster.data.spec.replication).length + (cluster.data.spec.replication.hasOwnProperty('groups') && (cluster.data.spec.replication.groups.length - 1) ) )">
+                            Replication
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication')"></span>
+                        </td>
+                        <td class="label">
+                            Role
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.role')"></span>
+                        </td>
+                        <td colspan="2">
+                            {{ cluster.data.spec.replication.role }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            Mode
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.mode')"></span>
+                        </td>
+                        <td colspan="2">
+                            {{ cluster.data.spec.replication.mode }}
+                        </td>
+                    </tr>
+                    <tr v-if="cluster.data.spec.replication.hasOwnProperty('syncNodeCount')">
+                        <td class="label">
+                            Sync Node Count
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.syncNodeCount')"></span>
+                        </td>
+                        <td colspan="2">
+                            {{ cluster.data.spec.replication.syncNodeCount }}
+                        </td>
+                    </tr>
+                    <template v-if="cluster.data.spec.replication.hasOwnProperty('groups')">
+                        <tr v-for="(group, index) in cluster.data.spec.replication.groups">
+                            <td
+                                class="label"
+                                :rowspan="cluster.data.spec.replication.groups.length"
+                                v-if="!index">
+                                Groups
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.groups')"></span>
+                            </td>
+                            <td>
+                                Group #{{ index+1 }}
+                            </td>
+                            <td>
+                                <ul class="tableCells">
+                                    <li v-for="(value, key) in group">
+                                        <span class="label capitalize">
+                                            {{ key }}
+                                        </span>
+                                        <span>
+                                            {{ value }}
+                                        </span>
+                                    </li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </template>
+                    
+                    <tr>
                         <td class="label">
                             Prometheus Autobind
                             <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.prometheusAutobind')"></span>

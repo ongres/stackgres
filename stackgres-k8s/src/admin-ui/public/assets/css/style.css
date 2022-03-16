@@ -3460,6 +3460,34 @@ table.backups .details > td {
     vertical-align: top;
 }
 
+td ul.tableCells {
+    list-style: none;
+    margin: -10px;
+}
+
+td ul.tableCells li:not(:last-child) {
+    border-bottom: 1px solid var(--borderColor);
+}
+
+td ul.tableCells li span {
+    padding: 10px;
+    width: 50%;
+    display: inline-block;
+}
+
+td ul.tableCells li span.label {
+    font-weight: bold;
+    border-right: 1px solid var(--borderColor);
+}
+
+tr:nth-child(odd) ul.tableCells li:nth-child(odd), tr:nth-child(even) ul.tableCells li:nth-child(even) {
+    background: var(--activeBg);
+}
+
+tr:nth-child(odd) ul.tableCells li:nth-child(even), tr:nth-child(odd) ul.tableCells li:nth-child(even) {
+    background: var(--bgColor);
+}
+
 /* Table Filters */
 .toolbar {
     font-size: 12px;
@@ -4978,7 +5006,7 @@ fieldset.accordion .fields {
     display: flex;
 }
 
-.fieldsetFooter.topBorder {
+.header + .fieldsetFooter, .fieldsetFooter.topBorder {
     border-top: 1px solid var(--borderColor);
     border-radius: 5px;
 }

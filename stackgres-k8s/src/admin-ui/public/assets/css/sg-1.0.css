@@ -609,7 +609,6 @@ ul.steps li {
     text-align: center;
     margin: 0 7px;
     text-transform: capitalize;
-    min-width: 70px;
     cursor: pointer;
 }
 

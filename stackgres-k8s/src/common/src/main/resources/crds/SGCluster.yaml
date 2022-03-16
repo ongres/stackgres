@@ -159,7 +159,12 @@ spec:
                 replication:
                   type: object
                   description: |
-                    This section allow to configure Postgres replication and HA roles
+                    This section allow to configure Postgres replication mode and HA roles groups.
+
+                    The main replication group is implicit and contains the total number of instances less the sum of all
+                     instances in other replication groups.
+
+                    The total number of instances is always specified by `.spec.instances`.
                   properties:
                     mode:
                       type: string
@@ -168,7 +173,7 @@ spec:
                         Possible values are:
                         * `ASYNC` (default)
                         * `SYNC`
-                        * `SYNC_STRICT`
+                        * `STRICT_SYNC`
                         
                         ### `ASYNC` Mode
                         
@@ -198,7 +203,7 @@ spec:
                          mode. Manually shutting down or restarting a standby will not cause a commit service interruption. Standby will
                          signal the primary to release itself from synchronous standby duties before PostgreSQL shutdown is initiated.
                         
-                        ### `SYNC_STRICT` Mode
+                        ### `STRICT_SYNC` Mode
                         
                         When it is absolutely necessary to guarantee that each write is stored durably on at least two nodes, use the strict
                          synchronous mode. This mode prevents synchronous replication to be switched off on the primary when no synchronous
@@ -218,16 +223,19 @@ spec:
                         * `HA_READ` (default)
                         * `HA`
                         The primary instance will be elected among all the replication groups that are either `HA` or `HA_READ`.
-                        Only if the role is set to `READONLY` or `HA_READ` instances of such replication group will be exposed via the replicas service.
+                        Only if the role is set to `HA_READ` instances of main replication group will be exposed via the replicas service.
                     syncNodeCount:
                       type: integer
                       minimum: 1
                       description: |
-                        Number of synchronous standby instances. It is set to 1 by default. Only setteable if mode is `SYNC` or `SYNC_STRICT`.
+                        Number of synchronous standby instances. Must be less than the total number of instances. It is set to 1 by default.
+                         Only setteable if mode is `SYNC` or `STRICT_SYNC`.
                     groups:
                       type: array
                       description: |
-                        StackGres support replication groups where a group of a specified number of instances could have different replication role.
+                        StackGres support replication groups where a replication group of a specified number of instances could have different
+                         replication role. The main replication group is implicit and contains the total number of instances less the sum of all
+                         instances in other replication groups.
                       items:
                         type: object
                         properties:
@@ -242,6 +250,7 @@ spec:
                               * `HA_READ`
                               * `HA`
                               * `READONLY`
+                              * `NONE`
                               The primary instance will be elected among all the replication groups that are either `HA` or `HA_READ`.
                               Only if the role is set to `READONLY` or `HA_READ` instances of such replication group will be exposed via the replicas service.
                           instances:
@@ -251,8 +260,8 @@ spec:
                             description: |
                               Number of StackGres instances for this replication group.
                               
-                              The total number of instance of a cluster is always `.spec.instances` and at least 1 instance must always be present in any
-                               replication group with the role of `HA` or `HA_READ`.
+                              The total number of instance of a cluster is always `.spec.instances`. The sum of the instances in the replication group must be
+                               less than the total number of instances.
                         required: ["role", "instances"]
                 sgInstanceProfile:
                   type: string

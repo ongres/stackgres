@@ -76,6 +76,10 @@ describe('Create SGCluster', () => {
         cy.get('input[data-field="metadata.name"]')
             .type('advanced-' + resourceName)
         
+        // Test instances
+        cy.get('select[data-field="spec.instances"]')
+            .select('4')
+        
         // Test Volume Size
         cy.get('input[data-field="spec.pods.persistentVolume.size"]')
             .clear()
@@ -102,6 +106,45 @@ describe('Create SGCluster', () => {
 
         cy.get('input[data-field="spec.prometheusAutobind"]')
             .click()
+
+        // Test Replication
+        cy.get('form#createCluster li[data-step="replication"]')
+            .click()
+        
+        cy.get('select[data-field="spec.replication.role"]')
+            .select('HA')
+        
+        cy.get('select[data-field="spec.replication.mode"]')
+            .select('SYNC')
+
+        cy.get('input[data-field="spec.replication.syncNodeCount"]')
+            .clear()
+            .type('2')
+
+        cy.get('[data-group="replication-group-0"] input[data-field="spec.replication.groups.name"]')
+            .clear()
+            .type('group-0')
+        
+        cy.get('[data-group="replication-group-0"] select[data-field="spec.replication.groups.role"]')
+            .select('READONLY')
+        
+        cy.get('[data-group="replication-group-0"] input[data-field="spec.replication.groups.instances"]')
+            .clear()
+            .type('1')
+        
+        cy.get('[data-add="spec.replication.groups"]')
+            .click()
+
+        cy.get('[data-group="replication-group-1"] input[data-field="spec.replication.groups.name"]')
+            .clear()
+            .type('group-1')
+        
+        cy.get('[data-group="replication-group-1"] select[data-field="spec.replication.groups.role"]')
+            .select('NONE')
+        
+        cy.get('[data-group="replication-group-1"] input[data-field="spec.replication.groups.instances"]')
+            .clear()
+            .type('1')
 
         // Test Postgres Services types
         cy.get('form#createCluster li[data-step="services"]')
