@@ -144,6 +144,7 @@ reconcile_backups() {
 get_backup_crs() {
   BACKUP_CR_TEMPLATE="{{ range .items }}"
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}{{ .spec.sgCluster }}"
+  BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}:{{ .metadata.namespace }}"
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}:{{ .metadata.name }}"
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}:{{ with .status.process.status }}{{ . }}{{ end }}"
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}:{{ with .status.internalName }}{{ . }}{{ end }}"
@@ -153,8 +154,17 @@ get_backup_crs() {
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}:{{ if .status.process.managedLifecycle }}true{{ else }}false{{ end }}"
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}{{ printf "'"\n"'" }}{{ end }}"
   kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
-    --template="$BACKUP_CR_TEMPLATE" > /tmp/all-backups
-  grep "^$CLUSTER_NAME:" /tmp/all-backups > /tmp/backups || true
+    --template="$BACKUP_CR_TEMPLATE" > /tmp/all-backups-in-namespace
+  grep "^$CLUSTER_NAME:" /tmp/all-backups-in-namespace > /tmp/backups-in-namespace || true
+  true > /tmp/all-backups
+  local CLUSTER_BACKUP_NAMESPACE
+  for CLUSTER_BACKUP_NAMESPACE in $CLUSTER_BACKUP_NAMESPACES
+  do
+    kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_BACKUP_NAMESPACE" \
+      --template="$BACKUP_CR_TEMPLATE" >> /tmp/all-backups || true
+  done
+  grep "^$CLUSTER_NAMESPACE.$CLUSTER_NAME:" /tmp/all-backups > /tmp/backups-out-of-namespace || true
+  cat /tmp/backups-in-namespace /tmp/backups-out-of-namespace > /tmp/backups
 }
 
 create_or_update_backup_cr() {
@@ -363,7 +373,7 @@ exec-with-env "$BACKUP_ENV" \\
       # if is not the created backup and is not in backup CR list, mark as impermanent
       if [ "\$BACKUP_NAME" != "$CURRENT_BACKUP_NAME" ] \\
         && ! echo '$(cat /tmp/backups)' \\
-        | cut -d : -f 4 \\
+        | cut -d : -f 5 \\
         | grep -v '^\$' \\
         | grep -q "^\$BACKUP_NAME\$"
       then
@@ -389,8 +399,8 @@ exec-with-env "$BACKUP_ENV" \\
       then
         # ... and has a managed lifecycle, mark as impermanent
         if echo '$(cat /tmp/backups)' \\
-          | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
-          | cut -d : -f 4 \\
+          | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+          | cut -d : -f 5 \\
           | grep -v '^\$' \\
           | grep -q "^\$BACKUP_NAME\$" \\
           && echo "\$BACKUP" | grep -q "\\"is_permanent\\":true"
@@ -400,8 +410,8 @@ exec-with-env "$BACKUP_ENV" \\
             -- wal-g backup-mark -i "\$BACKUP_NAME"
         # ... and has not a managed lifecycle, mark as permanent
         elif echo '$(cat /tmp/backups)' \\
-          | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
-          | cut -d : -f 4 \\
+          | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+          | cut -d : -f 5 \\
           | grep -v '^\$' \\
           | grep -q "^\$BACKUP_NAME\$" \\
           && echo "\$BACKUP" | grep -q "\\"is_permanent\\":false"
@@ -431,8 +441,8 @@ exec-with-env "$BACKUP_ENV" \\
       # if is the created backup and has a managed lifecycle, mark as impermanent
       if [ "\$BACKUP_NAME" = "$CURRENT_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
         || (echo '$(cat /tmp/backups)' \\
-        | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
-        | cut -d : -f 4 \\
+        | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+        | cut -d : -f 5 \\
         | grep -v '^\$' \\
         | grep -q "^\$BACKUP_NAME\$" \\
         && echo "\$BACKUP" | grep -q "\\"is_permanent\\":true")
@@ -442,8 +452,8 @@ exec-with-env "$BACKUP_ENV" \\
           -- wal-g backup-mark -i "\$BACKUP_NAME"
       # if has not a managed lifecycle, mark as permanent
       elif echo '$(cat /tmp/backups)' \\
-        | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
-        | cut -d : -f 4 \\
+        | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+        | cut -d : -f 5 \\
         | grep -v '^\$' \\
         | grep -q "^\$BACKUP_NAME\$" \\
         && echo "\$BACKUP" | grep -q "\\"is_permanent\\":false"
@@ -522,14 +532,15 @@ reconcile_backup_crs() {
     > /tmp/pods
   for BACKUP in $(cat /tmp/backups)
   do
-    BACKUP_CR_NAME="$(echo "$BACKUP" | cut -d : -f 2)"
-    BACKUP_PHASE="$(echo "$BACKUP" | cut -d : -f 3)"
-    BACKUP_NAME="$(echo "$BACKUP" | cut -d : -f 4)"
-    BACKUP_POD="$(echo "$BACKUP" | cut -d : -f 5)"
-    BACKUP_SHEDULED_BACKUP="$(echo "$BACKUP" | cut -d : -f 6)"
-    BACKUP_MANAGED_LIFECYCLE="$(echo "$BACKUP" | cut -d : -f 8)"
+    BACKUP_CR_NAMESPACE="$(echo "$BACKUP" | cut -d : -f 2)"
+    BACKUP_CR_NAME="$(echo "$BACKUP" | cut -d : -f 3)"
+    BACKUP_PHASE="$(echo "$BACKUP" | cut -d : -f 4)"
+    BACKUP_NAME="$(echo "$BACKUP" | cut -d : -f 5)"
+    BACKUP_POD="$(echo "$BACKUP" | cut -d : -f 6)"
+    BACKUP_SHEDULED_BACKUP="$(echo "$BACKUP" | cut -d : -f 7)"
+    BACKUP_MANAGED_LIFECYCLE="$(echo "$BACKUP" | cut -d : -f 9)"
     BACKUP_IS_PERMANENT="$([ "$BACKUP_MANAGED_LIFECYCLE" = true ] && echo false || echo true)"
-    BACKUP_CONFIG="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CR_NAME" \
+    BACKUP_CONFIG="$(kubectl get "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" \
       --template="{{ .status.sgBackupConfig.storage }}")"
     # if backup CR has backup internal name, is marked as completed, uses the same current
     # backup config but is not found in the storage, delete it
@@ -538,7 +549,7 @@ reconcile_backup_crs() {
       && ! grep -q "\"backup_name\":\"$BACKUP_NAME\"" /tmp/existing-backups
     then
       echo "Deleting backup CR $BACKUP_CR_NAME since backup does not exists"
-      kubectl delete "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CR_NAME"
+      kubectl delete "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME"
     # if backup CR is a scheduled backup, is marked as running, has no pod or pod
     # has been terminated, delete it
     elif [ "$BACKUP_SHEDULED_BACKUP" = "$RIGHT_VALUE" ] \
@@ -546,7 +557,7 @@ reconcile_backup_crs() {
       && ([ -z "$BACKUP_POD" ] || ! grep -q "^$BACKUP_POD$" /tmp/pods)
     then
       echo "Deleting backup CR $BACKUP_CR_NAME since backup is running but pod does not exists"
-      kubectl delete "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CR_NAME"
+      kubectl delete "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME"
     # if backup CR has backup internal name, is marked as completed, and is marked as
     # stored as not managed lifecycle or managed lifecycle and is found as managed lifecycle or
     # not managed lifecycle respectively, then mark it as stored as managed lifecycle or
@@ -565,7 +576,7 @@ reconcile_backup_crs() {
         IS_BACKUP_SUBJECT_TO_RETENTION_POLICY="true"
       fi
       echo "Updating backup CR $BACKUP_CR_NAME .status.process.managedLifecycle to $IS_BACKUP_SUBJECT_TO_RETENTION_POLICY since was updated in the backup"
-      kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CR_NAME" --type json --patch '[
+      kubectl patch "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" --type json --patch '[
         {"op":"replace","path":"/status/process/managedLifecycle","value":'$IS_BACKUP_SUBJECT_TO_RETENTION_POLICY'}
         ]'
     fi

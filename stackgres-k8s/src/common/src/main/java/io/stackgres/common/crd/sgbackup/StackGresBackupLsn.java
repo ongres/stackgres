@@ -15,19 +15,10 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackgresBackupTiming {
+public class StackGresBackupLsn {
 
   private String start;
   private String end;
-  private String stored;
-
-  public String getStored() {
-    return stored;
-  }
-
-  public void setStored(String stored) {
-    this.stored = stored;
-  }
 
   public String getStart() {
     return start;
@@ -47,7 +38,7 @@ public class StackgresBackupTiming {
 
   @Override
   public int hashCode() {
-    return Objects.hash(end, start, stored);
+    return Objects.hash(end, start);
   }
 
   @Override
@@ -55,17 +46,15 @@ public class StackgresBackupTiming {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackgresBackupTiming)) {
+    if (!(obj instanceof StackGresBackupLsn)) {
       return false;
     }
-    StackgresBackupTiming other = (StackgresBackupTiming) obj;
-    return Objects.equals(end, other.end) && Objects.equals(start, other.start)
-        && Objects.equals(stored, other.stored);
+    StackGresBackupLsn other = (StackGresBackupLsn) obj;
+    return Objects.equals(end, other.end) && Objects.equals(start, other.start);
   }
 
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
-
 }

@@ -51,7 +51,7 @@ spec:
               properties:
                 name:
                   type: string
-                  maxLength: 56
+                  maxLength: 51
                   pattern: "^[a-z]([-a-z0-9]*[a-z0-9])?$"
                   description: |
                     Name of the backup. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
@@ -64,10 +64,16 @@ spec:
                   type: string
                   description: |
                     The name of the `SGCluster` from which this backup is/will be taken.
+
+                    If this is a copy of an existing completed backup in a different namespace
+                     the value must be prefixed with the namespace of the source backup and a
+                     dot `.` (e.g. `<cluster namespace>.<cluster name>`) or have the same value
+                     if the source backup is also a copy.
                 managedLifecycle:
                   type: boolean
                   description: |
-                    Indicate if this backup is permanent and should not be removed by the automated retention policy.
+                    Indicate if this backup is permanent and should not be removed by the automated
+                     retention policy. Default is `false`.
             status:
               type: object
               properties:

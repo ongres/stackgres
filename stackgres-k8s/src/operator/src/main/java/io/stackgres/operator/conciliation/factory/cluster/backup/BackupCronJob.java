@@ -49,7 +49,6 @@ import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniRoleGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +131,7 @@ public class BackupCronJob
             .withNewSpec()
             .withSecurityContext(podSecurityFactory.createResource(context))
             .withRestartPolicy("OnFailure")
-            .withServiceAccountName(PatroniRoleGenerator.roleName(context))
+            .withServiceAccountName(BackupCronRole.roleName(context))
             .withContainers(new ContainerBuilder()
                 .withName("create-backup")
                 .withImage(StackGresComponent.KUBECTL.get(cluster).findLatestImageName())
@@ -233,6 +232,11 @@ public class BackupCronJob
                                             .withFieldPath("metadata.name")
                                             .build())
                                     .build())
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("CLUSTER_BACKUP_NAMESPACES")
+                            .withValue(context.getClusterBackupNamespaces()
+                                .stream().collect(Collectors.joining(" ")))
                             .build(),
                         new EnvVarBuilder()
                             .withName("RETAIN")

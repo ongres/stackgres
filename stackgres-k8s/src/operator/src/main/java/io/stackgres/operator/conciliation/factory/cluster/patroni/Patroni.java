@@ -38,6 +38,9 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -130,7 +133,11 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
     ResourceRequirements podResources = requirementsFactory
         .createResource(clusterContext);
 
-    final String startScript = clusterContext.getRestoreBackup().isPresent()
+    final String startScript = Optional
+        .ofNullable(cluster.getSpec().getInitData())
+        .map(StackGresClusterInitData::getRestore)
+        .map(StackGresClusterRestore::getFromBackup)
+        .map(StackGresClusterRestoreFromBackup::getName).isPresent()
         ? "/start-patroni-with-restore.sh" : "/start-patroni.sh";
 
     final PostgresContainerContext postgresContext = ContextUtil.toPostgresContext(context);
@@ -158,9 +165,12 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
         .addAll(backupMounts.getVolumeMounts(context))
         .addAll(postgresExtensions.getVolumeMounts(postgresContext));
 
-    clusterContext.getRestoreBackup().ifPresent(ignore ->
-        volumeMounts.addAll(restoreMounts.getVolumeMounts(context))
-    );
+    Optional.ofNullable(cluster.getSpec().getInitData())
+        .map(StackGresClusterInitData::getRestore)
+        .map(StackGresClusterRestore::getFromBackup)
+        .map(StackGresClusterRestoreFromBackup::getName).ifPresent(ignore ->
+            volumeMounts.addAll(restoreMounts.getVolumeMounts(context))
+        );
 
     return new ContainerBuilder()
         .withName(StackgresClusterContainers.PATRONI)

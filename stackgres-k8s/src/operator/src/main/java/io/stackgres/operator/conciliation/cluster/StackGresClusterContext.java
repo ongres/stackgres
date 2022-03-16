@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.cluster;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.ClusterContext;
@@ -57,6 +58,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   Optional<Prometheus> getPrometheus();
 
   Optional<Secret> getDatabaseCredentials();
+
+  Set<String> getClusterBackupNamespaces();
 
   @Value.Derived
   default List<Tuple4<StackGresClusterScriptEntry, Long, String, Long>> getIndexedScripts() {

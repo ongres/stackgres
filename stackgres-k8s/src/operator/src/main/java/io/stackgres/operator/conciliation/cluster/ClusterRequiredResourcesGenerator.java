@@ -10,13 +10,15 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.google.common.base.Predicates;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -30,6 +32,8 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -68,11 +72,13 @@ public class ClusterRequiredResourcesGenerator
 
   private final CustomResourceFinder<StackGresProfile> profileFinder;
 
-  private final CustomResourceScanner<StackGresBackup> backupScanner;
+  private final CustomResourceFinder<StackGresBackup> backupFinder;
 
   private final ResourceFinder<Secret> secretFinder;
 
   private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
+
+  private final CustomResourceScanner<StackGresBackup> backupScanner;
 
   private final OperatorPropertyContext operatorContext;
 
@@ -84,18 +90,20 @@ public class ClusterRequiredResourcesGenerator
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
       CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder,
       CustomResourceFinder<StackGresProfile> profileFinder,
-      CustomResourceScanner<StackGresBackup> backupScanner,
+      CustomResourceFinder<StackGresBackup> backupFinder,
       ResourceFinder<Secret> secretFinder,
       CustomResourceScanner<PrometheusConfig> prometheusScanner,
+      CustomResourceScanner<StackGresBackup> backupScanner,
       OperatorPropertyContext operatorContext,
       RequiredResourceDecorator<StackGresClusterContext> decorator) {
     this.backupConfigFinder = backupConfigFinder;
     this.postgresConfigFinder = postgresConfigFinder;
     this.poolingConfigFinder = poolingConfigFinder;
     this.profileFinder = profileFinder;
-    this.backupScanner = backupScanner;
+    this.backupFinder = backupFinder;
     this.secretFinder = secretFinder;
     this.prometheusScanner = prometheusScanner;
+    this.backupScanner = backupScanner;
     this.operatorContext = operatorContext;
     this.decorator = decorator;
   }
@@ -143,6 +151,18 @@ public class ClusterRequiredResourcesGenerator
         .flatMap(poolingConfigName -> poolingConfigFinder
             .findByNameAndNamespace(poolingConfigName, clusterNamespace));
 
+    final Set<String> clusterBackupNamespaces = backupScanner.getResources()
+        .stream()
+        .map(Optional::of)
+        .map(backup -> backup
+            .map(StackGresBackup::getMetadata)
+            .map(ObjectMeta::getNamespace))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .filter(Predicates.not(clusterNamespace::equals))
+        .collect(Collectors.groupingBy(Function.identity()))
+        .keySet();
+
     // The logic here is return an empty if there is no StackGresClusterRestore
     // if the name match return that backup and if the backup is not found return a dummy object,
     // the dummy object is for the cases when the restore is done but the backup is deleted.
@@ -150,12 +170,9 @@ public class ClusterRequiredResourcesGenerator
     final Optional<StackGresBackup> restoreBackup = Optional
         .ofNullable(config.getSpec().getInitData())
         .map(StackGresClusterInitData::getRestore)
-        .flatMap(restore -> backupScanner.getResources().stream()
-            .filter(backup -> Objects.equals(
-                backup.getMetadata().getName(),
-                restore.getFromBackup().getName()))
-            .findFirst()
-            .or(() -> Optional.of(new StackGresBackup())));
+        .map(StackGresClusterRestore::getFromBackup)
+        .map(StackGresClusterRestoreFromBackup::getName)
+        .flatMap(backupName -> backupFinder.findByNameAndNamespace(backupName, clusterNamespace));
 
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .source(config)
@@ -172,6 +189,7 @@ public class ClusterRequiredResourcesGenerator
                 getBabelfishInitDatabaseScript())
                 .filter(
                     script -> getPostgresFlavorComponent(config) == StackGresComponent.BABELFISH)))
+        .clusterBackupNamespaces(clusterBackupNamespaces)
         .databaseCredentials(secretFinder.findByNameAndNamespace(clusterName, clusterNamespace))
         .build();
 

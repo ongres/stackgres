@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -92,6 +93,31 @@ class BackupRequiredResourcesGeneratorTest {
   }
 
   @Test
+  void givenValidClusterWithBackupCopy_getRequiredResourcesShouldNotFail() {
+    final String backupNamespace = backup.getMetadata().getNamespace();
+    final String clusterName = "test." + backup.getSpec().getSgCluster();
+    final StackGresClusterSpec clusterSpec = cluster.getSpec();
+    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
+    final String backupConfigName = clusterConfiguration.getBackupConfig();
+
+    backup.getSpec().setSgCluster(clusterName);
+
+    when(clusterFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(cluster));
+
+    when(backupConfigFinder.findByNameAndNamespace(backupConfigName, backupNamespace))
+        .thenReturn(Optional.of(this.backupConfig));
+
+    generator.getRequiredResources(backup);
+
+    verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(clusterFinder).findByNameAndNamespace(
+        eq(StackGresUtil.getNameFromRelativeId(clusterName)),
+        eq(StackGresUtil.getNamespaceFromRelativeId(clusterName, backupNamespace)));
+    verify(backupConfigFinder, times(0)).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
   void givenValidCluster_getRequiredResourcesAllReturnedResourcesShouldHaveTheOwnerReference() {
     final String backupNamespace = backup.getMetadata().getNamespace();
     final String clusterName = backup.getSpec().getSgCluster();
@@ -139,7 +165,7 @@ class BackupRequiredResourcesGeneratorTest {
         .thenReturn(Optional.empty());
 
     assertException("SGBackup " + backupNamespace + "/" + backupName
-        + " target a non existent SGCluster " + clusterName);
+        + " target a non existent SGCluster " + backupNamespace + "." + clusterName);
 
     verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(backupNamespace));

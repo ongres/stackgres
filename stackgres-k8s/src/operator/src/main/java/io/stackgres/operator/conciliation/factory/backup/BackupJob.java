@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.factory.backup;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,10 +49,10 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import io.stackgres.operator.conciliation.factory.cluster.backup.BackupCronRole;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniRoleGenerator;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
@@ -95,24 +96,51 @@ public class BackupJob
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresBackupContext context) {
-    return Optional.of(context.getBackupConfig())
-        .map(backupConfig -> context)
-        .filter(c -> !Optional.ofNullable(context.getSource().getStatus())
+    if (isBackupCopy(context)) {
+      return Stream.of();
+    }
+    if (isBackupConfigNotConfigured(context)) {
+      return Stream.of();
+    }
+    if (isBackupJobCompleted(context)) {
+      return Stream.of();
+    }
+    if (isScheduledBackupJob(context)) {
+      return Stream.of();
+    }
+    return Stream.of(createBackupJob(context));
+  }
+
+  private boolean isBackupCopy(StackGresBackupContext context) {
+    return !Objects.equals(
+        context.getSource().getSpec().getSgCluster(),
+        context.getCluster().getMetadata().getName());
+  }
+
+  private boolean isBackupConfigNotConfigured(StackGresBackupContext context) {
+    return context.getBackupConfig().isEmpty();
+  }
+
+  private Boolean isBackupJobCompleted(StackGresBackupContext context) {
+    return Optional.ofNullable(context.getSource().getStatus())
             .map(StackGresBackupStatus::getProcess)
             .map(StackGresBackupProcess::getStatus)
             .map(status -> status.equals(BackupPhase.COMPLETED.label()))
-            .orElse(false)
-            && Seq.seq(context.getSource().getMetadata().getAnnotations())
-            .noneMatch(Tuple.tuple(
-                StackGresContext.SCHEDULED_BACKUP_KEY,
-                StackGresContext.RIGHT_VALUE)::equals))
-        .<HasMetadata>map(this::createBackupJob)
-        .stream();
+            .orElse(false);
+  }
+
+  private boolean isScheduledBackupJob(StackGresBackupContext context) {
+    return Optional.ofNullable(context.getSource().getMetadata().getAnnotations())
+        .stream()
+        .flatMap(Seq::seq)
+        .anyMatch(Tuple.tuple(
+            StackGresContext.SCHEDULED_BACKUP_KEY,
+            StackGresContext.RIGHT_VALUE)::equals);
   }
 
   private HasMetadata createBackupJob(StackGresBackupContext context) {
     StackGresBackup backup = context.getSource();
-    StackGresBackupConfig backupConfig = context.getBackupConfig();
+    StackGresBackupConfig backupConfig = context.getBackupConfig().orElseThrow();
     String namespace = backup.getMetadata().getNamespace();
     String name = backup.getMetadata().getName();
     String cluster = backup.getSpec().getSgCluster();
@@ -149,7 +177,7 @@ public class BackupJob
         .withNewSpec()
         .withSecurityContext(podSecurityFactory.createResource(context))
         .withRestartPolicy("OnFailure")
-        .withServiceAccountName(PatroniRoleGenerator.roleName(context))
+        .withServiceAccountName(BackupCronRole.roleName(context.getCluster()))
         .withContainers(new ContainerBuilder()
             .withName("create-backup")
             .withImage(StackGresComponent.KUBECTL.get(context.getCluster()).findLatestImageName())
@@ -255,6 +283,11 @@ public class BackupJob
                                         .withFieldPath("metadata.name")
                                         .build())
                                 .build())
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("CLUSTER_BACKUP_NAMESPACES")
+                        .withValue(context.getClusterBackupNamespaces()
+                            .stream().collect(Collectors.joining(" ")))
                         .build(),
                     new EnvVarBuilder()
                         .withName("RETAIN")

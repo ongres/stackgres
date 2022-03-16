@@ -23,6 +23,7 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -69,30 +70,34 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
         .build();
   }
 
-  private @NotNull Optional<ConfigMap> buildSource(StackGresClusterContext context) {
-    return context.getRestoreBackup().map(restoreBackup -> {
-      final Map<String, String> data = new HashMap<>();
-      final StackGresCluster cluster = context.getSource();
+  private @NotNull ConfigMap buildSource(StackGresClusterContext context) {
+    final Optional<StackGresBackup> restoreBackup = context.getRestoreBackup();
+    final Map<String, String> data = new HashMap<>();
+    final StackGresCluster cluster = context.getSource();
 
-      if (restoreBackup.getSpec() != null && restoreBackup.getStatus() != null) {
-        final String status = Optional.ofNullable(restoreBackup.getStatus())
-            .map(StackGresBackupStatus::getProcess)
-            .map(StackGresBackupProcess::getStatus)
-            .orElse(BackupPhase.RUNNING.toString());
+    if (restoreBackup.isPresent()) {
+      final String status = restoreBackup
+          .map(StackGresBackup::getStatus)
+          .map(StackGresBackupStatus::getProcess)
+          .map(StackGresBackupProcess::getStatus)
+          .orElse(BackupPhase.PENDING.label());
 
-        if (!BackupPhase.COMPLETED.toString().equals(status)) {
-          data.put("RESTORE_BACKUP_ERROR", "Backup is " + status);
-        }
-
+      if (!BackupPhase.COMPLETED.label().equals(status)) {
+        data.put("RESTORE_BACKUP_ERROR", "Backup is " + status);
+      } else {
+        final StackGresBackup backup = restoreBackup.get();
         data.put("BACKUP_RESOURCE_VERSION",
-            restoreBackup.getMetadata().getResourceVersion());
+            backup.getMetadata().getResourceVersion());
         data.put("RESTORE_BACKUP_ID",
-            restoreBackup.getStatus().getInternalName());
+            backup.getStatus().getInternalName());
 
         data.putAll(getBackupEnvVars(context,
-            restoreBackup.getMetadata().getNamespace(),
-            restoreBackup.getSpec().getSgCluster(),
-            restoreBackup.getStatus().getBackupConfig()));
+            StackGresUtil.getNamespaceFromRelativeId(
+                backup.getSpec().getSgCluster(),
+                backup.getMetadata().getNamespace()),
+            StackGresUtil.getNameFromRelativeId(
+                backup.getSpec().getSgCluster()),
+            backup.getStatus().getBackupConfig()));
 
         Optional.ofNullable(cluster.getSpec())
             .map(StackGresClusterSpec::getInitData)
@@ -100,19 +105,19 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
             .map(StackGresClusterRestore::getDownloadDiskConcurrency)
             .ifPresent(downloadDiskConcurrency -> data.put(
                 "WALG_DOWNLOAD_CONCURRENCY", convertEnvValue(downloadDiskConcurrency)));
-      } else {
-        data.put("RESTORE_BACKUP_ERROR", "Can not restore from backup. Backup not found!");
       }
+    } else {
+      data.put("RESTORE_BACKUP_ERROR", "Can not restore from backup. Backup not found!");
+    }
 
-      return new ConfigMapBuilder()
-          .withNewMetadata()
-          .withNamespace(cluster.getMetadata().getNamespace())
-          .withName(name(context))
-          .withLabels(labelFactory.genericLabels(cluster))
-          .endMetadata()
-          .withData(StackGresUtil.addMd5Sum(data))
-          .build();
-    });
+    return new ConfigMapBuilder()
+        .withNewMetadata()
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(name(context))
+        .withLabels(labelFactory.genericLabels(cluster))
+        .endMetadata()
+        .withData(StackGresUtil.addMd5Sum(data))
+        .build();
   }
 
   @Override
