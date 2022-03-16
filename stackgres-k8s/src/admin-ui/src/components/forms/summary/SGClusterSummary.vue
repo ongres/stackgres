@@ -293,6 +293,54 @@
                         </li>
                     </ul>
 
+                    <ul class="section" v-if="( showDefaults || ( (cluster.data.spec.replication.role != 'HA_READ') || (cluster.data.spec.replication.mode != 'ASYNC') || cluster.data.spec.replication.hasOwnProperty('groups') ) )">
+                        <li>
+                            <strong class="sectionTitle">
+                                Replication
+                            </strong>
+                            <ul>
+                                <li v-if="(showDefaults || (cluster.data.spec.replication.role != 'HA_READ') )">
+                                    <strong class="label">Role:</strong>
+                                    <span class="value">{{ cluster.data.spec.replication.role }}</span>
+                                </li>
+                                <li v-if="(showDefaults || (cluster.data.spec.replication.mode != 'ASYNC') )">
+                                    <strong class="label">Mode:</strong>
+                                    <span class="value">{{ cluster.data.spec.replication.mode }}</span>
+                                </li>
+                                <li v-if="cluster.data.spec.replication.hasOwnProperty('syncNodeCount')">
+                                    <strong class="label">Sync Node Count:</strong>
+                                    <span class="value">{{ cluster.data.spec.replication.syncNodeCount }}</span>
+                                </li>
+                                <li v-if="cluster.data.spec.replication.hasOwnProperty('groups')">
+                                    <strong class="sectionTitle">
+                                        Groups
+                                    </strong>
+                                    <ul>
+                                        <li v-for="(group, index) in cluster.data.spec.replication.groups">
+                                            <strong class="sectionTitle">
+                                                Group #{{ index + 1}}
+                                            </strong>
+                                            <ul>
+                                                <li v-if="group.name.length">
+                                                    <strong class="label">Name:</strong>
+                                                    <span class="value">{{ group.name }}</span>
+                                                </li>
+                                                <li>
+                                                    <strong class="label">Role:</strong>
+                                                    <span class="value">{{ group.role }}</span>
+                                                </li>
+                                                <li>
+                                                    <strong class="label">Instances:</strong>
+                                                    <span class="value">{{ group.instances }}</span>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+
                     <ul class="section" v-if="showDefaults || hasProp(cluster, 'data.spec.postgresServices')">
                         <li>
                             <strong class="sectionTitle">Customize generated Kubernetes service</strong>
@@ -663,15 +711,12 @@
     }
 
     .summary ul.section {
-        margin: 10px 0;
+        margin: 10px 0 35px;
     }
 
-    .summary ul {
+    .summary ul:not(.section) {
         position: relative;
-    }
-
-    .summary ul ul {
-        padding: 15px 25px 5px;
+        padding: 15px 25px 0;
         list-style: none;
     }
 

@@ -533,6 +533,109 @@
                 </div>
             </fieldset>
 
+            <fieldset class="step" :class="(currentStep == 'replication') && 'active'">
+                <div class="header">
+                    <h2>Replication</h2>
+                </div>
+
+                <div class="fields">                    
+                    <div class="row-50">
+                        <div class="col">
+                            <label for="spec.replication.role">Role</label>
+                             <select v-model="replication.role" required data-field="spec.replication.role">    
+                                <option selected>HA_READ</option>
+                                <option>HA</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.role')"></span>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.replication.mode">Mode</label>
+                             <select v-model="replication.mode" required data-field="spec.replication.mode">    
+                                <option selected>ASYNC</option>
+                                <option>SYNC</option>
+                                <option>STRICT_SYNC</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.mode')"></span>
+                        </div>
+
+                        <div class="col" v-if="['SYNC', 'STRICT_SYNC'].includes(replication.mode)">
+                            <label for="spec.replication.syncNodeCount">Sync Node Count</label>
+                            <input type="number" min="1" :max="(instances - 1)" v-model="replication.syncNodeCount" data-field="spec.replication.syncNodeCount">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.syncNodeCount')"></span>
+                        </div>
+                    </div>
+
+                    <div class="repeater">
+                        <div class="header">
+                            <h3 for="spec.replication.groups">
+                                Groups
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.groups')"></span> 
+                            </h3>
+                        </div>
+                        <fieldset data-field="spec.replication.groups" v-if="replication.hasOwnProperty('groups') && replication.groups.length">
+                            <div class="section" v-for="(group, index) in replication.groups" :data-group="'replication-group-' + index">
+                                <div class="header">
+                                    <h3 for="spec.replication.groups">
+                                        Group #{{ index + 1 }} 
+                                        <template v-if="group.name.length">
+                                            :
+                                            <span class="normal">
+                                                {{  group.name }}
+                                            </span>
+                                        </template>
+                                    </h3>
+                                    <a class="addRow" @click="spliceArray(replication.groups, index)">Delete</a>
+                                </div>
+                                <div class="row-50">
+                                    <div class="col">
+                                        <label>Name</label>
+                                        <input v-model="group.name" autocomplete="off" data-field="spec.replication.groups.name">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.groups.name')"></span>
+                                    </div>
+
+                                    <div class="col">
+                                        <label for="spec.replication.groups.role">Role</label>
+                                        <select
+                                            v-model="group.role"
+                                            :required="group.name.length"
+                                            data-field="spec.replication.groups.role">
+                                            <option>HA_READ</option>
+                                            <option>HA</option>
+                                            <option>READONLY</option>
+                                            <option>NONE</option>
+                                        </select>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.groups.role')"></span>
+                                    </div>
+
+                                    <div class="col">
+                                        <label>Instances</label>
+                                        <input 
+                                            type="number" 
+                                            min="1" 
+                                            :max="instances" 
+                                            v-model="group.instances" 
+                                            autocomplete="off" 
+                                            :required="( group.name.length || (group.role != 'HA_READ') )"
+                                            data-field="spec.replication.groups.instances">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.groups.instances')"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter">
+                            <a class="addRow"
+                                data-add="spec.replication.groups"
+                                @click="( replication.hasOwnProperty('groups') ? 
+                                    replication.groups.push({name: '', role: 'HA_READ', instances: ''}) : 
+                                    (replication['groups'] = [{name: '', role: 'HA_READ', instances: ''}] ) )">
+                                Add Group
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
             <fieldset class="step" :class="(currentStep == 'services') && 'active'">
                 <div class="header">
                     <h2>Customize generated Kubernetes service</h2>
@@ -1249,7 +1352,7 @@
                 previewCRD: {},
                 showSummary: false,
                 advancedMode: false,
-                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'sidecars', 'services', 'metadata', 'scheduling', 'non-production'],
+                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'sidecars', 'replication', 'services', 'metadata', 'scheduling', 'non-production'],
                 currentStep: 'cluster',
                 editMode: (vm.$route.name === 'EditCluster'),
                 editReady: false,
@@ -1275,6 +1378,18 @@
                 distributedLogs: '',
                 retention: '',
                 prometheusAutobind: false,
+                replication: {
+                    role: 'HA_READ',
+                    mode: 'ASYNC',
+                    syncNodeCount: 1,
+                    groups: [
+                        {
+                            name: '',
+                            role: 'HA_READ',
+                            instances: null
+                        }
+                    ]
+                },
                 enableClusterPodAntiAffinity: true,
                 postgresUtil: true,
                 metricsExporter: true,
@@ -1428,6 +1543,7 @@
                             vm.backupConfig = (typeof c.data.spec.configurations.sgBackupConfig !== 'undefined') ? c.data.spec.configurations.sgBackupConfig : '';
                             vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
                             vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
+                            vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
                             vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
                             vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
                             vm.metricsExporter = vm.hasProp(c, 'data.spec.pods.disableMetricsExporter') ? !c.data.spec.pods.disableMetricsExporter : true ;
@@ -1675,6 +1791,16 @@
                                     }
                                 }) 
                             ),
+                            "replication": {
+                                "role": this.replication.role,
+                                "mode": this.replication.mode,
+                                ...(['SYNC', 'STRICT_SYNC'].includes(this.replication.mode) && ({
+                                    "syncNodeCount": this.replication.syncNodeCount
+                                }) ),
+                                ...( ( this.replication.hasOwnProperty('groups') && (typeof this.replication.groups.find( g => (g.instances > 0) ) != 'undefined') ) && ({
+                                    "groups": (this.replication.groups.filter( g => (g.instances > 0) ))
+                                }) )
+                            },
                             ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
                             ...((!this.enableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
                                 "nonProductionOptions": { 

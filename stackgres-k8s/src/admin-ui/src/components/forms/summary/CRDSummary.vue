@@ -95,15 +95,12 @@
     }
 
     .summary ul.section {
-        margin: 10px 0;
+        margin: 10px 0 35px;
     }
 
-    .summary ul {
+    .summary ul:not(.section) {
         position: relative;
-    }
-
-    .summary ul ul {
-        padding: 15px 25px 5px;
+        padding: 15px 25px 0;
         list-style: none;
     }
 
