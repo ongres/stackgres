@@ -158,7 +158,7 @@
 						
 						if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
 							let url = data;
-							url += (url.includes('?') ? '&' : '?') + 'theme=' + vc.theme + vc.timeRange + '&kiosk&var-instance=';
+							url += (url.includes('?') ? '&' : '?') + 'theme=' + vc.theme + '&kiosk&var-instance=';
 
 							$.get(url)
 							.done(function(data, textStatus, jqXHR) {
