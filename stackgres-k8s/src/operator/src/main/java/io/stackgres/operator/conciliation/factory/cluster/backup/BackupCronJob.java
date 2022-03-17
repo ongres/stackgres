@@ -38,17 +38,16 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
+import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,16 +82,15 @@ public class BackupCronJob
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    if (context.getBackupConfig().isPresent()) {
-      var backupConfig = context.getBackupConfig().get();
+    if (context.getBackupConfiguration().isPresent()) {
+      var backupConfig = context.getBackupConfiguration().get();
       return Stream.of(createCronJob(context, backupConfig));
     } else {
       return Stream.of();
     }
   }
 
-  private CronJob createCronJob(StackGresClusterContext context,
-      StackGresBackupConfig backupConfig) {
+  private CronJob createCronJob(StackGresClusterContext context, BackupConfiguration backupConfig) {
     String namespace = context.getSource().getMetadata().getNamespace();
     String name = context.getSource().getMetadata().getName();
     final StackGresCluster cluster = context.getSource();
@@ -108,9 +106,7 @@ public class BackupCronJob
         .withFailedJobsHistoryLimit(10)
         .withStartingDeadlineSeconds(5 * 60L)
         .withSchedule(Optional.of(backupConfig)
-            .map(StackGresBackupConfig::getSpec)
-            .map(StackGresBackupConfigSpec::getBaseBackups)
-            .map(StackGresBaseBackupConfig::getCronSchedule)
+            .map(BackupConfiguration::cronSchedule)
             .orElse("0 5 * * *"))
         .withJobTemplate(new JobTemplateSpecBuilder()
             .withNewMetadata()
@@ -152,11 +148,12 @@ public class BackupCronJob
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_CONFIG_CRD_NAME")
-                            .withValue(CustomResource.getCRDName(StackGresBackupConfig.class))
+                            .withValue(context.getConfigCrdName())
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_CONFIG")
-                            .withValue(backupConfig.getMetadata().getName())
+                            .withValue(context.getBackupConfigurationCustomResourceName()
+                                .orElseThrow())
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_CRD_KIND")
@@ -214,7 +211,7 @@ public class BackupCronJob
                             .withName("PATRONI_CONTAINER_NAME")
                             .withValue(StackgresClusterContainers.PATRONI)
                             .build(),
-                            new EnvVarBuilder()
+                        new EnvVarBuilder()
                             .withName("SERVICE_ACCOUNT")
                             .withValueFrom(
                                 new EnvVarSourceBuilder()
@@ -241,11 +238,21 @@ public class BackupCronJob
                         new EnvVarBuilder()
                             .withName("RETAIN")
                             .withValue(Optional.of(backupConfig)
-                                .map(StackGresBackupConfig::getSpec)
-                                .map(StackGresBackupConfigSpec::getBaseBackups)
-                                .map(StackGresBaseBackupConfig::getRetention)
+                                .map(BackupConfiguration::retention)
                                 .map(String::valueOf)
                                 .orElse("5"))
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("COMPRESSION")
+                            .withValue(
+                                Optional.of(backupConfig)
+                                    .map(BackupConfiguration::compression)
+                                    .orElse("lz4")).build(),
+                        new EnvVarBuilder()
+                            .withName("STORAGE_TEMPLATE_PATH")
+                            .withValue(
+                                getStorageTemplatePath(context)
+                            )
                             .build(),
                         new EnvVarBuilder()
                             .withName("WINDOW")
@@ -284,6 +291,11 @@ public class BackupCronJob
             .build())
         .endSpec()
         .build();
+  }
+
+  @NotNull
+  private String getStorageTemplatePath(StackGresClusterContext context) {
+    return context.getObjectStorageConfig().isPresent() ? "spec" : "spec.storage";
   }
 
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {

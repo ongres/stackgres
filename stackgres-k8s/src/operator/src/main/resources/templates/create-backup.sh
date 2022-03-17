@@ -170,10 +170,10 @@ get_backup_crs() {
 create_or_update_backup_cr() {
   BACKUP_CONFIG_YAML=$(cat << BACKUP_CONFIG_YAML_EOF
     baseBackups:
-      compression: "{{ .spec.baseBackups.compression }}"
+      compression: "$COMPRESSION"
     storage:
-      type: "{{ .spec.storage.type }}"
-      {{- with .spec.storage.s3 }}
+      type: "{{ .$STORAGE_TEMPLATE_PATH.type }}"
+      {{- with .$STORAGE_TEMPLATE_PATH.s3 }}
       s3:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
@@ -188,7 +188,7 @@ create_or_update_backup_cr() {
         {{ with .region }}region: "{{ . }}"{{ end }}
         {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
       {{- end }}
-      {{- with .spec.storage.s3Compatible }}
+      {{- with .$STORAGE_TEMPLATE_PATH.s3Compatible }}
       s3Compatible:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
@@ -205,7 +205,7 @@ create_or_update_backup_cr() {
         {{ with .enablePathStyleAddressing }}enablePathStyleAddressing: {{ . }}{{ end }}
         {{ with .storageClass }}storageClass: "{{ . }}"{{ end }}
       {{- end }}
-      {{- with .spec.storage.gcs }}
+      {{- with .$STORAGE_TEMPLATE_PATH.gcs }}
       gcs:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}
@@ -219,7 +219,7 @@ create_or_update_backup_cr() {
               name: "{{ .gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}"
           {{- end }}
       {{- end }}
-      {{- with .spec.storage.azureBlob }}
+      {{- with .$STORAGE_TEMPLATE_PATH.azureBlob }}
       azureBlob:
         bucket: "{{ .bucket }}"
         {{ with .path }}path: "{{ . }}"{{ end }}

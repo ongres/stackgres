@@ -26,11 +26,15 @@ import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.backup.BackupConfiguration;
+import io.stackgres.operator.conciliation.backup.BackupPerformance;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
@@ -118,6 +122,33 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build();
+  }
+
+  private Map<String, String> getBackupEnvVars(
+      StackGresClusterContext context,
+      String namespace,
+      String sgCluster,
+      StackGresBackupConfigSpec backupConfig) {
+    Map<String, String> result = new HashMap<>(
+        getBackupEnvVars(context, namespace, sgCluster, backupConfig.getStorage())
+    );
+    if (backupConfig.getBaseBackups() != null) {
+      result.putAll(
+          getBackupEnvVars(new BackupConfiguration(
+              backupConfig.getBaseBackups().getRetention(),
+              backupConfig.getBaseBackups().getCronSchedule(),
+              backupConfig.getBaseBackups().getCompression(),
+              Optional.of(backupConfig.getBaseBackups())
+                  .map(StackGresBaseBackupConfig::getPerformance)
+                  .map(p -> new BackupPerformance(
+                      p.getMaxNetworkBandwitdh(),
+                      p.getMaxDiskBandwitdh(),
+                      p.getUploadDiskConcurrency()
+                  )).orElse(null)
+          ))
+      );
+    }
+    return Map.copyOf(result);
   }
 
   @Override

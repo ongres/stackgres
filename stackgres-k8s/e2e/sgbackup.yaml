@@ -1,0 +1,8 @@
+apiVersion: stackgres.io/v1
+kind: SGBackup
+metadata:
+  namespace: test
+  name: managed-test
+spec:
+  sgCluster: test
+  managedLifecycle: false

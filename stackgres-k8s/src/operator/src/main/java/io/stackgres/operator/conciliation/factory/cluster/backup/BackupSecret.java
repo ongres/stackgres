@@ -66,17 +66,22 @@ public class BackupSecret
   public @NotNull Optional<HasMetadata> buildSource(StackGresClusterContext context) {
     Map<String, String> data = new HashMap<>();
 
-    context.getBackupConfig().ifPresent(backupConfig -> {
-      data.put("BACKUP_CONFIG_RESOURCE_VERSION",
-          backupConfig.getMetadata().getResourceVersion());
-      data.putAll(backupEnvVarFactory.getSecretEnvVar(backupConfig));
-    });
+    context.getBackupConfigurationResourceVersion()
+        .ifPresent(resourceVersion ->
+            data.put("BACKUP_CONFIG_RESOURCE_VERSION", resourceVersion)
+        );
 
     StackGresCluster cluster = context.getSource();
+    final String namespace = cluster.getMetadata().getNamespace();
+
+    context.getBackupStorage().ifPresent(
+        backupStorage -> data.putAll(
+            backupEnvVarFactory.getSecretEnvVar(namespace, backupStorage)
+        ));
 
     return Optional.of(new SecretBuilder()
         .withNewMetadata()
-        .withNamespace(cluster.getMetadata().getNamespace())
+        .withNamespace(namespace)
         .withName(name(context))
         .withLabels(labelFactory.genericLabels(cluster))
         .endMetadata()

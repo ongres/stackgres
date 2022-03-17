@@ -1,0 +1,2 @@
+test-primary.test.svc:5432:pgbench:pguser:pguser
+test-replicas.test.svc:5432:pgbench:pguser:pguser

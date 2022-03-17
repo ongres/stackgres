@@ -1,0 +1,44 @@
+apiVersion: stackgres.io/v1
+kind: SGInstanceProfile
+metadata:
+  name: size-xs
+  namespace: test
+spec:
+  cpu: '500m'
+  memory: '512Mi'
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pgbench-credentials
+  namespace: test
+stringData:
+  pgbench-create-user-sql: "CREATE USER pguser WITH PASSWORD 'pguser';"
+---
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  name: test
+  namespace: test
+spec:
+  instances: 1
+  postgres:
+    version: 'latest'
+  sgInstanceProfile: 'size-xs'    
+  configurations:
+    sgBackupConfig: backupconfig
+  pods:
+    persistentVolume:
+      size: '5Gi'
+  initialData:
+    scripts:
+    - name: create-pgbench-user
+      scriptFrom:
+        secretKeyRef:
+          name: pgbench-credentials
+          key: pgbench-create-user-sql
+    - name: create-pgbench-database
+      script: |
+        CREATE DATABASE pgbench OWNER pguser;
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true

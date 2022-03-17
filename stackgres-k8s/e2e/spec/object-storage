@@ -16,6 +16,16 @@ e2e_test_install() {
   enable_cronSchedule
 }
 
+enable_cronSchedule() {
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    --patch '[{"op":"replace","path":"/spec/configurations/backups/0/cronSchedule","value":"*/1 * * * *"}]'
+}
+
+disable_cronSchedule() {
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    --patch '[{"op":"replace","path":"/spec/configurations/backups/0/cronSchedule","value":"0 5 31 2 *"}]'
+}
+
 e2e_test() {
   run_test "Backup Cron Job should have a security context" check_cron_job_security_context
 

@@ -30,6 +30,7 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
@@ -37,6 +38,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -66,6 +68,8 @@ public class ClusterRequiredResourcesGenerator
 
   private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
+  private final CustomResourceFinder<StackGresObjectStorage> objectStorageFinder;
+
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
 
   private final CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder;
@@ -87,6 +91,7 @@ public class ClusterRequiredResourcesGenerator
   @Inject
   public ClusterRequiredResourcesGenerator(
       CustomResourceFinder<StackGresBackupConfig> backupConfigFinder,
+      CustomResourceFinder<StackGresObjectStorage> objectStorageFinder,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
       CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder,
       CustomResourceFinder<StackGresProfile> profileFinder,
@@ -97,6 +102,7 @@ public class ClusterRequiredResourcesGenerator
       OperatorPropertyContext operatorContext,
       RequiredResourceDecorator<StackGresClusterContext> decorator) {
     this.backupConfigFinder = backupConfigFinder;
+    this.objectStorageFinder = objectStorageFinder;
     this.postgresConfigFinder = postgresConfigFinder;
     this.poolingConfigFinder = poolingConfigFinder;
     this.profileFinder = profileFinder;
@@ -146,6 +152,14 @@ public class ClusterRequiredResourcesGenerator
         .flatMap(backupConfigName -> backupConfigFinder
             .findByNameAndNamespace(backupConfigName, clusterNamespace));
 
+    final Optional<StackGresObjectStorage> objectStorage = Optional
+        .ofNullable(clusterConfiguration.getBackups())
+        .filter(b -> !b.isEmpty())
+        .map(b -> b.get(0))
+        .map(StackGresClusterBackupConfiguration::getObjectStorage)
+        .flatMap(objectStorageName -> objectStorageFinder
+            .findByNameAndNamespace(objectStorageName, clusterNamespace));
+
     final Optional<StackGresPoolingConfig> clusterPooling = Optional
         .ofNullable(clusterConfiguration.getConnectionPoolingConfig())
         .flatMap(poolingConfigName -> poolingConfigFinder
@@ -160,6 +174,7 @@ public class ClusterRequiredResourcesGenerator
         .postgresConfig(clusterPgConfig)
         .stackGresProfile(clusterProfile)
         .backupConfig(backupConfig)
+        .objectStorageConfig(objectStorage)
         .poolingConfig(clusterPooling)
         .restoreBackup(restoreBackup)
         .prometheus(getPrometheus(config))

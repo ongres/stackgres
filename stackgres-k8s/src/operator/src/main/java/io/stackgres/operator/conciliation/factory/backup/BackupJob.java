@@ -41,12 +41,10 @@ import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
+import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupCronRole;
@@ -54,6 +52,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnviron
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
@@ -76,11 +75,11 @@ public class BackupJob
   @Inject
   public BackupJob(
       ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
-        clusterEnvVarFactoryDiscoverer,
+          clusterEnvVarFactoryDiscoverer,
       LabelFactoryForBackup labelFactory,
       LabelFactoryForCluster<StackGresCluster> labelFactoryForCluster,
       ResourceFactory<StackGresBackupContext,
-      PodSecurityContext> podSecurityFactory) {
+          PodSecurityContext> podSecurityFactory) {
     super();
     this.clusterEnvVarFactoryDiscoverer = clusterEnvVarFactoryDiscoverer;
     this.labelFactory = labelFactory;
@@ -118,7 +117,8 @@ public class BackupJob
   }
 
   private boolean isBackupConfigNotConfigured(StackGresBackupContext context) {
-    return context.getBackupConfig().isEmpty();
+    return context.getObjectStorage().isEmpty()
+        && context.getBackupConfig().isEmpty();
   }
 
   private Boolean isBackupJobCompleted(StackGresBackupContext context) {
@@ -140,10 +140,13 @@ public class BackupJob
 
   private HasMetadata createBackupJob(StackGresBackupContext context) {
     StackGresBackup backup = context.getSource();
-    StackGresBackupConfig backupConfig = context.getBackupConfig().orElseThrow();
+    var backupConfig = context.getBackupConfiguration();
+    var crdName = context.getConfigCrdName();
+    var crName = context.getConfigCustomResourceName();
     String namespace = backup.getMetadata().getNamespace();
     String name = backup.getMetadata().getName();
     String cluster = backup.getSpec().getSgCluster();
+
     Map<String, String> labels = labelFactory.backupPodLabels(context.getSource());
     final VolumeMount utilsVolumeMount = ClusterStatefulSetVolumeConfig.TEMPLATES
         .volumeMount(context, volumeMountBuilder -> volumeMountBuilder
@@ -203,18 +206,18 @@ public class BackupJob
                     new EnvVarBuilder()
                         .withName("BACKUP_IS_PERMANENT")
                         .withValue(Optional.ofNullable(backup.getSpec()
-                            .getManagedLifecycle())
+                                .getManagedLifecycle())
                             .map(managedLifecycle -> !managedLifecycle)
                             .map(String::valueOf)
                             .orElse("true"))
                         .build(),
                     new EnvVarBuilder()
                         .withName("BACKUP_CONFIG_CRD_NAME")
-                        .withValue(CustomResource.getCRDName(StackGresBackupConfig.class))
+                        .withValue(crdName)
                         .build(),
                     new EnvVarBuilder()
                         .withName("BACKUP_CONFIG")
-                        .withValue(backupConfig.getMetadata().getName())
+                        .withValue(crName)
                         .build(),
                     new EnvVarBuilder()
                         .withName("BACKUP_CRD_KIND")
@@ -286,16 +289,26 @@ public class BackupJob
                         .build(),
                     new EnvVarBuilder()
                         .withName("CLUSTER_BACKUP_NAMESPACES")
-                        .withValue(context.getClusterBackupNamespaces()
-                            .stream().collect(Collectors.joining(" ")))
+                        .withValue(String.join(" ", context.getClusterBackupNamespaces()))
                         .build(),
                     new EnvVarBuilder()
                         .withName("RETAIN")
-                        .withValue(Optional.of(backupConfig.getSpec())
-                            .map(StackGresBackupConfigSpec::getBaseBackups)
-                            .map(StackGresBaseBackupConfig::getRetention)
+                        .withValue(Optional.of(backupConfig)
+                            .map(BackupConfiguration::retention)
                             .map(String::valueOf)
                             .orElse("5"))
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("COMPRESSION")
+                        .withValue(
+                            Optional.of(backupConfig)
+                                .map(BackupConfiguration::compression)
+                                .orElse("lz4")).build(),
+                    new EnvVarBuilder()
+                        .withName("STORAGE_TEMPLATE_PATH")
+                        .withValue(
+                            getStorageTemplatePath(context)
+                        )
                         .build(),
                     new EnvVarBuilder()
                         .withName("WINDOW")
@@ -318,6 +331,11 @@ public class BackupJob
         .build();
   }
 
+  @NotNull
+  private String getStorageTemplatePath(StackGresBackupContext context) {
+    return context.getObjectStorage().isPresent() ? "spec" : "spec.storage";
+  }
+
   private List<EnvVar> getClusterEnvVars(StackGresBackupContext context) {
     List<EnvVar> clusterEnvVars = new ArrayList<>();
 
@@ -329,3 +347,4 @@ public class BackupJob
     return clusterEnvVars;
   }
 }
+

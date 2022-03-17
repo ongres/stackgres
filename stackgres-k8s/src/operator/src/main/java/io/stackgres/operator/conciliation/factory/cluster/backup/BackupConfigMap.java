@@ -64,15 +64,30 @@ public class BackupConfigMap extends AbstractBackupConfigMap
     final Map<String, String> data = new HashMap<>();
 
     final StackGresCluster cluster = context.getCluster();
-    context.getBackupConfig()
-        .ifPresent(backupConfig -> {
-          data.put("BACKUP_CONFIG_RESOURCE_VERSION",
-              backupConfig.getMetadata().getResourceVersion());
-          data.putAll(getBackupEnvVars(context,
-              cluster.getMetadata().getNamespace(),
-              cluster.getMetadata().getName(),
-              backupConfig.getSpec()));
-        });
+    context.getBackupConfigurationResourceVersion()
+        .ifPresent(resourceVersion -> data.put(
+                "BACKUP_CONFIG_RESOURCE_VERSION", resourceVersion
+            )
+        );
+
+    context.getBackupStorage()
+        .ifPresent(storage -> data.putAll(
+                getBackupEnvVars(
+                    context,
+                    cluster.getMetadata().getNamespace(),
+                    cluster.getMetadata().getName(),
+                    storage
+                )
+            )
+        );
+
+    context.getBackupConfiguration()
+        .ifPresent(config -> data.putAll(
+                getBackupEnvVars(
+                    config
+                )
+            )
+        );
     return new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
