@@ -103,8 +103,8 @@ public class StackGresClusterSpec implements KubernetesResource {
   public boolean isSupportingRequiredSynchronousReplicas() {
     return replication == null
         || !replication.isSynchronousMode()
-        || replication.getSyncNodeCount() == null
-        || instances > replication.getSyncNodeCount();
+        || replication.getSyncInstances() == null
+        || instances > replication.getSyncInstances();
   }
 
   @JsonIgnore

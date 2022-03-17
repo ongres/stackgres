@@ -52,8 +52,8 @@
           "version": "11.5"
         },
         "replication": {
-          "mode": "ASYNC",
-          "role": "HA_READ"
+          "mode": "async",
+          "role": "ha-read"
         },
         "sgInstanceProfile": "size-xs",
         "configurations": {
@@ -88,8 +88,8 @@
           "version": "11.4"
         },
         "replication": {
-          "mode": "ASYNC",
-          "role": "HA_READ"
+          "mode": "async",
+          "role": "ha-read"
         },
         "configurations": {
           "sgPostgresConfig": "postgresconf",

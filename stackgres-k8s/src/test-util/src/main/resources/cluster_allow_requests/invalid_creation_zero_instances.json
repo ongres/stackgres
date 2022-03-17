@@ -49,8 +49,8 @@
       "spec": {
         "instances": 0,
         "replication": {
-          "mode": "ASYNC",
-          "role": "HA_READ"
+          "mode": "async",
+          "role": "ha-read"
         },
         "sgInstanceProfile": "size-xs",
         "configurations": {

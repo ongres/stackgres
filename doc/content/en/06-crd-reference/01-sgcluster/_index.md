@@ -137,7 +137,7 @@ spec:
 |:------------------------------------|----------|-----------|:---------|:---------|:------------|
 | mode                                |          | ✓         | string   |          | {{< crd-field-description SGCluster.spec.replication.mode >}}       |
 | role                                |          | ✓         | string   |          | {{< crd-field-description SGCluster.spec.replication.role >}}       |
-| syncNodeCount                       |          | ✓         | integer  |          | {{< crd-field-description SGCluster.spec.replication.syncNodeCount >}} |
+| syncInstances                       |          | ✓         | integer  |          | {{< crd-field-description SGCluster.spec.replication.syncInstances >}} |
 | [groups](#replication-group)        |          | ✓         | array    |          | {{< crd-field-description SGCluster.spec.replication.groups >}}     |
 
 ## Replication group

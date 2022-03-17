@@ -293,17 +293,17 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="( showDefaults || ( (cluster.data.spec.replication.role != 'HA_READ') || (cluster.data.spec.replication.mode != 'ASYNC') || cluster.data.spec.replication.hasOwnProperty('groups') ) )">
+                    <ul class="section" v-if="( showDefaults || ( (cluster.data.spec.replication.role != 'ha-read') || (cluster.data.spec.replication.mode != 'Async') || cluster.data.spec.replication.hasOwnProperty('groups') ) )">
                         <li>
                             <strong class="sectionTitle">
                                 Replication
                             </strong>
                             <ul>
-                                <li v-if="(showDefaults || (cluster.data.spec.replication.role != 'HA_READ') )">
+                                <li v-if="(showDefaults || (cluster.data.spec.replication.role != 'ha-read') )">
                                     <strong class="label">Role:</strong>
                                     <span class="value">{{ cluster.data.spec.replication.role }}</span>
                                 </li>
-                                <li v-if="(showDefaults || (cluster.data.spec.replication.mode != 'ASYNC') )">
+                                <li v-if="(showDefaults || (cluster.data.spec.replication.mode != 'async') )">
                                     <strong class="label">Mode:</strong>
                                     <span class="value">{{ cluster.data.spec.replication.mode }}</span>
                                 </li>

@@ -9,10 +9,10 @@ import org.jetbrains.annotations.NotNull;
 
 public enum StackGresReplicationRole {
 
-  HA("HA"),
-  HA_READ("HA_READ"),
-  READONLY("READONLY"),
-  NONE("NONE");
+  HA("ha"),
+  HA_READ("ha-read"),
+  READONLY("readonly"),
+  NONE("none");
 
   private final @NotNull String type;
 

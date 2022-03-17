@@ -543,8 +543,8 @@
                         <div class="col">
                             <label for="spec.replication.role">Role</label>
                              <select v-model="replication.role" required data-field="spec.replication.role">    
-                                <option selected>HA_READ</option>
-                                <option>HA</option>
+                                <option selected>ha-read</option>
+                                <option>ha</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.role')"></span>
                         </div>
@@ -552,14 +552,14 @@
                         <div class="col">
                             <label for="spec.replication.mode">Mode</label>
                              <select v-model="replication.mode" required data-field="spec.replication.mode">    
-                                <option selected>ASYNC</option>
-                                <option>SYNC</option>
-                                <option>STRICT_SYNC</option>
+                                <option selected>async</option>
+                                <option>sync</option>
+                                <option>strict-sync</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.mode')"></span>
                         </div>
 
-                        <div class="col" v-if="['SYNC', 'STRICT_SYNC'].includes(replication.mode)">
+                        <div class="col" v-if="['sync', 'strict-sync'].includes(replication.mode)">
                             <label for="spec.replication.syncNodeCount">Sync Node Count</label>
                             <input type="number" min="1" :max="(instances - 1)" v-model="replication.syncNodeCount" data-field="spec.replication.syncNodeCount">
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.syncNodeCount')"></span>
@@ -600,10 +600,10 @@
                                             v-model="group.role"
                                             :required="group.name.length"
                                             data-field="spec.replication.groups.role">
-                                            <option>HA_READ</option>
-                                            <option>HA</option>
-                                            <option>READONLY</option>
-                                            <option>NONE</option>
+                                            <option>ha-read</option>
+                                            <option>ha</option>
+                                            <option>readonly</option>
+                                            <option>none</option>
                                         </select>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.groups.role')"></span>
                                     </div>
@@ -616,7 +616,7 @@
                                             :max="instances" 
                                             v-model="group.instances" 
                                             autocomplete="off" 
-                                            :required="( group.name.length || (group.role != 'HA_READ') )"
+                                            :required="( group.name.length || (group.role != 'ha-read') )"
                                             data-field="spec.replication.groups.instances">
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.groups.instances')"></span>
                                     </div>
@@ -627,8 +627,8 @@
                             <a class="addRow"
                                 data-add="spec.replication.groups"
                                 @click="( replication.hasOwnProperty('groups') ? 
-                                    replication.groups.push({name: '', role: 'HA_READ', instances: ''}) : 
-                                    (replication['groups'] = [{name: '', role: 'HA_READ', instances: ''}] ) )">
+                                    replication.groups.push({name: '', role: 'ha-read', instances: ''}) : 
+                                    (replication['groups'] = [{name: '', role: 'ha-read', instances: ''}] ) )">
                                 Add Group
                             </a>
                         </div>
@@ -1379,13 +1379,13 @@
                 retention: '',
                 prometheusAutobind: false,
                 replication: {
-                    role: 'HA_READ',
-                    mode: 'ASYNC',
+                    role: 'ha-read',
+                    mode: 'async',
                     syncNodeCount: 1,
                     groups: [
                         {
                             name: '',
-                            role: 'HA_READ',
+                            role: 'ha-read',
                             instances: null
                         }
                     ]
@@ -1794,7 +1794,7 @@
                             "replication": {
                                 "role": this.replication.role,
                                 "mode": this.replication.mode,
-                                ...(['SYNC', 'STRICT_SYNC'].includes(this.replication.mode) && ({
+                                ...(['sync', 'strict-sync'].includes(this.replication.mode) && ({
                                     "syncNodeCount": this.replication.syncNodeCount
                                 }) ),
                                 ...( ( this.replication.hasOwnProperty('groups') && (typeof this.replication.groups.find( g => (g.instances > 0) ) != 'undefined') ) && ({

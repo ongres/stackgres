@@ -51,8 +51,8 @@
         "sgInstanceProfile": "size-xs",
         "postgres": {},
         "replication": {
-          "mode": "ASYNC",
-          "role": "HA_READ"
+          "mode": "async",
+          "role": "ha-read"
         },
         "configurations": {
           "sgPostgresConfig": "postgresconf",
