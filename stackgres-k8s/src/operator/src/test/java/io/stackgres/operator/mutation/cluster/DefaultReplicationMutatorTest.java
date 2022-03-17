@@ -63,7 +63,7 @@ class DefaultReplicationMutatorTest {
 
     assertEquals(StackGresReplicationMode.ASYNC.toString(), actualReplication.getMode());
     assertEquals(StackGresMainReplicationRole.HA_READ.toString(), actualReplication.getRole());
-    assertNull(actualReplication.getSyncNodeCount());
+    assertNull(actualReplication.getSyncInstances());
     assertNull(actualReplication.getGroups());
   }
 
@@ -79,7 +79,7 @@ class DefaultReplicationMutatorTest {
 
     assertEquals(StackGresReplicationMode.ASYNC.toString(), actualReplication.getMode());
     assertEquals(StackGresMainReplicationRole.HA_READ.toString(), actualReplication.getRole());
-    assertNull(actualReplication.getSyncNodeCount());
+    assertNull(actualReplication.getSyncInstances());
     assertNull(actualReplication.getGroups());
   }
 
@@ -95,7 +95,7 @@ class DefaultReplicationMutatorTest {
 
     assertEquals(StackGresReplicationMode.ASYNC.toString(), actualReplication.getMode());
     assertEquals(StackGresMainReplicationRole.HA_READ.toString(), actualReplication.getRole());
-    assertNull(actualReplication.getSyncNodeCount());
+    assertNull(actualReplication.getSyncInstances());
     assertNull(actualReplication.getGroups());
   }
 
@@ -112,7 +112,7 @@ class DefaultReplicationMutatorTest {
 
     assertEquals(StackGresReplicationMode.ASYNC.toString(), actualReplication.getMode());
     assertEquals(StackGresMainReplicationRole.HA.toString(), actualReplication.getRole());
-    assertNull(actualReplication.getSyncNodeCount());
+    assertNull(actualReplication.getSyncInstances());
     assertNull(actualReplication.getGroups());
   }
 
@@ -129,7 +129,7 @@ class DefaultReplicationMutatorTest {
 
     assertEquals(StackGresReplicationMode.SYNC.toString(), actualReplication.getMode());
     assertEquals(StackGresMainReplicationRole.HA_READ.toString(), actualReplication.getRole());
-    assertEquals(1, actualReplication.getSyncNodeCount());
+    assertEquals(1, actualReplication.getSyncInstances());
     assertNull(actualReplication.getGroups());
   }
 
@@ -146,7 +146,7 @@ class DefaultReplicationMutatorTest {
 
     assertEquals(StackGresReplicationMode.STRICT_SYNC.toString(), actualReplication.getMode());
     assertEquals(StackGresMainReplicationRole.HA_READ.toString(), actualReplication.getRole());
-    assertEquals(1, actualReplication.getSyncNodeCount());
+    assertEquals(1, actualReplication.getSyncInstances());
     assertNull(actualReplication.getGroups());
   }
 
@@ -155,7 +155,7 @@ class DefaultReplicationMutatorTest {
     StackGresClusterReplication replication = new StackGresClusterReplication();
     replication.setMode(StackGresReplicationMode.SYNC.toString());
     replication.setRole(StackGresMainReplicationRole.HA_READ.toString());
-    replication.setSyncNodeCount(2);
+    replication.setSyncInstances(2);
 
     review.getRequest().getObject().getSpec().setReplication(replication);
     StackGresCluster actualCluster = mutate(review);
@@ -164,7 +164,7 @@ class DefaultReplicationMutatorTest {
 
     assertEquals(StackGresReplicationMode.SYNC.toString(), actualReplication.getMode());
     assertEquals(StackGresMainReplicationRole.HA_READ.toString(), actualReplication.getRole());
-    assertEquals(2, actualReplication.getSyncNodeCount());
+    assertEquals(2, actualReplication.getSyncInstances());
     assertNull(actualReplication.getGroups());
   }
 
@@ -173,7 +173,7 @@ class DefaultReplicationMutatorTest {
     StackGresClusterReplication replication = new StackGresClusterReplication();
     replication.setMode(StackGresReplicationMode.STRICT_SYNC.toString());
     replication.setRole(StackGresMainReplicationRole.HA_READ.toString());
-    replication.setSyncNodeCount(2);
+    replication.setSyncInstances(2);
 
     review.getRequest().getObject().getSpec().setReplication(replication);
     StackGresCluster actualCluster = mutate(review);
@@ -182,7 +182,7 @@ class DefaultReplicationMutatorTest {
 
     assertEquals(StackGresReplicationMode.STRICT_SYNC.toString(), actualReplication.getMode());
     assertEquals(StackGresMainReplicationRole.HA_READ.toString(), actualReplication.getRole());
-    assertEquals(2, actualReplication.getSyncNodeCount());
+    assertEquals(2, actualReplication.getSyncInstances());
     assertNull(actualReplication.getGroups());
   }
 
@@ -203,7 +203,7 @@ class DefaultReplicationMutatorTest {
 
     assertEquals(StackGresReplicationMode.ASYNC.toString(), actualReplication.getMode());
     assertEquals(StackGresMainReplicationRole.HA_READ.toString(), actualReplication.getRole());
-    assertNull(actualReplication.getSyncNodeCount());
+    assertNull(actualReplication.getSyncInstances());
     assertNotNull(actualReplication.getGroups());
     assertEquals(1, actualReplication.getGroups().size());
     assertEquals("group-1", actualReplication.getGroups().get(0).getName());
@@ -229,7 +229,7 @@ class DefaultReplicationMutatorTest {
 
     assertEquals(StackGresReplicationMode.ASYNC.toString(), actualReplication.getMode());
     assertEquals(StackGresMainReplicationRole.HA_READ.toString(), actualReplication.getRole());
-    assertNull(actualReplication.getSyncNodeCount());
+    assertNull(actualReplication.getSyncInstances());
     assertNotNull(actualReplication.getGroups());
     assertEquals(1, actualReplication.getGroups().size());
     assertEquals("test-1", actualReplication.getGroups().get(0).getName());

@@ -713,23 +713,23 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   }
 
   @Test
-  void givenInstancesGreatherThanSyncNodeCount_shouldPass() throws ValidationFailed {
+  void givenInstancesGreatherThanSyncInstances_shouldPass() throws ValidationFailed {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInstances(2);
     review.getRequest().getObject().getSpec().getReplication().setMode(
         StackGresReplicationMode.SYNC.toString());
-    review.getRequest().getObject().getSpec().getReplication().setSyncNodeCount(1);
+    review.getRequest().getObject().getSpec().getReplication().setSyncInstances(1);
 
     validator.validate(review);
   }
 
   @Test
-  void givenInstancesEqualsToSyncNodeCount_shouldFail() {
+  void givenInstancesEqualsToSyncInstances_shouldFail() {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInstances(1);
     review.getRequest().getObject().getSpec().getReplication().setMode(
         StackGresReplicationMode.SYNC.toString());
-    review.getRequest().getObject().getSpec().getReplication().setSyncNodeCount(1);
+    review.getRequest().getObject().getSpec().getReplication().setSyncInstances(1);
 
     checkErrorCause(StackGresClusterSpec.class,
         "spec.instances",
@@ -738,12 +738,12 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   }
 
   @Test
-  void givenInstancesLessThanSyncNodeCount_shouldFail() {
+  void givenInstancesLessThanSyncInstances_shouldFail() {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInstances(1);
     review.getRequest().getObject().getSpec().getReplication().setMode(
         StackGresReplicationMode.SYNC.toString());
-    review.getRequest().getObject().getSpec().getReplication().setSyncNodeCount(2);
+    review.getRequest().getObject().getSpec().getReplication().setSyncInstances(2);
 
     checkErrorCause(StackGresClusterSpec.class,
         "spec.instances",
@@ -752,29 +752,29 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   }
 
   @Test
-  void givenNullSyncNodeCount_shouldFail() {
+  void givenNullSyncInstances_shouldFail() {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInstances(2);
     review.getRequest().getObject().getSpec().getReplication().setMode(
         StackGresReplicationMode.SYNC.toString());
-    review.getRequest().getObject().getSpec().getReplication().setSyncNodeCount(null);
+    review.getRequest().getObject().getSpec().getReplication().setSyncInstances(null);
 
     checkErrorCause(StackGresClusterReplication.class,
-        "spec.replication.syncNodeCount",
-        "isSyncNodeCountSetForSyncMode",
+        "spec.replication.syncInstances",
+        "isSyncInstancesSetForSyncMode",
         review, AssertTrue.class);
   }
 
   @Test
-  void givenSyncNodeCountLessThanOne_shouldFail() {
+  void givenSyncInstancesLessThanOne_shouldFail() {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setInstances(2);
     review.getRequest().getObject().getSpec().getReplication().setMode(
         StackGresReplicationMode.SYNC.toString());
-    review.getRequest().getObject().getSpec().getReplication().setSyncNodeCount(0);
+    review.getRequest().getObject().getSpec().getReplication().setSyncInstances(0);
 
     checkErrorCause(StackGresClusterReplication.class,
-        "spec.replication.syncNodeCount",
+        "spec.replication.syncInstances",
         review, Min.class, "must be greater than or equal to 1");
   }
 }

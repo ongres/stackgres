@@ -8,8 +8,8 @@
       "version":"latest"
     },
     "replication": {
-      "mode": "ASYNC",
-      "role": "HA_READ"
+      "mode": "async",
+      "role": "ha-read"
     },
     "instances":"1",
     "pods":{

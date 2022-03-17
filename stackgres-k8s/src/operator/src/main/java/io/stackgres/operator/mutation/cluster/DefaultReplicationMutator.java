@@ -54,8 +54,8 @@ public class DefaultReplicationMutator implements ClusterMutator {
       if (replication.getRole() == null) {
         replication.setRole(StackGresMainReplicationRole.HA_READ.toString());
       }
-      if (replication.getSyncNodeCount() == null && replication.isSynchronousMode()) {
-        replication.setSyncNodeCount(1);
+      if (replication.getSyncInstances() == null && replication.isSynchronousMode()) {
+        replication.setSyncInstances(1);
       }
       if (replication.getGroups() != null) {
         Seq.seq(replication.getGroups()).zipWithIndex().forEach(group -> {

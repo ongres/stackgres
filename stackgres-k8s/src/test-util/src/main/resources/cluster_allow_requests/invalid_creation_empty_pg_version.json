@@ -52,8 +52,8 @@
           "version": ""
         },
         "replication": {
-          "mode": "ASYNC",
-          "role": "HA_READ"
+          "mode": "async",
+          "role": "ha-read"
         },
         "sgInstanceProfile": "size-xs",
         "configurations": {

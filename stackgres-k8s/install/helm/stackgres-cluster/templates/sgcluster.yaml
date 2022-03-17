@@ -52,8 +52,8 @@ spec:
   replication:
     mode: '{{ .Values.cluster.replication.mode }}'
     role: '{{ .Values.cluster.replication.role }}'
-    {{- if .Values.cluster.replication.syncNodeCount }}
-    syncNodeCount: {{ .Values.cluster.replication.syncNodeCount }}
+    {{- if .Values.cluster.replication.syncInstances }}
+    syncInstances: {{ .Values.cluster.replication.syncInstances }}
     {{- end }}
     {{- if .Values.cluster.replication.groups }}
     groups:

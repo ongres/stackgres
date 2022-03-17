@@ -5,10 +5,10 @@
 
 e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
-    --set cluster.replication.mode=SYNC \
-    --set cluster.replication.role=HA_READ \
+    --set cluster.replication.mode=sync \
+    --set cluster.replication.role=ha-read \
     --set cluster.replication.groups[0].instances=1 \
-    --set cluster.replication.groups[0].role=NONE
+    --set cluster.replication.groups[0].role=none
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
@@ -21,19 +21,19 @@ e2e_test() {
 
   run_test "Checking that metrics are exported" check_metrics
 
-  run_test "Checking that replica in HA_READ group is exposed in replicas service" check_replica_in_ha_read_group_not_in_replicas_service
+  run_test "Checking that replica in ha-read group is exposed in replicas service" check_replica_in_ha_read_group_not_in_replicas_service
 
-  run_test "Checking that replica in NONE group is not exposed in replicas service" check_replica_in_none_group_not_in_replicas_service
+  run_test "Checking that replica in none group is not exposed in replicas service" check_replica_in_none_group_not_in_replicas_service
 
-  run_test "Checking that replica in NONE group is not elegible as primary" check_replica_in_none_group_not_elegible_as_primary
+  run_test "Checking that replica in none group is not elegible as primary" check_replica_in_none_group_not_elegible_as_primary
 
-  run_test "Checking that replica in READONLY group is exposed in replicas service after changing role" check_replica_in_readonly_group_in_replicas_service_after_changing_role
+  run_test "Checking that replica in readonly group is exposed in replicas service after changing role" check_replica_in_readonly_group_in_replicas_service_after_changing_role
 
-  run_test "Checking that old primary in HA group is not exposed in replicas service after changing role" check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role
+  run_test "Checking that old primary in ha group is not exposed in replicas service after changing role" check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role
 
   run_test "Checking that strict synchronous replication is working" check_strict_sync_replication_is_working
 
-  run_test "Checking that cluster can restart without replicas in any HA or HA_READ group" check_cluster_can_restart_without_replicas_in_any_ha_group
+  run_test "Checking that cluster can restart without replicas in any ha or ha-read group" check_cluster_can_restart_without_replicas_in_any_ha_group
 }
 
 check_sync_replication_is_working() {
@@ -136,7 +136,7 @@ check_replica_in_none_group_not_elegible_as_primary() {
 
 check_replica_in_readonly_group_in_replicas_service_after_changing_role() {
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p '[{"op":"replace","path":"/spec/replication/groups/0/role","value":"READONLY"}]'
+    -p '[{"op":"replace","path":"/spec/replication/groups/0/role","value":"readonly"}]'
   local RESULT EXIT_CODE
   try_function wait_until eval 'check_pod_ip_exposed_by_service "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" "$CLUSTER_NAME-replicas"'
   if "$RESULT"
@@ -150,7 +150,7 @@ check_replica_in_readonly_group_in_replicas_service_after_changing_role() {
 
 check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role() {
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p '[{"op":"replace","path":"/spec/replication/role","value":"HA"},
+    -p '[{"op":"replace","path":"/spec/replication/role","value":"ha"},
          {"op":"remove","path":"/spec/pods/scheduling"}]'
   until kubectl wait -n "$CLUSTER_NAMESPACE" pod "$CLUSTER_NAME-0" --for=condition=PodScheduled --timeout 0
   do
@@ -170,10 +170,10 @@ check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role() {
 
 check_strict_sync_replication_is_working() {
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p '[{"op":"replace","path":"/spec/replication/mode","value":"STRICT_SYNC"},
-         {"op":"replace","path":"/spec/replication/role","value":"HA_READ"},
+    -p '[{"op":"replace","path":"/spec/replication/mode","value":"strict-sync"},
+         {"op":"replace","path":"/spec/replication/role","value":"ha-read"},
          {"op":"replace","path":"/spec/replication/groups/0/instances","value":2},
-         {"op":"replace","path":"/spec/replication/groups/0/role","value":"READONLY"}]'
+         {"op":"replace","path":"/spec/replication/groups/0/role","value":"readonly"}]'
   local RESULT EXIT_CODE
   try_function wait_until -t 10 eval 'kubectl wait -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" --for=condition=PendingRestart --timeout 0'
   if "$RESULT"

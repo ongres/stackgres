@@ -171,11 +171,11 @@ spec:
                       description: |
                         The replication mode applied to the whole cluster.
                         Possible values are:
-                        * `ASYNC` (default)
-                        * `SYNC`
-                        * `STRICT_SYNC`
+                        * `async` (default)
+                        * `sync`
+                        * `strict-sync`
                         
-                        ### `ASYNC` Mode
+                        ### `async` Mode
                         
                         When in asynchronous mode the cluster is allowed to lose some committed transactions.
                          When the primary server fails or becomes unavailable for any other reason a sufficiently healthy standby
@@ -183,7 +183,7 @@ spec:
                          remain in a "forked timeline" on the primary, and are effectively unrecoverable (the data is still there,
                          but recovering it requires a manual recovery effort by data recovery specialists).
                         
-                        ### `SYNC` Mode
+                        ### `sync` Mode
                         
                         When in synchronous mode a standby will not be promoted unless it is certain that the standby contains all
                          transactions that may have returned a successful commit status to client (clients can change the behavior
@@ -203,7 +203,7 @@ spec:
                          mode. Manually shutting down or restarting a standby will not cause a commit service interruption. Standby will
                          signal the primary to release itself from synchronous standby duties before PostgreSQL shutdown is initiated.
                         
-                        ### `STRICT_SYNC` Mode
+                        ### `strict-sync` Mode
                         
                         When it is absolutely necessary to guarantee that each write is stored durably on at least two nodes, use the strict
                          synchronous mode. This mode prevents synchronous replication to be switched off on the primary when no synchronous
@@ -220,16 +220,16 @@ spec:
                       description: |
                         This role is applied to the instances of the implicit replication group that is composed by `.spec.instances` number of instances.
                         Possible values are:
-                        * `HA_READ` (default)
-                        * `HA`
-                        The primary instance will be elected among all the replication groups that are either `HA` or `HA_READ`.
-                        Only if the role is set to `HA_READ` instances of main replication group will be exposed via the replicas service.
-                    syncNodeCount:
+                        * `ha-read` (default)
+                        * `ha`
+                        The primary instance will be elected among all the replication groups that are either `ha` or `ha-read`.
+                        Only if the role is set to `ha-read` instances of main replication group will be exposed via the replicas service.
+                    syncInstances:
                       type: integer
                       minimum: 1
                       description: |
                         Number of synchronous standby instances. Must be less than the total number of instances. It is set to 1 by default.
-                         Only setteable if mode is `SYNC` or `STRICT_SYNC`.
+                         Only setteable if mode is `sync` or `strict-sync`.
                     groups:
                       type: array
                       description: |
@@ -247,12 +247,12 @@ spec:
                             description: |
                               This role is applied to the instances of this replication group.
                               Possible values are:
-                              * `HA_READ`
-                              * `HA`
-                              * `READONLY`
-                              * `NONE`
-                              The primary instance will be elected among all the replication groups that are either `HA` or `HA_READ`.
-                              Only if the role is set to `READONLY` or `HA_READ` instances of such replication group will be exposed via the replicas service.
+                              * `ha-read`
+                              * `ha`
+                              * `readonly`
+                              * `none`
+                              The primary instance will be elected among all the replication groups that are either `ha` or `ha-read`.
+                              Only if the role is set to `readonly` or `ha-read` instances of such replication group will be exposed via the replicas service.
                           instances:
                             type: integer
                             minimum: 1
