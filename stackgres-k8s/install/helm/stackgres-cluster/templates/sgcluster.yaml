@@ -73,6 +73,21 @@ spec:
     {{- if .Values.cluster.configurations.sgBackupConfig }}
     sgBackupConfig: '{{ .Values.cluster.configurations.sgBackupConfig }}'
     {{- end }}
+    {{- if .Values.cluster.configurations.backups.sgObjectStorage }}
+    backups:
+    - retention: {{ .Values.cluster.configurations.backups.retention }}
+      cronSchedule: '{{ .Values.cluster.configurations.backups.cronSchedule }}'
+      compression: '{{ .Values.cluster.configurations.backups.compression }}'
+      performance: 
+        uploadDiskConcurrency: {{ .Values.cluster.configurations.backups.performance.uploadDiskConcurrency }}
+        {{- if .Values.cluster.configurations.backups.performance.maxNetworkBandwitdh }}
+        maxNetworkBandwitdh: {{ .Values.cluster.configurations.backups.performance.maxNetworkBandwitdh }}
+        {{- end }}
+        {{- if .Values.cluster.configurations.backups.performance.maxDiskBandwitdh }}
+        maxDiskBandwitdh: {{ .Values.cluster.configurations.backups.performance.maxDiskBandwitdh }}
+        {{- end }}
+      sgObjectStorage: '{{ .Values.cluster.configurations.backups.sgObjectStorage }}'
+    {{- end }}
   sgInstanceProfile: '{{ .Values.cluster.sgInstanceProfile }}'
   {{- if .Values.cluster.initialData }}
   {{- if or .Values.cluster.initialData.restore .Values.cluster.initialData.scripts }}

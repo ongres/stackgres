@@ -95,7 +95,7 @@ public abstract class AbstractPatroniConfigEndpoints
       StackGresClusterContext context, StackGresPostgresConfig pgConfig);
 
   protected boolean isBackupConfigurationPresent(StackGresClusterContext context) {
-    return context.getBackupConfig()
+    return context.getBackupStorage()
         .isPresent();
   }
 
