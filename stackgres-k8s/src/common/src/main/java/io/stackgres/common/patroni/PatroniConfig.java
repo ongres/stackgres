@@ -46,8 +46,8 @@ public class PatroniConfig {
   @JsonProperty("synchronous_mode_strict")
   private Boolean synchronousModeStrict;
 
-  @JsonProperty("synchronous_mode_count")
-  private Integer synchronousModeCount;
+  @JsonProperty("synchronous_node_count")
+  private Integer synchronousNodeCount;
 
   @JsonProperty("postgresql")
   private PostgreSql postgresql;
@@ -119,12 +119,12 @@ public class PatroniConfig {
     this.synchronousModeStrict = synchronousModeStrict;
   }
 
-  public Integer getSynchronousModeCount() {
-    return synchronousModeCount;
+  public Integer getSynchronousNodeCount() {
+    return synchronousNodeCount;
   }
 
-  public void setSynchronousModeCount(Integer synchronousModeCount) {
-    this.synchronousModeCount = synchronousModeCount;
+  public void setSynchronousNodeCount(Integer synchronousNodeCount) {
+    this.synchronousNodeCount = synchronousNodeCount;
   }
 
   public PostgreSql getPostgresql() {
@@ -223,16 +223,14 @@ public class PatroniConfig {
   @Override
   public int hashCode() {
     return Objects.hash(checkTimeline, loopWait, masterStartTimeout, maximumLagOnFailover,
-        postgresql, retryTimeout, synchronousMode, synchronousModeStrict, ttl);
+        postgresql, retryTimeout, standbyCluster, synchronousMode, synchronousModeStrict,
+        synchronousNodeCount, ttl);
   }
 
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
       return true;
-    }
-    if (obj == null) {
-      return false;
     }
     if (!(obj instanceof PatroniConfig)) {
       return false;
@@ -244,8 +242,10 @@ public class PatroniConfig {
         && Objects.equals(maximumLagOnFailover, other.maximumLagOnFailover)
         && Objects.equals(postgresql, other.postgresql)
         && Objects.equals(retryTimeout, other.retryTimeout)
+        && Objects.equals(standbyCluster, other.standbyCluster)
         && Objects.equals(synchronousMode, other.synchronousMode)
         && Objects.equals(synchronousModeStrict, other.synchronousModeStrict)
+        && Objects.equals(synchronousNodeCount, other.synchronousNodeCount)
         && Objects.equals(ttl, other.ttl);
   }
 
