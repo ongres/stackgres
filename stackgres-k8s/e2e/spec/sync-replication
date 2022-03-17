@@ -7,6 +7,7 @@ e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
     --set cluster.replication.mode=sync \
     --set cluster.replication.role=ha-read \
+    --set cluster.replication.syncInstances=2 \
     --set cluster.replication.groups[0].instances=1 \
     --set cluster.replication.groups[0].role=none
 
@@ -42,7 +43,7 @@ check_sync_replication_is_working() {
   local SYNCHRONOUS_STANDBY_NAMES
   SYNCHRONOUS_STANDBY_NAMES="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
     psql -At -c 'SHOW synchronous_standby_names')"
-  if echo "$SYNCHRONOUS_STANDBY_NAMES" | grep -q '^"[^"]\+"$'
+  if echo "$SYNCHRONOUS_STANDBY_NAMES" | grep -q '^"[^"]\+ [^"]\+"$'
   then
     echo "SUCCESS: sync replication is set for primary"
   else
