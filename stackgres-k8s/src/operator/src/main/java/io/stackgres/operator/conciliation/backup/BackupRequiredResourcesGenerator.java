@@ -74,9 +74,29 @@ public class BackupRequiredResourcesGenerator
         .orElseThrow(() -> new IllegalArgumentException(
             "SGBackup " + backupNamespace + "/" + backupName
                 + " target a non existent SGCluster " + clusterNamespace + "." + clusterName));
-    final Optional<StackGresBackupConfig> backupConfig;
-    if (Objects.equals(clusterNamespace, backupNamespace)) {
-      backupConfig = Optional.of(cluster)
+    final Optional<StackGresBackupConfig> backupConfig =
+        findBackupConfig(config, backupName, backupNamespace, clusterNamespace, cluster);
+
+    final Set<String> clusterBackupNamespaces = getClusterBackupNamespaces(backupNamespace);
+
+    StackGresBackupContext context = ImmutableStackGresBackupContext.builder()
+        .source(config)
+        .cluster(cluster)
+        .backupConfig(backupConfig)
+        .clusterBackupNamespaces(clusterBackupNamespaces)
+        .build();
+
+    return decorator.decorateResources(context);
+  }
+
+  private Optional<StackGresBackupConfig> findBackupConfig(StackGresBackup config,
+      final String backupName, final String backupNamespace, final String clusterNamespace,
+      final StackGresCluster cluster) {
+    if (!Objects.equals(clusterNamespace, backupNamespace)) {
+      return Optional.empty();
+    }
+
+    final Optional<StackGresBackupConfig> backupConfig = Optional.of(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getConfiguration)
         .map(StackGresClusterConfiguration::getBackupConfig)
@@ -84,19 +104,19 @@ public class BackupRequiredResourcesGenerator
             .findByNameAndNamespace(backupConfigName, backupNamespace)
             .orElseThrow(() -> new IllegalArgumentException(
                 "SGBackup " + backupNamespace + "/" + backupName
-                + " target SGCluster " + spec.getSgCluster()
+                + " target SGCluster " + config.getSpec().getSgCluster()
                 + " with a non existent SGBackupConfig " + backupConfigName)));
-      if (backupConfig.isEmpty()) {
-        throw new IllegalArgumentException(
-            "SGBackup " + backupNamespace + "/" + backupName
-            + " target SGCluster " + spec.getSgCluster()
-            + " without a SGBackupConfig");
-      }
-    } else {
-      backupConfig = Optional.empty();
+    if (backupConfig.isEmpty()) {
+      throw new IllegalArgumentException(
+          "SGBackup " + backupNamespace + "/" + backupName
+          + " target SGCluster " + config.getSpec().getSgCluster()
+          + " without a SGBackupConfig");
     }
+    return backupConfig;
+  }
 
-    final Set<String> clusterBackupNamespaces = backupScanner.getResources()
+  private Set<String> getClusterBackupNamespaces(final String backupNamespace) {
+    return backupScanner.getResources()
         .stream()
         .map(Optional::of)
         .map(backup -> backup
@@ -107,15 +127,6 @@ public class BackupRequiredResourcesGenerator
         .filter(Predicates.not(backupNamespace::equals))
         .collect(Collectors.groupingBy(Function.identity()))
         .keySet();
-
-    StackGresBackupContext context = ImmutableStackGresBackupContext.builder()
-        .source(config)
-        .cluster(cluster)
-        .backupConfig(backupConfig)
-        .clusterBackupNamespaces(clusterBackupNamespaces)
-        .build();
-
-    return decorator.decorateResources(context);
   }
 
 }

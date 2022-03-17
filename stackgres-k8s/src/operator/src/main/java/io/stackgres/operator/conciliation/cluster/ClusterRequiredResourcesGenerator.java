@@ -151,28 +151,9 @@ public class ClusterRequiredResourcesGenerator
         .flatMap(poolingConfigName -> poolingConfigFinder
             .findByNameAndNamespace(poolingConfigName, clusterNamespace));
 
-    final Set<String> clusterBackupNamespaces = backupScanner.getResources()
-        .stream()
-        .map(Optional::of)
-        .map(backup -> backup
-            .map(StackGresBackup::getMetadata)
-            .map(ObjectMeta::getNamespace))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .filter(Predicates.not(clusterNamespace::equals))
-        .collect(Collectors.groupingBy(Function.identity()))
-        .keySet();
+    final Set<String> clusterBackupNamespaces = getClusterBackupNamespaces(clusterNamespace);
 
-    // The logic here is return an empty if there is no StackGresClusterRestore
-    // if the name match return that backup and if the backup is not found return a dummy object,
-    // the dummy object is for the cases when the restore is done but the backup is deleted.
-    // This way the template don't change after a reconciliation cycle requiring a restart.
-    final Optional<StackGresBackup> restoreBackup = Optional
-        .ofNullable(config.getSpec().getInitData())
-        .map(StackGresClusterInitData::getRestore)
-        .map(StackGresClusterRestore::getFromBackup)
-        .map(StackGresClusterRestoreFromBackup::getName)
-        .flatMap(backupName -> backupFinder.findByNameAndNamespace(backupName, clusterNamespace));
+    final Optional<StackGresBackup> restoreBackup = findRestoreBackup(config, clusterNamespace);
 
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .source(config)
@@ -194,6 +175,30 @@ public class ClusterRequiredResourcesGenerator
         .build();
 
     return decorator.decorateResources(context);
+  }
+
+  private Set<String> getClusterBackupNamespaces(final String clusterNamespace) {
+    return backupScanner.getResources()
+        .stream()
+        .map(Optional::of)
+        .map(backup -> backup
+            .map(StackGresBackup::getMetadata)
+            .map(ObjectMeta::getNamespace))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .filter(Predicates.not(clusterNamespace::equals))
+        .collect(Collectors.groupingBy(Function.identity()))
+        .keySet();
+  }
+
+  private Optional<StackGresBackup> findRestoreBackup(StackGresCluster config,
+      final String clusterNamespace) {
+    return Optional
+        .ofNullable(config.getSpec().getInitData())
+        .map(StackGresClusterInitData::getRestore)
+        .map(StackGresClusterRestore::getFromBackup)
+        .map(StackGresClusterRestoreFromBackup::getName)
+        .flatMap(backupName -> backupFinder.findByNameAndNamespace(backupName, clusterNamespace));
   }
 
   private StackGresClusterScriptEntry getPostgresExporterInitScript() {
