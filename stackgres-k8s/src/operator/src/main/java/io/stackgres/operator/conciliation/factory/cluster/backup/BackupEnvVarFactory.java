@@ -9,8 +9,11 @@ import java.util.Map;
 
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.storages.BackupStorage;
 
 public interface BackupEnvVarFactory {
+
+  Map<String, String> getSecretEnvVar(String namespace, BackupStorage storage);
 
   Map<String, String> getSecretEnvVar(StackGresBackupConfig backupConfig);
 

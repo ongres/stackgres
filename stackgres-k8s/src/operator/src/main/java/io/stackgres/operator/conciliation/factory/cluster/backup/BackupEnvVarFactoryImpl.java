@@ -44,38 +44,45 @@ public class BackupEnvVarFactoryImpl implements BackupEnvVarFactory {
     this.secretFinder = secretFinder;
   }
 
-  public Map<String, Map<String, String>> getBackupConfigSecretReferences(
+  public Map<String, Map<String, String>> getStorageSecretReferences(
       String namespace,
       StackGresBackupConfigSpec backupConfSpec) {
+    return getStorageSecretReferences(namespace, backupConfSpec.getStorage());
+  }
+
+  public Map<String, Map<String, String>> getStorageSecretReferences(
+      String namespace,
+      BackupStorage storage
+  ) {
     return Seq.of(
-        Optional.ofNullable(backupConfSpec.getStorage().getS3())
-            .map(AwsS3Storage::getAwsCredentials)
-            .map(AwsCredentials::getSecretKeySelectors)
-            .map(AwsSecretKeySelector::getAccessKeyId),
-        Optional.ofNullable(backupConfSpec.getStorage().getS3())
-            .map(AwsS3Storage::getAwsCredentials)
-            .map(AwsCredentials::getSecretKeySelectors)
-            .map(AwsSecretKeySelector::getSecretAccessKey),
-        Optional.ofNullable(backupConfSpec.getStorage().getS3Compatible())
-            .map(AwsS3CompatibleStorage::getAwsCredentials)
-            .map(AwsCredentials::getSecretKeySelectors)
-            .map(AwsSecretKeySelector::getAccessKeyId),
-        Optional.ofNullable(backupConfSpec.getStorage().getS3Compatible())
-            .map(AwsS3CompatibleStorage::getAwsCredentials)
-            .map(AwsCredentials::getSecretKeySelectors)
-            .map(AwsSecretKeySelector::getSecretAccessKey),
-        Optional.ofNullable(backupConfSpec.getStorage().getGcs())
-            .map(GoogleCloudStorage::getCredentials)
-            .map(GoogleCloudCredentials::getSecretKeySelectors)
-            .map(GoogleCloudSecretKeySelector::getServiceAccountJsonKey),
-        Optional.ofNullable(backupConfSpec.getStorage().getAzureBlob())
-            .map(AzureBlobStorage::getAzureCredentials)
-            .map(AzureBlobStorageCredentials::getSecretKeySelectors)
-            .map(AzureBlobSecretKeySelector::getAccount),
-        Optional.ofNullable(backupConfSpec.getStorage().getAzureBlob())
-            .map(AzureBlobStorage::getAzureCredentials)
-            .map(AzureBlobStorageCredentials::getSecretKeySelectors)
-            .map(AzureBlobSecretKeySelector::getAccessKey))
+            Optional.ofNullable(storage.getS3())
+                .map(AwsS3Storage::getAwsCredentials)
+                .map(AwsCredentials::getSecretKeySelectors)
+                .map(AwsSecretKeySelector::getAccessKeyId),
+            Optional.ofNullable(storage.getS3())
+                .map(AwsS3Storage::getAwsCredentials)
+                .map(AwsCredentials::getSecretKeySelectors)
+                .map(AwsSecretKeySelector::getSecretAccessKey),
+            Optional.ofNullable(storage.getS3Compatible())
+                .map(AwsS3CompatibleStorage::getAwsCredentials)
+                .map(AwsCredentials::getSecretKeySelectors)
+                .map(AwsSecretKeySelector::getAccessKeyId),
+            Optional.ofNullable(storage.getS3Compatible())
+                .map(AwsS3CompatibleStorage::getAwsCredentials)
+                .map(AwsCredentials::getSecretKeySelectors)
+                .map(AwsSecretKeySelector::getSecretAccessKey),
+            Optional.ofNullable(storage.getGcs())
+                .map(GoogleCloudStorage::getCredentials)
+                .map(GoogleCloudCredentials::getSecretKeySelectors)
+                .map(GoogleCloudSecretKeySelector::getServiceAccountJsonKey),
+            Optional.ofNullable(storage.getAzureBlob())
+                .map(AzureBlobStorage::getAzureCredentials)
+                .map(AzureBlobStorageCredentials::getSecretKeySelectors)
+                .map(AzureBlobSecretKeySelector::getAccount),
+            Optional.ofNullable(storage.getAzureBlob())
+                .map(AzureBlobStorage::getAzureCredentials)
+                .map(AzureBlobStorageCredentials::getSecretKeySelectors)
+                .map(AzureBlobSecretKeySelector::getAccessKey))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .map(secretKeySelector -> Tuple.tuple(secretKeySelector,
@@ -91,22 +98,28 @@ public class BackupEnvVarFactoryImpl implements BackupEnvVarFactory {
   public Map<String, String> getSecretEnvVar(StackGresBackupConfig backupConfig) {
     String namespace = backupConfig.getMetadata().getNamespace();
     final StackGresBackupConfigSpec spec = backupConfig.getSpec();
-    var secrets = getBackupConfigSecretReferences(namespace, spec);
-    return getBackupSecrets(spec, secrets);
+    var secrets = getStorageSecretReferences(namespace, spec);
+    return getBackupSecrets(spec.getStorage(), secrets);
   }
 
   @Override
   public Map<String, String> getSecretEnvVar(String namespace,
                                              StackGresBackupConfigSpec backupConfigSpec) {
-    var secrets = getBackupConfigSecretReferences(namespace, backupConfigSpec);
-    return getBackupSecrets(backupConfigSpec, secrets);
+    var secrets = getStorageSecretReferences(namespace, backupConfigSpec);
+    return getBackupSecrets(backupConfigSpec.getStorage(), secrets);
+  }
+
+  @Override
+  public Map<String, String> getSecretEnvVar(String namespace, BackupStorage storage) {
+    var secrets = getStorageSecretReferences(namespace, storage);
+    return getBackupSecrets(storage, secrets);
   }
 
   private String getSecret(String namespace, SecretKeySelector secretKeySelector) {
     return Optional.of(secretFinder.findByNameAndNamespace(secretKeySelector.getName(), namespace)
-        .orElseThrow(() -> new IllegalStateException(
-            "Secret " + namespace + "." + secretKeySelector.getName()
-                + " not found")))
+            .orElseThrow(() -> new IllegalStateException(
+                "Secret " + namespace + "." + secretKeySelector.getName()
+                    + " not found")))
         .map(Secret::getData)
         .map(data -> data.get(secretKeySelector.getKey()))
         .map(ResourceUtil::decodeSecret)
@@ -117,49 +130,46 @@ public class BackupEnvVarFactoryImpl implements BackupEnvVarFactory {
   }
 
   private ImmutableMap<String, String> getBackupSecrets(
-      StackGresBackupConfigSpec backupConfigSpec, Map<String, Map<String, String>> secrets) {
+      BackupStorage storage, Map<String, Map<String, String>> secrets) {
     return Seq.of(
-        Optional.of(backupConfigSpec)
-            .map(StackGresBackupConfigSpec::getStorage)
-            .map(BackupStorage::getS3)
-            .map(awsConf -> Seq.of(
-                getSecretEntry("AWS_ACCESS_KEY_ID",
-                    awsConf.getAwsCredentials().getSecretKeySelectors().getAccessKeyId(), secrets),
-                getSecretEntry("AWS_SECRET_ACCESS_KEY",
-                    awsConf.getAwsCredentials()
-                        .getSecretKeySelectors().getSecretAccessKey(), secrets))),
-        Optional.of(backupConfigSpec)
-            .map(StackGresBackupConfigSpec::getStorage)
-            .map(BackupStorage::getS3Compatible)
-            .map(awsConf -> Seq.of(
-                getSecretEntry("AWS_ACCESS_KEY_ID",
-                    awsConf.getAwsCredentials().getSecretKeySelectors().getAccessKeyId(), secrets),
-                getSecretEntry("AWS_SECRET_ACCESS_KEY",
-                    awsConf.getAwsCredentials()
-                        .getSecretKeySelectors().getSecretAccessKey(), secrets))),
-        Optional.of(backupConfigSpec)
-            .map(StackGresBackupConfigSpec::getStorage)
-            .map(BackupStorage::getGcs)
-            .map(GoogleCloudStorage::getCredentials)
-            .map(GoogleCloudCredentials::getSecretKeySelectors)
-            .map(gcsConfigSecretKeySelectors -> Seq.of(
-                getSecretEntry(
-                    ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME,
-                    gcsConfigSecretKeySelectors.getServiceAccountJsonKey(),
-                    secrets))),
-        Optional.of(backupConfigSpec)
-            .map(StackGresBackupConfigSpec::getStorage)
-            .map(BackupStorage::getAzureBlob)
-            .map(azureConfig -> Seq.of(
-                getSecretEntry("AZURE_STORAGE_ACCOUNT",
-                    azureConfig.getAzureCredentials()
-                        .getSecretKeySelectors().getAccount(), secrets),
-                getSecretEntry("AZURE_STORAGE_ACCESS_KEY",
-                    azureConfig.getAzureCredentials()
-                        .getSecretKeySelectors().getAccessKey(), secrets))))
+            Optional.of(storage)
+                .map(BackupStorage::getS3)
+                .map(awsConf -> Seq.of(
+                    getSecretEntry("AWS_ACCESS_KEY_ID",
+                        awsConf.getAwsCredentials().getSecretKeySelectors().getAccessKeyId(),
+                        secrets),
+                    getSecretEntry("AWS_SECRET_ACCESS_KEY",
+                        awsConf.getAwsCredentials()
+                            .getSecretKeySelectors().getSecretAccessKey(), secrets))),
+            Optional.of(storage)
+                .map(BackupStorage::getS3Compatible)
+                .map(awsConf -> Seq.of(
+                    getSecretEntry("AWS_ACCESS_KEY_ID",
+                        awsConf.getAwsCredentials().getSecretKeySelectors().getAccessKeyId(),
+                        secrets),
+                    getSecretEntry("AWS_SECRET_ACCESS_KEY",
+                        awsConf.getAwsCredentials()
+                            .getSecretKeySelectors().getSecretAccessKey(), secrets))),
+            Optional.of(storage)
+                .map(BackupStorage::getGcs)
+                .map(GoogleCloudStorage::getCredentials)
+                .map(GoogleCloudCredentials::getSecretKeySelectors)
+                .map(gcsConfigSecretKeySelectors -> Seq.of(
+                    getSecretEntry(
+                        ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME,
+                        gcsConfigSecretKeySelectors.getServiceAccountJsonKey(),
+                        secrets))),
+            Optional.of(storage)
+                .map(BackupStorage::getAzureBlob)
+                .map(azureConfig -> Seq.of(
+                    getSecretEntry("AZURE_STORAGE_ACCOUNT",
+                        azureConfig.getAzureCredentials()
+                            .getSecretKeySelectors().getAccount(), secrets),
+                    getSecretEntry("AZURE_STORAGE_ACCESS_KEY",
+                        azureConfig.getAzureCredentials()
+                            .getSecretKeySelectors().getAccessKey(), secrets))))
         .filter(Optional::isPresent)
-        .map(Optional::get)
-        .flatMap(s -> s)
+        .flatMap(Optional::get)
         .collect(ImmutableMap.toImmutableMap(t -> t.v1, t -> t.v2));
   }
 

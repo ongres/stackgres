@@ -16,6 +16,16 @@ e2e_test_install() {
   enable_cronSchedule
 }
 
+enable_cronSchedule() {
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    --patch '[{"op":"replace","path":"/spec/configurations/backups/0/cronSchedule","value":"*/1 * * * *"}]'
+}
+
+disable_cronSchedule() {
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    --patch '[{"op":"replace","path":"/spec/configurations/backups/0/cronSchedule","value":"0 5 31 2 *"}]'
+}
+
 e2e_test() {
   run_test "Backup Cron Job should have a security context" check_cron_job_security_context
 
@@ -45,7 +55,7 @@ check_backup_retention_is_working() {
 
 check_backup_after_kill_storage_provider_service() {
   kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep "^pod/$CLUSTER_NAME-minio-" \
-    | xargs -r -I % kubectl delete -n "$CLUSTER_NAMESPACE" %
+    | xargs -r -n 1 -I % kubectl delete -n "$CLUSTER_NAMESPACE" %
 
   kubectl wait --timeout="$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" \
     deployment/"$CLUSTER_NAME-minio" --for=condition=Available

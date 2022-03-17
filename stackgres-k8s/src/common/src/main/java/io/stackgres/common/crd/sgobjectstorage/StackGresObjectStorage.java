@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Kind;
 import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.storages.BackupStorage;
 
@@ -27,4 +28,21 @@ public class StackGresObjectStorage extends CustomResource<BackupStorage, Void>
   public static final String KIND = "SGObjectStorage";
 
   private static final long serialVersionUID = 1L;
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof StackGresObjectStorage other &&
+        Objects.equals(spec, other.spec);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(spec);
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
+  }
+
 }
