@@ -251,14 +251,5 @@ export default {
     thead .icon svg {
         transform: rotate(-45deg)
     }
-
-    select.plain {
-        width: 250px;
-        border: 1px solid var(--borderColor);
-        background-color: rgba(122, 123, 133, .10);
-        color: var(--textColor);
-        font-family: 'Poppins', sans-serif;
-        text-align: center;
-    }
     
 </style>
