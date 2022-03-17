@@ -186,10 +186,6 @@
 			},
 
 		},
-
-		mounted: function() {
-
-		},
 		
 		methods: {
 
