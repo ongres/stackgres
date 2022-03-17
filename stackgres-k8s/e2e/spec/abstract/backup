@@ -176,9 +176,8 @@ check_manual_backup() {
   local CUSTOM_COLUMNS=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
 
   # Avoid automatic backups while testing manual backups
-  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
-    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"0 5 31 2 *"}]'
-
+  disable_cronSchedule
+  
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
 
   create_backup "$BACKUP_NAME" false
@@ -264,9 +263,9 @@ check_manual_backup() {
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_3_NAME"
 
   # Avoid automatic backups while testing manual backups
-  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
-    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
 
+  enable_cronSchedule
+  
   if wait_until eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
       exec-with-env backup -- wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
   then
@@ -275,6 +274,15 @@ check_manual_backup() {
     echo "FAIL. The full backup of deleted CR has not been removed"
     return 1
   fi
+}
+
+disable_cronSchedule() {
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"0 5 31 2 *"}]'
+}
+enable_cronSchedule() {
+  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
+    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
 }
 
 create_backup() {

@@ -26,6 +26,7 @@ import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -112,8 +113,9 @@ public class BackupCronRole implements ResourceGenerator<StackGresClusterContext
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(
-                HasMetadata.getPlural(StackGresBackupConfig.class))
-            .withVerbs("get")
+                HasMetadata.getPlural(StackGresBackupConfig.class),
+                HasMetadata.getPlural(StackGresObjectStorage.class)
+            ).withVerbs("get")
             .build())
         .build();
   }

@@ -6,10 +6,12 @@
 package io.stackgres.common.crd.storages;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -57,12 +59,22 @@ public class BackupStorage {
     this.s3 = s3;
   }
 
+  @JsonIgnore
+  public Optional<AwsS3Storage> getS3Opt() {
+    return Optional.ofNullable(s3);
+  }
+
   public AwsS3CompatibleStorage getS3Compatible() {
     return s3Compatible;
   }
 
   public void setS3Compatible(AwsS3CompatibleStorage s3Compatible) {
     this.s3Compatible = s3Compatible;
+  }
+
+  @JsonIgnore
+  public Optional<AwsS3CompatibleStorage> getS3CompatibleOpt() {
+    return Optional.ofNullable(s3Compatible);
   }
 
   public GoogleCloudStorage getGcs() {
@@ -73,12 +85,22 @@ public class BackupStorage {
     this.gcs = gcs;
   }
 
+  @JsonIgnore
+  public Optional<GoogleCloudStorage> getGcsOpt() {
+    return Optional.ofNullable(gcs);
+  }
+
   public AzureBlobStorage getAzureBlob() {
     return azureBlob;
   }
 
   public void setAzureBlob(AzureBlobStorage azureBlob) {
     this.azureBlob = azureBlob;
+  }
+
+  @JsonIgnore
+  public Optional<AzureBlobStorage> getAzureBlobOpt() {
+    return Optional.ofNullable(azureBlob);
   }
 
   @Override
