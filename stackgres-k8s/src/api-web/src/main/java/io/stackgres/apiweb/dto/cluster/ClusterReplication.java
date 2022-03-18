@@ -24,8 +24,8 @@ public class ClusterReplication {
   @JsonProperty("role")
   private String role;
 
-  @JsonProperty("syncNodeCount")
-  private Integer syncNodeCount;
+  @JsonProperty("syncInstances")
+  private Integer syncInstances;
 
   @JsonProperty("groups")
   private List<ClusterReplicationGroup> groups;
@@ -46,12 +46,12 @@ public class ClusterReplication {
     this.role = role;
   }
 
-  public Integer getSyncNodeCount() {
-    return syncNodeCount;
+  public Integer getSyncInstances() {
+    return syncInstances;
   }
 
-  public void setSyncNodeCount(Integer syncNodeCount) {
-    this.syncNodeCount = syncNodeCount;
+  public void setSyncInstances(Integer syncInstances) {
+    this.syncInstances = syncInstances;
   }
 
   public List<ClusterReplicationGroup> getGroups() {

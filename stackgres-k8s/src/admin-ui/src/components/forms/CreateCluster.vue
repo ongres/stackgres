@@ -560,9 +560,9 @@
                         </div>
 
                         <div class="col" v-if="['sync', 'strict-sync'].includes(replication.mode)">
-                            <label for="spec.replication.syncNodeCount">Sync Node Count</label>
-                            <input type="number" min="1" :max="(instances - 1)" v-model="replication.syncNodeCount" data-field="spec.replication.syncNodeCount">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.syncNodeCount')"></span>
+                            <label for="spec.replication.syncInstances">Sync Instances</label>
+                            <input type="number" min="1" :max="(instances - 1)" v-model="replication.syncInstances" data-field="spec.replication.syncInstances">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.syncInstances')"></span>
                         </div>
                     </div>
 
@@ -1381,7 +1381,7 @@
                 replication: {
                     role: 'ha-read',
                     mode: 'async',
-                    syncNodeCount: 1,
+                    syncInstances: 1,
                     groups: [
                         {
                             name: '',
@@ -1795,7 +1795,7 @@
                                 "role": this.replication.role,
                                 "mode": this.replication.mode,
                                 ...(['sync', 'strict-sync'].includes(this.replication.mode) && ({
-                                    "syncNodeCount": this.replication.syncNodeCount
+                                    "syncInstances": this.replication.syncInstances
                                 }) ),
                                 ...( ( this.replication.hasOwnProperty('groups') && (typeof this.replication.groups.find( g => (g.instances > 0) ) != 'undefined') ) && ({
                                     "groups": (this.replication.groups.filter( g => (g.instances > 0) ))
