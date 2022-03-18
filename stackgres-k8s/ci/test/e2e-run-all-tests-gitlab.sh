@@ -262,6 +262,7 @@ run_with_e2e_lock() {
       EXIT_CODE="$?"
       if [ -f "/tmp/stackgres-integration-test$POSSIBLE_SUFFIX-was-locked-by-$CI_JOB_ID" ]
       then
+        rm -f "/tmp/stackgres-integration-test$SUFFIX-was-locked-by-$CI_JOB_ID"
         return "$EXIT_CODE"
       fi
     done
