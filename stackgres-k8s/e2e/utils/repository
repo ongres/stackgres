@@ -209,11 +209,12 @@ load_failed_images_pull_from_local_repository() {
       while read IMAGE_NAME
       do
         echo "Detected failed to pull image $IMAGE_NAME to k8s env $E2E_ENV"
-        if docker image inspect "$IMAGE_NAME" >/dev/null 2>&1
+        if docker image inspect "$IMAGE_NAME" >/dev/null 2>&1 \
+          || docker pull -q "$IMAGE_NAME"
         then
           load_image_k8s "$IMAGE_NAME"
         else
-          echo "Image $IMAGE_NAME not found in cache!"
+          echo "Image $IMAGE_NAME not found in cache and can not be pulled!"
         fi
       done
       )
