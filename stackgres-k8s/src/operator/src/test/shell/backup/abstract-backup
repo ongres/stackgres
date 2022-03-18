@@ -50,6 +50,8 @@ kubectl_mock() {
     ;;
     ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE --template=$BACKUP_CR_TEMPLATE")
     ;;
+    ("get $BACKUP_CRD_NAME -A --template=$BACKUP_CR_TEMPLATE")
+    ;;
     ("get $BACKUP_CONFIG_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_CONFIG --template=$BACKUP_CONFIG_YAML")
     cat << EOF
     baseBackups:

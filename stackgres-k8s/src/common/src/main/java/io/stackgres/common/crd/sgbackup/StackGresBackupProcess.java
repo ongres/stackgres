@@ -28,7 +28,7 @@ public class StackGresBackupProcess {
   private Boolean managedLifecycle;
 
   @Valid
-  private StackgresBackupTiming timing;
+  private StackGresBackupTiming timing;
 
   public String getStatus() {
     return status;
@@ -54,11 +54,11 @@ public class StackGresBackupProcess {
     this.failure = failure;
   }
 
-  public StackgresBackupTiming getTiming() {
+  public StackGresBackupTiming getTiming() {
     return timing;
   }
 
-  public void setTiming(StackgresBackupTiming timing) {
+  public void setTiming(StackGresBackupTiming timing) {
     this.timing = timing;
   }
 

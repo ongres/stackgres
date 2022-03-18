@@ -15,6 +15,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
+import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgbackup.BackupPhase;
+import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.BackupReview;
@@ -67,6 +70,27 @@ class ClusterReferenceValidatorTest {
 
     verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(namespace));
 
+  }
+
+  @Test
+  void givenComposedStackGresReferenceOnCreationWithRequiredStatus_shouldNotFail()
+      throws ValidationFailed {
+
+    final BackupReview review = JsonUtil
+        .readFromJson("backup_allow_request/create.json", BackupReview.class);
+    review.getRequest().getObject().getSpec().setSgCluster(
+        StackGresUtil.getRelativeId(
+            cluster.getMetadata().getName(),
+            cluster.getMetadata().getNamespace(),
+            review.getRequest().getObject().getMetadata().getNamespace()));
+    review.getRequest().getObject().getStatus().getProcess()
+        .setStatus(BackupPhase.COMPLETED.label());
+    review.getRequest().getObject().getStatus()
+        .setBackupInformation(new StackGresBackupInformation());
+    review.getRequest().getObject().getStatus()
+        .setInternalName("test");
+
+    validator.validate(review);
   }
 
   @Test

@@ -7,9 +7,10 @@ package io.stackgres.operatorframework.admissionwebhook.validating;
 
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import org.jetbrains.annotations.NotNull;
 
-public interface Validator<T> {
+public interface Validator<T extends AdmissionReview<?>> {
 
   void validate(T review) throws ValidationFailed;
 
@@ -31,4 +32,5 @@ public interface Validator<T> {
         .build();
     throw new ValidationFailed(status);
   }
+
 }

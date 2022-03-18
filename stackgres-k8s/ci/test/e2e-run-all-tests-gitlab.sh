@@ -39,8 +39,8 @@ export E2E_OPERATOR_REGISTRY=$CI_REGISTRY
 export E2E_OPERATOR_REGISTRY_PATH=/$CI_PROJECT_PATH/
 export E2E_FORCE_IMAGE_PULL=true
 export K8S_USE_INTERNAL_REPOSITORY=true
-export E2E_DISABLE_CACHE=true
-export E2E_DISABLE_LOGS=true
+export E2E_DISABLE_CACHE="${E2E_DISABLE_CACHE:-false}"
+export E2E_DISABLE_LOGS="${E2E_DISABLE_LOGS:-true}"
 export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
 export KIND_LOG=true
 export KIND_LOG_PATH="/tmp/kind-log$SUFFIX"
@@ -69,6 +69,10 @@ clean_up_project_temp_dir() {
 
 run_all_tests_loop() {
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  if [ -n "$EXTRA_REGISTRY_USER" ] && [ -n "$EXTRA_REGISTRY_PASSWORD" ] && [ -n "$EXTRA_REGISTRY" ]
+  then
+    docker login -u "$EXTRA_REGISTRY_USER" -p "$EXTRA_REGISTRY_PASSWORD" "$EXTRA_REGISTRY"
+  fi
 
   echo "Variables:"
   echo
@@ -258,6 +262,7 @@ run_with_e2e_lock() {
       EXIT_CODE="$?"
       if [ -f "/tmp/stackgres-integration-test$POSSIBLE_SUFFIX-was-locked-by-$CI_JOB_ID" ]
       then
+        rm -f "/tmp/stackgres-integration-test$SUFFIX-was-locked-by-$CI_JOB_ID"
         return "$EXIT_CODE"
       fi
     done

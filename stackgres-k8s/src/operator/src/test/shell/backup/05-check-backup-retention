@@ -1,0 +1,36 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/backup/abstract-backup"
+
+shell_unit_test() {
+  shell_unit_test_backup
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE --template=$BACKUP_CR_TEMPLATE")
+    echo 'test:test:test:Completed:test:test::false:false'
+    echo 'test:test:test3:Completed:test3:test3::false:false'
+    echo 'test:test:test5:Running::test5:test5:true:false:false'
+    ;;
+    ("get $BACKUP_CRD_NAME -A --template=$BACKUP_CR_TEMPLATE")
+    echo 'test.test:test2:test2:Completed:base_0000000100000000000000C2:test2::true:false'
+    echo 'test.test:test2:test4:Completed:test4:test4::false:false'
+    ;;
+    ("get $BACKUP_CRD_NAME -n "*" "*" --template={{ .status.sgBackupConfig.storage }}")
+    echo test
+    ;;
+    ("delete $BACKUP_CRD_NAME -n "*" "*)
+    echo test
+    ;;
+    ("patch $BACKUP_CRD_NAME -n test2 test2 --type json --patch ["*'{"op":"replace","path":"/status/process/managedLifecycle","value":true}'*"]")
+    echo test
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

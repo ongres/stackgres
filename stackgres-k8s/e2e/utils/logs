@@ -3,6 +3,7 @@
 setup_logs() {
   if [ "$E2E_DISABLE_LOGS" = "true" ]
   then
+    echo "Logs disabled"
     return
   fi
   if [ "$E2E_DISABLE_RESOURCE_LOGS" != "true" ]
@@ -10,17 +11,23 @@ setup_logs() {
     echo "Recording resources"
     resource_watch --log-in-files > "$TARGET_PATH/all_resources.log" 2>/dev/null &
     trap_kill "$!"
+  else
+    echo "Recording resources disabled"
   fi
   if [ "$E2E_DISABLE_POD_LOGS" != "true" ]
   then
     echo "Recording pods logs"
     pod_logs --log-in-files > "$TARGET_PATH/all_pods.log" 2>/dev/null &
     trap_kill "$!"
+  else
+    echo "Recording pod logs"
   fi
   if [ "$E2E_DISABLE_EVENT_LOGS" != "true" ]
   then
     echo "Recording events"
     event_watch -o wide > "$TARGET_PATH/all_events.log" 2>/dev/null &
     trap_kill "$!"
+  else
+    echo "Recording events disabled"
   fi
 }

@@ -5,6 +5,8 @@
 
 package io.stackgres.common.crd.sgbackup;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -13,7 +15,7 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackgresBackupSize {
+public class StackGresBackupSize {
 
   private Long uncompressed;
   private Long compressed;
@@ -32,6 +34,24 @@ public class StackgresBackupSize {
 
   public void setCompressed(Long compressed) {
     this.compressed = compressed;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(compressed, uncompressed);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresBackupSize)) {
+      return false;
+    }
+    StackGresBackupSize other = (StackGresBackupSize) obj;
+    return Objects.equals(compressed, other.compressed)
+        && Objects.equals(uncompressed, other.uncompressed);
   }
 
   @Override

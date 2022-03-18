@@ -109,6 +109,16 @@ reset_k8s() {
   fi
 
   delete_k8s
+  if [ "$KIND_LOG_RESOURCES" = true ]
+  then
+    cat << EOF > "$KIND_LOG_RESOURCES_POLICY_PATH"
+# Log all requests at the RequestResponse level.
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+- level: RequestResponse
+EOF
+  fi
   cat << EOF > "$TARGET_PATH/kind-config.yaml"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
@@ -216,13 +226,6 @@ INNER_EOF
   fi
   if [ "$KIND_LOG_RESOURCES" = true ]
   then
-    cat << INNER_EOF > "$KIND_LOG_RESOURCES_POLICY_PATH"
-# Log all requests at the RequestResponse level.
-apiVersion: audit.k8s.io/v1
-kind: Policy
-rules:
-- level: RequestResponse
-INNER_EOF
     cat << INNER_EOF
   - hostPath: $KIND_LOG_RESOURCES_POLICY_PATH
     containerPath: /etc/kubernetes/policies/audit-policy.yaml

@@ -26,9 +26,9 @@ public class StackGresBackupInformation {
   private String systemIdentifier;
 
   @Valid
-  private StackgresBackupLsn lsn;
+  private StackGresBackupLsn lsn;
   @Valid
-  private StackgresBackupSize size;
+  private StackGresBackupSize size;
 
   private Map<String, String> controlData;
   private String startWalFile;
@@ -85,19 +85,19 @@ public class StackGresBackupInformation {
     this.startWalFile = startWalFile;
   }
 
-  public StackgresBackupLsn getLsn() {
+  public StackGresBackupLsn getLsn() {
     return lsn;
   }
 
-  public void setLsn(StackgresBackupLsn lsn) {
+  public void setLsn(StackGresBackupLsn lsn) {
     this.lsn = lsn;
   }
 
-  public StackgresBackupSize getSize() {
+  public StackGresBackupSize getSize() {
     return size;
   }
 
-  public void setSize(StackgresBackupSize size) {
+  public void setSize(StackGresBackupSize size) {
     this.size = size;
   }
 

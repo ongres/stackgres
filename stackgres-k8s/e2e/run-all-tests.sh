@@ -199,8 +199,8 @@ echo "Setup k8s"
 setup_k8s
 echo "Setup images"
 setup_images
-echo "Setup cache"
-setup_cache
+echo "Setup repository cache"
+setup_repository_cache
 echo "Setup helm"
 setup_helm
 echo "Setup logs"

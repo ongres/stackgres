@@ -78,8 +78,8 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
       assertThatJobResourceLabelsAreComplaints(resource);
     } catch (Exception ex) {
       throw new AssertionFailedError(format(
-          "Validation for resource %s of kind %s failed",
-          resource.getMetadata().getName(), resource.getKind()));
+          "Validation for resource %s of kind %s failed: %s",
+          resource.getMetadata().getName(), resource.getKind(), ex.getMessage()));
     }
   }
 
