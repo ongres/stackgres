@@ -69,6 +69,10 @@ clean_up_project_temp_dir() {
 
 run_all_tests_loop() {
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  if [ -n "$EXTRA_REGISTRY_USER" ] && [ -n "$EXTRA_REGISTRY_PASSWORD" ] && [ -n "$EXTRA_REGISTRY" ]
+  then
+    docker login -u "$EXTRA_REGISTRY_USER" -p "$EXTRA_REGISTRY_PASSWORD" "$EXTRA_REGISTRY"
+  fi
 
   echo "Variables:"
   echo
