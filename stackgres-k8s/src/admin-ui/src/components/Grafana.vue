@@ -157,16 +157,7 @@
 					.done(function( data, textStatus, jqXHR ) {
 						
 						if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
-							let url = data;
-							url += (url.includes('?') ? '&' : '?') + 'theme=' + vc.theme + '&kiosk&var-instance=';
-
-							$.get(url)
-							.done(function(data, textStatus, jqXHR) {
-								vc.grafanaUrl = url;
-							})
-							.fail(function( jqXHR, textStatus, errorThrown ) {
-								vc.notifyGrafanaError();
-							});
+							vc.grafanaUrl = data + (data.includes('?') ? '&' : '?') + 'theme=' + vc.theme + '&kiosk&var-instance=';
 						} else {
 							vc.notifyGrafanaError();
 						}
