@@ -112,12 +112,12 @@ describe('Create SGCluster', () => {
             .click()
         
         cy.get('select[data-field="spec.replication.role"]')
-            .select('HA')
+            .select('ha')
         
         cy.get('select[data-field="spec.replication.mode"]')
-            .select('SYNC')
+            .select('sync')
 
-        cy.get('input[data-field="spec.replication.syncNodeCount"]')
+        cy.get('input[data-field="spec.replication.syncInstances"]')
             .clear()
             .type('2')
 
@@ -126,7 +126,7 @@ describe('Create SGCluster', () => {
             .type('group-0')
         
         cy.get('[data-group="replication-group-0"] select[data-field="spec.replication.groups.role"]')
-            .select('READONLY')
+            .select('readonly')
         
         cy.get('[data-group="replication-group-0"] input[data-field="spec.replication.groups.instances"]')
             .clear()
@@ -140,7 +140,7 @@ describe('Create SGCluster', () => {
             .type('group-1')
         
         cy.get('[data-group="replication-group-1"] select[data-field="spec.replication.groups.role"]')
-            .select('NONE')
+            .select('none')
         
         cy.get('[data-group="replication-group-1"] input[data-field="spec.replication.groups.instances"]')
             .clear()

@@ -142,13 +142,13 @@
                             {{ cluster.data.spec.replication.mode }}
                         </td>
                     </tr>
-                    <tr v-if="cluster.data.spec.replication.hasOwnProperty('syncNodeCount')">
+                    <tr v-if="cluster.data.spec.replication.hasOwnProperty('syncInstances')">
                         <td class="label">
                             Sync Node Count
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.syncNodeCount')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.syncInstances')"></span>
                         </td>
                         <td colspan="2">
-                            {{ cluster.data.spec.replication.syncNodeCount }}
+                            {{ cluster.data.spec.replication.syncInstances }}
                         </td>
                     </tr>
                     <template v-if="cluster.data.spec.replication.hasOwnProperty('groups')">
