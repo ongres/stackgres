@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class PodExecutor {
@@ -36,8 +37,7 @@ public class PodExecutor {
   /**
    * Execute a command inside a container of a pod.
    */
-  public List<String> exec(Pod pod, String container,
-      String... args) {
+  public List<String> exec(@NotNull Pod pod, @NotNull String container, @NotNull String... args) {
     CompletableFuture<Void> completableFuture = new CompletableFuture<>();
     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
@@ -59,7 +59,7 @@ public class PodExecutor {
           InputStreamReader inputStreamReader = new InputStreamReader(
               byteArrayInputStream, StandardCharsets.UTF_8);
           BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
-        return bufferedReader.lines().collect(Collectors.toList());
+        return bufferedReader.lines().toList();
       }
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);

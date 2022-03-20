@@ -43,13 +43,23 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
 
     final Status status = e.getStatus();
 
-    String reason = status.getReason();
+    String reason = status != null ? status.getReason() : null;
 
     if (reason != null && ErrorType.isDocumentationUri(reason)) {
       return toErrorTypeResponse(status, reason);
     }
 
-    return toResponse(status);
+    if (status != null) {
+      return toResponse(status);
+    }
+
+    ErrorResponse response = new ErrorResponseBuilder(null)
+        .setStatus(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+        .setTitle("Could not get Kubernetes error status")
+        .build();
+    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+        .type(MediaType.APPLICATION_JSON)
+        .entity(response).build();
 
   }
 

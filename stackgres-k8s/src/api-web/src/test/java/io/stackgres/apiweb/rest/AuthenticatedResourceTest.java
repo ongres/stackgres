@@ -10,6 +10,8 @@ import io.stackgres.apiweb.security.TokenUtils;
 
 public interface AuthenticatedResourceTest {
 
-  Header AUTHENTICATION_HEADER = new Header("Authorization", "Bearer "
-      + TokenUtils.generateTokenString("admin", "stackgres"));
+  String AUTH_TOKEN = TokenUtils.generateTokenString("admin", "stackgres");
+
+  Header AUTHENTICATION_HEADER = new Header("Authorization", "Bearer " + AUTH_TOKEN);
+
 }

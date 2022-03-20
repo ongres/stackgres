@@ -6,51 +6,73 @@
 package io.stackgres.apiweb.rest;
 
 import static io.restassured.RestAssured.given;
-import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasSize;
 
-import java.util.List;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
-import io.restassured.http.ContentType;
-import io.stackgres.apiweb.dto.ApplicationDto;
-import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class ApplicationResourceTest implements AuthenticatedResourceTest {
 
-  @InjectMock
-  ApplicationsResource resource;
-
   @Test
-  void getApplicationEndpoint_shouldNotFail() {
+  void getApplicationEndpointWithoutAuth_shouldFail() {
     given()
-        .header(AUTHENTICATION_HEADER)
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .get("/stackgres/application")
+        .auth().none()
+        .get("/stackgres/applications")
         .then()
-        .statusCode(200);
+        .statusCode(401);
   }
 
   @Test
   void getApplicationEndpoint_shouldReturnBabelfishCompass() {
-    when(resource.getAllApplications())
-        .thenReturn(List.of(new ApplicationDto.Builder()
-            .name("babelfish-compass")
-            .publisher("com.ongres")
-            .build()));
+    given()
+        .auth().oauth2(AUTH_TOKEN)
+        .get("/stackgres/applications")
+        .then()
+        .body("applications", hasSize(1))
+        .body("applications.name", hasItems("babelfish-compass"))
+        .body("applications.publisher", hasItems("com.ongres"))
+        .statusCode(200);
+  }
+
+  @Test
+  void getApplicationBabelfishEndpoint_shouldNotFail() {
+    given()
+        .auth().oauth2(AUTH_TOKEN)
+        .pathParam("publisher", "com.ongres")
+        .pathParam("name", "babelfish-compass")
+        .when()
+        .get("/stackgres/applications/{publisher}/{name}")
+        .then()
+        .body("publisher", equalTo("com.ongres"))
+        .body("name", equalTo("babelfish-compass"))
+        .statusCode(200);
+  }
+
+  @Test
+  @Disabled("This is used only for local testing")
+  void whenBabelfishUploadSql_shouldNotFail() {
+    Path resourceDir = Paths.get("src", "test", "resources", "t-sql");
+    Path tsql1 = resourceDir.resolve("tsql-example.sql").toAbsolutePath();
+    Path tsql2 = resourceDir.resolve("Sales.sql").toAbsolutePath();
 
     given()
-        .header(AUTHENTICATION_HEADER)
-        .contentType(ContentType.JSON)
-        .accept(ContentType.JSON)
-        .get("/stackgres/application")
+        .auth().oauth2(AUTH_TOKEN)
+        .pathParam("publisher", "com.ongres")
+        .pathParam("name", "babelfish-compass")
+        .multiPart("reportName", "MyReport")
+        .multiPart("sqlFiles", tsql1.toFile())
+        .multiPart("sqlFiles", tsql2.toFile())
+        .when()
+        .post("/stackgres/applications/{publisher}/{name}")
         .then()
-        .body(".", Matchers.hasSize(1))
-        .body("[0].name", Matchers.equalTo("babelfish-compass"))
-        .body("[0].publisher", Matchers.equalTo("com.ongres"))
+        .log().all()
         .statusCode(200);
   }
 

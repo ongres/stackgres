@@ -16,8 +16,8 @@ public interface KubernetesClientUtil {
    * Return true when exception is a conflict (409) error.
    */
   static boolean isConflict(Throwable ex) {
-    return ex instanceof KubernetesClientException
-        && KubernetesClientException.class.cast(ex).getCode() == 409;
+    return ex instanceof KubernetesClientException kce
+        && kce.getCode() == 409;
   }
 
   /**

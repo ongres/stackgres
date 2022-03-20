@@ -27,7 +27,8 @@ public enum StackGresComponent {
   ENVOY,
   FLUENT_BIT,
   FLUENTD,
-  KUBECTL;
+  KUBECTL,
+  BABELFISH_COMPASS;
 
   public static final String LATEST = "latest";
 

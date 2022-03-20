@@ -25,8 +25,7 @@ public class ApplicationExceptionMapper
 
     Throwable cause = Throwables.getRootCause(e);
 
-    if (cause instanceof KubernetesClientException) {
-      KubernetesClientException kce = (KubernetesClientException) cause;
+    if (cause instanceof KubernetesClientException kce) {
       final StatusParser statusParser = statusParserProvider.getStatusParser();
       KubernetesExceptionMapper mapper = new KubernetesExceptionMapper(statusParser);
       return mapper.toResponse(kce);

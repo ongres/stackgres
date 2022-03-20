@@ -36,13 +36,13 @@ import org.slf4j.LoggerFactory;
 
 public class ResourceUtil {
 
+  private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
+
   private static final int DNS_SUBDOMAIN_NAME_MAX_LENGTH = 253;
   private static final int DNS_LABEL_MAX_LENGTH = 63;
   private static final int STS_DNS_LABEL_MAX_LENGTH = 52;
   private static final int JOB_DNS_LABEL_MAX_LENGTH = 53;
   private static final int CRON_JOB_DNS_LABEL_MAX_LENGTH = 52;
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
 
   public static final BigDecimal MILLICPU_MULTIPLIER = new BigDecimal(1000);
   public static final BigDecimal LOAD_MULTIPLIER = new BigDecimal(1000);
@@ -148,15 +148,11 @@ public class ResourceUtil {
     return name;
   }
 
-  public static String getIndexPattern() {
-    return "^.*-([0-9]+)$";
-  }
-
-  public static String getNameWithIndexPattern(String name) {
+  public static String getNameWithIndexPattern(@NotNull String name) {
     return "^" + Pattern.quote(name) + "-([0-9]+)$";
   }
 
-  public static String getNameWithHashPattern(String name) {
+  public static String getNameWithHashPattern(@NotNull String name) {
     return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
   }
 
