@@ -34,6 +34,7 @@ run_pgbench() {
     echo "$MESSAGE"
     create_event "DatabaseCreated" "Normal" "Database $DATABASE_NAME created"
   else
+    echo "$MESSAGE"
     create_event "CreateDatabaseFailed" "Warning" "Can not create database $DATABASE_NAME: $MESSAGE"
     return 1
   fi
@@ -44,6 +45,7 @@ run_pgbench() {
     echo "$MESSAGE"
     create_event "BenchmarkInitialized" "Normal" "Benchamrk initialized"
   else
+    echo "$MESSAGE"
     create_event "BenchmarkInitializationFailed" "Warning" "Can not initialize benchmark: $MESSAGE"
     return 1
   fi
@@ -52,11 +54,12 @@ run_pgbench() {
   if "$READ_WRITE"
   then
     create_event "BenchmarkStarted" "Normal" "Benchamrk started"
-    if MESSAGE="$(pgbench -M "$PROTOCOL" -s "$SCALE" -T "$DURATION" -c "$CLIENTS" -j "$JOBS" -r -P 1 -d "$DATABASE_NAME" 2>&1)"
+    if MESSAGE="$(pgbench -M "$PROTOCOL" -s "$SCALE" -T "$DURATION" -c "$CLIENTS" -j "$JOBS" -r -P 1 "$DATABASE_NAME" 2>&1)"
     then
       echo "$MESSAGE"
       create_event "BenchmarkCompleted" "Normal" "Benchmark completed"
     else
+      echo "$MESSAGE"
       create_event "BenchmarkFailed" "Warning" "Can not complete benchmark: $MESSAGE"
       return 1
     fi
@@ -73,11 +76,12 @@ run_pgbench() {
     create_event "BenchmarkPostInitializationCompleted" "Normal" "Benchamrk post initialization completed"
 
     create_event "BenchmarkStarted" "Normal" "Benchamrk started"
-    if MESSAGE="$(pgbench -b "select-only" -M "$PROTOCOL" -s "$SCALE" -T "$DURATION" -c "$CLIENTS" -j "$JOBS" -r -P 1 -d "$DATABASE_NAME" 2>&1)"
+    if MESSAGE="$(pgbench -b "select-only" -M "$PROTOCOL" -s "$SCALE" -T "$DURATION" -c "$CLIENTS" -j "$JOBS" -r -P 1 "$DATABASE_NAME" 2>&1)"
     then
       echo "$MESSAGE"
       create_event "BenchmarkCompleted" "Normal" "Benchmark completed"
     else
+      echo "$MESSAGE"
       create_event "BenchmarkFailed" "Warning" "Can not complete benchmark: $MESSAGE"
       return 1
     fi

@@ -1,0 +1,104 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/abstract-dbops"
+
+RUN_SCRIPT_PATH="$PROJECT_PATH/src/main/resources/templates/run-pgbench.sh"
+SET_RESULT_SCRIPT_PATH="$PROJECT_PATH/src/main/resources/templates/set-pgbench-result.sh"
+PATRONI_CONTAINER_NAME=patroni
+OP_NAME=pgbench
+NORMALIZED_OP_NAME='pgbench'
+KEBAB_OP_NAME='pgbench'
+POD_0_RESTARTED=false
+POD_1_RESTARTED=false
+PATRONI_CONTAINER_NAME=patroni
+READ_WRITE=true
+
+shell_unit_test_dbops_pgbench() {
+  shell_unit_test_dbops
+}
+
+shell_unit_test_skip() {
+  if [ -z "$IMAGE_NAME" ] && echo "$IMAGE_NAME" | grep "patroni"
+  then
+    return 0;
+  else
+    return 1;
+  fi
+}
+
+mock kubectl kubectl_mock
+
+kubectl_mock() {
+  mokked
+  case "$*" in
+    ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME -o json")
+      echo '{
+        "apiVersion": "stackgres.io/v1",
+        "kind": "SGDbOps",
+        "metadata": {
+          "name": "'"$DB_OPS_NAME"'",
+          "namespace": "'"$CLUSTER_NAMESPACE"'",
+          "resourceVersion": "1",
+          "uid": "172381f8-3f37-46c9-9a29-8284a73d1e5e"
+        },
+        "spec": {
+          "sgCluster": "'"$CLUSTER_NAME"'",
+          "op": "benchmark",
+          "benchmark": {
+            "type": "pgbench",
+            "pgbench": {
+              "databaseSize": "64Mi",
+              "duration": "PT10S"
+            }
+          }
+        }
+      }'
+    ;;
+    ("patch $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME "*)
+    ;;
+    ("create --raw /api/v1/namespaces/test/events -f -")
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}
+
+mock psql psql_mock
+
+psql_mock() {
+  mokked
+  case "$*" in
+    ("-c CREATE DATABASE "*)
+    ;;
+    ("-c SELECT pg_cancel_backend(pid) FROM pg_stat_activity WHERE datname = '"*"' AND pid != pg_backend_pid() -c DROP DATABASE "*)
+    ;;
+    ("-t -A -c SELECT EXISTS (SELECT * FROM pg_database WHERE datname = '"*"')")
+    ;;
+    ("-t -A -d "*" -c SELECT COUNT(*) FROM pgbench_accounts")
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}
+
+mock pgbench pgbench_mock
+
+pgbench_mock() {
+  mokked
+  case "$*" in
+    ("-b select-only -M  -s  -T  -c  -j  -r -P 1 "*)
+    cat "$TEST_SHELL_PATH/dbops-pgbench/pgbench.out"
+    ;;
+    ("-M  -s  -T  -c  -j  -r -P 1 "*)
+    cat "$TEST_SHELL_PATH/dbops-pgbench/pgbench.out"
+    ;;
+    ("-s  -i "*)
+    cat "$TEST_SHELL_PATH/dbops-pgbench/pgbench-init.out"
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

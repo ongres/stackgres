@@ -1,6 +1,15 @@
 #!/bin/sh
 
+FORMAT_LOCALE=C.utf8
+
 set_completed() {
+  if ! locale -a | grep -q -x -F "$FORMAT_LOCALE"
+  then
+    FAILURE="Required locale $FORMAT_LOCALE is not installed"
+    EXIT_CODE=1
+    set_failed
+    return
+  fi
   SCALE_FACTOR="$(grep '^\s*scaling factor: ' "$SHARED_PATH/$KEBAB_OP_NAME.out" | sed 's/\s\+//g' | cut -d : -f 2 \
     | grep -v '^$' || echo null)"
   TRANSACTION_PROCESSED="$(grep '^\s*number of transactions actually processed: ' "$SHARED_PATH/$KEBAB_OP_NAME.out" \
@@ -54,9 +63,9 @@ set_completed() {
 ]
 EOF
     )"
+  create_event "DbOpCompleted" "Normal" "Database operation $OP_NAME completed"
 }
 
 format_measure() {
-  read INPUT
-  LC_NUMERIC="en_US.UTF-8" printf '%.2f' $INPUT
+  LC_NUMERIC="$FORMAT_LOCALE" printf '%.2f' "$(cat)"
 }

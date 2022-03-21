@@ -139,8 +139,9 @@ create_event_try() {
   local COMPONENT="$OP_NAME"
   local RESULT
 
+  echo "Creating event with reason '$REASON' of type '$TYPE' with message '$MESSAGE'"
   RESULT="$(kubectl get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" -o json)"
-  MESSAGE="$(printf '%s' "$MESSAGE" | jq -R .)"
+  MESSAGE="$(printf '%s' "$MESSAGE" | jq -s -R .)"
   RESULT="$(printf '%s' "$RESULT" | jq '{
       apiVersion: "v1",
       type: "'"$TYPE"'",

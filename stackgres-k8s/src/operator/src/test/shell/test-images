@@ -1,1 +1,2 @@
-ongres/kubectl:v1.19.14-build-6.6
+ongres/kubectl:v1.22.4-build-6.8
+ongres/patroni:v2.1.2-pg14.1-build-6.8
