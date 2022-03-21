@@ -320,7 +320,7 @@
                                     <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : initDatepicker()" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
                                         <option value="">Select a Backup</option>
                                         <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.process.status === 'Completed') && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
-                                            <option :value="backup.data.metadata.uid">
+                                            <option :value="backup.name">
                                                 {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
                                             </option>
                                         </template>
@@ -1585,7 +1585,7 @@
                             vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.replicasService') ?  vm.unparseProps(c.data.spec.metadata.annotations.replicasService) : [];
                             vm.selectedExtensions = vm.hasProp(c, 'data.spec.postgres.extensions') ? c.data.spec.postgres.extensions : [];
 
-                            vm.restoreBackup = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.uid') ? c.data.spec.initialData.restore.fromBackup.uid : '';
+                            vm.restoreBackup = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.name') ? c.data.spec.initialData.restore.fromBackup.name : '';
                             vm.pitr = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp') ? c.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp : ''
                             
                             vm.editReady = vm.advancedMode = true
@@ -1772,7 +1772,7 @@
                                         ...( this.restoreBackup.length && ({
                                             "restore": { 
                                                 "fromBackup": {
-                                                    "uid": this.restoreBackup, 
+                                                    "name": this.restoreBackup, 
                                                     ...(this.pitr.length  && ({
                                                         "pointInTimeRecovery": {
                                                             "restoreToTimestamp": this.pitr
@@ -2077,7 +2077,7 @@
 
                 store.state.backups.forEach(function(fromBackup, index) {
                     
-                    if( fromBackup.data.metadata.uid == vc.restoreBackup ) {
+                    if( fromBackup.data.metadata.name == vc.restoreBackup ) {
                         minDate = new Date(new Date(fromBackup.data.status.process.timing.stored).getTime());
 
                         for(var i = index + 1; i < store.state.backups.length; i++) {
