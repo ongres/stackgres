@@ -53,7 +53,7 @@ public class ValidationUtils {
     String errorTypeDocumentationUri = ErrorType.getErrorTypeUri(errorType);
 
     assertEquals(errorTypeDocumentationUri, ex.getResult().getReason(),
-        "Error type didn't match. Status message: " + ex.getResult().getReason());
+        "Error type didn't match. Status message: " + ex.getResult().getMessage());
   }
 
   public static ValidationFailed assertErrorType(ErrorType errorType, Executable executable) {

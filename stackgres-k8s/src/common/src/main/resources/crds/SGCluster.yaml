@@ -597,6 +597,65 @@ spec:
                       type: string
                       description: |
                               Name of the [SGBackupConfig](https://stackgres.io/doc/latest/reference/crd/sgbackupconfig) to use for the cluster. It defines the backups policy, storage and retention, among others, applied to the cluster. When not set, backup configuration will not be used.
+                    backups:
+                      type: array
+                      description: |
+                        List of backups configurations for this SGCluster
+                      items:
+                        type: object
+                        description: |
+                          Backup configuration for this SGCluster
+                        properties:
+                          compression:
+                            type: string
+                            description: |
+                              Specifies the backup compression algorithm. Possible options are: lz4, lzma, brotli. The default method is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio, being about 3 times better than LZ4.
+                            enum: [ "lz4", "lzma", "brotli" ]
+                          cronSchedule:
+                            type: string
+                            description: |
+                              Continuous Archiving backups are composed of periodic *base backups* and all the WAL segments produced in between those base backups. This parameter specifies at what time and with what frequency to start performing a new base backup.
+                              
+                              Use cron syntax (`m h dom mon dow`) for this parameter, i.e., 5 values separated by spaces:
+                              *  `m`: minute, 0 to 59.
+                              *  `h`: hour, 0 to 23.
+                              *  `dom`: day of month, 1 to 31 (recommended not to set it higher than 28).
+                              *  `mon`: month, 1 to 12.
+                              *  `dow`: day of week, 0 to 7 (0 and 7 both represent Sunday).
+                              
+                              Also ranges of values (`start-end`), the symbol `*` (meaning `first-last`) or even `*/N`, where `N` is a number, meaning ""every `N`, may be used. All times are UTC. It is recommended to avoid 00:00 as base backup time, to avoid overlapping with any other external operations happening at this time.
+                              
+                              If not set, full backups are performed each day at 05:00 UTC.
+                          performance:
+                            type: object
+                            properties:
+                              maxNetworkBandwitdh:
+                                type: integer
+                                description: |
+                                  Maximum storage upload bandwidth used when storing a backup. In bytes (per second).
+                              maxDiskBandwitdh:
+                                type: integer
+                                description: |
+                                  Maximum disk read I/O when performing a backup. In bytes (per second).
+                              uploadDiskConcurrency:
+                                type: integer
+                                minimum: 1
+                                description: |
+                                  Backup storage may use several concurrent streams to store the data. This parameter configures the number of parallel streams to use. By default, it's set to 1 (use one stream).
+                          retention:
+                            type: integer
+                            minimum: 1
+                            description: |
+                              When an automatic retention policy is defined to delete old base backups, this parameter specifies the number of base backups to keep, in a sliding window.
+                              
+                              Consequently, the time range covered by backups is `periodicity*retention`, where `periodicity` is the separation between backups as specified by the `cronSchedule` property.
+                              
+                              Default is 5.
+                          sgObjectStorage:
+                            type: string
+                            description: |
+                              Name of the [SGObjectStorage](https://stackgres.io/doc/latest/reference/crd/sgobjectstorage) to use for the cluster. It defines the location in which the the backups will be stored.
+                        required: ["sgObjectStorage"]
                 initialData:
                   type: object
                   description: Cluster initialization data options. Cluster may be initialized empty, or from a backup restoration. Specifying scripts to run on the database after cluster creation is also possible.
