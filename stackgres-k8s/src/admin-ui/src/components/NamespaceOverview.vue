@@ -345,14 +345,14 @@
                                 <tr>
                                     <td class="hasTooltip">
                                         <span>
-                                            <router-link :to="'/' + $route.params.namespace + '/sgbackup/' + backup.data.metadata.uid" title="Backup Details">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgbackup/' + backup.data.metadata.name" title="Backup Details">
                                                 <span class="status" :class="backup.data.status.process.status" :title="backup.data.status.process.status"></span>
                                                 {{ backup.name }}
                                             </router-link>
                                         </span>
                                     </td>
                                     <td class="icon invisible">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgbackup/' + backup.data.metadata.uid" title="Backup Details" target="_blank"></router-link>
+                                        <router-link :to="'/' + $route.params.namespace + '/sgbackup/' + backup.data.metadata.name" title="Backup Details" target="_blank"></router-link>
                                     </td>
                                 </tr>
                             </template>
