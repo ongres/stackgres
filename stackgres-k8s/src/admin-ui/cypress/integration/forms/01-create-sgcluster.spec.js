@@ -99,6 +99,14 @@ describe('Create SGCluster', () => {
             .click()
         cy.get('ul.extensionsList li[data-extension-index="4"] input.enableExtension')
             .click()
+        
+        // Test data initialization
+        cy.get('form#createCluster li[data-step="initialization"]')
+            .click()
+        
+        // Choose Backup (We're always assuming there's a backup with name "ui-0" on the specified namespace)
+        cy.get('select[data-field="spec.initialData.restore.fromBackup"]') 
+            .select('ui-0') 
 
         // Test prometheus autobind
         cy.get('form#createCluster li[data-step="sidecars"]')
