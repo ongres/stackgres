@@ -61,8 +61,8 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
         cluster.getSpec().getReplication().isSynchronousMode());
     patroniConf.setSynchronousModeStrict(
         cluster.getSpec().getReplication().isStrictSynchronousMode());
-    patroniConf.setSynchronousModeCount(
-        cluster.getSpec().getReplication().getSyncNodeCount());
+    patroniConf.setSynchronousNodeCount(
+        cluster.getSpec().getReplication().getSyncInstances());
     patroniConf.setPostgresql(new PatroniConfig.PostgreSql());
     patroniConf.getPostgresql().setUsePgRewind(true);
     patroniConf.getPostgresql().setParameters(getPostgresConfigValues(context));

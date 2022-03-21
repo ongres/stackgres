@@ -24,9 +24,9 @@ cluster:
       #   name:
       #   key:
   replication:
-    mode: ASYNC
-    role: HA_READ
-    # syncNodeCount: 1
+    mode: async
+    role: ha-read
+    # syncInstances: 1
     # groups:
     # - name: group-1
     #   role: HA_READ

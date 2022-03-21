@@ -28,7 +28,7 @@ public class StackGresClusterReplicationGroup {
 
   @JsonProperty("role")
   @ValidEnum(enumClass = StackGresReplicationRole.class, allowNulls = false,
-      message = "role must be HA, HA_READ, READONLY or NONE")
+      message = "role must be ha, ha-read, readonly or none")
   private String role;
 
   @JsonProperty("instances")

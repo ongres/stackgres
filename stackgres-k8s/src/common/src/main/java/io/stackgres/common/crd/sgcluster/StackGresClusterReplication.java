@@ -29,31 +29,31 @@ public class StackGresClusterReplication {
 
   @JsonProperty("mode")
   @ValidEnum(enumClass = StackGresReplicationMode.class, allowNulls = false,
-      message = "mode must be ASYNC, SYNC or STRICT_SYNC")
+      message = "mode must be async, sync or strict-sync")
   private String mode;
 
   @JsonProperty("role")
   @ValidEnum(enumClass = StackGresMainReplicationRole.class, allowNulls = false,
-      message = "role must be HA or HA_READ")
+      message = "role must be ha or ha-read")
   private String role;
 
-  @JsonProperty("syncNodeCount")
+  @JsonProperty("syncInstances")
   @Min(value = 1)
-  private Integer syncNodeCount;
+  private Integer syncInstances;
 
   @JsonProperty("groups")
   @Valid
   private List<StackGresClusterReplicationGroup> groups;
 
-  @ReferencedField("syncNodeCount")
-  interface SyncNodeCount extends FieldReference { }
+  @ReferencedField("syncInstances")
+  interface SyncInstances extends FieldReference { }
 
   @JsonIgnore
-  @AssertTrue(message = "syncNodeCount must be set when mode is SYNC or STRICT_SYNC",
-      payload = { SyncNodeCount.class })
-  public boolean isSyncNodeCountSetForSyncMode() {
+  @AssertTrue(message = "syncInstances must be set when mode is sync or strict-sync",
+      payload = { SyncInstances.class })
+  public boolean isSyncInstancesSetForSyncMode() {
     return !isSynchronousMode()
-        || syncNodeCount != null;
+        || syncInstances != null;
   }
 
   @JsonIgnore
@@ -83,12 +83,12 @@ public class StackGresClusterReplication {
     this.role = role;
   }
 
-  public Integer getSyncNodeCount() {
-    return syncNodeCount;
+  public Integer getSyncInstances() {
+    return syncInstances;
   }
 
-  public void setSyncNodeCount(Integer syncNodeCount) {
-    this.syncNodeCount = syncNodeCount;
+  public void setSyncInstances(Integer syncInstances) {
+    this.syncInstances = syncInstances;
   }
 
   public List<StackGresClusterReplicationGroup> getGroups() {
@@ -101,7 +101,7 @@ public class StackGresClusterReplication {
 
   @Override
   public int hashCode() {
-    return Objects.hash(groups, mode, role, syncNodeCount);
+    return Objects.hash(groups, mode, role, syncInstances);
   }
 
   @Override
@@ -114,7 +114,7 @@ public class StackGresClusterReplication {
     }
     StackGresClusterReplication other = (StackGresClusterReplication) obj;
     return Objects.equals(groups, other.groups) && Objects.equals(mode, other.mode)
-        && Objects.equals(role, other.role) && Objects.equals(syncNodeCount, other.syncNodeCount);
+        && Objects.equals(role, other.role) && Objects.equals(syncInstances, other.syncInstances);
   }
 
   public String toString() {

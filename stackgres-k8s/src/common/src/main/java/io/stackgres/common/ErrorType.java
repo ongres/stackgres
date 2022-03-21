@@ -26,6 +26,8 @@ public enum ErrorType {
       "Forbidden configuration deletion"),
   FORBIDDEN_CR_UPDATE("forbidden-configuration-update",
       "Forbidden configuration update"),
+  FORBIDDEN_CR_CREATION("forbidden-configuration-creation",
+      "Forbidden configuration creation"),
   FORBIDDEN_CLUSTER_UPDATE("forbidden-cluster-update",
       "Forbidden cluster update"),
   FORBIDDEN_AUTHORIZATION("forbidden-authorization",

@@ -23,7 +23,7 @@ public class ClusterReplicationGroup {
   private String role;
 
   @JsonProperty("instances")
-  private Integer instances;
+  private int instances;
 
   public String getName() {
     return name;
@@ -41,11 +41,11 @@ public class ClusterReplicationGroup {
     this.role = role;
   }
 
-  public Integer getInstances() {
+  public int getInstances() {
     return instances;
   }
 
-  public void setInstances(Integer instances) {
+  public void setInstances(int instances) {
     this.instances = instances;
   }
 

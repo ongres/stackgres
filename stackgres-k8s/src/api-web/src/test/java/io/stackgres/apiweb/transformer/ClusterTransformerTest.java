@@ -20,6 +20,8 @@ import io.stackgres.apiweb.dto.cluster.ClusterNonProduction;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgres;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresServices;
+import io.stackgres.apiweb.dto.cluster.ClusterReplication;
+import io.stackgres.apiweb.dto.cluster.ClusterReplicationGroup;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
@@ -34,6 +36,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationGroup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
@@ -97,6 +101,10 @@ class ClusterTransformerTest {
     source.setPostgres(postgres.getSource());
     target.setPostgres(postgres.getTarget());
 
+    var replication = createReplication();
+    source.setReplication(replication.getSource());
+    target.setReplication(replication.getTarget());
+
     var configuration = createConfiguration();
     source.setConfiguration(configuration.getSource());
     target.setConfigurations(configuration.getTarget());
@@ -148,6 +156,28 @@ class ClusterTransformerTest {
 
     tuple.getTarget().setExtensions(extensionTuple.getTarget());
     tuple.getSource().setExtensions(extensionTuple.getSource());
+
+    return tuple;
+  }
+
+  private static TransformerTuple<ClusterReplication, StackGresClusterReplication>
+      createReplication() {
+
+    TransformerTuple<ClusterReplication, StackGresClusterReplication> tuple = TransformerTestUtil
+        .fillTupleWithRandomData(
+            ClusterReplication.class,
+            StackGresClusterReplication.class
+        );
+
+    TransformerTuple<List<ClusterReplicationGroup>, List<StackGresClusterReplicationGroup>>
+        replicationGroupsTuple =
+        TransformerTestUtil.generateRandomListTuple(
+            ClusterReplicationGroup.class,
+            StackGresClusterReplicationGroup.class
+        );
+
+    tuple.getTarget().setGroups(replicationGroupsTuple.getTarget());
+    tuple.getSource().setGroups(replicationGroupsTuple.getSource());
 
     return tuple;
   }

@@ -17,8 +17,8 @@
       "version": "13.4"
     },
     "replication": {
-      "mode": "ASYNC",
-      "role": "HA_READ"
+      "mode": "async",
+      "role": "ha-read"
     },
     "sgInstanceProfile": "size-xs",
     "initialData": {

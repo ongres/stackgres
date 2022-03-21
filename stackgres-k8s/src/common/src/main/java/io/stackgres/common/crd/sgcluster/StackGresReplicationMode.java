@@ -9,9 +9,9 @@ import org.jetbrains.annotations.NotNull;
 
 public enum StackGresReplicationMode {
 
-  ASYNC("ASYNC"),
-  SYNC("SYNC"),
-  STRICT_SYNC("STRICT_SYNC");
+  ASYNC("async"),
+  SYNC("sync"),
+  STRICT_SYNC("strict-sync");
 
   private final @NotNull String type;
 
