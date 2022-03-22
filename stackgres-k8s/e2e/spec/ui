@@ -4,6 +4,11 @@ e2e_exclusive_lock() {
   true
 }
 
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$PROJECT_PATH/stackgres-k8s/src/admin-ui/cypress")"
+}
+
 e2e_test_install() {
   if [ "$(uname -m)" != x86_64 ]
   then
