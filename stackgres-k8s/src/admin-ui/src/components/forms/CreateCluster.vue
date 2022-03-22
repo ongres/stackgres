@@ -317,30 +317,35 @@
                             <fieldset class="row-50">
                                 <div class="col">
                                     <label for="spec.initialData.restore.fromBackup">Backup Selection</label>
-                                    <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : initDatepicker()" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
-                                        <option value="">Select a Backup</option>
-                                        <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.process.status === 'Completed') && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
-                                            <option :value="backup.name">
-                                                {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
-                                            </option>
-                                        </template>
-                                        <option value="" disabled>– OR –</option>
-                                        <option value="createNewResource">Create new backup</option>
-                                    </select>
+                                    <template v-if="editMode">
+                                        <input v-model="restoreBackup" disabled>
+                                    </template>
+                                    <template v-else>
+                                        <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : initDatepicker()" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
+                                            <option value="">Select a Backup</option>
+                                            <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.process.status === 'Completed') && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
+                                                <option :value="backup.name">
+                                                    {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
+                                                </option>
+                                            </template>
+                                            <option value="" disabled>– OR –</option>
+                                            <option value="createNewResource">Create new backup</option>
+                                        </select>
+                                    </template>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
                                 </div>
 
                                 <template v-if="!editMode || (editMode && pitr.length)">
                                     <div class="col" :class="!restoreBackup.length && 'hidden'">
                                         <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
-                                        <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone" :disabled="!restoreBackup.length">
+                                        <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone" :disabled="!restoreBackup.length || editMode">
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
                                     </div>
                                 </template>
 
                                 <div class="col" v-if="restoreBackup.length">
                                     <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
-                                    <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="0" :disabled="!restoreBackup.length">
+                                    <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="0" :disabled="editMode">
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
                                 </div>
                             </fieldset>
@@ -1587,6 +1592,7 @@
 
                             vm.restoreBackup = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.name') ? c.data.spec.initialData.restore.fromBackup.name : '';
                             vm.pitr = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp') ? c.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp : ''
+                            vm.downloadDiskConcurrency = vm.hasProp(c, 'data.spec.initialData.restore.downloadDiskConcurrency') ? c.data.spec.initialData.restore.downloadDiskConcurrency : '';
                             
                             vm.editReady = vm.advancedMode = true
                             return false
@@ -1780,7 +1786,7 @@
                                                         })  
                                                     )
                                                 },
-                                                ...(this.downloadDiskConcurrency.length  && ({
+                                                ...(this.downloadDiskConcurrency.toString().length && ({
                                                     "downloadDiskConcurrency": this.downloadDiskConcurrency 
                                                 }) )
                                             },
@@ -1824,28 +1830,22 @@
                                     }) )
                                 }
                             }) ),
-                            ...( ( (!this.postgresServicesPrimary || (this.postgresServicesPrimaryType != 'ClusterIP')) || (!this.postgresServicesReplicas || (this.postgresServicesReplicasType != 'ClusterIP')) ) && {
-                                "postgresServices": {
-                                    ...( (!this.postgresServicesPrimary || (this.postgresServicesPrimaryType != 'ClusterIP')) && {
-                                        "primary": {
-                                            "enabled": this.postgresServicesPrimary,
-                                            "type": this.postgresServicesPrimaryType,
-                                        }
-                                    }),
-                                    ...( (!this.postgresServicesReplicas || (this.postgresServicesReplicasType != 'ClusterIP')) && {
-                                        "replicas": {
-                                            "enabled": this.postgresServicesReplicas,
-                                            "type": this.postgresServicesReplicasType,
-                                        }
-                                    }),
+                            "postgresServices": {
+                                "primary": {
+                                    "enabled": this.postgresServicesPrimary,
+                                    "type": this.postgresServicesPrimaryType,
+                                },
+                                "replicas": {
+                                    "enabled": this.postgresServicesReplicas,
+                                    "type": this.postgresServicesReplicasType,
                                 }
-                            }),
+                            },
                             "postgres": {
                                 "version": this.postgresVersion,
                                 ...(this.selectedExtensions.length && ({
                                     "extensions": this.selectedExtensions
                                 })),
-                                ...(!this.editMode && { "flavor": this.flavor })
+                                "flavor": this.flavor
                             }
 
                         }
