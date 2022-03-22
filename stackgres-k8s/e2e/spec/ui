@@ -68,7 +68,30 @@ EOF
 
   kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
   kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress.json" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
+
+  BACKUP_NAME=ui-0
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGBackup
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$BACKUP_NAME"
+spec:
+  sgCluster: "$CLUSTER_NAME"
+  managedLifecycle: false
+EOF
+
+  wait_until is_backup_phase "$CLUSTER_NAMESPACE" "$BACKUP_NAME" "Completed"
 }
+
+is_backup_phase() {
+  local NAMESPACE="$1"
+  local NAME="$2"
+  local STATUS="$3"
+  [ "$(kubectl get sgbackup -n "$NAMESPACE" "$NAME" -o=jsonpath='{.status.process.status}')" = "$STATUS" ]
+}
+
 
 e2e_test() {  
   if [ "$(uname -m)" != x86_64 ]
