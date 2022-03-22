@@ -1,0 +1,38 @@
+pgbench (14.1 OnGres Inc.)
+pgbench: pghost: stackgres-primary pgport: 5432 nclients: 1 duration: 10 dbName: pgbench_6238ca03
+pgbench: warning: scale option ignored, using count from pgbench_branches table (4)
+starting vacuum...end.
+progress: 1.0 s, 266.0 tps, lat 3.736 ms stddev 9.689
+progress: 2.0 s, 451.0 tps, lat 2.210 ms stddev 0.479
+progress: 3.0 s, 464.0 tps, lat 2.150 ms stddev 0.363
+progress: 4.0 s, 486.0 tps, lat 2.050 ms stddev 0.138
+progress: 5.0 s, 460.0 tps, lat 2.168 ms stddev 0.297
+progress: 6.0 s, 441.0 tps, lat 2.260 ms stddev 0.597
+progress: 7.0 s, 455.0 tps, lat 2.193 ms stddev 0.445
+progress: 8.0 s, 459.0 tps, lat 2.173 ms stddev 0.212
+progress: 9.0 s, 454.0 tps, lat 2.193 ms stddev 0.316
+progress: 10.0 s, 457.0 tps, lat 2.184 ms stddev 0.289
+transaction type: <builtin: TPC-B (sort of)>
+scaling factor: 4
+query mode: simple
+number of clients: 1
+number of threads: 1
+duration: 10 s
+number of transactions actually processed: 4394
+latency average = 2.269 ms
+latency stddev = 2.440 ms
+initial connection time = 4.538 ms
+tps = 439.565233 (without initial connection time)
+statement latencies in milliseconds:
+         0.007  \set aid random(1, 100000 * :scale)
+         0.005  \set bid random(1, 1 * :scale)
+         0.005  \set tid random(1, 10 * :scale)
+         0.005  \set delta random(-5000, 5000)
+         0.148  BEGIN;
+         0.230  UPDATE pgbench_accounts SET abalance = abalance + :delta WHERE aid = :aid;
+         0.215  SELECT abalance FROM pgbench_accounts WHERE aid = :aid;
+         0.238  UPDATE pgbench_tellers SET tbalance = tbalance + :delta WHERE tid = :tid;
+         0.218  UPDATE pgbench_branches SET bbalance = bbalance + :delta WHERE bid = :bid;
+         0.182  INSERT INTO pgbench_history (tid, bid, aid, delta, mtime) VALUES (:tid, :bid, :aid, :delta, CURRENT_TIMESTAMP);
+         1.016  END;'
+

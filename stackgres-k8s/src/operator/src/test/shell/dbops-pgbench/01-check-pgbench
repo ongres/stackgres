@@ -1,0 +1,8 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/dbops-pgbench/abstract-pgbench"
+
+shell_unit_test() {
+  shell_unit_test_dbops_pgbench
+  check_dbops_result
+}
