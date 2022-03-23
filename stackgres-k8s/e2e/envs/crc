@@ -32,10 +32,13 @@ get_k8s_env_version() {
 }
 
 update_crc_config() {
-  if ! timeout -s KILL 10s $(crc console --credentials | cut -d "'" -f 2 | grep kubeadmin) > /dev/null 2>&1
+  local CRC_LOGIN_COMMAND
+  CRC_LOGIN_COMMAND="$(crc console --credentials)"
+  CRC_LOGIN_COMMAND="$(printf '%s' "$CRC_LOGIN_COMMAND" | cut -d "'" -f 2 | grep kubeadmin | sed 's#oc #~/.crc/bin/oc/oc #')"
+  if ! timeout -s KILL 10s $CRC_LOGIN_COMMAND > /dev/null 2>&1
   then
-    wait_until eval "crc status | grep '^OpenShift:[[:space:]]\+Running[[:space:]]'"
-    wait_until eval "timeout -s KILL 10s $(crc console --credentials | cut -d "'" -f 2 | grep kubeadmin) > /dev/null 2>&1"
+    wait_until -t 60 eval "crc status | grep '^OpenShift:[[:space:]]\+Running[[:space:]]'"
+    wait_until -t 60 eval "timeout -s KILL 10s $CRC_LOGIN_COMMAND > /dev/null 2>&1"
   fi
 
   # ~/.crc/bin/oc/oc adm policy add-scc-to-user hostmount-anyuid -n default -z default
@@ -72,13 +75,13 @@ reuse_k8s() {
 
   if ! "$RESULT" > /dev/null 2>&1
   then
-    echo "Can not reuse crc environment"
-    exit 1
+    reset_k8s true
   fi
 
   echo "Reusing crc environment"
   update_crc_config
   update_k8s_config
+  crc_start_debug_node
 }
 
 reset_k8s() {
@@ -95,7 +98,12 @@ reset_k8s() {
 
   echo "Setting up crc environment..."
 
-  crc delete -f || true
+  if [ "$1" != true ]
+  then
+    crc delete -f || true
+  else
+    crc stop -f || true
+  fi
   screen -ls 2>/dev/null | grep '\.crc-daemon' \
     | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
     | xargs -r -I % kill %
