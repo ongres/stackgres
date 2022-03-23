@@ -58,6 +58,8 @@ reset_k8s() {
   echo "Setting up microshift environment..."
 
   docker rm -fv "$K8S_NAME" || true
+  docker run --rm -v "$K8S_CACHE_PATH":/var/lib alpine sh \
+    -c 'for FOLDER in /var/lib/*; do echo "$FOLDER" | grep -qxF containers || rm -rf "$FOLDER"; done'
   docker run -d --rm \
     --name "$K8S_NAME" \
     --privileged \

@@ -33,7 +33,7 @@ affinity:
             values: [ "${KIND_NAME}-worker", "${KIND_NAME}-control-plane" ]
 EOF
   fi
-  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ]
+  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
   then
     if [ "$E2E_ENV" = "minishift" ]
     then
@@ -42,6 +42,10 @@ EOF
     if [ "$E2E_ENV" = "crc" ]
     then
       eval "$(crc oc-env)"
+    fi
+    if [ "$E2E_ENV" = "microshift" ]
+    then
+      alias oc="docker exec -ti '$K8S_NAME' oc"
     fi
     oc adm policy add-scc-to-user anyuid -n "$MINIO_NAMESPACE" -z "$MINIO_NAME"
     cat << EOF >> "$LOG_PATH/minio.yaml"
