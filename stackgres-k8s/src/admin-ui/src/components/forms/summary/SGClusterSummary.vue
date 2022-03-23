@@ -145,11 +145,11 @@
                     <ul class="section" v-if="hasProp(cluster, 'data.spec.initialData')">
                         <li>
                             <strong class="sectionTitle">Cluster Initialization</strong>
-                            <ul v-if="hasProp(cluster, 'data.spec.initialData.restore.fromBackup.uid')">
+                            <ul v-if="hasProp(cluster, 'data.spec.initialData.restore.fromBackup.name')">
                                 <li>
                                     <strong class="sectionTitle">Initialization Backup</strong>
                                     <ul>
-                                        <li :set="backup = backups.find( b => (b.data.metadata.uid == cluster.data.spec.initialData.restore.fromBackup.uid) )">
+                                        <li :set="backup = backups.find( b => (b.data.metadata.name == cluster.data.spec.initialData.restore.fromBackup.name) )">
                                             <strong class="label">Backup:</strong>
                                             <span class="value">
                                                 <template v-if="(typeof backup !== 'undefined')">
@@ -158,7 +158,7 @@
                                                     </router-link>
                                                 </template>
                                                 <template v-else>
-                                                    {{ cluster.data.spec.initialData.restore.fromBackup.uid }}
+                                                    {{ cluster.data.spec.initialData.restore.fromBackup.name }}
                                                 </template>
                                             </span>
                                         </li>

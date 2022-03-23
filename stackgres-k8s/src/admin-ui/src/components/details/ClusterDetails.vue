@@ -235,7 +235,7 @@
                         </td>
                     </tr>
                     <template v-if="hasProp(cluster, 'data.spec.initialData.restore')">
-                        <tr :set="backup = backups.find( b => (b.data.metadata.uid == cluster.data.spec.initialData.restore.fromBackup.uid) )">
+                        <tr :set="backup = backups.find( b => (b.data.metadata.name == cluster.data.spec.initialData.restore.fromBackup.name) )">
                             <td class="label" :rowspan="1 + Object.keys(cluster.data.spec.initialData.restore.fromBackup).length + ( (typeof backup !== 'undefined') ? 1 : 0)">
                                 Initial Data
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData')"></span>
@@ -254,18 +254,18 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
                             </td>
                             <td class="label">
-                                Backup UID
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.uid')"></span>
+                                Backup Name
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.name')"></span>
                             </td>
                             <td>
                                 <template v-if="(typeof backup !== 'undefined')">
-                                    <router-link :to="'/cluster/backups/'+$route.params.namespace+'/'+backup.data.spec.sgCluster+'/'+backup.data.metadata.name"> 
-                                        {{ cluster.data.spec.initialData.restore.fromBackup.uid }}
+                                    <router-link :to="'/' + $route.params.namespace + '/sgbackup/' + backup.data.metadata.name"> 
+                                        {{ cluster.data.spec.initialData.restore.fromBackup.name }}
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
                                     </router-link>
                                 </template>
                                 <template v-else>
-                                    {{ cluster.data.spec.initialData.restore.fromBackup.uid }}
+                                    {{ cluster.data.spec.initialData.restore.fromBackup.name }}
                                 </template>
                             </td>
                         </tr>

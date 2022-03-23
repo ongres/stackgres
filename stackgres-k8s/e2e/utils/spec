@@ -81,6 +81,10 @@ e2e_use_extensions() {
   false
 }
 
+e2e_test_extra_hash() {
+  true
+}
+
 get_all_specs() {
   find "$SPEC_PATH" -maxdepth 1 -type f | grep '^.*/[^\.]\+$'
 }
@@ -410,6 +414,7 @@ calculate_spec_hashes() {
           then
             get_extensions_index_hash
           fi
+	  e2e_test_extra_hash
           )
           printf '%s\n' "$HELM_MODULE_HASH"
           if [ "${IMAGE_TAG%-jvm}" = "$IMAGE_TAG" ]
