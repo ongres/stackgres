@@ -22,8 +22,8 @@ spec:
     spec:
       serviceAccountName: {{ .Release.Name }}
       securityContext:
+        {{- if and (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) (not .Values.developer.disableArbitraryUser) }}
         runAsNonRoot: true
-        {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
         runAsUser: 999
         runAsGroup: 999
         fsGroup: 999
@@ -34,7 +34,7 @@ spec:
         image: "{{ .Values.operator.image.name }}:{{ .Values.operator.image.tag }}"
         imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
         securityContext:
-          {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
+          {{- if and (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) (not .Values.developer.disableArbitraryUser) }}
           runAsNonRoot: true
           runAsUser: 185
           runAsGroup: 185
@@ -51,7 +51,7 @@ spec:
             value: "{{ .Values.operator.image.tag }}"
           - name: PROMETHEUS_AUTOBIND
             value: "{{ .Values.prometheus.allowAutobind }}"
-          {{- if (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
+          {{- if and (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) (not .Values.developer.disableArbitraryUser) }}
           - name: USE_ARBITRARY_USER
             value: "true"
           {{- end }}

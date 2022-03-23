@@ -118,6 +118,7 @@ developer: {}
   # externalRestApiIp: 172.17.0.1
   # externalRestApiPort: 8081
   # allowPullExtensionsFromImageRepository: true
+  # disableArbitraryUser: true
 
 extensions:
   ## To set a proxy for extensions repository add parameter proxyUrl to the URL:

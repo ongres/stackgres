@@ -20,10 +20,10 @@ public abstract class PodSecurityFactory {
   private OperatorPropertyContext operatorContext;
 
   public PodSecurityContext createPodSecurityContext() {
-    PodSecurityContextBuilder podSecurityContextBuilder = new PodSecurityContextBuilder()
-        .withRunAsNonRoot(true);
+    PodSecurityContextBuilder podSecurityContextBuilder = new PodSecurityContextBuilder();
     if (!operatorContext.getBoolean(OperatorProperty.USE_ARBITRARY_USER)) {
       podSecurityContextBuilder
+          .withRunAsNonRoot(true)
           .withRunAsUser(USER)
           .withRunAsGroup(GROUP)
           .withFsGroup(GROUP);

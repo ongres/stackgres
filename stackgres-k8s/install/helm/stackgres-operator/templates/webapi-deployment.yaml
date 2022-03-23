@@ -26,13 +26,15 @@ spec:
     spec:
       serviceAccountName: {{ .Values.restapi.name }}
       securityContext:
+        {{- if and (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) (not .Values.developer.disableArbitraryUser) }}
         runAsNonRoot: true
+        {{- end }}
       containers:
       - name: {{ .Values.restapi.name }}
         image: "{{ .Values.restapi.image.name }}:{{ .Values.restapi.image.tag }}"
         imagePullPolicy: {{ .Values.restapi.image.pullPolicy }}
         securityContext:
-          {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
+          {{- if and (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) (not .Values.developer.disableArbitraryUser) }}
           runAsNonRoot: true
           runAsUser: 185
           runAsGroup: 185
@@ -73,7 +75,7 @@ spec:
           {{- end }}
           - name: AUTHENTICATION_SECRET_NAME
             value: "{{ .Values.authentication.secretRef.name | default .Values.restapi.name }}"
-          {{- if .Capabilities.APIVersions.Has "project.openshift.io/v1" }}
+          {{- if and (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) (not .Values.developer.disableArbitraryUser) }}
           - name: USE_ARBITRARY_USER
             value: "true"
           {{- end }}
@@ -119,7 +121,7 @@ spec:
         image: '{{ .Values.adminui.image.name }}:{{ .Values.adminui.image.tag }}'
         imagePullPolicy: {{ .Values.adminui.image.pullPolicy }}
         securityContext:
-          {{- if not (.Capabilities.APIVersions.Has "project.openshift.io/v1") }}
+          {{- if and (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) (not .Values.developer.disableArbitraryUser) }}
           runAsNonRoot: true
           runAsUser: 998
           runAsGroup: 998

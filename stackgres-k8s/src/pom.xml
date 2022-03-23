@@ -251,12 +251,6 @@
       <version>${spotbugs.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
-      <exclusions>
-        <exclusion>
-          <groupId>com.google.code.findbugs</groupId>
-          <artifactId>jsr305</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
   </dependencies>
 
