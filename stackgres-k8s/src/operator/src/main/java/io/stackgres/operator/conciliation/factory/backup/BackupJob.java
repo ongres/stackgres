@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -286,8 +287,10 @@ public class BackupJob
                         .build(),
                     new EnvVarBuilder()
                         .withName("CLUSTER_BACKUP_NAMESPACES")
-                        .withValue(context.getClusterBackupNamespaces()
+                        .withValue(Optional.of(context.getClusterBackupNamespaces()
                             .stream().collect(Collectors.joining(" ")))
+                            .filter(Predicates.not(String::isEmpty))
+                            .orElse(null))
                         .build(),
                     new EnvVarBuilder()
                         .withName("RETAIN")

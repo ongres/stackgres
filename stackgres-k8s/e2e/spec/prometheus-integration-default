@@ -23,6 +23,7 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_pods_running "$(prometheus_namespace)" 3
 }
 
 e2e_test_uninstall() {

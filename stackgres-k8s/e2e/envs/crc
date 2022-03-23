@@ -3,7 +3,7 @@
 #
 # Follow those steps to install and start crc in Ubuntu 20.04:
 # 
-#     sudo wget https://dl.fedoraproject.org/pub/alt/okd-crc/release/linux-amd64/crc -O /usr/local/bin
+#     sudo wget https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/crc/1.39.0/crc-linux-amd64.tar.xz -O - | sudo tar xf --strip-components=1 -C /usr/local/bin/ -f - crc
 #     sudo chmod a+x /usr/local/bin/crc
 #     sudo apt install qemu-kvm libvirt-daemon libvirt-daemon-system network-manager
 #     crc config set skip-check-daemon-systemd-unit true
@@ -22,10 +22,9 @@ then
   >&2 echo "Warning: using kubernetes version 1.22.3 since e2e default $DEFAULT_K8S_VERSION is not available for crc"
   K8S_VERSION=1.22.3
 fi
-export K8S_OPENSHIFT_VERSION="${K8S_OPENSHIFT_VERSION:-3.11.0}"
 export K8S_CRC_CPUS="${K8S_CRC_CPUS:-4}"
-export K8S_CRC_MEMORY="${K8S_CRC_MEMORY:-9216}"
-export K8S_CRC_DISK="${K8S_CRC_DISK:-31}"
+export K8S_CRC_MEMORY="${K8S_CRC_MEMORY:-18432}"
+export K8S_CRC_DISK="${K8S_CRC_DISK:-60}"
 
 get_k8s_env_version() {
   echo "crc version $(crc version | head -n 1 | cut -d ' ' -f 4)"
@@ -33,15 +32,20 @@ get_k8s_env_version() {
 }
 
 update_crc_config() {
-  eval "$(crc oc-env)"
-
-  if ! timeout -s KILL 10s $(crc console --credentials | cut -d "'" -f 2 | grep kubeadmin) > /dev/null 2>&1
+  local CRC_LOGIN_COMMAND
+  CRC_LOGIN_COMMAND="$(crc console --credentials)"
+  CRC_LOGIN_COMMAND="$(printf '%s' "$CRC_LOGIN_COMMAND" | cut -d "'" -f 2 | grep kubeadmin | sed 's#oc #~/.crc/bin/oc/oc #')"
+  if ! timeout -s KILL 10s $CRC_LOGIN_COMMAND > /dev/null 2>&1
   then
-    wait_until eval "crc status | grep '^OpenShift:[[:space:]]\+Running[[:space:]]'"
-    wait_until eval "timeout -s KILL 10s $(crc console --credentials | cut -d "'" -f 2 | grep kubeadmin) > /dev/null 2>&1"
+    if crc status | grep '^OpenShift:[[:space:]]\+Stopped[[:space:]]'
+    then
+      return 1
+    fi
+    wait_until -t 60 eval "crc status | grep '^OpenShift:[[:space:]]\+Running[[:space:]]'"
+    wait_until -t 60 eval "timeout -s KILL 10s $CRC_LOGIN_COMMAND > /dev/null 2>&1"
   fi
 
-  # oc adm policy add-scc-to-user hostmount-anyuid -n default -z default
+  ~/.crc/bin/oc/oc adm policy add-scc-to-user hostmount-anyuid -n default -z default
 }
 
 update_k8s_config() {
@@ -51,7 +55,7 @@ update_k8s_config() {
     echo "Can not use crc environment from docker"
     exit 1
   else
-    oc config view --raw > "$HOME/.kube/config-oc"
+    ~/.crc/bin/oc/oc config view --raw > "$HOME/.kube/config-oc"
   fi
 
   (
@@ -75,13 +79,13 @@ reuse_k8s() {
 
   if ! "$RESULT" > /dev/null 2>&1
   then
-    echo "Can not reuse crc environment"
-    exit 1
+    reset_k8s true
   fi
 
   echo "Reusing crc environment"
   update_crc_config
   update_k8s_config
+  crc_start_debug_node
 }
 
 reset_k8s() {
@@ -98,7 +102,12 @@ reset_k8s() {
 
   echo "Setting up crc environment..."
 
-  crc delete -f || true
+  if [ "$1" != true ]
+  then
+    crc delete -f || true
+  else
+    crc stop -f || true
+  fi
   screen -ls 2>/dev/null | grep '\.crc-daemon' \
     | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
     | xargs -r -I % kill %
@@ -154,12 +163,14 @@ load_image_k8s() {
     return
   fi
 
-  echo "Loading image $1 in crc environemnt"
-  docker save "$1" | crc_run_on_node podman load
-  if crc_run_on_node podman inspect "localhost/$1" > /dev/null 2>&1
-  then
-    crc_run_on_node podman tag "localhost/$1" "docker.io/$1"
-  fi
+  echo "Loading images in crc environemnt is not supported"
+  return 1
+  # echo "Loading image $1 in crc environemnt"
+  # docker save "$1" | crc_run_on_node podman load
+  # if crc_run_on_node podman inspect "localhost/$1" > /dev/null 2>&1
+  # then
+  #   crc_run_on_node podman tag "localhost/$1" "docker.io/$1"
+  # fi
 }
 
 pull_image_k8s() {
@@ -195,7 +206,7 @@ crc_start_debug_node() {
 }
 
 crc_run_on_node() {
-  local NODE
+  local NODE PID
   NODE="$(kubectl get node -o name)"
   NODE="$(printf '%s' "$NODE" | head -n 1)"
 
