@@ -23,7 +23,7 @@ then
   K8S_VERSION=1.22.3
 fi
 export K8S_CRC_CPUS="${K8S_CRC_CPUS:-4}"
-export K8S_CRC_MEMORY="${K8S_CRC_MEMORY:-9216}"
+export K8S_CRC_MEMORY="${K8S_CRC_MEMORY:-18432}"
 export K8S_CRC_DISK="${K8S_CRC_DISK:-60}"
 
 get_k8s_env_version() {
@@ -37,11 +37,15 @@ update_crc_config() {
   CRC_LOGIN_COMMAND="$(printf '%s' "$CRC_LOGIN_COMMAND" | cut -d "'" -f 2 | grep kubeadmin | sed 's#oc #~/.crc/bin/oc/oc #')"
   if ! timeout -s KILL 10s $CRC_LOGIN_COMMAND > /dev/null 2>&1
   then
+    if crc status | grep '^OpenShift:[[:space:]]\+Stopped[[:space:]]'
+    then
+      return 1
+    fi
     wait_until -t 60 eval "crc status | grep '^OpenShift:[[:space:]]\+Running[[:space:]]'"
     wait_until -t 60 eval "timeout -s KILL 10s $CRC_LOGIN_COMMAND > /dev/null 2>&1"
   fi
 
-  # ~/.crc/bin/oc/oc adm policy add-scc-to-user hostmount-anyuid -n default -z default
+  ~/.crc/bin/oc/oc adm policy add-scc-to-user hostmount-anyuid -n default -z default
 }
 
 update_k8s_config() {

@@ -30,10 +30,14 @@ install_prometheus_operator_for_version() {
     then
       alias oc="docker exec -ti '$K8S_NAME' oc"
     fi
+    kubectl create ns "$(prometheus_namespace)"
     oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-admission
-    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-grafana
     oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-operator
     oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-prometheus-oper-prometheus
+    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-kube-prometheus-admission
+    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-kube-prometheus-operator
+    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-kube-prometheus-prometheus
+    oc adm policy add-scc-to-user anyuid -n "$(prometheus_namespace)" -z prometheus-grafana
   fi
 
   helm install prometheus "$E2E_PATH/helm/kube-prometheus-stack-$KUBE_PROMETHEUS_STACK_VERSION.tgz" \

@@ -26,7 +26,7 @@ spec:
         group:  stackgres.io
     spec:
       securityContext:
-        {{- if and (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) (not .Values.developer.disableArbitraryUser) }}
+        {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
