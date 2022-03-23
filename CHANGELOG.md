@@ -1,3 +1,69 @@
+# :rocket: Release 1.2.0-beta1 (2022-03-23)
+
+## :notepad_spiral: NOTES
+
+Here comes StackGres 1.2.0-beta1 the brings more fishy stuffs and let you be the first by not letting you lose even a bit of info!! :first_place: :fishing_pole_and_fish: :tada: :bottle_with_popping_cork:
+
+The day has come, never more lose a single commit by enabling synchronous replication and add dedicated instances to be readonly. Also try out the Babelfish Compass application from StackGres Web UI and check if your SQLServer schema is compatible with Babelfish for Postgres!
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Support for synchronous replication
+* Support for replication groups
+* New Babelfish Compass application integrated in the Web UI
+* Removed support for StackGres 0.9
+* When SGCluster requires upgrade PendingUpgrade will be set
+* Backups are now restored by name to avoid security issues
+* Backups can now be copied across namespaces requiring the `.spec.sgCluster` field to be prepended the cluster name with the cluster namespace plus the `.` character so that it still points to the original cluster.
+* Set `restore_command` when backup is enabled to allow replica to catch up from backup storage
+* Deep validation of postgresql parameters
+
+## Web Console
+
+* Enhance the date picker to filter cluster logs
+* Suggest default names for manual Backups and DbOps
+
+## :bug: FIXES
+
+* SGDbOps pgbench benchmark is not setting correctly TPS
+* When SGCluster requires upgrade PendingRestart should not be set
+
+## Web Console
+
+* Support SGDistributedLogs retention spec on SGCluster form
+* Namespace link on web console's breadcrumbs point to wrong path on SGInstanceProfile listings
+* The disableClusterPodAntiAffinity config is not shown on SGDistributedLogs details
+* Main dashboard does not validate user permissions
+* Sidebar shows top level CRDs when user has no permissions
+* Error message do not include details coming from the REST API
+* Fix "go to default dashboard" link on not-found page
+* Repeated names when creating restart SGDbOps
+* Prevent input of invalid runAt values for SGDbOps
+* Empty notification when toggling twice between timezones
+* Selected extensions are not disabled when changing flavor
+
+## :construction: KNOWN ISSUES
+
+* Installation fails in EKS 1.21+ due to CSR not returning the certificate ([#1358](https://gitlab.com/ongresinc/stackgres/-/issues/1358)) 
+* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
+* After major version upgrade continuous archiving and backups may hang ([#1383](https://gitlab.com/ongresinc/stackgres/-/issues/1383)) 
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.0 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.2.0-beta1)
+
 # :rocket: Release 1.1.0 (2022-02-01)
 
 ## :notepad_spiral: NOTES
