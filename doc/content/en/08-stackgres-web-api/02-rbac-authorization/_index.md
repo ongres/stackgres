@@ -120,7 +120,7 @@ subjects:
   name: example
 ```
 
-The same can be achived with: `kubectl create clusterrolebinding sg-restapi-example-user --clusterrole=stackgres-reader --user=example`
+The same can be achieved with: `kubectl create clusterrolebinding sg-restapi-example-user --clusterrole=stackgres-reader --user=example`
 
 > Please note that the `example` user must also be mapped in the secret with a password to be able to login to the Web UI.
 
