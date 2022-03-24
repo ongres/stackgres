@@ -23,7 +23,6 @@ import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.OperatorProperty;
@@ -178,7 +177,7 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
 
   @Override
   protected String getRunImage(StackGresDbOpsContext context) {
-    return KubectlUtil.fromClient().getImageName(context.getCluster());
+    return kubectl.getImageName(context.getCluster());
   }
 
   @Override

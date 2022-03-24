@@ -16,62 +16,66 @@ import org.mockito.Mockito;
 class KubectlUtilTest {
 
   @ParameterizedTest
-  @ValueSource(strings = {"16", "17", "18"})
-  void testImageName17(String minor) {
+  @ValueSource(strings = {"v1.16.10", "v1.17.11", "v1.18.1"})
+  void testImageName17(String version) {
     KubernetesClient mockClient = Mockito.mock(KubernetesClient.class);
 
-    var versionInfo = new VersionInfo.Builder().withMinor(minor).build();
+    var versionInfo = new VersionInfo.Builder()
+        .withGitVersion(version).withMinor(version.split("\\.")[1]).build();
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
         .map(c -> c.findImageName("1.17"))
         .orElseThrow();
-    String imageName = KubectlUtil.fromClient(mockClient)
+    String imageName = new KubectlUtil(mockClient)
         .getImageName(StackGresVersion.LATEST);
 
     assertEquals(expected, imageName);
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"19", "20", "21"})
-  void testImageName20(String minor) {
+  @ValueSource(strings = {"v1.19", "v1.20.2", "v1.21.7"})
+  void testImageName20(String version) {
     KubernetesClient mockClient = Mockito.mock(KubernetesClient.class);
 
-    var versionInfo = new VersionInfo.Builder().withMinor(minor).build();
+    var versionInfo = new VersionInfo.Builder()
+        .withGitVersion(version).withMinor(version.split("\\.")[1]).build();
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
         .map(c -> c.findImageName("1.20"))
         .orElseThrow();
-    String imageName = KubectlUtil.fromClient(mockClient)
+    String imageName = new KubectlUtil(mockClient)
         .getImageName(StackGresVersion.LATEST);
 
     assertEquals(expected, imageName);
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"22", "23", "24"})
-  void testImageName23(String minor) {
+  @ValueSource(strings = {"v1.22.9", "v1.23.3", "v1.24.0"})
+  void testImageName23(String version) {
     KubernetesClient mockClient = Mockito.mock(KubernetesClient.class);
 
-    var versionInfo = new VersionInfo.Builder().withMinor(minor).build();
+    var versionInfo = new VersionInfo.Builder()
+        .withGitVersion(version).withMinor(version.split("\\.")[1]).build();
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
         .map(c -> c.findImageName("1.23"))
         .orElseThrow();
-    String imageName = KubectlUtil.fromClient(mockClient)
+    String imageName = new KubectlUtil(mockClient)
         .getImageName(StackGresVersion.LATEST);
 
     assertEquals(expected, imageName);
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"12", "15", "99"})
-  void testImageNameUnknow(String minor) {
+  @ValueSource(strings = {"v1.12.15", "v1.14.0", "v1.15.15", "v1.99.99"})
+  void testImageNameUnknow(String version) {
     KubernetesClient mockClient = Mockito.mock(KubernetesClient.class);
 
-    var versionInfo = new VersionInfo.Builder().withMinor(minor).build();
+    var versionInfo = new VersionInfo.Builder()
+        .withGitVersion(version).withMinor(version.split("\\.")[1]).build();
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     // Always return the latest image name since older versions
@@ -79,7 +83,7 @@ class KubectlUtilTest {
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
         .map(c -> c.findLatestImageName())
         .orElseThrow();
-    String imageName = KubectlUtil.fromClient(mockClient)
+    String imageName = new KubectlUtil(mockClient)
         .getImageName(StackGresVersion.LATEST);
 
     assertEquals(expected, imageName);

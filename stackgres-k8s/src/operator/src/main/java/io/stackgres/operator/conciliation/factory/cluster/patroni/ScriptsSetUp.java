@@ -41,6 +41,9 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerC
   private final VolumeMountsProvider<ContainerContext> templateMounts;
 
   @Inject
+  KubectlUtil kubectl;
+
+  @Inject
   public ScriptsSetUp(
       @ProviderName(CONTAINER_USER_OVERRIDE)
           VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
@@ -57,12 +60,13 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerC
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName("setup-scripts")
-        .withImage(KubectlUtil.fromClient().getImageName(context.getClusterContext().getCluster()))
+        .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
                 + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename())
         .withEnv(getClusterEnvVars(context))
+        .addToEnv(new EnvVarBuilder().withName("HOME").withValue("/tmp").build())
         .withVolumeMounts(templateMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(localBinMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))

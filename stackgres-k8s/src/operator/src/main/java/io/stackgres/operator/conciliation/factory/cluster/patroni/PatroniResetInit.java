@@ -52,6 +52,9 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
   private final ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;
 
   @Inject
+  KubectlUtil kubectl;
+
+  @Inject
   public PatroniResetInit(
       @OperatorVersionBinder
           PatroniServices patroniServices,
@@ -92,7 +95,7 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
     return
         new ContainerBuilder()
             .withName("reset-patroni")
-            .withImage(KubectlUtil.fromClient().getImageName(clusterContext.getCluster()))
+            .withImage(kubectl.getImageName(clusterContext.getCluster()))
             .withImagePullPolicy("IfNotPresent")
             .withCommand("/bin/sh", "-ex",
                 ClusterStatefulSetPath.TEMPLATES_PATH.path()
@@ -129,6 +132,10 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
                 new EnvVarBuilder()
                     .withName("PATRONI_ENDPOINT_NAME")
                     .withValue(patroniServices.configName(clusterContext))
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("HOME")
+                    .withValue("/tmp")
                     .build())
             .addAllToEnv(patroniEnvironmentVariables.createResource(clusterContext))
             .withVolumeMounts(new VolumeMountBuilder()

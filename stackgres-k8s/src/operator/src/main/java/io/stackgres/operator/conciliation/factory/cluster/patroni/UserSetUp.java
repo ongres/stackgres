@@ -14,6 +14,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
@@ -38,6 +39,9 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContainerCont
   private final VolumeMountsProvider<ContainerContext> postgresSocketMounts;
 
   @Inject
+  KubectlUtil kubectl;
+
+  @Inject
   public UserSetUp(
       @ProviderName(VolumeMountProviderName.SCRIPT_TEMPLATES)
           VolumeMountsProvider<ContainerContext> scriptTemplateMounts,
@@ -51,12 +55,13 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContainerCont
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName("setup-arbitrary-user")
-        .withImage(KubectlUtil.fromClient().getImageName(context.getClusterContext().getCluster()))
+        .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
                 + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename())
         .withEnv(getClusterEnvVars(context))
+        .addToEnv(new EnvVarBuilder().withName("HOME").withValue("/tmp").build())
         .withVolumeMounts(scriptTemplateMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()

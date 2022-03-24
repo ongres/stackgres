@@ -10,6 +10,7 @@ import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.PGBOUNCER_
 import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.PGBOUNCER_STATS_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.PGBOUNCER_STATS_USER_NAME;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.Container;
@@ -36,11 +37,14 @@ public class InitPgBouncerAuthFile implements ContainerFactory<StackGresClusterC
       ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path()
       + "/" + PGBOUNCER_STATS_PASSWORD_KEY;
 
+  @Inject
+  KubectlUtil kubectl;
+
   @Override
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName("pgbouncer-auth-file")
-        .withImage(KubectlUtil.fromClient().getImageName(context.getClusterContext().getCluster()))
+        .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
         .withCommand("/bin/sh", "-exc",
             ""
                 + "test -f \"" + PGBOUNCER_ADMIN_PASSWORD_PATH + "\"\n"

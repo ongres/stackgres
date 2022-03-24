@@ -75,6 +75,9 @@ public class BackupJob
   private final ResourceFactory<StackGresBackupContext, PodSecurityContext> podSecurityFactory;
 
   @Inject
+  KubectlUtil kubectl;
+
+  @Inject
   public BackupJob(
       ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> clusterEnvVarFactoryDiscoverer,
       LabelFactoryForBackup labelFactory,
@@ -178,7 +181,7 @@ public class BackupJob
         .withServiceAccountName(BackupCronRole.roleName(context.getCluster()))
         .withContainers(new ContainerBuilder()
             .withName("create-backup")
-            .withImage(KubectlUtil.fromClient().getImageName(context.getCluster()))
+            .withImage(kubectl.getImageName(context.getCluster()))
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(getClusterEnvVars(context))
@@ -300,6 +303,10 @@ public class BackupJob
                     new EnvVarBuilder()
                         .withName("WINDOW")
                         .withValue("3600")
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("HOME")
+                        .withValue("/tmp")
                         .build())
                 .build())
             .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),

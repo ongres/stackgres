@@ -5,57 +5,59 @@
 
 package io.stackgres.common;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.component.Component;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public final class KubectlUtil {
+@Singleton
+public class KubectlUtil {
+
+  private static final Logger LOG = LoggerFactory.getLogger(KubectlUtil.class);
 
   private final int k8sMinorVersion;
 
-  private KubectlUtil(KubernetesClient client) {
+  @Inject
+  public KubectlUtil(KubernetesClient client) {
     int minor;
     try {
-      minor = Integer.parseInt(client.getKubernetesVersion().getMinor());
+      VersionInfo kubernetesVersion = client.getKubernetesVersion();
+      LOG.debug("Kubernetes version: {}", kubernetesVersion.getGitVersion());
+      minor = Integer.parseInt(kubernetesVersion.getMinor());
     } catch (RuntimeException e) {
       // Fallback to latest image
-      minor = 0;
+      minor = -1;
     }
     this.k8sMinorVersion = minor;
   }
 
-  public static KubectlUtil fromClient() {
-    try (var client = new DefaultKubernetesClient()) {
-      return new KubectlUtil(client);
-    }
-  }
-
-  public static KubectlUtil fromClient(KubernetesClient client) {
-    return new KubectlUtil(client);
-  }
-
   public String getImageName(@NotNull StackGresVersion sgversion) {
     Component kubectl = StackGresComponent.KUBECTL.getOrThrow(sgversion);
-    return kubectl.getOrderedVersions()
+    final String imageName = kubectl.getOrderedVersions()
+        .filter(ver -> k8sMinorVersion != -1)
         .findFirst(ver -> {
           int minor = Integer.parseInt(ver.split("\\.")[1]);
           return (k8sMinorVersion >= minor - 1 && k8sMinorVersion <= minor + 1);
         })
         .map(kubectl::findImageName)
         .orElseGet(kubectl::findLatestImageName);
+    LOG.debug("Using kubectl image: {}", imageName);
+    return imageName;
   }
 
   public String getImageName(@NotNull StackGresCluster cluster) {
-    StackGresVersion stackGresVersion = StackGresVersion.getStackGresVersion(cluster);
-    return getImageName(stackGresVersion);
+    return getImageName(StackGresVersion.getStackGresVersion(cluster));
   }
 
   public String getImageName(@NotNull StackGresDistributedLogs distributedLogs) {
-    StackGresVersion stackGresVersion = StackGresVersion.getStackGresVersion(distributedLogs);
-    return getImageName(stackGresVersion);
+    return getImageName(StackGresVersion.getStackGresVersion(distributedLogs));
   }
 
 }

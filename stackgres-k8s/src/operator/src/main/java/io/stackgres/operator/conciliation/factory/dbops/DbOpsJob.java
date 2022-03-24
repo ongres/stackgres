@@ -54,6 +54,9 @@ public abstract class DbOpsJob implements JobFactory {
   protected final LabelFactoryForDbOps dbOpsLabelFactory;
 
   @Inject
+  KubectlUtil kubectl;
+
+  @Inject
   protected DbOpsJob(ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
       DbOpsEnvironmentVariables clusterEnvironmentVariables,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
@@ -98,7 +101,7 @@ public abstract class DbOpsJob implements JobFactory {
   protected abstract ClusterStatefulSetPath getRunScript();
 
   protected String getSetResultImage(StackGresDbOpsContext context) {
-    return KubectlUtil.fromClient().getImageName(context.getCluster());
+    return kubectl.getImageName(context.getCluster());
   }
 
   protected ClusterStatefulSetPath getSetResultScript() {
@@ -265,7 +268,7 @@ public abstract class DbOpsJob implements JobFactory {
                 .build(),
             new ContainerBuilder()
                 .withName("set-dbops-result")
-                .withImage(KubectlUtil.fromClient().getImageName(context.getCluster()))
+                .withImage(kubectl.getImageName(context.getCluster()))
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterEnvironmentVariables
@@ -312,6 +315,10 @@ public abstract class DbOpsJob implements JobFactory {
                             .withValue(Seq.seq(labels)
                                 .append(Tuple.tuple("job-name", jobName(dbOps)))
                                 .map(t -> t.v1 + "=" + t.v2).toString(","))
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("HOME")
+                            .withValue("/tmp")
                             .build())
                     .addAll(Seq.of(DbOpsStatusCondition.values())
                         .map(c -> new EnvVarBuilder()

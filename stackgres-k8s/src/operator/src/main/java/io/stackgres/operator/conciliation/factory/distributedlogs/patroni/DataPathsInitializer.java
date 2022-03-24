@@ -5,10 +5,12 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
@@ -24,17 +26,21 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 @InitContainer(ClusterInitContainer.DATA_PATHS_INITIALIZER)
 public class DataPathsInitializer implements ContainerFactory<DistributedLogsContainerContext> {
 
+  @Inject
+  KubectlUtil kubectl;
+
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
         .withName("setup-data-paths")
-        .withImage(KubectlUtil.fromClient()
+        .withImage(kubectl
             .getImageName(context.getDistributedLogsContext().getSource()))
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
                 + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
         .withEnv(PatroniEnvPaths.getEnvVars())
+        .addToEnv(new EnvVarBuilder().withName("HOME").withValue("/tmp").build())
         .withVolumeMounts(
             new VolumeMountBuilder()
                 .withName(context.getDataVolumeName())

@@ -20,7 +20,6 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.StackgresClusterContainers;
@@ -145,6 +144,6 @@ public class DbOpsRepackJob extends DbOpsJob {
 
   @Override
   protected String getRunImage(StackGresDbOpsContext context) {
-    return KubectlUtil.fromClient().getImageName(context.getCluster());
+    return kubectl.getImageName(context.getCluster());
   }
 }
