@@ -25,7 +25,7 @@
                         </span>
                         <div class="title" v-html="notification.message.content"></div>
                         <div v-if="notification.message.hasOwnProperty('details')" class="details">
-                            <strong>Details:</strong> {{ notification.message.details }}
+                            <strong>Details:</strong> <span v-html="notification.message.details"></span>
                         </div>
                         <a v-if="notification.message.hasOwnProperty('link')" :href="notification.message.link" title="More Info" target="_blank" class="doclink newTab">
                             <span>More Info</span>
