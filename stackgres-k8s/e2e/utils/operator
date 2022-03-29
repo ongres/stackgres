@@ -5,10 +5,10 @@
 
 export IMAGE_TAG="${IMAGE_TAG:-main-jvm}"
 export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
-export OPERATOR_PUBLIC_REGISTRY="docker.io"
-export OPERATOR_PUBLIC_REGISTRY_PATH="/stackgres/"
-export COMPONENT_PUBLIC_REGISTRY="docker.io"
-export COMPONENT_PUBLIC_REGISTRY_PATH="/ongres/"
+export OPERATOR_PUBLIC_REGISTRY="${OPERATOR_PUBLIC_REGISTRY:-docker.io}"
+export OPERATOR_PUBLIC_REGISTRY_PATH="${OPERATOR_PUBLIC_REGISTRY_PATH:-/stackgres/}"
+export COMPONENT_PUBLIC_REGISTRY="${COMPONENT_PUBLIC_REGISTRY:-docker.io}"
+export COMPONENT_PUBLIC_REGISTRY_PATH="${COMPONENT_PUBLIC_REGISTRY_PATH:-/ongres/}"
 export OPERATOR_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}operator:$IMAGE_TAG"
 export RESTAPI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}restapi:$IMAGE_TAG"
 export JOBS_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}jobs:$IMAGE_TAG"
@@ -444,6 +444,8 @@ install_operator_only() {
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
+    --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER="${CLUSTER_CONTROLLER_IMAGE_NAME}" \
+    --set-string developer.extraEnv.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}" \
     --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
     --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
     --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
@@ -543,6 +545,8 @@ upgrade_operator() {
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
+    --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER="${CLUSTER_CONTROLLER_IMAGE_NAME}" \
+    --set-string developer.extraEnv.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}" \
     --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
     --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
     --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
@@ -593,6 +597,8 @@ upgrade_operator_from_private_repository() {
       --set serviceAccount.create=true \
       --set serviceAccount.repoCredentials[0]=regcred \
       --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
+      --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER="${CLUSTER_CONTROLLER_IMAGE_NAME}" \
+      --set-string developer.extraEnv.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}" \
       --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
       --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
       --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
