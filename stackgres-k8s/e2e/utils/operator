@@ -17,9 +17,6 @@ export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERA
 export ADMINUI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}admin-ui:$ADMINUI_IMAGE_TAG"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
-STACKGRES_VERSION="${STACKGRES_VERSION:-$(grep '<artifactId>stackgres-parent</artifactId>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
-  | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)}"
-export STACKGRES_VERSION
 export STACKGRES_IMAGE_BUILDER="${STACKGRES_IMAGE_BUILDER:-docker}"
 export OPERATOR_CHART_PATH="${OPERATOR_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-operator/"}"
 export CLUSTER_CHART_PATH="${CLUSTER_CHART_PATH:-"$STACKGRES_PATH/install/helm/stackgres-cluster/"}"
@@ -512,7 +509,7 @@ install_operator_previous_version() {
 }
 
 install_operator_vanilla() {
-  install_operator_vanilla_from "$OPERATOR_CHART_PATH" \
+  install_operator_vanilla_from "$OPERATOR_VERSION_HELM_URL" \
     "$@"
 }
 
@@ -574,7 +571,7 @@ upgrade_operator() {
 
 upgrade_operator_vanilla() {
   before_operator_install_or_upgrade
-  helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_CHART_PATH" "$@"
+  helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_VERSION_HELM_URL" "$@"
   after_operator_install_or_upgrade
 }
 
@@ -1282,22 +1279,33 @@ traceable_get_version_as_number() {
   printf "%03d%03d%03d%d%03d\n" "$MAJOR" "$MINOR" "$PATCH" "$SUFFIX_MAJOR_VERSION" "$SUFFIX_VERSION"
 }
 
-STACKGRES_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_VERSION")"
-STACKGRES_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_VERSION")"
-STACKGRES_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_VERSION")"
-export STACKGRES_OPERATOR_IMAGE STACKGRES_RESTAPI_IMAGE STACKGRES_ADMINUI_IMAGE
-
 setup_versions() {
+  LOCAL_STACKGRES_VERSION="$(grep '<artifactId>stackgres-parent</artifactId>' "$STACKGRES_PATH/src/pom.xml" -A 2 -B 2 \
+    | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)"
+  STACKGRES_VERSION="${STACKGRES_VERSION:-$LOCAL_STACKGRES_VERSION}"
+  if [ "$STACKGRES_VERSION" = "$LOCAL_STACKGRES_VERSION" ]
+  then
+    OPERATOR_VERSION_HELM_URL="${OPERATOR_VERSION_HELM_URL:-$OPERATOR_CHART_PATH}"
+  else
+    OPERATOR_VERSION_HELM_URL="${OPERATOR_VERSION_HELM_URL:-$(get_operator_helm_url "$STACKGRES_VERSION")}"
+  fi
+  STACKGRES_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_VERSION")"
+  STACKGRES_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_VERSION")"
+  STACKGRES_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_VERSION")"
+
   STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-1.0.0}"
   OPERATOR_PREVIOUS_VERSION_HELM_URL="${OPERATOR_PREVIOUS_VERSION_HELM_URL:-$(get_operator_helm_url "$STACKGRES_PREVIOUS_VERSION")}"
   CLUSTER_PREVIOUS_VERSION_HELM_URL="${CLUSTER_PREVIOUS_VERSION_HELM_URL:-$(get_cluster_helm_url "$STACKGRES_PREVIOUS_VERSION")}"
   STACKGRES_PREVIOUS_OPERATOR_IMAGE="$(get_operator_image "$STACKGRES_PREVIOUS_VERSION")"
   STACKGRES_PREVIOUS_RESTAPI_IMAGE="$(get_restapi_image "$STACKGRES_PREVIOUS_VERSION")"
   STACKGRES_PREVIOUS_ADMINUI_IMAGE="$(get_adminui_image "$STACKGRES_PREVIOUS_VERSION")"
-  export STACKGRES_PREVIOUS_VERSION OPERATOR_PREVIOUS_VERSION_HELM_URL \
+  export LOCAL_STACKGRES_VERSION STACKGRES_VERSION STACKGRES_PREVIOUS_VERSION \
+      OPERATOR_VERSION_HELM_URL OPERATOR_PREVIOUS_VERSION_HELM_URL \
       CLUSTER_PREVIOUS_VERSION_HELM_URL STACKGRES_PREVIOUS_OPERATOR_IMAGE \
-      STACKGRES_PREVIOUS_RESTAPI_IMAGE STACKGRES_PREVIOUS_ADMINUI_IMAGE
+      STACKGRES_PREVIOUS_RESTAPI_IMAGE STACKGRES_PREVIOUS_ADMINUI_IMAGE \
+      STACKGRES_OPERATOR_IMAGE STACKGRES_RESTAPI_IMAGE STACKGRES_ADMINUI_IMAGE
 
+  echo "StackGres local version is $LOCAL_STACKGRES_VERSION"
   echo "StackGres version used is $STACKGRES_VERSION"
   echo "* StackGres operator image used is $STACKGRES_OPERATOR_IMAGE"
   echo "* StackGres restapi image used is $STACKGRES_RESTAPI_IMAGE"

@@ -9,6 +9,7 @@ then
 fi
 K8S_EKS_REGION="${K8S_EKS_REGION:-us-west-2}"
 K8S_EKS_NODE_TYPE="${K8S_EKS_NODE_TYPE:-m5.large}"
+K8S_EKS_NODES="${K8S_EKS_NODES:-3}"
 K8S_EKS_DISK_SIZE="${K8S_EKS_DISK_SIZE:-20}"
 K8S_EKS_OPTS="$K8S_EKS_OPTS"
 EKS_EXPANDABLE_STORAGE_CLASSNAME="expandable-sc"
@@ -46,7 +47,7 @@ reset_k8s() {
     --region "$K8S_EKS_REGION" \
     --node-type "$K8S_EKS_NODE_TYPE" \
     --node-volume-size "$K8S_EKS_DISK_SIZE" \
-    --nodes 3 \
+    --nodes "$K8S_EKS_NODES" \
     --version "${K8S_VERSION%.*}"
   
   echo "...done"
