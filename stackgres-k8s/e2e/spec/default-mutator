@@ -76,7 +76,7 @@ EOF
   local CREATED_FIELDS
   CREATED_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
   local DEFAULT_FIELDS
-  DEFAULT_FIELDS="$(get_default_pgconfig '^postgres-13-generated-from-default-.*$' -o json | jq '.spec["postgresql.conf"] | length')"
+  DEFAULT_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status["defaultParameters"] | length')"
 
   if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
@@ -89,7 +89,7 @@ EOF
   local CREATED_DEFAULTS_PARAMETERS
   CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | keys | sort')"
   local DEFAULTS_PARAMETERS
-  DEFAULTS_PARAMETERS="$(get_default_pgconfig '^postgres-13-generated-from-default-.*$' -o json | jq '.spec["postgresql.conf"] | keys | sort')"
+  DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status["defaultParameters"] | keys | sort')"
 
   if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
   then
@@ -133,7 +133,7 @@ EOF
   local UPDATED_FIELDS
   UPDATED_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
   local DEFAULT_FIELDS
-  DEFAULT_FIELDS="$(get_default_pgconfig '^postgres-13-generated-from-default-.*$' -o json | jq '.spec["postgresql.conf"] | length')"
+  DEFAULT_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status["defaultParameters"] | length')"
 
   if [ "$UPDATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
@@ -143,12 +143,13 @@ EOF
     return 1
   fi
 
+  local PREVIOUS_DEFAULTS_PARAMETERS
+  PREVIOUS_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.spec["postgresql.conf"]' \
+    | jq 'del(."custom.unsignificant") | keys | sort')"
   local UPDATED_DEFAULTS_PARAMETERS
   UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status.defaultParameters | keys | sort')"
-  local DEFAULTS_PARAMETERS
-  DEFAULTS_PARAMETERS="$(get_default_pgconfig '^postgres-13-generated-from-default-.*$' -o json | jq '.spec["postgresql.conf"] | keys | sort')"
 
-  if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
+  if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$PREVIOUS_DEFAULTS_PARAMETERS" ]
   then
     echo "SUCCESS. Defaults parameters filled"
   else
@@ -186,26 +187,13 @@ EOF
   local CREATED_FIELDS
   CREATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
   local DEFAULT_FIELDS
-  DEFAULT_FIELDS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
+  DEFAULT_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer["defaultParameters"] | length')"
 
   if [ "$CREATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
     echo "SUCCESS. Defaults fields filled"
   else
     echo "FAIL. Default fields not filled"
-    return 1
-  fi
-
-  local CREATED_DEFAULTS_PARAMETERS
-  CREATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | keys | sort')"
-  local DEFAULTS_PARAMETERS
-  DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | keys | sort')"
-
-  if [ "$CREATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
-  then
-    echo "SUCCESS. Defaults parameters filled"
-  else
-    echo "FAIL. Default parameters not filled"
     return 1
   fi
 
@@ -241,26 +229,13 @@ EOF
   local UPDATED_FIELDS
   UPDATED_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
   local DEFAULT_FIELDS
-  DEFAULT_FIELDS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | length')"
+  DEFAULT_FIELDS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer["defaultParameters"] | length')"
 
   if [ "$UPDATED_FIELDS" = "$((DEFAULT_FIELDS + 1))" ]
   then
     echo "SUCCESS. Defaults fields filled"
   else
     echo "FAIL. Default fields not filled"
-    return 1
-  fi
-
-  local UPDATED_DEFAULTS_PARAMETERS
-  UPDATED_DEFAULTS_PARAMETERS="$(kubectl get sgpoolconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCBOUNCER" -o json | jq '.status.pgBouncer.defaultParameters | keys | sort')"
-  local DEFAULTS_PARAMETERS
-  DEFAULTS_PARAMETERS="$(get_default_conn_pool -o json | jq '.spec.pgBouncer["pgbouncer.ini"].pgbouncer | keys | sort')"
-
-  if [ "$UPDATED_DEFAULTS_PARAMETERS" = "$DEFAULTS_PARAMETERS" ]
-  then
-    echo "SUCCESS. Defaults parameters filled"
-  else
-    echo "FAIL. Default parameters not filled"
     return 1
   fi
 
@@ -291,17 +266,15 @@ EOF
 
   local CREATED_FIELDS
   CREATED_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
-  local DEFAULT_FIELDS
-  DEFAULT_FIELDS="$(get_default_backupconf -o json | jq '.spec.baseBackups.compression = "brotli" | .spec')"
 
-  if [ "$CREATED_FIELDS" = "$DEFAULT_FIELDS" ]
+  if [ -z "$CREATED_FIELDS" ] || [ "$CREATED_FIELDS" = "null" ]
   then
-    echo "SUCCESS. Defaults fields filled"
-  else
     echo "FAIL. Default fields not filled"
     return 1
+  else
+    echo "SUCCESS. Defaults fields filled"
   fi
-
+  
   local DEFAULT_ANNOTATION
   DEFAULT_ANNOTATION="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
@@ -324,6 +297,9 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec: {}
 EOF
+  
+  local PREVIOUS_FIELDS
+  PREVIOUS_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec' | jq '.baseBackups.compression = "brotli"' )"
   local PATCH
   PATCH="$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
@@ -333,10 +309,8 @@ EOF
 
   local UPDATED_FIELDS
   UPDATED_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
-  local DEFAULT_FIELDS
-  DEFAULT_FIELDS="$(get_default_backupconf -o json | jq '.spec.baseBackups.compression = "brotli" | .spec')"
 
-  if [ "$UPDATED_FIELDS" = "$DEFAULT_FIELDS" ]
+  if [ "$UPDATED_FIELDS" = "$PREVIOUS_FIELDS" ]
   then
     echo "SUCCESS. Defaults fields filled"
   else
@@ -370,15 +344,12 @@ EOF
 
   local CREATED_FIELDS
   CREATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec')"
-  local DEFAULT_FIELDS
-  DEFAULT_FIELDS="$(get_default_profile -o json | jq '.spec.memory = "512Mi" | .spec')"
-
-  if [ "$CREATED_FIELDS" = "$DEFAULT_FIELDS" ]
+  if [ -z "$CREATED_FIELDS" || "$CREATED_FIELDS" = "null" ]
   then
-    echo "SUCCESS. Defaults fields filled"
-  else
     echo "FAIL. Default fields not filled"
     return 1
+  else
+    echo "SUCCESS. Defaults fields filled"
   fi
 
   local DEFAULT_ANNOTATION
@@ -403,6 +374,8 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec: {}
 EOF
+  local PREVIOUS_FIELDS
+  PREVIOUS_FIELDS="$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec.memory = "512Mi" | .spec')"
   local PATCH
   PATCH="$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
@@ -412,10 +385,8 @@ EOF
 
   local UPDATED_FIELDS
   UPDATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec')"
-  local DEFAULT_FIELDS
-  DEFAULT_FIELDS="$(get_default_profile -o json | jq '.spec.memory = "512Mi" | .spec')"
 
-  if [ "$UPDATED_FIELDS" = "$DEFAULT_FIELDS" ]
+  if [ "$UPDATED_FIELDS" = "$PREVIOUS_FIELDS" ]
   then
     echo "SUCCESS. Defaults fields filled"
   else
@@ -589,7 +560,7 @@ EOF
   local CREATED_PGCONFIG_FIELDS
   CREATED_PGCONFIG_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
   local DEFAULT_PGCONFIG_FIELDS
-  DEFAULT_PGCONFIG_FIELDS="$(get_default_pgconfig '^postgres-13-generated-from-default-.*$' -o json | jq '.spec["postgresql.conf"] | length')"
+  DEFAULT_PGCONFIG_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$PGCONFIG" -o json | jq '.status["defaultParameters"] | length')"
 
   if [ "$CREATED_PGCONFIG_FIELDS" = "$DEFAULT_PGCONFIG_FIELDS" ]
   then
@@ -612,15 +583,13 @@ EOF
 
   local CREATED_PROFILE_FIELDS
   CREATED_PROFILE_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE" -o json | jq '.spec | length')"
-  local DEFAULT_PROFILE_FIELDS
-  DEFAULT_PROFILE_FIELDS="$(get_default_profile -o json | jq '.spec | length')"
-
-  if [ "$CREATED_PROFILE_FIELDS" = "$DEFAULT_PROFILE_FIELDS" ]
+  
+  if [ -z "$CREATED_PROFILE_FIELDS" || "$CREATED_PROFILE_FIELDS" = "null" ]
   then
-    echo "SUCCESS. Defaults profile fields were created"
-  else
     echo "FAIL. Default profile fields were not created"
     return 1
+  else
+    echo "SUCCESS. Defaults profile fields were created"    
   fi
 
   local DEFAULT_ANNOTATION
