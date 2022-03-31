@@ -397,6 +397,7 @@ metadata:
 spec:
   sgCluster: $CLUSTER_NAME
   op: securityUpgrade
+  maxRetries: 3
   securityUpgrade:
     method: $METHOD
 EOF

@@ -8,8 +8,11 @@ traceable_assert_dbops_running() {
   local DBOPS_NAME="$1"
   local CLUSTER_NAMESPACE="${2:-$CLUSTER_NAMESPACE}"
   local E2E_TIMEOUT="${3:-$E2E_TIMEOUT}"
-  local OP
-  OP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --template '{{ .spec.op }}' || echo unknown)"
+  local OP MAX_RETRIES OP_RETRIES
+  OP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --template '{{ .spec.op }}' || echo unknown)"
+  MAX_RETRIES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --template '{{ .spec.maxRetries }}' || echo 0)"
 
   if [ "$OP" = unknown ]
   then
@@ -40,15 +43,22 @@ traceable_assert_dbops_running() {
     if kubectl wait --timeout 1s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
       --for condition=Failed 2>/dev/null
     then
-      echo "FAILED. $OP operation $CLUSTER_NAMESPACE.$DBOPS_NAME failed."
-      echo
-      echo "Job logs:"
-      echo
-      kubectl logs -n "$CLUSTER_NAMESPACE" \
-        -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" \
-        --all-containers --ignore-errors --tail=-1
-      echo
-      return 1
+      OP_RETRIES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+        --template '{{ .status.opRetries }}' || echo 0)"
+      if [ "$MAX_RETRIES" -le "$OP_RETRIES" ] \
+        && kubectl wait --timeout 1s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+          --for condition=Failed 2>/dev/null
+      then
+        echo "FAILED. $OP operation $CLUSTER_NAMESPACE.$DBOPS_NAME failed."
+        echo
+        echo "Job logs:"
+        echo
+        kubectl logs -n "$CLUSTER_NAMESPACE" \
+          -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" \
+          --all-containers --ignore-errors --tail=-1
+        echo
+        return 1
+      fi
     fi
     if [ "$((START + E2E_TIMEOUT))" -le "$(date +%s)" ]
     then
@@ -74,8 +84,11 @@ traceable_assert_dbops_completion() {
   local DBOPS_NAME="$1"
   local CLUSTER_NAMESPACE="${2:-$CLUSTER_NAMESPACE}"
   local E2E_TIMEOUT="${3:-$E2E_TIMEOUT}"
-  local OP
-  OP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --template '{{ .spec.op }}' || echo unknown)"
+  local OP MAX_RETRIES OP_RETRIES
+  OP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --template '{{ .spec.op }}' || echo unknown)"
+  MAX_RETRIES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --template '{{ .spec.maxRetries }}' || echo 0)"
 
   if [ "$OP" = unknown ]
   then
@@ -100,15 +113,22 @@ traceable_assert_dbops_completion() {
     if kubectl wait --timeout 1s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
       --for condition=Failed 2>/dev/null
     then
-      echo "FAILED. $OP operation $CLUSTER_NAMESPACE.$DBOPS_NAME failed."
-      echo
-      echo "Job logs:"
-      echo
-      kubectl logs -n "$CLUSTER_NAMESPACE" \
-        -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" \
-        --all-containers --ignore-errors --tail=-1
-      echo
-      return 1
+      OP_RETRIES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+        --template '{{ .status.opRetries }}' || echo 0)"
+      if [ "$MAX_RETRIES" -le "$OP_RETRIES" ] \
+        && kubectl wait --timeout 1s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+          --for condition=Failed 2>/dev/null
+      then
+        echo "FAILED. $OP operation $CLUSTER_NAMESPACE.$DBOPS_NAME failed."
+        echo
+        echo "Job logs:"
+        echo
+        kubectl logs -n "$CLUSTER_NAMESPACE" \
+          -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" \
+          --all-containers --ignore-errors --tail=-1
+        echo
+        return 1
+      fi
     fi
     if [ "$((START + E2E_TIMEOUT))" -le "$(date +%s)" ]
     then
@@ -134,8 +154,11 @@ traceable_assert_dbops_failure() {
   local DBOPS_NAME="$1"
   local CLUSTER_NAMESPACE="${2:-$CLUSTER_NAMESPACE}"
   local E2E_TIMEOUT="${3:-$E2E_TIMEOUT}"
-  local OP
-  OP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --template '{{ .spec.op }}' || echo unknown)"
+  local OP MAX_RETRIES OP_RETRIES
+  OP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --template '{{ .spec.op }}' || echo unknown)"
+  MAX_RETRIES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --template '{{ .spec.maxRetries }}' || echo 0)"
 
   if [ "$OP" = unknown ]
   then
@@ -167,8 +190,15 @@ traceable_assert_dbops_failure() {
     if kubectl wait --timeout 1s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
       --for condition=Failed 2>/dev/null
     then
-      echo "SUCCESS. $OP operation $CLUSTER_NAMESPACE.$DBOPS_NAME failed."
-      return
+      OP_RETRIES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+        --template '{{ .status.opRetries }}' || echo 0)"
+      if [ "$MAX_RETRIES" -le "$OP_RETRIES" ] \
+        && kubectl wait --timeout 1s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
+          --for condition=Failed 2>/dev/null
+      then
+        echo "SUCCESS. $OP operation $CLUSTER_NAMESPACE.$DBOPS_NAME failed."
+        return
+      fi
     fi
     if [ "$((START + E2E_TIMEOUT))" -le "$(date +%s)" ]
     then
