@@ -45,8 +45,7 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
   @Inject
   public PatroniApiHandlerImpl(Vertx vertx) {
     this.client = WebClient.create(vertx, new WebClientOptions()
-        .setConnectTimeout((int) Duration.ofSeconds(5).toMillis())
-        .setIdleTimeout((int) Duration.ofSeconds(5).toSeconds()));
+        .setConnectTimeout((int) Duration.ofSeconds(5).toMillis());
   }
 
   @Override
