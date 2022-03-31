@@ -40,7 +40,7 @@
                         <button type="button" class="btn arrow prev" @click="currentStep = formSteps[(currentStepIndex - 1)]" :disabled="( currentStepIndex == 0 )"></button>
                 
                         <template v-for="(step, index) in formSteps">
-                            <li @click="currentStep = step" :class="[( (currentStep == step) && 'active'), ( (index < 1) && 'basic' )]" :data-step="step">
+                            <li @click="currentStep = step; checkValidSteps(_data, 'steps')" :class="[( (currentStep == step) && 'active'), ( (index < 1) && 'basic' ), (errorStep.includes(step) && 'notValid')]" :data-step="step">
                                 {{ step }}
                             </li>
                         </template>
@@ -52,7 +52,7 @@
                 <div class="clearfix"></div>
             </template>
 
-            <fieldset class="step" :class="(currentStep == 'cluster') && 'active'">
+            <fieldset class="step" :class="(currentStep == 'cluster') && 'active'" data-fieldset="cluster">
                 <div class="header" v-if="advancedMode">
                     <h2>Cluster Information</h2>
                 </div>
@@ -100,7 +100,7 @@
 
             <template v-if="advancedMode">
 
-                <fieldset class="step" :class="(currentStep == 'services') && 'active'">
+                <fieldset class="step" :class="(currentStep == 'services') && 'active'" data-fieldset="services">
                     <div class="header">
                         <h2>Customize generated Kubernetes service</h2>
                     </div>
@@ -208,7 +208,7 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="step resourcesMetadata" :class="(currentStep == 'metadata') && 'active'">
+                <fieldset class="step resourcesMetadata" :class="(currentStep == 'metadata') && 'active'" data-fieldset="metadata">
                     <div class="header">
                         <h2>Metadata</h2>
                     </div>
@@ -308,7 +308,7 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="step podsMetadata" :class="(currentStep == 'scheduling') && 'active'" id="podsScheduling">
+                <fieldset class="step podsMetadata" :class="(currentStep == 'scheduling') && 'active'" id="podsScheduling" data-fieldset="scheduling">
                     <div class="header">
                         <h2>Scheduling</h2>
                     </div>
@@ -408,7 +408,7 @@
                     </div>
                 </fieldset>
 
-                <fieldset class="step" :class="(currentStep == 'non-production') && 'active'">
+                <fieldset class="step" :class="(currentStep == 'non-production') && 'active'" data-fieldset="non-production">
                     <div class="header">
                         <h2>Non Production Settings</h2>
                     </div>
@@ -476,6 +476,7 @@
                 advancedMode: false,
                 formSteps: ['cluster', 'services', 'metadata', 'scheduling', 'non-production'],
                 currentStep: 'cluster',
+                errorStep: [],
                 name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 namespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 storageClass: '',
@@ -678,6 +679,8 @@
                             .catch(function (error) {
                                 console.log(error.response);
                                 vc.notify(error.response.data,'error', 'sgdistributedlogs');
+
+                                vc.checkValidSteps(vc._data, 'submit')
                             });
                         } else {
                             const res = axios
@@ -702,6 +705,8 @@
                             .catch(function (error) {
                                 console.log(error);
                                 vc.notify(error.response.data,'error','sgdistributedlogs');
+
+                                vc.checkValidSteps(vc._data, 'submit')
                             });
                         }
 
@@ -773,7 +778,24 @@
                 this[prop].push( { annotation: '', value: '' } )
             },
 
+            validateStep: function (event) {
+                const vc = this;
 
+                let dataFieldset = event.detail.fieldset;
+                
+                for(var i = 0; i < vc._data.errorStep.length; i++) {
+                    if (vc._data.errorStep[i] === dataFieldset){
+                        vc._data.errorStep.splice(i, 1); 
+                        break;
+                    }
+                }
+            }
+        }, 
+
+        mounted: function() {
+            var that = this;
+
+            window.addEventListener('fieldSetListener', function(e) {that.validateStep(e);});
         }
     }
 </script>

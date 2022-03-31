@@ -552,12 +552,31 @@ $(document).ready(function(){
   })
 
   // Remove notValid class from changed fields
+  function removeNotvalid(dataFieldset) {
+    var event = new CustomEvent('fieldSetListener', {
+      detail: {
+        fieldset: dataFieldset
+      }
+    })
+
+    window.dispatchEvent(event)
+  };
+
   $(document).on('change keyup','.notValid', function(){
     if( (($(this).val() != '') && ($(this).val() != null)) || ($(this).is('label') && $(this).find('input[type="checkbox"]').is(':checked'))  ) {
       let field = $(this).data('field');
       $('[data-field="' + field + '"]').removeClass('notValid');
+      
+      let fieldset = $(this).parents('fieldset[data-fieldset]')
+      let notValidFields = fieldset.find('.notValid')
+      
+      if(!notValidFields.length) {
+        let dataFieldset = fieldset.attr('data-fieldset');
+
+        removeNotvalid(dataFieldset)
+      }
     }
-  })
+  });
   
   $(document).on('click','.copyClipboard', function(){
     let el = $(this)
