@@ -27,7 +27,13 @@ exists_storage_class(){
 
 is_expandable_storage_class_configured(){
   local EXPANDABLE_STORAGE_CLASSNAME
-  EXPANDABLE_STORAGE_CLASSNAME=$(get_expandable_storage_class_name)
+  
+  if command -v get_expandable_storage_class_name >/dev/null 2>&1
+  then 
+    EXPANDABLE_STORAGE_CLASSNAME="$(get_expandable_storage_class_name)"  
+  else
+    EXPANDABLE_STORAGE_CLASSNAME=$(get_first_expandable_storage_class_name)
+  fi
 
   if [ -z "$EXPANDABLE_STORAGE_CLASSNAME" ]
   then
@@ -60,7 +66,7 @@ get_default_storage_class_name(){
       | awk '{print $1}' \
       | head -n +1
 }
-get_expandable_storage_class_name() {
+get_first_expandable_storage_class_name() {
   kubectl get storageclasses.storage.k8s.io -o custom-columns=:.metadata.name,:.allowVolumeExpansion \
     | awk '{ if ($2 == "true") { print } }' \
     | awk '{print $1}' \
