@@ -41,7 +41,7 @@ public class ClusterSwitchoverHandlerImpl implements ClusterSwitchoverHandler {
 
   private Uni<Void> doSwitchover(List<ClusterMember> members, String givenLeader) {
     Optional<ClusterMember> candidate = members.stream()
-        .filter(member -> member.getRole().map(MemberRole.REPlICA::equals).orElse(false))
+        .filter(member -> member.getRole().map(MemberRole.REPLICA::equals).orElse(false))
         .filter(member -> member.getState().map(MemberState.RUNNING::equals).orElse(false))
         .filter(member -> member.getTags()
             .filter(tags -> tags.entrySet().stream().anyMatch(

@@ -82,7 +82,7 @@ class ClusterWatcherImplTest {
                     .role(PatroniUtil.PRIMARY_ROLE
                         .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
                             ? MemberRole.LEADER
-                            : MemberRole.REPlICA)
+                            : MemberRole.REPLICA)
                     .lag(0)
                     .timeline(1)
                     .build())
@@ -111,7 +111,7 @@ class ClusterWatcherImplTest {
                     .role(PatroniUtil.PRIMARY_ROLE
                         .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
                             ? MemberRole.LEADER
-                            : MemberRole.REPlICA)
+                            : MemberRole.REPLICA)
                     .lag(0)
                     .timeline(1)
                     .build())
@@ -141,7 +141,7 @@ class ClusterWatcherImplTest {
                     .role(PatroniUtil.PRIMARY_ROLE
                         .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
                             ? MemberRole.LEADER
-                            : MemberRole.REPlICA)
+                            : MemberRole.REPLICA)
                     .lag(0)
                     .timeline(1)
                     .build())
@@ -182,7 +182,7 @@ class ClusterWatcherImplTest {
                     .role(PatroniUtil.PRIMARY_ROLE
                         .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
                             ? MemberRole.LEADER
-                            : MemberRole.REPlICA)
+                            : MemberRole.REPLICA)
                     .lag(0)
                     .timeline(1)
                     .build())
@@ -213,7 +213,7 @@ class ClusterWatcherImplTest {
                     .role(PatroniUtil.PRIMARY_ROLE
                         .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
                             ? MemberRole.LEADER
-                            : MemberRole.REPlICA)
+                            : MemberRole.REPLICA)
                     .lag(0)
                     .timeline(1)
                     .build())
@@ -249,7 +249,7 @@ class ClusterWatcherImplTest {
                         .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
                             ? MemberState.RUNNING
                             : MemberState.STOPPED)
-                    .role(MemberRole.REPlICA)
+                    .role(MemberRole.REPLICA)
                     .lag(0)
                     .timeline(1)
                     .build())
