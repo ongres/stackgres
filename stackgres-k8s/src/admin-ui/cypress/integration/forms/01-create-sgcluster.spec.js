@@ -89,15 +89,15 @@ describe('Create SGCluster', () => {
         cy.get('form#createCluster li[data-step="extensions"]')
             .click()
 
-        cy.get('ul.extensionsList li[data-extension-index="0"] input.enableExtension')
+        cy.get('ul.extensionsList li.extension:nth-child(2) input.enableExtension')
             .click()
-        cy.get('ul.extensionsList li[data-extension-index="1"] input.enableExtension')
+        cy.get('ul.extensionsList li.extension:nth-child(3) input.enableExtension')
             .click()
-        cy.get('ul.extensionsList li[data-extension-index="2"] input.enableExtension')
+        cy.get('ul.extensionsList li.extension:nth-child(4) input.enableExtension')
             .click()
-        cy.get('ul.extensionsList li[data-extension-index="3"] input.enableExtension')
+        cy.get('ul.extensionsList li.extension:nth-child(5) input.enableExtension')
             .click()
-        cy.get('ul.extensionsList li[data-extension-index="4"] input.enableExtension')
+        cy.get('ul.extensionsList li.extension:nth-child(6) input.enableExtension')
             .click()
         
         // Test data initialization
