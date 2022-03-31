@@ -320,11 +320,17 @@ check_backup_retention() {
   fi
 
   local BACKUP_NAME
-  BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" --sort-by '{.metadata.creationTimestamp}' \
-      -o custom-columns="$CUSTOM_COLUMNS" \
-      | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
+  BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o json \
+    jq -r '.items | sort_by(.metadata.creationTimestamp)[]
+      | select(
+        .status != null and .status.process != null
+        and .status.backupInformation.sourcePod != null
+        and .status.process.status == "Completed"
+        and .status.backupInformation.sourcePod == "'"${CLUSTER_NAME}-${NODE}"'"
+        ).metadata.name'
+      | head -n 1)"
 
-  if wait_until eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
+  if wait_until -t "$((E2E_TIMEOUT * 2))" eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
   then
     echo "SUCCESS. The backup retention has been honored. Old backups $BACKUP_NAME deleted"
   else
@@ -333,7 +339,7 @@ check_backup_retention() {
     return 1
   fi
 
-  if wait_until -t 5 eval '[ "$(get_completed_backup_count)" = "2" ]'
+  if wait_until eval '[ "$(get_completed_backup_count)" = "2" ]'
   then
     echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
   else
