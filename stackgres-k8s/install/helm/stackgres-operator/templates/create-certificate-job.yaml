@@ -61,7 +61,7 @@ spec:
             
             if [ "$(echo "$K8S_VERSION" | tr . '\n' \
                 | while read NUMBER; do printf '%05d' "$NUMBER"; done)" \
-              -ge "$(echo "1.21.0" | tr . '\n' \
+              -ge "$(echo "1.22.0" | tr . '\n' \
                 | while read NUMBER; do printf '%05d' "$NUMBER"; done)" ]
             then
               openssl req -new -nodes -text -keyout /tmp/root.key \
@@ -80,7 +80,7 @@ spec:
             $(
             if [ "$(echo "$K8S_VERSION" | tr . '\n' \
                 | while read NUMBER; do printf '%05d' "$NUMBER"; done)" \
-              -ge "$(echo "1.21.0" | tr . '\n' \
+              -ge "$(echo "1.22.0" | tr . '\n' \
                 | while read NUMBER; do printf '%05d' "$NUMBER"; done)" ]
             then
               echo "apiVersion: certificates.k8s.io/v1"
@@ -100,7 +100,7 @@ spec:
             $(
             if [ "$(echo "$K8S_VERSION" | tr . '\n' \
                 | while read NUMBER; do printf '%05d' "$NUMBER"; done)" \
-              -ge "$(echo "1.21.0" | tr . '\n' \
+              -ge "$(echo "1.22.0" | tr . '\n' \
                 | while read NUMBER; do printf '%05d' "$NUMBER"; done)" ]
             then
               echo "  signerName: kubernetes.io/kubelet-serving"
