@@ -4849,7 +4849,9 @@ td.label .helpTooltip {
     display: none;
     padding: 10px 15px;
     border-radius: 3px;
-    max-width: 400px;
+    max-width: 75vw;
+    overflow-y: auto;
+    max-height: 50vh;
     color: var(--gray4);
     font-weight: 300;
 }
