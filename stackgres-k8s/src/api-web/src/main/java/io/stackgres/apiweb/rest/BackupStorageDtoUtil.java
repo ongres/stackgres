@@ -28,21 +28,17 @@ import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.jooq.lambda.tuple.Tuple4;
 
-public class BackupStorageUtil {
+public interface BackupStorageDtoUtil {
 
-  public static final String SECRETS_SUFFIX = "-secrets";
+  String SECRETS_SUFFIX = "-secrets";
 
-  public static final String S3_ACCESS_KEY = "s3-accessKey";
-  public static final String S3_SECRET_KEY = "s3-secretKey";
-  public static final String S3COMPATIBLE_ACCESS_KEY = "s3compatible-accessKey";
-  public static final String S3COMPATIBLE_SECRET_KEY = "s3compatible-secretKey";
-  public static final String GCS_SERVICE_ACCOUNT_JSON_KEY = "gcs-service-account-json-key";
-  public static final String AZURE_ACCOUNT = "azure-account";
-  public static final String AZURE_ACCESS_KEY = "azure-accessKey";
-
-  private BackupStorageUtil() {
-    throw new IllegalStateException("It should not be instantiated");
-  }
+  String S3_ACCESS_KEY = "s3-accessKey";
+  String S3_SECRET_KEY = "s3-secretKey";
+  String S3COMPATIBLE_ACCESS_KEY = "s3compatible-accessKey";
+  String S3COMPATIBLE_SECRET_KEY = "s3compatible-secretKey";
+  String GCS_SERVICE_ACCOUNT_JSON_KEY = "gcs-service-account-json-key";
+  String AZURE_ACCOUNT = "azure-account";
+  String AZURE_ACCESS_KEY = "azure-accessKey";
 
   static String secretName(ResourceDto resource) {
     return resource.getMetadata().getName() + SECRETS_SUFFIX;

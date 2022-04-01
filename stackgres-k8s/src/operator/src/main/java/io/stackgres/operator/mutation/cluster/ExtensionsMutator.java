@@ -76,7 +76,7 @@ public class ExtensionsMutator
                 .flatMap(extensions -> Seq.seq(extensions).zipWithIndex())
                 .forEach(Unchecked.consumer(extension -> {
                   final JsonPointer extensionVersionPointer =
-                      CLUSTER_CONFIG_POINTER.append("postgres").append("extensions")
+                      SPEC_POINTER.append("postgres").append("extensions")
                           .append(extension.v2.intValue()).append("version");
                   getToInstallExtension(cluster, extension.v1)
                       .ifPresent(toInstallExtension -> {
@@ -174,7 +174,7 @@ public class ExtensionsMutator
       StackGresClusterExtension extension, int index,
       StackGresClusterInstalledExtension installedExtension) {
     final JsonPointer extensionVersionPointer =
-        CLUSTER_CONFIG_POINTER.append("postgres").append("extensions")
+        SPEC_POINTER.append("postgres").append("extensions")
         .append(index).append("version");
     final TextNode extensionVersion = new TextNode(installedExtension.getVersion());
     if (extension.getVersion() == null) {

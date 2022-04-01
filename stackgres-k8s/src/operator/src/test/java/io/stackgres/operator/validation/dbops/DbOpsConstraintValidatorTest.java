@@ -206,6 +206,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
         var major = new StackGresDbOpsMajorVersionUpgrade();
         major.setPostgresVersion("14");
         major.setSgPostgresConfig("conf14");
+        major.setBackupPath("test");
         spec.setMajorVersionUpgrade(major);
         break;
       case MINOR_VERSION_UPGRADE:
@@ -293,6 +294,7 @@ class DbOpsConstraintValidatorTest extends ConstraintValidationTest<StackGresDbO
         var major = new StackGresDbOpsMajorVersionUpgrade();
         major.setPostgresVersion("14");
         major.setSgPostgresConfig("conf14");
+        major.setBackupPath("test");
         spec.setMajorVersionUpgrade(major);
         break;
       case MINOR_VERSION_UPGRADE:

@@ -16,13 +16,14 @@ import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public class DefaultPostgresMutator
-    extends AbstractDefaultResourceMutator<StackGresPostgresConfig> {
+    extends AbstractDefaultResourceMutator<StackGresPostgresConfig>
+    implements ClusterConfigurationMutator {
 
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
     if (review.getRequest().getOperation() == Operation.CREATE) {
       ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
-      operations.addAll(ClusterConfigurationMutator.ensureConfigurationNode(review));
+      operations.addAll(ensureConfigurationNode(review));
       operations.addAll(super.mutate(review));
       return operations.build();
 
@@ -36,12 +37,12 @@ public class DefaultPostgresMutator
   }
 
   @Override
-  protected JsonPointer getTargetPointer() throws NoSuchFieldException {
+  public JsonPointer getTargetPointer() throws NoSuchFieldException {
     return getTargetPointer("postgresConfig");
   }
 
   @Override
   public JsonPointer getTargetPointer(String field) throws NoSuchFieldException {
-    return ClusterConfigurationMutator.getTargetPointer(field);
+    return getConfigurationTargetPointer(field);
   }
 }

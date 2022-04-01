@@ -36,6 +36,9 @@ public class StackGresDbOpsMajorVersionUpgrade implements KubernetesResource {
   @NotEmpty(message = "spec.majorVersionUpgrade.sgPostgresConfig must not be empty")
   private String sgPostgresConfig;
 
+  @JsonProperty("backupPath")
+  private String backupPath;
+
   @JsonProperty("link")
   private Boolean link;
 
@@ -75,6 +78,14 @@ public class StackGresDbOpsMajorVersionUpgrade implements KubernetesResource {
     this.sgPostgresConfig = sgPostgresConfig;
   }
 
+  public String getBackupPath() {
+    return backupPath;
+  }
+
+  public void setBackupPath(String backupPath) {
+    this.backupPath = backupPath;
+  }
+
   public Boolean getLink() {
     return link;
   }
@@ -101,7 +112,7 @@ public class StackGresDbOpsMajorVersionUpgrade implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(check, clone, link, postgresVersion, sgPostgresConfig);
+    return Objects.hash(backupPath, check, clone, link, postgresVersion, sgPostgresConfig);
   }
 
   @Override
@@ -113,8 +124,8 @@ public class StackGresDbOpsMajorVersionUpgrade implements KubernetesResource {
       return false;
     }
     StackGresDbOpsMajorVersionUpgrade other = (StackGresDbOpsMajorVersionUpgrade) obj;
-    return Objects.equals(check, other.check) && Objects.equals(clone, other.clone)
-        && Objects.equals(link, other.link)
+    return Objects.equals(backupPath, other.backupPath) && Objects.equals(check, other.check)
+        && Objects.equals(clone, other.clone) && Objects.equals(link, other.link)
         && Objects.equals(postgresVersion, other.postgresVersion)
         && Objects.equals(sgPostgresConfig, other.sgPostgresConfig);
   }

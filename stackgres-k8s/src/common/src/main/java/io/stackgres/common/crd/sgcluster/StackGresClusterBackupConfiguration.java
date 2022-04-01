@@ -41,6 +41,10 @@ public class StackGresClusterBackupConfiguration {
   @NotNull
   private String objectStorage;
 
+  @JsonProperty("path")
+  @NotNull
+  private String path;
+
   public Integer getRetention() {
     return retention;
   }
@@ -81,25 +85,35 @@ public class StackGresClusterBackupConfiguration {
     this.objectStorage = objectStorage;
   }
 
+  public String getPath() {
+    return path;
+  }
+
+  public void setPath(String path) {
+    this.path = path;
+  }
+
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresClusterBackupConfiguration)) {
       return false;
     }
-    StackGresClusterBackupConfiguration that = (StackGresClusterBackupConfiguration) o;
-    return Objects.equals(retention, that.retention)
-        && Objects.equals(cronSchedule, that.cronSchedule)
-        && Objects.equals(compression, that.compression)
-        && Objects.equals(performance, that.performance)
-        && Objects.equals(objectStorage, that.objectStorage);
+    StackGresClusterBackupConfiguration other = (StackGresClusterBackupConfiguration) obj;
+    return Objects.equals(path, other.path)
+        && Objects.equals(compression, other.compression)
+        && Objects.equals(cronSchedule, other.cronSchedule)
+        && Objects.equals(objectStorage, other.objectStorage)
+        && Objects.equals(performance, other.performance)
+        && Objects.equals(retention, other.retention);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(retention, cronSchedule, compression, performance, objectStorage);
+    return Objects.hash(path, compression, cronSchedule, objectStorage, performance,
+        retention);
   }
 
   @Override

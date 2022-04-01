@@ -10,9 +10,10 @@ import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
@@ -27,16 +28,16 @@ import org.jooq.lambda.Seq;
 @ApplicationScoped
 public class DefaultReplicationMutator implements ClusterMutator {
 
-  protected static final JsonMapper JSON_MAPPER = new JsonMapper();
+  private ObjectMapper jsonMapper;
 
   private JsonPointer replicationPointer;
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
-    String replicationJson = ClusterMutator.getJsonMappingField("replication",
+    String replicationJson = getJsonMappingField("replication",
         StackGresClusterSpec.class);
 
-    replicationPointer = ClusterMutator.CLUSTER_CONFIG_POINTER
+    replicationPointer = SPEC_POINTER
         .append(replicationJson);
   }
 
@@ -68,7 +69,7 @@ public class DefaultReplicationMutator implements ClusterMutator {
         });
       }
 
-      JsonNode target = JSON_MAPPER.valueToTree(replication);
+      JsonNode target = jsonMapper.valueToTree(replication);
       ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
       if (review.getRequest().getObject().getSpec().getReplication() != null) {
         operations.add(applyReplaceValue(replicationPointer, target));
@@ -80,6 +81,11 @@ public class DefaultReplicationMutator implements ClusterMutator {
     }
 
     return ImmutableList.of();
+  }
+
+  @Inject
+  public void setObjectMapper(ObjectMapper jsonMapper) {
+    this.jsonMapper = jsonMapper;
   }
 
 }

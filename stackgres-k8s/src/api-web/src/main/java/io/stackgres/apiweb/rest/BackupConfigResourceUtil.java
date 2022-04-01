@@ -18,14 +18,14 @@ import org.jooq.lambda.tuple.Tuple4;
 
 public class BackupConfigResourceUtil {
 
-  public static final String S3COMPATIBLE_ACCESS_KEY = BackupStorageUtil.S3COMPATIBLE_ACCESS_KEY;
-  public static final String S3COMPATIBLE_SECRET_KEY = BackupStorageUtil.S3COMPATIBLE_SECRET_KEY;
+  public static final String S3COMPATIBLE_ACCESS_KEY = BackupStorageDtoUtil.S3COMPATIBLE_ACCESS_KEY;
+  public static final String S3COMPATIBLE_SECRET_KEY = BackupStorageDtoUtil.S3COMPATIBLE_SECRET_KEY;
 
   BackupConfigResourceUtil() {
   }
 
   String secretName(BackupConfigDto resource) {
-    return BackupStorageUtil.secretName(resource);
+    return BackupStorageDtoUtil.secretName(resource);
   }
 
   Seq<Tuple2<String, Tuple4<String, Consumer<String>,
@@ -37,7 +37,7 @@ public class BackupConfigResourceUtil {
         .map(BackupConfigSpec::getStorage);
 
     if (storage.isPresent()) {
-      return BackupStorageUtil.extractSecretInfo(storage.get());
+      return BackupStorageDtoUtil.extractSecretInfo(storage.get());
     } else {
       return Seq.of();
     }

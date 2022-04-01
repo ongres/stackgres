@@ -70,6 +70,7 @@
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf",
+          "backupPath": "sgbackups.stackgres.io/default/stackgres/11",
           "sgBackupConfig": "newbackupconf"
         },
         "pods":{
@@ -117,6 +118,7 @@
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf",
+          "backupPath": "sgbackups.stackgres.io/default/stackgres/11",
           "sgBackupConfig": "backupconf"
         },
         "sgInstanceProfile": "size-xs",

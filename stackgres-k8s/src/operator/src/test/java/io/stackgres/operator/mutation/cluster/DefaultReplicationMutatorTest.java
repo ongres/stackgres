@@ -47,6 +47,7 @@ class DefaultReplicationMutatorTest {
         StackGresClusterReview.class);
 
     mutator = new DefaultReplicationMutator();
+    mutator.setObjectMapper(JSON_MAPPER);
     mutator.init();
   }
 

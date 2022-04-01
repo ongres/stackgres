@@ -34,19 +34,19 @@ public class BackupPerformanceMutator implements BackupMutator {
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
-    String backupConfigJson = BackupMutator.getJsonMappingField("backupConfig",
+    String backupConfigJson = getJsonMappingField("backupConfig",
         StackGresBackupStatus.class);
-    String baseBackupsJson = BackupMutator.getJsonMappingField("baseBackups",
+    String baseBackupsJson = getJsonMappingField("baseBackups",
         StackGresBackupConfigSpec.class);
-    String performanceJson = BackupMutator.getJsonMappingField("performance",
+    String performanceJson = getJsonMappingField("performance",
         StackGresBaseBackupConfig.class);
-    String maxDiskBandwidthJson = BackupMutator.getJsonMappingField("maxDiskBandwidth",
+    String maxDiskBandwidthJson = getJsonMappingField("maxDiskBandwidth",
         StackGresBaseBackupPerformance.class);
-    String maxDiskBandwitdhJson = BackupMutator.getJsonMappingField("maxDiskBandwitdh",
+    String maxDiskBandwitdhJson = getJsonMappingField("maxDiskBandwitdh",
         StackGresBaseBackupPerformance.class);
-    String maxNetworkBandwidthJson = BackupMutator.getJsonMappingField("maxNetworkBandwidth",
+    String maxNetworkBandwidthJson = getJsonMappingField("maxNetworkBandwidth",
         StackGresBaseBackupPerformance.class);
-    String maxNetworkBandwitdhJson = BackupMutator.getJsonMappingField("maxNetworkBandwitdh",
+    String maxNetworkBandwitdhJson = getJsonMappingField("maxNetworkBandwitdh",
         StackGresBaseBackupPerformance.class);
 
     maxDiskBandwidthPointer = STATUS_POINTER.append(backupConfigJson).append(baseBackupsJson)

@@ -597,6 +597,12 @@ spec:
                       type: string
                       description: |
                               Name of the [SGBackupConfig](https://stackgres.io/doc/latest/reference/crd/sgbackupconfig) to use for the cluster. It defines the backups policy, storage and retention, among others, applied to the cluster. When not set, backup configuration will not be used.
+                    backupPath:
+                      type: string
+                      description: |
+                        The path were the backup is stored. If not set this field is filled up by the operator.
+
+                        When provided will indicate were the backups and WAL files will be stored.
                 initialData:
                   type: object
                   description: Cluster initialization data options. Cluster may be initialized empty, or from a backup restoration. Specifying scripts to run on the database after cluster creation is also possible.

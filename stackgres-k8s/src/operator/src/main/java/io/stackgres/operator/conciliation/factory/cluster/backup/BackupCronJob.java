@@ -155,6 +155,10 @@ public class BackupCronJob
                             .withValue(backupName(context))
                             .build(),
                         new EnvVarBuilder()
+                            .withName("CLUSTER_CRD_NAME")
+                            .withValue(CustomResource.getCRDName(StackGresCluster.class))
+                            .build(),
+                        new EnvVarBuilder()
                             .withName("BACKUP_CONFIG_CRD_NAME")
                             .withValue(CustomResource.getCRDName(StackGresBackupConfig.class))
                             .build(),
