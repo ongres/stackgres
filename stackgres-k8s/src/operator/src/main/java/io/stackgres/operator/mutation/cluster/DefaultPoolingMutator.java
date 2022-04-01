@@ -19,13 +19,14 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class DefaultPoolingMutator
-    extends AbstractDefaultResourceMutator<StackGresPoolingConfig> {
+    extends AbstractDefaultResourceMutator<StackGresPoolingConfig>
+    implements ClusterConfigurationMutator {
 
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
     if (review.getRequest().getOperation() == Operation.CREATE) {
       ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
-      operations.addAll(ClusterConfigurationMutator.ensureConfigurationNode(review));
+      operations.addAll(ensureConfigurationNode(review));
       operations.addAll(super.mutate(review));
       return operations.build();
     }
@@ -39,12 +40,12 @@ public class DefaultPoolingMutator
   }
 
   @Override
-  protected JsonPointer getTargetPointer() throws NoSuchFieldException {
+  public JsonPointer getTargetPointer() throws NoSuchFieldException {
     return getTargetPointer("connectionPoolingConfig");
   }
 
   @Override
   public JsonPointer getTargetPointer(String field) throws NoSuchFieldException {
-    return ClusterConfigurationMutator.getTargetPointer(field);
+    return getConfigurationTargetPointer(field);
   }
 }

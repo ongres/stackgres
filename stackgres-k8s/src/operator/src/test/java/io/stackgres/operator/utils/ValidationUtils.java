@@ -12,19 +12,24 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.CaseFormat;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
 import io.fabric8.kubernetes.api.model.StatusDetails;
+import io.stackgres.common.ClassUtil;
 import io.stackgres.common.ErrorType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.function.Executable;
 import org.opentest4j.AssertionFailedError;
 
@@ -112,13 +117,22 @@ public class ValidationUtils {
 
   }
 
-  public static String getConstraintMessage(Class<?> from, String fieldOrMethod,
+  public static String getConstraintMessage(Class<?> from, String propertyOrFieldOrMethod,
       Class<? extends Annotation> constraint) {
     try {
       Annotation annotation;
       AssertionFailedError ex = new AssertionFailedError(
-          constraint.getName() + " for field / method " + fieldOrMethod
+          constraint.getName() + " for property / field / method " + propertyOrFieldOrMethod
               + " is not valid constraint annotation");
+      final String fieldOrMethod = ClassUtil.getDeclaredFieldsFromClassHierarchy(from)
+          .map(clazzField -> Optional.ofNullable(clazzField.getAnnotation(JsonProperty.class))
+              .map(jsonProperty -> Tuple.tuple(clazzField.getName(), jsonProperty.value())))
+          .filter(Optional::isPresent)
+          .map(Optional::get)
+          .filter(tuple -> tuple.v2.equals(propertyOrFieldOrMethod))
+          .map(Tuple2::v1)
+          .findFirst()
+          .orElse(propertyOrFieldOrMethod);
       while (true) {
         try {
           annotation = from.getDeclaredField(fieldOrMethod).getAnnotation(constraint);

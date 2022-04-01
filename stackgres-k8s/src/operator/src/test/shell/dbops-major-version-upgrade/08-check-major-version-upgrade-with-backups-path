@@ -1,0 +1,74 @@
+#!/bin/sh
+
+TARGET_BACKUP_PATH=test
+CHECK=true
+LINK=false
+CLONE=false
+
+. "$TEST_SHELL_PATH/dbops-major-version-upgrade/abstract-major-version-upgrade"
+
+shell_unit_test() {
+  shell_unit_test_dbops_major_version_upgrade
+  check_dbops_result
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json")
+      echo '{
+              "apiVersion": "stackgres.io/v1",
+              "kind": "SGCluster",
+              "metadata": {
+                  "name": "'"$CLUSTER_NAME"'",
+                  "namespace": "'"$CLUSTER_NAMESPACE"'"
+              },
+              "spec": {
+                  "instances": 2,
+                  "postgres": {
+                    "version": "11.8"
+                  },
+                  "sgInstanceProfile": "size-xs",
+                  "configurations": {
+                    "sgBackupConfig": null,
+                    "backupPath": null,
+                    "backups": [{
+                      "sgObjectStorage": "test",
+                      "path": "test"
+                    }]
+                  }
+              },
+              "status": {
+                "dbOps": {
+                  "majorVersionUpgrade": {
+                    "check": false,
+                    "clone": false,
+                    "dataChecksum": '"$DATA_CHECKSUM"',
+                    "encoding": "UTF8",
+                    "initialInstances": [
+                        "'"$CLUSTER_NAME-0"'",
+                        "'"$CLUSTER_NAME-1"'"
+                    ],
+                    "link": false,
+                    "locale": "C.UTF-8",
+                    "primaryInstance": "'"$CLUSTER_NAME-0"'",
+                    "sourcePostgresVersion": "11.8",
+                    "targetPostgresVersion": "12.6"
+                  }
+                }
+              }
+            }'
+    ;;
+    ("replace --raw /apis/$CRD_GROUP/v1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME -f"*)
+    if [ "$(cat | jq -r '.spec.configurations.backups[0].path')" != test ]
+    then
+      return 1
+    fi
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

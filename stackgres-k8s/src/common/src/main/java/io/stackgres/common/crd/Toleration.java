@@ -27,6 +27,18 @@ public class Toleration extends io.fabric8.kubernetes.api.model.Toleration {
 
   private static final long serialVersionUID = 1L;
 
+  @ReferencedField("key")
+  interface Key extends FieldReference {
+  }
+
+  @ReferencedField("operator")
+  interface Operator extends FieldReference {
+  }
+
+  @ReferencedField("effect")
+  interface Effect extends FieldReference {
+  }
+
   @JsonIgnore
   @AssertTrue(message = "operator must be Exists when key is empty.",
       payload = {Key.class, Operator.class})
@@ -58,18 +70,6 @@ public class Toleration extends io.fabric8.kubernetes.api.model.Toleration {
   public boolean isEffectNoExecuteIfTolerationIsSet() {
     return getTolerationSeconds() == null
         || Objects.equals("NoExecute", getEffect());
-  }
-
-  @ReferencedField("key")
-  interface Key extends FieldReference {
-  }
-
-  @ReferencedField("operator")
-  interface Operator extends FieldReference {
-  }
-
-  @ReferencedField("effect")
-  interface Effect extends FieldReference {
   }
 
 }

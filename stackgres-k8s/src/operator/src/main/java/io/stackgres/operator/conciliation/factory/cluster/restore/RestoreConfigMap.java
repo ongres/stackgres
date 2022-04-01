@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
@@ -92,11 +93,10 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
             backup.getStatus().getInternalName());
 
         data.putAll(getBackupEnvVars(context,
-            StackGresUtil.getNamespaceFromRelativeId(
-                backup.getSpec().getSgCluster(),
-                backup.getMetadata().getNamespace()),
-            StackGresUtil.getNameFromRelativeId(
-                backup.getSpec().getSgCluster()),
+            Optional.of(backup)
+            .map(StackGresBackup::getStatus)
+            .map(StackGresBackupStatus::getBackupPath)
+            .orElseThrow(),
             backup.getStatus().getBackupConfig()));
 
         Optional.ofNullable(cluster.getSpec())
@@ -104,7 +104,8 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
             .map(StackGresClusterInitData::getRestore)
             .map(StackGresClusterRestore::getDownloadDiskConcurrency)
             .ifPresent(downloadDiskConcurrency -> data.put(
-                "WALG_DOWNLOAD_CONCURRENCY", convertEnvValue(downloadDiskConcurrency)));
+                "WALG_DOWNLOAD_CONCURRENCY",
+                BackupStorageUtil.convertEnvValue(downloadDiskConcurrency)));
       }
     } else {
       data.put("RESTORE_BACKUP_ERROR", "Can not restore from backup. Backup not found!");

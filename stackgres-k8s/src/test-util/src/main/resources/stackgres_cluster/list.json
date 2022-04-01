@@ -25,6 +25,7 @@
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf",
+          "backupPath": "sgbackups.stackgres.io/stackgres/stackgres/11",
           "sgBackupConfig": "backupconf",
           "backups": [{
             "compression": "lz4",

@@ -81,6 +81,10 @@ spec:
                   type: string
                   description: |
                     The name of the backup.
+                backupPath:
+                  type: string
+                  description: |
+                    The path were the backup is stored.
                 process:
                   type: object
                   properties:

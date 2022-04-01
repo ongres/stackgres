@@ -22,6 +22,9 @@ public class DbOpsMajorVersionUpgrade {
   @JsonProperty("sgPostgresConfig")
   private String sgPostgresConfig;
 
+  @JsonProperty("backupPath")
+  private String backupPath;
+
   @JsonProperty("link")
   private Boolean link;
 
@@ -45,6 +48,14 @@ public class DbOpsMajorVersionUpgrade {
 
   public void setSgPostgresConfig(String sgPostgresConfig) {
     this.sgPostgresConfig = sgPostgresConfig;
+  }
+
+  public String getBackupPath() {
+    return backupPath;
+  }
+
+  public void setBackupPath(String backupPath) {
+    this.backupPath = backupPath;
   }
 
   public Boolean getLink() {

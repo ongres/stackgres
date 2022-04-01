@@ -40,6 +40,9 @@ public class ClusterBackupsConfiguration {
   @NotNull
   private String objectStorage;
 
+  @JsonProperty("path")
+  private String path;
+
   public Integer getRetention() {
     return retention;
   }
@@ -80,25 +83,34 @@ public class ClusterBackupsConfiguration {
     this.objectStorage = objectStorage;
   }
 
+  public String getPath() {
+    return path;
+  }
+
+  public void setPath(String path) {
+    this.path = path;
+  }
+
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof ClusterBackupsConfiguration)) {
       return false;
     }
-    ClusterBackupsConfiguration that = (ClusterBackupsConfiguration) o;
-    return Objects.equals(retention, that.retention)
-        && Objects.equals(cronSchedule, that.cronSchedule)
-        && Objects.equals(compressionMethod, that.compressionMethod)
-        && Objects.equals(performance, that.performance)
-        && Objects.equals(objectStorage, that.objectStorage);
+    ClusterBackupsConfiguration other = (ClusterBackupsConfiguration) obj;
+    return Objects.equals(compressionMethod, other.compressionMethod)
+        && Objects.equals(cronSchedule, other.cronSchedule)
+        && Objects.equals(objectStorage, other.objectStorage) && Objects.equals(path, other.path)
+        && Objects.equals(performance, other.performance)
+        && Objects.equals(retention, other.retention);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(retention, cronSchedule, compressionMethod, performance, objectStorage);
+    return Objects.hash(compressionMethod, cronSchedule, objectStorage, path, performance,
+        retention);
   }
 
   @Override

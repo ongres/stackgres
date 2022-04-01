@@ -84,6 +84,13 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
                     .orElseThrow())
                 .build(),
             new EnvVarBuilder()
+                .withName("TARGET_BACKUP_PATH")
+                .withValue(Optional.ofNullable(majorVersionUpgrade)
+                    .map(StackGresDbOpsMajorVersionUpgrade::getBackupPath)
+                    .map(String::valueOf)
+                    .orElse(""))
+                .build(),
+            new EnvVarBuilder()
                 .withName("LINK")
                 .withValue(Optional.ofNullable(majorVersionUpgrade)
                     .map(StackGresDbOpsMajorVersionUpgrade::getLink)

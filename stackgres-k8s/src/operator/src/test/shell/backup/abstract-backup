@@ -7,6 +7,7 @@ SERVICE_ACCOUNT=test
 POD_NAME=test
 BACKUP_CRD_NAME=sgbackups.stackgres.io
 BACKUP_NAME=test
+CLUSTER_CRD_NAME=sgclusters.stackgres.io
 BACKUP_CONFIG_CRD_NAME=sgbackupconfigs.stackgres.io
 CRONJOB_NAME=test
 BACKUP_PHASE_RUNNING=Running
@@ -44,6 +45,9 @@ kubectl_mock() {
       '
     ;;
     ("annotate cronjob.batch "*)
+    ;;
+    ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ else }}{{ (index .spec.configurations.backups 0).path }}{{ end }}")
+    echo test
     ;;
     ("get $BACKUP_CONFIG_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_CONFIG --template={{ .metadata.resourceVersion }}")
     echo test

@@ -19,6 +19,8 @@ import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
@@ -80,7 +82,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setResourceProfile(null);
 
-    checkNotNullErrorCause(StackGresClusterSpec.class, "spec.resourceProfile", review);
+    checkNotNullErrorCause(StackGresClusterSpec.class, "spec.sgInstanceProfile", review);
   }
 
   @Test
@@ -88,7 +90,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPod().getPersistentVolume().setSize(null);
 
-    checkNotNullErrorCause(StackGresPodPersistentVolume.class, "spec.pod.persistentVolume.size",
+    checkNotNullErrorCause(StackGresPodPersistentVolume.class, "spec.pods.persistentVolume.size",
         review);
   }
 
@@ -97,7 +99,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPod().getPersistentVolume().setSize("512");
 
-    checkErrorCause(StackGresPodPersistentVolume.class, "spec.pod.persistentVolume.size",
+    checkErrorCause(StackGresPodPersistentVolume.class, "spec.pods.persistentVolume.size",
         review, Pattern.class);
   }
 
@@ -123,8 +125,8 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .add(new StackGresClusterScriptEntry());
 
     checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[] {"spec.initData.scripts[0].script",
-            "spec.initData.scripts[0].scriptFrom"},
+        new String[] {"spec.initialData.scripts[0].script",
+            "spec.initialData.scripts[0].scriptFrom"},
         "isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
   }
 
@@ -147,8 +149,8 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .getConfigMapKeyRef().setKey("test");
 
     checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[] {"spec.initData.scripts[0].script",
-            "spec.initData.scripts[0].scriptFrom"},
+        new String[] {"spec.initialData.scripts[0].script",
+            "spec.initialData.scripts[0].scriptFrom"},
         "isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
   }
 
@@ -164,7 +166,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .setScript("SELECT 1");
 
     checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[] {"spec.initData.scripts[0].database"},
+        new String[] {"spec.initialData.scripts[0].database"},
         "isDatabaseNameNonEmpty", review, AssertTrue.class);
   }
 
@@ -217,8 +219,8 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .setScriptFrom(new StackGresClusterScriptFrom());
 
     checkErrorCause(StackGresClusterScriptFrom.class,
-        new String[] {"spec.initData.scripts[0].scriptFrom.secretKeyRef",
-            "spec.initData.scripts[0].scriptFrom.configMapKeyRef"},
+        new String[] {"spec.initialData.scripts[0].scriptFrom.secretKeyRef",
+            "spec.initialData.scripts[0].scriptFrom.configMapKeyRef"},
         "isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
         review, AssertTrue.class);
   }
@@ -246,8 +248,8 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .getSecretKeyRef().setKey("test");
 
     checkErrorCause(StackGresClusterScriptFrom.class,
-        new String[] {"spec.initData.scripts[0].scriptFrom.secretKeyRef",
-            "spec.initData.scripts[0].scriptFrom.configMapKeyRef"},
+        new String[] {"spec.initialData.scripts[0].scriptFrom.secretKeyRef",
+            "spec.initialData.scripts[0].scriptFrom.configMapKeyRef"},
         "isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
         review, AssertTrue.class);
   }
@@ -269,7 +271,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .getConfigMapKeyRef().setKey("");
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.initData.scripts[0].scriptFrom.configMapKeyRef.key",
+        "spec.initialData.scripts[0].scriptFrom.configMapKeyRef.key",
         "isKeyNotEmpty", review, AssertTrue.class);
   }
 
@@ -290,7 +292,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .getConfigMapKeyRef().setKey("test");
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.initData.scripts[0].scriptFrom.configMapKeyRef.name",
+        "spec.initialData.scripts[0].scriptFrom.configMapKeyRef.name",
         "isNameNotEmpty", review, AssertTrue.class);
   }
 
@@ -310,7 +312,8 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
         .getSecretKeyRef().setKey("");
 
-    checkErrorCause(SecretKeySelector.class, "spec.initData.scripts[0].scriptFrom.secretKeyRef.key",
+    checkErrorCause(SecretKeySelector.class,
+        "spec.initialData.scripts[0].scriptFrom.secretKeyRef.key",
         "isKeyNotEmpty", review, AssertTrue.class);
   }
 
@@ -331,7 +334,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .getSecretKeyRef().setKey("test");
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.initData.scripts[0].scriptFrom.secretKeyRef.name",
+        "spec.initialData.scripts[0].scriptFrom.secretKeyRef.name",
         "isNameNotEmpty", review, AssertTrue.class);
   }
 
@@ -342,8 +345,8 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .setScheduling(new StackGresClusterPodScheduling());
     review.getRequest().getObject().getSpec().getPod().getScheduling()
         .setNodeSelector(new HashMap<>());
-    review.getRequest().getObject().getSpec().getPod().getScheduling().getNodeSelector().put("test",
-        "true");
+    review.getRequest().getObject().getSpec().getPod().getScheduling().getNodeSelector()
+        .put("test", "true");
 
     validator.validate(review);
   }
@@ -356,7 +359,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getPod().getScheduling()
         .setNodeSelector(new HashMap<>());
 
-    checkErrorCause(StackGresClusterPodScheduling.class, "spec.pod.scheduling.nodeSelector",
+    checkErrorCause(StackGresClusterPodScheduling.class, "spec.pods.scheduling.nodeSelector",
         "isNodeSelectorNotEmpty", review, AssertTrue.class);
   }
 
@@ -405,8 +408,8 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         .setKey("");
 
     checkErrorCause(Toleration.class,
-        new String[] {"spec.pod.scheduling.tolerations[0].key",
-            "spec.pod.scheduling.tolerations[0].operator"},
+        new String[] {"spec.pods.scheduling.tolerations[0].key",
+            "spec.pods.scheduling.tolerations[0].operator"},
         "isOperatorExistsWhenKeyIsEmpty", review,
         AssertTrue.class);
   }
@@ -425,7 +428,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
         .setOperator("NotExists");
 
-    checkErrorCause(Toleration.class, "spec.pod.scheduling.tolerations[0].operator",
+    checkErrorCause(Toleration.class, "spec.pods.scheduling.tolerations[0].operator",
         "isOperatorValid", review, AssertTrue.class);
   }
 
@@ -443,7 +446,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
         .setEffect("NeverSchedule");
 
-    checkErrorCause(Toleration.class, "spec.pod.scheduling.tolerations[0].effect",
+    checkErrorCause(Toleration.class, "spec.pods.scheduling.tolerations[0].effect",
         "isEffectValid", review, AssertTrue.class);
   }
 
@@ -541,7 +544,7 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     review.getRequest().getObject().getSpec().getPod().getScheduling().getTolerations().get(0)
         .setEffect(new Random().nextBoolean() ? "NoSchedule" : "PreferNoSchedule");
 
-    checkErrorCause(Toleration.class, "spec.pod.scheduling.tolerations[0].effect",
+    checkErrorCause(Toleration.class, "spec.pods.scheduling.tolerations[0].effect",
         "isEffectNoExecuteIfTolerationIsSet", review, AssertTrue.class);
   }
 
@@ -777,4 +780,48 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
         "spec.replication.syncInstances",
         review, Min.class, "must be greater than or equal to 1");
   }
+
+  @Test
+  void givenNullBackupPathWhenSgBackupConfigNotNull_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getConfiguration().setBackupPath(null);
+
+    checkErrorCause(StackGresClusterConfiguration.class,
+        "spec.configurations.backupPath",
+        "isBackupPathSetWhenSgBackupConfigIsSet",
+        review, AssertTrue.class);
+  }
+
+  @Test
+  void givenNullBackupPathOnBackups_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getConfiguration().setBackupConfig(null);
+    review.getRequest().getObject().getSpec().getConfiguration().setBackupPath(null);
+    review.getRequest().getObject().getSpec().getConfiguration().setBackups(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getConfiguration().getBackups()
+        .add(new StackGresClusterBackupConfiguration());
+    review.getRequest().getObject().getSpec().getConfiguration().getBackups().get(0)
+        .setObjectStorage("test");
+
+    checkErrorCause(StackGresClusterBackupConfiguration.class,
+        "spec.configurations.backups[0].path",
+        review, NotNull.class, "must not be null");
+  }
+
+  @Test
+  void givenNullObjectStorageOnBackups_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getConfiguration().setBackupConfig(null);
+    review.getRequest().getObject().getSpec().getConfiguration().setBackupPath(null);
+    review.getRequest().getObject().getSpec().getConfiguration().setBackups(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getConfiguration().getBackups()
+        .add(new StackGresClusterBackupConfiguration());
+    review.getRequest().getObject().getSpec().getConfiguration().getBackups().get(0)
+        .setPath("test");
+
+    checkErrorCause(StackGresClusterBackupConfiguration.class,
+        "spec.configurations.backups[0].sgObjectStorage",
+        review, NotNull.class, "must not be null");
+  }
+
 }

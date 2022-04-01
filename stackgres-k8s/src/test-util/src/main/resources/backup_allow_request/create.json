@@ -74,6 +74,7 @@
             "type": "s3Compatible"
           }
         },
+        "backupPath": "sgbackups.stackgres.io/backup-with-default-storage/backup-with-default-storage/11",
         "process": {
           "status": "Running",
           "jobPod": "backup-with-default-storage-backup-1579273020-svf9b"

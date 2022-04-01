@@ -30,7 +30,7 @@ public class BackupConfigDefaultValuesMutator
 
   @Override
   public List<JsonPatchOperation> mutate(BackupConfigReview review) {
-    return mutate(SG_BACKUP_CONFIG_POINTER, review.getRequest().getObject());
+    return mutate(SPEC_POINTER, review.getRequest().getObject());
   }
 
   @Override

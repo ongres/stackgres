@@ -32,10 +32,10 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
-    String postgresServicesJson = ClusterMutator.getJsonMappingField("postgresServices",
+    String postgresServicesJson = getJsonMappingField("postgresServices",
         StackGresClusterSpec.class);
 
-    postgresServicesPointer = ClusterMutator.CLUSTER_CONFIG_POINTER
+    postgresServicesPointer = ClusterMutator.SPEC_POINTER
         .append(postgresServicesJson);
   }
 

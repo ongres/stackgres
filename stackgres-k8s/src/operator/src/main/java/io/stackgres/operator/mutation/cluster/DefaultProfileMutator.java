@@ -29,7 +29,7 @@ public class DefaultProfileMutator extends AbstractDefaultResourceMutator<StackG
       ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
       final StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
       StackGresClusterPod pod = spec.getPod();
-      final JsonPointer clusterPodPointer = CLUSTER_CONFIG_POINTER
+      final JsonPointer clusterPodPointer = SPEC_POINTER
           .append("pod");
       if (pod == null) {
         pod = new StackGresClusterPod();

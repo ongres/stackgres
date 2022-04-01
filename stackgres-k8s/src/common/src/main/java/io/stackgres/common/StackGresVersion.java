@@ -10,7 +10,6 @@ import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -30,13 +29,50 @@ public enum StackGresVersion {
       .findLast().orElseThrow();
 
   final String version;
+  final long versionAsNumber;
 
   StackGresVersion(String version) {
     this.version = version;
+    this.versionAsNumber = getVersionAsNumber(version);
   }
 
   public String getVersion() {
     return version;
+  }
+
+  public long getVersionAsNumber() {
+    return versionAsNumber;
+  }
+
+  public static long getVersionAsNumber(String version) {
+    int lastMajorVersionIndex = version.indexOf('.') - 1;
+    if (lastMajorVersionIndex < 0) {
+      throw new IllegalArgumentException(
+          "Version " + version + " is not parseable.");
+    }
+    int lastMinorVersionIndex = version.length();
+    for (int index = lastMajorVersionIndex + 2; index < version.length(); index++) {
+      char character = version.charAt(index);
+      if (character < '0' || character > '9') {
+        lastMinorVersionIndex = index;
+        break;
+      }
+    }
+    try {
+      long majorVersion = Long.parseLong(
+          version.substring(0, lastMajorVersionIndex + 1));
+      long minorVersion = Long.parseLong(
+          version.substring(lastMajorVersionIndex + 2, lastMinorVersionIndex));
+      if (majorVersion > 0x3FF
+          || minorVersion > 0x3FF) {
+        throw new Exception("Too large numbers");
+      }
+      return majorVersion << 10
+          | minorVersion;
+    } catch (Exception ex) {
+      throw new IllegalArgumentException(
+          "Version " + version + " is not parseable.", ex);
+    }
   }
 
   static StackGresVersion ofVersion(String version) {
@@ -48,34 +84,55 @@ public enum StackGresVersion {
             "Invalid version " + version));
   }
 
-  public static <T extends CustomResource<?, ?>> StackGresVersion getStackGresVersion(
-      StackGresCluster cluster) {
+  public static StackGresVersion getStackGresVersion(StackGresCluster cluster) {
     return getStackGresVersionFromResource(cluster);
   }
 
-  public static <T extends CustomResource<?, ?>> StackGresVersion getStackGresVersion(
-      StackGresBackup backup) {
+  public static StackGresVersion getStackGresVersion(StackGresBackup backup) {
     return getStackGresVersionFromResource(backup);
   }
 
-  public static <T extends CustomResource<?, ?>> StackGresVersion getStackGresVersion(
-      StackGresDbOps dbOps) {
+  public static StackGresVersion getStackGresVersion(StackGresDbOps dbOps) {
     return getStackGresVersionFromResource(dbOps);
   }
 
-  public static <T extends CustomResource<?, ?>> StackGresVersion getStackGresVersion(
-      StackGresDistributedLogs distributedLogs) {
+  public static StackGresVersion getStackGresVersion(StackGresDistributedLogs distributedLogs) {
     return getStackGresVersionFromResource(distributedLogs);
   }
 
-  private static <T extends CustomResource<?, ?>> StackGresVersion getStackGresVersionFromResource(
-      HasMetadata resource) {
+  private static StackGresVersion getStackGresVersionFromResource(HasMetadata resource) {
     return Optional.of(resource)
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getAnnotations)
         .map(annotations -> annotations.get(StackGresContext.VERSION_KEY))
         .map(StackGresVersion::ofVersion)
         .orElse(StackGresVersion.LATEST);
+  }
+
+  public static long getStackGresVersionAsNumber(StackGresCluster cluster) {
+    return getStackGresVersionFromResourceAsNumber(cluster);
+  }
+
+  public static long getStackGresVersionAsNumber(StackGresBackup backup) {
+    return getStackGresVersionFromResourceAsNumber(backup);
+  }
+
+  public static long getStackGresVersionAsNumber(StackGresDbOps dbOps) {
+    return getStackGresVersionFromResourceAsNumber(dbOps);
+  }
+
+  public static long getStackGresVersionAsNumber(
+      StackGresDistributedLogs distributedLogs) {
+    return getStackGresVersionFromResourceAsNumber(distributedLogs);
+  }
+
+  private static long getStackGresVersionFromResourceAsNumber(HasMetadata resource) {
+    return Optional.of(resource)
+        .map(HasMetadata::getMetadata)
+        .map(ObjectMeta::getAnnotations)
+        .map(annotations -> annotations.get(StackGresContext.VERSION_KEY))
+        .map(StackGresVersion::getVersionAsNumber)
+        .orElseGet(() -> StackGresVersion.LATEST.getVersionAsNumber());
   }
 
 }

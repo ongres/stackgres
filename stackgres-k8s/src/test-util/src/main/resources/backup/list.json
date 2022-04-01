@@ -19,6 +19,7 @@
       },
       "status": {
         "internalName": "base_000000010000000000000007",
+        "backupPath": "sgbackups.stackgres.io/backup-with-default-storage/backup-with-default-storage/11",
         "process": {
           "status": "Completed",
           "failure": "",
@@ -94,6 +95,7 @@
       },
       "status": {
         "internalName": "base_000000020000000000000013",
+        "backupPath": "sgbackups.stackgres.io/backup-with-default-storage/backup-with-default-storage/11",
         "process": {
           "status": "Completed",
           "failure": "",
@@ -194,6 +196,7 @@
           }
         },
         "internalName": "base_00000002000000000000000E",
+        "backupPath": "sgbackups.stackgres.io/backup-with-default-storage/backup-with-default-storage/11",
         "process": {
           "status": "Completed",
           "failure": "",
@@ -275,6 +278,7 @@
           }
         },
         "internalName": "base_000000020000000000000011",
+        "backupPath": "sgbackups.stackgres.io/backup-with-default-storage/backup-with-default-storage/11",
         "process": {
           "status": "Completed",
           "failure": "",
@@ -356,6 +360,7 @@
           }
         },
         "internalName": "base_000000020000000000000015",
+        "backupPath": "sgbackups.stackgres.io/backup-with-default-storage/backup-with-default-storage/11",
         "process": {
           "status": "Completed",
           "failure": "",

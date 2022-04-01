@@ -28,14 +28,21 @@ public class StackGresBackupStatus implements KubernetesResource {
   @Valid
   private StackGresBackupConfigSpec backupConfig;
 
+  @JsonProperty("internalName")
   private String internalName;
 
+  @JsonProperty("backupPath")
+  private String backupPath;
+
+  @JsonProperty("process")
   @Valid
   private StackGresBackupProcess process;
 
+  @JsonProperty("backupInformation")
   @Valid
   private StackGresBackupInformation backupInformation;
 
+  @JsonProperty("tested")
   private Boolean tested;
 
   public String getInternalName() {
@@ -44,6 +51,14 @@ public class StackGresBackupStatus implements KubernetesResource {
 
   public void setInternalName(String internalName) {
     this.internalName = internalName;
+  }
+
+  public String getBackupPath() {
+    return backupPath;
+  }
+
+  public void setBackupPath(String backupPath) {
+    this.backupPath = backupPath;
   }
 
   public StackGresBackupConfigSpec getBackupConfig() {
@@ -80,7 +95,7 @@ public class StackGresBackupStatus implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(backupConfig, backupInformation, internalName, process, tested);
+    return Objects.hash(backupConfig, backupInformation, backupPath, internalName, process, tested);
   }
 
   @Override
@@ -94,6 +109,7 @@ public class StackGresBackupStatus implements KubernetesResource {
     StackGresBackupStatus other = (StackGresBackupStatus) obj;
     return Objects.equals(backupConfig, other.backupConfig)
         && Objects.equals(backupInformation, other.backupInformation)
+        && Objects.equals(backupPath, other.backupPath)
         && Objects.equals(internalName, other.internalName)
         && Objects.equals(process, other.process) && Objects.equals(tested, other.tested);
   }

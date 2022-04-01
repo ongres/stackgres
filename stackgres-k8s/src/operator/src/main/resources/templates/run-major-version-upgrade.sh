@@ -120,12 +120,29 @@ EOF
   echo "done"
   echo
 
-  echo "Setting postgres version to $TARGET_VERSION and postgres config to $TARGET_POSTGRES_CONFIG..."
+  if [ -z "$TARGET_BACKUP_PATH" ]
+  then
+    echo "Setting postgres version to $TARGET_VERSION and postgres config to $TARGET_POSTGRES_CONFIG..."
+  else
+    echo "Setting postgres version to $TARGET_VERSION, postgres config to $TARGET_POSTGRES_CONFIG and backup path to $TARGET_BACKUP_PATH..."
+  fi
   echo
   until (
     CLUSTER="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq '.spec.postgres.version = "'"$TARGET_VERSION"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq '.spec.configurations.sgPostgresConfig = "'"$TARGET_POSTGRES_CONFIG"'"')"
+    if [ -n "$TARGET_BACKUP_PATH" ]
+    then
+      CLUSTER="$(printf '%s' "$CLUSTER" | jq '
+          if .spec.configurations.sgBackupConfig != null
+          then .spec.configurations.backupPath = "'"$TARGET_BACKUP_PATH"'"
+          else
+            if .spec.configurations.backups != null and (.spec.configurations.backups | length) > 0
+            then .spec.configurations.backups[0].path = "'"$TARGET_BACKUP_PATH"'"
+            else .
+            end
+          end')"
+    fi
     printf '%s' "$CLUSTER" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
     )
   do
