@@ -559,7 +559,7 @@
 				if(error.hasOwnProperty('response')) {
 					let errorCode = error.response.status;
 					let errorTitle = error.response.statusText;
-					let errorDetail = (error.response.data.hasOwnProperty('detail') ? ('<strong>Error message:</strong> ' + error.response.data.detail) : '');
+					let errorDetail = (error.response.data.hasOwnProperty('detail') ? ('<strong>Message:</strong> ' + error.response.data.detail) : '');
 
 					if(errorMessages.hasOwnProperty(errorCode)) {
 						vc.notify({
