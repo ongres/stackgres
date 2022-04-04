@@ -559,14 +559,14 @@
 				if(error.hasOwnProperty('response')) {
 					let errorCode = error.response.status;
 					let errorTitle = error.response.statusText;
-					let errorDetail = (error.response.data.hasOwnProperty('detail') ? ('<strong>Details:</strong><br/>' + error.response.data.detail) : '');
+					let errorDetail = (error.response.data.hasOwnProperty('detail') ? ('<strong>Message:</strong> ' + error.response.data.detail) : '');
 
 					if(errorMessages.hasOwnProperty(errorCode)) {
 						vc.notify({
 							...(errorTitle.length && { 
 								title: errorTitle
 							}),
-							detail: errorMessages[errorCode] + refreshPage + '<br/><hr/><br/><p>' + errorDetail + '</p><p>' + reportIssue + '</p>'
+							detail: errorMessages[errorCode] + refreshPage + '<br/><br/><p>' + errorDetail + '</p><p>' + reportIssue + '</p>'
 						}, 'error');
 					}
 				}
