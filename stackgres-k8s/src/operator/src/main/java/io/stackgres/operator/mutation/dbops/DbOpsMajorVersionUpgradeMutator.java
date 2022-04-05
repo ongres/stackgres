@@ -58,12 +58,13 @@ public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
       if (dbOps.getSpec() != null
           && dbOps.getSpec().getSgCluster() != null
           && dbOps.getSpec().getMajorVersionUpgrade() != null
+          && dbOps.getSpec().getMajorVersionUpgrade().getPostgresVersion() != null
           && dbOps.getSpec().getMajorVersionUpgrade().getBackupPath() == null) {
         Optional<StackGresCluster> cluster = clusterFinder.findByNameAndNamespace(
             dbOps.getSpec().getSgCluster(),
             dbOps.getMetadata().getNamespace());
         if (cluster.filter(this::clusterHasBackups).isPresent()) {
-          final String backupPath = getBackupPath(cluster.get());
+          final String backupPath = getBackupPath(dbOps, cluster.get());
           operations.add(applyAddValue(backupPathPointer, FACTORY.textNode(backupPath)));
         }
       }
@@ -75,7 +76,7 @@ public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
   }
 
   private boolean clusterHasBackups(StackGresCluster cluster) {
-    final var configurations = Optional.of(cluster)
+    var configurations = Optional.of(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getConfiguration);
     return configurations.map(StackGresClusterConfiguration::getBackupConfig).isPresent()
@@ -84,9 +85,9 @@ public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
         .isPresent();
   }
 
-  private String getBackupPath(final StackGresCluster cluster) {
-    final String postgresVersion = cluster.getSpec()
-        .getPostgres().getVersion();
+  private String getBackupPath(StackGresDbOps dbOps, StackGresCluster cluster) {
+    final String postgresVersion = dbOps.getSpec()
+        .getMajorVersionUpgrade().getPostgresVersion();
     final String postgresFlavor = cluster.getSpec()
         .getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)

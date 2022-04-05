@@ -93,8 +93,8 @@ class DbOpsMajorVersionUpgradeMutatorTest {
     final StackGresDbOps actualDbOps = mutate(review);
 
     final StackGresDbOps dbOps = review.getRequest().getObject();
-    final String postgresVersion = cluster.getSpec()
-        .getPostgres().getVersion();
+    final String postgresVersion = dbOps.getSpec()
+        .getMajorVersionUpgrade().getPostgresVersion();
     final String postgresFlavor = cluster.getSpec()
         .getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
@@ -126,8 +126,8 @@ class DbOpsMajorVersionUpgradeMutatorTest {
     final StackGresDbOps actualDbOps = mutate(review);
 
     final StackGresDbOps dbOps = review.getRequest().getObject();
-    final String postgresVersion = cluster.getSpec()
-        .getPostgres().getVersion();
+    final String postgresVersion = dbOps.getSpec()
+        .getMajorVersionUpgrade().getPostgresVersion();
     final String postgresFlavor = cluster.getSpec()
         .getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
