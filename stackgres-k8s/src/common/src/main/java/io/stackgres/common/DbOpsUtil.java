@@ -7,8 +7,10 @@ package io.stackgres.common;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import com.google.common.base.Predicates;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -19,6 +21,8 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public interface DbOpsUtil {
+
+  Pattern UPPERCASE_LETTER_PATTERN = Pattern.compile("([A-Z])");
 
   String SUFFIX = "-dbops";
 
@@ -52,7 +56,7 @@ public interface DbOpsUtil {
   }
 
   static String jobName(StackGresDbOps dbOps) {
-    return jobName(dbOps, getOperation(dbOps));
+    return jobName(dbOps, getKebabCaseOperation(dbOps));
   }
 
   static String jobName(StackGresDbOps dbOps, String operation) {
@@ -73,8 +77,10 @@ public interface DbOpsUtil {
         .orElseGet(() -> String.valueOf(Integer.MAX_VALUE));
   }
 
-  private static String getOperation(StackGresDbOps dbOps) {
-    return dbOps.getSpec().getOp();
+  static String getKebabCaseOperation(StackGresDbOps dbOps) {
+    return UPPERCASE_LETTER_PATTERN
+        .matcher(dbOps.getSpec().getOp())
+        .replaceAll(m -> m.group().toLowerCase(Locale.US) + "-");
   }
 
   static Integer getCurrentRetry(StackGresDbOps dbOps) {
