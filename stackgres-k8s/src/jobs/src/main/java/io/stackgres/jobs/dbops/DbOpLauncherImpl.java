@@ -10,7 +10,6 @@ import static io.stackgres.jobs.app.JobsProperty.DBOPS_LOCK_TIMEOUT;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -36,6 +35,7 @@ import io.stackgres.jobs.app.JobsProperty;
 import io.stackgres.jobs.dbops.lock.ImmutableLockRequest;
 import io.stackgres.jobs.dbops.lock.LockAcquirer;
 import io.stackgres.jobs.dbops.lock.LockRequest;
+import io.stackgres.operatorframework.resource.Condition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,11 +61,6 @@ public class DbOpLauncherImpl implements DbOpLauncher {
   DatabaseOperationEventEmitter databaseOperationEventEmitter;
 
   private final ExecutorService jobExecutor;
-
-  private static void setTransitionTimes(List<StackGresDbOpsCondition> conditions) {
-    String currentDateTime = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
-    conditions.forEach(condition -> condition.setLastTransitionTime(currentDateTime));
-  }
 
   public DbOpLauncherImpl() {
     this.jobExecutor = Executors.newSingleThreadExecutor(
@@ -182,7 +177,7 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition(),
         DbOpsStatusCondition.DB_OPS_FALSE_FAILED.getCondition()
     );
-    setTransitionTimes(conditions);
+    Condition.setTransitionTimes(conditions);
     return conditions;
   }
 
@@ -192,7 +187,7 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         DbOpsStatusCondition.DB_OPS_COMPLETED.getCondition(),
         DbOpsStatusCondition.DB_OPS_FALSE_FAILED.getCondition()
     );
-    setTransitionTimes(conditions);
+    Condition.setTransitionTimes(conditions);
     return conditions;
   }
 
@@ -202,7 +197,7 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition(),
         DbOpsStatusCondition.DB_OPS_FAILED.getCondition()
     );
-    setTransitionTimes(conditions);
+    Condition.setTransitionTimes(conditions);
     return conditions;
   }
 
@@ -212,7 +207,7 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition(),
         DbOpsStatusCondition.DB_OPS_TIMED_OUT.getCondition()
     );
-    setTransitionTimes(conditions);
+    Condition.setTransitionTimes(conditions);
     return conditions;
   }
 

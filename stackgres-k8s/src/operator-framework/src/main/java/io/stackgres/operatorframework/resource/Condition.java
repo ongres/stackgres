@@ -5,6 +5,10 @@
 
 package io.stackgres.operatorframework.resource;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
 public interface Condition {
 
   String getLastTransitionTime();
@@ -26,5 +30,10 @@ public interface Condition {
   String getType();
 
   void setType(String type);
+
+  static void setTransitionTimes(List<? extends Condition> conditions) {
+    String currentDateTime = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
+    conditions.forEach(condition -> condition.setLastTransitionTime(currentDateTime));
+  }
 
 }
