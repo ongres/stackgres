@@ -58,11 +58,6 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
   }
 
   @Override
-  protected String getOperation(StackGresDbOps dbOps) {
-    return "major-version-upgrade";
-  }
-
-  @Override
   protected List<EnvVar> getRunEnvVars(StackGresDbOpsContext context) {
     StackGresDbOps dbOps = context.getSource();
     StackGresDbOpsMajorVersionUpgrade majorVersionUpgrade =

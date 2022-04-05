@@ -75,7 +75,7 @@ public abstract class DbOpsJob implements JobFactory {
   }
 
   public String jobName(StackGresDbOps dbOps) {
-    return DbOpsUtil.jobName(dbOps, getOperation(dbOps));
+    return DbOpsUtil.jobName(dbOps);
   }
 
   protected String getOperation(StackGresDbOps dbOps) {

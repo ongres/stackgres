@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
+import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -14,6 +16,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgcluster.DbOpsEventReason;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.PatchResumer;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
@@ -32,6 +35,10 @@ public class DbOpsReconciliator
 
   private PatchResumer<StackGresDbOps> patchResumer;
 
+  private DbOpsStatusManager statusManager;
+
+  private CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
+
   void onStart(@Observes StartupEvent ev) {
     start();
   }
@@ -46,6 +53,20 @@ public class DbOpsReconciliator
 
   @Override
   public void onPostReconciliation(StackGresDbOps config) {
+    statusManager.refreshCondition(config);
+
+    dbOpsScheduler.updateStatus(config,
+        StackGresDbOps::getStatus, (targetDbOps, status) -> {
+          if (statusManager.isJobFailedAndStatusNotUpdated(config)) {
+            targetDbOps.setStatus(
+                Optional.ofNullable(targetDbOps.getStatus())
+                .map(targetStatus -> {
+                  targetStatus.setConditions(status.getConditions());
+                  return targetStatus;
+                })
+                .orElse(status));
+          }
+        });
   }
 
   @Override
@@ -83,4 +104,15 @@ public class DbOpsReconciliator
   public void setResourceComparator(ComparisonDelegator<StackGresDbOps> resourceComparator) {
     this.patchResumer = new PatchResumer<>(resourceComparator);
   }
+
+  @Inject
+  public void setDbOpsStatusManager(DbOpsStatusManager statusManager) {
+    this.statusManager = statusManager;
+  }
+
+  @Inject
+  public void setDbOpsScheduler(CustomResourceScheduler<StackGresDbOps> dbOpsScheduler) {
+    this.dbOpsScheduler = dbOpsScheduler;
+  }
+
 }
