@@ -663,6 +663,31 @@ ul.steps li:last-child:after {
     width: calc(50% + 10px);
 }
 
+ul.steps li.notValid:before {
+    border: 2px solid;
+    content: "!";
+    color: red;
+    font-size: 11px;
+    text-align: center;
+    line-height: 1;
+    font-weight: bold;
+}
+
+ul.steps li.basic.notValid:before {
+    background: red;   
+    border-color: red;
+    color: var(--bgColor);
+}
+
+ul.steps li:not(.basic).notValid:before {
+    background: var(--bgColor);   
+    border-color: red;
+}
+
+ul.steps li.notValid, ul.steps li.active.notValid {
+    color: red;
+}
+
 .switch + .helpTooltip {
     transform: translate(20px, -47px);
 }

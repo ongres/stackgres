@@ -1264,6 +1264,8 @@ export const mixin = {
           setTimeout(function() {
             vc.notify('Please fill every mandatory field in the form', 'message', 'general');
           }, 100);
+
+          vc.checkValidSteps(vc._data, 'submit')
         }
 
         return isValid
@@ -1288,8 +1290,32 @@ export const mixin = {
         }
           
         return dayString + '-' + timeString.replaceAll(':','-')
+      }, 
+            
+      checkValidSteps(data, source) {
+        if( (source == 'submit') || ( (source == 'steps') && (data.errorStep.length)) ) {
+          $('fieldset[data-fieldset]').each(function() {
+            let fieldset = $(this);
+            let fieldsetAttr = fieldset.attr('data-fieldset'); 
+            let notValidFields = fieldset.find('.notValid');
+  
+          
+            if(notValidFields.length) {
+              if(!data.errorStep.includes(fieldsetAttr))
+                data.errorStep.push(fieldsetAttr);
+            } else {
+              if(data.errorStep.includes(fieldsetAttr)) {
+                for( var i = 0; i < data.errorStep.length; i++) {
+                  if (data.errorStep[i] === fieldsetAttr) { 
+                    data.errorStep.splice(i, 1); 
+                    break;
+                  }
+                }
+              }
+            }
+          })
+        }
       }
-
     },
   
     beforeCreate: function() {

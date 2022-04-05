@@ -37,7 +37,7 @@
                     <button type="button" class="btn arrow prev" @click="currentStep = formSteps[(currentStepIndex - 1)]" :disabled="( currentStepIndex == 0 )"></button>
             
                     <template v-for="(step, index) in formSteps"  v-if="( ((index < 3) && !advancedMode) || advancedMode)">
-                        <li @click="currentStep = step" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' )]" v-if="!( (step == 'initialization') && editMode && !initScripts.length && !restoreBackup.length )" :data-step="step">
+                        <li @click="currentStep = step; checkValidSteps(_data, 'steps')" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' ), (errorStep.includes(step) && 'notValid')]" v-if="!( (step == 'initialization') && editMode && !initScripts.length && !restoreBackup.length )" :data-step="step">
                             {{ step }}
                         </li>
                     </template>
@@ -48,7 +48,7 @@
 
             <div class="clearfix"></div>
 
-            <fieldset class="step" :class="(currentStep == 'cluster') && 'active'">
+            <fieldset class="step" :class="(currentStep == 'cluster') && 'active'" data-fieldset="cluster">
                 <div class="header">
                     <h2>Cluster Information</h2>
                 </div>
@@ -212,7 +212,7 @@
                 </div>
             </fieldset>
 
-            <fieldset class="step" :class="(currentStep == 'extensions') && 'active'">
+            <fieldset class="step" :class="(currentStep == 'extensions') && 'active'" data-fieldset="extensions">
                 <div class="header">
                     <h2>Postgres Extensions</h2>
                 </div>
@@ -276,7 +276,7 @@
                 </div>
             </fieldset>
 
-            <fieldset class="step" :class="(currentStep == 'backups') && 'active'">
+            <fieldset class="step" :class="(currentStep == 'backups') && 'active'" data-fieldset="backups">
                 <div class="header">
                     <h2>Managed Backups</h2>
                 </div>
@@ -297,7 +297,7 @@
                 </div>
             </fieldset>
 
-            <fieldset class="step" :class="(currentStep == 'initialization') && 'active'">
+            <fieldset class="step" :class="(currentStep == 'initialization') && 'active'" data-fieldset="initialization">
                 <div class="header">
                     <h2>Cluster Initialization</h2>
                 </div>
@@ -446,7 +446,7 @@
                 </template>
             </fieldset>
 
-            <fieldset class="step" :class="(currentStep == 'sidecars') && 'active'">
+            <fieldset class="step" :class="(currentStep == 'sidecars') && 'active'" data-fieldset="sidecars">
                 <div class="header">
                     <h2>Sidecars</h2>
                 </div>
@@ -538,7 +538,7 @@
                 </div>
             </fieldset>
 
-            <fieldset class="step" :class="(currentStep == 'replication') && 'active'">
+            <fieldset class="step" :class="(currentStep == 'replication') && 'active'" data-fieldset="replication">
                 <div class="header">
                     <h2>Replication</h2>
                 </div>
@@ -641,7 +641,7 @@
                 </div>
             </fieldset>
 
-            <fieldset class="step" :class="(currentStep == 'services') && 'active'">
+            <fieldset class="step" :class="(currentStep == 'services') && 'active'" data-fieldset="services">
                 <div class="header">
                     <h2>Customize generated Kubernetes service</h2>
                 </div>
@@ -699,7 +699,7 @@
                 </div>
             </fieldset>
 
-            <fieldset class="step podsMetadata" :class="(currentStep == 'metadata') && 'active'" id="podsMetadata">
+            <fieldset class="step podsMetadata" :class="(currentStep == 'metadata') && 'active'" id="podsMetadata" data-fieldset="metadata">
                 <div class="header">
                     <h2>Metadata</h2>
                 </div>
@@ -894,7 +894,7 @@
                 </div>
             </fieldset>
 
-            <fieldset class="step podsMetadata" :class="(currentStep == 'scheduling') && 'active'" id="podsScheduling">
+            <fieldset class="step podsMetadata" :class="(currentStep == 'scheduling') && 'active'" id="podsScheduling" data-fieldset="scheduling">
                 <div class="header">
                     <h2>Pods Scheduling</h2>
                 </div>
@@ -1294,7 +1294,7 @@
                 </div>
             </fieldset>
 
-            <fieldset class="step" :class="(currentStep == 'non-production') && 'active'">
+            <fieldset class="step" :class="(currentStep == 'non-production') && 'active'" data-fieldset="non-production">
                 <div class="header">
                     <h2>Non Production Settings</h2>
                 </div>
@@ -1359,6 +1359,7 @@
                 advancedMode: false,
                 formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'sidecars', 'replication', 'services', 'metadata', 'scheduling', 'non-production'],
                 currentStep: 'cluster',
+                errorStep: [],
                 editMode: (vm.$route.name === 'EditCluster'),
                 editReady: false,
                 nullVal: null,
@@ -1875,6 +1876,8 @@
                             .catch(function (error) {
                                 console.log(error.response);
                                 vc.notify(error.response.data,'error', 'sgclusters');
+
+                                vc.checkValidSteps(vc._data, 'submit')
                             });
                         } else {
                             const res = axios
@@ -1892,6 +1895,8 @@
                             .catch(function (error) {
                                 console.log(error.response);
                                 vc.notify(error.response.data,'error','sgclusters');
+
+                                vc.checkValidSteps(vc._data, 'submit')
                             });
                         }
                         
@@ -2323,8 +2328,20 @@
                 this.validateSelectedPgConfig();
                 this.getFlavorExtensions();
                 this.validateSelectedRestoreBackup();
-            }
+            }, 
 
+            validateStep: function (event) {
+                const vc = this;
+
+                let dataFieldset = event.detail.fieldset;
+                
+                for(var i = 0; i < vc._data.errorStep.length; i++) {
+                    if (vc._data.errorStep[i] === dataFieldset){
+                        vc._data.errorStep.splice(i, 1); 
+                        break;
+                    }
+                }
+            }
         },
 
         created() {
@@ -2339,6 +2356,12 @@
                 console.log(error.response);
                 vc.notify(error.response.data,'error','sgclusters');
             });
+        }, 
+
+        mounted: function() {
+            var that = this;
+
+            window.addEventListener('fieldSetListener', function(e) {that.validateStep(e);});
         }
 
     }
