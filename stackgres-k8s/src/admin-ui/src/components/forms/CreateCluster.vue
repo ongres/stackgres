@@ -404,8 +404,10 @@
                                                 </template>
                                                 <template v-else-if="(!editMode && (scriptSource[index] == 'configMapKeyRef') )">
                                                     <div class="header">
-                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef">Config Map Key Reference</h3>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef')"></span> 
+                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef">
+                                                            Config Map Key Reference
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef')"></span> 
+                                                        </h3>
                                                     </div>
                                                     
                                                     <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name">Name</label>
@@ -418,8 +420,10 @@
                                                 </template>
                                                 <template v-else-if="(scriptSource[index] == 'secretKeyRef')">
                                                     <div class="header">
-                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef">Secret Key Reference</h3>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef')"></span> 
+                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef">
+                                                            Secret Key Reference
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef')"></span> 
+                                                        </h3>
                                                     </div>
                                                     
                                                     <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name">Name</label>
@@ -2696,6 +2700,7 @@
 
     input.affinityWeight + span {
         left: -20px;
+        top: -15px;
     }
 
     input.affinityWeight {
