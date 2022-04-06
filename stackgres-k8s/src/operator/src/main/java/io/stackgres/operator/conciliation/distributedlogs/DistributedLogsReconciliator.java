@@ -23,7 +23,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatusCluster;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.event.EventEmitterType;
-import io.stackgres.common.resource.DistributedLogsScheduler;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
@@ -38,7 +38,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
 
   private ConnectedClustersScanner connectedClustersScanner;
 
-  private DistributedLogsScheduler distributedLogsScheduler;
+  private CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
 
   private StatusManager<StackGresDistributedLogs, StackGresDistributedLogsCondition> statusManager;
 
@@ -135,7 +135,8 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   }
 
   @Inject
-  public void setDistributedLogsScheduler(DistributedLogsScheduler distributedLogsScheduler) {
+  public void setDistributedLogsScheduler(
+      CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler) {
     this.distributedLogsScheduler = distributedLogsScheduler;
   }
 

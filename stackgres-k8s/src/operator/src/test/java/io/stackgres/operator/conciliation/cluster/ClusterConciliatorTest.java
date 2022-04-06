@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation;
+package io.stackgres.operator.conciliation.cluster;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -20,8 +20,11 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.cluster.factory.KubernetessMockResourceGenerationUtil;
-import io.stackgres.operator.conciliation.cluster.ClusterConciliator;
-import io.stackgres.operator.conciliation.cluster.ClusterStatusManager;
+import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.ConciliatorTest;
+import io.stackgres.operator.conciliation.DeployedResourcesScanner;
+import io.stackgres.operator.conciliation.ReconciliationResult;
+import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

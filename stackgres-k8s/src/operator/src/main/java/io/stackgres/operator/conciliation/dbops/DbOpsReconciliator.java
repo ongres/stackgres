@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
-import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -15,12 +13,14 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgcluster.DbOpsEventReason;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsCondition;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.PatchResumer;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
+import io.stackgres.operator.conciliation.StatusManager;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
@@ -35,7 +35,7 @@ public class DbOpsReconciliator
 
   private PatchResumer<StackGresDbOps> patchResumer;
 
-  private DbOpsStatusManager statusManager;
+  private StatusManager<StackGresDbOps, StackGresDbOpsCondition> statusManager;
 
   private CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
 
@@ -53,19 +53,9 @@ public class DbOpsReconciliator
 
   @Override
   public void onPostReconciliation(StackGresDbOps config) {
-    statusManager.refreshCondition(config);
-
     dbOpsScheduler.updateStatus(config,
         StackGresDbOps::getStatus, (targetDbOps, status) -> {
-          if (statusManager.isJobFailedAndStatusNotUpdated(config)) {
-            targetDbOps.setStatus(
-                Optional.ofNullable(targetDbOps.getStatus())
-                .map(targetStatus -> {
-                  targetStatus.setConditions(status.getConditions());
-                  return targetStatus;
-                })
-                .orElse(status));
-          }
+          statusManager.refreshCondition(targetDbOps);
         });
   }
 
@@ -106,7 +96,8 @@ public class DbOpsReconciliator
   }
 
   @Inject
-  public void setDbOpsStatusManager(DbOpsStatusManager statusManager) {
+  public void setStatusManager(
+      StatusManager<StackGresDbOps, StackGresDbOpsCondition> statusManager) {
     this.statusManager = statusManager;
   }
 
