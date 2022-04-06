@@ -117,7 +117,7 @@
                             <div class="col">
                                 <label for="spec.postgresServices.primary.enabled">Primary</label>  
                                 <label for="postgresServicesPrimary" class="switch yes-no" data-field="spec.postgresServices.primary.enabled">Enable Primary <input type="checkbox" id="postgresServicesPrimary" v-model="postgresServicesPrimary" data-switch="YES"></label>
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.primary.enabled')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.primary')"></span>
                             </div>
 
                             <div class="col">

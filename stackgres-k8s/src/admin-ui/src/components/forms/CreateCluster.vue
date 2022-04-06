@@ -393,7 +393,7 @@
                                                     <option value="secretKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.secretScript')">From Secret</option>
                                                     <option value="configMapKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.configMapScript')">From ConfigMap</option>
                                                 </select>
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptSource', 'Determines whether the script should be read from a Raw SQL, a Kubernetes Secret or a ConfigMap')"></span>
+                                                <span class="helpTooltip" :data-tooltip="'Determine the source from which the script should be loaded. Possible values are: \n* Raw Script \n* From Secret \n* From ConfigMap.'"></span>
                                             </div>
                                             <div class="col">                                                
                                                 <template  v-if="(!editMode && (scriptSource[index] == 'raw') ) || (editMode && ( script.hasOwnProperty('script') || hasProp(script, 'scriptFrom.ConfigMapScript') ) )">
@@ -783,7 +783,7 @@
                             <div class="header">
                                 <h3 for="spec.metadata.annotations.clusterPods">
                                     Cluster Pods
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.sgcluster', 'spec.metadata.annotations.clusterPods')"></span>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.clusterPods')"></span>
                                 </h3>
                             </div>
                             <div class="annotation" v-if="annotationsPods.length">
