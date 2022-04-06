@@ -56,7 +56,7 @@ public class DbOpsStatusManager
     return source;
   }
 
-  public boolean isJobFailedAndStatusNotUpdated(StackGresDbOps source) {
+  private boolean isJobFailedAndStatusNotUpdated(StackGresDbOps source) {
     if (Optional.of(source)
         .map(StackGresDbOps::getStatus)
         .map(StackGresDbOpsStatus::getConditions)

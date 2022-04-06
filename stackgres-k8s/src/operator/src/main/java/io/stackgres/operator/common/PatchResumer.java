@@ -51,9 +51,9 @@ public class PatchResumer<T extends CustomResource<?, ?>> {
 
   static final long MAX_RESUME_LENGTH = 256;
 
-  private final ComparisonDelegator<?> resourceComparator;
+  private final ComparisonDelegator<T> resourceComparator;
 
-  public PatchResumer(ComparisonDelegator<?> resourceComparator) {
+  public PatchResumer(ComparisonDelegator<T> resourceComparator) {
     super();
     this.resourceComparator = resourceComparator;
   }

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation;
+package io.stackgres.operator.conciliation.cluster;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -11,11 +11,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.StringUtil;
-import io.stackgres.operator.conciliation.cluster.ClusterSecretComparator;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.junit.jupiter.api.Test;
 
-class SecretComparatorTest {
+class ClusterSecretComparatorTest {
 
   private final ClusterSecretComparator comparator = new ClusterSecretComparator();
 
