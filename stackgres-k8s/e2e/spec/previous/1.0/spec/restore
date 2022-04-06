@@ -1,23 +1,24 @@
 #!/bin/sh
 
 e2e_test_install() {
+  BACKUP_CLUSTER_NAMESPACE="$CLUSTER_NAMESPACE-backup"
   BACKUP_CLUSTER_NAME="$(get_sgcluster_name "$CLUSTER_NAME-backup")"
   MINIO_NAME="$CLUSTER_NAME-backup-minio"
   BUCKET_NAME="$CLUSTER_NAME-backup"
-  MINIO_NAMESPACE="$CLUSTER_NAMESPACE-backup"
+  MINIO_NAMESPACE="$BACKUP_CLUSTER_NAMESPACE"
   install_minio
 
-  SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml"
+  BACKUP_ENDPOINT="http://restore-backup-minio.$BACKUP_CLUSTER_NAMESPACE:9000"
+  SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml" \
+    create_or_replace_cluster "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE" 1 \
+      --set-string "configurations.backupconfig.storage.s3Compatible.endpoint=$BACKUP_ENDPOINT"
 
-  local ENDPOINT="http://restore-backup-minio.$CLUSTER_NAMESPACE-backup:9000"
-  create_or_replace_cluster "$BACKUP_CLUSTER_NAME" "$CLUSTER_NAMESPACE-backup" 1 \
-    --set-string "configurations.backupconfig.storage.s3Compatible.endpoint=$ENDPOINT"
-
-  wait_pods_running "$CLUSTER_NAMESPACE-backup" 2
-  wait_cluster "$BACKUP_CLUSTER_NAME" "$CLUSTER_NAMESPACE-backup"
+  wait_pods_running "$BACKUP_CLUSTER_NAMESPACE" 2
+  wait_cluster "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE"
 
   create_mock_data
 
+  BACKUP_SOURCE_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-backup-0-$(shuf -i 0-65535 -n 1)")"
   BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-backup-0-$(shuf -i 0-65535 -n 1)")"
   ALTER_CLUSTER_NAME="$(get_sgcluster_name "$CLUSTER_NAME-alter")"
 
@@ -25,25 +26,85 @@ e2e_test_install() {
 apiVersion: stackgres.io/v1
 kind: SGBackup
 metadata:
-  namespace: "$CLUSTER_NAMESPACE-backup"
-  name: "$BACKUP_NAME"
+  namespace: "$BACKUP_CLUSTER_NAMESPACE"
+  name: "$BACKUP_SOURCE_NAME"
 spec:
   sgCluster: "$BACKUP_CLUSTER_NAME"
   managedLifecycle: false
 EOF
   
-  wait_until is_backup_phase "Completed"
-
-  kubectl create ns "$CLUSTER_NAMESPACE"
-  kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_NAME" -o json \
-    | jq ".metadata.namespace = \"$CLUSTER_NAMESPACE\"" \
-    | kubectl create -f -
+  wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME" "Completed"
 
   BACKUP_PITR_DATE="$(date +%Y-%m-%dT%H:%M:%SZ --utc)"
   sleep 2
-  create_more_mock_data
 
-  SPEC_VALUES_FILE="$SPEC_FILE.values.yaml"
+  kubectl create ns "$CLUSTER_NAMESPACE"
+}
+
+is_backup_phase() {
+  local NAMESPACE="$1"
+  local NAME="$2"
+  local STATUS="$3"
+  [ "$(kubectl get sgbackup -n "$NAMESPACE" "$NAME" -o=jsonpath='{.status.process.status}')" = "$STATUS" ]
+}
+
+e2e_test_uninstall() {
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" || true
+  helm_cleanup_chart "$BACKUP_CLUSTER_NAME" "$CLUSTER_NAMESPACE" || true
+
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE" || true
+  k8s_async_cleanup_namespace "$BACKUP_CLUSTER_NAMESPACE" || true
+}
+
+e2e_test() {
+  run_test "Check that backup can be copied across namespaces" check_backup_can_be_copied_from_another_namespace
+  run_test "Check that backup can be restored" check_backup_can_be_restored
+  run_test "Check that data was restored on primary node" check_init_data_after_restore
+  run_test "Check that data was restored on replica node" check_replica_data_after_restore
+  run_test "Check that replication is still working aster restore" check_replication_after_restore
+  run_test "Check that backup is compatible with cluster" check_backup_pg_version
+  run_test "Check that restore default values" check_restore_default_values
+  run_test "Check that restore using PITR" check_restore_using_pitr
+  run_test "Check that after deleting original backup the backup is not deleted if a copy exists" \
+    check_delete_original_backup_dont_delete_backup_if_copy_exists
+  run_test "Check that after deleting backup copy the backup is deleted" check_delete_backup_copy_delete_backup
+  run_test "Check that cluster keep working after backup is removed" check_delete_backup_dont_require_restart
+}
+
+create_mock_data() {
+  run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -q "CREATE DATABASE test;"
+  run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "CREATE TABLE fibonacci(num integer);"
+  run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (1);"
+  run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (2);"
+  run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (3);"
+}
+
+create_more_mock_data() {
+  run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (5);"
+  run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (8);"
+  run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (13);"
+  CURRENT_WAL_FILE="$(run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" \
+    -q "SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r")"
+  run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "CHECKPOINT;"
+  wait_until -t "$((E2E_TIMEOUT / 10))" eval '[ "$(run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" \
+    -q "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
+  wait_until -t "$((E2E_TIMEOUT / 10))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
+    kubectl exec -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME-0" -c patroni -- \
+    exec-with-env backup -- wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
+}
+
+check_backup_can_be_copied_from_another_namespace() {
+  kubectl get secret -n "$BACKUP_CLUSTER_NAMESPACE" "$MINIO_NAME" -o json \
+    | jq ".metadata.namespace = \"$CLUSTER_NAMESPACE\"" \
+    | kubectl create -f -
+  kubectl get sgbackups.stackgres.io -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME" -o json \
+    | jq ".metadata.namespace = \"$CLUSTER_NAMESPACE\" | .metadata.name = \"$BACKUP_NAME\"" \
+    | jq ".spec.sgCluster = \"$BACKUP_CLUSTER_NAMESPACE.\" + .spec.sgCluster" \
+    | kubectl create -f -
+}
+
+check_backup_can_be_restored() {
+  create_more_mock_data
 
   kubectl create namespace "$CLUSTER_NAMESPACE" || true
 
@@ -54,51 +115,11 @@ EOF
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
-is_backup_phase() {
-  [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
-}
-
-e2e_test_uninstall() {
-  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" || true
-  helm_cleanup_chart "$BACKUP_CLUSTER_NAME" "$CLUSTER_NAMESPACE" || true
-
-  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE" || true
-  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE-backup" || true
-}
-
-e2e_test() {
-  run_test "Check that data was restored on primary node" check_init_data_after_restore
-  run_test "Check that data was restored on replica node" check_replica_data_after_restore
-  run_test "Check that replication is still working aster restore" check_replication_after_restore
-  run_test "Check that backup is compatible with cluster" check_backup_pg_version
-  run_test "Check that restore default values" check_restore_default_values
-  run_test "Check that restore using PITR" check_restore_using_pitr
-}
-
-create_mock_data() {
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -q "CREATE DATABASE test;"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "CREATE TABLE fibonacci(num integer);"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (1);"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (2);"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (3);"
-}
-
-create_more_mock_data() {
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (5);"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (8);"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (13);"
-  CURRENT_WAL_FILE="$(run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" \
-    -q "SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r")"
-  run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "CHECKPOINT;"
-  wait_until -t "$((E2E_TIMEOUT / 10))" eval '[ "$(run_query -p 5432 -i 0 -n "$CLUSTER_NAMESPACE-backup" -c "$BACKUP_CLUSTER_NAME" -d "test" \
-    -q "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
-  wait_until -t "$((E2E_TIMEOUT / 10))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
-    kubectl exec -n "$CLUSTER_NAMESPACE-backup" "$BACKUP_CLUSTER_NAME-0" -c patroni -- \
-    exec-with-env backup -- wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
-}
-
 check_init_data_after_restore() {
-  if run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" -q " SELECT num FROM fibonacci ORDER BY num;" \
+  local RESULT
+  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
+    -q " SELECT num FROM fibonacci ORDER BY num;")"
+  if printf '%s' "$RESULT" \
     | tr -d '\n' \
     | grep -q "^1235813$"
   then
@@ -111,7 +132,10 @@ check_init_data_after_restore() {
 }
 
 check_replica_data_after_restore() {
-  if run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" -q " SELECT num FROM fibonacci ORDER BY num;" \
+  local RESULT
+  RESULT="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
+    -q " SELECT num FROM fibonacci ORDER BY num;")"
+  if printf '%s' "$RESULT" \
     | tr -d '\n' \
     | grep -q "^1235813$"
   then
@@ -152,7 +176,7 @@ check_replication_after_restore() {
 }
 
 check_backup_pg_version() {
-  ALTERNATIVE_PG_VERSION="12.6"
+  ALTERNATIVE_PG_VERSION="12.9"
   ALTERNATIVE_MAYOR_PG_VERSION="${ALTERNATIVE_PG_VERSION%.*}"
 
   cat << EOF | kubectl apply -f -
@@ -196,7 +220,7 @@ EOF
     echo "SUCCESS: Cluster was not created"
   fi
 
-  if echo "$ERROR_MESSAGE" | grep -q "Cannot restore from backup $BACKUP_UID"
+  if echo "$ERROR_MESSAGE" | grep -q "Cannot restore from backup $BACKUP_NAME"
   then
     echo "SUCCESS: Error message was the expected"
   else 
@@ -236,7 +260,8 @@ assert_default_value(){
   local FIELD="$1"
   local EXPECTED_VALUE="$2"
 
-  if ACTUAL_VALUE="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath="{.spec.initialData.restore.$FIELD}")"
+  if ACTUAL_VALUE="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    -o=jsonpath="{.spec.initialData.restore.$FIELD}")"
   then
     if [ "$ACTUAL_VALUE" = "$EXPECTED_VALUE" ]
     then
@@ -254,14 +279,17 @@ assert_default_value(){
 
 check_restore_using_pitr() {
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set-string cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
     --set-string cluster.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp="$BACKUP_PITR_DATE"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 1
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  if run_query -p 5432 -i 0 -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" -q " SELECT num FROM fibonacci ORDER BY num;" \
+  local RESULT
+  RESULT="$(run_query -p 5432 -i 0 -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
+    -q " SELECT num FROM fibonacci ORDER BY num;")"
+  if printf '%s' "$RESULT" \
     | tr -d '\n' \
     | grep -q "^123$"
   then
@@ -272,3 +300,106 @@ check_restore_using_pitr() {
   fi
 }
 
+check_delete_original_backup_dont_delete_backup_if_copy_exists() {
+  BACKUP_INTERNAL_NAME="$(kubectl get sgbackups.stackgres.io -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME"\
+    --template '{{ .status.internalName }}')"
+  kubectl delete sgbackups.stackgres.io -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME"
+  BACKUP_NEW_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-backup-2-$(shuf -i 0-65535 -n 1)")"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGBackup
+metadata:
+  namespace: "$BACKUP_CLUSTER_NAMESPACE"
+  name: "$BACKUP_NEW_NAME"
+spec:
+  sgCluster: "$BACKUP_CLUSTER_NAME"
+  managedLifecycle: false
+EOF
+
+  wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_NEW_NAME" "Completed"
+
+  BACKUP_LIST="$(kubectl exec -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME-0" -c patroni -- \
+    exec-with-env backup -- wal-g backup-list --json)"
+  if echo "$BACKUP_LIST" | jq -r '.[].backup_name' | grep -qxF "$BACKUP_INTERNAL_NAME"
+  then
+    echo "SUCCESS. Backup was not removed when a copy still exists"
+  else
+    echo "FAIL. Backup was removed when a copy still exists"
+    return 1
+  fi
+}
+
+check_delete_backup_copy_delete_backup() {
+  BACKUP_INTERNAL_NAME="$(kubectl get sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"\
+    --template '{{ .status.internalName }}')"
+  kubectl delete sgbackups.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
+  BACKUP_NEW_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-backup-3-$(shuf -i 0-65535 -n 1)")"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGBackup
+metadata:
+  namespace: "$BACKUP_CLUSTER_NAMESPACE"
+  name: "$BACKUP_NEW_NAME"
+spec:
+  sgCluster: "$BACKUP_CLUSTER_NAME"
+  managedLifecycle: false
+EOF
+
+  wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_NEW_NAME" "Completed"
+
+  BACKUP_LIST="$(kubectl exec -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME-0" -c patroni -- \
+    exec-with-env backup -- wal-g backup-list --json)"
+  if echo "$BACKUP_LIST" | jq -r '.[].backup_name' | grep -qxF "$BACKUP_INTERNAL_NAME"
+  then
+    echo "FAIL. Backup was not removed when no copy exists"
+    return 1
+  else
+    echo "SUCCESS. Backup was removed when no copy exists"
+  fi
+}
+
+check_delete_backup_dont_require_restart() {
+  if ! wait_until -t 16 eval '
+    kubectl wait sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+      --for=condition=PendingRestart --timeout 0'
+  then
+    echo "SUCCESS: Cluster is not pending restart."
+  else
+    echo "FAIL: Cluster is pending restart."
+    return 1
+  fi
+
+  kubectl patch sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    --patch '[{"op":"replace","path":"/spec/instances","value":1}]'
+
+  if wait_until eval '[ "$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath="{.status.replicas}")" -eq 1 ]'
+  then
+    echo "SUCCESS: Cluster is still reconciled."
+  else
+    echo "FAIL: Cluster is not reconciled."
+    return 1
+  fi
+
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
+
+  local RESULT
+  local EXIT_CODE
+  try_function wait_pods_running "$CLUSTER_NAMESPACE" 1
+  if "$RESULT"
+  then
+    echo "SUCCESS: Cluster can be restarted."
+  else
+    echo "FAIL: Cluster can not be restarted."
+    return 1
+  fi
+  try_function wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  if "$RESULT"
+  then
+    echo "SUCCESS: Cluster primary has been elected."
+  else
+    echo "FAIL: Cluster primary has not been elected."
+    return 1
+  fi
+}
