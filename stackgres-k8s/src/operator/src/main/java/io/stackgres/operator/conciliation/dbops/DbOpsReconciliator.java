@@ -53,8 +53,8 @@ public class DbOpsReconciliator
 
   @Override
   public void onPostReconciliation(StackGresDbOps config) {
-    dbOpsScheduler.updateStatus(config,
-        StackGresDbOps::getStatus, (targetDbOps, status) -> {
+    dbOpsScheduler.update(config,
+        (targetDbOps, dbOps) -> {
           statusManager.refreshCondition(targetDbOps);
         });
   }

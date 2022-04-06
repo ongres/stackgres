@@ -15,12 +15,12 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.DbOpsUtil;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 import org.slf4j.Logger;
@@ -33,11 +33,11 @@ public class DbOpsStatusManager
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbOpsStatusManager.class);
 
-  private final KubernetesClient client;
+  private final ResourceFinder<Job> jobFinder;
 
   @Inject
-  public DbOpsStatusManager(KubernetesClient client) {
-    this.client = client;
+  public DbOpsStatusManager(ResourceFinder<Job> jobFinder) {
+    this.jobFinder = jobFinder;
   }
 
   private static String getDbOpsId(StackGresDbOps dbOps) {
@@ -51,7 +51,11 @@ public class DbOpsStatusManager
           + " is neither completed or failed", getDbOpsId(source));
       updateCondition(getFalseRunning(), source);
       updateCondition(getFalseCompleted(), source);
-      updateCondition(getFailed(), source);
+      updateCondition(getFailedDueToUnexpectedFailure(), source);
+      source.getStatus().setOpRetries(Optional.of(source.getStatus())
+          .map(StackGresDbOpsStatus::getOpRetries)
+          .map(opRetries -> opRetries + 1)
+          .orElse(0));
     }
     return source;
   }
@@ -69,17 +73,17 @@ public class DbOpsStatusManager
         .anyMatch(condition -> Objects.equals(condition.getStatus(), "True"))) {
       return false;
     }
-    Optional<Job> job = Optional.ofNullable(client.batch().v1().jobs()
-        .inNamespace(source.getMetadata().getNamespace())
-        .withName(DbOpsUtil.jobName(source))
-        .get());
+    Optional<Job> job = jobFinder.findByNameAndNamespace(
+        DbOpsUtil.jobName(source),
+        source.getMetadata().getNamespace());
     return job
         .map(Job::getStatus)
         .map(JobStatus::getConditions)
         .stream()
         .flatMap(List::stream)
-        .anyMatch(condition -> Objects.equals(condition.getType(), "Failed")
-            && Objects.equals(condition.getStatus(), "True"));
+        .filter(condition -> Objects.equals(condition.getType(), "Failed")
+            || Objects.equals(condition.getType(), "Completed"))
+        .anyMatch(condition -> Objects.equals(condition.getStatus(), "True"));
   }
 
   protected StackGresDbOpsCondition getFalseRunning() {
@@ -90,8 +94,10 @@ public class DbOpsStatusManager
     return DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition();
   }
 
-  protected StackGresDbOpsCondition getFailed() {
-    return DbOpsStatusCondition.DB_OPS_FAILED.getCondition();
+  protected StackGresDbOpsCondition getFailedDueToUnexpectedFailure() {
+    var failed = DbOpsStatusCondition.DB_OPS_FAILED.getCondition();
+    failed.setMessage("Unexpected failure");
+    return failed;
   }
 
   @Override
