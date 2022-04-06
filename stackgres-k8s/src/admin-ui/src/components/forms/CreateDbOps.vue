@@ -371,6 +371,12 @@
                                 </div>
 
                                 <div class="col">
+                                    <label for="spec.majorVersionUpgrade.backupPath">Backup Path</label>
+                                    <input v-model="majorVersionUpgrade.backupPath" data-field="spec.majorVersionUpgrade.backupPath" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.backupPath')"></span>
+                                </div>
+
+                                <div class="col">
                                     <label for="spec.majorVersionUpgrade.postgresVersion">Target Postgres Version <span class="req">*</span></label>
                                     <select v-model="majorVersionUpgrade.postgresVersion" required data-field="spec.majorVersionUpgrade.postgresVersion">
                                         <option disabled value="">Choose version...</option>
@@ -732,6 +738,7 @@
                     link: false,
                     clone: false,
                     check: false,
+                    backupPath: '',
                     postgresVersion: '',
                     sgPostgresConfig: ''
                 },

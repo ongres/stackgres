@@ -596,6 +596,15 @@
 										</div>
 									</td>
 								</tr>
+								<tr v-if="hasProp(back, 'data.status.backupPath')">
+									<td class="label">
+										Backup Path
+										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupPath')"></span>
+									</td>
+									<td>
+										{{ back.data.status.backupPath }}
+									</td>
+								</tr>
 							</tbody>
 						</table>
 					</template>

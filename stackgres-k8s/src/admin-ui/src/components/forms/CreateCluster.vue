@@ -293,6 +293,11 @@
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgBackupConfig')"></span>
                         </div>
+                        <div class="col" v-if="backupConfig.length">
+                            <label for="spec.configurations.backupPath">Backups Path</label>
+                            <input v-model="backupPath" data-field="spec.configurations.backupPath" autocomplete="off">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backupPath')"></span>
+                        </div>
                     </div>
                 </div>
             </fieldset>
@@ -1381,6 +1386,7 @@
                 pitr: '',
                 downloadDiskConcurrency: '',
                 backupConfig: '',
+                backupPath: '',
                 distributedLogs: '',
                 retention: '',
                 prometheusAutobind: false,
@@ -1547,6 +1553,7 @@
                             vm.connPooling = !c.data.spec.pods.disableConnectionPooling,
                             vm.connectionPoolingConfig = (typeof c.data.spec.configurations.sgPoolingConfig !== 'undefined') ? c.data.spec.configurations.sgPoolingConfig : '';
                             vm.backupConfig = (typeof c.data.spec.configurations.sgBackupConfig !== 'undefined') ? c.data.spec.configurations.sgBackupConfig : '';
+                            vm.backupPath = (typeof c.data.spec.configurations.backupPath !== 'undefined') ? c.data.spec.configurations.backupPath : '';
                             vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
                             vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
                             vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
@@ -1762,7 +1769,12 @@
                             ...( (this.pgConfig.length || this.backupConfig.length || this.connectionPoolingConfig.length) && ({
                                 "configurations": {
                                     ...(this.pgConfig.length && ( {"sgPostgresConfig": this.pgConfig }) ),
-                                    ...(this.backupConfig.length && ( {"sgBackupConfig": this.backupConfig }) ),
+                                    ...(this.backupConfig.length && ( {
+                                        "sgBackupConfig": this.backupConfig,
+                                        ...(this.backupPath.length && ( {
+                                            "backupPath": this.backupPath                                             
+                                        }) )
+                                    }) ),
                                     ...(this.connectionPoolingConfig.length && ( {"sgPoolingConfig": this.connectionPoolingConfig }) ),
                                 }
                             }) ),

@@ -138,6 +138,14 @@
                                         </router-link>
                                     </span>
                                 </li>
+                                <li v-if="hasProp(cluster, 'data.spec.configurations.backupPath')">
+                                    <strong class="label">
+                                        Backup Path:
+                                    </strong>
+                                    <span class="value">
+                                        {{ cluster.data.spec.configurations.backupPath }}
+                                    </span>
+                                </li>
                             </ul>
                         </li>
                     </ul>
