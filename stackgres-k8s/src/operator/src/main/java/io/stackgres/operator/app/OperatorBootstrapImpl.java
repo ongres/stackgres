@@ -21,7 +21,6 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.operator.initialization.InitializationQueue;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,14 +31,11 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
   private static final Logger LOGGER = LoggerFactory.getLogger(OperatorBootstrapImpl.class);
 
   private final KubernetesClient client;
-  private final InitializationQueue initializationQueue;
 
   @Inject
   public OperatorBootstrapImpl(
-      KubernetesClient client,
-      InitializationQueue initializationQueue) {
+      KubernetesClient client) {
     this.client = client;
-    this.initializationQueue = initializationQueue;
   }
 
   @Override
@@ -60,8 +56,6 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
           || !hasCustomResource(client, StackGresDbOps.class)) {
         throw new RuntimeException("Some required CRDs does not exists");
       }
-
-      initializationQueue.start();
 
     } catch (KubernetesClientException e) {
       if (e.getCause() instanceof SocketTimeoutException) {
