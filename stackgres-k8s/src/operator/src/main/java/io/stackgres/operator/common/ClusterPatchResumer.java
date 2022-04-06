@@ -16,7 +16,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 public class ClusterPatchResumer extends PatchResumer<StackGresCluster> {
 
-  public ClusterPatchResumer(ComparisonDelegator<?> resourceComparator) {
+  public ClusterPatchResumer(ComparisonDelegator<StackGresCluster> resourceComparator) {
     super(resourceComparator);
   }
 
