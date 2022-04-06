@@ -25,6 +25,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationGroup;
+import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitr;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -776,5 +777,50 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     checkErrorCause(StackGresClusterReplication.class,
         "spec.replication.syncInstances",
         review, Min.class, "must be greater than or equal to 1");
+  }
+
+  @Test
+  void givenInvalidPitrRestoreTimestamp_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setPointInTimeRecovery(new StackGresClusterRestorePitr());
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .getPointInTimeRecovery().setRestoreToTimestamp("mié 06 abr 2022 17:27:22 CEST");
+
+    checkErrorCause(StackGresClusterRestorePitr.class,
+        "spec.initData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp",
+        "isRestoreToTimestampValid",
+        review, AssertTrue.class,
+        "restoreToTimestamp must be in ISO 8601 date format: `YYYY-MM-DDThh:mm:ss.ddZ`.");
+  }
+
+  @Test
+  void givenBothRestoreBakcupNameAndUid_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setName("test");
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setUid("test");
+
+    checkErrorCause(StackGresClusterRestorePitr.class,
+        "spec.initData.restore.fromBackup.name",
+        "isNameNotNullOrUidNotNull",
+        review, AssertTrue.class,
+        "name cannot be null");
+  }
+
+  @Test
+  void givenMissingRestoreBakcupNameAndUid_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setName(null);
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setUid(null);
+
+    checkErrorCause(StackGresClusterRestorePitr.class,
+        "spec.initData.restore.fromBackup.name",
+        "isNameNotNullOrUidNotNull",
+        review, AssertTrue.class,
+        "name cannot be null");
   }
 }

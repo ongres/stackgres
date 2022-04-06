@@ -22,6 +22,7 @@ import io.stackgres.common.StackGresUtil;
 public class StackGresClusterInitData {
 
   @JsonProperty("restore")
+  @Valid
   private StackGresClusterRestore restore;
 
   @JsonProperty("scripts")
