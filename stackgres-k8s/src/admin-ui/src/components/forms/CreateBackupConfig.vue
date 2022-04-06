@@ -211,12 +211,6 @@
                             
                             <template v-if="advancedModeStorage">
                                 <div class="col">
-                                    <label for="spec.storage.s3.path">Path</label>
-                                    <input v-model="backupS3Path" data-field="spec.storage.s3.path">
-                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.path')"></span>
-                                </div>
-
-                                <div class="col">
                                     <label for="spec.storage.s3.region">Region</label>
                                     <input v-model="backupS3Region" data-field="spec.storage.s3.region">
                                     <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3.region')"></span>
@@ -261,12 +255,6 @@
 
                             <template v-if="advancedModeStorage">
                                 
-                                <div class="col">
-                                    <label for="spec.storage.s3Compatible.path">Path</label>
-                                    <input v-model="backupS3CompatiblePath" data-field="spec.storage.s3Compatible.path">
-                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.path')"></span>
-                                </div>
-
                                 <div class="col">
                                     <label for="spec.storage.s3Compatible.endpoint">Endpoint</label>
                                     <input v-model="backupS3CompatibleEndpoint" data-field="spec.storage.s3Compatible.endpoint">
@@ -326,14 +314,6 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.bucket')"></span>
                             </div>
 
-                            <template v-if="advancedModeStorage">
-                                <div class="col">
-                                    <label for="spec.storage.gcs.path">Path</label>
-                                    <input v-model="backupGCSPath" data-field="spec.storage.gcs.path">
-                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.path')"></span>
-                                </div>
-                            </template>
-
                             <div class="col">
                                 <label for="spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService">Fetch Credentials from Metadata Service</label>  
                                 <label for="fetchGCSCredentials" class="switch yes-no">Fetch <input type="checkbox" id="fetchGCSCredentials" v-model="fetchGCSCredentials" data-switch="NO"></label>
@@ -360,14 +340,6 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.bucket')"></span>
                             </div>
                             
-                            <template v-if="advancedModeStorage">
-                                <div class="col">
-                                    <label for="spec.storage.azureBlob.path">Path</label>
-                                    <input v-model="backupAzurePath" data-field="spec.storage.azureBlob.path">
-                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.azureBlob.path')"></span>
-                                </div>
-                            </template>
-                                
                             <div class="col">
                                 <label for="spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount">Account Name <span class="req">*</span></label>
                                 <input v-model="backupAzureAccount" required data-field="spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount">
@@ -444,13 +416,11 @@
                 backupConfigUploadDiskConcurrency: 1,
                 backupConfigStorageType: '',
                 backupS3Bucket: '',
-                backupS3Path: '',
                 backupS3Region: '',
                 backupS3AccessKeyId: '',
                 backupS3SecretAccessKey: '',
                 backupS3StorageClass: '',
                 backupS3CompatibleBucket: '',
-                backupS3CompatiblePath: '',
                 backupS3CompatibleEndpoint: '',
                 backupS3CompatibleRegion: '',
                 backupS3CompatibleAccessKeyId: '',
@@ -458,11 +428,9 @@
                 backupS3CompatibleStorageClass: '',
                 backupS3CompatibleEnablePathStyleAddressing: false,
                 backupGCSBucket: '',
-                backupGCSPath: '',
                 fetchGCSCredentials: false,
                 backupGCSServiceAccountJSON: '',
                 backupAzureBucket: '',
-                backupAzurePath: '',
                 backupAzureAccount: '',
                 backupAzureAccessKey: '',
                 secretKeySelectors: {}
@@ -513,7 +481,6 @@
                             //s3
                             if(config.data.spec.storage.type === 's3') {
                                 vm.backupS3Bucket = config.data.spec.storage.s3.bucket;
-                                vm.backupS3Path =  (typeof config.data.spec.storage.s3.path !== 'undefined') ? config.data.spec.storage.s3.path : '';
                                 vm.backupS3Region =  (typeof config.data.spec.storage.s3.region !== 'undefined') ? config.data.spec.storage.s3.region : '';
                                 vm.backupS3AccessKeyId = vm.hasProp(config, 'data.spec.storage.s3.awsCredentials.secretKeySelectors') ? '******' : '';
                                 vm.backupS3SecretAccessKey = vm.hasProp(config, 'data.spec.storage.s3.awsCredentials.secretKeySelectors') ? '******' : '';
@@ -524,7 +491,6 @@
                             //s3Compatible
                             if(config.data.spec.storage.type === 's3Compatible') {
                                 vm.backupS3CompatibleBucket = config.data.spec.storage.s3Compatible.bucket;
-                                vm.backupS3CompatiblePath = (typeof config.data.spec.storage.s3Compatible.path !== 'undefined') ? config.data.spec.storage.s3Compatible.path : '';
                                 vm.backupS3CompatibleEndpoint = (typeof config.data.spec.storage.s3Compatible.endpoint !== 'undefined') ? config.data.spec.storage.s3Compatible.endpoint : '';
                                 vm.backupS3CompatibleRegion = (typeof config.data.spec.storage.s3Compatible.region !== 'undefined') ? config.data.spec.storage.s3Compatible.region : '';
                                 vm.backupS3CompatibleAccessKeyId = vm.hasProp(config, 'data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors') ? '******' : '';
@@ -537,7 +503,6 @@
                             //gcs
                             if(config.data.spec.storage.type === 'gcs') {
                                 vm.backupGCSBucket = config.data.spec.storage.gcs.bucket;
-                                vm.backupGCSPath = (typeof config.data.spec.storage.gcs.path !== 'undefined') ? config.data.spec.storage.gcs.path : '';
                                 vm.fetchGCSCredentials = vm.hasProp(config, 'data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService') ? config.data.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService : false ;
                                 vm.backupGCSServiceAccountJSON = vm.hasProp(config, 'data.spec.storage.gcs.gcpCredentials.secretKeySelectors') ? '******' : '';
                                 vm.secretKeySelectors = vm.hasProp(config, 'data.spec.storage.gcs.gcpCredentials.secretKeySelectors') ? config.data.spec.storage.gcs.gcpCredentials.secretKeySelectors : {};
@@ -546,7 +511,6 @@
                             //azure
                             if(config.data.spec.storage.type === 'azureBlob') {
                                 vm.backupAzureBucket = config.data.spec.storage.azureBlob.bucket;
-                                vm.backupAzurePath = (typeof config.data.spec.storage.azureBlob.path !== 'undefined') ? config.data.spec.storage.azureBlob.path : '';
                                 vm.backupAzureAccount = vm.hasProp(config, 'data.spec.storage.azureBlob.azureCredentials.secretKeySelectors') ? '******' : '';
                                 vm.backupAzureAccessKey = vm.hasProp(config, 'data.spec.storage.azureBlob.azureCredentials.secretKeySelectors') ? '******' : '';
                                 vm.secretKeySelectors = vm.hasProp(config, 'data.spec.storage.azureBlob.azureCredentials.secretKeySelectors') ? config.data.spec.storage.azureBlob.azureCredentials.secretKeySelectors : {};
@@ -581,7 +545,6 @@
                         case 's3':
                             storage['s3'] = {
                                 "bucket": this.backupS3Bucket,
-                                ...( ((typeof this.backupS3Path !== 'undefined') && this.backupS3Path.length ) && ( {"path": this.backupS3Path }) ),
                                 ...( ((typeof this.backupS3Region !== 'undefined') && this.backupS3Region.length ) && ( {"region": this.backupS3Region }) ),
                                 ...( ((typeof this.backupS3StorageClass !== 'undefined') && this.backupS3StorageClass.length ) && ( {"storageClass": this.backupS3StorageClass }) ),
                                 "awsCredentials": {
@@ -596,7 +559,6 @@
                         case 's3Compatible':
                             storage['s3Compatible'] = {
                                 "bucket": this.backupS3CompatibleBucket,
-                                ...( ((typeof this.backupS3CompatiblePath !== 'undefined') && this.backupS3CompatiblePath.length ) && ( {"path": this.backupS3CompatiblePath }) ),
                                 ...( ((typeof this.backupS3CompatibleEnablePathStyleAddressing !== 'undefined') && this.backupS3CompatibleEnablePathStyleAddressing ) && ( {"enablePathStyleAddressing": this.backupS3CompatibleEnablePathStyleAddressing }) ),
                                 ...( ((typeof this.backupS3CompatibleEndpoint !== 'undefined') && this.backupS3CompatibleEndpoint.length ) && ( {"endpoint": this.backupS3CompatibleEndpoint }) ),
                                 ...( ((typeof this.backupS3CompatibleRegion !== 'undefined') && this.backupS3CompatibleRegion.length ) && ( {"region": this.backupS3CompatibleRegion }) ),
@@ -613,7 +575,6 @@
                         case 'gcs':
                             storage['gcs'] = {
                                 "bucket": this.backupGCSBucket,
-                                ...( ((typeof this.backupGCSPath !== 'undefined') && this.backupGCSPath.length ) && ( {"path": this.backupGCSPath }) ),
                                 "gcpCredentials": {
                                     ...( this.fetchGCSCredentials && {
                                         "fetchCredentialsFromMetadataService": true
@@ -634,7 +595,6 @@
                         case 'azureBlob':
                             storage['azureBlob'] = {
                                 "bucket": this.backupAzureBucket,
-                                ...( ((typeof this.backupAzurePath !== 'undefined') && this.backupAzurePath.length ) && ( {"path": this.backupAzurePath }) ),
                                 "azureCredentials": {
                                     ...( ( (this.editMode && (this.backupAzureAccount != '******')) || (!this.editMode) ) && ( { "storageAccount": this.backupAzureAccount}) ),
                                     ...( ( (this.editMode && (this.backupAzureAccessKey != '******')) || (!this.editMode) ) && ( { "accessKey": this.backupAzureAccessKey}) ),
