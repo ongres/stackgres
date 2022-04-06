@@ -327,7 +327,7 @@ check_backup_retention() {
         and .status.backupInformation.sourcePod != null
         and .status.process.status == "Completed"
         and .status.backupInformation.sourcePod == "'"${CLUSTER_NAME}-${NODE}"'"
-        ).metadata.name'
+        ).metadata.name' \
       | head -n 1)"
 
   if wait_until -t "$((E2E_TIMEOUT * 2))" eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
