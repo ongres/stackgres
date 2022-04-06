@@ -132,10 +132,15 @@ check_init_data_after_restore() {
 }
 
 check_replica_data_after_restore() {
-  local RESULT
-  RESULT="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
-    -q " SELECT num FROM fibonacci ORDER BY num;")"
-  if printf '%s' "$RESULT" \
+  local EXIT_CODE RESULT
+  try_function wait_until run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" -q 'SELECT 1'
+  local QUERY_RESULT
+  if "$RESULT"
+  then
+    QUERY_RESULT="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
+      -q " SELECT num FROM fibonacci ORDER BY num;")"
+  fi
+  if "$RESULT" && printf '%s' "$QUERY_RESULT" \
     | tr -d '\n' \
     | grep -q "^1235813$"
   then

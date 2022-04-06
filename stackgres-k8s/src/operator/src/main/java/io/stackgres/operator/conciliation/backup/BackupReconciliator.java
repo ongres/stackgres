@@ -60,8 +60,8 @@ public class BackupReconciliator
 
   @Override
   public void onPreReconciliation(StackGresBackup config) {
-    backupScheduler.updateStatus(config,
-        StackGresBackup::getStatus, (targetBackup, status) -> {
+    backupScheduler.update(config,
+        (targetBackup, backup) -> {
           statusManager.refreshCondition(targetBackup);
         });
 
