@@ -99,6 +99,17 @@ describe('Create SGCluster', () => {
             .click()
         cy.get('ul.extensionsList li.extension:nth-child(6) input.enableExtension')
             .click()
+
+        // Test managed backups configuration
+        cy.get('form#createCluster li[data-step="backups"]')
+            .click()
+        
+        cy.get('select[data-field="spec.configurations.sgBackupConfig"]') 
+            .select('backupconf')
+        
+        cy.get('input[data-field="spec.configurations.backupPath"]')
+            .clear()
+            .type('/test/backup/path')
         
         // Test data initialization
         cy.get('form#createCluster li[data-step="initialization"]')
