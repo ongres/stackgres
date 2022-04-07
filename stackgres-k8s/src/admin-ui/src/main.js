@@ -472,17 +472,22 @@ $(document).ready(function(){
 
   $(document).on('click mouseover','[data-tooltip]', function(e){
     if((e.type == 'click') || $(this).hasClass('onHover')) {
+      let offset = $(this).offset();
+      let maxHeight = window.innerHeight - (offset.top - window.scrollY) - 50
+
       if( (window.innerWidth - e.clientX) > 420 ) {
         $('#helpTooltip').css({
           "top": e.clientY+10, 
           "right": "auto",
-          "left": e.clientX+10
+          "left": e.clientX+10,
+          "max-height": maxHeight
         })
       } else {
         $('#helpTooltip').css({
           "top": e.clientY+10, 
           "left": "auto",
-          "right": window.innerWidth - e.clientX + 10
+          "right": window.innerWidth - e.clientX + 10,
+          "max-height": maxHeight
         })
       }
     
