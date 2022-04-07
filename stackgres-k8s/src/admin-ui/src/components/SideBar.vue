@@ -446,7 +446,7 @@
 		padding-left: 50px;
 	}
 
-	#side h3, #side h4 {
+	h3, h4 {
 		display: inline-block;
 		margin-bottom: 20px;
 		position: relative;
