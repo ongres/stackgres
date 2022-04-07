@@ -264,12 +264,13 @@ EOF
     if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template="{{ .status.process.status }}" \
       | grep -q "^$BACKUP_PHASE_COMPLETED$"
     then
+      DRY_RUN_CLIENT=$(kubectl version --client=true -o json | jq -r 'if (.clientVersion.minor | tonumber) < 18 then "true" else "client" end')
       echo "Updating backup CR"
       kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o yaml --type merge --patch "$(
         (
           kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o yaml
           echo "$BACKUP_STATUS_YAML"
-        ) | kubectl create --dry-run=client -f - -o json)"
+        ) | kubectl create --dry-run=$DRY_RUN_CLIENT -f - -o json)"
     else
       BACKUP_ALREADY_COMPLETED=true
     fi

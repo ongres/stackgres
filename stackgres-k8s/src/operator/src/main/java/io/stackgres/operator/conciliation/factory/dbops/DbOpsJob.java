@@ -27,9 +27,9 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.DbOpsUtil;
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
@@ -52,6 +52,9 @@ public abstract class DbOpsJob implements JobFactory {
   private final ImmutableMap<DbOpsStatusCondition, String> conditions;
   protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
   protected final LabelFactoryForDbOps dbOpsLabelFactory;
+
+  @Inject
+  KubectlUtil kubectl;
 
   @Inject
   protected DbOpsJob(ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
@@ -98,8 +101,7 @@ public abstract class DbOpsJob implements JobFactory {
   protected abstract ClusterStatefulSetPath getRunScript();
 
   protected String getSetResultImage(StackGresDbOpsContext context) {
-    return StackGresComponent.KUBECTL.get(context.getCluster())
-        .findLatestImageName();
+    return kubectl.getImageName(context.getCluster());
   }
 
   protected ClusterStatefulSetPath getSetResultScript() {
@@ -266,8 +268,7 @@ public abstract class DbOpsJob implements JobFactory {
                 .build(),
             new ContainerBuilder()
                 .withName("set-dbops-result")
-                .withImage(StackGresComponent.KUBECTL.get(context.getCluster())
-                    .findLatestImageName())
+                .withImage(kubectl.getImageName(context.getCluster()))
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterEnvironmentVariables
@@ -314,6 +315,10 @@ public abstract class DbOpsJob implements JobFactory {
                             .withValue(Seq.seq(labels)
                                 .append(Tuple.tuple("job-name", jobName(dbOps)))
                                 .map(t -> t.v1 + "=" + t.v2).toString(","))
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("HOME")
+                            .withValue("/tmp")
                             .build())
                     .addAll(Seq.of(DbOpsStatusCondition.values())
                         .map(c -> new EnvVarBuilder()

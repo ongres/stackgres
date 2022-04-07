@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
@@ -41,6 +41,9 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerC
   private final VolumeMountsProvider<ContainerContext> templateMounts;
 
   @Inject
+  KubectlUtil kubectl;
+
+  @Inject
   public ScriptsSetUp(
       @ProviderName(CONTAINER_USER_OVERRIDE)
           VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
@@ -57,13 +60,13 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerC
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
         .withName("setup-scripts")
-        .withImage(StackGresComponent.KUBECTL.get(context.getClusterContext().getCluster())
-            .findLatestImageName())
+        .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
                 + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename())
         .withEnv(getClusterEnvVars(context))
+        .addToEnv(new EnvVarBuilder().withName("HOME").withValue("/tmp").build())
         .withVolumeMounts(templateMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(localBinMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))

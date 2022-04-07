@@ -31,9 +31,9 @@ import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpecBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
@@ -66,6 +66,9 @@ public class BackupCronJob
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory;
+
+  @Inject
+  KubectlUtil kubectl;
 
   @Inject
   public BackupCronJob(
@@ -135,7 +138,7 @@ public class BackupCronJob
             .withServiceAccountName(BackupCronRole.roleName(context))
             .withContainers(new ContainerBuilder()
                 .withName("create-backup")
-                .withImage(StackGresComponent.KUBECTL.get(cluster).findLatestImageName())
+                .withImage(kubectl.getImageName(cluster))
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(getClusterEnvVars(context))
@@ -253,6 +256,10 @@ public class BackupCronJob
                         new EnvVarBuilder()
                             .withName("WINDOW")
                             .withValue("3600")
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("HOME")
+                            .withValue("/tmp")
                             .build())
                     .build())
                 .withCommand("/bin/bash", "-e" + (BACKUP_LOGGER.isTraceEnabled() ? "x" : ""),

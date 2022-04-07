@@ -31,10 +31,10 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForBackup;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackgresClusterContainers;
@@ -75,13 +75,14 @@ public class BackupJob
   private final ResourceFactory<StackGresBackupContext, PodSecurityContext> podSecurityFactory;
 
   @Inject
+  KubectlUtil kubectl;
+
+  @Inject
   public BackupJob(
-      ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
-        clusterEnvVarFactoryDiscoverer,
+      ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> clusterEnvVarFactoryDiscoverer,
       LabelFactoryForBackup labelFactory,
       LabelFactoryForCluster<StackGresCluster> labelFactoryForCluster,
-      ResourceFactory<StackGresBackupContext,
-      PodSecurityContext> podSecurityFactory) {
+      ResourceFactory<StackGresBackupContext, PodSecurityContext> podSecurityFactory) {
     super();
     this.clusterEnvVarFactoryDiscoverer = clusterEnvVarFactoryDiscoverer;
     this.labelFactory = labelFactory;
@@ -124,10 +125,10 @@ public class BackupJob
 
   private Boolean isBackupJobCompleted(StackGresBackupContext context) {
     return Optional.ofNullable(context.getSource().getStatus())
-            .map(StackGresBackupStatus::getProcess)
-            .map(StackGresBackupProcess::getStatus)
-            .map(status -> status.equals(BackupPhase.COMPLETED.label()))
-            .orElse(false);
+        .map(StackGresBackupStatus::getProcess)
+        .map(StackGresBackupProcess::getStatus)
+        .map(status -> status.equals(BackupPhase.COMPLETED.label()))
+        .orElse(false);
   }
 
   private boolean isScheduledBackupJob(StackGresBackupContext context) {
@@ -148,8 +149,7 @@ public class BackupJob
     Map<String, String> labels = labelFactory.backupPodLabels(context.getSource());
     final VolumeMount utilsVolumeMount = ClusterStatefulSetVolumeConfig.TEMPLATES
         .volumeMount(context, volumeMountBuilder -> volumeMountBuilder
-            .withSubPath(ClusterStatefulSetPath
-                .LOCAL_BIN_SHELL_UTILS_PATH.filename())
+            .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
             .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
             .withReadOnly(true));
     final VolumeMount backupVolumeMount = ClusterStatefulSetVolumeConfig.TEMPLATES
@@ -181,7 +181,7 @@ public class BackupJob
         .withServiceAccountName(BackupCronRole.roleName(context.getCluster()))
         .withContainers(new ContainerBuilder()
             .withName("create-backup")
-            .withImage(StackGresComponent.KUBECTL.get(context.getCluster()).findLatestImageName())
+            .withImage(kubectl.getImageName(context.getCluster()))
             .withImagePullPolicy("IfNotPresent")
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(getClusterEnvVars(context))
@@ -303,6 +303,10 @@ public class BackupJob
                     new EnvVarBuilder()
                         .withName("WINDOW")
                         .withValue("3600")
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("HOME")
+                        .withValue("/tmp")
                         .build())
                 .build())
             .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
@@ -327,8 +331,8 @@ public class BackupJob
     List<ClusterEnvironmentVariablesFactory<ClusterContext>> clusterEnvVarFactories =
         clusterEnvVarFactoryDiscoverer.discoverFactories(context);
 
-    clusterEnvVarFactories.forEach(envVarFactory ->
-        clusterEnvVars.addAll(envVarFactory.buildEnvironmentVariables(context)));
+    clusterEnvVarFactories.forEach(
+        envVarFactory -> clusterEnvVars.addAll(envVarFactory.buildEnvironmentVariables(context)));
     return clusterEnvVars;
   }
 }

@@ -22,7 +22,6 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -145,6 +144,6 @@ public class DbOpsRepackJob extends DbOpsJob {
 
   @Override
   protected String getRunImage(StackGresDbOpsContext context) {
-    return StackGresComponent.KUBECTL.get(context.getCluster()).findLatestImageName();
+    return kubectl.getImageName(context.getCluster());
   }
 }

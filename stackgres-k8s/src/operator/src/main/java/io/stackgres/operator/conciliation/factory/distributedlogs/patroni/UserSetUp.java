@@ -5,13 +5,15 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
@@ -25,17 +27,21 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 @InitContainer(ClusterInitContainer.USER_SET_UP)
 public class UserSetUp implements ContainerFactory<DistributedLogsContainerContext> {
 
+  @Inject
+  KubectlUtil kubectl;
+
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
         .withName("setup-arbitrary-user")
-        .withImage(StackGresComponent.KUBECTL.get(context.getDistributedLogsContext().getSource())
-            .findLatestImageName())
+        .withImage(kubectl
+            .getImageName(context.getDistributedLogsContext().getSource()))
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
                 + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename())
         .withEnv(PatroniEnvPaths.getEnvVars())
+        .addToEnv(new EnvVarBuilder().withName("HOME").withValue("/tmp").build())
         .withVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StatefulSetDynamicVolumes.SCRIPT_TEMPLATES.getVolumeName())

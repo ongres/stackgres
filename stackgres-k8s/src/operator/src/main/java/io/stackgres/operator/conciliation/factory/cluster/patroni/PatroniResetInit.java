@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -50,6 +50,9 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
   private final VolumeMountsProvider<ContainerContext> templateMounts;
 
   private final ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;
+
+  @Inject
+  KubectlUtil kubectl;
 
   @Inject
   public PatroniResetInit(
@@ -92,8 +95,7 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
     return
         new ContainerBuilder()
             .withName("reset-patroni")
-            .withImage(StackGresComponent.KUBECTL.get(clusterContext.getCluster())
-                .findLatestImageName())
+            .withImage(kubectl.getImageName(clusterContext.getCluster()))
             .withImagePullPolicy("IfNotPresent")
             .withCommand("/bin/sh", "-ex",
                 ClusterStatefulSetPath.TEMPLATES_PATH.path()
@@ -130,6 +132,10 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
                 new EnvVarBuilder()
                     .withName("PATRONI_ENDPOINT_NAME")
                     .withValue(patroniServices.configName(clusterContext))
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("HOME")
+                    .withValue("/tmp")
                     .build())
             .addAllToEnv(patroniEnvironmentVariables.createResource(clusterContext))
             .withVolumeMounts(new VolumeMountBuilder()
