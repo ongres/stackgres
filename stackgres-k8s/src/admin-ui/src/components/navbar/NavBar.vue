@@ -519,7 +519,7 @@
 				if(store.state.loginToken.length > 0)
 					vc.fetchAPI();
 			}.bind(this), 10000);
-				
+	
 			$(document).click(function(event) { 
 				var $target = $(event.target);
 				
