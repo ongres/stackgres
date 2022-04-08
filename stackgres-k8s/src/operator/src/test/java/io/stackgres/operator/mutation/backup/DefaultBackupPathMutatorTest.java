@@ -20,6 +20,7 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.testutil.JsonUtil;
@@ -72,7 +73,7 @@ class DefaultBackupPathMutatorTest {
     assertEquals(
         BackupStorageUtil.getPathPre_1_2(
             backup.getMetadata().getNamespace(),
-            backup.getMetadata().getName(),
+            StackGresUtil.getNameFromRelativeId(backup.getSpec().getSgCluster()),
             backup.getStatus().getBackupConfig().getStorage()),
         actualBackup.getStatus().getBackupPath());
   }

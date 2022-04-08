@@ -14,6 +14,7 @@ import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.BackupStorageUtil;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
@@ -48,6 +49,8 @@ public class DefaultBackupPathMutator implements BackupMutator {
       if (backup.getStatus() != null
           && backup.getStatus().getBackupConfig() != null
           && backup.getStatus().getBackupConfig().getStorage() != null
+          && backup.getSpec() != null
+          && backup.getSpec().getSgCluster() != null
           && status.getBackupPath() == null
           && version <= VERSION_1_1) {
         final String backupPath = getBackupPathPre_1_2(backup);
@@ -63,7 +66,7 @@ public class DefaultBackupPathMutator implements BackupMutator {
   private String getBackupPathPre_1_2(final StackGresBackup backup) {
     return BackupStorageUtil.getPathPre_1_2(
         backup.getMetadata().getNamespace(),
-        backup.getMetadata().getName(),
+        StackGresUtil.getNameFromRelativeId(backup.getSpec().getSgCluster()),
         backup.getStatus().getBackupConfig().getStorage());
   }
 
