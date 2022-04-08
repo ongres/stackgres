@@ -40,8 +40,7 @@ public class BackupConfigTransformer
   @Override
   public StackGresBackupConfig toCustomResource(BackupConfigDto source,
                                                 StackGresBackupConfig original) {
-    StackGresBackupConfig transformation = Optional.ofNullable(original)
-        .orElseGet(StackGresBackupConfig::new);
+    StackGresBackupConfig transformation = new StackGresBackupConfig();
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
     return transformation;

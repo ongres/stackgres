@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.io.CharStreams;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import junit.framework.AssertionFailedError;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.skyscreamer.jsonassert.JSONCompareMode;
@@ -129,15 +130,28 @@ public class JsonUtil {
   }
 
   public static void assertJsonEquals(JsonNode expected, JsonNode actual) {
-    assertJsonEquals(expected.toString(), actual.toString());
+    assertJsonEquals(expected, actual, null);
+  }
+
+  public static void assertJsonEquals(JsonNode expected, JsonNode actual, String message) {
+    assertJsonEquals(expected.toString(), actual.toString(), message);
   }
 
   public static void assertJsonEquals(String expected, String actual) {
+    assertJsonEquals(expected, actual, null);
+  }
+
+  public static void assertJsonEquals(String expected, String actual, String message) {
     try {
       JSONAssert.assertEquals(
           expected, actual, JSONCompareMode.NON_EXTENSIBLE);
     } catch (JSONException ex) {
       throw new RuntimeException(ex);
+    } catch (AssertionError ex) {
+      if (message != null) {
+        throw new AssertionFailedError(message + "\n\n" + ex.getMessage());
+      }
+      throw new AssertionFailedError(ex.getMessage());
     }
   }
 
