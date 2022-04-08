@@ -24,7 +24,7 @@
                 <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgdbops/" target="_blank" title="SGDbOps Documentation">SGDbOps Documentation</a>
                 <div class="crdActionLinks">
                     <template v-if="$route.params.hasOwnProperty('name')">
-                        <a v-if="iCan('delete','sgdbops',$route.params.namespace)" title="Delete Operation" @click="deleteCRD('sgdbops',$route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/sgdbops')">
+                        <a v-if="iCan('delete','sgdbops',$route.params.namespace)" title="Delete Operation" @click="deleteCRD('sgdbops',$route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/sgdbops')" class="deleteCRD">
                             Delete Operation
                         </a>
                         <router-link :to="'/' + $route.params.namespace + '/sgdbops'" title="Close Operation Details">Close Operation Details</router-link>

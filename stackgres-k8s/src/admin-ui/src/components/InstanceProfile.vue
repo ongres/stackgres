@@ -32,7 +32,7 @@
 							<a v-if="iCan('create','sginstanceprofiles',$route.params.namespace)" @click="cloneCRD('SGInstanceProfiles', $route.params.namespace, conf.name)" class="cloneCRD" title="Clone Profile">
 								Clone Profile
 							</a>
-							<a v-if="iCan('delete','sginstanceprofiles',$route.params.namespace)" @click="deleteCRD('sginstanceprofiles',$route.params.namespace, conf.name, '/' + $route.params.namespace + '/sginstanceprofiles')" title="Delete Profile" :class="conf.data.status.clusters.length ? 'disabled' : ''">
+							<a v-if="iCan('delete','sginstanceprofiles',$route.params.namespace)" @click="deleteCRD('sginstanceprofiles',$route.params.namespace, conf.name, '/' + $route.params.namespace + '/sginstanceprofiles')" title="Delete Profile" class="deleteCRD" :class="conf.data.status.clusters.length ? 'disabled' : ''">
 								Delete Profile
 							</a>
 							<router-link :to="'/' + $route.params.namespace + '/sginstanceprofiles'" title="Close Details">Close Details</router-link>
