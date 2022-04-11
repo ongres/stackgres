@@ -793,8 +793,12 @@
 		padding-left: 25px;
 	}
 
-	.collapsed ul.applications .crdName {
+	.collapsed ul.applications .nav-item {
 		padding-left: 0;
+	}
+
+	ul.applications .crdName, ul.applications .nav-item {
+		cursor: default;
 	}
 
 </style>
