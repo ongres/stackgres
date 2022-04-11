@@ -45,8 +45,7 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
   @Inject
   public PatroniApiHandlerImpl(Vertx vertx) {
     this.client = WebClient.create(vertx, new WebClientOptions()
-        .setConnectTimeout((int) Duration.ofSeconds(5).toMillis())
-        .setIdleTimeout((int) Duration.ofSeconds(5).toSeconds()));
+        .setConnectTimeout((int) Duration.ofSeconds(5).toMillis()));
   }
 
   @Override
@@ -60,99 +59,52 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
         .send()
         .onItem()
         .transform(res -> {
-          JsonObject body = res.body();
-          JsonArray membersJson = body.getJsonArray("members");
-          return IntStream.range(0, membersJson.size())
-              .mapToObj(membersJson::getJsonObject)
-              .map(member -> ImmutableClusterMember.builder()
-                  .clusterName(name)
-                  .namespace(namespace)
-                  .name(member.getString("name"))
-                  .state(getStringOrEmpty(member, "state")
-                      .map(this::toMemberState))
-                  .role(getStringOrEmpty(member, "role")
-                      .map(this::toMemberRole))
-                  .apiUrl(getStringOrEmpty(member, "api_url"))
-                  .host(getStringOrEmpty(member, "host"))
-                  .port(getIntegerOrEmpty(member, "port"))
-                  .timeline(getIntegerOrEmpty(member, "timeline"))
-                  .lag(getIntegerOrEmpty(member, "lag"))
-                  .tags(getMapOrEmpty(member, "tags"))
-                  .build())
-              .map(ClusterMember.class::cast)
-              .collect(Collectors.toUnmodifiableList());
-        })
-        .onFailure()
-        .transform(failure -> {
-          LOGGER.info("Can not retrieve cluster members", failure);
-          return failure;
+          if (res.statusCode() == 200) {
+            JsonObject body = res.body();
+            JsonArray membersJson = body.getJsonArray("members");
+            return IntStream.range(0, membersJson.size())
+                .mapToObj(membersJson::getJsonObject)
+                .map(member -> ImmutableClusterMember.builder()
+                    .clusterName(name)
+                    .namespace(namespace)
+                    .name(member.getString("name"))
+                    .state(getStringOrEmpty(member, "state")
+                        .map(this::toMemberState))
+                    .role(getStringOrEmpty(member, "role")
+                        .map(this::toMemberRole))
+                    .apiUrl(getStringOrEmpty(member, "api_url"))
+                    .host(getStringOrEmpty(member, "host"))
+                    .port(getIntegerOrEmpty(member, "port"))
+                    .timeline(getIntegerOrEmpty(member, "timeline"))
+                    .lag(getIntegerOrEmpty(member, "lag"))
+                    .tags(getMapOrEmpty(member, "tags"))
+                    .build())
+                .map(ClusterMember.class::cast)
+                .collect(Collectors.toUnmodifiableList());
+          } else {
+            LOGGER.error("Can not retrieve cluster members with message {}",
+                res.bodyAsString());
+            throw new RuntimeException("status " + res.statusCode() + ": " + res.bodyAsString());
+          }
         });
   }
 
-  private Optional<String> getStringOrEmpty(JsonObject object, String key) {
-    try {
-      return Optional.ofNullable(object.getString(key));
-    } catch (ClassCastException ex) {
-      return Optional.empty();
-    }
-  }
-
-  private Optional<Integer> getIntegerOrEmpty(JsonObject object, String key) {
-    try {
-      return Optional.ofNullable(object.getInteger(key));
-    } catch (ClassCastException ex) {
-      return Optional.empty();
-    }
-  }
-
-  private Optional<Map<String, String>> getMapOrEmpty(JsonObject object, String key) {
-    try {
-      return Optional.ofNullable(object.getJsonObject(key))
-          .map(jsonObject -> Seq.seq(jsonObject.fieldNames())
-              .collect(ImmutableMap.toImmutableMap(
-                  Function.identity(),
-                  name -> jsonObject.getValue(name).toString())));
-    } catch (ClassCastException ex) {
-      return Optional.empty();
-    }
-  }
-
-  private MemberRole toMemberRole(String role) {
-    if (Objects.equals("leader", role) || Objects.equals("master", role)) {
-      return MemberRole.LEADER;
-    } else if (Objects.equals("replica", role)) {
-      return MemberRole.REPlICA;
-    } else {
-      return null;
-    }
-  }
-
-  private MemberState toMemberState(String state) {
-    if (Objects.equals("running", state)) {
-      return MemberState.RUNNING;
-    } else if (Objects.equals("stopped", state)) {
-      return MemberState.STOPPED;
-    } else {
-      return null;
-    }
-  }
-
   @Override
-  public Uni<List<PatroniInformation>> getMembersPatroniInformation(String name, String namespace) {
-
+  public Uni<List<PatroniInformation>> getClusterMembersPatroniInformation(
+      String name, String namespace) {
     final Uni<List<ClusterMember>> clusterMembers = getClusterMembers(name, namespace);
-    return clusterMembers.chain(this::getPatroniInformation);
-
+    return clusterMembers.chain(this::getPatroniInformationForClusterMembers);
   }
 
-  private Uni<List<PatroniInformation>> getPatroniInformation(List<ClusterMember> members) {
-
+  private Uni<List<PatroniInformation>> getPatroniInformationForClusterMembers(
+      List<ClusterMember> members) {
     return Multi.createFrom().iterable(members)
-        .onItem().transformToUniAndConcatenate(this::getPatroniInformation)
+        .onItem().transformToUniAndConcatenate(this::getClusterMemberPatroniInformation)
         .collect().asList();
   }
 
-  private Uni<PatroniInformation> getPatroniInformation(ClusterMember member) {
+  @Override
+  public Uni<PatroniInformation> getClusterMemberPatroniInformation(ClusterMember member) {
     URL apiUrl = member.getApiUrl()
         .map(url -> {
           try {
@@ -169,22 +121,24 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
         .onItem()
         .transform(res -> {
           if (res.statusCode() == 200) {
-            JsonObject body = res.body();
-            JsonObject patroni = body.getJsonObject("patroni");
+            JsonObject instance = res.body();
+            JsonObject patroni = instance.getJsonObject("patroni");
             return ImmutablePatroniInformation.builder()
-                .role(toMemberRole(body.getString("role")))
-                .state(toMemberState(body.getString("state")))
-                .serverVersion(body.getInteger("server_version"))
-                .patroniScope(patroni.getString("scope"))
-                .patroniVersion(patroni.getString("version"))
+                .role(getStringOrEmpty(instance, "role")
+                    .map(this::toMemberRole))
+                .state(getStringOrEmpty(instance, "state")
+                    .map(this::toMemberState))
+                .serverVersion(getIntegerOrEmpty(instance, "server_version"))
+                .patroniScope(getStringOrEmpty(patroni, "scope"))
+                .patroniVersion(getStringOrEmpty(patroni, "version"))
+                .isPendingRestart(getBooleanOrFalse(instance, "pending_restart"))
                 .build();
           } else {
-            LOGGER.error("Failed restart postgres of pod {} with message {}",
+            LOGGER.error("Can not retrieve patroni information of pod {} with message {}",
                 member.getName(),
                 res.bodyAsString());
-            throw new RuntimeException(res.bodyAsString());
+            throw new RuntimeException("status " + res.statusCode() + ": " + res.bodyAsString());
           }
-
         });
   }
 
@@ -212,7 +166,7 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
             LOGGER.debug("Failed switchover, status {}, body {}",
                 res.statusCode(),
                 res.bodyAsString());
-            throw new RuntimeException(res.body());
+            throw new RuntimeException("status " + res.statusCode() + ": " + res.bodyAsString());
           }
         });
 
@@ -251,4 +205,65 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
           return null;
         });
   }
+
+  private Optional<String> getStringOrEmpty(JsonObject object, String key) {
+    try {
+      return Optional.ofNullable(object.getString(key));
+    } catch (ClassCastException ex) {
+      return Optional.empty();
+    }
+  }
+
+  private Optional<Integer> getIntegerOrEmpty(JsonObject object, String key) {
+    try {
+      return Optional.ofNullable(object.getInteger(key));
+    } catch (ClassCastException ex) {
+      return Optional.empty();
+    }
+  }
+
+  private boolean getBooleanOrFalse(JsonObject object, String key) {
+    try {
+      return Optional.ofNullable(object.getBoolean(key)).orElse(false);
+    } catch (ClassCastException ex) {
+      return false;
+    }
+  }
+
+  private Optional<Map<String, String>> getMapOrEmpty(JsonObject object, String key) {
+    try {
+      return Optional.ofNullable(object.getJsonObject(key))
+          .map(jsonObject -> Seq.seq(jsonObject.fieldNames())
+              .collect(ImmutableMap.toImmutableMap(
+                  Function.identity(),
+                  name -> jsonObject.getValue(name).toString())));
+    } catch (ClassCastException ex) {
+      return Optional.empty();
+    }
+  }
+
+  private MemberRole toMemberRole(String role) {
+    if (Objects.equals("leader", role) || Objects.equals("master", role)) {
+      return MemberRole.LEADER;
+    } else if (Objects.equals("replica", role)) {
+      return MemberRole.REPLICA;
+    } else {
+      return null;
+    }
+  }
+
+  private MemberState toMemberState(String state) {
+    if (Objects.equals("running", state)) {
+      return MemberState.RUNNING;
+    } else if (Objects.equals("stopped", state)) {
+      return MemberState.STOPPED;
+    } else if (Objects.equals("starting", state)) {
+      return MemberState.STARTING;
+    } else if (Objects.equals("restarting", state)) {
+      return MemberState.RESTARTING;
+    } else {
+      return null;
+    }
+  }
+
 }

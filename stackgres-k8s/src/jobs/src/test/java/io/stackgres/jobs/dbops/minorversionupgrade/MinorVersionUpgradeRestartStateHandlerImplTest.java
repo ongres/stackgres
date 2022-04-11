@@ -53,7 +53,7 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
   @BeforeEach
   public void setUp() {
     super.setUp();
-    lenient().when(patroniApi.getMembersPatroniInformation(anyString(), anyString()))
+    lenient().when(patroniApi.getClusterMembersPatroniInformation(anyString(), anyString()))
         .thenReturn(Uni.createFrom().item(
             List.of(
                 ImmutablePatroniInformation.builder()
@@ -62,13 +62,15 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
                     .serverVersion(110005)
                     .patroniVersion("1.6.5")
                     .patroniScope(clusterName)
+                    .isPendingRestart(false)
                     .build(),
                 ImmutablePatroniInformation.builder()
                     .state(MemberState.RUNNING)
-                    .role(MemberRole.REPlICA)
+                    .role(MemberRole.REPLICA)
                     .serverVersion(110005)
                     .patroniVersion("1.6.5")
                     .patroniScope(clusterName)
+                    .isPendingRestart(false)
                     .build())));
   }
 

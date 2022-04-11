@@ -13,7 +13,9 @@ public interface PatroniApiHandler {
 
   Uni<List<ClusterMember>> getClusterMembers(String name, String namespace);
 
-  Uni<List<PatroniInformation>> getMembersPatroniInformation(String name, String namespace);
+  Uni<List<PatroniInformation>> getClusterMembersPatroniInformation(String name, String namespace);
+
+  Uni<PatroniInformation> getClusterMemberPatroniInformation(ClusterMember member);
 
   Uni<Void> performSwitchover(ClusterMember leader, ClusterMember candidate);
 

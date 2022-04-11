@@ -58,9 +58,11 @@ public class MinorVersionUpgradeRestartStateHandlerImpl extends AbstractRestartS
           if (sourcePostgresVersion.isPresent()) {
             return Uni.createFrom().item(sourcePostgresVersion.get());
           } else {
-            return patroniApi.getMembersPatroniInformation(clusterName, namespace)
+            return patroniApi.getClusterMembersPatroniInformation(clusterName, namespace)
                 .onItem().transform(patronis -> patronis.stream()
                     .map(PatroniInformation::getServerVersion)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
                     .min(Integer::compareTo)
                     .map(MinorVersionUpgradeRestartStateHandlerImpl::convertToPostgresVersion)
                     .orElseThrow());

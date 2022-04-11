@@ -34,4 +34,5 @@ public interface ClusterMember {
   Optional<Integer> getLag();
 
   Optional<Map<String, String>> getTags();
+
 }

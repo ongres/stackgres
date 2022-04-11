@@ -5,7 +5,8 @@
 
 package io.stackgres.common.kubernetesclient;
 
-import java.util.Random;
+import static io.stackgres.common.RetryUtil.calculateExponentialBackoffDelay;
+
 import java.util.function.Supplier;
 
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -41,9 +42,7 @@ public interface KubernetesClientUtil {
       } catch (KubernetesClientException ex) {
         if (isConflict(ex)) {
           try {
-            Thread.sleep(
-                (int) Math.min(3000, 10 * Math.pow(Math.E, retry++))
-                + (10 - new Random().nextInt(20)));
+            Thread.sleep(calculateExponentialBackoffDelay(10, 3000, 10, retry++));
             continue;
           } catch (InterruptedException iex) {
             throw new RuntimeException(iex);
@@ -53,4 +52,5 @@ public interface KubernetesClientUtil {
       }
     }
   }
+
 }

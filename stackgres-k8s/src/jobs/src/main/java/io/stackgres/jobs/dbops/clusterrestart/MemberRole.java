@@ -7,5 +7,6 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 public enum MemberRole {
 
-  LEADER, REPlICA
+  LEADER, REPLICA;
+
 }

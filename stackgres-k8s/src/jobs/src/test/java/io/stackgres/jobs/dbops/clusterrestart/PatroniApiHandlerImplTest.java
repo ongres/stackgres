@@ -157,7 +157,7 @@ class PatroniApiHandlerImplTest {
     preparePatroniMetadata(username, password);
 
     var membersInformation = patroniApiHandler
-        .getMembersPatroniInformation(clusterName, namespace)
+        .getClusterMembersPatroniInformation(clusterName, namespace)
         .await()
         .atMost(Duration.ofSeconds(5));
 
@@ -184,7 +184,7 @@ class PatroniApiHandlerImplTest {
             .namespace(namespace)
             .name("replica-member")
             .state(MemberState.RUNNING)
-            .role(MemberRole.REPlICA)
+            .role(MemberRole.REPLICA)
             .build())
         .await()
         .atMost(Duration.ofSeconds(5));
@@ -207,7 +207,7 @@ class PatroniApiHandlerImplTest {
             .namespace(namespace)
             .name("replica-member")
             .state(MemberState.RUNNING)
-            .role(MemberRole.REPlICA)
+            .role(MemberRole.REPLICA)
             .build())
         .await()
         .atMost(Duration.ofSeconds(5)));
