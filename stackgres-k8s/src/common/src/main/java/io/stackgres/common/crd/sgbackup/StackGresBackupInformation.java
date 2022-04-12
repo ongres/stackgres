@@ -32,7 +32,7 @@ public class StackGresBackupInformation {
 
   private Map<String, String> controlData;
   private String startWalFile;
-  private Long timeline;
+  private String timeline;
   private String sourcePod;
 
   @Deprecated
@@ -101,11 +101,11 @@ public class StackGresBackupInformation {
     this.size = size;
   }
 
-  public Long getTimeline() {
+  public String getTimeline() {
     return timeline;
   }
 
-  public void setTimeline(Long timeline) {
+  public void setTimeline(String timeline) {
     this.timeline = timeline;
   }
 

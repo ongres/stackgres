@@ -33,7 +33,7 @@ public class BackupInformation {
   private BackupSize size;
   private Map<String, String> controlData;
 
-  private Long timeline;
+  private String timeline;
   private String sourcePod;
 
   public void setControlData(Map<String, String> controlData) {
@@ -102,11 +102,11 @@ public class BackupInformation {
     this.lsn = lsn;
   }
 
-  public Long getTimeline() {
+  public String getTimeline() {
     return timeline;
   }
 
-  public void setTimeline(Long timeline) {
+  public void setTimeline(String timeline) {
     this.timeline = timeline;
   }
 
