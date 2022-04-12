@@ -8,12 +8,11 @@ package io.stackgres.common.resource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.Namespaceable;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 
 public abstract class AbstractResourceWriter<T extends HasMetadata,
-    L extends KubernetesResourceList<T>>
+    L extends KubernetesResourceList<T>, R extends Resource<T>>
     implements ResourceWriter<T> {
 
   private final KubernetesClient client;
@@ -45,7 +44,7 @@ public abstract class AbstractResourceWriter<T extends HasMetadata,
         .delete();
   }
 
-  protected abstract Namespaceable<NonNamespaceOperation<T, L, Resource<T>>> getResourceEndpoints(
+  protected abstract MixedOperation<T, L, R> getResourceEndpoints(
       KubernetesClient client);
 
 }
