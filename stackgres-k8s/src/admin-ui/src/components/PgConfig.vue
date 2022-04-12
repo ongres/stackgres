@@ -31,7 +31,7 @@
 							<a v-if="iCan('create','sgpgconfigs',$route.params.namespace)" @click="cloneCRD('SGPostgresConfigs', $route.params.namespace, conf.name)" class="cloneCRD" title="Clone Configuration">
 								Clone Configuration
 							</a>
-							<a v-if="iCan('delete','sgpgconfigs',$route.params.namespace)" @click="deleteCRD('sgpgconfigs',$route.params.namespace, conf.name, '/' + $route.params.namespace + '/sgpgconfigs')" title="Delete Configuration" :class="conf.data.status.clusters.length ? 'disabled' : ''">
+							<a v-if="iCan('delete','sgpgconfigs',$route.params.namespace)" @click="deleteCRD('sgpgconfigs',$route.params.namespace, conf.name, '/' + $route.params.namespace + '/sgpgconfigs')" title="Delete Configuration" class="deleteCRD" :class="conf.data.status.clusters.length ? 'disabled' : ''">
 								Delete Configuration
 							</a>
 							<router-link :to="'/' + $route.params.namespace + '/sgpgconfigs'" title="Close Details">Close Details</router-link>

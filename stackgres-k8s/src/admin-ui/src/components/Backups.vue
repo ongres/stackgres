@@ -33,7 +33,7 @@
 					<div class="crdActionLinks">
 						<a v-if="iCan('create','sgclusters',$route.params.namespace)" class="cloneCRD" @click="cloneCRD('SGClusters', $route.params.namespace, $route.params.name)">Clone Cluster Configuration</a>
 						<router-link v-if="iCan('patch','sgclusters',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/edit'">Edit Cluster</router-link>
-						<a v-if="iCan('delete','sgclusters',$route.params.namespace)" @click="deleteCRD('sgclusters', $route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/sgclusters')" :class="$route.params.namespace + '/sgclusters'">Delete Cluster</a>
+						<a v-if="iCan('delete','sgclusters',$route.params.namespace)" @click="deleteCRD('sgclusters', $route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/sgclusters')" class="deleteCRD" :class="$route.params.namespace + '/sgclusters'">Delete Cluster</a>
 						<a @click="setRestartCluster($route.params.namespace, $route.params.name)" class="restartCluster" title="Restart Cluster">Restart Cluster</a>
 					</div>
 				</div>
@@ -87,7 +87,7 @@
 						<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + '/sgbackup/' + $route.params.backupname + '/edit'" title="Edit Backup">
 							Edit Backup
 						</router-link>
-						<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, $route.params.backupname, '/' + $route.params.namespace + '/sgbackups')" title="Delete Backup">
+						<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, $route.params.backupname, '/' + $route.params.namespace + '/sgbackups')" title="Delete Backup" class="deleteCRD">
 							Delete Backup
 						</a>
 						<router-link :to="'/' + $route.params.namespace + '/sgbackups'" title="Close Details">Close Details</router-link>
@@ -336,7 +336,7 @@
 								<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup">
 									Edit Backup
 								</router-link>
-								<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, $route.params.backupname, '/' + $route.params.namespace + '/sgbackups')" title="Delete Backup">
+								<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, $route.params.backupname, '/' + $route.params.namespace + '/sgbackups')" title="Delete Backup" class="deleteCRD">
 									Delete Backup
 								</a>
 								<router-link :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackups'" title="Close Details">Close Details</router-link>

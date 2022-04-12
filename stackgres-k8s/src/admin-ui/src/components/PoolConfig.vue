@@ -31,7 +31,7 @@
 							<a v-if="iCan('create','sgpoolconfigs',$route.params.namespace)" @click="cloneCRD('SGPoolingConfigs', $route.params.namespace, conf.name)" class="cloneCRD" title="Clone Configuration">
 								Clone Configuration
 							</a>
-							<a v-if="iCan('delete','sgpoolconfigs',$route.params.namespace)" @click="deleteCRD('sgpoolconfigs',$route.params.namespace, conf.name, '/' + $route.params.namespace + '/sgpoolconfigs')" title="Delete Configuration" :class="conf.data.status.clusters.length ? 'disabled' : ''">
+							<a v-if="iCan('delete','sgpoolconfigs',$route.params.namespace)" @click="deleteCRD('sgpoolconfigs',$route.params.namespace, conf.name, '/' + $route.params.namespace + '/sgpoolconfigs')" title="Delete Configuration" class="deleteCRD" :class="conf.data.status.clusters.length ? 'disabled' : ''">
 								Delete Configuration
 							</a>
 							<router-link :to="'/' + $route.params.namespace + '/sgpoolconfigs'" title="Close Details">Close Details</router-link>
