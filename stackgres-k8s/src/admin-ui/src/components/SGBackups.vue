@@ -90,7 +90,7 @@
 						<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, $route.params.backupname, '/' + $route.params.namespace + '/sgbackups')" title="Delete Backup" class="deleteCRD">
 							Delete Backup
 						</a>
-						<router-link :to="'/' + $route.params.namespace + '/sgbackups'" title="Close Details">Close Details</router-link>
+						<a href="#" @click="goBack()" title="Close Details">Close Details</a>
 					</template>
 					<template v-else>
 						<router-link v-if="iCan('create','sgbackups',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgbackups/new'" class="add">Add New</router-link>
@@ -879,7 +879,7 @@
 	import moment from 'moment'
 
     export default {
-        name: 'Backups',
+        name: 'SGBackups',
 
 		mixins: [mixin],
 
@@ -917,7 +917,7 @@
 			backups () {
 				const vc = this
 				
-				store.state.backups.forEach( function(bk, index) {
+				store.state.sgbackups.forEach( function(bk, index) {
 
 					let show = true
 
@@ -958,7 +958,7 @@
 
 				})
 
-				return vc.sortTable( [...(store.state.backups.filter(back => ( ( (back.data.metadata.namespace == vc.$route.params.namespace) && !vc.isCluster) || (vc.isCluster && (back.data.spec.sgCluster == vc.$route.params.name ) && (back.data.metadata.namespace == vc.$route.params.namespace ) ) ) && back.show ))], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
+				return vc.sortTable( [...(store.state.sgbackups.filter(back => ( ( (back.data.metadata.namespace == vc.$route.params.namespace) && !vc.isCluster) || (vc.isCluster && (back.data.spec.sgCluster == vc.$route.params.name ) && (back.data.metadata.namespace == vc.$route.params.namespace ) ) ) && back.show ))], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
 			},
 
 			clusters () {

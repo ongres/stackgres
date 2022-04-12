@@ -178,7 +178,7 @@ export const mixin = {
           .get('/stackgres/sgbackups')
           .then( function(response) {
 
-            vc.lookupCRDs('sgbackup', response.data);
+            vc.lookupCRDs('sgbackups', response.data);
   
               var start, finish, duration;
   
@@ -201,7 +201,7 @@ export const mixin = {
                 }
 
                 if(!index)
-                  store.commit('flushBackups')
+                  store.commit('flushResource', 'sgbackups')
                   
                 store.commit('updateBackups', { 
                   name: item.metadata.name,
@@ -213,7 +213,7 @@ export const mixin = {
               });
   
               store.state.clusters.forEach(function(cluster, index){
-                let backups = store.state.backups.find(b => ( (cluster.name == b.data.spec.sgCluster) && (cluster.data.metadata.namespace == b.data.metadata.namespace) ) );
+                let backups = store.state.sgbackups.find(b => ( (cluster.name == b.data.spec.sgCluster) && (cluster.data.metadata.namespace == b.data.metadata.namespace) ) );
         
                 if ( typeof backups !== "undefined" )
                   cluster.hasBackups = true; // Enable/Disable Backups button
@@ -237,7 +237,7 @@ export const mixin = {
           .get('/stackgres/sgpgconfigs')
           .then( function(response) {
 
-            vc.lookupCRDs('sgpgconfig', response.data);
+            vc.lookupCRDs('sgpgconfigs', response.data);
   
             response.data.forEach( function(item, index) {
                 
@@ -245,7 +245,7 @@ export const mixin = {
                 store.commit('updateNamespaces', item.metadata.namespace);
               
               if(!index)
-                store.commit('flushPGConfig')
+                store.commit('flushResource', 'sgpgconfigs')
                 
               store.commit('updatePGConfig', { 
                 name: item.metadata.name,
@@ -268,7 +268,7 @@ export const mixin = {
           .get('/stackgres/sgpoolconfigs')
           .then( function(response) {
 
-            vc.lookupCRDs('sgpoolconfig', response.data);
+            vc.lookupCRDs('sgpoolconfigs', response.data);
   
             response.data.forEach( function(item, index) {
                 
@@ -276,7 +276,7 @@ export const mixin = {
                   store.commit('updateNamespaces', item.metadata.namespace);
                 
                 if(!index)
-                  store.commit('flushPoolConfig')
+                  store.commit('flushResource', 'sgpoolconfigs')
                   
                 store.commit('updatePoolConfig', { 
                   name: item.metadata.name,
@@ -298,7 +298,7 @@ export const mixin = {
           .get('/stackgres/sgbackupconfigs')
           .then( function(response) {
 
-            vc.lookupCRDs('sgbackupconfig', response.data);
+            vc.lookupCRDs('sgbackupconfigs', response.data);
   
               response.data.forEach( function(item, index) {
                 
@@ -306,7 +306,7 @@ export const mixin = {
                   store.commit('updateNamespaces', item.metadata.namespace);
                 
                 if(!index)
-                  store.commit('flushBackupConfig')
+                  store.commit('flushResource', 'sgbackupconfigs')
                   
                 store.commit('updateBackupConfig', { 
                   name: item.metadata.name,
@@ -330,7 +330,7 @@ export const mixin = {
           .get('/stackgres/sginstanceprofiles')
           .then( function(response) {
 
-            vc.lookupCRDs('sginstanceprofile', response.data);
+            vc.lookupCRDs('sginstanceprofiles', response.data);
   
             response.data.forEach( function(item, index) {
                 
@@ -338,7 +338,7 @@ export const mixin = {
                 store.commit('updateNamespaces', item.metadata.namespace);
               
               if(!index)
-                store.commit('flushProfiles')
+                store.commit('flushResource', 'profiles')
 
               store.commit('updateProfiles', { 
                 name: item.metadata.name,
@@ -436,7 +436,7 @@ export const mixin = {
   
         if (!store.state.permissions.forbidden.includes('sgbackups') && ( (kind === 'sgbackups') || (kind === 'sgclusters') ) ) {
           // Check if current cluster has backups
-          let currentClusterBackups = store.state.backups.find(b => ( (store.state.currentCluster.name == b.data.spec.cluster) && (store.state.currentCluster.data.metadata.namespace == b.data.metadata.namespace) ) );
+          let currentClusterBackups = store.state.sgbackups.find(b => ( (store.state.currentCluster.name == b.data.spec.cluster) && (store.state.currentCluster.data.metadata.namespace == b.data.metadata.namespace) ) );
             
           if ( typeof currentClusterBackups !== "undefined" )
             store.state.currentCluster.hasBackups = true; // Enable/Disable Backups button
@@ -720,27 +720,27 @@ export const mixin = {
             break;
           
           case 'SGBackupConfigs':
-            crd = JSON.parse(JSON.stringify(store.state.backupConfig.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+            crd = JSON.parse(JSON.stringify(store.state.sgbackupconfigs.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
             break;
   
           case 'SGBackups':
-            crd = JSON.parse(JSON.stringify(store.state.backups.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+            crd = JSON.parse(JSON.stringify(store.state.sgbackups.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
             break;
           
           case 'SGInstanceProfiles':
-            crd = JSON.parse(JSON.stringify(store.state.profiles.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+            crd = JSON.parse(JSON.stringify(store.state.sginstanceprofiles.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
             break;
           
           case 'SGPoolingConfigs':
-            crd = JSON.parse(JSON.stringify(store.state.poolConfig.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+            crd = JSON.parse(JSON.stringify(store.state.sgpoolconfigs.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
             break;
           
           case 'SGPostgresConfigs':
-            crd = JSON.parse(JSON.stringify(store.state.pgConfig.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+            crd = JSON.parse(JSON.stringify(store.state.sgpgconfigs.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
             break;
           
           case 'SGDistributedLogs':
-            crd = JSON.parse(JSON.stringify(store.state.logsClusters.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+            crd = JSON.parse(JSON.stringify(store.state.sgdistributedlogs.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
             break;
         }
         
@@ -1134,34 +1134,6 @@ export const mixin = {
           case 'sgcluster':
             kind = 'clusters'
             break;
-          
-          case 'sgbackup':
-            kind = 'backups'
-            break;
-
-          case 'sgpgconfig':
-            kind = 'pgConfig'
-            break;
-
-          case 'sgpoolconfig':
-            kind = 'poolConfig'
-            break;
-
-          case 'sgbackupconfig':
-            kind = 'backupConfig'
-            break;
-          
-          case 'sginstanceprofile':
-            kind = 'profiles'
-            break;
-          
-          case 'sgdistributedlogs':
-            kind = 'logsClusters'
-            break;
-          
-          case 'sgdbops':
-            kind = 'dbOps'
-            break;
         }
 
         store.state[kind].forEach(function(item, index) {
@@ -1184,28 +1156,8 @@ export const mixin = {
                   router.push('/' + item.data.metadata.namespace + '/sgclusters')
                   break;
                 
-                case 'pgConfig':
-                  router.push('/' + item.data.metadata.namespace + '/sgpgconfigs')
-                  break;
-      
-                case 'poolConfig':
-                  router.push('/' + item.data.metadata.namespace + '/sgpoolconfigs')
-                  break;
-      
-                case 'backupConfig':
-                  router.push('/' + item.data.metadata.namespace + '/sgbackupconfigs')
-                  break;
-                
-                case 'profiles':
-                  router.push('/' + item.data.metadata.namespace + '/sginstanceprofiles')
-                  break;
-                
-                case 'logsClusters':
-                  router.push('/' + item.data.metadata.namespace + '/sgdistributedlogs')
-                  break;
-                
-                case 'dbOps':
-                  router.push('/' + item.data.metadata.namespace + '/sgdbops')
+                default:
+                  router.push('/' + item.data.metadata.namespace + '/' + kind);
                   break;
               }
 

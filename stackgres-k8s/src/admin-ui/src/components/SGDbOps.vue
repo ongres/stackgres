@@ -1452,7 +1452,7 @@
     import axios from 'axios'
 
     export default {
-        name: 'DbOps',
+        name: 'SGDbOps',
 
         mixins: [mixin],
 
@@ -1623,7 +1623,7 @@
             dbOps () {
                 const vc = this
 				
-				store.state.dbOps.forEach( function(op, index) {
+				store.state.sgdbops.forEach( function(op, index) {
 
 					let show = true
 
@@ -1651,7 +1651,7 @@
                 // If it's a minorVersionUpgrade with running status, update cluster stats every 2sec
                 if( (vc.pollClusterStats == 0) && vc.$route.params.hasOwnProperty('name') ) {
                     
-                    let op = store.state.dbOps.find(op => ( (op.data.metadata.name == vc.$route.params.name) && (op.data.metadata.namespace == vc.$route.params.namespace) ))
+                    let op = store.state.sgdbops.find(op => ( (op.data.metadata.name == vc.$route.params.name) && (op.data.metadata.namespace == vc.$route.params.namespace) ))
                     
                     if( (typeof op != 'undefined') && (op.data.spec.op == 'minorVersionUpgrade') && vc.hasProp(op, 'data.status.conditions') ) {
                         let status = op.data.status.conditions.find( c => ( (['Running', 'Completed'].includes(c.type)) && (c.status == 'True') ) )
@@ -1682,7 +1682,7 @@
                     }
                 }
                 
-				return vc.sortTable( [...(store.state.dbOps.filter(op => ( op.show && ( op.data.metadata.namespace == vc.$route.params.namespace ))))], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
+				return vc.sortTable( [...(store.state.sgdbops.filter(op => ( op.show && ( op.data.metadata.namespace == vc.$route.params.namespace ))))], vc.currentSort.param, vc.currentSortDir, vc.currentSort.type)
             },
             
             tooltips() {
@@ -1704,7 +1704,7 @@
             primaryNodeDisk() {
                 const vc = this;
 
-                let op = store.state.dbOps.find(o => (o.data.metadata.name == vc.$route.params.name) && (o.data.metadata.namespace == vc.$route.params.namespace) );
+                let op = store.state.sgdbops.find(o => (o.data.metadata.name == vc.$route.params.name) && (o.data.metadata.namespace == vc.$route.params.namespace) );
                 let cluster = store.state.clusters.find(c => (c.data.metadata.name == op.data.spec.sgCluster) && (op.data.metadata.namespace == vc.$route.params.namespace));
                 let primaryNode = cluster.status.pods.find(p => (p.role == 'primary') );
 

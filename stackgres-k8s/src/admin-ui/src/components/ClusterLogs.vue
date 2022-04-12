@@ -512,7 +512,7 @@
 	import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
 
     export default {
-        name: 'Logs',
+        name: 'ClusterLogs',
 
 		mixins: [mixin],
 
@@ -773,6 +773,10 @@
 			},
 
 			getLogs(append = false, byDate = false) {
+
+				if(store.state.notFound) {
+					return false;
+				}
 
 				const vc = this;
 

@@ -519,7 +519,7 @@
                 const vc = this;
                 var nameColission = false;
                 
-                store.state.logsClusters.forEach(function(item, index){
+                store.state.sgdistributedlogs.forEach(function(item, index){
                     if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
                         nameColission = true
                 })
@@ -538,7 +538,7 @@
                 
                 if( vm.editMode && !vm.editReady ) {
                     vm.advancedMode = true;
-                    store.state.logsClusters.forEach(function( c ){
+                    store.state.sgdistributedlogs.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
                         
                             let volumeSize = c.data.spec.persistentVolume.size.match(/\d+/g);

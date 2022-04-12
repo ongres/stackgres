@@ -797,7 +797,7 @@
                 const vc = this;
                 var nameColission = false;
                 
-                store.state.dbOps.forEach(function(item, index){
+                store.state.sgdbops.forEach(function(item, index){
                     if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
                         nameColission = true
                 })
@@ -831,7 +831,7 @@
             },
 
             pgConfigs() {
-                return store.state.pgConfig.filter(pgconfig => (pgconfig.data.metadata.namespace == this.$route.params.namespace))
+                return store.state.sgpgconfigs.filter(pgconfig => (pgconfig.data.metadata.namespace == this.$route.params.namespace))
             },
 
             isRunAtValid() {

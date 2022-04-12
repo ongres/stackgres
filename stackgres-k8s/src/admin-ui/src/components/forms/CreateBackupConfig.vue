@@ -476,7 +476,7 @@
                 const vc = this;
                 var nameColission = false;
                 
-                store.state.backupConfig.forEach(function(item, index){
+                store.state.sgbackupconfigs.forEach(function(item, index){
                     if( (item.name == vc.backupConfigName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
                         nameColission = true
                 })
@@ -490,7 +490,7 @@
                 var conf = {};
                 
                 if( vm.editMode && !vm.editReady ) {
-                    store.state.backupConfig.forEach(function( config ){
+                    store.state.sgbackupconfigs.forEach(function( config ){
                         if( (config.data.metadata.name === vm.$route.params.name) && (config.data.metadata.namespace === vm.$route.params.namespace) ) {
         
                             // Cron to Human

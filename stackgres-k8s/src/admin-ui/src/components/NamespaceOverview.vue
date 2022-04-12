@@ -450,31 +450,31 @@ export default {
         },
 
         profiles () {
-            return store.state.profiles.filter(profile => (profile.data.metadata.namespace == this.$route.params.namespace))
+            return store.state.sginstanceprofiles.filter(profile => (profile.data.metadata.namespace == this.$route.params.namespace))
         },
 
         pgconfigs () {
-            return store.state.pgConfig.filter(pgconfig => (pgconfig.data.metadata.namespace == this.$route.params.namespace))
+            return store.state.sgpgconfigs.filter(pgconfig => (pgconfig.data.metadata.namespace == this.$route.params.namespace))
         },
 
         poolconfigs () {
-            return store.state.poolConfig.filter(poolconfig => (poolconfig.data.metadata.namespace == this.$route.params.namespace))
+            return store.state.sgpoolconfigs.filter(poolconfig => (poolconfig.data.metadata.namespace == this.$route.params.namespace))
         },
 
         backupconfigs () {
-            return store.state.backupConfig.filter(backupconfig => (backupconfig.data.metadata.namespace == this.$route.params.namespace))
+            return store.state.sgbackupconfigs.filter(backupconfig => (backupconfig.data.metadata.namespace == this.$route.params.namespace))
         },
 
         logsservers () {
-            return store.state.logsClusters.filter(logserver => (logserver.data.metadata.namespace == this.$route.params.namespace))
+            return store.state.sgdistributedlogs.filter(logserver => (logserver.data.metadata.namespace == this.$route.params.namespace))
         },
 
         backups () {
-            return store.state.backups.filter(backup => (backup.data.metadata.namespace == this.$route.params.namespace))
+            return store.state.sgbackups.filter(backup => (backup.data.metadata.namespace == this.$route.params.namespace))
         },
 
         dbops () {
-            return store.state.dbOps.filter(op => (op.data.metadata.namespace == this.$route.params.namespace))
+            return store.state.sgdbops.filter(op => (op.data.metadata.namespace == this.$route.params.namespace))
         },
 
         tooltips () {

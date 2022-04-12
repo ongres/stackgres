@@ -291,11 +291,10 @@
 
 <script>
     import { mixin } from './mixins/mixin'
-    import router from '../router'
     import store from '../store'
 
     export default {
-        name: 'LogsServer',
+        name: 'SGDistributedLogs',
 
         mixins: [mixin],
 
@@ -329,7 +328,7 @@
         computed: {
 
             clusters () {
-                return this.sortTable([...(store.state.logsClusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+                return this.sortTable([...(store.state.sgdistributedlogs.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
             },
             
             tooltips() {

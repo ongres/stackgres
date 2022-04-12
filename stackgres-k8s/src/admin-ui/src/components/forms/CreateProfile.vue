@@ -140,7 +140,7 @@
                 const vc = this;
                 var nameColission = false;
                 
-                store.state.profiles.forEach(function(item, index) {
+                store.state.sginstanceprofiles.forEach(function(item, index) {
                     if( (item.name == vc.profileName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
                         nameColission = true
                 })
@@ -153,7 +153,7 @@
                 var config = {};
                 
                 if( vm.editMode && !vm.editReady ) {
-                    store.state.profiles.forEach(function( conf ){
+                    store.state.sginstanceprofiles.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.profileCPU = conf.data.spec.cpu.match(/\d+/g)[0];
                             vm.profileCPUUnit = (conf.data.spec.cpu.match(/[a-zA-Z]+/g) !== null) ? conf.data.spec.cpu.match(/[a-zA-Z]+/g)[0] : 'CPU';

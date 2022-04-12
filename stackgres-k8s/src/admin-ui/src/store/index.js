@@ -22,15 +22,15 @@ export default new Vuex.Store({
     namespaces: [],
     allNamespaces: [],
     clusters: [],
-    backups: [],
-    pgConfig: [],
-    poolConfig: [],
-    backupConfig: [],
-    profiles: [],
+    sgbackups: [],
+    sgpgconfigs: [],
+    sgpoolconfigs: [],
+    sgbackupconfigs: [],
+    sginstanceprofiles: [],
     storageClasses: [],
     logs: [],
-    logsClusters: [],
-    dbOps: [],
+    sgdistributedlogs: [],
+    sgdbops: [],
     postgresVersions: {},
     applications: [],
     cloneCRD: {},
@@ -105,11 +105,11 @@ export default new Vuex.Store({
     },
 
     addLogsClusters (state, logsClusters) {
-      state.logsClusters = [...logsClusters];
+      state.sgdistributedlogs = [...logsClusters];
     },
 
     addDbOps (state, dbOps) {
-      state.dbOps = [...dbOps];
+      state.sgdbops = [...dbOps];
     },
 
     addStorageClasses (state, storageClassesList) {
@@ -149,69 +149,69 @@ export default new Vuex.Store({
 
     updateBackups ( state, backup ) {
 
-        let index = state.backups.find(p => (backup.data.metadata.name == p.name) && (backup.data.metadata.namespace == p.data.metadata.namespace) ); 
+        let index = state.sgbackups.find(p => (backup.data.metadata.name == p.name) && (backup.data.metadata.namespace == p.data.metadata.namespace) ); 
 
         if ( typeof index !== "undefined" ) {
           index.data = backup.data;
         } else {
-          state.backups.push( backup );    
+          state.sgbackups.push( backup );    
         }
 
     },
     
     showBackup ( state, show ) {
 
-      state.backups[show.pos].show = show.isVisible;
+      state.sgbackups[show.pos].show = show.isVisible;
 
     },
 
     showDbOp ( state, show ) {
 
-      state.dbOps[show.pos]['show'] = show.isVisible;
+      state.sgdbops[show.pos]['show'] = show.isVisible;
 
     },
 
     updatePGConfig ( state, config ) {
 
-      let index = state.pgConfig.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
+      let index = state.sgpgconfigs.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
 
       if ( typeof index !== "undefined" ) {
         index.data = config.data;
       } else {
-        state.pgConfig.push( config );    
+        state.sgpgconfigs.push( config );    
       }
 
     },
     updatePoolConfig ( state, config ) {
 
-      let index = state.poolConfig.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
+      let index = state.sgpoolconfigs.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
 
       if ( typeof index !== "undefined" ) {
         index.data = config.data;
       } else {
-        state.poolConfig.push( config );    
+        state.sgpoolconfigs.push( config );    
       }
 
     },
     updateBackupConfig ( state, config ) {
 
-      let index = state.backupConfig.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
+      let index = state.sgbackupconfigs.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
 
       if ( typeof index !== "undefined" ) {
         index.data = config.data;
       } else {
-        state.backupConfig.push( config );    
+        state.sgbackupconfigs.push( config );    
       }
 
     },
     updateProfiles ( state, profile ) {
 
-      let index = state.profiles.find(p => (profile.data.metadata.name == p.name) && (profile.data.metadata.namespace == p.data.metadata.namespace) ); 
+      let index = state.sginstanceprofiles.find(p => (profile.data.metadata.name == p.name) && (profile.data.metadata.namespace == p.data.metadata.namespace) ); 
 
       if ( typeof index !== "undefined" ) {
         index.data = profile.data;
       } else {
-        state.profiles.push( profile );    
+        state.sginstanceprofiles.push( profile );    
       }
 
     },
@@ -220,40 +220,8 @@ export default new Vuex.Store({
       state.currentNamespace = namespace;
     },
 
-    flushAllNamespaces (state) {
-      state.allNamespaces.length = 0;
-    },
-
-    flushClusters (state ) {
-      state.clusters.length = 0;
-    },
-
-    flushBackups (state ) {
-    	state.backups.length = 0;
-    },
-
-    flushPoolConfig (state ) {
-      state.poolConfig.length = 0;
-    },
-
-    flushPGConfig (state ) {
-      state.pgConfig.length = 0;
-    },
-
-    flushBackupConfig (state ) {
-      state.backupConfig.length = 0;
-    },
-
-    flushProfiles (state ) {
-      state.profiles.length = 0;
-    },
-
-    flushStorageClasses (state ) {
-      state.storageClasses.length = 0;
-    },
-
-    flushLogsClusters (state ) {
-      state.logsClusters.length = 0;
+    flushResource(state, resource) {
+      //state[resource].length = 0;
     },
 
     setDeleteItem (state, item) {
@@ -268,33 +236,6 @@ export default new Vuex.Store({
             kind = 'clusters'
             break;
           
-          case 'sgbackups':
-            kind = 'backups'
-            break;
-
-          case 'sgpgconfigs':
-            kind = 'pgConfig'
-            break;
-
-          case 'sgpoolconfigs':
-            kind = 'poolConfig'
-            break;
-
-          case 'sgbackupconfigs':
-            kind = 'backupConfig'
-            break;
-          
-          case 'sginstanceprofiles':
-            kind = 'profiles'
-            break;
-          
-          case 'sgdistributedlogs':
-            kind = 'logsClusters'
-            break;
-          
-          case 'sgdbops':
-            kind = 'dbOps'
-            break;
         }
 
         state[kind].splice(state[kind].findIndex( el => (el.name == state.deleteItem.name) && (el.data.metadata.namespace == state.deleteItem.namespace) ), 1)

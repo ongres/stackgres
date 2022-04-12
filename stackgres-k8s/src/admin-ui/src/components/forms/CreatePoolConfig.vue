@@ -110,7 +110,7 @@
                 const vc = this;
                 var nameColission = false;
                 
-                store.state.poolConfig.forEach(function(item, index) {
+                store.state.sgpoolconfigs.forEach(function(item, index) {
                     if( (item.name == vc.poolConfigName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
                         nameColission = true
                 })
@@ -123,7 +123,7 @@
                 var config = {};
 
                 if( vm.editMode && !vm.editReady ) {
-                    store.state.poolConfig.forEach(function( conf ){
+                    store.state.sgpoolconfigs.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.poolConfigParams = conf.data.spec.pgBouncer["pgbouncer.ini"].replace('[pgbouncer]\n','');
                             vm.configClusters = [...conf.data.status.clusters]

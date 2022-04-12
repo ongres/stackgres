@@ -239,27 +239,27 @@
 						break;
 
 					case 'SGBackupConfigs':
-						collision = store.state.backupConfig.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
+						collision = store.state.sgbackupconfigs.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
 
 					case 'SGBackups':
-						collision = store.state.backups.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
+						collision = store.state.sgbackups.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
 
 					case 'SGInstanceProfiles':
-						collision = store.state.profiles.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
+						collision = store.state.sginstanceprofiles.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
 
 					case 'SGPoolingConfigs':
-						collision = store.state.poolConfig.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
+						collision = store.state.sgpoolconfigs.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
 
 					case 'SGPostgresConfigs':
-						collision = store.state.pgConfig.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
+						collision = store.state.sgpgconfigs.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
 
 					case 'SGDistributedLogs':
-						collision = store.state.logsClusters.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
+						collision = store.state.sgdistributedlogs.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 						break;
 				}
 
@@ -277,20 +277,20 @@
 
 					if (cloneKind == 'SGClusters') {
 
-						let profile = store.state.profiles.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.sgInstanceProfile))
+						let profile = store.state.sginstanceprofiles.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.sgInstanceProfile))
 						if (typeof profile == 'undefined')
 							missingCRDs.push({kind: 'SGInstanceProfile', name: cloneCRD.spec.sgInstanceProfile})
 
-						let pgconfig = store.state.pgConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgPostgresConfig))
+						let pgconfig = store.state.sgpgconfigs.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgPostgresConfig))
 						if (typeof pgconfig == 'undefined')
 							missingCRDs.push({kind: 'SGPostgresConfig', name: cloneCRD.spec.configurations.sgPostgresConfig})
 
-						let poolconfig = store.state.poolConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgPoolingConfig))
+						let poolconfig = store.state.sgpoolconfigs.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgPoolingConfig))
 						if (typeof poolconfig == 'undefined')
 							missingCRDs.push({kind: 'SGPoolingConfig', name: cloneCRD.spec.configurations.sgPoolingConfig})
 
 						if (cloneCRD.spec.configurations.hasOwnProperty('sgBackupConfig')) {
-							let backupconfig = store.state.backupConfig.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgBackupConfig))
+							let backupconfig = store.state.sgbackupconfigs.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgBackupConfig))
 							if (typeof backupconfig == 'undefined')
 								missingCRDs.push({kind: 'SGBackupConfig', name: cloneCRD.spec.configurations.sgBackupConfig})
 						}
