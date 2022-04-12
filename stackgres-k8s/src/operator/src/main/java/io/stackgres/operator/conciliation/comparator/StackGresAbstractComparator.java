@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.comparator;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
@@ -14,6 +15,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.StackGresContext;
+import org.jooq.lambda.Seq;
 
 public abstract class StackGresAbstractComparator
     extends DefaultComparator {
@@ -67,6 +69,7 @@ public abstract class StackGresAbstractComparator
           && (patch.path.equals(MANAGED_BY_SERVER_SIDE_APPLY_PATH)
               || (
                   patch.path.equals("/metadata/annotations")
+                  && Seq.seq(patch.jsonValue.fields()).count() == 1
                   && patch.jsonValue.has(StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY)
                   )
               );
@@ -117,6 +120,7 @@ public abstract class StackGresAbstractComparator
       this.pathPattern = pathPattern;
     }
 
+    @Override
     public boolean matches(JsonPatch patch) {
       if (value != null) {
         return Objects.equals(op, patch.op)
@@ -187,6 +191,38 @@ public abstract class StackGresAbstractComparator
       return Objects.equals(op, patch.getOp())
           && valuePatter.matcher(patch.getValue()).matches()
           && pathPattern.matcher(patch.getPath()).matches();
+    }
+  }
+
+  protected static class ExcludeExceptPattern implements IgnorePatch {
+    protected final List<IgnorePatch> excludes;
+    protected final List<IgnorePatch> exceptIncludes;
+
+    public ExcludeExceptPattern(
+        IgnorePatch exclude,
+        IgnorePatch exceptInclude) {
+      this.excludes = List.of(exclude);
+      this.exceptIncludes = List.of(exceptInclude);
+    }
+
+    public ExcludeExceptPattern(
+        List<IgnorePatch> excludes,
+        List<IgnorePatch> exceptIncludes) {
+      this.excludes = excludes;
+      this.exceptIncludes = exceptIncludes;
+    }
+
+    @Override
+    public boolean matches(JsonPatch patch) {
+      if (excludes.stream().noneMatch(ignorePatch -> ignorePatch.matches(patch))) {
+        return false;
+      }
+
+      if (exceptIncludes.stream().anyMatch(ignorePatch -> ignorePatch.matches(patch))) {
+        return false;
+      }
+
+      return true;
     }
   }
 }
