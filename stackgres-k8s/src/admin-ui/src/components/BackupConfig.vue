@@ -193,7 +193,7 @@
 								<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.maxNetworkBandwitdh')">
 									<td class="label">
 										Max Network Bandwidth
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.maxNetworkBandwitdh')"></span>
+										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.performance.maxNetworkBandwitdh')"></span>
 									</td>
 									<td class="textRight">
 										{{ conf.data.spec.baseBackups.performance.maxNetworkBandwitdh }}

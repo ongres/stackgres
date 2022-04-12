@@ -272,7 +272,7 @@
                                         </td>
                                         <td class="label">
                                             {{ prop }}
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling.tolerations[prop]')"></span>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling.tolerations.'+prop)"></span>
                                         </td>
                                         <td colspan="2" :class="prop">
                                             {{ value }}

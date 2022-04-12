@@ -393,7 +393,7 @@
                                                     <option value="secretKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.secretScript')">From Secret</option>
                                                     <option value="configMapKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.configMapScript')">From ConfigMap</option>
                                                 </select>
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptSource', 'Determines whether the script should be read from a Raw SQL, a Kubernetes Secret or a ConfigMap')"></span>
+                                                <span class="helpTooltip" :data-tooltip="'Determine the source from which the script should be loaded. Possible values are: \n* Raw Script \n* From Secret \n* From ConfigMap.'"></span>
                                             </div>
                                             <div class="col">                                                
                                                 <template  v-if="(!editMode && (scriptSource[index] == 'raw') ) || (editMode && ( script.hasOwnProperty('script') || hasProp(script, 'scriptFrom.ConfigMapScript') ) )">
@@ -404,31 +404,45 @@
                                                 </template>
                                                 <template v-else-if="(!editMode && (scriptSource[index] == 'configMapKeyRef') )">
                                                     <div class="header">
-                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef">Config Map Key Reference</h3>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef')"></span> 
+                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef">
+                                                            Config Map Key Reference
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef')"></span> 
+                                                        </h3>
                                                     </div>
                                                     
-                                                    <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name">Name</label>
-                                                    <input v-model="script.scriptFrom.configMapKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
-
-                                                    <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key">Key</label>
-                                                    <input v-model="script.scriptFrom.configMapKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
+                                                    <div class="row-50 noMargin">
+                                                        <div class="col">
+                                                            <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name">Name</label>
+                                                            <input v-model="script.scriptFrom.configMapKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
+                                                        </div>
+                                                        <div class="col">
+                                                            <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key">Key</label>
+                                                            <input v-model="script.scriptFrom.configMapKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
+                                                        </div>
+                                                    </div>
                                                 </template>
                                                 <template v-else-if="(scriptSource[index] == 'secretKeyRef')">
                                                     <div class="header">
-                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef">Secret Key Reference</h3>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef')"></span> 
+                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef">
+                                                            Secret Key Reference
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef')"></span> 
+                                                        </h3>
                                                     </div>
-                                                    
-                                                    <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name">Name</label>
-                                                    <input v-model="script.scriptFrom.secretKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
 
-                                                    <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key">Key</label>
-                                                    <input v-model="script.scriptFrom.secretKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
+                                                    <div class="row-50 noMargin">
+                                                        <div class="col">
+                                                            <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name">Name</label>
+                                                            <input v-model="script.scriptFrom.secretKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
+                                                        </div>
+                                                        <div class="col">
+                                                            <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key">Key</label>
+                                                            <input v-model="script.scriptFrom.secretKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
+                                                        </div>
+                                                    </div>
                                                 </template>
                                             </div>
                                         </div>
@@ -783,7 +797,7 @@
                             <div class="header">
                                 <h3 for="spec.metadata.annotations.clusterPods">
                                     Cluster Pods
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.sgcluster', 'spec.metadata.annotations.clusterPods')"></span>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.clusterPods')"></span>
                                 </h3>
                             </div>
                             <div class="annotation" v-if="annotationsPods.length">
@@ -2696,6 +2710,7 @@
 
     input.affinityWeight + span {
         left: -20px;
+        top: -15px;
     }
 
     input.affinityWeight {
@@ -2740,6 +2755,10 @@
 
     body:not(.darkmode) label[for="babelfish"] svg path[fill="#FFF"] {
         fill: #3452a8 !important;
+    }
+
+    .noMargin {
+        margin-bottom: -20px;
     }
 
 </style>
