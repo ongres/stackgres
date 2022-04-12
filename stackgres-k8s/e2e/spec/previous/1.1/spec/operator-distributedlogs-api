@@ -6,7 +6,6 @@ e2e_test_install() {
 
   DISTRIBUTED_LOGS_NAME=distributedlogs
   init_expandable_storage_class
-  STORAGE_CLASSNAME="$(get_expandable_storage_class_name)"
 
   create_or_replace_cluster "$CLUSTER_NAME-for-distributedlogs" "$CLUSTER_NAMESPACE" "1" \
     --set cluster.create=false \
@@ -17,7 +16,7 @@ e2e_test_install() {
     --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \
     --set-string "distributedLogs.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set-string distributedLogs.persistentVolume.size=128Mi \
-    --set distributedLogs.persistentVolume.storageClass="$STORAGE_CLASSNAME"
+    --set distributedLogs.persistentVolume.storageClass="$EXPANDABLE_STORAGE_CLASSNAME"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 

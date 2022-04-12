@@ -3,7 +3,6 @@
 DEFAULT_EXPANDABLE_STORAGE_CLASSNAME="expandable-sc"
 
 init_expandable_storage_class(){
-
   if is_expandable_storage_class_configured
   then
     echo "Expandable storage class already configured, skipping initialization."
@@ -20,17 +19,12 @@ init_expandable_storage_class(){
   fi
 }
 
-exists_storage_class(){
-  STORAGE_CLASS="$1"
-  kubectl get storageclasses "$STORAGE_CLASS" > /dev/null 2>&1    
-}
-
 is_expandable_storage_class_configured(){
   local EXPANDABLE_STORAGE_CLASSNAME
-  
+
   if command -v get_expandable_storage_class_name >/dev/null 2>&1
   then 
-    EXPANDABLE_STORAGE_CLASSNAME="$(get_expandable_storage_class_name)"  
+    EXPANDABLE_STORAGE_CLASSNAME="$(get_expandable_storage_class_name)"
   else
     EXPANDABLE_STORAGE_CLASSNAME=$(get_first_expandable_storage_class_name)
   fi
@@ -44,28 +38,29 @@ is_expandable_storage_class_configured(){
 }
 
 create_expandable_storage_class_from_default(){
-  generate_storage_class_from_default | kubectl apply -f -  
+  generate_storage_class_from_default | kubectl apply -f -
 }
 
 get_installed_storage_classes(){
-    kubectl get storageclasses.storage.k8s.io -o custom-columns=:.metadata.name | tail +2
+  kubectl get storageclasses.storage.k8s.io -o custom-columns=:.metadata.name | tail +2
 }
 
 generate_storage_class_from_default(){
-    local DEFAULT_STORAGE_CLASSNAME
-    DEFAULT_STORAGE_CLASSNAME="$(get_default_storage_class_name)"    
-    kubectl get storageclasses.storage.k8s.io "$DEFAULT_STORAGE_CLASSNAME" -o json \
-       | jq 'del(.metadata)' | jq '.metadata= {}' | jq '.metadata.name = "'"$DEFAULT_EXPANDABLE_STORAGE_CLASSNAME"'"' \
-       | jq '.allowVolumeExpansion = "true"'
+  local DEFAULT_STORAGE_CLASSNAME
+  DEFAULT_STORAGE_CLASSNAME="$(get_default_storage_class_name)"
+  kubectl get storageclasses.storage.k8s.io "$DEFAULT_STORAGE_CLASSNAME" -o json \
+     | jq 'del(.metadata)' | jq '.metadata= {}' | jq '.metadata.name = "'"$DEFAULT_EXPANDABLE_STORAGE_CLASSNAME"'"' \
+     | jq '.allowVolumeExpansion = "true"'
 }
 
 get_default_storage_class_name(){
-    kubectl get storageclasses.storage.k8s.io \
-      -o custom-columns=NAME:.metadata.name,IS_DEFAULT:".metadata.annotations.storageclass\.kubernetes\.io/is-default-class" \
-      | awk '{ if ($2 == "true") { print } }' \
-      | awk '{print $1}' \
-      | head -n +1
+  kubectl get storageclasses.storage.k8s.io \
+    -o custom-columns=NAME:.metadata.name,IS_DEFAULT:".metadata.annotations.storageclass\.kubernetes\.io/is-default-class" \
+    | awk '{ if ($2 == "true") { print } }' \
+    | awk '{print $1}' \
+    | head -n +1
 }
+
 get_first_expandable_storage_class_name() {
   kubectl get storageclasses.storage.k8s.io -o custom-columns=:.metadata.name,:.allowVolumeExpansion \
     | awk '{ if ($2 == "true") { print } }' \
