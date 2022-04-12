@@ -410,7 +410,7 @@
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
-        name: 'CreateBackupConfig',
+        name: 'CreateSGBackupConfigs',
 
         mixins: [mixin],
 

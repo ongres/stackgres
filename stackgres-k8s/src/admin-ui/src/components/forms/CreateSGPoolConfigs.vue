@@ -80,7 +80,7 @@
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
-        name: 'CreatePoolConfig',
+        name: 'CreateSGPoolConfigs',
 
         mixins: [mixin],
 

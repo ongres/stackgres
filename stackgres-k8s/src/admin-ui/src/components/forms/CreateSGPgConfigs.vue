@@ -89,7 +89,7 @@
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
-        name: 'CreatePgConfig',
+        name: 'CreateSGPgConfigs',
 
         mixins: [mixin],
 

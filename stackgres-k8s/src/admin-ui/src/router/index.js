@@ -4,14 +4,14 @@ import store from '../store'
 import axios from 'axios'
 
 // Form Components
-import CreateCluster from '../components/forms/CreateCluster.vue'
-import CreateProfile from '../components/forms/CreateProfile.vue'
-import CreatePgConfig from '../components/forms/CreatePgConfig.vue'
-import CreatePoolConfig from '../components/forms/CreatePoolConfig.vue'
-import CreateBackupConfig from '../components/forms/CreateBackupConfig.vue'
-import CreateBackup from '../components/forms/CreateBackup.vue'
-import CreateLogsServer from '../components/forms/CreateLogsServer.vue'
-import CreateDbOps from '../components/forms/CreateDbOps.vue'
+import CreateCluster from '../components/forms/CreateSGClusters.vue'
+import CreateProfile from '../components/forms/CreateSGInstanceProfiles.vue'
+import CreatePgConfig from '../components/forms/CreateSGPgConfigs.vue'
+import CreatePoolConfig from '../components/forms/CreateSGPoolConfigs.vue'
+import CreateBackupConfig from '../components/forms/CreateSGBackupConfigs.vue'
+import CreateBackup from '../components/forms/CreateSGBackups.vue'
+import CreateLogsServer from '../components/forms/CreateSGDistributedLogs.vue'
+import CreateDbOps from '../components/forms/CreateSGDbOps.vue'
 
 // Main Components
 import GlobalDashboard from '../components/GlobalDashboard.vue'
@@ -497,7 +497,15 @@ router.beforeResolve((to, from, next) => {
 
   // If loading CRD from direct URL validate if CRD exists on the API before loading
   if( from.path == '/') {
-    let kind = to.matched[0].components.default.name.startsWith('Cluster') ? 'sgclusters' : to.matched[0].components.default.name;
+    let kind = ( 
+      to.matched[0].components.default.name.startsWith('Cluster') ? 
+        'sgclusters' : 
+        ( 
+          to.matched[0].components.default.name.startsWith('Create') ? 
+            to.matched[0].components.default.name.replace('Create', '') : 
+            to.matched[0].components.default.name 
+        ) 
+    );
 
     if(!checkLogin()) {
       next(); 
@@ -519,8 +527,7 @@ router.beforeResolve((to, from, next) => {
           store.commit('setCurrentNamespace', namespaceName);
 
           let resourceName = ( to.params.hasOwnProperty('name') ? to.params.name : ( to.params.hasOwnProperty('backupname') ? to.params.backupname : '' ) );
-          console.log(resourceName)
-
+          
           // Then check if requested resource exists
           if(resourceName.length) {
 

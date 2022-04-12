@@ -99,7 +99,7 @@
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
-        name: 'CreateProfile',
+        name: 'CreateSGInstanceProfiles',
 
         mixins: [mixin],
 

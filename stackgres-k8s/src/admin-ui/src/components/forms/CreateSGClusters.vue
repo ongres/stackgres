@@ -1355,7 +1355,7 @@
     import ClusterSummary from './summary/SGClusterSummary.vue'
 
     export default {
-        name: 'CreateCluster',
+        name: 'CreateSGClusters',
 
         mixins: [mixin],
 
