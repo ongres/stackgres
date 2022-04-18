@@ -679,11 +679,11 @@
 									</tr>
 									<tr v-if="hasProp(back, 'data.status.sgBackupConfig.storage.s3.storageClass')">
 										<td class="label">
-											Bucket
+											Storage Class
 											<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.sgBackupConfig.storage.s3.storageClass')"></span>
 										</td>
 										<td colspan="2">
-											{{ back.data.status.sgBackupConfig.storage.s3.path }}
+											{{ back.data.status.sgBackupConfig.storage.s3.storageClass }}
 										</td>
 									</tr>
 									<tr>
