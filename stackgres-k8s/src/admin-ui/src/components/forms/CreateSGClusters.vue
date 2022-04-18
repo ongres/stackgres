@@ -396,60 +396,32 @@
                                                 <span class="helpTooltip" :data-tooltip="'Determine the source from which the script should be loaded. Possible values are: \n* Raw Script \n* From Secret \n* From ConfigMap.'"></span>
                                             </div>
                                             <div class="col">                                                
-                                                <template  v-if="(!editMode && (scriptSource[index] == 'raw') ) || (editMode && ( script.hasOwnProperty('script') || hasProp(script, 'scriptFrom.ConfigMapScript') ) )">
+                                                <template  v-if="(!editMode && (scriptSource[index] == 'raw') ) || (editMode && script.hasOwnProperty('script') )">
                                                     <label for="spec.initialData.scripts.script" class="script">Script</label> <span class="uploadScript" v-if="!editMode">or <a @click="getScriptFile(index)" class="uploadLink">upload a file</a></span> 
                                                     <input :id="'scriptFile'+index" type="file" @change="uploadScript" class="hide">
                                                 
                                                     <textarea v-model="script.script" placeholder="Type a script..." :disabled="editMode"></textarea>
                                                 </template>
-                                                <template v-else-if="(!editMode && (scriptSource[index] == 'configMapKeyRef') )">
+                                                <template v-else-if="(!editMode && (scriptSource[index] != 'raw') )">
                                                     <div class="header">
-                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef">
-                                                            Config Map Key Reference
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef')"></span> 
-                                                        </h3>
+                                                        <h3 :for="'spec.initialData.scripts.scriptFrom.properties' + scriptSource[index]">{{ splitUppercase(scriptSource[index]) }}</h3>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.' + scriptSource[index])"></span> 
                                                     </div>
                                                     
-                                                    <div class="row-50 noMargin">
-                                                        <div class="col">
-                                                            <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name">Name</label>
-                                                            <input v-model="script.scriptFrom.configMapKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key">Key</label>
-                                                            <input v-model="script.scriptFrom.configMapKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                                <template v-else-if="(scriptSource[index] == 'secretKeyRef')">
-                                                    <div class="header">
-                                                        <h3 for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef">
-                                                            Secret Key Reference
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef')"></span> 
-                                                        </h3>
-                                                    </div>
+                                                    <label :for="'spec.initialData.scripts.scriptFrom.' + scriptSource[index] + '.properties.properties.name'">Name</label>
+                                                    <input v-model="script.scriptFrom[scriptSource[index]].name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.' + scriptSource[index] + '.properties.name')"></span>
 
-                                                    <div class="row-50 noMargin">
-                                                        <div class="col">
-                                                            <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name">Name</label>
-                                                            <input v-model="script.scriptFrom.secretKeyRef.name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key">Key</label>
-                                                            <input v-model="script.scriptFrom.secretKeyRef.key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
-                                                        </div>
-                                                    </div>
+                                                    <label :for="'spec.initialData.scripts.scriptFrom.' + scriptSource[index] + '.properties.properties.key'">Key</label>
+                                                    <input v-model="script.scriptFrom[scriptSource[index]].key" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.' + scriptSource[index] + '.properties.key')"></span>
                                                 </template>
                                             </div>
                                         </div>
                                     </div>
                                 </fieldset>
                             </template>
-                            <div class="fieldsetFooter" :class="!initScripts.length && 'topBorder'">
+                            <div v-if="!editMode" class="fieldsetFooter" :class="!initScripts.length && 'topBorder'">
                                 <a class="addRow" @click="pushScript()" v-if="!editMode">Add Script</a>
                             </div>
                         </div>
@@ -1685,18 +1657,32 @@
             },
 
             hasScripts(source) {
-                
-                let hasScripts = source.find(s => JSON.stringify(s) != '{"name":"","database":"","script":""}');
+                const vc = this;
+                let hasScripts = false;
 
-                return (typeof hasScripts != 'undefined')
+                source.forEach((script, index) => {
+                    
+                    if( (
+                            (vc.scriptSource[index] == 'raw') && 
+                            (JSON.stringify(script) != '{"name":"","database":"","script":""}')
+                        ) || (
+                            (vc.scriptSource[index] != 'raw') && 
+                            (JSON.stringify(script.scriptFrom[vc.scriptSource[index]]) != '{"name":"","key":""}')
+                    )) {
+                        hasScripts = true;
+                        return false
+                    }
+                });
+
+                return hasScripts
             },
 
             cleanupScripts(scripts) {
-
+                const vc = this;
                 let nonEmptyScripts = [];
                 
-                scripts.forEach(function(script){
-                    if(script.hasOwnProperty('script') && script.script.length) {
+                scripts.forEach(function(script, index) {
+                    if ( (vc.scriptSource[index] == 'raw') && script.hasOwnProperty('script') && script.script.length ) {
                         nonEmptyScripts.push({
                             ...( (script.hasOwnProperty('name') && script.name.length) && ({
                                 "name": script.name
@@ -1706,6 +1692,8 @@
                             })),
                             "script": script.script
                         });
+                    } else if ( (vc.scriptSource[index] != 'raw') && (script.scriptFrom[vc.scriptSource[index]].key != '') && (script.scriptFrom[vc.scriptSource[index]].name != '') ) {
+                        nonEmptyScripts.push(script);
                     }
                 })
 
