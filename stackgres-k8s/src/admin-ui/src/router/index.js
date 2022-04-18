@@ -4,14 +4,14 @@ import store from '../store'
 import axios from 'axios'
 
 // Form Components
-import CreateCluster from '../components/forms/CreateCluster.vue'
-import CreateProfile from '../components/forms/CreateProfile.vue'
-import CreatePgConfig from '../components/forms/CreatePgConfig.vue'
-import CreatePoolConfig from '../components/forms/CreatePoolConfig.vue'
-import CreateBackupConfig from '../components/forms/CreateBackupConfig.vue'
-import CreateBackup from '../components/forms/CreateBackup.vue'
-import CreateLogsServer from '../components/forms/CreateLogsServer.vue'
-import CreateDbOps from '../components/forms/CreateDbOps.vue'
+import CreateCluster from '../components/forms/CreateSGClusters.vue'
+import CreateProfile from '../components/forms/CreateSGInstanceProfiles.vue'
+import CreatePgConfig from '../components/forms/CreateSGPgConfigs.vue'
+import CreatePoolConfig from '../components/forms/CreateSGPoolConfigs.vue'
+import CreateBackupConfig from '../components/forms/CreateSGBackupConfigs.vue'
+import CreateBackup from '../components/forms/CreateSGBackups.vue'
+import CreateLogsServer from '../components/forms/CreateSGDistributedLogs.vue'
+import CreateDbOps from '../components/forms/CreateSGDbOps.vue'
 
 // Main Components
 import GlobalDashboard from '../components/GlobalDashboard.vue'
@@ -21,14 +21,14 @@ import ClusterInfo from '../components/ClusterInfo.vue'
 import ClusterStatus from '../components/ClusterStatus.vue'
 import ClusterLogs from '../components/ClusterLogs.vue'
 import ClusterEvents from '../components/ClusterEvents.vue'
-import Backups from '../components/Backups.vue'
-import PgConfig from '../components/PgConfig.vue'
-import PoolConfig from '../components/PoolConfig.vue'
-import BackupConfig from '../components/BackupConfig.vue'
-import InstanceProfile from '../components/InstanceProfile.vue'
-import LogsServer from '../components/LogsServer.vue'
-import DbOps from '../components/DbOps.vue'
-import Grafana from '../components/Grafana.vue'
+import SGBackups from '../components/SGBackups.vue'
+import SGPgConfigs from '../components/SGPgConfigs.vue'
+import SGPoolConfigs from '../components/SGPoolConfigs.vue'
+import SGBackupConfigs from '../components/SGBackupConfigs.vue'
+import SGInstanceProfiles from '../components/SGInstanceProfiles.vue'
+import SGDistributedLogs from '../components/SGDistributedLogs.vue'
+import SGDbOps from '../components/SGDbOps.vue'
+import Grafana from '../components/ClusterMonitoring.vue'
 import NotFound from '../components/NotFound.vue'
 
 // Applications
@@ -256,7 +256,7 @@ const routes = [
   },
   {  
     path: '/:namespace/sgbackups', 
-    component: Backups,
+    component: SGBackups,
     name: 'NamespaceBackups',
     meta: {
       conditionalRoute: false
@@ -264,7 +264,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgbackup/:backupname', 
-    component: Backups,
+    component: SGBackups,
     name: 'SingleBackups',
     meta: {
       conditionalRoute: false
@@ -272,7 +272,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgcluster/:name/sgbackups', 
-    component: Backups,
+    component: SGBackups,
     name: 'ClusterBackups',
     meta: {
       conditionalRoute: false
@@ -280,7 +280,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgcluster/:name/sgbackup/:backupname', 
-    component: Backups,
+    component: SGBackups,
     name: 'SingleClusterBackups',
     meta: {
       conditionalRoute: false
@@ -288,7 +288,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgpgconfigs', 
-    component: PgConfig,
+    component: SGPgConfigs,
     name: 'PgConfig',
     meta: {
       conditionalRoute: false
@@ -296,7 +296,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgpgconfig/:name', 
-    component: PgConfig,
+    component: SGPgConfigs,
     name: 'SinglePgConfig',
     meta: {
       conditionalRoute: false
@@ -304,7 +304,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgpoolconfigs', 
-    component: PoolConfig,
+    component: SGPoolConfigs,
     name: 'PoolConfig',
     meta: {
       conditionalRoute: false
@@ -312,7 +312,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgpoolconfig/:name', 
-    component: PoolConfig,
+    component: SGPoolConfigs,
     name: 'SinglePoolConfig',
     meta: {
       conditionalRoute: false
@@ -320,7 +320,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgbackupconfigs', 
-    component: BackupConfig,
+    component: SGBackupConfigs,
     name: 'BackupConfig',
     meta: {
       conditionalRoute: false
@@ -328,7 +328,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgbackupconfig/:name', 
-    component: BackupConfig,
+    component: SGBackupConfigs,
     name: 'SingleBackupConfig',
     meta: {
       conditionalRoute: false
@@ -336,7 +336,7 @@ const routes = [
   },
   {  
     path: '/:namespace/sginstanceprofiles', 
-    component: InstanceProfile,
+    component: SGInstanceProfiles,
     name: 'InstanceProfile',
     meta: {
       conditionalRoute: false
@@ -344,7 +344,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sginstanceprofile/:name', 
-    component: InstanceProfile,
+    component: SGInstanceProfiles,
     name: 'SingleInstanceProfile',
     meta: {
       conditionalRoute: false
@@ -352,7 +352,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgdistributedlogs', 
-    component: LogsServer,
+    component: SGDistributedLogs,
     name: 'LogsServer',
     meta: {
       conditionalRoute: false
@@ -360,7 +360,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgdistributedlog/:name', 
-    component: LogsServer,
+    component: SGDistributedLogs,
     name: 'SingleLogsServer',
     meta: {
       conditionalRoute: false
@@ -368,7 +368,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgdbops', 
-    component: DbOps,
+    component: SGDbOps,
     name: 'DbOps',
     meta: {
       conditionalRoute: false
@@ -376,7 +376,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgdbop/:name', 
-    component: DbOps,
+    component: SGDbOps,
     name: 'SingleDbOps',
     meta: {
       conditionalRoute: false
@@ -384,7 +384,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgdbop/:name/event/:uid', 
-    component: DbOps,
+    component: SGDbOps,
     name: 'SingleDbOpsEvents',
     meta: {
       conditionalRoute: false
@@ -497,412 +497,74 @@ router.beforeResolve((to, from, next) => {
 
   // If loading CRD from direct URL validate if CRD exists on the API before loading
   if( from.path == '/') {
-    const component = to.matched[0].components.default.name;
+    let kind = ( 
+      to.matched[0].components.default.name.startsWith('Cluster') ? 
+        'sgclusters' : 
+        ( 
+          to.matched[0].components.default.name.startsWith('Create') ? 
+            to.matched[0].components.default.name.replace('Create', '') : 
+            to.matched[0].components.default.name 
+        ) 
+    );
 
     if(!checkLogin()) {
       next(); 
       return;
     }
 
-    /* Check if Namespace exist */
+    /* First check if Namespace exist */
     if(to.params.hasOwnProperty('namespace')) {
+
+      let namespaceName = to.params.namespace;
       
       axios
       .get('/stackgres/namespaces')
       .then( function(response){
-        store.commit('addNamespaces',response.data)
-        if(response.data.includes(to.params.namespace)) {
-          store.commit('setCurrentNamespace', to.params.namespace);
-        }
-        else {
-          checkAuthError(error)
+        store.commit('addNamespaces', response.data)
+        
+        if(response.data.includes(namespaceName)) {
+          
+          store.commit('setCurrentNamespace', namespaceName);
+
+          let resourceName = ( to.params.hasOwnProperty('name') ? to.params.name : ( to.params.hasOwnProperty('backupname') ? to.params.backupname : '' ) );
+          
+          // Then check if requested resource exists
+          if(resourceName.length) {
+
+            // If requesting for backups inside a single cluster
+            if(to.name.includes('ClusterBackup')) {
+
+              if(to.params.hasOwnProperty('backupname')) {
+                axios
+                .get('/stackgres/namespaces/' + namespaceName + '/' + kind.toLowerCase() + '/' + to.params.backupname )
+                .catch(function(error) {
+                  checkAuthError(error);
+                  notFound();
+                  return false;
+                });
+              }
+
+              kind = 'sgclusters';
+
+            }
+    
+            axios
+            .get('/stackgres/namespaces/' + namespaceName + '/' + kind.toLowerCase() + '/' + resourceName )
+            .catch(function(error) {
+              checkAuthError(error)
+              notFound()
+            });
+            
+          }
+
+        } else {
           notFound();
         }
       }).catch(function(error) {
         checkAuthError(error)
         notFound()
       });
-    }
       
-    switch(component) {
-
-      case 'CreateCluster':
-      case 'Logs':
-      case 'ClusterInfo':
-      case 'Grafana':
-      case 'ClusterStatus':
-
-        axios
-        .get('/stackgres/sgclusters')
-        .then( function(response){
-
-          var found = false,
-              stats = {};
-
-            if(component == 'ClusterStatus') {
-              /* Check for Cluster status */
-              axios
-              .get('/stackgres/namespaces/'+to.params.namespace+'/sgclusters/'+to.params.name+'/stats')
-              .then( function(resp){
-                stats = resp.data;
-              }).catch(function(error) {
-                checkAuthError(error)
-                notFound()
-              });
-            } 
-
-          response.data.forEach( function(item, index) {
-
-            var cluster = {
-              name: item.metadata.name,
-              data: item,
-              hasBackups: false,
-              status: {},
-            };
-
-            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) ) {
-              cluster.status = stats;
-              store.commit('setCurrentCluster', cluster);
-              found = true;
-            }
-
-            store.commit('updateClusters', cluster);
-
-          });
-
-          if( to.params.hasOwnProperty('name') && !found)
-            notFound()
-          else
-            next()
-
-        }).catch(function(error) {
-            checkAuthError(error)
-          notFound()
-        });
-
-        break
-
-      case 'InstanceProfile':
-      case 'CreateProfile':
-        /* Check if Profile exists */
-        axios
-        .get('/stackgres/sginstanceprofiles')
-        .then( function(response){
-
-          var found = false
-
-          response.data.forEach( function(item, index) {
-              
-            store.commit('updateProfiles', { 
-              name: item.metadata.name,
-              data: item
-            }); 
-
-            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
-              found = true;
-
-          });
-
-          if( to.params.hasOwnProperty('name') && !found)
-            notFound()
-          else
-            next()
-
-        }).catch(function(error) {
-          checkAuthError(error)
-          notFound()
-        });
-
-        break
-
-      case 'PgConfig':
-      case 'CreatePgConfig':
-        
-        /* Check if Postgres Config exists */
-        axios
-        .get('/stackgres/sgpgconfigs')
-        .then( function(response){
-
-          var found = false
-
-          response.data.forEach( function(item, index) {
-              
-            store.commit('updatePGConfig', { 
-              name: item.metadata.name,
-              data: item
-            }); 
-
-            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
-              found = true;
-
-          });
-
-          if( to.params.hasOwnProperty('name') && !found)
-            notFound()
-          else
-            next()
-
-        }).catch(function(error) {
-          checkAuthError(error)
-          notFound()
-        });
-
-        break;
-
-      case 'PoolConfig':
-      case 'CreatePoolConfig':
-
-        /* Check if PgBouncer Config exists */
-        axios
-        .get('/stackgres/sgpoolconfigs')
-        .then( function(response){
-
-          var found = false
-
-          response.data.forEach( function(item, index) {
-              
-            store.commit('updatePoolConfig', { 
-              name: item.metadata.name,
-              data: item
-            }); 
-
-            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
-              found = true;
-
-          });
-
-          if( to.params.hasOwnProperty('name') && !found)
-            notFound()
-          else
-            next()
-
-        }).catch(function(error) {
-          checkAuthError(error)
-          notFound()
-        });
-
-        break;
-      
-      case 'BackupConfig':
-      case 'CreateBackupConfig':
-        /* Check if BackupConfig Config exists */
-        axios
-        .get('/stackgres/sgbackupconfigs')
-        .then( function(response){
-
-          var found = false
-
-          response.data.forEach( function(item, index) {
-              
-            store.commit('updateBackupConfig', { 
-              name: item.metadata.name,
-              data: item
-            }); 
-
-            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
-              found = true;
-
-          });
-
-          if( to.params.hasOwnProperty('name') && !found)
-            notFound()
-          else
-            next()
-
-        }).catch(function(error) {
-          checkAuthError(error)
-          notFound()
-        });
-
-        break;
-
-      case 'Backups':
-      case 'CreateBackup':
-        /* If filtered by Cluster, first check if Cluster exists */
-        if(to.name.includes('ClusterBackup')) {
-
-          axios
-          .get('/stackgres/sgclusters')
-          .then( function(response){
-  
-            var found = false
-  
-            response.data.forEach( function(item, index) {
-  
-              var cluster = {
-                name: item.metadata.name,
-                data: item,
-                hasBackups: false,
-                status: {},
-              };
-                
-              store.commit('updateClusters', cluster);
-  
-              if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) ) {
-                store.commit('setCurrentCluster', cluster);
-                found = true;
-              }
-  
-            });
-  
-            if( to.params.hasOwnProperty('name') && !found)
-              notFound()
-            else
-              next()
-  
-          }).catch(function(error) {
-            checkAuthError(error)
-            notFound()
-          });
-
-          axios
-          .get('/stackgres/sgbackups')
-          .then( function(response){ 
-            var found = false,
-                duration = '';
-
-            if(response.data.length) {
-
-              response.data.forEach( function(item, index) {
-                  
-                store.commit('updateBackups', { 
-                  name: item.metadata.name,
-                  data: item,
-                  duration: '',
-                  show: true
-                });
-
-                if( to.params.hasOwnProperty('backupname') && (to.params.backupname == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
-                  found = true;
-
-              });
-            }
-
-            if( to.params.hasOwnProperty('backupname') && !found) {
-              notFound()
-            }
-            else {
-              next()
-            }
-          }).catch(function(error) {
-            checkAuthError(error)
-            notFound()
-          });
-
-        } else {
-          
-          axios
-          .get('/stackgres/sgbackups')
-          .then( function(response){
-
-            var found = false
-
-            if(response.data.length) {
-
-              response.data.forEach( function(item, index) {
-                  
-                store.commit('updateBackups', { 
-                  name: item.metadata.name,
-                  data: item,
-                  duration: '',
-                  show: true
-                });
-
-                if( to.params.hasOwnProperty('backupname') && (to.params.backupname == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
-                  found = true;
-
-              });
-            }
-
-            if( to.params.hasOwnProperty('backupname') && !found) {
-              notFound()
-            }
-            else {
-              next()
-            }
-
-          }).catch(function(error) {
-            checkAuthError(error)
-            notFound()
-          });
-        }
-        
-        break;
-
-      case 'LogsServer':
-      case 'CreateLogsServer': 
-
-        /* Check if requested Logs Server exists */
-        axios
-        .get('/stackgres/sgdistributedlogs')
-        .then( function(response){
-
-          var found = false
-          var logs = []
-
-          response.data.forEach( function(item, index) {
-              
-            logs.push({
-              name: item.metadata.name,
-              data: item
-            }) 
-
-            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
-              found = true;
-
-          });
-
-          if( to.params.hasOwnProperty('name') && !found)
-            notFound()
-          else {
-            store.commit('addLogsClusters', logs);
-            next()
-          }
-
-        }).catch(function(error) {
-          checkAuthError(error)
-          notFound()
-        });
-
-        break;
-      
-      case 'DbOps':
-
-        /* Check if requested Database Operation exists */
-        axios
-        .get('/stackgres/sgdbops')
-        .then( function(response){
-
-          var found = false
-          var dbOps = [];
-
-          response.data.forEach( function(item, index) {
-              
-            response.data.forEach(function(item, index){
-              dbOps.push({
-                name: item.metadata.name,
-                data: item
-              })
-            })
-
-            if( to.params.hasOwnProperty('name') && (to.params.name == item.metadata.name) && (to.params.namespace == item.metadata.namespace) )
-              found = true;
-
-          });
-
-          if( to.params.hasOwnProperty('name') && !found)
-            notFound()
-          else {
-            store.commit('addDbOps', dbOps);
-            next()
-          }
-
-        }).catch(function(error) {
-          checkAuthError(error)
-          notFound()
-        });
-
-        break;
     }
 
   }

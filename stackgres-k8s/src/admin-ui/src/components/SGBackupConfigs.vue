@@ -476,7 +476,7 @@
 	import store from '../store'
 
     export default {
-        name: 'BackupConfig',
+        name: 'SGBackupConfigs',
 
 		mixins: [mixin],
 
@@ -493,7 +493,7 @@
 		computed: {
 
 			config () {
-				return this.sortTable( [...(store.state.backupConfig.filter(conf => (conf.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+				return this.sortTable( [...(store.state.sgbackupconfigs.filter(conf => (conf.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
 			},
 
 			tooltips () {

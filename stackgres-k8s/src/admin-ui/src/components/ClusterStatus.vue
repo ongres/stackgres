@@ -309,7 +309,7 @@
 			},
 
 			profiles () {
-				return store.state.profiles
+				return store.state.sginstanceprofiles
 			}
 
 		},

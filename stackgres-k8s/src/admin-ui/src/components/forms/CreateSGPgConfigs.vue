@@ -89,7 +89,7 @@
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
-        name: 'CreatePgConfig',
+        name: 'CreateSGPgConfigs',
 
         mixins: [mixin],
 
@@ -120,7 +120,7 @@
                 const vc = this;
                 var nameColission = false;
                 
-                store.state.pgConfig.forEach(function(item, index) {
+                store.state.sgpgconfigs.forEach(function(item, index) {
                     if( (item.name == vc.pgConfigName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
                         nameColission = true
                 })
@@ -133,7 +133,7 @@
                 var config = {};
 
                 if( vm.editMode && !vm.editReady ) {
-                    store.state.pgConfig.forEach(function( conf ){
+                    store.state.sgpgconfigs.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.pgConfigVersion = conf.data.spec.postgresVersion;
                             vm.pgConfigParams = conf.data.spec["postgresql.conf"];

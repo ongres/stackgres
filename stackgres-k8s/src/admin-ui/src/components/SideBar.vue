@@ -375,27 +375,27 @@
 			},
 
 			logsClusters () {
-				return store.state.logsClusters
+				return store.state.sgdistributedlogs
 			},
 
 			backups () {
-				return store.state.backups;
+				return store.state.sgbackups;
 			},
 
 			pgConfig () {
-				return store.state.pgConfig;
+				return store.state.sgpgconfigs;
 			},
 
 			poolConfig () {
-				return store.state.poolConfig;
+				return store.state.sgpoolconfigs;
 			},
 
 			bkConfig () {
-				return store.state.backupConfig;
+				return store.state.sgbackupconfigs;
 			},
 
 			profiles () {
-				return store.state.profiles;
+				return store.state.sginstanceprofiles;
 			},
 
 			applications () {

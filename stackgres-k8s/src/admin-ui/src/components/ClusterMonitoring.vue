@@ -87,7 +87,7 @@
 
 
     export default {
-        name: 'Grafana',
+        name: 'ClusterMonitoring',
 
 		mixins: [mixin],
 
@@ -137,12 +137,13 @@
 
 			clusters () {
 				let vc = this;
+				let cluster = store.state.clusters.find(c => ((vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name)));
 
-				// Read Grafana URL
-				if(!vc.$route.params.hasOwnProperty('pod')) {
+				if(typeof cluster != 'undefined') {
 
-					let cluster = store.state.clusters.find(c => ((vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name)));
-					if(typeof cluster != 'undefined') {
+					// Read Grafana URL
+					if(!vc.$route.params.hasOwnProperty('pod')) {
+						
 						let primaryNode = cluster.data.pods.find(p => (p.role == 'primary'));
 
 						if(typeof primaryNode != 'undefined') {
@@ -151,31 +152,35 @@
 							else 
 								router.replace(vc.$route.path + '/' + primaryNode.ip)
 						}
-					}
-				} else {
-					$.get("/grafana")
-					.done(function( data, textStatus, jqXHR ) {
-						
-						if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
-							let url = data;
-							url += (url.includes('?') ? '&' : '?') + 'theme=' + vc.theme + '&kiosk&var-instance=';
+					} else {
 
-							$.get(url)
-							.done(function(data, textStatus, jqXHR) {
-								vc.grafanaUrl = url;
+						if(typeof cluster.data.pods.find(p => (p.ip == vc.$route.params.pod)) != 'undefined') {
+
+							if(vc.$route.params.hasOwnProperty('range') && !vc.timeRangeOptions.hasOwnProperty(vc.$route.params.range)) {
+								store.commit('notFound',true)
+								return false;
+							}
+
+							$.get("/grafana")
+							.done(function( data, textStatus, jqXHR ) {
+								
+								if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
+									vc.grafanaUrl = data + (data.includes('?') ? '&' : '?') + 'theme=' + vc.theme + '&kiosk&var-instance=';
+								} else {
+									vc.notifyGrafanaError();
+								}
 							})
 							.fail(function( jqXHR, textStatus, errorThrown ) {
-								vc.notifyGrafanaError();
-							});
+								if(textStatus == 'error') {
+									vc.notifyGrafanaError();
+								}       
+							})
+
 						} else {
-							vc.notifyGrafanaError();
+							store.commit('notFound',true)
 						}
-					})
-					.fail(function( jqXHR, textStatus, errorThrown ) {
-						if(textStatus == 'error') {
-							vc.notifyGrafanaError();
-						}       
-					})
+					}
+
 				}
 
 				return store.state.clusters

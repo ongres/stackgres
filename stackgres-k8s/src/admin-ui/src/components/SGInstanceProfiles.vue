@@ -158,11 +158,10 @@
 
 <script>
 	import { mixin } from './mixins/mixin'
-	import router from '../router'
 	import store from '../store'
 
     export default {
-        name: 'InstanceProfile',
+        name: 'SGInstanceProfiles',
 
 		mixins: [mixin],
 
@@ -179,7 +178,7 @@
 		computed: {
 
 			config () {
-				return this.sortTable( [...(store.state.profiles.filter(conf => (conf.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+				return this.sortTable( [...(store.state.sginstanceprofiles.filter(conf => (conf.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
 			},
 
 			tooltips() {

@@ -646,15 +646,15 @@
 		computed: {
 
             profiles () {
-				return store.state.profiles
+				return store.state.sginstanceprofiles
 			},
 
 			backups () {
-				return store.state.backups
+				return store.state.sgbackups
 			},
 
             backupConfig () {
-				return store.state.backupConfig
+				return store.state.sgbackupconfigs
 			}
 		},
 

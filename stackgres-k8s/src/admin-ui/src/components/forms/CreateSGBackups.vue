@@ -101,7 +101,7 @@
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
-        name: 'CreateBackup',
+        name: 'CreateSGBackups',
 
         mixins: [mixin],
 
@@ -136,7 +136,7 @@
                 const vc = this;
                 var nameColission = false;
                 
-                store.state.backups.forEach(function(item, index){
+                store.state.sgbackups.forEach(function(item, index){
                     if( (item.name == vc.backupName) && (item.data.metadata.namespace == vc.$route.params.namespace ) )
                         nameColission = true
                 })
@@ -149,7 +149,7 @@
                 var backup = {};
                 
                 if( vm.editMode && !vm.editReady ) {
-                    store.state.backups.forEach(function( bk ){
+                    store.state.sgbackups.forEach(function( bk ){
                         if( (bk.data.metadata.name === vm.$route.params.backupname) && (bk.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.backupName = bk.name;
                             vm.backupCluster = bk.data.spec.sgCluster;
@@ -204,7 +204,7 @@
                                 vc.fetchAPI('sgbackup');
 
                                 // If edited backup is not in Pending state, redirect to its details
-                                let bk = store.state.backups.find(b => (b.data.metadata.namespace == backup.metadata.namespace) && (b.data.metadata.name == backup.metadata.name) && vc.hasProp(b, 'data.status.process.status') && (b.data.status.process.status != 'Pending'))
+                                let bk = store.state.sgbackups.find(b => (b.data.metadata.namespace == backup.metadata.namespace) && (b.data.metadata.name == backup.metadata.name) && vc.hasProp(b, 'data.status.process.status') && (b.data.status.process.status != 'Pending'))
                                 
                                 if( typeof bk != 'undefined') {
                                     if(vc.isCluster) {

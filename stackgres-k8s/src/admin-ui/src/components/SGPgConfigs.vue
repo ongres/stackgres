@@ -200,7 +200,7 @@
 
 
     export default {
-        name: 'PgConfig',
+        name: 'SGPgConfigs',
 
 		mixins: [mixin],
 
@@ -217,7 +217,7 @@
 		computed: {
 
 			config () {
-				return this.sortTable( [...(store.state.pgConfig.filter(conf => (conf.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+				return this.sortTable( [...(store.state.sgpgconfigs.filter(conf => (conf.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
 			},
 
 			tooltips() {

@@ -181,9 +181,8 @@
 	import { mixin } from './mixins/mixin'
 	import store from '../store'
 
-
     export default {
-        name: 'PoolConfig',
+        name: 'SGPoolConfigs',
 
 		mixins: [mixin],
 
@@ -200,7 +199,7 @@
 		computed: {
 
 			config () {
-				return this.sortTable( [...(store.state.poolConfig.filter(conf => (conf.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+				return this.sortTable( [...(store.state.sgpoolconfigs.filter(conf => (conf.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
 			},
 
 			tooltips() {

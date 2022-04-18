@@ -1355,7 +1355,7 @@
     import ClusterSummary from './summary/SGClusterSummary.vue'
 
     export default {
-        name: 'CreateCluster',
+        name: 'CreateSGClusters',
 
         mixins: [mixin],
 
@@ -1486,19 +1486,19 @@
                 return store.state.allNamespaces
             },
             profiles () {
-                return store.state.profiles
+                return store.state.sginstanceprofiles
             },
             pgConf () {
-                return store.state.pgConfig
+                return store.state.sgpgconfigs
             },
             connPoolConf () {
-                return store.state.poolConfig
+                return store.state.sgpoolconfigs
             },
             backupConf () {
-                return store.state.backupConfig
+                return store.state.sgbackupconfigs
             },
             backups () {
-                return store.state.backups
+                return store.state.sgbackups
             },
             shortPostgresVersion () {
                 if (this.postgresVersion == 'latest')
@@ -1511,7 +1511,7 @@
             },
             
             logsClusters(){
-                return store.state.logsClusters
+                return store.state.sgdistributedlogs
             },
             nameColission() {
 
@@ -1921,10 +1921,10 @@
             }, 
 
             checkPgConfigVersion() {
-                let configs = store.state.pgConfig.length;
+                let configs = store.state.sgpgconfigs.length;
                 let vc = this;
 
-                store.state.pgConfig.forEach(function(item, index){
+                store.state.sgpgconfigs.forEach(function(item, index){
                     if( (item.data.spec.postgres.version !== vc.shortPostgresVersion) && (item.data.metadata.namespace == vc.$route.params.namespace) )
                         configs -= configs;
                 });
@@ -2094,13 +2094,13 @@
                 let minDate = null;
                 let maxDate = null;
 
-                store.state.backups.forEach(function(fromBackup, index) {
+                store.state.sgbackups.forEach(function(fromBackup, index) {
                     
                     if( fromBackup.data.metadata.name == vc.restoreBackup ) {
                         minDate = new Date(new Date(fromBackup.data.status.process.timing.stored).getTime());
 
-                        for(var i = index + 1; i < store.state.backups.length; i++) {
-                            let nextBackup = store.state.backups[i];
+                        for(var i = index + 1; i < store.state.sgbackups.length; i++) {
+                            let nextBackup = store.state.sgbackups[i];
                             
                             if( (nextBackup.data.metadata.namespace == fromBackup.data.metadata.namespace) && (nextBackup.data.status.process.status == 'Completed') ) {
                                 maxDate = new Date(new Date(nextBackup.data.status.process.timing.stored).getTime());

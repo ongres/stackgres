@@ -156,13 +156,13 @@ export default {
         hasCRDs(namespace) {
             return (
                 store.state.clusters.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.profiles.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.pgConfig.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.poolConfig.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.backupConfig.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.logsClusters.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.backups.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.dbOps.filter(c => c.data.metadata.namespace == namespace).length
+                store.state.sginstanceprofiles.filter(c => c.data.metadata.namespace == namespace).length ||
+                store.state.sgpgconfigs.filter(c => c.data.metadata.namespace == namespace).length ||
+                store.state.sgpoolconfigs.filter(c => c.data.metadata.namespace == namespace).length ||
+                store.state.sgbackupconfigs.filter(c => c.data.metadata.namespace == namespace).length ||
+                store.state.sgdistributedlogs.filter(c => c.data.metadata.namespace == namespace).length ||
+                store.state.sgbackups.filter(c => c.data.metadata.namespace == namespace).length ||
+                store.state.sgdbops.filter(c => c.data.metadata.namespace == namespace).length
             )
         }
     },
@@ -177,31 +177,31 @@ export default {
         },
 
         profiles () {
-            return store.state.profiles
+            return store.state.sginstanceprofiles
         },
 
         pgconfigs () {
-            return store.state.pgConfig
+            return store.state.sgpgconfigs
         },
 
         poolconfigs () {
-            return store.state.poolConfig
+            return store.state.sgpoolconfigs
         },
 
         backupconfigs () {
-            return store.state.backupConfig
+            return store.state.sgbackupconfigs
         },
 
         logsservers () {
-            return store.state.logsClusters
+            return store.state.sgdistributedlogs
         },
 
         backups () {
-            return store.state.backups
+            return store.state.sgbackups
         },
 
         dbops () {
-            return store.state.dbOps
+            return store.state.sgdbops
         },
 
     }
