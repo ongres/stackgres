@@ -1094,7 +1094,7 @@
 
 	div.log {
 		font-size: 14px;
-		padding: 4px 0 4px 10px;
+		padding: 2px 0 1px 10px;
 		display: inline-block;
 		width: 100%;
 		position: relative;
@@ -1118,12 +1118,14 @@
 	}
 
 	.log .base {
-		display: flex;
+		display: inline-block;
+		padding-left: 10px;
+		line-height: 1.4;
+    	width: calc(100% - 10px);
 	}
 
 	.log .base span.field {
-		margin-left: 10px;
-		flex: none;
+		margin-right: 10px;
 		word-break: break-word;
 	}
 
