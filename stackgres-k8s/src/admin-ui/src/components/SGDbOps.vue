@@ -842,7 +842,7 @@
                         <h2 class="capitalize">
                             {{ op.data.spec.op }} Databases
                         </h2>
-                        <table>
+                        <table class="crdDetails">
                             <tbody>
                                 <template v-for="db in op.data.spec.repack.databases">
                                     <tr>
@@ -905,7 +905,7 @@
                         <h2 class="capitalize">
                             {{ op.data.spec.op }} Databases
                         </h2>
-                        <table>
+                        <table class="crdDetails">
                             <tbody>
                                 <template v-for="db in op.data.spec.vacuum.databases">
                                     <tr>
