@@ -472,10 +472,10 @@
 								<tr>
 									<td class="label">
 										Timeline
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.startWalFile')"></span>
+										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.timeline')"></span>
 									</td>
 									<td>
-										{{ parseInt(back.data.status.backupInformation.startWalFile.substr(8)) }}
+										{{ back.data.status.backupInformation.timeline }}
 									</td>
 								</tr>
 								<tr>
