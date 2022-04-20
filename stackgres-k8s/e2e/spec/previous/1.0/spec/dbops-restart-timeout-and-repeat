@@ -56,6 +56,8 @@ EOF
     return 1
   fi
 
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+
   check_mock_data_samehost "$CLUSTER_NAME"
   check_mock_data_replication "$CLUSTER_NAME"
 }
