@@ -40,12 +40,13 @@ public class BabelfishFlavorValidator implements ClusterValidator {
             StackGresFeatureGates.BABELFISH_FLAVOR.toString()))
         .orElse(false);
     if (hasBabelfishFlavor && !hasBabelfishFlavorFeatureGateEnabled) {
-      fail("To enable \"babelfish\" flavor you must add \"babelfish-flavor\" feature gate under"
-          + " \".spec.nonProductionOptions.enabledFeatureGates\"");
+      failWithFields("To enable \"babelfish\" flavor you must add \"babelfish-flavor\""
+          + " feature gate under \".spec.nonProductionOptions.enabledFeatureGates\"",
+          ".spec.nonProductionOptions.enabledFeatureGates");
     }
     if (hasBabelfishFlavor && review.getRequest().getObject().getSpec().getInstances() > 1) {
-      fail("Currently \"babelfish\" flavor only support 1 instance."
-          + " Please set \".spec.instances\" to 1");
+      failWithFields("Currently \"babelfish\" flavor only support 1 instance."
+          + " Please set \".spec.instances\" to 1", ".spec.instances");
     }
   }
 

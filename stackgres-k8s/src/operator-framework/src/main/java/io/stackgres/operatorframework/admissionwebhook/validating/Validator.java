@@ -5,8 +5,11 @@
 
 package io.stackgres.operatorframework.admissionwebhook.validating;
 
+import java.util.Arrays;
+
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
+import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,6 +32,21 @@ public interface Validator<T extends AdmissionReview<?>> {
         .withKind(kind)
         .withCode(400)
         .withReason(reason)
+        .build();
+    throw new ValidationFailed(status);
+  }
+
+  default void failWithFields(String kind, String reason, String message, String... fields)
+      throws ValidationFailed {
+    StatusDetailsBuilder statusDetailsBuilder = new StatusDetailsBuilder();
+    Arrays.asList(fields).forEach(field -> statusDetailsBuilder
+        .addNewCause(field, message, reason));
+    Status status = new StatusBuilder()
+        .withMessage(message)
+        .withKind(kind)
+        .withCode(400)
+        .withReason(reason)
+        .withDetails(statusDetailsBuilder.build())
         .build();
     throw new ValidationFailed(status);
   }
