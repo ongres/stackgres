@@ -27,6 +27,14 @@ spec:
         runAsGroup: 999
         fsGroup: 999
         {{- end }}
+      {{- if .Values.serviceAccount.create }}
+      {{- if .Values.serviceAccount.repoCredentials }}
+      imagePullSecrets:
+      {{- range .Values.serviceAccount.repoCredentials }}
+        - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
       containers:
       {{- if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}
       - name: {{ .Release.Name }}
@@ -98,6 +106,12 @@ spec:
           {{- else }}
           - name: EXTENSIONS_REPOSITORY_URLS
             value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
+          {{- end }}
+          {{- if .Values.developer.extraEnv }}
+          {{- range $name,$value := .Values.developer.extraEnv }}
+          - name: {{ $name }}
+            value: {{ $value }}
+          {{- end }}
           {{- end }}
         ports:
         - containerPort: 8080

@@ -29,6 +29,14 @@ spec:
         {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
         runAsNonRoot: true
         {{- end }}
+      {{- if .Values.serviceAccount.create }}
+      {{- if .Values.serviceAccount.repoCredentials }}
+      imagePullSecrets:
+      {{- range .Values.serviceAccount.repoCredentials }}
+        - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
       containers:
       - name: {{ .Values.restapi.name }}
         image: "{{ .Values.restapi.image.name }}:{{ .Values.restapi.image.tag }}"

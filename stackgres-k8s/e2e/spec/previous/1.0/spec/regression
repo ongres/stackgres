@@ -2,10 +2,9 @@
 
 e2e_test_install() {
   init_expandable_storage_class
-  STORAGE_CLASSNAME="$(get_expandable_storage_class_name)"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$(e2e_test_install_pods)" \
-    --set cluster.pods.persistentVolume.storageClass="$STORAGE_CLASSNAME"
+    --set cluster.pods.persistentVolume.storageClass="$EXPANDABLE_STORAGE_CLASSNAME"
 
   wait_pods_running "$CLUSTER_NAMESPACE" "$(e2e_test_install_pods)"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"

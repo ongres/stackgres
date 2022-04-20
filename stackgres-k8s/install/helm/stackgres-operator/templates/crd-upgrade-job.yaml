@@ -20,6 +20,14 @@ spec:
         job: upgrade-crd
     spec:
       serviceAccountName: {{ .Release.Name }}-crd-upgrade
+      {{- if .Values.serviceAccount.create }}
+      {{- if .Values.serviceAccount.repoCredentials }}
+      imagePullSecrets:
+      {{- range .Values.serviceAccount.repoCredentials }}
+        - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      {{- end }}
       containers:
       - name: "{{ .Values.jobs.name }}"
         image: "{{ .Values.jobs.image.name }}:{{ .Values.jobs.image.tag }}"

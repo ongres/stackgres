@@ -1,19 +1,18 @@
 #!/bin/sh
 
 e2e_test_install() {
-  STORAGE_CLASSNAME="$(get_expandable_storage_class_name)"
   init_expandable_storage_class
   HIGH_PV_SIZE="256Mi"
   LOW_PV_SIZE="128Mi"  
   DISTRIBUTED_LOGS_NAME="$CLUSTER_NAME-dl"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set cluster.pods.persistentVolume.size="$LOW_PV_SIZE" \
-    --set cluster.pods.persistentVolume.storageClass="$STORAGE_CLASSNAME" \
+    --set cluster.pods.persistentVolume.storageClass="$EXPANDABLE_STORAGE_CLASSNAME" \
     --set cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=create \
     --set distributedLogs.persistentVolume.size="$LOW_PV_SIZE" \
-    --set distributedLogs.persistentVolume.storageClass="$STORAGE_CLASSNAME"
+    --set distributedLogs.persistentVolume.storageClass="$EXPANDABLE_STORAGE_CLASSNAME"
     
   wait_pods_running "$CLUSTER_NAMESPACE" "3"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
@@ -108,5 +107,5 @@ e2e_test_uninstall() {
 
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
 
-  kubectl delete storageclasses "$STORAGE_CLASSNAME"  
+  kubectl delete storageclasses "$EXPANDABLE_STORAGE_CLASSNAME"  
 }

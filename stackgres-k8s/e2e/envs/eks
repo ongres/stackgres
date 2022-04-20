@@ -1,16 +1,18 @@
 #!/bin/sh
 
 K8S_EKS_NAME="${K8S_EKS_NAME:-stackgres-e2e}"
-K8S_VERSION="${K8S_VERSION:-1.15.10}"
+K8S_VERSION="${K8S_VERSION:-1.18.20}"
 if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
 then
-  >&2 echo "Warning: using kubernetes version 1.13.11 since e2e default $DEFAULT_K8S_VERSION is not available for eks"
-  K8S_VERSION=1.13.11
+  >&2 echo "Warning: using kubernetes version 1.16 since e2e default $DEFAULT_K8S_VERSION is not available for eks"
+  K8S_VERSION=1.18.11
 fi
 K8S_EKS_REGION="${K8S_EKS_REGION:-us-west-2}"
 K8S_EKS_NODE_TYPE="${K8S_EKS_NODE_TYPE:-m5.large}"
+K8S_EKS_NODES="${K8S_EKS_NODES:-1}"
 K8S_EKS_DISK_SIZE="${K8S_EKS_DISK_SIZE:-20}"
 K8S_EKS_OPTS="$K8S_EKS_OPTS"
+EKS_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
 
 export E2E_USE_INTERMIDIATE_PRIVATE_REPO="${E2E_USE_INTERMIDIATE_PRIVATE_REPO:-true}"
 export E2E_OPERATOR_PULL_POLICY=Always
@@ -27,7 +29,8 @@ reuse_k8s() {
     | grep "^$K8S_EKS_NAME" | grep -q "ACTIVE"
   then
     echo "Can not reuse eks environment $K8S_EKS_NAME"
-    exit 1
+    reset_k8s
+    return
   fi
 
   echo "Reusing eks environment $K8S_EKS_NAME"
@@ -39,27 +42,30 @@ reset_k8s() {
   echo "Setting up eks environment $K8S_EKS_NAME..."
 
   delete_k8s
+
   eksctl create cluster --name "$K8S_EKS_NAME" \
     --region "$K8S_EKS_REGION" \
-    --spot \
     --node-type "$K8S_EKS_NODE_TYPE" \
     --node-volume-size "$K8S_EKS_DISK_SIZE" \
-    --nodes 3 \
-    --version "$(echo "$K8S_VERSION" | cut -d . -f 1-2)" \
-    $K8S_EKS_OPTS
-
+    --nodes "$K8S_EKS_NODES" \
+    --version "${K8S_VERSION%.*}"
+  
   echo "...done"
 }
 
 delete_k8s() {
-  echo "Deleting eks environment $K8S_EKS_NAME..."
+  echo "Checking if eks environment $K8S_EKS_NAME exists"
 
   if eksctl get cluster --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION" 2>&1 \
     | grep "^$K8S_EKS_NAME" | grep -q "ACTIVE"
   then
+    echo "EKS environment $K8S_EKS_NAME detected, deleteing..."
     eksctl delete cluster --wait --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION" || true
+  else
+    echo "EKS environment $K8S_EKS_NAME not detected"
   fi
   
+  echo "Cleaning volumes related to the $K8S_EKS_NAME cluster"
   aws ec2 describe-volumes --region "$K8S_EKS_REGION" --filters "Name=tag-key,Values=kubernetes.io/cluster/$K8S_EKS_NAME" \
     | jq -r '.Volumes[].VolumeId' | xargs -r -n 1 -I % sh -c "aws ec2 detach-volume --force --region $K8S_EKS_REGION --volume-id % || true"
   
@@ -111,4 +117,23 @@ excluded_clusterrolebindings() {
   echo "aws-node"
   echo "eks:.*"
   echo "vpc-resource-controller-rolebinding"
+}
+
+
+get_eks_storage_class_name() {
+  kubectl get storageclasses.storage.k8s.io \
+      -o custom-columns=NAME:.metadata.name,IS_DEFAULT:".metadata.annotations.storageclass\.kubernetes\.io/is-default-class" \
+      | awk '{ if ($2 == "true") { print } }' \
+      | awk '{print $1}' \
+      | head -n +1
+}
+
+create_expandable_storage_class_k8s() {
+  local DEFAULT_STORAGE_CLASSNAME
+  DEFAULT_STORAGE_CLASSNAME="$(get_eks_storage_class_name)"
+  generate_expandable_storage_class_from \
+    "$DEFAULT_STORAGE_CLASSNAME" \
+    "$EKS_EXPANDABLE_STORAGE_CLASSNAME" \
+    | kubectl apply -f - > /dev/null
+  printf '%s' "$EKS_EXPANDABLE_STORAGE_CLASSNAME"
 }

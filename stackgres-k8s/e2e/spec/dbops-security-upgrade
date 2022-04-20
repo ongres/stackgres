@@ -78,7 +78,7 @@ e2e_test_install() {
     --set cluster.create=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set instanceProfiles[0].name=size-xs \
-    --set instanceProfiles[0].cpu=250m \
+    --set instanceProfiles[0].cpu=125m \
     --set instanceProfiles[0].memory=512Mi \
     --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *' \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
@@ -397,6 +397,7 @@ metadata:
 spec:
   sgCluster: $CLUSTER_NAME
   op: securityUpgrade
+  maxRetries: 3
   securityUpgrade:
     method: $METHOD
 EOF
