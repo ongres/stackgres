@@ -126,7 +126,7 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
       if (causes != null) {
         causes.forEach(c -> {
           fields.add(c.getField());
-          fieldCauses.add("· " + Kubernetes16StatusParser.cleanupMessage(c.getMessage()));
+          fieldCauses.add(Kubernetes16StatusParser.cleanupMessage(c.getMessage()));
         });
       }
     }
@@ -153,7 +153,7 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
       if (causes != null) {
         causes.forEach(c -> {
           fields.add(c.getField());
-          fieldCauses.add("· " + Kubernetes16StatusParser.cleanupMessage(c.getMessage()));
+          fieldCauses.add(Kubernetes16StatusParser.cleanupMessage(c.getMessage()));
         });
       }
     }
