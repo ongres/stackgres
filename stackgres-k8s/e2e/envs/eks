@@ -12,7 +12,7 @@ K8S_EKS_NODE_TYPE="${K8S_EKS_NODE_TYPE:-m5.large}"
 K8S_EKS_NODES="${K8S_EKS_NODES:-1}"
 K8S_EKS_DISK_SIZE="${K8S_EKS_DISK_SIZE:-20}"
 K8S_EKS_OPTS="$K8S_EKS_OPTS"
-EKS_EXPANDABLE_STORAGE_CLASSNAME="expandable-sc"
+EKS_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
 
 export E2E_USE_INTERMIDIATE_PRIVATE_REPO="${E2E_USE_INTERMIDIATE_PRIVATE_REPO:-true}"
 export E2E_OPERATOR_PULL_POLICY=Always
@@ -128,12 +128,12 @@ get_eks_storage_class_name() {
       | head -n +1
 }
 
-generate_exapandable_storage_class() {
-  DEFAULT_STORAGE_CLASSNAME="$(get_eks_storage_class_name)"
-  kubectl get storageclasses.storage.k8s.io "$DEFAULT_STORAGE_CLASSNAME" -o json \
-       | jq 'del(.metadata)' | jq '.metadata= {}' | jq '.metadata.name = "'"$EKS_EXPANDABLE_STORAGE_CLASSNAME"'"' \
-       | jq '.allowVolumeExpansion = true'
-}
 create_expandable_storage_class_k8s() {
-  generate_exapandable_storage_class | kubectl apply -f -
+  local DEFAULT_STORAGE_CLASSNAME
+  DEFAULT_STORAGE_CLASSNAME="$(get_eks_storage_class_name)"
+  generate_expandable_storage_class_from \
+    "$DEFAULT_STORAGE_CLASSNAME" \
+    "$EKS_EXPANDABLE_STORAGE_CLASSNAME" \
+    | kubectl apply -f - > /dev/null
+  printf '%s' "$EKS_EXPANDABLE_STORAGE_CLASSNAME"
 }

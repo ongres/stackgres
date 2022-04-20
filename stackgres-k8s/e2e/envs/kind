@@ -7,7 +7,7 @@ KIND_CONTAINERD_CACHE_PATH="${K8S_CACHE_PATH:-$KIND_CONTAINERD_CACHE_PATH}"
 KIND_CONTAINERD_CACHE_RESET="${K8S_CACHE_RESET:-$KIND_CONTAINERD_CACHE_RESET}"
 KIND_LOG_PATH="${KIND_LOG_PATH:-$TARGET_PATH/kind-logs}"
 KIND_LOG_RESOURCES_POLICY_PATH="${KIND_LOG_RESOURCES_POLICY_PATH:-$TARGET_PATH/kind-apiserver-audit-policy}"
-KIND_EXPANDABLE_STORAGE_CLASSNAME=${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}
+KIND_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
 
 check_kind_version() {
   if ! kind version | grep -q -F 'kind v0.11.1 '
@@ -437,7 +437,7 @@ EOF
 }
 
 create_expandable_storage_class_k8s(){
-  cat << EOF | kubectl apply -f -
+  cat << EOF | kubectl apply -f - > /dev/null
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
@@ -447,4 +447,6 @@ reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
 EOF
+
+  printf '%s' "$KIND_EXPANDABLE_STORAGE_CLASSNAME"
 }
