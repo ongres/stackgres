@@ -58,7 +58,29 @@ class BabelfishFlavorValidatorTest {
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         ErrorType.CONSTRAINT_VIOLATION,
         "To enable \"babelfish\" flavor you must add \"babelfish-flavor\" feature gate under"
-            + " \".spec.nonProductionOptions.enabledFeatureGates\"");
+            + " \".spec.nonProductionOptions.enabledFeatureGates\"",
+            ".spec.nonProductionOptions.enabledFeatureGates");
+  }
+
+  @Test
+  void givenACreationWithMoreThanOneInstances_shouldFail() {
+    final StackGresClusterReview review = getCreationReview();
+    review.getRequest().getObject().getSpec().setInstances(2);
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(BABELFISH_VERSION);
+    review.getRequest().getObject().getSpec().getPostgres().setFlavor(
+        StackGresPostgresFlavor.BABELFISH.toString());
+    review.getRequest().getObject().getSpec().setNonProductionOptions(
+        new StackGresClusterNonProduction()
+    );
+    review.getRequest().getObject().getSpec().getNonProductionOptions()
+        .setEnabledFeatureGates(Lists.newArrayList(
+            StackGresFeatureGates.BABELFISH_FLAVOR.toString()));
+
+    ValidationUtils.assertValidationFailed(() -> validator.validate(review),
+        ErrorType.CONSTRAINT_VIOLATION,
+        "Currently \"babelfish\" flavor only support 1 instance."
+            + " Please set \".spec.instances\" to 1",
+            ".spec.instances");
   }
 
   private StackGresClusterReview getCreationReview() {
