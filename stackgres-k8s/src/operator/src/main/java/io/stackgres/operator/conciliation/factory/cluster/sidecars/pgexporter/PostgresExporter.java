@@ -11,6 +11,7 @@ import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRE
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -36,6 +37,8 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -76,6 +79,16 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
   public static String configName(StackGresClusterContext clusterContext) {
     final String name = clusterContext.getSource().getMetadata().getName();
     return StatefulSetDynamicVolumes.EXPORTER_QUERIES.getResourceName(name);
+  }
+
+  @Override
+  public boolean isActivated(StackGresClusterContainerContext context) {
+    return Optional.of(context.getClusterContext().getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPod)
+        .map(StackGresClusterPod::getDisableMetricsExporter)
+        .map(disabled -> !disabled)
+        .orElse(true);
   }
 
   @Override

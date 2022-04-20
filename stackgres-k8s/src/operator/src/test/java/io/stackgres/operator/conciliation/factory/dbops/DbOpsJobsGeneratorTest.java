@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.dbops;
+package io.stackgres.operator.conciliation.factory.dbops;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -20,7 +20,6 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.ImmutableStackGresDbOpsContext;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
-import io.stackgres.operator.conciliation.factory.dbops.DbOpsJobsGenerator;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

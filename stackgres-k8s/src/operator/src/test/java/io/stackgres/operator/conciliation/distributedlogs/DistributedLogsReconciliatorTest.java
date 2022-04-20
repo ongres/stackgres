@@ -25,11 +25,11 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConditi
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import io.stackgres.operator.cluster.factory.KubernetessMockResourceGenerationUtil;
 import io.stackgres.operator.conciliation.Conciliator;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
+import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import io.stackgres.testutil.JsonUtil;
 import org.hamcrest.MatcherAssert;
 import org.jooq.lambda.tuple.Tuple;
