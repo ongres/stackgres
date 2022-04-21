@@ -82,9 +82,9 @@ class BackupResourceTest extends AbstractCustomResourceTest
     assertNotNull(dto.getStatus().getBackupConfig());
     assertEquals("lz4", dto.getStatus().getBackupConfig().getBaseBackups().getCompressionMethod());
     assertNull(
-        dto.getStatus().getBackupConfig().getBaseBackups().getPerformance().getMaxDiskBandwitdh());
+        dto.getStatus().getBackupConfig().getBaseBackups().getPerformance().getMaxDiskBandwidth());
     assertNull(dto.getStatus().getBackupConfig().getBaseBackups().getPerformance()
-        .getMaxNetworkBandwitdh());
+        .getMaxNetworkBandwidth());
     assertEquals(1, dto.getStatus().getBackupConfig().getBaseBackups().getPerformance()
         .getUploadDiskConcurrency());
     assertNull(dto.getStatus().getBackupConfig().getBaseBackups().getCronSchedule());
@@ -152,9 +152,9 @@ class BackupResourceTest extends AbstractCustomResourceTest
         assertEquals("lz4",
             resource.getStatus().getBackupConfig().getBaseBackups().getCompression());
         assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getPerformance()
-            .getMaxDiskBandwitdh());
+            .getMaxDiskBandwidth());
         assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getPerformance()
-            .getMaxNetworkBandwitdh());
+            .getMaxNetworkBandwidth());
         assertEquals(1, resource.getStatus().getBackupConfig().getBaseBackups().getPerformance()
             .getUploadDiskConcurrency());
         assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getCronSchedule());

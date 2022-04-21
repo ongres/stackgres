@@ -86,8 +86,20 @@ spec:
                         maxNetworkBandwitdh:
                           type: integer
                           description: |
+                            **Deprecated**: use instead maxNetworkBandwidth.
+
                             Maximum storage upload bandwidth used when storing a backup. In bytes (per second).
                         maxDiskBandwitdh:
+                          type: integer
+                          description: |
+                            **Deprecated**: use instead maxDiskBandwidth.
+
+                            Maximum disk read I/O when performing a backup. In bytes (per second).
+                        maxNetworkBandwidth:
+                          type: integer
+                          description: |
+                            Maximum storage upload bandwidth used when storing a backup. In bytes (per second).
+                        maxDiskBandwidth:
                           type: integer
                           description: |
                             Maximum disk read I/O when performing a backup. In bytes (per second).

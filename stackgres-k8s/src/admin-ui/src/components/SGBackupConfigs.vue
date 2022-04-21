@@ -190,22 +190,22 @@
 										{{ conf.data.spec.baseBackups.compression }}
 									</td>
 								</tr>
-								<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.maxNetworkBandwitdh')">
+								<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.maxNetworkBandwidth')">
 									<td class="label">
 										Max Network Bandwidth
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.performance.maxNetworkBandwitdh')"></span>
+										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.performance.maxNetworkBandwidth')"></span>
 									</td>
 									<td class="textRight">
-										{{ conf.data.spec.baseBackups.performance.maxNetworkBandwitdh }}
+										{{ conf.data.spec.baseBackups.performance.maxNetworkBandwidth }}
 									</td>
 								</tr>
-								<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.maxDiskBandwitdh')">
+								<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.maxDiskBandwidth')">
 									<td class="label">
-										Max Disk Bandwitdh
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.performance.maxDiskBandwitdh')"></span>
+										Max Disk Bandwidth
+										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.baseBackups.performance.maxDiskBandwidth')"></span>
 									</td>
 									<td class="textRight">
-										{{ conf.data.spec.baseBackups.performance.maxDiskBandwitdh }}
+										{{ conf.data.spec.baseBackups.performance.maxDiskBandwidth }}
 									</td>
 								</tr>
 								<tr v-if="hasProp(conf, 'data.spec.baseBackups.performance.uploadDiskConcurrency')">

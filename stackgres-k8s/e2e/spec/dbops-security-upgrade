@@ -82,6 +82,8 @@ e2e_test_install() {
     --set instanceProfiles[0].memory=512Mi \
     --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *' \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set configurations.backupconfig.baseBackups.performance.maxDiskBandwidth=10485760 \
+    --set configurations.backupconfig.baseBackups.performance.maxNetworkBandwidth=5242880 \
     --set configurations.backupconfig.create=true \
     --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100 \
     --set-string configurations.postgresconfig.postgresql\.conf.invalid_param=true \
@@ -239,6 +241,8 @@ check_before_operator_upgrade() {
       return 1
     fi
   done
+
+  check_backup_performance_using_deprecated_fields_in_previous_versions
 }
 
 check_operator_upgrade() {
@@ -354,6 +358,8 @@ check_distributedlogs_security_upgrade() {
 }
 
 check_cluster_1_security_upgrade_start() {
+  check_backup_performance_mutation()
+
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
   check_cluster_security_upgrade_start "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
 }
@@ -548,6 +554,119 @@ check_sts_is_not_altered() {
     echo "SUCCESS. StatefulSet $TARGET_CLUSTER is not being altered on operator upgrade"
   else 
     echo "FAIL. StatefulSet $TARGET_CLUSTER is being altered on operator upgrade"
+    return 1
+  fi
+}
+
+check_backup_performance_using_deprecated_fields_in_previous_versions() {
+  local PREVIOUS_VERSION_AS_NUMBER VERSION_1_2_0_RC1_AS_NUMBER
+  PREVIOUS_VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
+  VERSION_1_2_0_RC1_AS_NUMBER="$(get_version_as_number 1.2.0-RC1)"
+  if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_1_2_0_RC1_AS_NUMBER" ]
+  then
+    echo "Previous version used is newer than 1.2.0-RC1, skipping check"
+    return
+  fi
+
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.sgBackupConfig.baseBackups.performance.maxDiskBandwitdh }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxDiskBandwitdh has been set to null for sgbackup"
+  else
+    echo "FAIL. The maxDiskBandwitdh has not been set to null for sgbackup"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.sgBackupConfig.baseBackups.performance.maxNetworkBandwitdh }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxNetworkBandwitdh has been set to null for sgbackup"
+  else
+    echo "FAIL. The maxNetworkBandwitdh has not been set to null for sgbackup"
+    return 1
+  fi
+
+  if [ "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "backupconf" \
+    --template '{{ .spec.baseBackups.performance.maxDiskBandwitdh }}')" = '10485760' ]
+  then
+    echo "SUCCESS. The maxDiskBandwitdh has been set to 10485760 for sgbackupconfig"
+  else
+    echo "FAIL. The maxDiskBandwitdh has not been set to 10485760 for sgbackupconfig"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "backupconf" \
+    --template '{{ .spec.baseBackups.performance.maxNetworkBandwitdh }}')" = '5242880' ]
+  then
+    echo "SUCCESS. The maxNetworkBandwitdh has been set to 5242880 for sgbackupconfig"
+  else
+    echo "FAIL. The maxNetworkBandwitdh has not been set to 5242880 for sgbackupconfig"
+    return 1
+  fi
+}
+
+check_backup_performance_mutation() {
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.sgBackupConfig.baseBackups.performance.maxDiskBandwitdh }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxDiskBandwitdh has been set to null for sgbackup"
+  else
+    echo "FAIL. The maxDiskBandwitdh has not been set to null for sgbackup"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.sgBackupConfig.baseBackups.performance.maxNetworkBandwitdh }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxNetworkBandwitdh has been set to null for sgbackup"
+  else
+    echo "FAIL. The maxNetworkBandwitdh has not been set to null for sgbackup"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.sgBackupConfig.baseBackups.performance.maxDiskBandwidth }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxDiskBandwidth has been set to null for sgbackup"
+  else
+    echo "FAIL. The maxDiskBandwidth has not been set to null for sgbackup"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.sgBackupConfig.baseBackups.performance.maxNetworkBandwidth }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxNetworkBandwidth has been set to null for sgbackup"
+  else
+    echo "FAIL. The maxNetworkBandwidth has not been set to null for sgbackup"
+    return 1
+  fi
+
+  if [ "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "backupconf" \
+    --template '{{ .spec.baseBackups.performance.maxDiskBandwitdh }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxDiskBandwitdh has been set to null for sgbackupconfig"
+  else
+    echo "FAIL. The maxDiskBandwitdh has not been set to null for sgbackupconfig"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "backupconf" \
+    --template '{{ .spec.baseBackups.performance.maxNetworkBandwitdh }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxNetworkBandwitdh has been set to null for sgbackupconfig"
+  else
+    echo "FAIL. The maxNetworkBandwitdh has not been set to null for sgbackupconfig"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "backupconf" \
+    --template '{{ .spec.baseBackups.performance.maxDiskBandwidth }}')" = '10485760' ]
+  then
+    echo "SUCCESS. The maxDiskBandwidth has been set to 10485760 for sgbackupconfig"
+  else
+    echo "FAIL. The maxDiskBandwidth has not been set to 10485760 for sgbackupconfig"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "backupconf" \
+    --template '{{ .spec.baseBackups.performance.maxNetworkBandwidth }}')" = '5242880' ]
+  then
+    echo "SUCCESS. The maxNetworkBandwidth has been set to 5242880 for sgbackupconfig"
+  else
+    echo "FAIL. The maxNetworkBandwidth has not been set to 5242880 for sgbackupconfig"
     return 1
   fi
 }

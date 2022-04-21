@@ -7,6 +7,8 @@ package io.stackgres.common.crd.sgbackupconfig;
 
 import java.util.Objects;
 
+import javax.validation.constraints.Null;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -19,10 +21,18 @@ import io.stackgres.common.StackGresUtil;
 public class StackGresBaseBackupPerformance {
 
   @JsonProperty("maxNetworkBandwitdh")
+  @Null
   private Long maxNetworkBandwitdh;
 
   @JsonProperty("maxDiskBandwitdh")
+  @Null
   private Long maxDiskBandwitdh;
+
+  @JsonProperty("maxNetworkBandwidth")
+  private Long maxNetworkBandwidth;
+
+  @JsonProperty("maxDiskBandwidth")
+  private Long maxDiskBandwidth;
 
   @JsonProperty("uploadDiskConcurrency")
   private Integer uploadDiskConcurrency;
@@ -43,6 +53,22 @@ public class StackGresBaseBackupPerformance {
     this.maxDiskBandwitdh = maxDiskBandwitdh;
   }
 
+  public Long getMaxNetworkBandwidth() {
+    return maxNetworkBandwidth;
+  }
+
+  public void setMaxNetworkBandwidth(Long maxNetworkBandwidth) {
+    this.maxNetworkBandwidth = maxNetworkBandwidth;
+  }
+
+  public Long getMaxDiskBandwidth() {
+    return maxDiskBandwidth;
+  }
+
+  public void setMaxDiskBandwidth(Long maxDiskBandwidth) {
+    this.maxDiskBandwidth = maxDiskBandwidth;
+  }
+
   public Integer getUploadDiskConcurrency() {
     return uploadDiskConcurrency;
   }
@@ -53,7 +79,8 @@ public class StackGresBaseBackupPerformance {
 
   @Override
   public int hashCode() {
-    return Objects.hash(maxDiskBandwitdh, maxNetworkBandwitdh, uploadDiskConcurrency);
+    return Objects.hash(maxDiskBandwidth, maxDiskBandwitdh, maxNetworkBandwidth,
+        maxNetworkBandwitdh, uploadDiskConcurrency);
   }
 
   @Override
@@ -65,7 +92,9 @@ public class StackGresBaseBackupPerformance {
       return false;
     }
     StackGresBaseBackupPerformance other = (StackGresBaseBackupPerformance) obj;
-    return Objects.equals(maxDiskBandwitdh, other.maxDiskBandwitdh)
+    return Objects.equals(maxDiskBandwidth, other.maxDiskBandwidth)
+        && Objects.equals(maxDiskBandwitdh, other.maxDiskBandwitdh)
+        && Objects.equals(maxNetworkBandwidth, other.maxNetworkBandwidth)
         && Objects.equals(maxNetworkBandwitdh, other.maxNetworkBandwitdh)
         && Objects.equals(uploadDiskConcurrency, other.uploadDiskConcurrency);
   }

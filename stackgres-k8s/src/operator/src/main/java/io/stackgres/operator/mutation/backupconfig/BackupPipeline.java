@@ -20,10 +20,10 @@ import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutatio
 @ApplicationScoped
 public class BackupPipeline implements JsonPatchMutationPipeline<BackupConfigReview> {
 
-  private Instance<BackupMutator> mutators;
+  private Instance<BackupConfigMutator> mutators;
 
   @Inject
-  public BackupPipeline(Instance<BackupMutator> mutators) {
+  public BackupPipeline(Instance<BackupConfigMutator> mutators) {
     this.mutators = mutators;
   }
 

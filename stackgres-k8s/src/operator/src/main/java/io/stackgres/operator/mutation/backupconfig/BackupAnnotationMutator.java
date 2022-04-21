@@ -14,5 +14,5 @@ import io.stackgres.operator.mutation.AbstractAnnotationMutator;
 @ApplicationScoped
 public class BackupAnnotationMutator
     extends AbstractAnnotationMutator<StackGresBackupConfig, BackupConfigReview>
-    implements BackupMutator {
+    implements BackupConfigMutator {
 }

@@ -317,15 +317,27 @@ spec:
                           type: string
                           description: |
                             Select the backup compression algorithm. Possible options are: lz4, lzma, brotli. The default method is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio, being about 3 times better than LZ4.
-                          enum: [lz4, lzma, brotli]
+                          enum: [ lz4, lzma, brotli ]
                         performance:
                           type: object
                           properties:
                             maxNetworkBandwitdh:
                               type: integer
                               description: |
+                                **Deprecated**: use instead maxNetworkBandwidth.
+
                                 Maximum storage upload bandwidth to be used when storing the backup. In bytes (per second).
                             maxDiskBandwitdh:
+                              type: integer
+                              description: |
+                                **Deprecated**: use instead maxDiskBandwidth.
+
+                                Maximum disk read I/O when performing a backup. In bytes (per second).
+                            maxNetworkBandwidth:
+                              type: integer
+                              description: |
+                                Maximum storage upload bandwidth to be used when storing the backup. In bytes (per second).
+                            maxDiskBandwidth:
                               type: integer
                               description: |
                                 Maximum disk read I/O when performing a backup. In bytes (per second).
