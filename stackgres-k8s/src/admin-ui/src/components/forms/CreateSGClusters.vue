@@ -404,7 +404,7 @@
                                                 </template>
                                                 <template v-else-if="(!editMode && (scriptSource[index] != 'raw') )">
                                                     <div class="header">
-                                                        <h3 :for="'spec.initialData.scripts.scriptFrom.properties' + scriptSource[index]">{{ splitUppercase(scriptSource[index]) }}</h3>
+                                                        <h3 :for="'spec.initialData.scripts.scriptFrom.properties' + scriptSource[index]" class="capitalize">{{ splitUppercase(scriptSource[index]) }}</h3>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.' + scriptSource[index])"></span> 
                                                     </div>
                                                     
@@ -413,7 +413,7 @@
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.' + scriptSource[index] + '.properties.name')"></span>
 
                                                     <label :for="'spec.initialData.scripts.scriptFrom.' + scriptSource[index] + '.properties.properties.key'">Key</label>
-                                                    <input v-model="script.scriptFrom[scriptSource[index]].key" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
+                                                    <input v-model="script.scriptFrom[scriptSource[index]].key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.' + scriptSource[index] + '.properties.key')"></span>
                                                 </template>
                                             </div>
