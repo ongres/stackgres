@@ -293,7 +293,7 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="( showDefaults || ( (cluster.data.spec.replication.role != 'ha-read') || (cluster.data.spec.replication.mode != 'Async') || cluster.data.spec.replication.hasOwnProperty('groups') ) )">
+                    <ul class="section" v-if="( showDefaults || ( (cluster.data.spec.replication.role != 'ha-read') || (cluster.data.spec.replication.mode != 'async') || cluster.data.spec.replication.hasOwnProperty('groups') ) )">
                         <li>
                             <strong class="sectionTitle">
                                 Replication
