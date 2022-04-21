@@ -8,10 +8,13 @@ package io.stackgres.operator.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Objects;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -42,9 +45,20 @@ public class ValidationUtils {
 
   public static void assertValidationFailed(Executable executable, ErrorType errorType,
       String message) {
+    assertValidationFailed(executable, errorType, message, new String[0]);
+  }
+
+  public static void assertValidationFailed(Executable executable, ErrorType errorType,
+      String message, String...fields) {
     ValidationFailed validation = assertThrows(ValidationFailed.class, executable);
     assertEquals(message, validation.getResult().getMessage());
     assertEquals(400, validation.getResult().getCode());
+    String errorTypeDocumentationUri = ErrorType.getErrorTypeUri(errorType);
+    Arrays.asList(fields).forEach(field -> assertTrue(
+        validation.getResult().getDetails().getCauses().stream().anyMatch(
+            cause -> Objects.equals(field, cause.getField())
+            && Objects.equals(message, cause.getMessage())
+            && Objects.equals(errorTypeDocumentationUri, cause.getReason()))));
 
     assertErrorType(validation, errorType);
   }

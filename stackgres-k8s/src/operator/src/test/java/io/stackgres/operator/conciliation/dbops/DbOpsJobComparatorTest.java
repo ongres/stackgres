@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.cluster;
+package io.stackgres.operator.conciliation.dbops;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,9 +15,9 @@ import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ClusterJobComparatorTest {
+class DbOpsJobComparatorTest {
 
-  private final ClusterJobComparator comparator = new ClusterJobComparator();
+  private final DbOpsJobComparator comparator = new DbOpsJobComparator();
 
   private Job required;
   private Job deployed;
@@ -49,7 +49,17 @@ class ClusterJobComparatorTest {
   }
 
   @Test
-  void containerImageChanges_shouldBeDetected() {
+  void podAnnotationChanges_shouldBeDetected() {
+    required.getSpec().getTemplate().getMetadata().setAnnotations(
+        ImmutableMap.of(StringUtil.generateRandom(), StringUtil.generateRandom()));
+
+    var isContentEqual = comparator.isResourceContentEqual(required, deployed);
+
+    assertFalse(isContentEqual);
+  }
+
+  @Test
+  void containerImageChanges_shouldHaveNoDifference() {
     required.getSpec().getTemplate().getSpec().getContainers()
         .get(0).setImage("docker.io/ongres/patroni:v1.6.5-pg12.3-build-5.2");
 
@@ -58,7 +68,7 @@ class ClusterJobComparatorTest {
 
     var isContentEqual = comparator.isResourceContentEqual(required, deployed);
 
-    assertFalse(isContentEqual);
+    assertTrue(isContentEqual);
   }
 
 }

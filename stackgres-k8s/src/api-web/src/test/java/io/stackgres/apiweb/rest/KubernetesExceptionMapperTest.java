@@ -51,7 +51,7 @@ class KubernetesExceptionMapperTest {
 
     Assertions.assertEquals(errorTypeUri, errorResponse.getType());
     Assertions.assertEquals(ErrorType.CONSTRAINT_VIOLATION.getTitle(), errorResponse.getTitle());
-    Assertions.assertEquals("· " + detail, errorResponse.getDetail());
+    Assertions.assertEquals(detail, errorResponse.getDetail());
     Assertions.assertEquals(field, errorResponse.getFields()[0]);
   }
 

@@ -11,13 +11,12 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.Namespaceable;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.CdiUtil;
 
 @ApplicationScoped
-public class SecretWriter extends AbstractResourceWriter<Secret, SecretList> {
+public class SecretWriter extends AbstractResourceWriter<Secret, SecretList, Resource<Secret>> {
 
   @Inject
   public SecretWriter(KubernetesClient client) {
@@ -30,7 +29,7 @@ public class SecretWriter extends AbstractResourceWriter<Secret, SecretList> {
   }
 
   @Override
-  protected Namespaceable<NonNamespaceOperation<Secret, SecretList, Resource<Secret>>>
+  protected MixedOperation<Secret, SecretList, Resource<Secret>>
       getResourceEndpoints(KubernetesClient client) {
     return client.secrets();
   }

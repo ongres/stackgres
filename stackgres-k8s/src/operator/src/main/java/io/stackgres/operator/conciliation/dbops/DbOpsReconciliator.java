@@ -13,11 +13,14 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgcluster.DbOpsEventReason;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsCondition;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.PatchResumer;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
+import io.stackgres.operator.conciliation.StatusManager;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
@@ -31,6 +34,10 @@ public class DbOpsReconciliator
   private EventEmitter<StackGresDbOps> eventController;
 
   private PatchResumer<StackGresDbOps> patchResumer;
+
+  private StatusManager<StackGresDbOps, StackGresDbOpsCondition> statusManager;
+
+  private CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
 
   void onStart(@Observes StartupEvent ev) {
     start();
@@ -46,6 +53,10 @@ public class DbOpsReconciliator
 
   @Override
   public void onPostReconciliation(StackGresDbOps config) {
+    dbOpsScheduler.update(config,
+        (targetDbOps, dbOps) -> {
+          statusManager.refreshCondition(targetDbOps);
+        });
   }
 
   @Override
@@ -83,4 +94,16 @@ public class DbOpsReconciliator
   public void setResourceComparator(ComparisonDelegator<StackGresDbOps> resourceComparator) {
     this.patchResumer = new PatchResumer<>(resourceComparator);
   }
+
+  @Inject
+  public void setStatusManager(
+      StatusManager<StackGresDbOps, StackGresDbOpsCondition> statusManager) {
+    this.statusManager = statusManager;
+  }
+
+  @Inject
+  public void setDbOpsScheduler(CustomResourceScheduler<StackGresDbOps> dbOpsScheduler) {
+    this.dbOpsScheduler = dbOpsScheduler;
+  }
+
 }

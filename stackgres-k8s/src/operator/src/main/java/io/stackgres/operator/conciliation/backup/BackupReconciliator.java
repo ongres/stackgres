@@ -14,11 +14,8 @@ import javax.inject.Inject;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgbackup.BackupEventReason;
-import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
-import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
@@ -51,6 +48,8 @@ public class BackupReconciliator
 
   private CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
+  private BackupStatusManager statusManager;
+
   void onStart(@Observes StartupEvent ev) {
     start();
   }
@@ -61,11 +60,10 @@ public class BackupReconciliator
 
   @Override
   public void onPreReconciliation(StackGresBackup config) {
-    if (Optional.ofNullable(config.getStatus())
-        .map(StackGresBackupStatus::getProcess)
-        .map(StackGresBackupProcess::getStatus).isEmpty()) {
-      initBackup(config);
-    }
+    backupScheduler.update(config,
+        (targetBackup, backup) -> {
+          statusManager.refreshCondition(targetBackup);
+        });
 
     Optional<StackGresCluster> cluster = getCluster(config);
     if (cluster.isPresent()) {
@@ -81,13 +79,6 @@ public class BackupReconciliator
               + config.getMetadata().getNamespace() + "."
               + config.getSpec().getSgCluster() + " ", config);
     }
-  }
-
-  private void initBackup(StackGresBackup backup) {
-    backup.setStatus(new StackGresBackupStatus());
-    backup.getStatus().setProcess(new StackGresBackupProcess());
-    backup.getStatus().getProcess().setStatus(BackupPhase.PENDING.label());
-    backupScheduler.update(backup);
   }
 
   private Optional<StackGresCluster> getCluster(StackGresBackup backup) {
@@ -136,7 +127,7 @@ public class BackupReconciliator
   }
 
   @Inject
-  public void setResourceComparator(ComparisonDelegator<StackGresCluster> resourceComparator) {
+  public void setResourceComparator(ComparisonDelegator<StackGresBackup> resourceComparator) {
     this.patchResumer = new PatchResumer<>(resourceComparator);
   }
 
@@ -162,4 +153,10 @@ public class BackupReconciliator
       EventEmitter<StackGresBackup> eventController) {
     this.eventController = eventController;
   }
+
+  @Inject
+  public void setStatusManager(BackupStatusManager statusManager) {
+    this.statusManager = statusManager;
+  }
+
 }

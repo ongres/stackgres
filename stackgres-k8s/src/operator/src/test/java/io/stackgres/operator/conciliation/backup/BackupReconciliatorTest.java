@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation;
+package io.stackgres.operator.conciliation.backup;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.mockito.Mockito.doAnswer;
@@ -20,13 +20,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import io.stackgres.operator.cluster.factory.KubernetessMockResourceGenerationUtil;
-import io.stackgres.operator.conciliation.cluster.ClusterReconciliator;
+import io.stackgres.operator.conciliation.ComparisonDelegator;
+import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.HandlerDelegator;
+import io.stackgres.operator.conciliation.ReconciliationResult;
+import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import io.stackgres.testutil.JsonUtil;
 import org.hamcrest.MatcherAssert;
 import org.jooq.lambda.tuple.Tuple;
@@ -40,47 +45,55 @@ import org.mockito.internal.stubbing.answers.Returns;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ClusterReconciliatorTest {
+class BackupReconciliatorTest {
 
-  private final StackGresCluster cluster = JsonUtil
-      .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+  private final StackGresBackup backup = JsonUtil
+      .readFromJson("backup/default.json", StackGresBackup.class);
   @Mock
-  CustomResourceScanner<StackGresCluster> clusterScanner;
+  CustomResourceScanner<StackGresBackup> backupScanner;
   @Mock
-  Conciliator<StackGresCluster> clusterConciliator;
+  Conciliator<StackGresBackup> backupConciliator;
   @Mock
-  HandlerDelegator<StackGresCluster> handlerDelegator;
+  HandlerDelegator<StackGresBackup> handlerDelegator;
   @Mock
-  StatusManager<StackGresCluster, StackGresClusterCondition> statusManager;
+  EventEmitter<StackGresBackup> eventController;
   @Mock
-  EventEmitter<StackGresCluster> eventController;
+  CustomResourceScheduler<StackGresBackup> backupScheduler;
   @Mock
-  CustomResourceScheduler<StackGresCluster> clusterScheduler;
+  ComparisonDelegator<StackGresBackup> resourceComparator;
+  @Mock
+  CustomResourceFinder<StackGresCluster> clusterFinder;
+  @Mock
+  CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
+  @Mock
+  BackupStatusManager statusManager;
 
-  private ClusterReconciliator reconciliator;
+  private BackupReconciliator reconciliator;
 
   @BeforeEach
   void setUp() {
-    reconciliator = new ClusterReconciliator();
-    reconciliator.setScanner(clusterScanner);
-    reconciliator.setConciliator(clusterConciliator);
+    reconciliator = new BackupReconciliator();
+    reconciliator.setScanner(backupScanner);
+    reconciliator.setConciliator(backupConciliator);
     reconciliator.setHandlerDelegator(handlerDelegator);
     reconciliator.setEventController(eventController);
-    reconciliator.setStatusManager(statusManager);
-    reconciliator.setClusterScheduler(clusterScheduler);
+    reconciliator.setBackupScheduler(backupScheduler);
+    reconciliator.setClusterFinder(clusterFinder);
+    reconciliator.setBackupConfigFinder(backupConfigFinder);
+    reconciliator.setResourceComparator(resourceComparator);
   }
 
   @Test
   void allCreations_shouldBePerformed() {
-    when(clusterScanner.getResources()).thenReturn(Collections.singletonList(cluster));
+    when(backupScanner.getResources()).thenReturn(Collections.singletonList(backup));
 
     final List<HasMetadata> creations = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
 
-    creations.forEach(resource -> when(handlerDelegator.create(cluster, resource))
+    creations.forEach(resource -> when(handlerDelegator.create(backup, resource))
         .thenReturn(resource));
 
-    when(clusterConciliator.evalReconciliationState(cluster))
+    when(backupConciliator.evalReconciliationState(backup))
         .thenReturn(new ReconciliationResult(
             creations,
             Collections.emptyList(),
@@ -88,24 +101,24 @@ class ClusterReconciliatorTest {
 
     reconciliator.reconciliationCycle();
 
-    verify(clusterScanner).getResources();
-    verify(clusterConciliator).evalReconciliationState(cluster);
-    creations.forEach(resource -> verify(handlerDelegator).create(cluster, resource));
+    verify(backupScanner).getResources();
+    verify(backupConciliator).evalReconciliationState(backup);
+    creations.forEach(resource -> verify(handlerDelegator).create(backup, resource));
   }
 
   @Test
   void allPatches_shouldBePerformed() {
-    when(clusterScanner.getResources()).thenReturn(Collections.singletonList(cluster));
+    when(backupScanner.getResources()).thenReturn(Collections.singletonList(backup));
 
     final List<Tuple2<HasMetadata, HasMetadata>> patches = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test")
         .stream().map(r -> Tuple.tuple(r, r))
         .collect(Collectors.toUnmodifiableList());
 
-    patches.forEach(resource -> when(handlerDelegator.patch(cluster, resource.v1, resource.v2))
+    patches.forEach(resource -> when(handlerDelegator.patch(backup, resource.v1, resource.v2))
         .thenReturn(resource.v1));
 
-    when(clusterConciliator.evalReconciliationState(cluster))
+    when(backupConciliator.evalReconciliationState(backup))
         .thenReturn(new ReconciliationResult(
             Collections.emptyList(),
             patches,
@@ -113,21 +126,21 @@ class ClusterReconciliatorTest {
 
     reconciliator.reconciliationCycle();
 
-    verify(clusterScanner).getResources();
-    verify(clusterConciliator).evalReconciliationState(cluster);
-    patches.forEach(resource -> verify(handlerDelegator).patch(cluster, resource.v1, resource.v2));
+    verify(backupScanner).getResources();
+    verify(backupConciliator).evalReconciliationState(backup);
+    patches.forEach(resource -> verify(handlerDelegator).patch(backup, resource.v1, resource.v2));
   }
 
   @Test
   void allDeletions_shouldBePerformed() {
-    when(clusterScanner.getResources()).thenReturn(Collections.singletonList(cluster));
+    when(backupScanner.getResources()).thenReturn(Collections.singletonList(backup));
 
     final List<HasMetadata> deletions = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
 
-    deletions.forEach(resource -> doNothing().when(handlerDelegator).delete(cluster, resource));
+    deletions.forEach(resource -> doNothing().when(handlerDelegator).delete(backup, resource));
 
-    when(clusterConciliator.evalReconciliationState(cluster))
+    when(backupConciliator.evalReconciliationState(backup))
         .thenReturn(new ReconciliationResult(
             Collections.emptyList(),
             Collections.emptyList(),
@@ -135,9 +148,9 @@ class ClusterReconciliatorTest {
 
     reconciliator.reconciliationCycle();
 
-    verify(clusterScanner).getResources();
-    verify(clusterConciliator).evalReconciliationState(cluster);
-    deletions.forEach(resource -> verify(handlerDelegator).delete(cluster, resource));
+    verify(backupScanner).getResources();
+    verify(backupConciliator).evalReconciliationState(backup);
+    deletions.forEach(resource -> verify(handlerDelegator).delete(backup, resource));
   }
 
   @Test
@@ -146,10 +159,10 @@ class ClusterReconciliatorTest {
     long delay = 100;
     int concurrentExecutions = new Random().nextInt(2) + 2;
 
-    doAnswer(new AnswersWithDelay(delay, new Returns(Collections.singletonList(cluster))))
-        .when(clusterScanner).getResources();
+    doAnswer(new AnswersWithDelay(delay, new Returns(Collections.singletonList(backup))))
+        .when(backupScanner).getResources();
 
-    when(clusterConciliator.evalReconciliationState(cluster))
+    when(backupConciliator.evalReconciliationState(backup))
         .thenReturn(new ReconciliationResult(
             Collections.emptyList(),
             Collections.emptyList(),
@@ -169,8 +182,8 @@ class ClusterReconciliatorTest {
             end - start,
             greaterThanOrEqualTo(delay * concurrentExecutions));
 
-    verify(clusterScanner, times(concurrentExecutions)).getResources();
-    verify(clusterConciliator, times(concurrentExecutions)).evalReconciliationState(cluster);
+    verify(backupScanner, times(concurrentExecutions)).getResources();
+    verify(backupConciliator, times(concurrentExecutions)).evalReconciliationState(backup);
 
   }
 }
