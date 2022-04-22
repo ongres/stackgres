@@ -45,9 +45,8 @@
 					<form @submit="confirmDelete(confirmDeleteName)">
 						<input id="deleteName" v-model="confirmDeleteName" :placeholder="deleteItem.kind+' name'" autocomplete="off">
 						<span class="warning" style="display:none">The {{ deleteItem.kind }} name does not match the name of the element requested to be deleted.</span>
-						<a @click="confirmDelete(confirmDeleteName)">DELETE ITEM</a> <a @click="cancelDelete()">CANCEL</a>
+						<a class="confirmDelete" @click="confirmDelete(confirmDeleteName)">DELETE ITEM</a> <a class="cancelDelete" @click="cancelDelete()">CANCEL</a>
 					</form>
-
 				</div>
 			</div>
 
