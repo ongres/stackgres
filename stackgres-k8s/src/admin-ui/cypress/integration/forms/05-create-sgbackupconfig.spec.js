@@ -93,10 +93,10 @@ describe('Create SGBackupConfig', () => {
 
 
         //Performance Details
-        cy.get('[data-field="spec.baseBackups.performance.maxNetworkBandwitdh"]')
+        cy.get('[data-field="spec.baseBackups.performance.maxNetworkBandwidth"]')
             .type('1024')
 
-        cy.get('[data-field="spec.baseBackups.performance.maxDiskBandwitdh"]')
+        cy.get('[data-field="spec.baseBackups.performance.maxDiskBandwidth"]')
             .type('1024')
         
         cy.get('[data-field="spec.baseBackups.performance.uploadDiskConcurrency"]')

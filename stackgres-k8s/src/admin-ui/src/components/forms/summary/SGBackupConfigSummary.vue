@@ -41,17 +41,17 @@
             </li>
         </ul>
 
-        <ul class="section" v-if="( showDefaults || ( hasProp(crd, 'data.spec.baseBackups.performance.maxNetworkBandwitdh') || hasProp(crd, 'data.spec.baseBackups.performance.maxDiskBandwitdh') || hasProp(crd, 'data.spec.baseBackups.performance.uploadDiskConcurrency') ) )">
+        <ul class="section" v-if="( showDefaults || ( hasProp(crd, 'data.spec.baseBackups.performance.maxNetworkBandwidth') || hasProp(crd, 'data.spec.baseBackups.performance.maxDiskBandwidth') || hasProp(crd, 'data.spec.baseBackups.performance.uploadDiskConcurrency') ) )">
             <li>
                 <strong class="sectionTitle">Performance Specs</strong>
                 <ul>
-                    <li v-if="( showDefaults || hasProp(crd, 'data.spec.baseBackups.performance.maxNetworkBandwitdh') )">
+                    <li v-if="( showDefaults || hasProp(crd, 'data.spec.baseBackups.performance.maxNetworkBandwidth') )">
                         <strong class="label">Max Network Bandwidth:</strong>
-                        <span class="value">{{ hasProp(crd, 'data.spec.baseBackups.performance.maxNetworkBandwitdh') ? crd.data.spec.baseBackups.performance.maxNetworkBandwitdh : 'unlimited' }} </span>
+                        <span class="value">{{ hasProp(crd, 'data.spec.baseBackups.performance.maxNetworkBandwidth') ? crd.data.spec.baseBackups.performance.maxNetworkBandwidth : 'unlimited' }} </span>
                     </li>
-                    <li v-if="( showDefaults || hasProp(crd, 'data.spec.baseBackups.performance.maxDiskBandwitdh') )">
+                    <li v-if="( showDefaults || hasProp(crd, 'data.spec.baseBackups.performance.maxDiskBandwidth') )">
                         <strong class="label">Max Disk Bandwidth:</strong>
-                        <span class="value">{{ hasProp(crd, 'data.spec.baseBackups.performance.maxDiskBandwitdh') ? crd.data.spec.baseBackups.performance.maxDiskBandwitdh : 'unlimited' }} </span>
+                        <span class="value">{{ hasProp(crd, 'data.spec.baseBackups.performance.maxDiskBandwidth') ? crd.data.spec.baseBackups.performance.maxDiskBandwidth : 'unlimited' }} </span>
                     </li>
                     <li v-if="( showDefaults || hasProp(crd, 'data.spec.baseBackups.performance.uploadDiskConcurrency') )">
                         <strong class="label">Upload Disk Concurrency:</strong>

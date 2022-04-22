@@ -106,9 +106,16 @@ create_or_replace_cluster_for_version() {
   fi
 
   local TRANSFORMER="dont_transform"
-  if [ "$(get_version_as_number "$VERSION")" -lt "$(get_version_as_number 1.0.0-alpha1)" ]
+  local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1_AS_NUMBER VERSION_1_2_0_RC1_AS_NUMBER
+  VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
+  VERSION_1_0_0_ALPHA1_AS_NUMBER="$(get_version_as_number 1.0.0-alpha1)"
+  VERSION_1_2_0_RC1_AS_NUMBER="$(get_version_as_number 1.2.0-RC1)"
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA1_AS_NUMBER" ]
   then
     TRANSFORMER="transform_to_0_9"
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_2_0_RC1_AS_NUMBER" ]
+  then
+    TRANSFORMER="transform_to_1_1"
   fi
 
   if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
@@ -123,6 +130,18 @@ create_or_replace_cluster_for_version() {
         --namespace "$NAMESPACE" \
         $E2E_CLUSTER_OPTS \
         --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
+  fi
+}
+
+transform_to_1_1() {
+  if [ "${1%=*}" = 'configurations.backupconfig.baseBackups.performance.maxDiskBandwidth' ]
+  then
+    printf "%s=%s" "configurations.backupconfig.baseBackups.performance.maxDiskBandwitdh" "${1#*=}"
+  elif [ "${1%=*}" = 'configurations.backupconfig.baseBackups.performance.maxNetworkBandwidth' ]
+  then
+    printf "%s=%s" "configurations.backupconfig.baseBackups.performance.maxNetworkBandwitdh" "${1#*=}"
+  else
+    dont_transform "$1"
   fi
 }
 
@@ -145,11 +164,7 @@ transform_to_0_9() {
   elif printf '%s' '${1%=*}' | grep -q '^cluster.postgres.extensions'
   then
     printf "%s=%s" "$(printf '%s' "${1%=*}" \
-      | sed 's/^cluster\.postgres\.extensions/cluster.postgresExtensions/')"
-  elif printf '%s' '${1%=*}' | grep -q '^cluster.postgres.extensions'
-  then
-    printf "%s=%s" "$(printf '%s' "${1%=*}" \
-      | sed 's/^cluster\.postgres\.extensions/cluster.postgresExtensions/')"
+      | sed 's/^cluster\.postgres\.extensions/cluster.postgresExtensions/')" "${1#*=}"
   elif [ "${1%=*}" = "cluster.initialData.restore.fromBackup.uid" ]
   then
     printf "%s=%s" "cluster.initialData.restore.fromBackup" "${1#*=}"

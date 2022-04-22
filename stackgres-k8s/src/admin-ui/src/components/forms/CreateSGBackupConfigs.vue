@@ -123,15 +123,15 @@
                     <h3>Performance Details</h3>
 
                     <div class="col">
-                        <label for="spec.baseBackups.performance.maxNetworkBandwitdh">Max Network Bandwidth</label>
-                        <input v-model="backupConfigMaxNetworkBandwidth" data-field="spec.baseBackups.performance.maxNetworkBandwitdh" type="number" min="0">
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.maxNetworkBandwitdh')"></span>
+                        <label for="spec.baseBackups.performance.maxNetworkBandwidth">Max Network Bandwidth</label>
+                        <input v-model="backupConfigMaxNetworkBandwidth" data-field="spec.baseBackups.performance.maxNetworkBandwidth" type="number" min="0">
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.maxNetworkBandwidth')"></span>
                     </div>
 
                     <div class="col">
-                        <label for="spec.baseBackups.performance.maxDiskBandwitdh">Max Disk Bandwidth</label>
-                        <input v-model="backupConfigMaxDiskBandwidth" data-field="spec.baseBackups.performance.maxDiskBandwitdh" type="number" min="0">
-                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.maxDiskBandwitdh')"></span>
+                        <label for="spec.baseBackups.performance.maxDiskBandwidth">Max Disk Bandwidth</label>
+                        <input v-model="backupConfigMaxDiskBandwidth" data-field="spec.baseBackups.performance.maxDiskBandwidth" type="number" min="0">
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.baseBackups.performance.maxDiskBandwidth')"></span>
                     </div>
 
                     <div class="col">                
@@ -505,8 +505,8 @@
                             vm.backupConfigFullScheduleDOW = cron[4];
                             //backupConfigFullWindow = config.data.spec.fullWindow;
                             vm.backupConfigRetention = config.data.spec.baseBackups.retention;
-                            vm.backupConfigMaxNetworkBandwidth = vm.hasProp(config, 'data.spec.baseBackups.performance.maxNetworkBandwitdh') ? config.data.spec.baseBackups.performance.maxNetworkBandwitdh : '';
-                            vm.backupConfigMaxDiskBandwidth = vm.hasProp(config, 'data.spec.baseBackups.performance.maxDiskBandwitdh') ? config.data.spec.baseBackups.performance.maxDiskBandwitdh : ''; 
+                            vm.backupConfigMaxNetworkBandwidth = vm.hasProp(config, 'data.spec.baseBackups.performance.maxNetworkBandwidth') ? config.data.spec.baseBackups.performance.maxNetworkBandwidth : '';
+                            vm.backupConfigMaxDiskBandwidth = vm.hasProp(config, 'data.spec.baseBackups.performance.maxDiskBandwidth') ? config.data.spec.baseBackups.performance.maxDiskBandwidth : ''; 
                             vm.backupConfigUploadDiskConcurrency = vm.hasProp(config, 'data.spec.baseBackups.performance.uploadDiskConcurrency') ? config.data.spec.baseBackups.performance.uploadDiskConcurrency : 1;
                             vm.backupConfigStorageType = config.data.spec.storage.type;
         
@@ -659,8 +659,8 @@
                                 ...( (this.backupConfigUploadDiskConcurrency.length || this.backupConfigMaxNetworkBandwidth.length || this.backupConfigMaxDiskBandwidth.length ) && ({
                                     "performance": {
                                         ...( this.backupConfigUploadDiskConcurrency.length && { "uploadDiskConcurrency": this.backupConfigUploadDiskConcurrency } ),
-                                        ...( this.backupConfigMaxNetworkBandwidth.length && { "maxNetworkBandwitdh": this.backupConfigMaxNetworkBandwidth }),
-                                        ...( this.backupConfigMaxDiskBandwidth.length && { "maxDiskBandwitdh": this.backupConfigMaxDiskBandwidth } )
+                                        ...( this.backupConfigMaxNetworkBandwidth.length && { "maxNetworkBandwidth": this.backupConfigMaxNetworkBandwidth }),
+                                        ...( this.backupConfigMaxDiskBandwidth.length && { "maxDiskBandwidth": this.backupConfigMaxDiskBandwidth } )
                                     }
                                 }) )
                             },

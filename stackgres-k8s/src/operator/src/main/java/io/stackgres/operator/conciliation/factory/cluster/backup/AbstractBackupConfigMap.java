@@ -50,13 +50,13 @@ public abstract class AbstractBackupConfigMap {
     Optional.ofNullable(backupConfigSpec.getBaseBackups())
         .map(StackGresBaseBackupConfig::getPerformance)
         .ifPresent(performance -> {
-          Optional.ofNullable(performance.getMaxNetworkBandwitdh())
-              .ifPresent(maxNetworkBandwitdh -> backupEnvVars.put(
-                  "WALG_NETWORK_RATE_LIMIT", convertEnvValue(maxNetworkBandwitdh)));
+          Optional.ofNullable(performance.getMaxNetworkBandwidth())
+              .ifPresent(maxNetworkBandwidth -> backupEnvVars.put(
+                  "WALG_NETWORK_RATE_LIMIT", convertEnvValue(maxNetworkBandwidth)));
 
-          Optional.ofNullable(performance.getMaxDiskBandwitdh())
-              .ifPresent(maxDiskBandwitdh -> backupEnvVars.put(
-                  "WALG_DISK_RATE_LIMIT", convertEnvValue(maxDiskBandwitdh)));
+          Optional.ofNullable(performance.getMaxDiskBandwidth())
+              .ifPresent(maxDiskBandwidth -> backupEnvVars.put(
+                  "WALG_DISK_RATE_LIMIT", convertEnvValue(maxDiskBandwidth)));
 
           Optional.ofNullable(performance.getUploadDiskConcurrency())
               .ifPresent(uploadDiskConcurrency -> backupEnvVars.put(

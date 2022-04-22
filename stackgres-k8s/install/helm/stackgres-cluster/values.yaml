@@ -163,8 +163,8 @@ configurations:
       compression: lz4
       performance:
         uploadDiskConcurrency: 1
-        #maxNetworkBandwitdh:
-        #maxDiskBandwitdh:
+        #maxNetworkBandwidth:
+        #maxDiskBandwidth:
     storage:
       s3: {}
       #  bucket: stackgres

@@ -20,7 +20,7 @@ import io.stackgres.operator.mutation.DefaultValuesMutator;
 @ApplicationScoped
 public class BackupConfigDefaultValuesMutator
     extends DefaultValuesMutator<StackGresBackupConfig, BackupConfigReview>
-    implements BackupMutator {
+    implements BackupConfigMutator {
 
   @Override
   public JsonNode getTargetNode(StackGresBackupConfig resource) {
@@ -30,7 +30,7 @@ public class BackupConfigDefaultValuesMutator
 
   @Override
   public List<JsonPatchOperation> mutate(BackupConfigReview review) {
-    return mutate(SG_BACKUP_CONFIG_POINTER, review.getRequest().getObject());
+    return mutate(SPEC_POINTER, review.getRequest().getObject());
   }
 
   @Override

@@ -17,11 +17,11 @@ spec:
     cronSchedule: "{{ .Values.configurations.backupconfig.baseBackups.cronSchedule }}"
     compression: "{{ .Values.configurations.backupconfig.baseBackups.compression }}"
     performance:
-      {{- if .Values.configurations.backupconfig.baseBackups.performance.maxNetworkBandwitdh }}
-      maxNetworkBandwitdh: {{ .Values.configurations.backupconfig.baseBackups.performance.maxNetworkBandwitdh }}
+      {{- if .Values.configurations.backupconfig.baseBackups.performance.maxNetworkBandwidth }}
+      maxNetworkBandwidth: {{ .Values.configurations.backupconfig.baseBackups.performance.maxNetworkBandwidth }}
       {{- end }}
-      {{- if .Values.configurations.backupconfig.baseBackups.performance.maxDiskBandwitdh }}
-      maxDiskBandwitdh: {{ .Values.configurations.backupconfig.baseBackups.performance.maxDiskBandwitdh }}
+      {{- if .Values.configurations.backupconfig.baseBackups.performance.maxDiskBandwidth }}
+      maxDiskBandwidth: {{ .Values.configurations.backupconfig.baseBackups.performance.maxDiskBandwidth }}
       {{- end }}
       uploadDiskConcurrency: {{ .Values.configurations.backupconfig.baseBackups.performance.uploadDiskConcurrency }}
   storage:

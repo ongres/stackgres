@@ -18,29 +18,29 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class BaseBackupPerformance {
 
-  @JsonProperty("maxNetworkBandwitdh")
-  private Long maxNetworkBandwitdh;
+  @JsonProperty("maxNetworkBandwidth")
+  private Long maxNetworkBandwidth;
 
-  @JsonProperty("maxDiskBandwitdh")
-  private Long maxDiskBandwitdh;
+  @JsonProperty("maxDiskBandwidth")
+  private Long maxDiskBandwidth;
 
   @JsonProperty("uploadDiskConcurrency")
   private Integer uploadDiskConcurrency;
 
-  public Long getMaxNetworkBandwitdh() {
-    return maxNetworkBandwitdh;
+  public Long getMaxNetworkBandwidth() {
+    return maxNetworkBandwidth;
   }
 
-  public void setMaxNetworkBandwitdh(Long maxNetworkBandwitdh) {
-    this.maxNetworkBandwitdh = maxNetworkBandwitdh;
+  public void setMaxNetworkBandwidth(Long maxNetworkBandwidth) {
+    this.maxNetworkBandwidth = maxNetworkBandwidth;
   }
 
-  public Long getMaxDiskBandwitdh() {
-    return maxDiskBandwitdh;
+  public Long getMaxDiskBandwidth() {
+    return maxDiskBandwidth;
   }
 
-  public void setMaxDiskBandwitdh(Long maxDiskBandwitdh) {
-    this.maxDiskBandwitdh = maxDiskBandwitdh;
+  public void setMaxDiskBandwidth(Long maxDiskBandwidth) {
+    this.maxDiskBandwidth = maxDiskBandwidth;
   }
 
   public Integer getUploadDiskConcurrency() {
@@ -65,13 +65,13 @@ public class BaseBackupPerformance {
       return false;
     }
     BaseBackupPerformance that = (BaseBackupPerformance) o;
-    return Objects.equals(maxNetworkBandwitdh, that.maxNetworkBandwitdh)
-        && Objects.equals(maxDiskBandwitdh, that.maxDiskBandwitdh)
+    return Objects.equals(maxNetworkBandwidth, that.maxNetworkBandwidth)
+        && Objects.equals(maxDiskBandwidth, that.maxDiskBandwidth)
         && Objects.equals(uploadDiskConcurrency, that.uploadDiskConcurrency);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(maxNetworkBandwitdh, maxDiskBandwitdh, uploadDiskConcurrency);
+    return Objects.hash(maxNetworkBandwidth, maxDiskBandwidth, uploadDiskConcurrency);
   }
 }
