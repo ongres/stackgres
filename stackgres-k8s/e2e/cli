@@ -1,0 +1,11 @@
+#!/bin/bash
+
+{
+  echo '. /etc/bash.bashrc'
+  echo '. ~/.bashrc'
+  bash "${0%/*}/e2e" cli_completion
+  echo 'echo'
+  echo 'echo "Type e2e<tab> to get started. Use --help for more info."'
+  echo 'echo'
+} > "${0%/*}/target/cli"
+exec bash --rcfile "${0%/*}/target/cli"
