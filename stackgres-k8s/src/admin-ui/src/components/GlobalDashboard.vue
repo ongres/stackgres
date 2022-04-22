@@ -155,7 +155,7 @@ export default {
     methods: {
         hasCRDs(namespace) {
             return (
-                store.state.clusters.filter(c => c.data.metadata.namespace == namespace).length ||
+                store.state.sgclusters.filter(c => c.data.metadata.namespace == namespace).length ||
                 store.state.sginstanceprofiles.filter(c => c.data.metadata.namespace == namespace).length ||
                 store.state.sgpgconfigs.filter(c => c.data.metadata.namespace == namespace).length ||
                 store.state.sgpoolconfigs.filter(c => c.data.metadata.namespace == namespace).length ||
@@ -173,7 +173,7 @@ export default {
         },
 
         clusters () {
-            return store.state.clusters
+            return store.state.sgclusters
         },
 
         profiles () {

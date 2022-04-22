@@ -446,7 +446,7 @@ export default {
 
     computed: {
         clusters () {
-            return store.state.clusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))
+            return store.state.sgclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))
         },
 
         profiles () {

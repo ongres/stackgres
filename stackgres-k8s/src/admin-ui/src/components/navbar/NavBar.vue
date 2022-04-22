@@ -231,39 +231,13 @@
 			},
 
 			nameCollision() {
-				let collision = {};
-
-				switch(store.state.cloneCRD.kind) {
-					case 'SGClusters':
-						collision = store.state.clusters.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
-						break;
-
-					case 'SGBackupConfigs':
-						collision = store.state.sgbackupconfigs.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
-						break;
-
-					case 'SGBackups':
-						collision = store.state.sgbackups.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
-						break;
-
-					case 'SGInstanceProfiles':
-						collision = store.state.sginstanceprofiles.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
-						break;
-
-					case 'SGPoolingConfigs':
-						collision = store.state.sgpoolconfigs.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
-						break;
-
-					case 'SGPostgresConfigs':
-						collision = store.state.sgpgconfigs.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
-						break;
-
-					case 'SGDistributedLogs':
-						collision = store.state.sgdistributedlogs.find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
-						break;
+				if(store.state.cloneCRD.hasOwnProperty('kind')) {
+					let kind = store.state.cloneCRD.kind.toLowerCase();
+					let collision = store.state[kind].find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
+					return (typeof collision != 'undefined')
+				} else {
+					return false
 				}
-
-				return (typeof collision != 'undefined')
 			},
 
 			missingCRDs() {

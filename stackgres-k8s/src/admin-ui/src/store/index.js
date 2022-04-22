@@ -21,7 +21,7 @@ export default new Vuex.Store({
     currentPods: [],
     namespaces: [],
     allNamespaces: [],
-    clusters: [],
+    sgclusters: [],
     sgbackups: [],
     sgpgconfigs: [],
     sgpoolconfigs: [],
@@ -128,19 +128,19 @@ export default new Vuex.Store({
 
     updateClusters ( state, cluster ) {
 
-      let index = state.clusters.find(c => (cluster.data.metadata.name == c.name) && (cluster.data.metadata.namespace == c.data.metadata.namespace) ); 
+      let index = state.sgclusters.find(c => (cluster.data.metadata.name == c.name) && (cluster.data.metadata.namespace == c.data.metadata.namespace) ); 
 
       if ( typeof index !== "undefined" ) {
         index.data = cluster.data;
       } else {
-        state.clusters.push( cluster );    
+        state.sgclusters.push( cluster );    
       }
 
     },
 
     updateClusterStats (state, clusterStats) {
 
-      let cluster = state.clusters.find(c => (clusterStats.name == c.name) && (clusterStats.namespace == c.data.metadata.namespace) ); 
+      let cluster = state.sgclusters.find(c => (clusterStats.name == c.name) && (clusterStats.namespace == c.data.metadata.namespace) ); 
 
       if ( typeof cluster !== "undefined" )
         cluster.status = clusterStats.stats
@@ -227,19 +227,8 @@ export default new Vuex.Store({
     setDeleteItem (state, item) {
       
       if(!item.kind.length) { // Item has been deleted succesfuly, remove from store
-
-        let kind = '';
-
-        switch(state.deleteItem.kind) {
-          
-          case 'sgclusters':
-            kind = 'clusters'
-            break;
-          
-        }
-
-        state[kind].splice(state[kind].findIndex( el => (el.name == state.deleteItem.name) && (el.data.metadata.namespace == state.deleteItem.namespace) ), 1)
-
+        let kind = state.deleteItem.kind;
+        state[kind].splice(state[kind].findIndex( el => (el.name == state.deleteItem.name) && (el.data.metadata.namespace == state.deleteItem.namespace) ), 1);
       }
 
       state.deleteItem = item;

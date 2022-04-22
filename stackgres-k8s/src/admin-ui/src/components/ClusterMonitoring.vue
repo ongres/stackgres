@@ -137,7 +137,7 @@
 
 			clusters () {
 				let vc = this;
-				let cluster = store.state.clusters.find(c => ((vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name)));
+				let cluster = store.state.sgclusters.find(c => ((vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name)));
 
 				if(typeof cluster != 'undefined') {
 
@@ -183,7 +183,7 @@
 
 				}
 
-				return store.state.clusters
+				return store.state.sgclusters
 			},
 
 			theme () {

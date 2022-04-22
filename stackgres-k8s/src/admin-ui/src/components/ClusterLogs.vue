@@ -622,14 +622,14 @@
 		computed: {
 
 			clusters () {
-				return store.state.clusters
+				return store.state.sgclusters
 			},
 			
 			grafanaEmbedded() {
 				var grafana = false;
 				const vm = this;
 				
-				store.state.clusters.forEach(function( c ){
+				store.state.sgclusters.forEach(function( c ){
 					if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) && c.data.grafanaEmbedded ) {
 						grafana = true;
 						return false;

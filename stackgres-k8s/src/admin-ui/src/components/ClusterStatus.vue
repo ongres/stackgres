@@ -275,7 +275,7 @@
 		computed: {
 
 			clusters () {
-				return store.state.clusters
+				return store.state.sgclusters
 			},
 
 			pods () {

@@ -1690,7 +1690,7 @@
             },
 
             clusters() {
-                return store.state.clusters
+                return store.state.sgclusters
             },
 
             isFiltered() {
@@ -1705,7 +1705,7 @@
                 const vc = this;
 
                 let op = store.state.sgdbops.find(o => (o.data.metadata.name == vc.$route.params.name) && (o.data.metadata.namespace == vc.$route.params.namespace) );
-                let cluster = store.state.clusters.find(c => (c.data.metadata.name == op.data.spec.sgCluster) && (op.data.metadata.namespace == vc.$route.params.namespace));
+                let cluster = store.state.sgclusters.find(c => (c.data.metadata.name == op.data.spec.sgCluster) && (op.data.metadata.namespace == vc.$route.params.namespace));
                 let primaryNode = cluster.status.pods.find(p => (p.role == 'primary') );
 
                 return ( (typeof primaryNode != 'undefined') && primaryNode.hasOwnProperty('diskUsed') ) ? vc.getBytes(primaryNode.diskUsed) : null

@@ -153,7 +153,7 @@
 		},
 		computed: {
 			clusters () {
-				return this.sortTable([...(store.state.clusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type)
+				return this.sortTable([...(store.state.sgclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type)
 			},
 
 			namespaces() {
