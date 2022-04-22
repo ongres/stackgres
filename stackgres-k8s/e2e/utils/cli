@@ -1,0 +1,501 @@
+#!/bin/sh
+
+cli_help() {
+  cat << EOF
+
+e2e [<option>,...] [<phase>,...] [-- [<test spec>,...]]
+
+If no <test spec> is specified all the e2e tests under stackgres-k8s/e2e/spec
+ will be executed.
+The "<test spec>" are files that can be found under stackgres-k8s/e2e/spec but
+ you may specify the file name in such folder or the relative path
+
+Phases:
+
+  test: run e2e tests, the if no phase is specified
+  pull: pull images from repositories
+  build: build operator images
+  push: push operator images to repositories
+
+Options:
+
+  --help: Print this help and exit
+  --debug: Print shell xtrace to debug the E2E framework
+  --use-cache: Enable test cache
+  --retry <number>:       Specify the number of retries for failed tests. If
+                           not specified, failed tests will not be retried
+  --parallelism <number>: Specify the parallelism that will be used for
+                           running multiple e2e tests in parallel (when
+                           possible) and other operations
+  --env <environment>:    Allow to use one of the k8s environment present in
+                           the folder stackgres-k8s/e2e/envs
+  --reset-env:            Specify that the k8s environment have to be
+                           recreated if it already exists
+  --native-image-tag <tag>: Specify the native image tag to use for the
+                           operator images
+  --image-tag <tag>:      Specify the JVM image tag to use for the operator
+                           images
+  --reuse-operator:       Reuse an already installed operator
+  --skip-operator-install: Skip installation of the operator
+  --upgrade-from-previous-operator: Upgrade from a previous version of the
+                           operator
+  --previous-operator-version: Set the previous version of the operator to test
+  --pull-policy <policy>: Set the pull policy for the operator images
+  --skip-load-operator:   Skip loading of the operator images
+  --load-components:      Load component images
+  --load-extensions:      Load extension images
+  --operator-public-registry <registry>: The public image registry for the
+                           operator that will be used during the installation
+                           of the operator
+  --components-public-registry <registry>: The public image registry for the
+                           components that will be used by the operator
+  --operator-registry <registry>: The image registry that will be used to pull
+                           operator images
+  --components-registry <registry>: The image registry that will be used to
+                           pull component images
+  --extensions-registry <registry>: The extension registry that will be used to
+                           pull extensions images
+  --extensions-repository-url <url>: The extensions repository URL
+
+EOF
+}
+
+cli_completion() {
+  cat << EOF
+  alias e2e=$SHELL\ $E2E_PATH/e2e\ cli
+EOF
+  cat << EOF
+  complete -F cli_do_completion e2e
+
+  cli_do_completion() {
+    if [ "x\${COMP_WORDS[\$((COMP_CWORD - 1))]}" != "x" ]
+    then
+      if [ "x\${COMP_WORDS[\$((COMP_CWORD - 1))]}" == "x--env" ]
+      then
+        COMPREPLY+=(\$(compgen -W '
+          $(ls -1 "$E2E_PATH/envs" | tr '\n' ' ')
+          ' -- "\${COMP_WORDS[\$COMP_CWORD]}"
+          ))
+        return
+      fi
+      if [[ " \${COMP_WORDS[*]} " =~ " test " ]] \
+        && [[ " \${COMP_WORDS[*]} " =~ " -- " ]] \
+        && [ "x\${COMP_WORDS[\$COMP_CWORD]#-}" = "x\${COMP_WORDS[\$COMP_CWORD]}" ]
+      then
+        compopt -o default
+        COMPREPLY=()
+        return
+      fi
+    fi
+    if [ "x\${COMP_WORDS[\$COMP_CWORD]}" != "x" ]
+    then
+      if [ "x\${COMP_WORDS[\$COMP_CWORD]#-}" != "x\${COMP_WORDS[\$COMP_CWORD]}" ]
+      then
+        COMPREPLY+=(\$(compgen -W "
+          \$(
+            if [[ " \${COMP_WORDS[*]} " =~ " test " ]] \
+              && {
+                [[ ! " \${COMP_WORDS[*]} " =~ " -- " ]] \
+                || [ "x\${COMP_WORDS[\$COMP_CWORD]}" = 'x--' ]
+              }
+            then
+              printf %s --
+            fi
+          )
+          --help
+          --debug
+          --use-cache
+          --retry
+          --parallelism
+          --env
+          --reset-env
+          --native-image-tag
+          --image-tag
+          --reuse-operator
+          --skip-operator-install
+          --upgrade-from-previous-operator
+          --previous-operator-version
+          --pull-policy
+          --skip-load-operator
+          --load-components
+          --load-extensions
+          --operator-public-registry
+          --components-public-registry
+          --operator-registry
+          --components-registry
+          --extensions-registry
+          --extensions-repository-url
+          " -- "\${COMP_WORDS[\$COMP_CWORD]}"
+          ))
+        return
+      fi
+    fi
+    COMPREPLY+=(\$(compgen -W "
+      pull
+      build
+      push
+      test
+      \$(
+        if [[ " \${COMP_WORDS[*]} " =~ " test " ]] \
+          && [[ ! " \${COMP_WORDS[*]} " =~ " -- " ]]
+        then
+          printf %s --
+        fi
+      )
+      " -- "\${COMP_WORDS[\$COMP_CWORD]}"
+      ))
+  }
+EOF
+}
+
+cli() {
+  local DO_BUILD=false DO_PUSH=false DO_PULL=false DO_TEST=false
+
+  local ARG VALUE POSITIONAL_SHIFTS=0
+
+  cli_init_e2e_variables
+
+  while [ "$#" -gt "$POSITIONAL_SHIFTS" ]
+  do
+    case "${1%%=*}" in
+      ('--help')
+      cli_help
+      return
+      ;;
+      ('--debug')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      if "$VALUE"
+      then
+        set -x
+        SHELL_XTRACE=-x
+      fi
+      ;;
+      ('--use-cache')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_USE_TEST_CACHE="$VALUE"
+      ;;
+      ('--env')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_ENV="$VALUE"
+      ;;
+      ('--reset-env')
+      cli_set_parameter_boolean_negation "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      K8S_REUSE="$VALUE"
+      ;;
+      ('--retry')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_RETRY="$VALUE"
+      ;;
+      ('--parallelism')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_PARALLELISM="$VALUE"
+      ;;
+      ('--native-image-tag')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      if "$VALUE"
+      then
+        IMAGE_TAG="${IMAGE_TAG%-jvm}"
+      fi
+      ;;
+      ('--image-tag')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      if [ "${IMAGE_TAG%-jvm}" = "$IMAGE_TAG" ]
+      then
+        IMAGE_TAG="$VALUE"
+      else
+        IMAGE_TAG="$VALUE-jvm"
+      fi
+      ;;
+      ('--reuse-operator')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_REUSE_OPERATOR_PODS="$VALUE"
+      if [ "$E2E_REUSE_OPERATOR_PODS" ]
+      then
+        E2E_SKIP_LOAD_OPERATOR=true
+      fi
+      ;;
+      ('--skip-operator-install')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_SKIP_OPERATOR_INSTALL="$VALUE"
+      ;;
+      ('--pull-policy')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_OPERATOR_PULL_POLICY="$VALUE"
+      ;;
+      ('--skip-load-operator')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_SKIP_LOAD_OPERATOR="$VALUE"
+      ;;
+      ('--load-components')
+      cli_set_parameter_boolean_negation "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_SKIP_LOAD_COMPONENTS="$VALUE"
+      ;;
+      ('--load-extensions')
+      cli_set_parameter_boolean_negation "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_SKIP_LOAD_EXTENSIONS="$VALUE"
+      ;;
+      ('--operator-public-registry')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      OPERATOR_PUBLIC_REGISTRY="${VALUE%%/*}"
+      OPERATOR_PUBLIC_REGISTRY_PATH="/${VALUE#*/}"
+      ;;
+      ('--components-public-registry')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      COMPONENT_PUBLIC_REGISTRY="${VALUE%%/*}"
+      COMPONENT_PUBLIC_REGISTRY_PATH="/${VALUE#*/}"
+      ;;
+      ('--operator-registry')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_OPERATOR_REGISTRY="${VALUE%%/*}"
+      E2E_OPERATOR_REGISTRY_PATH="/${VALUE#*/}"
+      ;;
+      ('--components-registry')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_COMPONENTS_REGISTRY="${VALUE%%/*}"
+      E2E_COMPONENTS_REGISTRY_PATH="/${VALUE#*/}"
+      ;;
+      ('--extensions-registry')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_EXTENSIONS_REGISTRY="${VALUE%%/*}"
+      E2E_EXTENSIONS_REGISTRY_PATH="/${VALUE#*/}"
+      ;;
+      ('--extensions-repository-url')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      EXTENSIONS_REPOSITORY_URL="$VALUE"
+      ;;
+      ('--upgrade-from-previous-operator')
+      cli_set_parameter_boolean_negation "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR="$VALUE"
+      ;;
+      ('--previous-operator-version')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      STACKGRES_PREVIOUS_VERSION="$VALUE"
+      ;;
+      ('pull')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      DO_PULL="$VALUE"
+      if [ "$DO_PULL" = true ]
+      then
+        E2E_FORCE_IMAGE_PULL=true
+        E2E_SKIP_OPERATOR_LOAD=false
+      fi
+      ;;
+      ('build')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      DO_BUILD="$VALUE"
+      if [ "$DO_BUILD" = true ]
+      then
+        E2E_SKIP_OPERATOR_LOAD=false
+      fi
+      ;;
+      ('push')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      DO_PUSH="$VALUE"
+      ;;
+      ('test')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      DO_TEST="$VALUE"
+      ;;
+      ('--')
+      shift
+      ;;
+      (*)
+      VALUE="$1"
+      shift
+      set -- "$@" "$VALUE"
+      POSITIONAL_SHIFTS="$((POSITIONAL_SHIFTS+1))"
+      ;;
+    esac
+  done
+
+  cli_export_e2e_variables
+
+  if "$DO_BUILD" && "$DO_PULL"
+  then
+    >&2 "build and pull are mutually exclusive"
+    return 1
+  fi
+  if ! "$DO_TEST" \
+     && ! "$DO_BUILD" \
+     && ! "$DO_PUSH" \
+     && ! "$DO_PULL"
+  then
+    cli_help
+    return
+  fi
+  if "$DO_BUILD"
+  then
+    E2E_BUILD_IMAGES=true E2E_PUSH_IMAGES=false setup_images
+  fi
+  if "$DO_PUSH"
+  then
+    E2E_BUILD_IMAGES=false E2E_PUSH_IMAGES=true setup_images
+  fi
+  if "$DO_TEST"
+  then
+    "$SHELL" $SHELL_XTRACE "$E2E_PATH/run-all-tests.sh" "$@"
+  fi
+}
+
+cli_init_e2e_variables() {
+  E2E_BUILD_IMAGES=false
+  E2E_PUSH_IMAGES=false
+  E2E_RETRY=1
+  E2E_PARALLELISM="$(nproc)"
+  K8S_REUSE=true
+  K8S_EXTRA_PORT=30100:9443:0.0.0.0:tcp
+  K8S_USE_INTERNAL_REPOSITORY=true
+  K8S_CACHE_PATH="/tmp/${KIND_NAME:-kind}-cache"
+  IMAGE_TAG="$(git rev-parse --short=8 HEAD)-jvm"
+  E2E_FORCE_IMAGE_PULL=false
+  E2E_SKIP_OPERATOR_LOAD=true
+  E2E_SKIP_LOAD_OPERATOR=false
+  E2E_SKIP_LOAD_COMPONENTS=true
+  E2E_SKIP_LOAD_EXTENSIONS=true
+  E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR=true
+  E2E_OPERATOR_OPTS="--set-string authentication.password=st4ckgr3s --set-string adminui.service.type=NodePort --set-string adminui.service.nodePort=30100 --set developer.enableJvmDebug=true"
+  E2E_DISABLE_CACHE=true
+  E2E_DISABLE_LOGS=true
+  KIND_LOG=true
+  KIND_LOG_RESOURCE=true
+  E2E_OPERATOR_REGISTRY=registry.gitlab.com
+  E2E_OPERATOR_REGISTRY_PATH=/ongresinc/stackgres/
+}
+
+cli_export_e2e_variables() {
+  export \
+    E2E_PARALLELISM \
+    E2E_RETRY \
+    E2E_BUILD_IMAGES \
+    E2E_PUSH_IMAGES \
+    E2E_USE_TEST_CACHE \
+    E2E_ENV \
+    K8S_REUSE \
+    K8S_USE_INTERNAL_REPOSITORY \
+    K8S_CACHE_PATH \
+    K8S_EXTRA_PORT \
+    E2E_OPERATOR_OPTS \
+    E2E_DISABLE_CACHE \
+    E2E_DISABLE_LOGS \
+    KIND_LOG \
+    KIND_LOG_RESOURCE=true \
+    E2E_OPERATOR_REGISTRY \
+    E2E_OPERATOR_REGISTRY_PATH \
+    IMAGE_TAG \
+    E2E_REUSE_OPERATOR_PODS \
+    E2E_SKIP_OPERATOR_INSTALL \
+    E2E_OPERATOR_PULL_POLICY \
+    E2E_FORCE_IMAGE_PULL \
+    E2E_SKIP_OPERATOR_LOAD \
+    E2E_SKIP_LOAD_OPERATOR \
+    E2E_SKIP_LOAD_COMPONENTS \
+    E2E_SKIP_LOAD_EXTENSIONS \
+    OPERATOR_PUBLIC_REGISTRY OPERATOR_PUBLIC_REGISTRY_PATH \
+    COMPONENT_PUBLIC_REGISTRY COMPONENT_PUBLIC_REGISTRY_PATH \
+    E2E_OPERATOR_REGISTRY E2E_OPERATOR_REGISTRY_PATH \
+    E2E_COMPONENTS_REGISTRY E2E_COMPONENTS_REGISTRY_PATH \
+    E2E_EXTENSIONS_REGISTRY E2E_EXTENSIONS_REGISTRY_PATH \
+    E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR \
+    STACKGRES_PREVIOUS_VERSION
+}
+
+cli_set_parameter_value() {
+  if [ "${1%%=*}" = "$1" ]
+  then
+    shift
+    VALUE="$1"
+    shift
+    if [ -z "$VALUE" ]
+    then
+      >&2 echo "You must specify a value for property ${1%%=*}"
+      return 1
+    fi
+  else
+    VALUE="${1#*=}"
+    shift
+  fi
+}
+
+cli_set_parameter_boolean() {
+  if [ "${1%%=*}" = "$1" ]
+  then
+    shift
+    VALUE="true"
+  elif [ "${1%-}" != "$1" ]
+  then
+    shift
+    VALUE="false"
+  else
+    if [ "${1#*=}" != true ] && [ "${1#*=}" != false ]
+    then
+      >&2 echo "You must specify true or false for property ${1%%=*}"
+      return 1
+    fi
+    VALUE="${1#*=}"
+    shift
+  fi
+}
+
+cli_set_parameter_boolean_negation() {
+  if [ "${1%%=*}" = "$1" ]
+  then
+    shift
+    VALUE="false"
+  elif [ "${1%-}" != "$1" ]
+  then
+    shift
+    VALUE="true"
+  else
+    VALUE="${1#*=}"
+    if [ "$VALUE" != true ] && [ "$VALUE" != false ]
+    then
+      >&2 echo "You must specify true or false for property ${1%%=*}"
+      return 1
+    fi
+    if "$VALUE"
+    then
+      VALUE=false
+    else
+      VALUE=true
+    fi
+    shift
+  fi
+}
+
+cli_get_parameter_shifts() {
+  if [ "${1%%=*}" = "$1" ]
+  then
+    printf 1
+  elif [ "${1%-}" != "$1" ]
+  then
+    printf 1
+  else
+    printf 2
+  fi
+}

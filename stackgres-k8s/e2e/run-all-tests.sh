@@ -175,6 +175,7 @@ $(printf '%s\n' "$SPECS" | grep -v '^$' \
     do
       printf '%s\n' " - ${LINE##*spec/}"
     done)
+
 "
 
 rm -f "$TARGET_PATH/runned-tests"

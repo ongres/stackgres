@@ -247,7 +247,8 @@ EOF
 setup_operator() {
   if [ "$E2E_SKIP_SETUP" = true ] \
     || {
-      [ "$E2E_REUSE_OPERATOR_PODS" = true ] && is_operator_installed
+      [ "$E2E_REUSE_OPERATOR_PODS" = true ] \
+      && is_operator_installed
     }
   then
     if is_operator_installed

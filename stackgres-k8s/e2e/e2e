@@ -46,7 +46,7 @@ done
 
 [ "x" = "x$SHELL_XTRACE" ] || [ "$E2E_TRACE_ALL" = true ] || set -x
 
-if [ "$(basename "$0")" = "e2e" ] && [ ! -z "$1" ]
+if { [ "$(basename "$0")" = "e2e" ] || [ "$E2E_DO_EXEC" = true ]; } && [ "$#" -gt 0 ]
 then
   "$@"
 fi
