@@ -533,9 +533,8 @@ $(document).ready(function(){
     $(this).addClass('active')
   })
 
-  $('.contentTooltip .close').click(function(){
-    $('.contentTooltip').removeClass('show');
-    $('.contentTooltip .info .content').html('');
+  $(document).on('click', '.contentTooltip .close', function(){
+    $(this).parents('.contentTooltip').remove()
   })
 
   $(document).on("click", "#side", function(e) {
