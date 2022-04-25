@@ -5,7 +5,7 @@
 
 package io.stackgres.apiweb.dto.profile;
 
-import javax.validation.constraints.NotBlank;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,12 +19,13 @@ import io.stackgres.common.StackGresUtil;
 public class ProfileSpec {
 
   @JsonProperty("cpu")
-  @NotBlank
   private String cpu;
 
   @JsonProperty("memory")
-  @NotBlank
   private String memory;
+
+  @JsonProperty("hugePages")
+  private ProfileHugePages hugePages;
 
   public String getCpu() {
     return cpu;
@@ -40,6 +41,32 @@ public class ProfileSpec {
 
   public void setMemory(String memory) {
     this.memory = memory;
+  }
+
+  public ProfileHugePages getHugePages() {
+    return hugePages;
+  }
+
+  public void setHugePages(ProfileHugePages hugePages) {
+    this.hugePages = hugePages;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(cpu, hugePages, memory);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof ProfileSpec)) {
+      return false;
+    }
+    ProfileSpec other = (ProfileSpec) obj;
+    return Objects.equals(cpu, other.cpu) && Objects.equals(hugePages, other.hugePages)
+        && Objects.equals(memory, other.memory);
   }
 
   @Override
