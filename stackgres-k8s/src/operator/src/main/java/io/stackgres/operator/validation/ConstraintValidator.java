@@ -138,7 +138,7 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
     final String jsonFieldName = ClassUtil.getDeclaredFieldFromClassHierarchy(fieldName, tuple.v2)
         .map(clazzField -> clazzField.getAnnotation(JsonProperty.class))
         .map(JsonProperty::value)
-        .map(name -> name.replace(".", "\\.").replace("[", "\\["))
+        .map(this::escapeFieldName)
         .orElse(field);
     return tuple
         .map1(builder -> builder.isEmpty()

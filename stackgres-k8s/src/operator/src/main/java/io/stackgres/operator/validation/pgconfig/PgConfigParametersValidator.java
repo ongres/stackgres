@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -25,6 +26,14 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @Singleton
 @ValidationType(ErrorType.PG_CONFIG_PARAMETER)
 public class PgConfigParametersValidator implements PgConfigValidator {
+
+  final String postgresConfField;
+
+  public PgConfigParametersValidator() {
+    postgresConfField = getFieldPath(
+        StackGresPostgresConfig.class, "spec",
+        StackGresPostgresConfigSpec.class, "postgresqlConf") + ".";
+  }
 
   @Override
   public void validate(PgConfigReview review) throws ValidationFailed {
@@ -39,7 +48,7 @@ public class PgConfigParametersValidator implements PgConfigValidator {
           .forEach(e -> {
             PgParameter parameter = val.parameter(e.getKey(), e.getValue());
             if (!parameter.isValid()) {
-              detailsBuilder.addNewCause(parameter.getName(),
+              detailsBuilder.addNewCause(postgresConfField + parameter.getName(),
                   parameter.getError().orElseThrow(), parameter.getHint().orElse(null));
             }
           });

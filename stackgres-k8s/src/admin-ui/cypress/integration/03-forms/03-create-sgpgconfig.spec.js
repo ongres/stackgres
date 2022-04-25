@@ -38,7 +38,7 @@ describe('Create SGPostgresConfig', () => {
             .select('14')
         
         // Test Parameter textarea
-        cy.get('[data-field="spec.postgresql.conf"]')
+        cy.get('[data-field="spec.postgresql\\.conf"]')
             .type('autovacuum_max_workers = 2')
 
         // Test Submit form
