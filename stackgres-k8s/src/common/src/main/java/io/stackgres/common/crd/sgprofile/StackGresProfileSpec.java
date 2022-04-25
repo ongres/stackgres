@@ -7,21 +7,19 @@ package io.stackgres.common.crd.sgprofile;
 
 import java.util.Objects;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresProfileSpec implements KubernetesResource {
-
-  private static final long serialVersionUID = -1037668102382589521L;
+public class StackGresProfileSpec {
 
   @JsonProperty("cpu")
   @NotBlank(message = "cpu must be provided")
@@ -30,6 +28,10 @@ public class StackGresProfileSpec implements KubernetesResource {
   @JsonProperty("memory")
   @NotBlank(message = "memory must be provided")
   private String memory;
+
+  @JsonProperty("hugePages")
+  @Valid
+  private StackGresProfileHugePages hugePages;
 
   public String getCpu() {
     return cpu;
@@ -47,22 +49,30 @@ public class StackGresProfileSpec implements KubernetesResource {
     this.memory = memory;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(cpu, memory);
+  public StackGresProfileHugePages getHugePages() {
+    return hugePages;
+  }
+
+  public void setHugePages(StackGresProfileHugePages hugePages) {
+    this.hugePages = hugePages;
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public int hashCode() {
+    return Objects.hash(cpu, hugePages, memory);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof StackGresProfileSpec)) {
       return false;
     }
-    StackGresProfileSpec that = (StackGresProfileSpec) o;
-    return Objects.equals(cpu, that.cpu)
-        && Objects.equals(memory, that.memory);
+    StackGresProfileSpec other = (StackGresProfileSpec) obj;
+    return Objects.equals(cpu, other.cpu) && Objects.equals(hugePages, other.hugePages)
+        && Objects.equals(memory, other.memory);
   }
 
   @Override
