@@ -58,7 +58,7 @@ class PgBouncerDefaultStateMutatorTest
 
   @Override
   protected Map<String, String> getConfigParameters(StackGresPoolingConfig resource) {
-    return resource.getSpec().getPgBouncer().getPgbouncerIni().getParameters();
+    return resource.getStatus().getPgBouncer().getDefaultParameters();
   }
 
 }

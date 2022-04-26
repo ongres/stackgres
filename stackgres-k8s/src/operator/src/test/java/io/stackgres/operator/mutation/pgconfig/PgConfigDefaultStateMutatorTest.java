@@ -61,7 +61,7 @@ class PgConfigDefaultStateMutatorTest
 
   @Override
   protected Map<String, String> getConfigParameters(StackGresPostgresConfig resource) {
-    return resource.getSpec().getPostgresqlConf();
+    return resource.getStatus().getDefaultParameters();
   }
 
 }
