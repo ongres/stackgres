@@ -57,7 +57,7 @@ create_or_replace_cluster_only() {
   OPERATOR_VERSION="$(get_installed_operator_version)"
   if [ "$OPERATOR_VERSION" != "$STACKGRES_VERSION" ]
   then
-    create_or_replace_cluster_for_version "$OPERATOR_VERSION" "$RELEASE" "$NAMESPACE" "$INSTANCES" "$@"
+    create_or_replace_cluster_for_version_only "$OPERATOR_VERSION" "$RELEASE" "$NAMESPACE" "$INSTANCES" "$@"
     return
   fi
 
@@ -93,6 +93,16 @@ has_cluster_generated_resources() {
 }
 
 create_or_replace_cluster_for_version() {
+  local VERSION="$1"
+  local RELEASE="$2"
+  local NAMESPACE="$3"
+  local INSTANCES="$4"
+  shift 4
+
+  create_or_replace_cluster_for_version_only "$VERSION" "$RELEASE" "$NAMESPACE" "$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
+}
+
+create_or_replace_cluster_for_version_only() {
   local VERSION="$1"
   local RELEASE="$2"
   local NAMESPACE="$3"
