@@ -32,7 +32,7 @@ public abstract class DefaultValuesMutator<R extends CustomResource<?, ?>,
   @PostConstruct
   public void init() {
     R defaultResource = factory.buildResource();
-    defaultNode = getTargetNode(defaultResource);
+    defaultNode = getSourceNode(defaultResource);
   }
 
   @Inject
@@ -45,12 +45,17 @@ public abstract class DefaultValuesMutator<R extends CustomResource<?, ?>,
     this.jsonMapper = jsonMapper;
   }
 
-  public JsonNode getTargetNode(R resource) {
+  protected abstract JsonNode getSourceNode(R resource);
+
+  protected abstract JsonNode getTargetNode(R resource);
+
+  protected JsonNode toNode(R resource) {
     return jsonMapper.valueToTree(resource);
   }
 
-  protected List<JsonPatchOperation> mutate(JsonPointer basePointer,
-                                            R incomingResource) {
+  protected List<JsonPatchOperation> mutate(
+      JsonPointer basePointer,
+      R incomingResource) {
     JsonNode incomingNode = getTargetNode(incomingResource);
     return applyDefaults(basePointer, defaultNode, incomingNode);
   }

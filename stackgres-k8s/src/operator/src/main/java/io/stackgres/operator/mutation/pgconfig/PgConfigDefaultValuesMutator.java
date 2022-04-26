@@ -12,12 +12,14 @@ import javax.enterprise.context.ApplicationScoped;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 
@@ -36,8 +38,17 @@ public class PgConfigDefaultValuesMutator
   }
 
   @Override
+  public JsonNode getSourceNode(StackGresPostgresConfig resource) {
+    var source = (ObjectNode) toNode(resource)
+        .get("status").get("defaultParameters");
+    List.copyOf(PostgresBlocklist.getBlocklistParameters())
+        .forEach(source::remove);
+    return source;
+  }
+
+  @Override
   public JsonNode getTargetNode(StackGresPostgresConfig resource) {
-    return super.getTargetNode(resource)
+    return toNode(resource)
         .get("spec").get("postgresql.conf");
   }
 

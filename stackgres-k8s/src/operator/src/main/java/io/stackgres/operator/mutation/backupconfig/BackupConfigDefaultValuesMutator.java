@@ -23,9 +23,14 @@ public class BackupConfigDefaultValuesMutator
     implements BackupConfigMutator {
 
   @Override
-  public JsonNode getTargetNode(StackGresBackupConfig resource) {
-    return super.getTargetNode(resource)
+  public JsonNode getSourceNode(StackGresBackupConfig resource) {
+    return toNode(resource)
         .get("spec");
+  }
+
+  @Override
+  public JsonNode getTargetNode(StackGresBackupConfig resource) {
+    return getSourceNode(resource);
   }
 
   @Override
