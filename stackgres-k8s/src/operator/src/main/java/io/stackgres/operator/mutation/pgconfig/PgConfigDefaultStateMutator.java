@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
@@ -53,8 +52,8 @@ public class PgConfigDefaultStateMutator
 
   @Override
   protected Map<String, String> getParametersNode(StackGresPostgresConfig incomingResource) {
-    return Optional.ofNullable(incomingResource.getSpec())
-        .map(StackGresPostgresConfigSpec::getPostgresqlConf)
+    return Optional.ofNullable(incomingResource.getStatus())
+        .map(StackGresPostgresConfigStatus::getDefaultParameters)
         .orElse(Map.of());
   }
 
