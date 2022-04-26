@@ -200,11 +200,47 @@
                                                     <strong class="label">Database:</strong>
                                                     <span class="value">{{ script.database }}</span>
                                                 </li>
+                                                <li>
+                                                    <strong class="label">Script Source:</strong>
+                                                    <span class="value">{{ hasProp(script, 'script') ? 'Raw Script' : (hasProp(script, 'scriptFrom.secretKeyRef') ? 'Secret Key' : "Config Map") }}</span>
+                                                </li>
                                                 <li v-if="hasProp(script, 'script')">
                                                     <strong class="label">Script:</strong>
-                                                    <span class="value script hasTooltip">
-                                                        <span>{{ script.script }}</span>
+                                                    <span class="value script">
+                                                        <span>
+                                                            <a @click="setContentTooltip('#script-'+index)">View Script</a>
+                                                        </span>
+                                                        <div :id="'script-' + index" class="hidden">
+                                                            <pre>{{ script.script }}</pre>
+                                                        </div>
                                                     </span>
+                                                </li>
+                                                <li v-else-if="hasProp(script, 'scriptFrom.secretKeyRef')">
+                                                    <strong>Secret Key Reference:</strong>
+                                                    <ul>
+                                                        <li>
+                                                            <strong class="label">Name:</strong>
+                                                            <span class="value">{{ script.scriptFrom.secretKeyRef.name }}</span>
+                                                        </li>
+                                                        <li>
+                                                            <strong class="label">Key:</strong>
+                                                            <span class="value">{{ script.scriptFrom.secretKeyRef.key }}</span>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                                <li v-else-if="hasProp(script, 'scriptFrom.configMapKeyRef')">
+                                                    <strong>Config Map Key Reference:</strong>
+                                                    <ul>
+                                                        <li>
+                                                            <strong class="label">Name:</strong>
+                                                            <span class="value">{{ script.scriptFrom.configMapKeyRef.name }}</span>
+                                                        </li>
+                                                        <li>
+                                                            <strong class="label">Key:</strong>
+                                                            <span class="value">{{ script.scriptFrom.configMapKeyRef.key }}</span>
+                                                        </li>
+                                                        
+                                                    </ul>
                                                 </li>
                                             </ul>
                                         </li>
@@ -293,7 +329,7 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="( showDefaults || ( (cluster.data.spec.replication.role != 'ha-read') || (cluster.data.spec.replication.mode != 'Async') || cluster.data.spec.replication.hasOwnProperty('groups') ) )">
+                    <ul class="section" v-if="( showDefaults || ( (cluster.data.spec.replication.role != 'ha-read') || (cluster.data.spec.replication.mode != 'async') || cluster.data.spec.replication.hasOwnProperty('groups') ) )">
                         <li>
                             <strong class="sectionTitle">
                                 Replication

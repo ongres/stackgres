@@ -4807,6 +4807,11 @@ table.backupConfig tr.details.open td:first-of-type {
     width: 100%;
 }
 
+/* Hide other tooltips when a new one gets opened */
+.contentTooltip.show:not(:last-child) { 
+    display: none !important;
+}
+
 .warning ul {
     padding-left: 20px;
 }

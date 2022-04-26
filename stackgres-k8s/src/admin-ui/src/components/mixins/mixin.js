@@ -526,19 +526,15 @@ export const mixin = {
       },
   
       setContentTooltip( el = '', warning = false ) {
-        if(warning) {
-          $('.contentTooltip .info').addClass('warning')
-        } else {
-          $('.contentTooltip .info').removeClass('warning');
-        }
+        const tooltip = `<div class="contentTooltip show">
+          <div class="close"></div>
+          <div class="info` + (warning ? 'warning' : '') + `">
+            <span class="close">CLOSE</span>
+            <div class="content">` + $(el).html() + `</div>
+          </div>
+        </div>`;
 
-        if(el.length) {
-          $('.contentTooltip .info .content').html($(el).html());
-          $('.contentTooltip').addClass('show');
-        } else {
-          $('.contentTooltip .info .content').html('');
-          $('.contentTooltip').removeClass('show');
-        }
+        $('#main').append(tooltip);
       },
   
       helpTooltip(kind, field) {
