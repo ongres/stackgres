@@ -39,31 +39,29 @@ run_op() {
     echo
     DB_OPS_PATCH="$(cat << EOF
       {
-        "dbOps": {
-          "majorVersionUpgrade":{
-            "initialInstances": [$(
-              FIRST=true
-              for INSTANCE in $INITIAL_INSTANCES
-              do
-                if "$FIRST"
-                then
-                  printf '%s' "\"$INSTANCE\""
-                  FIRST=false
-                else
-                  printf '%s' ",\"$INSTANCE\""
-                fi
-              done
-              )],
-            "primaryInstance": "$PRIMARY_INSTANCE",
-            "sourcePostgresVersion": "$SOURCE_VERSION",
-            "targetPostgresVersion": "$TARGET_VERSION",
-            "locale": "$LOCALE",
-            "encoding": "$ENCODING",
-            "dataChecksum": $DATA_CHECKSUM,
-            "link": $LINK,
-            "clone": $CLONE,
-            "check": $CHECK
-          }
+        "majorVersionUpgrade":{
+          "initialInstances": [$(
+            FIRST=true
+            for INSTANCE in $INITIAL_INSTANCES
+            do
+              if "$FIRST"
+              then
+                printf '%s' "\"$INSTANCE\""
+                FIRST=false
+              else
+                printf '%s' ",\"$INSTANCE\""
+              fi
+            done
+            )],
+          "primaryInstance": "$PRIMARY_INSTANCE",
+          "sourcePostgresVersion": "$SOURCE_VERSION",
+          "targetPostgresVersion": "$TARGET_VERSION",
+          "locale": "$LOCALE",
+          "encoding": "$ENCODING",
+          "dataChecksum": $DATA_CHECKSUM,
+          "link": $LINK,
+          "clone": $CLONE,
+          "check": $CHECK
         }
       }
 EOF
@@ -71,15 +69,11 @@ EOF
 
     until (
       DBOPS="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
-      DBOPS="$(printf '%s' "$DBOPS" | jq '.status |= . + '"$DB_OPS_PATCH")"
+      DBOPS="$(printf '%s' "$DBOPS" | jq '.status.dbOps = '"$DB_OPS_PATCH")"
       printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
       )
     do
-      (
-        DBOPS="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
-        DBOPS="$(printf '%s' "$DBOPS" | jq 'del(.status.dbOps)')"
-        printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
-      )
+      sleep 1
     done
   else
     SOURCE_VERSION="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \

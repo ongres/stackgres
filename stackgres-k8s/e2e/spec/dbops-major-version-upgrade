@@ -15,7 +15,7 @@ check_major_version_upgrade_is_working() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+  create_or_replace_cluster_without_defaults "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
     --set configurations.backupconfig.create=true \
     --set configurations.backupconfig.baseBackups.retention=2 \
