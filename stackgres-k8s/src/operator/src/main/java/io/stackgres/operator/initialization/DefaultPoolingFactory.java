@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.initialization;
 
+import java.util.Map;
 import java.util.Properties;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -12,7 +13,9 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 
 @ApplicationScoped
@@ -21,19 +24,22 @@ public class DefaultPoolingFactory
 
   @Override
   StackGresPoolingConfig buildResource(String namespace) {
-
     StackGresPoolingConfig config = new StackGresPoolingConfig();
     config.getMetadata().setName(generateDefaultName());
     config.getMetadata().setNamespace(namespace);
 
-    StackGresPoolingConfigSpec spec = new StackGresPoolingConfigSpec();
-    final StackGresPoolingConfigPgBouncer pgBouncer = new StackGresPoolingConfigPgBouncer();
-    final StackGresPoolingConfigPgBouncerPgbouncerIni pgbouncerIni =
-        new StackGresPoolingConfigPgBouncerPgbouncerIni();
-    pgbouncerIni.setParameters(getDefaultValues());
+    final var spec = new StackGresPoolingConfigSpec();
+    final var pgBouncer = new StackGresPoolingConfigPgBouncer();
+    final var pgbouncerIni = new StackGresPoolingConfigPgBouncerPgbouncerIni();
+    pgbouncerIni.setParameters(Map.of());
     pgBouncer.setPgbouncerIni(pgbouncerIni);
     spec.setPgBouncer(pgBouncer);
     config.setSpec(spec);
+    final var status = new StackGresPoolingConfigStatus();
+    final var pgBouncerStatus = new StackGresPoolingConfigPgBouncerStatus();
+    pgBouncerStatus.setDefaultParameters(getDefaultValues());
+    status.setPgBouncer(pgBouncerStatus);
+    config.setStatus(status);
 
     return config;
   }

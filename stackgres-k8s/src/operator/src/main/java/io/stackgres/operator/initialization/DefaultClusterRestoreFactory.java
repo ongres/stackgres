@@ -25,7 +25,7 @@ public class DefaultClusterRestoreFactory
 
   @Override
   StackGresClusterRestore buildResource(String namespace) {
-    return buildSpec(StackGresClusterRestore.class);
+    return buildFromDefaults(StackGresClusterRestore.class);
   }
 
 }
