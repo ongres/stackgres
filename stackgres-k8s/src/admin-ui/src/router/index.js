@@ -43,7 +43,8 @@ const routes = [
     component: CreateCluster,
     name: 'CreateCluster',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster' 
     },
   },
   { 
@@ -51,7 +52,8 @@ const routes = [
     component: CreateCluster,
     name: 'EditCluster',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   { 
@@ -59,7 +61,8 @@ const routes = [
     component: CreateProfile,
     name: 'CreateProfile',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGInstanceProfile'
     },
   },
   { 
@@ -67,7 +70,8 @@ const routes = [
     component: CreateProfile,
     name: 'EditProfile',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGInstanceProfile'
     },
   },
   { 
@@ -75,7 +79,9 @@ const routes = [
     component: CreatePgConfig,
     name: 'CreatePgConfig',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGPgConfig', 
+      customComponentName: 'SGPostgresConfig'
     },
   },
   { 
@@ -83,7 +89,9 @@ const routes = [
     component: CreatePgConfig,
     name: 'EditPgConfig',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGPgConfig', 
+      customComponentName: 'SGPostgresConfig'
     },
   },
   { 
@@ -91,7 +99,9 @@ const routes = [
     component: CreatePoolConfig,
     name: 'CreatePoolConfig',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGPoolConfig', 
+      customComponentName: 'SGPoolingConfig'
     },
   },
   { 
@@ -99,7 +109,9 @@ const routes = [
     component: CreatePoolConfig,
     name: 'EditPoolConfig',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGPoolConfig', 
+      customComponentName: 'SGPoolingConfig'
     },
   },
   { 
@@ -107,7 +119,8 @@ const routes = [
     component: CreateBackupConfig,
     name: 'CreateBackupConfig',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGBackupConfig'
     },
   },
   { 
@@ -115,7 +128,8 @@ const routes = [
     component: CreateBackupConfig,
     name: 'EditBackupConfig',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGBackupConfig'
     },
   },
   { 
@@ -123,7 +137,8 @@ const routes = [
     component: CreateBackup,
     name: 'CreateBackups',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGBackup'
     },
   },
   { 
@@ -131,7 +146,8 @@ const routes = [
     component: CreateBackup,
     name: 'CreateClusterBackup',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   { 
@@ -139,7 +155,8 @@ const routes = [
     component: CreateBackup,
     name: 'EditBackup',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGBackup'
     },
   },
   { 
@@ -147,7 +164,8 @@ const routes = [
     component: CreateBackup,
     name: 'EditClusterBackup',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   { 
@@ -155,7 +173,8 @@ const routes = [
     component: CreateLogsServer,
     name: 'CreateLogsServer',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGDistributedLog'
     },
   },
   { 
@@ -163,7 +182,8 @@ const routes = [
     component: CreateLogsServer,
     name: 'EditLogsServer',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGDistributedLog'
     },
   },
   { 
@@ -171,7 +191,8 @@ const routes = [
     component: CreateDbOps,
     name: 'CreateDbOps',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGDbOp'
     },
   },
   { 
@@ -203,7 +224,8 @@ const routes = [
     component: ClusterOverview,
     name: 'ClusterOverviewEmpty',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   { 
@@ -211,7 +233,8 @@ const routes = [
     component: ClusterOverview,
     name: 'ClusterOverview',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   { 
@@ -219,7 +242,8 @@ const routes = [
     component: ClusterInfo,
     name: 'ClusterInfo',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   { 
@@ -227,7 +251,8 @@ const routes = [
     component: ClusterStatus,
     name: 'ClusterStatus',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   { 
@@ -235,7 +260,8 @@ const routes = [
     component: ClusterLogs,
     name: 'ClusterLogs',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   { 
@@ -243,7 +269,8 @@ const routes = [
     component: ClusterEvents,
     name: 'ClusterEvents',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   { 
@@ -251,7 +278,8 @@ const routes = [
     component: ClusterEvents,
     name: 'SingleClusterEvents',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   {  
@@ -259,7 +287,8 @@ const routes = [
     component: SGBackups,
     name: 'NamespaceBackups',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGBackup'
     },
   },
   { 
@@ -267,7 +296,8 @@ const routes = [
     component: SGBackups,
     name: 'SingleBackups',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGBackup'
     },
   },
   { 
@@ -275,7 +305,8 @@ const routes = [
     component: SGBackups,
     name: 'ClusterBackups',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   { 
@@ -283,7 +314,8 @@ const routes = [
     component: SGBackups,
     name: 'SingleClusterBackups',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   { 
@@ -291,7 +323,9 @@ const routes = [
     component: SGPgConfigs,
     name: 'PgConfig',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGPgConfig', 
+      customComponentName: 'SGPostgresConfig'
     },
   },
   { 
@@ -299,7 +333,9 @@ const routes = [
     component: SGPgConfigs,
     name: 'SinglePgConfig',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGPgConfig', 
+      customComponentName: 'SGPostgresConfig'
     },
   },
   { 
@@ -307,7 +343,9 @@ const routes = [
     component: SGPoolConfigs,
     name: 'PoolConfig',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGPoolConfig', 
+      customComponentName: 'SGPoolingConfig'
     },
   },
   { 
@@ -315,7 +353,9 @@ const routes = [
     component: SGPoolConfigs,
     name: 'SinglePoolConfig',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGPoolConfig', 
+      customComponentName: 'SGPoolingConfig'
     },
   },
   { 
@@ -323,7 +363,8 @@ const routes = [
     component: SGBackupConfigs,
     name: 'BackupConfig',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGBackupConfig'
     },
   },
   { 
@@ -331,7 +372,8 @@ const routes = [
     component: SGBackupConfigs,
     name: 'SingleBackupConfig',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGBackupConfig'
     },
   },
   {  
@@ -339,7 +381,8 @@ const routes = [
     component: SGInstanceProfiles,
     name: 'InstanceProfile',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGInstanceProfile'
     },
   },
   { 
@@ -347,7 +390,8 @@ const routes = [
     component: SGInstanceProfiles,
     name: 'SingleInstanceProfile',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGInstanceProfile'
     },
   },
   { 
@@ -355,7 +399,8 @@ const routes = [
     component: SGDistributedLogs,
     name: 'LogsServer',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGDistributedLog'
     },
   },
   { 
@@ -363,7 +408,8 @@ const routes = [
     component: SGDistributedLogs,
     name: 'SingleLogsServer',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGDistributedLog'
     },
   },
   { 
@@ -371,7 +417,8 @@ const routes = [
     component: SGDbOps,
     name: 'DbOps',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGDbOp'
     },
   },
   { 
@@ -379,7 +426,8 @@ const routes = [
     component: SGDbOps,
     name: 'SingleDbOps',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGDbOp'
     },
   },
   { 
@@ -387,7 +435,8 @@ const routes = [
     component: SGDbOps,
     name: 'SingleDbOpsEvents',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGDbOp'
     },
   },
   { 
@@ -395,7 +444,8 @@ const routes = [
     component: Grafana,
     name: 'ClusterMonitor',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   { 
@@ -403,7 +453,8 @@ const routes = [
     component: Grafana,
     name: 'SingleClusterMonitor',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   {
@@ -411,7 +462,8 @@ const routes = [
     component: Grafana,
     name: 'SingleClusterMonitorRange',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false,
+      componentName: 'SGCluster'
     },
   },
   {
@@ -419,7 +471,8 @@ const routes = [
     component: BabelfishCompass,
     name: 'BabelfishCompass',
     meta: {
-      conditionalRoute: false
+      conditionalRoute: false, 
+      componentName: 'Application'
     },
   },
   {

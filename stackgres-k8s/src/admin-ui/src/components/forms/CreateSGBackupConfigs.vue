@@ -2,29 +2,6 @@
     <div id="create-backup-config" v-if="loggedIn && isReady&& !notFound">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
-
-        <header>
-            <ul class="breadcrumbs">
-                <li class="namespace">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
-                    <router-link :to="'/' + $route.params.namespace" title="Namespace Overview">{{ $route.params.namespace }}</router-link>
-                </li>
-                <li class="action">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27.1 20"><g fill="#00adb5"><path d="M.955 4.767h10.5a.953.953 0 1 0 0-1.906H.955a.953.953 0 1 0 0 1.906ZM14.795 7.625a.953.953 0 0 0 .955-.953V4.767h4.295a.953.953 0 1 0 0-1.906H15.75V.954a.954.954 0 0 0-1.909 0v5.713a.953.953 0 0 0 .954.958ZM.955 10.967H5.25v1.9a.954.954 0 0 0 1.909 0V7.148a.954.954 0 0 0-1.909 0v1.906H.955a.954.954 0 1 0 0 1.907ZM7.636 15.251H.955a.954.954 0 1 0 0 1.907h6.681a.954.954 0 1 0 0-1.907ZM18.073 9.481a.852.852 0 0 0-.668-.293.944.944 0 0 0-.86.667L14.2 14.867l-2.354-5.011a.959.959 0 0 0-.883-.669.834.834 0 0 0-.663.3 1.09 1.09 0 0 0-.238.726v7.568a1.037 1.037 0 0 0 .22.692.776.776 0 0 0 .624.278.787.787 0 0 0 .631-.284 1.038 1.038 0 0 0 .225-.686v-4.314l1.568 3.248a1.318 1.318 0 0 0 .355.5.819.819 0 0 0 1.012-.01 1.458 1.458 0 0 0 .35-.486l1.557-3.3v4.361a1.037 1.037 0 0 0 .22.692.776.776 0 0 0 .623.278.823.823 0 0 0 .632-.272 1.009 1.009 0 0 0 .235-.7V10.21a1.081 1.081 0 0 0-.241-.729ZM26.1 14.635a2.6 2.6 0 0 1 .4 1.469 2.388 2.388 0 0 1-.77 1.885 3.09 3.09 0 0 1-2.12.681h-3.079a.7.7 0 0 1-.543-.214.849.849 0 0 1-.2-.6v-7.789a.851.851 0 0 1 .2-.6.7.7 0 0 1 .543-.214h2.96a3.041 3.041 0 0 1 2.06.648 2.274 2.274 0 0 1 .746 1.811 2.354 2.354 0 0 1-.352 1.3 2.047 2.047 0 0 1-.973.8 2.038 2.038 0 0 1 1.128.823Zm-4.806-1.417h1.947q1.587 0 1.587-1.322a1.2 1.2 0 0 0-.393-.99 1.872 1.872 0 0 0-1.194-.32h-1.947ZM24.661 17a1.311 1.311 0 0 0 .382-1.042 1.349 1.349 0 0 0-.387-1.056 1.782 1.782 0 0 0-1.213-.347h-2.149v2.779h2.149A1.828 1.828 0 0 0 24.661 17Z"/></g></svg>
-                    <router-link :to="'/' + $route.params.namespace + '/sgbackupconfigs' " title="SGBackupConfigs">SGBackupConfigs</router-link>
-                </li>
-                <li v-if="editMode">
-                    <router-link :to="'/' + $route.params.namespace + '/sgbackupconfig/' + $route.params.name" title="Configuration Details">{{ $route.params.name }}</router-link>
-                </li>
-                <li class="action">
-                    {{ $route.name == 'EditBackupConfig' ? 'Edit' : 'Create' }}
-                </li>
-            </ul>
-
-            <div class="actions">
-                <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgbackupconfig/" target="_blank" title="SGBackupConfig Documentation">SGBackupConfig Documentation</a>
-            </div>
-        </header>
                 
         <form id="createBackupConfig" class="form" @submit.prevent>
             <div class="header">

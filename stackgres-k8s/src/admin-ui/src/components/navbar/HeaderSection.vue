@@ -1,0 +1,373 @@
+<template>
+    <header id="header" :class="(($route.meta.componentName == 'SGCluster') && ((!$route.name.includes('Create') && (!$route.name.includes('Edit')) && ($route.name != 'ClusterOverview')))? 'clusterHeader' : '')">
+        <ul class="breadcrumbs">
+
+            <!--Namespace-->
+            <li class="namespace">
+                <template v-if="$route.name == 'GlobalDashboard'">
+                    Namespaces Overview
+                </template>
+                <template v-else>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
+                    <template v-if="$route.name == 'NamespaceOverview'">
+                        {{ currentPath.namespace }}
+                    </template>
+                    <template v-else>
+                        <router-link :to="'/' + currentPath.namespace" title="Namespace Overview">
+                            {{ currentPath.namespace }}
+                        </router-link>
+                    </template>
+                </template>
+            </li>
+
+            <!--Kind-->
+            <template v-if="($route.name != 'NamespaceOverview') && ($route.name != 'GlobalDashboard')">
+                <li>
+                    <span class="component" :class="$route.meta.componentName.toLowerCase()"></span>
+
+                    <template v-if="currentPath.name || $route.name.startsWith('Create') || $route.params.hasOwnProperty('backupname')">
+                        <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + 's'" :title="$route.meta.componentName + 's'">
+                            {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + 's' : $route.meta.componentName + 's' }}
+                        </router-link>
+                    </template>
+                    <template v-else>
+                        {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + 's' : $route.meta.componentName + 's' }}
+                    </template>
+                </li>
+            </template>
+            
+            <!--CRD Name-->
+            <template v-if="!$route.params.hasOwnProperty('cluster') && currentPath.name">
+                <li>
+                    <template v-if="(currentPath.component.startsWith('Edit')) || ($route.meta.componentName == 'SGCluster')">
+                        <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + currentPath.name" :title="currentPath.name">
+                            {{ currentPath.name }}
+                        </router-link>
+                    </template>
+                    <template v-else>
+                        <span>{{ currentPath.name }}</span>
+                    </template>
+                </li>
+            </template>
+
+            <!--Cluster name on Backups Tab-->
+            <template v-if="$route.params.hasOwnProperty('cluster') && !currentPath.name">
+                <li>
+                    <template v-if="currentPath.component.startsWith('Edit') || $route.name == 'CreateClusterBackup'">
+                        <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.cluster" :title="$route.params.cluster">
+                            {{ $route.params.cluster }}
+                        </router-link>
+                    </template>
+                    <template v-else>
+                        <span>{{ $route.params.cluster }}</span>
+                    </template>
+                </li>
+            </template>
+
+            <!--Cluster Tabs-->
+            <template v-if="($route.meta.componentName == 'SGCluster') && (($route.name != 'ClusterOverview') && ($route.name != 'EditCluster') && ($route.name != 'CreateCluster'))">
+                <li>
+                    <template v-if="$route.name.includes('Backup') && $route.name != 'ClusterBackups'">
+                        <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + ($route.params.hasOwnProperty('cluster') ? $route.params.cluster : currentPath.name) + '/sgbackups'" title="Backups">
+                            Backups
+                        </router-link>
+                    </template>
+
+                    <template v-else>
+                        <span>
+                            <template v-if="$route.name == 'ClusterStatus'">Status</template>
+                            <template v-else-if="$route.name == 'ClusterInfo'">Configuration</template>
+                            <template v-else-if="$route.name.includes('Backup')">Backups</template>
+                            <template v-else-if="$route.name == 'ClusterLogs'">Logs</template>
+                            <template v-else-if="$route.name.includes('Monitor')">Monitoring</template>
+                            <template v-else-if="$route.name.includes('Events')">Events</template>
+                        </span>
+                    </template>
+                </li>
+            </template>
+
+            <!--Backup Name-->
+            <template v-if="$route.params.hasOwnProperty('backupname')">
+                <li>
+                    <template v-if="currentPath.component.startsWith('Edit')">
+                        <template v-if="$route.params.hasOwnProperty('cluster')">
+                            <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.cluster + '/sgbackup/' + $route.params.backupname" :title="$route.params.backupname">
+                                {{ $route.params.backupname }}
+                            </router-link>
+                        </template>
+
+                        <template v-else>
+                            <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.backupname" :title="$route.params.backupname">
+                                {{ $route.params.backupname }}
+                            </router-link>
+                        </template>   
+                    </template>
+                    
+                    <template v-else>
+                        <span>{{ $route.params.backupname }}</span>
+                    </template>
+                </li>
+            </template>
+
+            <!--Create / Edit-->
+            <template v-if="currentPath.component.startsWith('Edit') || currentPath.component.startsWith('Create')">
+                <li>
+                    <template v-if="currentPath.component.startsWith('Edit')">
+                        <span>Edit</span>
+                    </template>
+                    <template v-else>
+                        <span>Create</span>
+                    </template>
+                </li>
+            </template>
+
+            <!--Babelfish Compass-->
+            <template v-if="$route.meta.componentName == 'Application'">
+                <li>
+                    <span>Babelfish Compass</span>
+                </li>
+            </template>
+        </ul>
+
+        <template v-if="($route.name != 'NamespaceOverview') && ($route.name != 'GlobalDashboard')">
+            <div class="actions">
+                <!--Docs Links-->
+                <template v-if="currentPath.component == 'BabelfishCompass'">
+                    <a class="documentation" href="https://github.com/babelfish-for-postgresql/babelfish_compass/" target="_blank" title="Babelfish Compass Documentation">Babelfish Compass Documentation</a>
+                </template>
+                <template v-else-if="($route.meta.componentName == 'SGDistributedLog') || ($route.meta.componentName == 'SGDbOp')">
+                    <a class="documentation" :href="'https://stackgres.io/doc/latest/reference/crd/' + $route.meta.componentName.toLowerCase() + 's'" target="_blank" :title="$route.meta.componentName + ' Documentation'">{{ $route.meta.componentName }} Documentation</a>
+                </template>
+                <template v-else>
+                    <a class="documentation" :href="'https://stackgres.io/doc/latest/reference/crd/' + ($route.meta.customComponentName == 'SGPoolingConfig' ? $route.meta.customComponentName.toLowerCase() : $route.meta.componentName.toLowerCase())" target="_blank" :title="$route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + ' Documentation': $route.meta.componentName + ' Documentation'">{{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName : $route.meta.componentName }} Documentation</a>
+                </template>
+
+                <!--Actions-->
+                <div class="crdActionLinks" v-if="!$route.name.includes('Create') && !$route.name.includes('Edit')">
+                    <template v-if="!$route.params.hasOwnProperty('name') && !$route.params.hasOwnProperty('backupname') && $route.name != 'BabelfishCompass'">
+                        <router-link v-if="iCan('create', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + 's/new'" class="add" :title="'Add New ' + getSuffix($route.meta.componentName)">
+                            Add New
+                        </router-link>
+                    </template>
+                    <template v-if="($route.params.hasOwnProperty('name') || $route.params.hasOwnProperty('backupname'))">
+                        <template v-if="!$route.name.includes('DbOp')">
+                            <router-link v-if="iCan('patch', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/edit'" :title="'Edit ' + getSuffix($route.meta.componentName)">
+                                Edit {{ getSuffix($route.meta.componentName) }}
+                            </router-link>
+                        </template>
+                        <template v-if="!$route.name.includes('DbOp') && ($route.name != 'SingleBackups')">
+                            <a v-if="iCan('create', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" @click="cloneCRD((($route.meta.hasOwnProperty('customComponentName')) ? ($route.meta.customComponentName + 's') : ($route.meta.componentName + 's') ), $route.params.namespace, $route.params.name)" class="cloneCRD" :title="(($route.meta.componentName == 'SGCluster') ? ('Clone ' + getSuffix($route.meta.componentName) + ' Configuration') : ('Clone ' + getSuffix($route.meta.componentName)))">
+                                {{ (($route.meta.componentName == 'SGCluster') ? ('Clone ' + getSuffix($route.meta.componentName) + ' Configuration') : ('Clone ' + getSuffix($route.meta.componentName))) }}
+                            </a>
+                        </template>
+                        <a v-if="iCan('delete', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" @click="deleteCRD(($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/' + ($route.meta.componentName.toLowerCase() + 's'))" class="deleteCRD" :title="'Delete ' + getSuffix($route.meta.componentName)" :class="!isDeletable ? 'disabled' : ''">
+                            Delete {{ getSuffix($route.meta.componentName) }}
+                        </a>
+                        <template v-if="$route.meta.componentName == 'SGCluster'">
+                            <a @click="setRestartCluster($route.params.namespace, $route.params.name)" class="restartCluster" title="Restart Cluster">
+                                Restart Cluster
+                            </a>
+                        </template>
+                        <template v-if="$route.meta.componentName != 'SGCluster'">
+                            <router-link :to="'/' + $route.params.namespace + '/' + ($route.meta.componentName.toLowerCase() + 's')" title="Close Details">
+                                Close Details
+                            </router-link>
+                        </template>
+                    </template>
+                </div>
+            </div>
+        </template>
+
+        <!--Cluster Tabs-->
+        <template v-if="(($route.meta.componentName == 'SGCluster') && (($route.name != 'EditCluster') && ($route.name != 'CreateCluster') && ($route.name != 'ClusterOverview')))">
+            <ul class="tabs">
+                <li>
+                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name" title="Status" class="status">Status</router-link>
+                </li>
+                <li>
+                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/config'" title="Configuration" class="info">Configuration</router-link>
+                </li>
+                <li v-if="iCan('list','sgbackups',$route.params.namespace)">
+                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/sgbackups'" title="Backups" class="backups">Backups</router-link>
+                </li>
+                <li v-if="iCan('list','sgdistributedlogs',$route.params.namespace) && hasLogs">
+                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/logs'" title="Distributed Logs" class="logs">Logs</router-link>
+                </li>
+                <li v-if="hasMonitoring">
+                    <router-link id="grafana-btn" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/monitor'" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
+                </li>
+                <li>
+                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/events'" title="Events" class="events">Events</router-link>
+                </li>
+            </ul>
+        </template>
+    </header>
+</template>
+
+<script>
+    import store from '../../store'
+	import { mixin } from '../mixins/mixin'
+
+    export default {
+        name: 'HeaderSection',
+
+        mixins: [mixin],
+
+        data: function() {
+
+			return {
+            
+			}
+
+		},
+
+        computed: {
+
+			currentPath () {
+				return store.state.currentPath
+			},
+
+			notFound () {
+				return store.state.notFound
+			},
+
+            isDeletable () {
+                const vc = this;
+                let c = ''
+
+                switch(vc.$route.meta.componentName) {
+                    
+                    case 'SGBackupConfig':
+                        // Looks for a clusyer that depends on this resource
+                        c = store.state.clusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ((c.data.spec.configurations.hasOwnProperty('sgBackupConfig')) &&  (c.data.spec.configurations.sgBackupConfig == vc.$route.params.name)))
+                        // If there is any then it can't be deleted
+                        return (typeof c == 'undefined')
+                    case 'SGDistributedLog':
+                        c = store.state.clusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ((c.data.spec.hasOwnProperty('distributedLogs')) &&  (c.data.spec.distributedLogs.sgDistributedLogs == vc.$route.params.name)))
+                        return (typeof c == 'undefined')
+                    case 'SGInstanceProfile':
+                        c = store.state.clusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.sgInstanceProfile == vc.$route.params.name))
+                        return (typeof c == 'undefined')
+                    case 'SGPgConfig':
+                        c = store.state.clusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPostgresConfig == vc.$route.params.name))
+                        return (typeof c == 'undefined') 
+                    case 'SGPoolConfig':
+                        c = store.state.clusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPoolingConfig == vc.$route.params.name))
+                        return (typeof c == 'undefined') 
+                }
+
+                return true;
+            },
+            
+            hasLogs () {
+                const vc = this;
+
+                let cluster = store.state.clusters.filter(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name))
+
+                if((cluster.length > 0) && (cluster[0].data.spec.hasOwnProperty('distributedLogs')))
+                    return true
+                else
+                    return false
+            },
+
+            hasMonitoring () {
+                const vc = this;
+
+                let cluster = store.state.clusters.filter(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name))
+
+                if((cluster.length > 0) && (cluster[0].data.grafanaEmbedded))
+                    return true
+                else
+                    return false
+            }
+		}, 
+
+        methods: {
+
+            getSuffix(crd) {
+                let suffix = '';
+
+                switch(crd) {
+
+					case 'SGCluster':
+						suffix = 'Cluster';
+						break;
+					case 'SGInstanceProfile':
+						suffix = 'Profile';
+						break;
+                    case 'SGPgConfig': case 'SGPoolConfig': case 'SGBackupConfig':
+						suffix = 'Configuration';
+						break;
+					case 'SGDistributedLog':
+						suffix = 'Logs Server';
+						break;
+					case 'SGBackup':
+						suffix = 'Backup';
+						break;
+                    case 'SGDbOp':
+						suffix = 'Operation';
+						break;
+				}
+
+				return suffix;
+            }
+        }
+	}
+
+</script>
+
+<style scoped>
+
+    ul.breadcrumbs {
+        margin-top: 0;
+    }
+
+    .component {
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        margin-right: 10px;
+        background-repeat: no-repeat !important;
+        transform: scale(0.8);
+    }
+
+    .component.sgcluster {
+        background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PHBhdGggZmlsbD0iIzM2QThGRiIgZD0iTTEwIDBDNC45IDAgLjkgMi4yMTguOSA1LjA1djExLjQ5Qy45IDE5LjI3MiA2LjYyMSAyMCAxMCAyMHM5LjEtLjcyOCA5LjEtMy40NlY1LjA1QzE5LjEgMi4yMTggMTUuMSAwIDEwIDB6bTcuMSAxMS45MDdjMCAxLjQ0NC0yLjkxNyAzLjA1Mi03LjEgMy4wNTJzLTcuMS0xLjYwOC03LjEtMy4wNTJ2LS4zNzVhMTIuODgzIDEyLjg4MyAwIDAwNy4xIDEuODIzIDEyLjg5MSAxMi44OTEgMCAwMDcuMS0xLjgyNHptMC0zLjZjMCAxLjQ0My0yLjkxNyAzLjA1Mi03LjEgMy4wNTJzLTcuMS0xLjYxLTcuMS0zLjA1M3YtLjA2OEExMi44MDYgMTIuODA2IDAgMDAxMCAxMC4xYTEyLjc5NCAxMi43OTQgMCAwMDcuMS0xLjg2MnpNMTAgOC4xYy00LjE4NSAwLTcuMS0xLjYwNy03LjEtMy4wNVM1LjgxNSAyIDEwIDJzNy4xIDEuNjA4IDcuMSAzLjA1MVMxNC4xODUgOC4xIDEwIDguMXptLTcuMSA4LjQ0di0xLjQwN2ExMi44OSAxMi44OSAwIDAwNy4xIDEuODIzIDEyLjg3NCAxMi44NzQgMCAwMDcuMTA2LTEuODI3bC4wMDYgMS4zNDVDMTYuOTU2IDE2Ljg5NCAxNC41MzEgMTggMTAgMThjLTQuODIyIDAtNi45OS0xLjE5MS03LjEtMS40NnoiLz48L3N2Zz4=);
+    }
+
+    .component.sginstanceprofile {
+        background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnIGZpbGw9IiMzNkE4RkYiPjxwYXRoIGQ9Im0xOS42NDkgMTQuOTcxLTEuNTM4LTEuM2EuOTkyLjk5MiAwIDEgMC0xLjI4MiAxLjUxNGwuMjM1LjItNi4wNzIgMi4yMjhWMTMuMjRsLjI2Ni4xNTRhLjk3NC45NzQgMCAwIDAgLjQ5MS4xMzIuOTkuOTkgMCAwIDAgLjg2Mi0uNTA2IDEuMDEyIDEuMDEyIDAgMCAwLS4zNjktMS4zNzJsLTEuNzUtMS4wMTNhLjk4My45ODMgMCAwIDAtLjk4NCAwbC0xLjc1IDEuMDEzYTEuMDEyIDEuMDEyIDAgMCAwLS4zNjkgMS4zNzIuOTg1Ljk4NSAwIDAgMCAxLjM1My4zNzRsLjI2Ni0uMTU0djQuMzUzbC02LjA3LTIuMjEuMjMzLS4yYS45OTIuOTkyIDAgMSAwLTEuMjgyLTEuNTE0bC0xLjUzOCAxLjNhLjk5Mi45OTIgMCAwIDAtLjMzNy45MjVsLjM0MiAxLjk4N2EuOTkyLjk5MiAwIDAgMCAuOTc3LjgyNC45ODEuOTgxIDAgMCAwIC4xNjktLjAxNS45OTIuOTkyIDAgMCAwIC44MS0xLjE0NWwtLjA1Mi0uMyA3LjQgMi42OTRBMS4wMTEgMS4wMTEgMCAwIDAgMTAgMjBjLjAxIDAgLjAyIDAgLjAzLS4wMDVzLjAyLjAwNS4wMy4wMDVhMSAxIDAgMCAwIC4zNDItLjA2MWw3LjMzNS0yLjY5MS0uMDUxLjNhLjk5Mi45OTIgMCAwIDAgLjgxMSAxLjE0NS45NTMuOTUzIDAgMCAwIC4xNjguMDE1Ljk5Mi45OTIgMCAwIDAgLjk3Ny0uODI0bC4zNDEtMS45ODdhLjk5Mi45OTIgMCAwIDAtLjMzNC0uOTI2WiIvPjxwYXRoIGQ9Ik0yMCA0LjI1YS45OS45OSAwIDAgMC0uNjU1LS45M2wtOS0zLjI2YTEgMSAwIDAgMC0uNjgxIDBsLTkgMy4yNmEuOTkuOTkgMCAwIDAtLjY1NS45My45LjkgMCAwIDAgLjAxNi4xYzAgLjAzMS0uMDE2LjA1Ny0uMDE2LjA4OXY1Ljg4NmExLjA1MiAxLjA1MiAwIDAgMCAuOTkyIDEuMSAxLjA1MiAxLjA1MiAwIDAgMCAuOTkyLTEuMVY1LjY1OGw3LjY3NiAyLjc3OWExLjAxMiAxLjAxMiAwIDAgMCAuNjgxIDBsNy42NzUtMi43Nzl2NC42NjdhMSAxIDAgMSAwIDEuOTg0IDBWNC40MzljMC0uMDMyLS4wMTQtLjA1OC0uMDE2LS4wODlhLjkuOSAwIDAgMCAuMDA3LS4xWk0xMCA2LjQ1NyAzLjkgNC4yNSAxMCAyLjA0NGw2LjA5NSAyLjIwNloiLz48L2c+PC9zdmc+);
+    }
+
+    .component.sgpgconfig {
+        background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNi43IDIwIj48cGF0aCBmaWxsPSIjMzZBOEZGIiBkPSJNMTAuOTQ2IDE4LjdhLjg0MS44NDEgMCAwIDEtLjYyMi0uMjM0Ljg2Mi44NjIgMCAwIDEtLjIzNC0uNjM1di03LjgxN2EuOC44IDAgMCAxIC4yMjEtLjYuODM0LjgzNCAwIDAgMSAuNjA4LS4yMTRoMy4yOWEzLjQgMy40IDAgMCAxIDIuMzUzLjc1NSAyLjcgMi43IDAgMCAxIC44NDMgMi4xMiAyLjcyIDIuNzIgMCAwIDEtLjg0MyAyLjEyNiAzLjM3OSAzLjM3OSAwIDAgMS0yLjM1My43NjRoLTIuMzk0djIuODc1YS44LjggMCAwIDEtLjg2OS44Njd6TTE0IDEzLjYzN3ExLjc3OCAwIDEuNzc4LTEuNTUxVDE0IDEwLjUzNWgtMi4xOHYzLjF6bTExLjk2OC0uMTA3YS42ODMuNjgzIDAgMCAxIC40OTQuMTgxLjYyNS42MjUgMCAwIDEgLjE5MS40Nzd2Mi44NzVhMS43MTcgMS43MTcgMCAwIDEtLjE2Ljg3IDEuMTc0IDEuMTc0IDAgMCAxLS42NTUuNDE0IDYuODgyIDYuODgyIDAgMCAxLTEuMjQyLjI5NCA5LjAyMyA5LjAyMyAwIDAgMS0xLjM2NC4xMDcgNS4yNTIgNS4yNTIgMCAwIDEtMi41MjctLjU3MyAzLjg4MyAzLjg4MyAwIDAgMS0xLjYzOC0xLjY2NSA1LjU0OCA1LjU0OCAwIDAgMS0uNTY5LTIuNiA1LjUgNS41IDAgMCAxIC41NjktMi41NzUgMy45NjQgMy45NjQgMCAwIDEgMS42MTEtMS42NzEgNC45NjUgNC45NjUgMCAwIDEgMi40NTUtLjU5IDQuNjIgNC42MiAwIDAgMSAzLjA4OSAxLjAxNiAxLjA1OCAxLjA1OCAwIDAgMSAuMjM0LjI5NC44NTQuODU0IDAgMCAxLS4wODcuODQzLjQ3OS40NzkgMCAwIDEtLjM4OC4yLjczNy43MzcgMCAwIDEtLjI2Ny0uMDQ3IDEuNSAxLjUgMCAwIDEtLjI4MS0uMTUzIDQuMjMyIDQuMjMyIDAgMCAwLTEuMS0uNTgyIDMuNjQ4IDMuNjQ4IDAgMCAwLTEuMTQ2LS4xNjcgMi43NDcgMi43NDcgMCAwIDAtMi4yLjg1OSAzLjgzNCAzLjgzNCAwIDAgMC0uNzQyIDIuNTYxcTAgMy40NzcgMy4wNDkgMy40NzdhNi43NTIgNi43NTIgMCAwIDAgMS44MTUtLjI1NHYtMi4zNmgtMS41MTdhLjczNy43MzcgMCAwIDEtLjUtLjE2MS42NjQuNjY0IDAgMCAxIDAtLjkwOS43MzIuNzMyIDAgMCAxIC41LS4xNjF6TS45NTUgNC43NjJoMTAuNWEuOTUzLjk1MyAwIDEgMCAwLTEuOUguOTU1YS45NTMuOTUzIDAgMSAwIDAgMS45ek0xNC44IDcuNjE5YS45NTQuOTU0IDAgMCAwIC45NTUtLjk1MlY0Ljc2Mmg0LjNhLjk1My45NTMgMCAxIDAgMC0xLjloLTQuM1YuOTUyYS45NTUuOTU1IDAgMCAwLTEuOTA5IDB2NS43MTVhLjk1My45NTMgMCAwIDAgLjk1NC45NTJ6TS45NTUgMTAuOTUyaDQuM3YxLjlhLjk1NS45NTUgMCAwIDAgMS45MDkgMFY3LjE0M2EuOTU1Ljk1NSAwIDAgMC0xLjkwOSAwdjEuOWgtNC4zYS45NTMuOTUzIDAgMSAwIDAgMS45em02LjY4MSA0LjI4NkguOTU1YS45NTMuOTUzIDAgMSAwIDAgMS45MDVoNi42ODFhLjk1My45NTMgMCAxIDAgMC0xLjkwNXoiLz48L3N2Zz4=);
+        margin-top: 3px;
+    }
+
+    .component.sgpoolconfig {
+        background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNi41IDIwIj48cGF0aCBmaWxsPSIjMzZBOEZGIiBkPSJNMTQuMzA1IDE4Ljc0OWE0LjcgNC43IDAgMCAxLTIuMzg4LS41ODkgMy45MSAzLjkxIDAgMCAxLTEuNTcxLTEuNjg1IDUuNjY4IDUuNjY4IDAgMCAxLS41NDYtMi41NjggNS42MzkgNS42MzkgMCAwIDEgLjU0OC0yLjU2MSAzLjkxNiAzLjkxNiAwIDAgMSAxLjU3MS0xLjY3OCA0LjcxNSA0LjcxNSAwIDAgMSAyLjM4OC0uNTkzIDUuMTg5IDUuMTg5IDAgMCAxIDEuNjU4LjI2MSA0LjMyNCA0LjMyNCAwIDAgMSAxLjM3OC43NTYuNzU4Ljc1OCAwIDAgMSAuMjQuMjgxLjg1OS44NTkgMCAwIDEgLjA2Ny4zNjEuNzY4Ljc2OCAwIDAgMS0uMTYuNDk1LjQ3OS40NzkgMCAwIDEtLjM4OC4yLjk4NC45ODQgMCAwIDEtLjU0OC0uMTkxIDQgNCAwIDAgMC0xLjA3LS41OTUgMy40MDUgMy40MDUgMCAwIDAtMS4xLS4xNjcgMi41NzEgMi41NzEgMCAwIDAtMi4xMDYuODY5IDMuOTQzIDMuOTQzIDAgMCAwLS43MiAyLjU2MiAzLjk2MyAzLjk2MyAwIDAgMCAuNzE2IDIuNTY4IDIuNTY4IDIuNTY4IDAgMCAwIDIuMTA2Ljg2OSAzLjE0NyAzLjE0NyAwIDAgMCAxLjA2My0uMTczIDUuMTEyIDUuMTEyIDAgMCAwIDEuMS0uNTg5IDIuMDE4IDIuMDE4IDAgMCAxIC4yNjctLjEzNC43NTEuNzUxIDAgMCAxIC4yOS0uMDQ4LjQ3Ny40NzcgMCAwIDEgLjM4OC4yLjc2Ny43NjcgMCAwIDEgLjE2LjQ5NC44NjMuODYzIDAgMCAxLS4wNjcuMzU1LjczOS43MzkgMCAwIDEtLjI0LjI4NiA0LjMwOCA0LjMwOCAwIDAgMS0xLjM3OC43NTcgNS4xNjEgNS4xNjEgMCAwIDEtMS42NTguMjU3em01LjcxLS4wNGEuODQxLjg0MSAwIDAgMS0uNjIyLS4yMzQuODU2Ljg1NiAwIDAgMS0uMjM0LS42MzZ2LTcuODI0YS44LjggMCAwIDEgLjIyLS42LjgzNS44MzUgMCAwIDEgLjYwOS0uMjE0aDMuMjlhMy40IDMuNCAwIDAgMSAyLjM1NC43NTUgMi43IDIuNyAwIDAgMSAuODQyIDIuMTIgMi43MjUgMi43MjUgMCAwIDEtLjg0MiAyLjEyNyAzLjM4NiAzLjM4NiAwIDAgMS0yLjM1NC43NjRoLTIuMzkzdjIuODc1YS44LjggMCAwIDEtLjg3Ljg2OHptMy4wNS01LjA2OXExLjc3OSAwIDEuNzc5LTEuNTUydC0xLjc3OS0xLjU1MWgtMi4xOHYzLjF6TS45NTUgNC43NjJoMTAuNWEuOTUzLjk1MyAwIDEgMCAwLTEuOUguOTU1YS45NTMuOTUzIDAgMSAwIDAgMS45ek0xNC44IDcuNjE5YS45NTQuOTU0IDAgMCAwIC45NTUtLjk1MlY0Ljc2Mmg0LjNhLjk1My45NTMgMCAxIDAgMC0xLjloLTQuM1YuOTUyYS45NTUuOTU1IDAgMCAwLTEuOTA5IDB2NS43MTVhLjk1My45NTMgMCAwIDAgLjk1NC45NTJ6TS45NTUgMTAuOTUyaDQuM3YxLjlhLjk1NS45NTUgMCAwIDAgMS45MDkgMFY3LjE0M2EuOTU1Ljk1NSAwIDAgMC0xLjkwOSAwdjEuOWgtNC4zYS45NTMuOTUzIDAgMSAwIDAgMS45em02LjY4MSA0LjI4NkguOTU1YS45NTMuOTUzIDAgMSAwIDAgMS45MDVoNi42ODFhLjk1My45NTMgMCAxIDAgMC0xLjkwNXoiLz48L3N2Zz4=);
+        margin-top: 3px;
+    }
+
+    .component.sgbackupconfig {
+        background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNi41IDE4LjUiPjxnIGZpbGw9IiMzNkE4RkYiPjxwYXRoIGQ9Ik0uOTU1IDQuNzY3aDEwLjVhLjk1My45NTMgMCAxIDAgMC0xLjkwNkguOTU1YS45NTMuOTUzIDAgMSAwIDAgMS45MDZaTTE0Ljc5NSA3LjYyNWEuOTUzLjk1MyAwIDAgMCAuOTU1LS45NTNWNC43NjdoNC4yOTVhLjk1My45NTMgMCAxIDAgMC0xLjkwNkgxNS43NVYuOTU0YS45NTQuOTU0IDAgMCAwLTEuOTA5IDB2NS43MTNhLjk1My45NTMgMCAwIDAgLjk1NC45NThaTS45NTUgMTAuOTY3SDUuMjV2MS45YS45NTQuOTU0IDAgMCAwIDEuOTA5IDBWNy4xNDhhLjk1NC45NTQgMCAwIDAtMS45MDkgMHYxLjkwNkguOTU1YS45NTQuOTU0IDAgMSAwIDAgMS45MDdaTTcuNjM2IDE1LjI1MUguOTU1YS45NTQuOTU0IDAgMSAwIDAgMS45MDdoNi42ODFhLjk1NC45NTQgMCAxIDAgMC0xLjkwN1pNMTguMDczIDkuNDgxYS44NTIuODUyIDAgMCAwLS42NjgtLjI5My45NDQuOTQ0IDAgMCAwLS44Ni42NjdMMTQuMiAxNC44NjdsLTIuMzU0LTUuMDExYS45NTkuOTU5IDAgMCAwLS44ODMtLjY2OS44MzQuODM0IDAgMCAwLS42NjMuMyAxLjA5IDEuMDkgMCAwIDAtLjIzOC43MjZ2Ny41NjhhMS4wMzcgMS4wMzcgMCAwIDAgLjIyLjY5Mi43NzYuNzc2IDAgMCAwIC42MjQuMjc4Ljc4Ny43ODcgMCAwIDAgLjYzMS0uMjg0IDEuMDM4IDEuMDM4IDAgMCAwIC4yMjUtLjY4NnYtNC4zMTRsMS41NjggMy4yNDhhMS4zMTggMS4zMTggMCAwIDAgLjM1NS41LjgxOS44MTkgMCAwIDAgMS4wMTItLjAxIDEuNDU4IDEuNDU4IDAgMCAwIC4zNS0uNDg2bDEuNTU3LTMuM3Y0LjM2MWExLjAzNyAxLjAzNyAwIDAgMCAuMjIuNjkyLjc3Ni43NzYgMCAwIDAgLjYyMy4yNzguODIzLjgyMyAwIDAgMCAuNjMyLS4yNzIgMS4wMDkgMS4wMDkgMCAwIDAgLjIzNS0uN1YxMC4yMWExLjA4MSAxLjA4MSAwIDAgMC0uMjQxLS43MjlaTTI2LjEgMTQuNjM1YTIuNiAyLjYgMCAwIDEgLjQgMS40NjkgMi4zODggMi4zODggMCAwIDEtLjc3IDEuODg1IDMuMDkgMy4wOSAwIDAgMS0yLjEyLjY4MWgtMy4wNzlhLjcuNyAwIDAgMS0uNTQzLS4yMTQuODQ5Ljg0OSAwIDAgMS0uMi0uNnYtNy43ODlhLjg1MS44NTEgMCAwIDEgLjItLjYuNy43IDAgMCAxIC41NDMtLjIxNGgyLjk2YTMuMDQxIDMuMDQxIDAgMCAxIDIuMDYuNjQ4IDIuMjc0IDIuMjc0IDAgMCAxIC43NDYgMS44MTEgMi4zNTQgMi4zNTQgMCAwIDEtLjM1MiAxLjMgMi4wNDcgMi4wNDcgMCAwIDEtLjk3My44IDIuMDM4IDIuMDM4IDAgMCAxIDEuMTI4LjgyM1ptLTQuODA2LTEuNDE3aDEuOTQ3cTEuNTg3IDAgMS41ODctMS4zMjJhMS4yIDEuMiAwIDAgMC0uMzkzLS45OSAxLjg3MiAxLjg3MiAwIDAgMC0xLjE5NC0uMzJoLTEuOTQ3Wk0yNC42NjEgMTdhMS4zMTEgMS4zMTEgMCAwIDAgLjM4Mi0xLjA0MiAxLjM0OSAxLjM0OSAwIDAgMC0uMzg3LTEuMDU2IDEuNzgyIDEuNzgyIDAgMCAwLTEuMjEzLS4zNDdoLTIuMTQ5djIuNzc5aDIuMTQ5QTEuODI4IDEuODI4IDAgMCAwIDI0LjY2MSAxN1oiLz48L2c+PC9zdmc+);
+        margin-top: 3px;
+    }
+
+    .component.sgdistributedlog {
+        background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PGcgZmlsbD0iIzM2QThGRiI+PHBhdGggZD0iTTE5IDE1SDVjLS42IDAtMS0uNC0xLTFzLjQtMSAxLTFoMTRjLjYgMCAxIC40IDEgMXMtLjQgMS0xIDF6TTEgMTVjLS42IDAtMS0uNC0xLTFzLjQtMSAxLTEgMSAuNCAxIDEtLjQgMS0xIDF6TTE5IDExSDVjLS42IDAtMS0uNC0xLTFzLjQtMSAxLTFoMTRjLjYgMCAxIC40IDEgMXMtLjQgMS0xIDF6TTEgMTFjLS42IDAtMS0uNC0xLTFzLjQtMSAxLTEgMSAuNCAxIDEtLjQgMS0xIDF6TTE5IDdINWMtLjYgMC0xLS40LTEtMXMuNC0xIDEtMWgxNGMuNiAwIDEgLjQgMSAxcy0uNCAxLTEgMXpNMSA3Yy0uNiAwLTEtLjQtMS0xcy40LTEgMS0xIDEgLjQgMSAxLS40IDEtMSAxeiIvPjwvZz48L3N2Zz4=);
+    }
+
+    .component.sgbackup {
+        background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PGcgZmlsbD0iIzM2QThGRiI+PHBhdGggZD0iTTEwLjU1LjU1QTkuNDU0IDkuNDU0IDAgMCAwIDEuMTI1IDkuNUguNDc5YS40NTguNDU4IDAgMCAwLS4yMTQuMDUzLjUxLjUxIDAgMCAwLS4yMTQuNjcxbDEuNjIxIDMuMzgyYS40OS40OSAwIDAgMCAuMjEzLjIyMy40NzEuNDcxIDAgMCAwIC42NDQtLjIyM2wxLjYyLTMuMzgyQS41MS41MSAwIDAgMCA0LjIgMTBhLjQ5LjQ5IDAgMCAwLS40NzktLjVIMy4xYTcuNDcgNy40NyAwIDEgMSA3LjQ0OSA3Ljk3NCA3LjM5MiA3LjM5MiAwIDAgMS0zLjMzMi0uNzgxLjk4OC45ODggMCAwIDAtLjg4MyAxLjc2NyA5LjM1NiA5LjM1NiAwIDAgMCA0LjIxNS45OSA5LjQ1IDkuNDUgMCAwIDAgMC0xOC45eiIvPjxwYXRoIGQ9Ik0xMy41NTQgMTBhMyAzIDAgMSAwLTMgMyAzIDMgMCAwIDAgMy0zeiIvPjwvZz48L3N2Zz4=);
+    }
+
+    .component.sgdbop {
+        background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PGcgZmlsbD0iIzM2QThGRiI+PHBhdGggZD0iTTE3LjEgMjBjLS42IDAtMS0uNS0xLTEgMC0xLjYtMS4zLTIuOC0yLjgtMi44SDYuNmMtMS42IDAtMi44IDEuMy0yLjggMi44IDAgLjYtLjUgMS0xIDFzLTEtLjUtMS0xYzAtMi43IDIuMi00LjggNC44LTQuOGg2LjdjMi43IDAgNC44IDIuMiA0LjggNC44LjEuNS0uNCAxLTEgMXpNOS45IDkuNGMtMS40IDAtMi41LTEuMS0yLjUtMi41czEuMS0yLjUgMi41LTIuNSAyLjUgMS4xIDIuNSAyLjVjLjEgMS40LTEuMSAyLjUtMi41IDIuNXptMC0zLjNjLS40IDAtLjguMy0uOC44IDAgLjQuMy44LjguOC41LS4xLjgtLjQuOC0uOCAwLS41LS4zLS44LS44LS44eiIvPjxwYXRoIGQ9Ik0xMCAxMy43aC0uMmMtMS0uMS0xLjgtLjgtMS44LTEuOHYtLjFoLS4xbC0uMS4xYy0uOC43LTIuMS42LTIuOC0uMnMtLjctMS45IDAtMi42bC4xLS4xSDVjLTEuMSAwLTItLjgtMi4xLTEuOSAwLTEuMi44LTIuMSAxLjgtMi4ySDV2LS4xYy0uNy0uOC0uNy0yIC4xLTIuOC44LS43IDEuOS0uNyAyLjcgMCAuMSAwIC4xIDAgLjItLjEgMC0uNi4zLTEuMS43LTEuNC44LS43IDIuMS0uNiAyLjguMi4yLjMuNC43LjQgMS4xdi4xaC4xYy44LS43IDIuMS0uNiAyLjguMi42LjcuNiAxLjkgMCAyLjZsLS4xLjF2LjFoLjFjLjUgMCAxIC4xIDEuNC41LjguNy45IDIgLjIgMi44LS4zLjQtLjguNi0xLjQuN2gtLjNjLjQuNC42IDEgLjYgMS41LS4xIDEuMS0xIDEuOS0yLjEgMS45LS40IDAtLjktLjItMS4yLS41bC0uMS0uMXYuMWMwIDEuMS0uOSAxLjktMS45IDEuOXpNNy45IDEwYzEgMCAxLjguOCAxLjggMS43IDAgLjEuMS4yLjIuMnMuMi0uMS4yLS4yYzAtMSAuOC0xLjggMS44LTEuOC41IDAgLjkuMiAxLjMuNS4xLjEuMi4xLjMgMHMuMS0uMiAwLS4zYy0uNy0uNy0uNy0xLjggMC0yLjUuMy0uMy44LS41IDEuMy0uNWguMWMuMSAwIC4yIDAgLjItLjEgMCAwIC4xLS4xLjEtLjJzMC0uMS0uMS0uMmMwIDAtLjEtLjEtLjItLjFoLS4yYy0uNyAwLTEuNC0uNC0xLjYtMS4xIDAtLjEgMC0uMS0uMS0uMi0uMi0uNi0uMS0xLjMuNC0xLjguMS0uMS4xLS4yIDAtLjNzLS4yLS4xLS4zIDBjLS4zLjMtLjguNS0xLjIuNS0xIDAtMS44LS44LTEuOC0xLjggMC0uMS0uMS0uMi0uMi0uMnMtLjEgMC0uMi4xYy4xLjEgMCAuMiAwIC4zIDAgLjctLjQgMS40LTEuMSAxLjctLjEgMC0uMSAwLS4yLjEtLjYuMi0xLjMgMC0xLjgtLjQtLjEtLjEtLjItLjEtLjMgMC0uMS4xLS4xLjIgMCAuMy4zLjMuNS43LjUgMS4yLjEgMS0uNyAxLjktMS43IDEuOWgtLjJjLS4xIDAtLjEgMC0uMi4xIDAtLjEgMCAwIDAgMCAwIC4xLjEuMi4yLjJoLjJjMSAwIDEuOC44IDEuOCAxLjggMCAuNS0uMi45LS41IDEuMi0uMS4xLS4xLjIgMCAuM3MuMi4xLjMgMGMuMy0uMi43LS40IDEuMS0uNGguMXoiLz48L2c+PC9zdmc+);
+    }
+
+    .component.application {
+        background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOSAxOSI+PHBhdGggZmlsbD0iIzM2QThGRiIgZD0iTTEzLjcgMTlIOC44Yy0uNSAwLS45LS40LTEtLjkgMC0uMyAwLS43LjEtMSAwLS4xLjEtLjIuMS0uMi4yLS4zLjQtLjcuNC0xLjEgMC0uMy0uMS0uNi0uMy0uOC0uMi0uMi0uNS0uMy0uOC0uMy0uMyAwLS42LjEtLjkuMy0uMi4yLS4zLjQtLjMuNy4xLjQuMi43LjQgMS4xLjEuMS4xLjIuMS4zLjEuMy4xLjYuMS45IDAgLjUtLjUgMS0xIDFIMWMtLjYgMC0xLS40LTEtMVY1LjNjMC0uNi40LTEgMS0xaDMuNWMtLjEtLjMtLjItLjYtLjMtMXYtLjFjMC0uOC4zLTEuNi45LTIuMi42LS43IDEuNC0xIDIuMi0xIC45IDAgMS43LjMgMi4zLjkuNi42LjkgMS40LjkgMi4zdi4xYy0uMS4zLS4xLjctLjMgMWgzLjVjLjYgMCAxIC40IDEgMXYzLjVjLjMtLjEuNi0uMiAxLS4zaC4zYy44IDAgMS42LjQgMi4yIDFzLjkgMS40LjggMi4yYzAgLjgtLjQgMS42LTEgMi4yLS42LjYtMS40LjktMi4yLjhoLS4xYy0uMy0uMS0uNi0uMS0xLS4zVjE4YzAgLjYtLjQgMS0xIDF6bS0zLjUtMmgyLjV2LTMuOWMwLS41LjQtMSAxLTEgLjMgMCAuNiAwIC45LjEuMSAwIC4yLjEuMy4xLjMuMi43LjQgMS4xLjQuMyAwIC41LS4xLjctLjMuMi0uMi4zLS41LjQtLjggMC0uMy0uMS0uNi0uMy0uOC0uMi0uMi0uNS0uMy0uOC0uNC0uMy4xLS43LjItMS4xLjQtLjEuMS0uMi4xLS4yLjEtLjMuMS0uNi4xLTEgLjEtLjUgMC0uOS0uNS0uOS0xVjYuMmgtNGMtLjUgMC0xLS40LTEtMSAwLS4zIDAtLjYuMS0uOSAwIDAgLjEtLjEuMS0uMi4zLS4zLjQtLjcuNS0xLjEgMC0uMy0uMS0uNS0uMy0uNy0uMi0uMi0uNS0uMy0uOC0uMy0uNCAwLS43LjEtLjkuMy0uMi4yLS4zLjUtLjMuNy4xLjQuMi43LjQgMS4xLjEuMS4xLjIuMS4yLjEuMy4xLjcuMSAxIDAgLjUtLjUuOS0xIC45SDJWMTdoMi41Yy0uMS0uMy0uMi0uNi0uMy0xdi0uMWMwLS44LjMtMS42LjktMi4yLjYtLjYgMS40LS45IDIuMy0uOS44IDAgMS42LjMgMi4yLjkuNi42LjkgMS40LjkgMi4zdi4xbC0uMy45eiIvPjwvc3ZnPg==);
+    }
+
+</style>

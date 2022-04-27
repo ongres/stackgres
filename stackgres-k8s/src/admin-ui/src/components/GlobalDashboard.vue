@@ -1,13 +1,5 @@
 <template>
     <div id="globalDashboard" v-if="loggedIn && isReady && !notFound">
-        <header>
-            <ul class="breadcrumbs">
-                <li class="namespace">
-                    Namespaces Overview
-                </li>
-            </ul>
-        </header>
-
         <div class="content noScroll">
             <h3 class="textCenter pad">Used Namespaces</h3>
             <div class="overview">
