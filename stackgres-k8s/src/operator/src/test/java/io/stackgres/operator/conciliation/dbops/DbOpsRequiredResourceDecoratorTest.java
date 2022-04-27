@@ -14,11 +14,11 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
-import io.stackgres.common.fixture.StackGresClusterFixture;
-import io.stackgres.common.fixture.StackGresDbOpsFixture;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
+import io.stackgres.operator.fixture.StackGresClusterFixture;
+import io.stackgres.operator.fixture.StackGresDbOpsFixture;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
