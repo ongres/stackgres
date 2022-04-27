@@ -16,6 +16,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -93,7 +94,10 @@ public class ValidationUtils {
       String reason) {
     final StatusDetails details = status.getDetails();
     assertNotNull(details);
-    assertEquals(fields.length, details.getCauses().size());
+    assertEquals(fields.length, details.getCauses().size(), "details was:\n"
+        + details.getCauses().stream()
+        .map(cause -> cause.getField() + ": " + cause.getMessage())
+        .collect(Collectors.joining("\n")));
     if (details.getCauses().size() == 1) {
       assertEquals(fields[0], details.getName());
     }

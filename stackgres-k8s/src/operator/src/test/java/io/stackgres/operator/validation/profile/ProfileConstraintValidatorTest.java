@@ -5,13 +5,16 @@
 
 package io.stackgres.operator.validation.profile;
 
+import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotBlank;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -72,6 +75,69 @@ class ProfileConstraintValidatorTest extends ConstraintValidationTest<SgProfileR
     SgProfileReview review = getValidReview();
     review.getRequest().getObject().getSpec().setMemory("");
     checkErrorCause(StackGresProfileSpec.class, "spec.memory", review, NotBlank.class);
+  }
+
+  @Test
+  void givenCorrectHugePages_shouldNotFail() throws ValidationFailed {
+    SgProfileReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setHugePages(new StackGresProfileHugePages());
+    review.getRequest().getObject().getSpec().getHugePages().setHugepages2Mi("256Mi");
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenHugePagesHigherThanMemory_shouldFail() {
+    SgProfileReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setHugePages(new StackGresProfileHugePages());
+    review.getRequest().getObject().getSpec().setMemory("1Gi");
+    review.getRequest().getObject().getSpec().getHugePages().setHugepages2Mi("512Mi");
+    review.getRequest().getObject().getSpec().getHugePages().setHugepages1Gi("1Gi");
+
+    checkErrorCause(StackGresProfileSpec.class,
+        "spec.memory",
+        "isMemoryGreaterOrEqualsToSumOfHugePages",
+        review, AssertTrue.class,
+        "memory can not be less than the sum of all hugepages");
+  }
+
+  @Test
+  void givenMissingHugePagesValueSet_shouldFail() {
+    SgProfileReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setHugePages(new StackGresProfileHugePages());
+
+    checkErrorCause(StackGresProfileHugePages.class,
+        new String[] { "spec.hugePages.hugepages-2Mi", "spec.hugePages.hugepages-1Gi" },
+        "isAnyHugePagesValueSet",
+        review, AssertTrue.class,
+        "At least one of hugepages-2Mi or hugepages-1Gi must set");
+  }
+
+  @Test
+  void givenHugePages2MiNotMultipleOf2Mi_shouldFail() {
+    SgProfileReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setHugePages(new StackGresProfileHugePages());
+    review.getRequest().getObject().getSpec().getHugePages().setHugepages2Mi("3Mi");
+
+    checkErrorCause(StackGresProfileHugePages.class,
+        "spec.hugePages.hugepages-2Mi",
+        "isHugePages2MiValueMultipleOf2Mi",
+        review, AssertTrue.class,
+        "hugepages-2Mi must be a multiple of 2Mi");
+  }
+
+  @Test
+  void givenHugePages1GiNotMultipleOf1Gi_shouldFail() {
+    SgProfileReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setMemory("2Gi");
+    review.getRequest().getObject().getSpec().setHugePages(new StackGresProfileHugePages());
+    review.getRequest().getObject().getSpec().getHugePages().setHugepages1Gi("1500Mi");
+
+    checkErrorCause(StackGresProfileHugePages.class,
+        "spec.hugePages.hugepages-1Gi",
+        "isHugePages1GiValueMultipleOf1Gi",
+        review, AssertTrue.class,
+        "hugepages-1Gi must be a multiple of 1Gi");
   }
 
 }
