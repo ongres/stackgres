@@ -959,6 +959,10 @@ export const mixin = {
             return vc.tooltips.sgpostgresconfig.spec['postgresql.conf'].description
           } else if (field == 'sgpoolingconfig.spec.pgBouncer.pgbouncer.ini') {
             return vc.tooltips.sgpoolingconfig.spec.pgBouncer['pgbouncer.ini'].description
+          } else if (field == 'sginstanceprofile.spec.hugePages.hugepages-1Gi') {
+            return vc.tooltips.sginstanceprofile.spec.hugePages['hugepages-1Gi'].description
+          } else if (field == 'sginstanceprofile.spec.hugePages.hugepages-2Mi') {
+            return vc.tooltips.sginstanceprofile.spec.hugePages['hugepages-2Mi'].description
           } else if (vc.hasProp(vc.tooltips, field)) {
             let params = field.split('.');
             let tooltipText = vc.tooltips;

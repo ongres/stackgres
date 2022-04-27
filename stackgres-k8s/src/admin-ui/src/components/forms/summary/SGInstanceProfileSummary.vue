@@ -27,6 +27,20 @@
                             <strong class="label">CPU:</strong>
                             <span class="value">{{ crd.data.spec.cpu }}</span>
                         </li>
+                        <li v-if="crd.data.spec.hasOwnProperty('hugePages')">
+                            <strong class="label">Huge Pages</strong>
+                            
+                            <ul>
+                                <li v-if="crd.data.spec.hugePages.hasOwnProperty('hugepages-2Mi')">
+                                    <strong class="label">Huge Pages 2Mi:</strong>
+                                    <span class="value">{{ crd.data.spec.hugePages['hugepages-2Mi'] }}</span>
+                                </li>
+                                <li v-if="crd.data.spec.hugePages.hasOwnProperty('hugepages-1Gi')">
+                                    <strong class="label">Huge Pages 1Gi:</strong>
+                                    <span class="value">{{ crd.data.spec.hugePages['hugepages-1Gi'] }}</span>
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
                 </li>
             </ul>
