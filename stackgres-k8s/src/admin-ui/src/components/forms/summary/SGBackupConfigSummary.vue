@@ -85,13 +85,39 @@
                             <strong class="label">Region:</strong>
                             <span class="value">{{ crd.data.spec.storage.s3.region }}</span>
                         </li>
-                        <li>
+                        <li v-if="hasProp(crd, 'data.spec.storage.s3.awsCredentials.accessKeyId')">
                             <strong class="label">API Key:</strong>
                             <span class="value">{{ crd.data.spec.storage.s3.awsCredentials.accessKeyId }}</span>
                         </li>
-                        <li>
+                        <li v-if="hasProp(crd, 'data.spec.storage.s3.awsCredentials.secretAccessKey')">
                             <strong class="label">API Secret:</strong>
                             <span class="value" @mouseout="secretValue = ''" @mouseover="secretValue = crd.data.spec.storage.s3.awsCredentials.secretAccessKey">{{ secretValue.length ? secretValue : hideSecret(crd.data.spec.storage.s3.awsCredentials.secretAccessKey) }}</span>
+                        </li>
+                        <li v-if="hasProp(crd, 'data.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId')">
+                            <strong class="label">Access Key ID</strong>
+                            <ul>
+                                <li v-if="hasProp(crd, 'data.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.key')">
+                                    <strong class="label">Key:</strong>
+                                    <span class="value">{{ crd.data.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.key }}</span>
+                                </li>
+                                <li v-if="hasProp(crd, 'data.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.name')">
+                                    <strong class="label">Name:</strong>
+                                    <span class="value">{{ crd.data.spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId.name }}</span>
+                                </li>
+                            </ul>
+                        </li>
+                        <li v-if="hasProp(crd, 'data.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey')">
+                            <strong class="label">Secret Access Key</strong>
+                            <ul>
+                                <li v-if="hasProp(crd, 'data.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.key')">
+                                    <strong class="label">Key:</strong>
+                                    <span class="value">{{ crd.data.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.key }}</span>
+                                </li>
+                                <li v-if="hasProp(crd, 'data.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.name')">
+                                    <strong class="label">Name:</strong>
+                                    <span class="value">{{ crd.data.spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey.name }}</span>
+                                </li>
+                            </ul>
                         </li>
                         <li v-if="hasProp(crd, 'data.spec.storage.s3.storageClass')">
                             <strong class="label">Storage Class:</strong>
@@ -110,19 +136,45 @@
                         </li>
                         <li v-if="hasProp(crd, 'data.spec.storage.s3Compatible.endpoint')">
                             <strong class="label">Endpoint:</strong>
-                            <span class="value">{{ crd.data.spec.storage.s3Compatible.path }}</span>
+                            <span class="value">{{ crd.data.spec.storage.s3Compatible.endpoint }}</span>
                         </li>
-                        <li v-if="hasProp(crd, 'data.spec.storage.s3Compatible.path')">
+                        <li v-if="hasProp(crd, 'data.spec.storage.s3Compatible.region')">
                             <strong class="label">Region:</strong>
                             <span class="value">{{ crd.data.spec.storage.s3Compatible.region }}</span>
                         </li>
-                        <li>
+                        <li v-if="hasProp(crd, 'data.spec.storage.s3Compatible.awsCredentials.accessKeyId')">
                             <strong class="label">API Key:</strong>
                             <span class="value">{{ crd.data.spec.storage.s3Compatible.awsCredentials.accessKeyId }}</span>
                         </li>
-                        <li>
+                        <li v-if="hasProp(crd, 'data.spec.storage.s3Compatible.awsCredentials.secretAccessKey')">
                             <strong class="label">API Secret:</strong>
                             <span class="value" @mouseout="secretValue = ''" @mouseover="secretValue = crd.data.spec.storage.s3Compatible.awsCredentials.secretAccessKey">{{ secretValue.length ? secretValue : hideSecret(crd.data.spec.storage.s3Compatible.awsCredentials.secretAccessKey) }}</span>
+                        </li>
+                        <li v-if="hasProp(crd, 'data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId')">
+                            <strong class="label">Access Key ID</strong>
+                            <ul>
+                                <li v-if="hasProp(crd, 'data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key')">
+                                    <strong class="label">Key:</strong>
+                                    <span class="value">{{ crd.data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key }}</span>
+                                </li>
+                                <li v-if="hasProp(crd, 'data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name')">
+                                    <strong class="label">Name:</strong>
+                                    <span class="value">{{ crd.data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name }}</span>
+                                </li>
+                            </ul>
+                        </li>
+                        <li v-if="hasProp(crd, 'data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey')">
+                            <strong class="label">Secret Access Key</strong>
+                            <ul>
+                                <li v-if="hasProp(crd, 'data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key')">
+                                    <strong class="label">Key:</strong>
+                                    <span class="value">{{ crd.data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key }}</span>
+                                </li>
+                                <li v-if="hasProp(crd, 'data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name')">
+                                    <strong class="label">Name:</strong>
+                                    <span class="value">{{ crd.data.spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name }}</span>
+                                </li>
+                            </ul>
                         </li>
                         <li v-if="(showDefaults || hasProp(crd, 'data.spec.storage.s3Compatible.enablePathStyleAddressing'))">
                             <strong class="label">Path Style Addresing:</strong>
@@ -216,7 +268,7 @@
             },
 
             hideSecret(secret) {
-                return secret.replace(/./g, '*');
+                return ( ( (typeof secret != 'undefined') && secret.length) ? secret.replace(/./g, '*') : '' );
             }
         }
 
