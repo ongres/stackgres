@@ -117,16 +117,6 @@ describe('Delete StackGres Resources', () => {
             }  
         });
 
-        cy.createCRD('sgbackups', {
-            metadata: {
-                name: resourceName,
-                namespace: namespace
-            },
-            spec: {
-                sgCluster: resourceName
-            }
-        });
-
         cy.createCRD('sgdbops', {
             metadata: {
                 name: resourceName,
@@ -142,10 +132,6 @@ describe('Delete StackGres Resources', () => {
 
     beforeEach( () => {
         Cypress.Cookies.preserveOnce('sgToken')
-    });
-
-    it( 'Deleting an SGBackup should be possible', () => {
-        cy.testDelete('sgbackup', resourceName)
     });
     
     it( 'Deleting an SGDbOp should be possible', () => {
@@ -175,5 +161,9 @@ describe('Delete StackGres Resources', () => {
     it( 'Deleting an SGDistributedLog should be possible', () => {
         cy.testDelete('sgdistributedlog', resourceName)
     })
+
+    it( 'Deleting an SGBackup should be possible', () => {
+        cy.testDelete('sgbackup', 'ui-0')
+    });
 
 })
