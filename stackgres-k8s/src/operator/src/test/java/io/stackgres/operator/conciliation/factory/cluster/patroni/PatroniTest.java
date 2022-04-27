@@ -92,17 +92,17 @@ class PatroniTest {
     when(clusterContainerContext.getDataVolumeName()).thenReturn("test");
     when(patroniEnvironmentVariables.createResource(clusterContext)).thenReturn(List.of());
     when(volumeDiscoverer.discoverVolumes(clusterContext))
-    .thenReturn(Map.of(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName(),
-        ImmutableVolumePair.builder()
-        .volume(new VolumeBuilder()
-            .withNewConfigMap()
-            .withName("test")
-            .endConfigMap()
-            .build())
-        .source(new ConfigMapBuilder()
-            .withData(Map.of(StackGresUtil.MD5SUM_KEY, "test"))
-            .build())
-        .build()));
+        .thenReturn(Map.of(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName(),
+            ImmutableVolumePair.builder()
+            .volume(new VolumeBuilder()
+                .withNewConfigMap()
+                .withName("test")
+                .endConfigMap()
+                .build())
+            .source(new ConfigMapBuilder()
+                .withData(Map.of(StackGresUtil.MD5SUM_KEY, "test"))
+                .build())
+            .build()));
   }
 
   @Test
