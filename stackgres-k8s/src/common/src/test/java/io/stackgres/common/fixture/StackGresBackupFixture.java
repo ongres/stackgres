@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.fixture;
+package io.stackgres.common.fixture;
 
 import static java.lang.String.format;
 

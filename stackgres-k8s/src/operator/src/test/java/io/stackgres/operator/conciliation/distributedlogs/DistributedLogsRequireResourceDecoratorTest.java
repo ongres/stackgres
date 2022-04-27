@@ -18,11 +18,11 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.fixture.SecretFixture;
+import io.stackgres.common.fixture.StackGresClusterFixture;
+import io.stackgres.common.fixture.StackGresDistributedLogsFixture;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
-import io.stackgres.operator.fixture.SecretFixture;
-import io.stackgres.operator.fixture.StackGresClusterFixture;
-import io.stackgres.operator.fixture.StackGresDistributedLogsFixture;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
