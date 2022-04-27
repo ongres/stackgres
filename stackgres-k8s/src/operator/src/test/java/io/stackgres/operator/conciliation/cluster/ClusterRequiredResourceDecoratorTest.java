@@ -22,14 +22,14 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.SecretFixture;
+import io.stackgres.common.fixture.StackGresClusterFixture;
+import io.stackgres.common.fixture.StackGresPoolingConfigFixture;
+import io.stackgres.common.fixture.StackGresPostgresConfigFixture;
+import io.stackgres.common.fixture.StackGresProfileFixture;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
-import io.stackgres.operator.fixture.SecretFixture;
-import io.stackgres.operator.fixture.StackGresClusterFixture;
-import io.stackgres.operator.fixture.StackGresPoolingConfigFixture;
-import io.stackgres.operator.fixture.StackGresPostgresConfigFixture;
-import io.stackgres.operator.fixture.StackGresProfileFixture;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest

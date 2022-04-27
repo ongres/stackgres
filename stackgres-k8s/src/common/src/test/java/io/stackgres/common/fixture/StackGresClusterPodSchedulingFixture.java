@@ -21,20 +21,22 @@ public class StackGresClusterPodSchedulingFixture {
 
   public StackGresClusterPodScheduling build() {
     buildPodNodeAffinityScheduling();
-    withNodeAffinity(this.nodeAffinity);
     return scheduling;
   }
 
   public StackGresClusterPodSchedulingFixture buildPodNodeAffinityScheduling() {
-    this.scheduling = new StackGresClusterPodScheduling();
+    scheduling = new StackGresClusterPodScheduling();
+    if (nodeAffinity != null) {
+      scheduling.setNodeAffinity(nodeAffinity);
+    }
     return this;
   }
 
   public StackGresClusterPodScheduling loadPodNodeAffinityScheduling() {
-    this.scheduling = JsonUtil
+    scheduling = JsonUtil
         .readFromJson("stackgres_cluster/scheduling.json",
             StackGresClusterPodScheduling.class);
-    return this.scheduling;
+    return scheduling;
   }
 
 }
