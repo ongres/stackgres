@@ -54,6 +54,17 @@ describe('Delete StackGres Resources', () => {
             }  
         });
 
+        // Disable temporarily until IDs for each backup row has been set
+        /* cy.createCRD('sgbackups', {
+            metadata: {
+                name: resourceName,
+                namespace: namespace
+            },
+            spec: {
+                sgCluster: resourceName
+            }
+        }); */
+
         cy.createCRD('sginstanceprofiles', {
             metadata: {
                 name: resourceName,
@@ -162,8 +173,9 @@ describe('Delete StackGres Resources', () => {
         cy.testDelete('sgdistributedlog', resourceName)
     })
 
-    it( 'Deleting an SGBackup should be possible', () => {
-        cy.testDelete('sgbackup', 'ui-0')
-    });
+    // Disable temporarily until IDs for each backup row has been set
+    /* it( 'Deleting an SGBackup should be possible', () => {
+        cy.testDelete('sgbackup', resourceName)
+    }); */
 
 })
