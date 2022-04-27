@@ -1,4 +1,4 @@
-describe('Load StackGres version', () => {
+describe('GET requests', () => {
 
     const namespace = Cypress.env('k8s_namespace')
     let resourceName;
@@ -136,14 +136,6 @@ describe('Load StackGres version', () => {
 
     it('GET sgdbop events', () => {
         cy.getResources('namespaces/' + namespace + '/sgdbops/' + dbopName + '/events');
-    });
-
-    it('GET configmaps', () => {
-        cy.getResources('namespaces/' + namespace + '/configmaps');
-    });
-
-    it('GET secrets', () => {
-        cy.getResources('namespaces/' + namespace + '/secrets');
     });
     
   })

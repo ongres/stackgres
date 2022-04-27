@@ -128,7 +128,7 @@
         computed: {
 
             allClusters () {
-                return store.state.clusters
+                return store.state.sgclusters
             },
 
             nameColission() {

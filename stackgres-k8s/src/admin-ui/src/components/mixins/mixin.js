@@ -99,7 +99,6 @@ export const mixin = {
         axios
         .get('/stackgres/auth/rbac/can-i')
         .then( function(response) {
-          //console.log(response.data)
           store.commit('setPermissions', response.data);
         }).catch(function(err) {
           console.log(err);
@@ -130,7 +129,7 @@ export const mixin = {
           .get('/stackgres/sgclusters')
           .then( function(response){
 
-            vc.lookupCRDs('sgcluster', response.data);
+            vc.lookupCRDs('sgclusters', response.data);
   
             response.data.forEach( function(item, index) {
 
@@ -187,10 +186,8 @@ export const mixin = {
                 if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
                   store.commit('updateNamespaces', item.metadata.namespace);
   
-                //console.log(item);
                 if( (item.status !== null) && item.status.hasOwnProperty('process')) {
                   if( item.status.process.status === 'Completed' ) {
-                    //console.log('setting duration');
                     start = moment(item.status.process.timing.start);
                     finish = moment(item.status.process.timing.stored);
                     duration = new Date(moment.duration(finish.diff(start))).toISOString();
@@ -212,17 +209,13 @@ export const mixin = {
   
               });
   
-              store.state.clusters.forEach(function(cluster, index){
+              store.state.sgclusters.forEach(function(cluster, index){
                 let backups = store.state.sgbackups.find(b => ( (cluster.name == b.data.spec.sgCluster) && (cluster.data.metadata.namespace == b.data.metadata.namespace) ) );
         
                 if ( typeof backups !== "undefined" )
                   cluster.hasBackups = true; // Enable/Disable Backups button
   
               });
-  
-              
-  
-              //console.log("Backups Data updated");
   
           }).catch(function(err) {
             console.log(err);
@@ -626,8 +619,6 @@ export const mixin = {
   
       deleteCRD: function( kind, namespace, name, redirect ) {
   
-        //console.log("Open delete");
-        //$('#delete input').val('');
         this.confirmDeleteName = '';
         $("#delete").addClass("active");
         $(".filter > .open").removeClass("open");
@@ -704,7 +695,7 @@ export const mixin = {
   
         switch(kind) {
           case 'SGClusters':
-            crd = JSON.parse(JSON.stringify(store.state.clusters.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+            crd = JSON.parse(JSON.stringify(store.state.sgclusters.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
             
             if(this.hasProp(crd, 'data.spec.initialData.restore')) {
               delete crd.data.spec.initialData.restore
@@ -1007,8 +998,6 @@ export const mixin = {
             let dow = crontab[4];
             let modifier = 0;
 
-            //console.log(tzOffset)
-            
             crontab[1] = parseInt( crontab[1] ) + ( tzOffset * ( toLocal ? 1 : -1 ) ); // Set opposite offset if converting to UTC
 
             if(!crontab[1].isInteger) {
@@ -1125,14 +1114,7 @@ export const mixin = {
       lookupCRDs(kind, crds) {
         const vc = this;
 
-        switch(kind) {
-          
-          case 'sgcluster':
-            kind = 'clusters'
-            break;
-        }
-
-        store.state[kind].forEach(function(item, index) {
+       store.state[kind].forEach(function(item, index) {
 
           let foundItem = crds.find(e => (e.metadata.name == item.data.metadata.name) && (e.metadata.namespace == item.data.metadata.namespace))
 

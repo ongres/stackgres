@@ -1490,7 +1490,7 @@
                 const vc = this;
                 var nameColission = false;
                 
-                store.state.clusters.forEach(function(item, index){
+                store.state.sgclusters.forEach(function(item, index){
                     if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) ) {
                         nameColission = true;
                         return false
@@ -1513,7 +1513,7 @@
                 var cluster = {};
                 
                 if( vm.editMode && !vm.editReady ) {
-                    store.state.clusters.forEach(function( c ){
+                    store.state.sgclusters.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
 
                             let volumeSize = c.data.spec.pods.persistentVolume.size.match(/\d+/g);
@@ -1615,8 +1615,6 @@
                     console.log("File not loaded")
                     return;
                 } else {
-                    //console.log("File loaded");
-
                     var reader = new FileReader();
                     
                     reader.onload = function(e) {
