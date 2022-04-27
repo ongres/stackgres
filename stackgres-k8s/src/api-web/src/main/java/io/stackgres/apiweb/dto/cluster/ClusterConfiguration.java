@@ -31,6 +31,9 @@ public class ClusterConfiguration {
   @JsonProperty("sgBackupConfig")
   private String sgBackupConfig;
 
+  @JsonProperty("backupPath")
+  private String backupPath;
+
   @JsonProperty("backups")
   private List<ClusterBackupsConfiguration> backups;
 
@@ -58,6 +61,14 @@ public class ClusterConfiguration {
     this.sgBackupConfig = sgBackupConfig;
   }
 
+  public String getBackupPath() {
+    return backupPath;
+  }
+
+  public void setBackupPath(String backupPath) {
+    this.backupPath = backupPath;
+  }
+
   public List<ClusterBackupsConfiguration> getBackups() {
     return backups;
   }
@@ -67,27 +78,27 @@ public class ClusterConfiguration {
   }
 
   @Override
-  public String toString() {
-    return StackGresUtil.toPrettyYaml(this);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof ClusterConfiguration)) {
       return false;
     }
-    ClusterConfiguration that = (ClusterConfiguration) o;
-    return Objects.equals(sgPostgresConfig, that.sgPostgresConfig)
-        && Objects.equals(sgPoolingConfig, that.sgPoolingConfig)
-        && Objects.equals(sgBackupConfig, that.sgBackupConfig)
-        && Objects.equals(backups, that.backups);
+    ClusterConfiguration other = (ClusterConfiguration) obj;
+    return Objects.equals(backupPath, other.backupPath) && Objects.equals(backups, other.backups)
+        && Objects.equals(sgBackupConfig, other.sgBackupConfig)
+        && Objects.equals(sgPoolingConfig, other.sgPoolingConfig)
+        && Objects.equals(sgPostgresConfig, other.sgPostgresConfig);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(sgPostgresConfig, sgPoolingConfig, sgBackupConfig, backups);
+    return Objects.hash(backupPath, backups, sgBackupConfig, sgPoolingConfig, sgPostgresConfig);
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

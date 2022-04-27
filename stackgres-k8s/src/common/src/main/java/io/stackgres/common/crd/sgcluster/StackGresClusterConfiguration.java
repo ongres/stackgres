@@ -9,13 +9,17 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotBlank;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -32,9 +36,22 @@ public class StackGresClusterConfiguration {
   @JsonProperty("sgBackupConfig")
   private String backupConfig;
 
+  @JsonProperty("backupPath")
+  private String backupPath;
+
   @JsonProperty("backups")
   @Valid
   private List<StackGresClusterBackupConfiguration> backups;
+
+  @ReferencedField("backupPath")
+  interface BackupPath extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "backupPath can not be null when sgBackupConfig is set.",
+      payload = { BackupPath.class })
+  public boolean isBackupPathSetWhenSgBackupConfigIsSet() {
+    return backupConfig == null || backupPath != null;
+  }
 
   public String getPostgresConfig() {
     return postgresConfig;
@@ -60,6 +77,14 @@ public class StackGresClusterConfiguration {
     this.backupConfig = backupConfig;
   }
 
+  public String getBackupPath() {
+    return backupPath;
+  }
+
+  public void setBackupPath(String backupPath) {
+    this.backupPath = backupPath;
+  }
+
   public List<StackGresClusterBackupConfiguration> getBackups() {
     return backups;
   }
@@ -70,7 +95,7 @@ public class StackGresClusterConfiguration {
 
   @Override
   public int hashCode() {
-    return Objects.hash(backupConfig, connectionPoolingConfig, postgresConfig, backups);
+    return Objects.hash(backupConfig, backupPath, backups, connectionPoolingConfig, postgresConfig);
   }
 
   @Override
@@ -83,9 +108,9 @@ public class StackGresClusterConfiguration {
     }
     StackGresClusterConfiguration other = (StackGresClusterConfiguration) obj;
     return Objects.equals(backupConfig, other.backupConfig)
+        && Objects.equals(backupPath, other.backupPath) && Objects.equals(backups, other.backups)
         && Objects.equals(connectionPoolingConfig, other.connectionPoolingConfig)
-        && Objects.equals(postgresConfig, other.postgresConfig)
-        && Objects.equals(backups, other.backups);
+        && Objects.equals(postgresConfig, other.postgresConfig);
   }
 
   @Override

@@ -39,31 +39,29 @@ run_op() {
     echo
     DB_OPS_PATCH="$(cat << EOF
       {
-        "dbOps": {
-          "majorVersionUpgrade":{
-            "initialInstances": [$(
-              FIRST=true
-              for INSTANCE in $INITIAL_INSTANCES
-              do
-                if "$FIRST"
-                then
-                  printf '%s' "\"$INSTANCE\""
-                  FIRST=false
-                else
-                  printf '%s' ",\"$INSTANCE\""
-                fi
-              done
-              )],
-            "primaryInstance": "$PRIMARY_INSTANCE",
-            "sourcePostgresVersion": "$SOURCE_VERSION",
-            "targetPostgresVersion": "$TARGET_VERSION",
-            "locale": "$LOCALE",
-            "encoding": "$ENCODING",
-            "dataChecksum": $DATA_CHECKSUM,
-            "link": $LINK,
-            "clone": $CLONE,
-            "check": $CHECK
-          }
+        "majorVersionUpgrade":{
+          "initialInstances": [$(
+            FIRST=true
+            for INSTANCE in $INITIAL_INSTANCES
+            do
+              if "$FIRST"
+              then
+                printf '%s' "\"$INSTANCE\""
+                FIRST=false
+              else
+                printf '%s' ",\"$INSTANCE\""
+              fi
+            done
+            )],
+          "primaryInstance": "$PRIMARY_INSTANCE",
+          "sourcePostgresVersion": "$SOURCE_VERSION",
+          "targetPostgresVersion": "$TARGET_VERSION",
+          "locale": "$LOCALE",
+          "encoding": "$ENCODING",
+          "dataChecksum": $DATA_CHECKSUM,
+          "link": $LINK,
+          "clone": $CLONE,
+          "check": $CHECK
         }
       }
 EOF
@@ -71,15 +69,11 @@ EOF
 
     until (
       DBOPS="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
-      DBOPS="$(printf '%s' "$DBOPS" | jq '.status |= . + '"$DB_OPS_PATCH")"
+      DBOPS="$(printf '%s' "$DBOPS" | jq '.status.dbOps = '"$DB_OPS_PATCH")"
       printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
       )
     do
-      (
-        DBOPS="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
-        DBOPS="$(printf '%s' "$DBOPS" | jq 'del(.status.dbOps)')"
-        printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME"/status -f -
-      )
+      sleep 1
     done
   else
     SOURCE_VERSION="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
@@ -120,12 +114,29 @@ EOF
   echo "done"
   echo
 
-  echo "Setting postgres version to $TARGET_VERSION and postgres config to $TARGET_POSTGRES_CONFIG..."
+  if [ -z "$TARGET_BACKUP_PATH" ]
+  then
+    echo "Setting postgres version to $TARGET_VERSION and postgres config to $TARGET_POSTGRES_CONFIG..."
+  else
+    echo "Setting postgres version to $TARGET_VERSION, postgres config to $TARGET_POSTGRES_CONFIG and backup path to $TARGET_BACKUP_PATH..."
+  fi
   echo
   until (
     CLUSTER="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq '.spec.postgres.version = "'"$TARGET_VERSION"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq '.spec.configurations.sgPostgresConfig = "'"$TARGET_POSTGRES_CONFIG"'"')"
+    if [ -n "$TARGET_BACKUP_PATH" ]
+    then
+      CLUSTER="$(printf '%s' "$CLUSTER" | jq '
+          if .spec.configurations.sgBackupConfig != null
+          then .spec.configurations.backupPath = "'"$TARGET_BACKUP_PATH"'"
+          else
+            if .spec.configurations.backups != null and (.spec.configurations.backups | length) > 0
+            then .spec.configurations.backups[0].path = "'"$TARGET_BACKUP_PATH"'"
+            else .
+            end
+          end')"
+    fi
     printf '%s' "$CLUSTER" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
     )
   do

@@ -6,6 +6,9 @@ remove_cluster() {
 
   echo "Deleting release $RELEASE" 
   helm get manifest "$RELEASE" --namespace "$NAMESPACE" \
+    | yq 'select(.kind == "SGCluster")' \
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+  helm get manifest "$RELEASE" --namespace "$NAMESPACE" \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
   helm get hooks "$RELEASE" --namespace "$NAMESPACE" \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
@@ -26,7 +29,25 @@ remove_cluster_if_exists() {
   fi
 }
 
+create_or_replace_cluster_without_defaults() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+  local INSTANCES="$3"
+  shift 3
+
+  create_or_replace_cluster_only "$RELEASE" "$NAMESPACE" "$INSTANCES" "$@"
+}
+
 create_or_replace_cluster() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+  local INSTANCES="$3"
+  shift 3
+
+  create_or_replace_cluster_only "$RELEASE" "$NAMESPACE" "$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
+}
+
+create_or_replace_cluster_only() {
   local RELEASE="$1"
   local NAMESPACE="$2"
   local INSTANCES="$3"
@@ -36,7 +57,7 @@ create_or_replace_cluster() {
   OPERATOR_VERSION="$(get_installed_operator_version)"
   if [ "$OPERATOR_VERSION" != "$STACKGRES_VERSION" ]
   then
-    create_or_replace_cluster_for_version "$OPERATOR_VERSION" "$RELEASE" "$NAMESPACE" "$INSTANCES" "$@"
+    create_or_replace_cluster_for_version_only "$OPERATOR_VERSION" "$RELEASE" "$NAMESPACE" "$INSTANCES" "$@"
     return
   fi
 
@@ -46,14 +67,14 @@ create_or_replace_cluster() {
         --reuse-values \
         $E2E_CLUSTER_OPTS \
         $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
-        --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
+        --set cluster.instances="$INSTANCES" "$@"
   else
     create_namespace_if_not_exists "$NAMESPACE"
     helm install "$RELEASE" "$CLUSTER_CHART_PATH" \
       --namespace "$NAMESPACE" \
       $E2E_CLUSTER_OPTS \
       $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
-      --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
+      --set cluster.instances="$INSTANCES" "$@"
   fi
 }
 
@@ -72,6 +93,16 @@ has_cluster_generated_resources() {
 }
 
 create_or_replace_cluster_for_version() {
+  local VERSION="$1"
+  local RELEASE="$2"
+  local NAMESPACE="$3"
+  local INSTANCES="$4"
+  shift 4
+
+  create_or_replace_cluster_for_version_only "$VERSION" "$RELEASE" "$NAMESPACE" "$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
+}
+
+create_or_replace_cluster_for_version_only() {
   local VERSION="$1"
   local RELEASE="$2"
   local NAMESPACE="$3"
@@ -123,13 +154,13 @@ create_or_replace_cluster_for_version() {
     eval "$(transform_params "$TRANSFORMER" helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_HELM_PATH" \
         --reuse-values \
         $E2E_CLUSTER_OPTS \
-        --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
+        --set cluster.instances="$INSTANCES" "$@")"
   else
     create_namespace_if_not_exists "$NAMESPACE"
     eval "$(transform_params "$TRANSFORMER" helm install "$RELEASE" "$CLUSTER_HELM_PATH" \
         --namespace "$NAMESPACE" \
         $E2E_CLUSTER_OPTS \
-        --set cluster.instances="$INSTANCES" -f "$SPEC_VALUES_FILE" "$@")"
+        --set cluster.instances="$INSTANCES" "$@")"
   fi
 }
 

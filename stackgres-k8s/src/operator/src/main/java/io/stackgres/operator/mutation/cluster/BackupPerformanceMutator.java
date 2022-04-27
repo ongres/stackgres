@@ -36,22 +36,22 @@ public class BackupPerformanceMutator implements ClusterMutator {
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
-    String configurationJson = ClusterMutator.getJsonMappingField("configuration",
+    String configurationJson = getJsonMappingField("configuration",
         StackGresClusterSpec.class);
-    String backupsJson = ClusterMutator.getJsonMappingField("backups",
+    String backupsJson = getJsonMappingField("backups",
         StackGresClusterConfiguration.class);
-    String performanceJson = ClusterMutator.getJsonMappingField("performance",
+    String performanceJson = getJsonMappingField("performance",
         StackGresClusterBackupConfiguration.class);
-    String maxDiskBandwidthJson = ClusterMutator.getJsonMappingField("maxDiskBandwidth",
+    String maxDiskBandwidthJson = getJsonMappingField("maxDiskBandwidth",
         StackGresBaseBackupPerformance.class);
-    String maxDiskBandwitdhJson = ClusterMutator.getJsonMappingField("maxDiskBandwitdh",
+    String maxDiskBandwitdhJson = getJsonMappingField("maxDiskBandwitdh",
         StackGresBaseBackupPerformance.class);
-    String maxNetworkBandwidthJson = ClusterMutator.getJsonMappingField("maxNetworkBandwidth",
+    String maxNetworkBandwidthJson = getJsonMappingField("maxNetworkBandwidth",
         StackGresBaseBackupPerformance.class);
-    String maxNetworkBandwitdhJson = ClusterMutator.getJsonMappingField("maxNetworkBandwitdh",
+    String maxNetworkBandwitdhJson = getJsonMappingField("maxNetworkBandwitdh",
         StackGresBaseBackupPerformance.class);
 
-    backupsPointer = ClusterMutator.CLUSTER_CONFIG_POINTER
+    backupsPointer = SPEC_POINTER
         .append(configurationJson)
         .append(backupsJson);
     maxDiskBandwidthPointer = JsonPointer.of(performanceJson).append(maxDiskBandwidthJson);

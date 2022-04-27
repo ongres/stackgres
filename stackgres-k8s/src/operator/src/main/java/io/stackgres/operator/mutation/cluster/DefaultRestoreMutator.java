@@ -35,13 +35,13 @@ public class DefaultRestoreMutator implements ClusterMutator {
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
-    String initDataJson = ClusterMutator.getJsonMappingField("initData",
+    String initDataJson = getJsonMappingField("initData",
         StackGresClusterSpec.class);
 
-    String restoreJsonField = ClusterMutator.getJsonMappingField("restore",
+    String restoreJsonField = getJsonMappingField("restore",
         StackGresClusterInitData.class);
 
-    restorePointer = ClusterMutator.CLUSTER_CONFIG_POINTER
+    restorePointer = SPEC_POINTER
         .append(initDataJson).append(restoreJsonField);
 
     StackGresClusterRestore defaultRestore = defaultRestoreFactory.buildResource();

@@ -25,6 +25,7 @@ e2e_test_install() {
   PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
+  PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%.*}"
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:' | grep "[-]pg$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-" | tail -n 1)"
 
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION")"
@@ -358,7 +359,7 @@ check_distributedlogs_security_upgrade() {
 }
 
 check_cluster_1_security_upgrade_start() {
-  check_backup_performance_mutation()
+  check_mutations()
 
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
   check_cluster_security_upgrade_start "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
@@ -603,6 +604,12 @@ check_backup_performance_using_deprecated_fields_in_previous_versions() {
   fi
 }
 
+check_mutations() {
+  check_backup_performance_mutation
+
+  check_backup_path_mutation
+}
+
 check_backup_performance_mutation() {
   if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
     --template '{{ .status.sgBackupConfig.baseBackups.performance.maxDiskBandwitdh }}')" = '<no value>' ]
@@ -667,6 +674,25 @@ check_backup_performance_mutation() {
     echo "SUCCESS. The maxNetworkBandwidth has been set to 5242880 for sgbackupconfig"
   else
     echo "FAIL. The maxNetworkBandwidth has not been set to 5242880 for sgbackupconfig"
+    return 1
+  fi
+}
+
+check_backup_path_mutation() {
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" --template '{{ .spec.configurations.backupPath }}')" \
+    = "$CLUSTER_NAMESPACE/$CLUSTER_1_NAME" ]
+  then
+    echo "SUCCESS. Backup path was added to cluster backup configuration after operator upgrade"
+  else
+    echo "FAIL. Backup path was not added to cluster backup configuration after operator upgrade"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template '{{ .status.backupPath }}')" \
+    = "$CLUSTER_NAMESPACE/$CLUSTER_1_NAME" ]
+  then
+    echo "SUCCESS. Backup path was added to backup status after operator upgrade"
+  else
+    echo "FAIL. Backup path was not added to backup status after operator upgrade"
     return 1
   fi
 }

@@ -154,7 +154,8 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
   }
 
   private static String getLastField(String fieldPath) {
-    final String[] split = fieldPath.split("\\.");
-    return split[split.length - 1];
+    final String[] split = fieldPath
+        .replace("\\.", "~0").split("\\.");
+    return split[split.length - 1].replace("~0", ".");
   }
 }

@@ -114,9 +114,6 @@ describe('Create SGBackupConfig', () => {
         cy.get('[data-field="spec.storage.s3.bucket"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.storage.s3.path"]')
-            .type('//' + resourceName)
-
         cy.get('[data-field="spec.storage.s3.region"]')
             .type(resourceName)
 
@@ -181,9 +178,6 @@ describe('Create SGBackupConfig', () => {
 
         cy.get('[data-field="spec.storage.s3Compatible.bucket"]')
             .type(resourceName)
-
-        cy.get('[data-field="spec.storage.s3Compatible.path"]')
-            .type('//' + resourceName)
 
         cy.get('[data-field="spec.storage.s3Compatible.endpoint"]')
             .type('https://' + resourceName)
@@ -255,9 +249,6 @@ describe('Create SGBackupConfig', () => {
         cy.get('[data-field="spec.storage.gcs.bucket"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.storage.gcs.path"]')
-            .type('//' + resourceName)
-
         cy.get('#fetchGCSCredentials')
             .click()
        
@@ -315,9 +306,6 @@ describe('Create SGBackupConfig', () => {
 
         cy.get('[data-field="spec.storage.azureBlob.bucket"]')
             .type(resourceName)
-
-        cy.get('[data-field="spec.storage.azureBlob.path"]')
-            .type('//' + resourceName)
 
         cy.get('[data-field="spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount"]')
             .type(resourceName)

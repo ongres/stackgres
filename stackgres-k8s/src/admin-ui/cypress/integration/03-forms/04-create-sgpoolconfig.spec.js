@@ -34,7 +34,7 @@ describe('Create SGPoolingConfig', () => {
             .type('poolconfig-' + resourceName)
         
         // Test Parameters textarea
-        cy.get('[data-field="spec.pgBouncer.pgbouncer.ini"]')
+        cy.get('[data-field="spec.pgBouncer.pgbouncer\\\\.ini"]')
             .type('max_client_conn = 1001')
 
         // Test Submit form

@@ -9,9 +9,9 @@ e2e_test_install() {
   install_minio
 
   BACKUP_ENDPOINT="http://restore-backup-minio.$BACKUP_CLUSTER_NAMESPACE:9000"
-  SPEC_VALUES_FILE="$SPEC_FILE.backup.values.yaml" \
-    create_or_replace_cluster "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE" 1 \
-      --set-string "configurations.backupconfig.storage.s3Compatible.endpoint=$BACKUP_ENDPOINT"
+  create_or_replace_cluster_only "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE" 1 \
+    -f "$SPEC_FILE.backup.values.yaml" \
+    --set-string "configurations.backupconfig.storage.s3Compatible.endpoint=$BACKUP_ENDPOINT"
 
   wait_pods_running "$BACKUP_CLUSTER_NAMESPACE" 2
   wait_cluster "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE"

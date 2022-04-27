@@ -365,6 +365,15 @@
                                 </router-link>
                             </td>
                         </tr>
+                        <tr v-if="hasProp(cluster, 'data.spec.configurations.backupPath')">
+                            <td class="label">
+                                Backup Path
+                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.configurations.backupPath')"></span>
+                            </td>
+                            <td colspan="2">
+                                {{ cluster.data.spec.configurations.backupPath }}
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

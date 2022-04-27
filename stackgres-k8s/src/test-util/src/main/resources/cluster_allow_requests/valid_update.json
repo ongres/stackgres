@@ -76,6 +76,7 @@
         },
         "configurations": {
           "sgPostgresConfig": "postgresconf",
+          "backupPath": "sgbackups.stackgres.io/default/stackgres/11",
           "sgBackupConfig": "backupconf",
           "sgPoolingConfig": "pgbouncerconf"
         },
@@ -134,6 +135,7 @@
         },
         "configurations": {
           "sgPostgresConfig": "postgresconf",
+          "backupPath": "sgbackups.stackgres.io/default/stackgres/11",
           "sgBackupConfig": "backupconf",
           "sgPoolingConfig": "pgbouncerconf"
         },

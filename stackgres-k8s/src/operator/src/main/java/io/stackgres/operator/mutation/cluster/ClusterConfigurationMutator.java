@@ -15,24 +15,25 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutatorUtil;
 
-public interface ClusterConfigurationMutator {
+public interface ClusterConfigurationMutator extends JsonPatchMutatorUtil {
 
-  static JsonPointer getTargetPointer(String field) throws NoSuchFieldException {
-    String jsonField = ClusterMutator
-        .getJsonMappingField(field, StackGresClusterConfiguration.class);
-    return getTargetPointer().append(jsonField);
+  default JsonPointer getConfigurationTargetPointer(String field) throws NoSuchFieldException {
+    String jsonField =
+        getJsonMappingField(field, StackGresClusterConfiguration.class);
+    return getConfigurationTargetPointer().append(jsonField);
   }
 
-  static JsonPointer getTargetPointer() throws NoSuchFieldException {
+  default JsonPointer getConfigurationTargetPointer() throws NoSuchFieldException {
 
-    String jsonField = ClusterMutator
-        .getJsonMappingField("configuration", StackGresClusterSpec.class);
+    String jsonField =
+        getJsonMappingField("configuration", StackGresClusterSpec.class);
 
-    return ClusterMutator.CLUSTER_CONFIG_POINTER.append(jsonField);
+    return SPEC_POINTER.append(jsonField);
   }
 
-  static List<JsonPatchOperation> ensureConfigurationNode(StackGresClusterReview review) {
+  default List<JsonPatchOperation> ensureConfigurationNode(StackGresClusterReview review) {
 
     final StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     StackGresClusterConfiguration configuration = spec.getConfiguration();
@@ -43,7 +44,7 @@ public interface ClusterConfigurationMutator {
 
         configuration = new StackGresClusterConfiguration();
         spec.setConfiguration(configuration);
-        final JsonPointer confPointer = getTargetPointer();
+        final JsonPointer confPointer = getConfigurationTargetPointer();
         final AddOperation configurationAdd = new AddOperation(confPointer,
             JsonPatchMutator.FACTORY.objectNode());
         return ImmutableList.of(configurationAdd);

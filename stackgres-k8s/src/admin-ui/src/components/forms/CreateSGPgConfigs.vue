@@ -53,9 +53,9 @@
 
             <div class="row-100">
                 <div class="col">
-                    <label for="spec.postgresql.conf">Parameters</label>
+                    <label for="spec.postgresql\.conf">Parameters</label>
                     <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpostgresconfig.spec.postgresql.conf')"></span>
-                    <textarea v-model="pgConfigParams" placeholder="parameter = value" data-field="spec.postgresql.conf"></textarea>
+                    <textarea v-model="pgConfigParams" placeholder="parameter = value" data-field="spec.postgresql\.conf"></textarea>
                 </div>
             </div>
 

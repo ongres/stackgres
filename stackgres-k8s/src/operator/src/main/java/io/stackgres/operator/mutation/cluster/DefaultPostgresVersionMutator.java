@@ -37,17 +37,17 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
-    final String postgresJson = ClusterMutator.getJsonMappingField("postgres",
+    final String postgresJson = getJsonMappingField("postgres",
         StackGresClusterSpec.class);
 
-    final String postgresVersionJson = ClusterMutator.getJsonMappingField("version",
+    final String postgresVersionJson = getJsonMappingField("version",
         StackGresClusterPostgres.class);
-    postgresVersionPointer = ClusterMutator.CLUSTER_CONFIG_POINTER.append(postgresJson)
+    postgresVersionPointer = SPEC_POINTER.append(postgresJson)
         .append(postgresVersionJson);
 
-    final String postgresFlavorJson = ClusterMutator.getJsonMappingField("flavor",
+    final String postgresFlavorJson = getJsonMappingField("flavor",
         StackGresClusterPostgres.class);
-    postgresFlavorPointer = ClusterMutator.CLUSTER_CONFIG_POINTER.append(postgresJson)
+    postgresFlavorPointer = SPEC_POINTER.append(postgresJson)
         .append(postgresFlavorJson);
   }
 

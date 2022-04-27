@@ -117,19 +117,19 @@ public class ObjectStorageResource extends AbstractRestServiceDependency<ObjectS
   }
 
   private void setSecretKeySelectors(ObjectStorageDto resource) {
-    final String name = BackupStorageUtil.secretName(resource);
-    BackupStorageUtil.extractSecretInfo(resource.getSpec())
+    final String name = BackupStorageDtoUtil.secretName(resource);
+    BackupStorageDtoUtil.extractSecretInfo(resource.getSpec())
         .filter(t -> t.v2.v1 != null)
         .forEach(t -> t.v2.v4.accept(new SecretKeySelector(t.v1, name)));
   }
 
   private void createOrUpdateSecret(ObjectStorageDto resource) {
-    final ImmutableMap<String, String> secrets = BackupStorageUtil
+    final ImmutableMap<String, String> secrets = BackupStorageDtoUtil
         .extractSecretInfo(resource.getSpec())
         .filter(t -> t.v2.v1 != null)
         .collect(ImmutableMap.toImmutableMap(t -> t.v1, t -> t.v2.v1));
     final String namespace = resource.getMetadata().getNamespace();
-    final String name = BackupStorageUtil.secretName(resource);
+    final String name = BackupStorageDtoUtil.secretName(resource);
     secretFinder.findByNameAndNamespace(name, namespace)
         .map(secret -> {
           secret.setStringData(secrets);
@@ -155,7 +155,7 @@ public class ObjectStorageResource extends AbstractRestServiceDependency<ObjectS
 
   private void deleteSecret(ObjectStorageDto resource) {
     final String namespace = resource.getMetadata().getNamespace();
-    final String name = BackupStorageUtil.secretName(resource);
+    final String name = BackupStorageDtoUtil.secretName(resource);
     secretFinder.findByNameAndNamespace(name, namespace)
         .ifPresent(secretWriter::delete);
   }

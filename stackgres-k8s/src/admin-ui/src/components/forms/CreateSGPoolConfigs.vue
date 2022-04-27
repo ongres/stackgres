@@ -44,9 +44,9 @@
 
             <div class="row-100">
                 <div class="col">
-                    <label for="spec.pgBouncer.pgbouncer.ini">PgBouncer Parameters</label>
+                    <label for="spec.pgBouncer.pgbouncer\.ini">PgBouncer Parameters</label>
                     <span class="helpTooltip" :data-tooltip="getTooltip( 'sgpoolingconfig.spec.pgBouncer.pgbouncer.ini')"></span>
-                    <textarea v-model="poolConfigParams" placeholder="parameter = value" data-field="spec.pgBouncer.pgbouncer.ini"></textarea>
+                    <textarea v-model="poolConfigParams" placeholder="parameter = value" data-field="spec.pgBouncer.pgbouncer\.ini"></textarea>
                 </div>
             </div>
 

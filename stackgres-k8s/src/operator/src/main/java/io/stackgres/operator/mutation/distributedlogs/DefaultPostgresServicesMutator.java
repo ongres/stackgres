@@ -37,10 +37,10 @@ public class DefaultPostgresServicesMutator implements DistributedLogsMutator {
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
-    String postgresServicesJson = DistributedLogsMutator.getJsonMappingField("postgresServices",
+    String postgresServicesJson = getJsonMappingField("postgresServices",
         StackGresDistributedLogsSpec.class);
 
-    postgresServicesPointer = DistributedLogsMutator.CLUSTER_CONFIG_POINTER
+    postgresServicesPointer = SPEC_POINTER
         .append(postgresServicesJson);
   }
 

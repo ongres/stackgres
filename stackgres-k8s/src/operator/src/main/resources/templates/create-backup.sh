@@ -61,6 +61,8 @@ reconcile_backups() {
   fi
 
   BACKUP_CONFIG_RESOURCE_VERSION="$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template='{{ .metadata.resourceVersion }}')"
+  CLUSTER_BACKUP_PATH="$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template="{{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ else }}{{ (index .spec.configurations.backups 0).path }}{{ end }}")"
   BACKUP_ALREADY_COMPLETED=false
   create_or_update_backup_cr
   if [ "$BACKUP_ALREADY_COMPLETED" = "true" ]
@@ -120,6 +122,16 @@ reconcile_backups() {
       ]'
     cat /tmp/backup-list
     echo "Backup configuration '$BACKUP_CONFIG' changed during backup"
+    return 1
+  elif [ "$CLUSTER_BACKUP_PATH" != "$(kubectl get "$CLUSTER_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+      --template="{{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ else }}{{ (index .spec.configurations.backups 0).path }}{{ end }}")" ]
+  then
+    kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
+      {"op":"replace","path":"/status/process/failure","value":"Backup path '"$CLUSTER_BACKUP_PATH"' changed during backup"}
+      ]'
+    cat /tmp/backup-list
+    echo "Backup path '$CLUSTER_BACKUP_PATH' changed during backup"
     return 1
   elif ! grep -q "^backup_name:${CURRENT_BACKUP_NAME}$" /tmp/current-backup
   then
@@ -236,6 +248,7 @@ BACKUP_CONFIG_YAML_EOF
   )
 BACKUP_STATUS_YAML=$(cat << BACKUP_STATUS_YAML_EOF
 status:
+  backupPath: "$CLUSTER_BACKUP_PATH"
   process:
     status: "$BACKUP_PHASE_RUNNING"
     jobPod: "$POD_NAME"
@@ -543,10 +556,13 @@ reconcile_backup_crs() {
     BACKUP_IS_PERMANENT="$([ "$BACKUP_MANAGED_LIFECYCLE" = true ] && echo false || echo true)"
     BACKUP_CONFIG="$(kubectl get "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" \
       --template="{{ .status.sgBackupConfig.storage }}")"
+    BACKUP_PATH="$(kubectl get "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" \
+      --template="{{ .status.backupPath }}")"
     # if backup CR has backup internal name, is marked as completed, uses the same current
-    # backup config but is not found in the storage, delete it
+    # backup config and backup path but is not found in the storage, delete it
     if [ -n "$BACKUP_NAME" ] && [ "$BACKUP_PHASE" = "$BACKUP_PHASE_COMPLETED" ] \
       && [ "$BACKUP_CONFIG" = "$CURRENT_BACKUP_CONFIG" ] \
+      && [ "$BACKUP_PATH" = "$CLUSTER_BACKUP_PATH" ] \
       && ! grep -q "\"backup_name\":\"$BACKUP_NAME\"" /tmp/existing-backups
     then
       echo "Deleting backup CR $BACKUP_CR_NAME since backup does not exists"

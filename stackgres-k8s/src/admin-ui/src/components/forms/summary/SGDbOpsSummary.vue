@@ -128,6 +128,10 @@
                         <strong class="label">Check Clusters:</strong>
                         <span class="value">{{ crd.data.spec.majorVersionUpgrade.check ? 'YES' : 'NO' }}</span>
                     </li>
+                    <li v-if="crd.data.spec.majorVersionUpgrade.backupPath.length">
+                        <strong class="label">Backup Path:</strong>
+                        <span class="value">{{ crd.data.spec.majorVersionUpgrade.backupPath }}</span>
+                    </li>
                     <li>
                         <strong class="label">Target Postgres Version:</strong>
                         <span class="value">{{ crd.data.spec.majorVersionUpgrade.postgresVersion }}</span>

@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,6 +28,7 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.ResourceDto;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 
 public class TransformerTestUtil {
@@ -65,22 +68,24 @@ public class TransformerTestUtil {
 
     var actualTarget = transformer.toDto(source);
 
-    assertEquals(target, actualTarget, "Transformation from CRD to DTO doesn't "
-        + "return the expected output. Which means that the transformer is not accurately "
-        + "transforming CRDs to DTOs. "
-        + "It could also mean that the transformed classes doesn't have implemented the "
-        + "equals method");
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(target), JsonUtil.toJson(actualTarget),
+        "Transformation from CRD to DTO doesn't "
+            + "return the expected output. Which means that the transformer is not accurately "
+            + "transforming CRDs to DTOs. "
+            + "It could also mean that the transformed classes doesn't have implemented the "
+            + "equals method");
 
     var actualSource = transformer.toCustomResource(target, source);
 
     assertNotSame(source, actualSource,
         "The original CRD is being returned which can lead to side effects errors");
 
-    assertEquals(source, actualSource, "Transformation from DTO to CRD doesn't return the "
-        + "expected output. Which means that the "
-        + "transformer is not accurately transforming DTOs to CRDs. "
-        + "It could also mean that the transformed classes doesn't have implemented the "
-        + "equals method");
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(target), JsonUtil.toJson(actualTarget),
+        "Transformation from DTO to CRD doesn't return the "
+            + "expected output. Which means that the "
+            + "transformer is not accurately transforming DTOs to CRDs. "
+            + "It could also mean that the transformed classes doesn't have implemented the "
+            + "equals method");
   }
 
   public static <T extends ResourceDto, S extends CustomResource<?, ?>> void assertTransformation(
@@ -93,22 +98,24 @@ public class TransformerTestUtil {
 
     var actualTarget = transformer.toResource(source, clusters);
 
-    assertEquals(target, actualTarget, "Transformation from CRD to DTO doesn't "
-        + "return the expected output. Which means that the transformer is not accurately "
-        + "transforming CRDs to DTOs. "
-        + "It could also mean that the transformed classes doesn't have implemented the "
-        + "equals method");
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(target), JsonUtil.toJson(actualTarget),
+        "Transformation from CRD to DTO doesn't "
+            + "return the expected output. Which means that the transformer is not accurately "
+            + "transforming CRDs to DTOs. "
+            + "It could also mean that the transformed classes doesn't have implemented the "
+            + "equals method");
 
     var actualSource = transformer.toCustomResource(target, source);
 
     assertNotSame(source, actualSource,
         "The original CRD is being returned which can lead to side effects errors");
 
-    assertEquals(source, actualSource, "Transformation from DTO to CRD doesn't return the "
-        + "expected output. Which means that the "
-        + "transformer is not accurately transforming DTOs to CRDs. "
-        + "It could also mean that the transformed classes doesn't have implemented the "
-        + "equals method");
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(target), JsonUtil.toJson(actualTarget),
+        "Transformation from DTO to CRD doesn't return the "
+            + "expected output. Which means that the "
+            + "transformer is not accurately transforming DTOs to CRDs. "
+            + "It could also mean that the transformed classes doesn't have implemented the "
+            + "equals method");
   }
 
   public static TransformerTuple<Metadata, ObjectMeta> createMetadataTuple() {
@@ -207,6 +214,10 @@ public class TransformerTestUtil {
         return value;
       } else if (Long.class.isAssignableFrom(valueClass)) {
         return Integer.toUnsignedLong(value);
+      } else if (BigDecimal.class.isAssignableFrom(valueClass)) {
+        return BigDecimal.valueOf(Integer.toUnsignedLong(value));
+      } else if (BigInteger.class.isAssignableFrom(valueClass)) {
+        return BigInteger.valueOf(Integer.toUnsignedLong(value));
       }
     }
     throw new IllegalArgumentException("Value class " + valueClass.getName() + " not supported");
@@ -267,6 +278,13 @@ public class TransformerTestUtil {
           );
           sourceField.set(source, mapTuple.getSource());
           targetField.set(target, mapTuple.getTarget());
+        } else {
+          var valueTuple = fillTupleWithRandomData(
+              targetField.getType(),
+              sourceField.getType()
+          );
+          sourceField.set(source, valueTuple.getSource());
+          targetField.set(target, valueTuple.getTarget());
         }
       } else {
         var valueTuple = fillTupleWithRandomData(

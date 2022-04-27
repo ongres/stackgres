@@ -6,16 +6,68 @@
 package io.stackgres.operatorframework.admissionwebhook.validating;
 
 import java.util.Arrays;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.Unchecked;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
 public interface Validator<T extends AdmissionReview<?>> {
 
   void validate(T review) throws ValidationFailed;
+
+  default String escapeFieldName(String name) {
+    return name.replace(".", "\\.").replace("[", "\\[");
+  }
+
+  @SuppressWarnings("unchecked")
+  default String getFieldPath(
+      Class<?> clazz1, String field1) {
+    return getFieldPath(
+        Tuple.tuple(clazz1, field1));
+  }
+
+  @SuppressWarnings("unchecked")
+  default String getFieldPath(
+      Class<?> clazz1, String field1,
+      Class<?> clazz2, String field2) {
+    return getFieldPath(
+        Tuple.tuple(clazz1, field1),
+        Tuple.tuple(clazz2, field2));
+  }
+
+  @SuppressWarnings("unchecked")
+  default String getFieldPath(
+      Class<?> clazz1, String field1,
+      Class<?> clazz2, String field2,
+      Class<?> clazz3, String field3) {
+    return getFieldPath(
+        Tuple.tuple(clazz1, field1),
+        Tuple.tuple(clazz2, field2),
+        Tuple.tuple(clazz3, field3));
+  }
+
+  @SuppressWarnings("unchecked")
+  default String getFieldPath(
+      Tuple2<Class<?>, String>...fieldAndClazzList) {
+    return Arrays.asList(fieldAndClazzList)
+        .stream()
+        .map(Unchecked.function(fieldAndClazz -> Optional.ofNullable(
+            fieldAndClazz.v1.getDeclaredField(fieldAndClazz.v2)
+            .getAnnotation(JsonProperty.class))
+            .map(JsonProperty::value)
+            .or(() -> Optional.of(fieldAndClazz.v2))
+            .map(this::escapeFieldName)
+            .orElseThrow()))
+        .collect(Collectors.joining("."));
+  }
 
   /**
    * Check value exists and is not empty.

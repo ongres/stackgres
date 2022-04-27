@@ -273,6 +273,15 @@ spec:
                       type: string
                       description: |
                         The postgres config that must have the same major version of the target postgres version.
+                    backupPath:
+                      type: string
+                      description: |
+                        The path were the backup is stored. If not set this field is filled up by the operator.
+
+                        When provided will indicate were the backups and WAL files will be stored.
+
+                        The path should be different from the current `.spec.configurations.backupPath` value for the target `SGCluster`
+                         in order to avoid mixing WAL files of two distinct major versions of postgres.
                     link:
                       type: boolean
                       description: |

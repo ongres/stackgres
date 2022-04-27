@@ -133,7 +133,7 @@ class PgConfigParametersValidatorTest extends AbstractPgConfigReview {
     checkValidationFailed(result);
 
     StatusCause statusCause = result.getDetails().getCauses().get(0);
-    assertThat(statusCause.getField()).isEqualTo(param);
+    assertThat(statusCause.getField()).isEqualTo("spec.postgresql\\.conf." + param);
     assertThat(statusCause.getMessage()).isEqualTo(message);
     assertThat(statusCause.getReason()).isEqualTo(reason);
   }

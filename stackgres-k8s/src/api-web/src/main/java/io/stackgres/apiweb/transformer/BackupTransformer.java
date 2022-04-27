@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.transformer;
 
-import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -17,6 +15,8 @@ import io.stackgres.apiweb.dto.backup.BackupProcess;
 import io.stackgres.apiweb.dto.backup.BackupSpec;
 import io.stackgres.apiweb.dto.backup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
+import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 
@@ -34,10 +34,10 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
 
   @Override
   public StackGresBackup toCustomResource(BackupDto source, StackGresBackup original) {
-    StackGresBackup transformation = Optional.ofNullable(original)
-        .orElseGet(StackGresBackup::new);
+    StackGresBackup transformation = new StackGresBackup();
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
+    transformation.setStatus(getCustomResourceStatus(original));
     return transformation;
   }
 
@@ -58,6 +58,27 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
     return mapper.convertValue(source, StackGresBackupSpec.class);
   }
 
+  private StackGresBackupStatus getCustomResourceStatus(StackGresBackup original) {
+    if (original == null || original.getStatus() == null) {
+      return null;
+    }
+    StackGresBackupStatus source = original.getStatus();
+    StackGresBackupStatus transformation = new StackGresBackupStatus();
+    transformation.setTested(source.getTested());
+    transformation.setInternalName(source.getInternalName());
+    transformation.setBackupPath(source.getBackupPath());
+    transformation.setBackupConfig(source.getBackupConfig());
+
+    transformation.setBackupInformation(
+        mapper.convertValue(source.getBackupInformation(), StackGresBackupInformation.class)
+    );
+
+    transformation.setProcess(
+        mapper.convertValue(source.getProcess(), StackGresBackupProcess.class)
+    );
+    return transformation;
+  }
+
   private BackupSpec getResourceSpec(StackGresBackupSpec source) {
     if (source == null) {
       return null;
@@ -72,6 +93,7 @@ public class BackupTransformer extends AbstractResourceTransformer<BackupDto, St
     BackupStatus transformation = new BackupStatus();
     transformation.setTested(source.getTested());
     transformation.setInternalName(source.getInternalName());
+    transformation.setBackupPath(source.getBackupPath());
     transformation.setBackupConfig(
         backupConfigTransformer.getResourceSpec(source.getBackupConfig()));
 

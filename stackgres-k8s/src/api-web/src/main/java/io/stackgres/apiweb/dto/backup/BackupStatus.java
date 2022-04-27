@@ -25,6 +25,8 @@ public class BackupStatus {
 
   private String internalName;
 
+  private String backupPath;
+
   @Valid
   private BackupProcess process;
 
@@ -47,6 +49,14 @@ public class BackupStatus {
 
   public void setInternalName(String internalName) {
     this.internalName = internalName;
+  }
+
+  public String getBackupPath() {
+    return backupPath;
+  }
+
+  public void setBackupPath(String backupPath) {
+    this.backupPath = backupPath;
   }
 
   public Boolean getTested() {

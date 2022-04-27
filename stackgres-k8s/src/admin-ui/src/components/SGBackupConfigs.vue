@@ -259,15 +259,6 @@
 											{{ conf.data.spec.storage.s3.bucket }}
 										</td>
 									</tr>
-									<tr v-if="hasProp(conf, 'data.spec.storage.s3.path')">
-										<td class="label">
-											Path
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3.path')"></span>
-										</td>
-										<td colspan="2">
-											{{ conf.data.spec.storage.s3.path }}
-										</td>
-									</tr>
 									<tr v-if="hasProp(conf, 'data.spec.storage.s3.region')">
 										<td class="label">
 											Region
@@ -317,15 +308,6 @@
 										</td>
 										<td colspan="2">
 											{{ conf.data.spec.storage.s3Compatible.bucket }}
-										</td>
-									</tr>
-									<tr v-if="hasProp(conf, 'data.spec.storage.s3Compatible.path')">
-										<td class="label">
-											Path
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.s3Compatible.path')"></span>
-										</td>
-										<td colspan="2">
-											{{ conf.data.spec.storage.s3Compatible.path }}
 										</td>
 									</tr>
 									<tr v-if="hasProp(conf, 'data.spec.storage.s3Compatible.enablePathStyleAddressing')">
@@ -397,15 +379,6 @@
 											{{ conf.data.spec.storage.gcs.bucket }}
 										</td>
 									</tr>
-									<tr v-if="hasProp(conf, 'data.spec.storage.gcs.path')">
-										<td class="label">
-											Path
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.gcs.path')"></span>
-										</td>
-										<td colspan="2">
-											{{ conf.data.spec.storage.gcs.path }}
-										</td>
-									</tr>
 									<tr>
 										<td class="label">
 											GCS Credentials
@@ -428,15 +401,6 @@
 										</td>
 										<td colspan="2">
 											{{ conf.data.spec.storage.azureBlob.bucket }}
-										</td>
-									</tr>
-									<tr v-if="hasProp(conf, 'data.spec.storage.azureBlob.path')">
-										<td class="label">
-											Path
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgbackupconfig.spec.storage.azureBlob.path')"></span>
-										</td>
-										<td colspan="2">
-											{{ conf.data.spec.storage.azureBlob.path }}
 										</td>
 									</tr>
 									<tr>

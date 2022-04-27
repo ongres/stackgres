@@ -12,7 +12,7 @@ traceable_assert_dbops_running() {
   OP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
     --template '{{ .spec.op }}' || echo unknown)"
   MAX_RETRIES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
-    --template '{{ .spec.maxRetries }}' || echo 0)"
+    --template '{{ if .spec.maxRetries }}{{ .spec.maxRetries }}{{ else }}0{{ end }}' || echo 0)"
 
   if [ "$OP" = unknown ]
   then
@@ -44,7 +44,7 @@ traceable_assert_dbops_running() {
       --for condition=Failed 2>/dev/null
     then
       OP_RETRIES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
-        --template '{{ .status.opRetries }}' || echo 0)"
+        --template '{{ if .status.opRetries }}{{ .status.opRetries }}{{ else }}0{{ end }}' || echo 0)"
       if [ "$MAX_RETRIES" -le "$OP_RETRIES" ] \
         && kubectl wait --timeout 1s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
           --for condition=Failed 2>/dev/null
@@ -88,7 +88,7 @@ traceable_assert_dbops_completion() {
   OP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
     --template '{{ .spec.op }}' || echo unknown)"
   MAX_RETRIES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
-    --template '{{ .spec.maxRetries }}' || echo 0)"
+    --template '{{ if .spec.maxRetries }}{{ .spec.maxRetries }}{{ else }}0{{ end }}' || echo 0)"
 
   if [ "$OP" = unknown ]
   then
@@ -114,7 +114,7 @@ traceable_assert_dbops_completion() {
       --for condition=Failed 2>/dev/null
     then
       OP_RETRIES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
-        --template '{{ .status.opRetries }}' || echo 0)"
+        --template '{{ if .status.opRetries }}{{ .status.opRetries }}{{ else }}0{{ end }}' || echo 0)"
       if [ "$MAX_RETRIES" -le "$OP_RETRIES" ] \
         && kubectl wait --timeout 1s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
           --for condition=Failed 2>/dev/null
@@ -158,7 +158,7 @@ traceable_assert_dbops_failure() {
   OP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
     --template '{{ .spec.op }}' || echo unknown)"
   MAX_RETRIES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
-    --template '{{ .spec.maxRetries }}' || echo 0)"
+    --template '{{ if .spec.maxRetries }}{{ .spec.maxRetries }}{{ else }}0{{ end }}' || echo 0)"
 
   if [ "$OP" = unknown ]
   then
@@ -191,7 +191,7 @@ traceable_assert_dbops_failure() {
       --for condition=Failed 2>/dev/null
     then
       OP_RETRIES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
-        --template '{{ .status.opRetries }}' || echo 0)"
+        --template '{{ if .status.opRetries }}{{ .status.opRetries }}{{ else }}0{{ end }}' || echo 0)"
       if [ "$MAX_RETRIES" -le "$OP_RETRIES" ] \
         && kubectl wait --timeout 1s -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
           --for condition=Failed 2>/dev/null

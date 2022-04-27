@@ -31,6 +31,7 @@
       }
     },
     "internalName": "base_00000002000000000000000D",
+    "backupPath": "sgbackups.stackgres.io/postgresql/stackgres/11",
     "process": {
       "status": "Completed",
       "failure": "",
