@@ -312,6 +312,9 @@ metadata:
   namespace: $CLUSTER_NAMESPACE
 spec: {}
 EOF
+  
+  local PREVIOUS_FIELDS
+  PREVIOUS_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec' | jq '.baseBackups.compression = "brotli"' )"
   local PATCH
   PATCH="$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
