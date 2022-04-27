@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgprofile;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 import javax.validation.constraints.AssertTrue;
@@ -13,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
@@ -43,6 +45,26 @@ public class StackGresProfileHugePages {
   public boolean isAnyHugePagesValueSet() {
     return hugepages2Mi != null
         || hugepages1Gi != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "hugepages-2Mi must be a multiple of 2Mi",
+      payload = {Hugepages2Mi.class})
+  public boolean isHugePages2MiValueMultipleOf2Mi() {
+    return hugepages2Mi == null
+        || (Quantity.getAmountInBytes(new Quantity(hugepages2Mi))
+            .remainder(Quantity.getAmountInBytes(new Quantity("2Mi")))
+            .compareTo(BigDecimal.ZERO) == 0);
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "hugepages-1Gi must be a multiple of 1Gi",
+      payload = {Hugepages1Gi.class})
+  public boolean isHugePages1GiValueMultipleOf1Gi() {
+    return hugepages1Gi == null
+        || (Quantity.getAmountInBytes(new Quantity(hugepages1Gi))
+            .remainder(Quantity.getAmountInBytes(new Quantity("1Gi")))
+            .compareTo(BigDecimal.ZERO) == 0);
   }
 
   public String getHugepages2Mi() {

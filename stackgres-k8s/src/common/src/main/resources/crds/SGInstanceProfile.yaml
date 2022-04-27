@@ -60,6 +60,8 @@ spec:
                     A minimum of 2-4Gi is recommended.
                 hugePages:
                   type: object
+                  description: |
+                    RAM allocated for huge pages
                   properties:
                     hugepages-2Mi:
                       type: string

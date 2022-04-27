@@ -5,16 +5,23 @@
 
 package io.stackgres.common.crd.sgprofile;
 
+import java.math.BigDecimal;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotBlank;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -32,6 +39,29 @@ public class StackGresProfileSpec {
   @JsonProperty("hugePages")
   @Valid
   private StackGresProfileHugePages hugePages;
+
+  @ReferencedField("memory")
+  interface Memory extends FieldReference {
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "memory can not be less than the sum of all hugepages",
+      payload = {Memory.class})
+  public boolean isMemoryGreaterOrEqualsToSumOfHugePages() {
+    return hugePages == null
+        || Optional.ofNullable(memory)
+        .map(Quantity::new)
+        .map(Quantity::getAmountInBytes)
+        .orElse(BigDecimal.ZERO).subtract(
+            Optional.ofNullable(hugePages.getHugepages2Mi())
+            .map(Quantity::new)
+            .map(Quantity::getAmountInBytes)
+            .orElse(BigDecimal.ZERO)
+            .add(Optional.ofNullable(hugePages.getHugepages1Gi())
+            .map(Quantity::new)
+            .map(Quantity::getAmountInBytes)
+            .orElse(BigDecimal.ZERO))).compareTo(BigDecimal.ZERO) >= 0;
+  }
 
   public String getCpu() {
     return cpu;
