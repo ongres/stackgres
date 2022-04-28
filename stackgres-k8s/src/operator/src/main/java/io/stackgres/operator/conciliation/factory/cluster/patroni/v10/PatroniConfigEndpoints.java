@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.cluster.patroni.v10;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,12 +30,19 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.AbstractPatroniConfigEndpoints;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_2)
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_0, stopAt = StackGresVersion.V_1_0)
 public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
+
+  private static final List<String> EXTRA_BLOCKLISTED_PARAMETERS =
+      List.of(new String[] {
+          "listen_addresses",
+          "huge_pages",
+      });
 
   @Inject
   public PatroniConfigEndpoints(ObjectMapper objectMapper,
@@ -47,6 +55,15 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
+  protected Map<String, String> getPostgresConfigValues(StackGresClusterContext context) {
+    return super.getPostgresConfigValues(context);
+  }
+
+  @Override
+  protected Map<String, String> getPostgresRecoveryConfigValues(StackGresClusterContext context) {
+    return super.getPostgresRecoveryConfigValues(context);
+  }
+
   @Override
   protected PatroniConfig getPatroniConfig(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getCluster();
@@ -54,15 +71,16 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     patroniConf.setTtl(30);
     patroniConf.setLoopWait(10);
     patroniConf.setRetryTimeout(10);
-    if (getPostgresFlavorComponent(cluster) != StackGresComponent.BABELFISH) {
-      patroniConf.setCheckTimeline(true);
+    if (cluster.getSpec().getReplication().isSynchronousMode()) {
+      patroniConf.setSynchronousMode(true);
+      patroniConf.setSynchronousNodeCount(
+          cluster.getSpec().getReplication().getSyncInstances());
     }
-    patroniConf.setSynchronousMode(
-        cluster.getSpec().getReplication().isSynchronousMode());
-    patroniConf.setSynchronousModeStrict(
-        cluster.getSpec().getReplication().isStrictSynchronousMode());
-    patroniConf.setSynchronousNodeCount(
-        cluster.getSpec().getReplication().getSyncInstances());
+    if (cluster.getSpec().getReplication().isStrictSynchronousMode()) {
+      patroniConf.setSynchronousModeStrict(true);
+      patroniConf.setSynchronousNodeCount(
+          cluster.getSpec().getReplication().getSyncInstances());
+    }
     patroniConf.setPostgresql(new PatroniConfig.PostgreSql());
     patroniConf.getPostgresql().setUsePgRewind(true);
     patroniConf.getPostgresql().setParameters(getPostgresConfigValues(context));
@@ -79,6 +97,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
             StackGresVersion.getStackGresVersion(context.getCluster()), version));
     Map<String, String> userParams = pgConfig.getSpec().getPostgresqlConf();
     PostgresBlocklist.getBlocklistParameters().forEach(userParams::remove);
+    EXTRA_BLOCKLISTED_PARAMETERS.forEach(userParams::remove);
     params.putAll(userParams);
 
     params.put("port", String.valueOf(EnvoyUtil.PG_PORT));

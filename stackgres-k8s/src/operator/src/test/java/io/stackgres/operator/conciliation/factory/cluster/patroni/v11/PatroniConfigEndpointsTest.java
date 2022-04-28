@@ -3,14 +3,13 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.cluster.patroni.v11;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -34,6 +33,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.AbstractPatroniConfigEndpoints;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import io.stackgres.testutil.JsonUtil;
@@ -51,7 +51,7 @@ class PatroniConfigEndpointsTest {
       new ClusterLabelMapper());
   @Mock
   private StackGresClusterContext context;
-  private AbstractPatroniConfigEndpoints generator;
+  private PatroniConfigEndpoints generator;
   private StackGresCluster cluster;
   private StackGresBackupConfig backupConfig;
   private StackGresPostgresConfig postgresConfig;
@@ -68,9 +68,6 @@ class PatroniConfigEndpointsTest {
         StackGresPostgresConfig.class);
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
     setDefaultParameters(postgresConfig);
-
-    lenient().when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
-    lenient().when(context.getPostgresConfig()).thenReturn(postgresConfig);
   }
 
   private void setDefaultParameters(StackGresPostgresConfig postgresConfig) {
@@ -205,6 +202,27 @@ class PatroniConfigEndpointsTest {
     assertNotNull(endpoint.getMetadata().getLabels());
     assertNotNull(endpoint.getMetadata().getAnnotations());
     return endpoint;
+  }
+
+  @Test
+  void generatedConfig_shouldNotChangeTooMuchFromPreviousVersion()
+      throws JsonProcessingException {
+    var cluster = JsonUtil
+          .readFromJson("upgrade/sgcluster.json", StackGresCluster.class);
+    var postgresConfig = JsonUtil.readFromJson("upgrade/sgpgconfig.json",
+        StackGresPostgresConfig.class);
+    var backupConfig = JsonUtil.readFromJson("upgrade/sgbackupconfig.json",
+        StackGresBackupConfig.class);
+    when(context.getSource()).thenReturn(cluster);
+    when(context.getCluster()).thenReturn(cluster);
+    when(context.getPostgresConfig()).thenReturn(postgresConfig);
+    when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
+
+    var patroniConfig = generator.getPatroniConfig(context);
+
+    JsonUtil.assertJsonEquals(
+        JsonUtil.readFromJsonAsJson("upgrade/v1.1/patroni.json"),
+        MAPPER.valueToTree(patroniConfig));
   }
 
 }

@@ -1,0 +1,54 @@
+{
+    "apiVersion": "stackgres.io/v1",
+    "kind": "SGBackupConfig",
+    "metadata": {
+        "annotations": {
+            "meta.helm.sh/release-name": "dbops-security-upgrade",
+            "meta.helm.sh/release-namespace": "dbops-security-upgrade-6270f0b2",
+            "stackgres.io/operatorVersion": "1.0.0"
+        },
+        "creationTimestamp": "2022-05-03T09:09:09Z",
+        "generation": 2,
+        "labels": {
+            "app.kubernetes.io/managed-by": "Helm"
+        },
+        "name": "backupconf",
+        "namespace": "dbops-security-upgrade-6270f0b2",
+        "resourceVersion": "4053",
+        "selfLink": "/apis/stackgres.io/v1/namespaces/dbops-security-upgrade-6270f0b2/sgbackupconfigs/backupconf",
+        "uid": "95b35f0f-e2f0-49c1-ae72-251cbf317b33"
+    },
+    "spec": {
+        "baseBackups": {
+            "compression": "lz4",
+            "cronSchedule": "0 5 31 2 *",
+            "performance": {
+                "maxDiskBandwidth": 10485760,
+                "maxNetworkBandwidth": 5242880,
+                "uploadDiskConcurrency": 1
+            },
+            "retention": 5
+        },
+        "storage": {
+            "s3Compatible": {
+                "awsCredentials": {
+                    "secretKeySelectors": {
+                        "accessKeyId": {
+                            "key": "accesskey",
+                            "name": "dbops-security-upgrade-minio"
+                        },
+                        "secretAccessKey": {
+                            "key": "secretkey",
+                            "name": "dbops-security-upgrade-minio"
+                        }
+                    }
+                },
+                "bucket": "stackgres",
+                "enablePathStyleAddressing": true,
+                "endpoint": "http://dbops-security-upgrade-minio:9000",
+                "region": "k8s"
+            },
+            "type": "s3Compatible"
+        }
+    }
+}
