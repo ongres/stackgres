@@ -6,26 +6,43 @@
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 
 import com.google.common.collect.Maps;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import org.jetbrains.annotations.NotNull;
 
-public class PgBouncerDefaultValues {
+public interface PgBouncerDefaultValues {
 
-  private static final String FILE_PATH = "/pgbouncer-default-values.properties";
+  enum PgBouncerDefaulValuesProperties {
+    PGBOUNCER_DEFAULT_VALUES("/pgbouncer-default-values.properties");
 
-  private static final @NotNull Properties DEFAULTS = StackGresUtil.loadProperties(FILE_PATH);
+    private final @NotNull Properties propFile;
 
-  private PgBouncerDefaultValues() {}
-
-  public static @NotNull Properties getProperties() {
-    return DEFAULTS;
+    PgBouncerDefaulValuesProperties(@NotNull String file) {
+      this.propFile = StackGresUtil.loadProperties(file);
+    }
   }
 
-  public static @NotNull Map<String, String> getDefaultValues() {
-    return Maps.fromProperties(getProperties());
+  static @NotNull Properties getProperties() {
+    return getProperties(StackGresVersion.LATEST);
+  }
+
+  static @NotNull Properties getProperties(
+      @NotNull StackGresVersion version) {
+    Objects.requireNonNull(version, "operatorVersion parameter is null");
+    return PgBouncerDefaulValuesProperties.PGBOUNCER_DEFAULT_VALUES.propFile;
+  }
+
+  static @NotNull Map<String, String> getDefaultValues() {
+    return getDefaultValues(StackGresVersion.LATEST);
+  }
+
+  static @NotNull Map<String, String> getDefaultValues(
+      @NotNull StackGresVersion version) {
+    return Maps.fromProperties(getProperties(version));
   }
 
 }

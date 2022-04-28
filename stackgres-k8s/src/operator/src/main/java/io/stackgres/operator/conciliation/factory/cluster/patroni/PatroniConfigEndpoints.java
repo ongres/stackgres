@@ -21,11 +21,11 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -74,10 +74,9 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
   protected Map<String, String> getPostgresParameters(StackGresClusterContext context,
       StackGresPostgresConfig pgConfig) {
     final String version = pgConfig.getSpec().getPostgresVersion();
-    Map<String, String> params = Optional.ofNullable(pgConfig.getStatus())
-        .map(StackGresPostgresConfigStatus::getDefaultParameters)
-        .map(HashMap::new)
-        .orElseGet(() -> new HashMap<>(PostgresDefaultValues.getDefaultValues(version)));
+    Map<String, String> params = new HashMap<>(
+        PostgresDefaultValues.getDefaultValues(
+            StackGresVersion.getStackGresVersion(context.getCluster()), version));
     Map<String, String> userParams = pgConfig.getSpec().getPostgresqlConf();
     for (String bl : PostgresBlocklist.getBlocklistParameters()) {
       userParams.remove(bl);
@@ -118,10 +117,6 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
           .map(sharedPreloadLibraries -> "babelfishpg_tds, " + sharedPreloadLibraries)
           .orElse("babelfishpg_tds"));
     }
-
-    params.put("wal_level", "logical");
-    params.put("wal_log_hints", "on");
-    params.put("archive_mode", "on");
 
     return params;
   }

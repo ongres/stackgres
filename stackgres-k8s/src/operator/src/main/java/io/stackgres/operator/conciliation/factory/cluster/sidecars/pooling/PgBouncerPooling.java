@@ -11,7 +11,6 @@ import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRE
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,13 +30,12 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -135,11 +133,11 @@ public class PgBouncerPooling extends AbstractPgPooling {
   }
 
   @Override
-  protected String getConfigFile(Optional<StackGresPoolingConfig> poolingConfig) {
+  protected String getConfigFile(StackGresClusterContext context) {
     return ""
-        + getDatabaseSection(poolingConfig)
-        + getUserSection(poolingConfig)
-        + getPgBouncerSection(poolingConfig);
+        + getDatabaseSection(context)
+        + getUserSection(context)
+        + getPgBouncerSection(context);
   }
 
   @Override
@@ -163,8 +161,8 @@ public class PgBouncerPooling extends AbstractPgPooling {
         .build();
   }
 
-  private String getPgBouncerSection(Optional<StackGresPoolingConfig> poolingConfig) {
-    var newParams = poolingConfig
+  private String getPgBouncerSection(StackGresClusterContext context) {
+    var newParams = context.getPoolingConfig()
         .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
@@ -174,12 +172,9 @@ public class PgBouncerPooling extends AbstractPgPooling {
     // Blocklist removal
     PgBouncerBlocklist.getBlocklistParameters().forEach(newParams::remove);
 
-    Map<String, String> parameters = poolingConfig
-        .map(StackGresPoolingConfig::getStatus)
-        .map(StackGresPoolingConfigStatus::getPgBouncer)
-        .map(StackGresPoolingConfigPgBouncerStatus::getDefaultParameters)
-        .map(HashMap::new)
-        .orElseGet(() -> new HashMap<>(PgBouncerDefaultValues.getDefaultValues()));
+    Map<String, String> parameters = new HashMap<>(
+        PgBouncerDefaultValues.getDefaultValues(
+            StackGresVersion.getStackGresVersion(context.getCluster())));
 
     parameters.putAll(getDefaultParameters());
     parameters.putAll(newParams);
@@ -192,8 +187,8 @@ public class PgBouncerPooling extends AbstractPgPooling {
     return "[pgbouncer]\n" + pgBouncerConfig + "\n";
   }
 
-  private String getUserSection(Optional<StackGresPoolingConfig> poolingConfig) {
-    var users = poolingConfig
+  private String getUserSection(StackGresClusterContext context) {
+    var users = context.getPoolingConfig()
         .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
@@ -205,8 +200,8 @@ public class PgBouncerPooling extends AbstractPgPooling {
         : "";
   }
 
-  private String getDatabaseSection(Optional<StackGresPoolingConfig> poolingConfig) {
-    var databases = poolingConfig
+  private String getDatabaseSection(StackGresClusterContext context) {
+    var databases = context.getPoolingConfig()
         .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
