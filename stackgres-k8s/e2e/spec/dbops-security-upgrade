@@ -12,6 +12,8 @@ e2e_test_install() {
     return
   fi
 
+  CLUSTER_CRD="sgclusters.stackgres.io"
+
   RANDOM_VALUE="$(random_string)"
   CLUSTER_1_NAME="$(get_sgcluster_name "$CLUSTER_NAME-1")"
   CLUSTER_2_NAME="$(get_sgcluster_name "$CLUSTER_NAME-2")"
@@ -179,9 +181,25 @@ EOF
   generate_mock_data "$CLUSTER_2_NAME"
   generate_mock_data "$CLUSTER_3_NAME"
 
-  CLUSTER_CRD="sgclusters.stackgres.io"
+  PATRONI_1_CONFIG_PATH="$LOG_PATH/patroni-1-config"
+  kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-config" \
+    --template '{{ .metadata.annotations.config }}' > "$PATRONI_1_CONFIG_PATH"
+  PATRONI_2_CONFIG_PATH="$LOG_PATH/patroni-2-config"
+  kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_2_NAME-config" \
+    --template '{{ .metadata.annotations.config }}' > "$PATRONI_2_CONFIG_PATH"
+  PATRONI_3_CONFIG_PATH="$LOG_PATH/patroni-3-config"
+  kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_3_NAME-config" \
+    --template '{{ .metadata.annotations.config }}' > "$PATRONI_3_CONFIG_PATH"
+  PGBOUNCER_1_CONFIG_PATH="$LOG_PATH/pgbouncer-1-config"
+  kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-connection-pooling-config" \
+    --template '{{ index .data.config "pgbouncer.ini" }}' > "$PGBOUNCER_1_CONFIG_PATH"
+  PGBOUNCER_2_CONFIG_PATH="$LOG_PATH/pgbouncer-2-config"
+  kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_2_NAME-connection-pooling-config" \
+    --template '{{ index .data.config "pgbouncer.ini" }}' > "$PGBOUNCER_2_CONFIG_PATH"
+  PGBOUNCER_3_CONFIG_PATH="$LOG_PATH/pgbouncer-3-config"
+  kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_3_NAME-connection-pooling-config" \
+    --template '{{ index .data.config "pgbouncer.ini" }}' > "$PGBOUNCER_3_CONFIG_PATH"
 }
-
 
 is_backup_phase() {
   [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
@@ -359,37 +377,48 @@ check_distributedlogs_security_upgrade() {
 }
 
 check_cluster_1_security_upgrade_start() {
-  check_mutations()
+  check_mutations
 
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
-  check_cluster_security_upgrade_start "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
+  check_cluster_security_upgrade_start \
+    "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact" \
+    "$PATRONI_1_CONFIG_PATH" "$PGBOUNCER_1_CONFIG_PATH"
 }
 
 check_cluster_2_security_upgrade_start() {
-  check_cluster_security_upgrade_start "$CLUSTER_2_NAME" "$DBOPS_2_NAME" "ReducedImpact"
+  check_cluster_security_upgrade_start \
+    "$CLUSTER_2_NAME" "$DBOPS_2_NAME" "ReducedImpact" \
+    "$PATRONI_2_CONFIG_PATH" "$PGBOUNCER_2_CONFIG_PATH"
 }
 
 check_cluster_3_security_upgrade_start() {
-  check_cluster_security_upgrade_start "$CLUSTER_3_NAME" "$DBOPS_3_NAME" "InPlace"
+  check_cluster_security_upgrade_start \
+    "$CLUSTER_3_NAME" "$DBOPS_3_NAME" "InPlace" \
+    "$PATRONI_3_CONFIG_PATH" "$PGBOUNCER_3_CONFIG_PATH"
 }
 
 check_cluster_1_security_upgrade() {
-  check_cluster_security_upgrade "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
+  check_cluster_security_upgrade \
+    "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
 }
 
 check_cluster_2_security_upgrade() {
-  check_cluster_security_upgrade "$CLUSTER_2_NAME" "$DBOPS_2_NAME" "ReducedImpact"
+  check_cluster_security_upgrade \
+    "$CLUSTER_2_NAME" "$DBOPS_2_NAME" "ReducedImpact"
 }
 
 check_cluster_3_security_upgrade() {
-  check_cluster_security_upgrade "$CLUSTER_3_NAME" "$DBOPS_3_NAME" "InPlace"
+  check_cluster_security_upgrade \
+    "$CLUSTER_3_NAME" "$DBOPS_3_NAME" "InPlace"
 }
 
 check_cluster_security_upgrade_start() {
   local CLUSTER_NAME="$1"
   local DBOPS_NAME="$2"
   local METHOD="$3"
-  shift 3
+  local PREVIOUS_PATRONI_CONFIG_PATH="$4"
+  local PREVIOUS_PGBOUNCER_CONFIG_PATH="$5"
+  shift 5
 
   check_cluster_before_security_upgrade
 
@@ -422,19 +451,6 @@ EOF
   else
     echo "SUCCESS. Cluster has not been updated while locked."
   fi
-}
-
-check_cluster_security_upgrade() {
-  local CLUSTER_NAME="$1"
-  local DBOPS_NAME="$2"
-  local METHOD="$3"
-  shift 3
-
-  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
-
-  check_cluster_after_security_upgrade
-
-  check_mock_data_samehost "$CLUSTER_NAME"
 }
 
 check_cluster_before_security_upgrade() {
@@ -471,6 +487,41 @@ check_cluster_before_security_upgrade() {
       return 1
     fi
   done
+
+  PATRONI_CONFIG="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-config" --template '{{ .metadata.annotations.config }}')"
+  PREVIOUS_PATRONI_CONFIG="$(cat "$PREVIOUS_PATRONI_CONFIG_PATH")"
+
+  if [ "$PATRONI_CONFIG" = "$PREVIOUS_PATRONI_CONFIG" ]
+  then
+    echo "SUCCESS. Cluster $CLUSTER_NAME patroni config did not changed after operator upgrade"
+  else
+    echo "FAIL. Cluster $CLUSTER_NAME patroni config changed after operator upgrade"
+    return 1
+  fi
+
+  PGBOUNCER_CONFIG="$(kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-connection-pooling-config" --template '{{ index .data.config "pgbouncer.ini" }}')"
+  PREVIOUS_PGBOUNCER_CONFIG="$(cat "$PREVIOUS_PGBOUNCER_CONFIG_PATH")"
+
+  if [ "$PGBOUNCER_CONFIG" = "$PREVIOUS_PGBOUNCER_CONFIG" ]
+  then
+    echo "SUCCESS. Cluster $CLUSTER_NAME pgbouncer config did not changed after operator upgrade"
+  else
+    echo "FAIL. Cluster $CLUSTER_NAME pgbouncer config changed after operator upgrade"
+    return 1
+  fi
+}
+
+check_cluster_security_upgrade() {
+  local CLUSTER_NAME="$1"
+  local DBOPS_NAME="$2"
+  local METHOD="$3"
+  shift 3
+
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
+
+  check_cluster_after_security_upgrade
+
+  check_mock_data_samehost "$CLUSTER_NAME"
 }
 
 check_cluster_after_security_upgrade() {
