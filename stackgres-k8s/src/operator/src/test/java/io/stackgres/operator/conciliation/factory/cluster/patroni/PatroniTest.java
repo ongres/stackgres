@@ -5,7 +5,9 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -15,17 +17,13 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.PostgresContainerContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
@@ -62,6 +60,9 @@ class PatroniTest {
   @Mock
   VolumeMountsProvider<ContainerContext> backupMounts;
   @Mock
+  VolumeMountsProvider<StackGresClusterContainerContext> hugePagesMounts;
+
+  @Mock
   VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
 
   private Patroni patroni;
@@ -77,14 +78,11 @@ class PatroniTest {
 
   private StackGresCluster cluster;
 
-  private StackGresProfile profile;
-
   @BeforeEach
   void setUp() {
     patroni = new Patroni(patroniEnvironmentVariables, requirementsFactory, labelFactory,
         postgresSocket, postgresExtensions, localBinMounts, restoreMounts, backupMounts,
-        volumeDiscoverer);
-    profile = JsonUtil.readFromJson("stackgres_profiles/size-s.json", StackGresProfile.class);
+        hugePagesMounts, volumeDiscoverer);
     cluster = JsonUtil.readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
@@ -106,32 +104,14 @@ class PatroniTest {
   }
 
   @Test
-  void givenAClusterWithAProfileWithHugePages_itShouldCreateTheContainerWithHugePages() {
+  void givenACluster_itShouldGetHugePagesMountsAndEnvVars() {
     when(clusterContext.getSource()).thenReturn(cluster);
     when(clusterContext.getCluster()).thenReturn(cluster);
-    profile.getSpec().setHugePages(new StackGresProfileHugePages());
-    profile.getSpec().getHugePages().setHugepages2Mi("2Mi");
-    profile.getSpec().getHugePages().setHugepages1Gi("1Gi");
-    when(clusterContext.getStackGresProfile()).thenReturn(profile);
 
-    var container = patroni.getContainer(clusterContainerContext);
+    patroni.getContainer(clusterContainerContext);
 
-    assertTrue(container.getVolumeMounts().stream()
-        .anyMatch(volumeMount -> volumeMount.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName())));
-    assertTrue(container.getVolumeMounts().stream()
-        .filter(volumeMount -> volumeMount.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName()))
-        .anyMatch(volumeMount -> volumeMount.getMountPath()
-            .equals(ClusterStatefulSetPath.HUGEPAGES_2M_PATH.path())));
-    assertTrue(container.getVolumeMounts().stream()
-        .anyMatch(volumeMount -> volumeMount.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName())));
-    assertTrue(container.getVolumeMounts().stream()
-        .filter(volumeMount -> volumeMount.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName()))
-        .anyMatch(volumeMount -> volumeMount.getMountPath()
-            .equals(ClusterStatefulSetPath.HUGEPAGES_1G_PATH.path())));
+    verify(hugePagesMounts, times(1)).getVolumeMounts(any());
+    verify(hugePagesMounts, times(1)).getDerivedEnvVars(any());
   }
 
 }
