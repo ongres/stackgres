@@ -41,8 +41,6 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
-import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
-import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -78,6 +76,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   private final VolumeMountsProvider<ContainerContext> localBinMounts;
   private final VolumeMountsProvider<ContainerContext> restoreMounts;
   private final VolumeMountsProvider<ContainerContext> backupMounts;
+  private final VolumeMountsProvider<StackGresClusterContainerContext> hugePagesMounts;
   private final VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
 
   @Inject
@@ -95,6 +94,8 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
           VolumeMountsProvider<ContainerContext> restoreMounts,
       @ProviderName(VolumeMountProviderName.BACKUP)
           VolumeMountsProvider<ContainerContext> backupMounts,
+      @ProviderName(VolumeMountProviderName.HUGE_PAGES)
+          VolumeMountsProvider<StackGresClusterContainerContext> hugePagesMounts,
       VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer) {
     super();
     this.patroniEnvironmentVariables = patroniEnvironmentVariables;
@@ -105,6 +106,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
     this.localBinMounts = localBinMounts;
     this.restoreMounts = restoreMounts;
     this.backupMounts = backupMounts;
+    this.hugePagesMounts = hugePagesMounts;
     this.volumeDiscoverer = volumeDiscoverer;
   }
 
@@ -166,24 +168,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
                 .build())
         .addAll(backupMounts.getVolumeMounts(context))
         .addAll(postgresExtensions.getVolumeMounts(postgresContext))
-        .addAll(Optional.of(context.getClusterContext().getStackGresProfile().getSpec())
-            .map(StackGresProfileSpec::getHugePages)
-            .map(StackGresProfileHugePages::getHugepages2Mi)
-            .map(quantity -> new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName())
-                .withMountPath(ClusterStatefulSetPath.HUGEPAGES_2M_PATH.path())
-                .build())
-            .stream()
-            .iterator())
-        .addAll(Optional.of(context.getClusterContext().getStackGresProfile().getSpec())
-            .map(StackGresProfileSpec::getHugePages)
-            .map(StackGresProfileHugePages::getHugepages1Gi)
-            .map(quantity -> new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName())
-                .withMountPath(ClusterStatefulSetPath.HUGEPAGES_1G_PATH.path())
-                .build())
-            .stream()
-            .iterator());
+        .addAll(hugePagesMounts.getVolumeMounts(context));
 
     Optional.ofNullable(cluster.getSpec().getInitData())
         .map(StackGresClusterInitData::getRestore)
@@ -286,6 +271,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
                 .build())
         .addAll(backupMounts.getDerivedEnvVars(context))
         .addAll(restoreMounts.getDerivedEnvVars(context))
+        .addAll(hugePagesMounts.getDerivedEnvVars(context))
         .build();
   }
 
