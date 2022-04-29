@@ -1,0 +1,61 @@
+{
+    "apiVersion": "stackgres.io/v1",
+    "kind": "SGPoolingConfig",
+    "metadata": {
+        "annotations": {
+            "meta.helm.sh/release-name": "dbops-security-upgrade",
+            "meta.helm.sh/release-namespace": "dbops-security-upgrade-6270f0b2",
+            "stackgres.io/operatorVersion": "1.0.0"
+        },
+        "creationTimestamp": "2022-05-03T09:09:09Z",
+        "generation": 1,
+        "labels": {
+            "app.kubernetes.io/managed-by": "Helm"
+        },
+        "name": "pgbouncerconf",
+        "namespace": "dbops-security-upgrade-6270f0b2",
+        "resourceVersion": "1775",
+        "selfLink": "/apis/stackgres.io/v1/namespaces/dbops-security-upgrade-6270f0b2/sgpoolconfigs/pgbouncerconf",
+        "uid": "e98ee4c0-f075-45a9-ba77-9df2c1ae6579"
+    },
+    "spec": {
+        "pgBouncer": {
+            "pgbouncer.ini": {
+                "pgbouncer": {
+                    "admin_users": "pgbouncer_admin",
+                    "application_name_add_host": "1",
+                    "auth_query": "SELECT usename, passwd FROM pg_shadow WHERE usename=$1",
+                    "auth_type": "md5",
+                    "auth_user": "authenticator",
+                    "default_pool_size": "50",
+                    "ignore_startup_parameters": "extra_float_digits",
+                    "listen_addr": "127.0.0.1",
+                    "max_client_conn": "200",
+                    "max_db_connections": "0",
+                    "max_user_connections": "0",
+                    "pool_mode": "transaction",
+                    "stats_users": "pgbouncer_stats"
+                }
+            }
+        }
+    },
+    "status": {
+        "pgBouncer": {
+            "defaultParameters": {
+                "admin_users": "pgbouncer_admin",
+                "application_name_add_host": "1",
+                "auth_query": "SELECT usename, passwd FROM pg_shadow WHERE usename=$1",
+                "auth_type": "md5",
+                "auth_user": "authenticator",
+                "default_pool_size": "1000",
+                "ignore_startup_parameters": "extra_float_digits",
+                "listen_addr": "127.0.0.1",
+                "max_client_conn": "1000",
+                "max_db_connections": "0",
+                "max_user_connections": "0",
+                "pool_mode": "session",
+                "stats_users": "pgbouncer_stats"
+            }
+        }
+    }
+}

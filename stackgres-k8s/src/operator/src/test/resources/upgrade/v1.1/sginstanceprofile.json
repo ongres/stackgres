@@ -1,0 +1,25 @@
+{
+    "apiVersion": "stackgres.io/v1",
+    "kind": "SGInstanceProfile",
+    "metadata": {
+        "annotations": {
+            "meta.helm.sh/release-name": "dbops-security-upgrade",
+            "meta.helm.sh/release-namespace": "dbops-security-upgrade-6270f0b2",
+            "stackgres.io/operatorVersion": "1.0.0"
+        },
+        "creationTimestamp": "2022-05-03T09:09:09Z",
+        "generation": 1,
+        "labels": {
+            "app.kubernetes.io/managed-by": "Helm"
+        },
+        "name": "size-xs",
+        "namespace": "dbops-security-upgrade-6270f0b2",
+        "resourceVersion": "1774",
+        "selfLink": "/apis/stackgres.io/v1/namespaces/dbops-security-upgrade-6270f0b2/sginstanceprofiles/size-xs",
+        "uid": "88baebc0-ed8e-4ac4-8f3e-25ff1cc1450d"
+    },
+    "spec": {
+        "cpu": "125m",
+        "memory": "512Mi"
+    }
+}

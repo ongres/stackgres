@@ -14,6 +14,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.ImmutableStackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter.v_1_0.PostgresExporter;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
