@@ -523,7 +523,8 @@ check_cluster_before_security_upgrade() {
   then
     PATRONI_CONFIG="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-config" --template '{{ .metadata.annotations.config }}')"
     PATRONI_CONFIG="$(printf '%s' "$PATRONI_CONFIG" | jq -c .)"
-    jq -c '. | .postgresql.parameters = (.postgresql.parameters
+    jq -c '.
+      | .postgresql.parameters = (.postgresql.parameters
         | if .autovacuum_vacuum_cost_delay == "2" then .autovacuum_vacuum_cost_delay = "2ms" else . end
         | if .checkpoint_timeout == "30" then .checkpoint_timeout = "30s" else . end
         | if .log_autovacuum_min_duration == "0" then .log_autovacuum_min_duration = "0ms" else . end
@@ -532,8 +533,12 @@ check_cluster_before_security_upgrade() {
         | if .log_rotation_size == "0" then .log_rotation_size = "0kB" else . end
         | if .log_temp_files == "0" then .log_temp_files = "0kB" else . end
         | if .track_activity_query_size == "4096" then .track_activity_query_size = "4kB" else . end
-      )' "$PREVIOUS_PATRONI_CONFIG_PATH" > "$LOG_PATH/prvious-patroni-config.json"
-    PREVIOUS_PATRONI_CONFIG="$(cat "$LOG_PATH/prvious-patroni-config.json")"
+        | if .restore_command != null then .restore_command = null else . end)
+      | .postgresql.recovery_conf = (if .postgresql.recovery_conf == null
+        then { restore_command: "exec-with-env 'backup' -- wal-g wal-fetch %f %p" }
+        else .postgresql.recovery_conf end)
+      ' "$PREVIOUS_PATRONI_CONFIG_PATH" > "$LOG_PATH/previous-patroni-config.json"
+    PREVIOUS_PATRONI_CONFIG="$(cat "$LOG_PATH/previous-patroni-config.json")"
 
     if [ "$PATRONI_CONFIG" = "$PREVIOUS_PATRONI_CONFIG" ]
     then
@@ -541,7 +546,7 @@ check_cluster_before_security_upgrade() {
     else
       printf '%s' "$PATRONI_CONFIG" > "$LOG_PATH/patroni-config.json"
       yq -y . "$LOG_PATH/patroni-config.json" > "$LOG_PATH/patroni-config.yaml"
-      yq -y . "$LOG_PATH/prvious-patroni-config.json" > "$LOG_PATH/previous-patroni-config.yaml"
+      yq -y . "$LOG_PATH/previous-patroni-config.json" > "$LOG_PATH/previous-patroni-config.yaml"
       echo "FAIL. Cluster $CLUSTER_NAME patroni config changed after operator upgrade"
       echo
       diff "$LOG_PATH/previous-patroni-config.yaml" "$LOG_PATH/patroni-config.yaml"
