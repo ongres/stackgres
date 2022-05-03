@@ -23,15 +23,16 @@ e2e_test_install() {
   DBOPS_3_NAME="$(get_sgdbops_name "security-upgrade-3")"
 
   PREVIOUS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION")"
-  PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:')"
+  PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg')"
   PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%.*}"
-  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:' | grep "[-]pg$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-" | tail -n 1)"
+  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-")"
+  PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | tail -n 1)"
 
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION")"
-  PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12[0-9.]\+-build-')"
+  PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12\.[0-9]\+-build-')"
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | tail -n 1)"
 
   k8s_unnamespaced_cleanup
@@ -535,7 +536,7 @@ check_cluster_before_security_upgrade() {
         | if .track_activity_query_size == "4096" then .track_activity_query_size = "4kB" else . end
         | if .restore_command != null then .restore_command = null else . end)
       | .postgresql.recovery_conf = (if .postgresql.recovery_conf == null
-        then { restore_command: "exec-with-env 'backup' -- wal-g wal-fetch %f %p" }
+        then { restore_command: "exec-with-env '"'backup'"' -- wal-g wal-fetch %f %p" }
         else .postgresql.recovery_conf end)
       ' "$PREVIOUS_PATRONI_CONFIG_PATH" > "$LOG_PATH/previous-patroni-config.json"
     PREVIOUS_PATRONI_CONFIG="$(cat "$LOG_PATH/previous-patroni-config.json")"
