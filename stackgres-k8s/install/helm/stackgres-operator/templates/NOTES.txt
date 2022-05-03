@@ -43,7 +43,7 @@ https://localhost:8443
 To get the username, run the command:
 
     kubectl get secret -n {{ .Release.Namespace }} {{ .Values.authentication.secretRef.name | default .Values.restapi.name }} --template '{{ "{{" }} printf "username = %s\n" (.data.k8sUsername | base64decode) {{ "}}" }}'
-{{- if and (not .Values.authentication.password) .Values.authentication.secretRef.name }}
+{{- if and (not .Values.authentication.password) (not .Values.authentication.secretRef.name) }}
 
 To get the generated password, run the command:
 
