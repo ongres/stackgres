@@ -902,7 +902,9 @@
 				const vc = this;
 
 				vc.scrollAwait = setInterval(function() {
-					if ( $('.scroller')[0].scrollTop != ( $('.scroller')[0].scrollHeight - $('.scroller')[0].clientHeight ) ) {
+					if 	( $('.scroller')[0].scrollTop != ( $('.scroller')[0].scrollHeight - $('.scroller')[0].clientHeight ) &&
+						(!$('.log.open').length || !isElementInViewport($('.log.open')[0]) ) 
+					) {
 						$('.scroller')[0].scrollTop = $('.scroller')[0].scrollHeight + $('.scroller')[0].clientHeight;
 					} else {
 						clearInterval(vc.scrollAwait)
@@ -1029,6 +1031,15 @@
 			$('.daterangepicker').remove()
 			clearInterval(this.pooling);
 		}
+	}
+
+	function isElementInViewport(el) {
+		var rect = el.getBoundingClientRect();
+
+    	return rect.bottom > 0 &&
+			rect.right > 0 &&
+			rect.left < (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */ &&
+			rect.top < (window.innerHeight || document.documentElement.clientHeight) /* or $(window).height() */;
 	}
 </script>
 
