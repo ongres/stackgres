@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni.v11;
+package io.stackgres.operator.conciliation.factory.cluster.patroni.v10;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -221,7 +221,7 @@ class PatroniConfigEndpointsTest {
     var patroniConfig = generator.getPatroniConfig(context);
 
     JsonUtil.assertJsonEquals(
-        JsonUtil.readFromJsonAsJson("upgrade/v1.1/patroni.json"),
+        JsonUtil.readFromJsonAsJson("upgrade/v1.0/patroni.json"),
         MAPPER.valueToTree(patroniConfig));
   }
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni.v11;
+package io.stackgres.operator.conciliation.factory.cluster.patroni.v10;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
@@ -35,7 +35,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Pos
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_1, stopAt = StackGresVersion.V_1_1)
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_0, stopAt = StackGresVersion.V_1_0)
 public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
 
   private static final List<String> EXTRA_BLOCKLISTED_PARAMETERS =
@@ -71,9 +71,6 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     patroniConf.setTtl(30);
     patroniConf.setLoopWait(10);
     patroniConf.setRetryTimeout(10);
-    if (getPostgresFlavorComponent(cluster) != StackGresComponent.BABELFISH) {
-      patroniConf.setCheckTimeline(true);
-    }
     if (cluster.getSpec().getReplication().isSynchronousMode()) {
       patroniConf.setSynchronousMode(true);
       patroniConf.setSynchronousNodeCount(
