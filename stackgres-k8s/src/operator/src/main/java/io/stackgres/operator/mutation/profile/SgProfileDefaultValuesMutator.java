@@ -21,9 +21,14 @@ public class SgProfileDefaultValuesMutator
     implements ProfileMutator {
 
   @Override
-  public JsonNode getTargetNode(StackGresProfile resource) {
-    return super.getTargetNode(resource)
+  public JsonNode getSourceNode(StackGresProfile resource) {
+    return toNode(resource)
         .get("spec");
+  }
+
+  @Override
+  public JsonNode getTargetNode(StackGresProfile resource) {
+    return getSourceNode(resource);
   }
 
   @Override

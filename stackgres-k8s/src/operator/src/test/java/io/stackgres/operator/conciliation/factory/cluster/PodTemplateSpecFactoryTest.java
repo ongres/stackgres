@@ -5,26 +5,39 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
-import static io.stackgres.operator.fixture.NodeAffinityFixture.PREFERRED_TOPOLOGY_KEY;
-import static io.stackgres.operator.fixture.NodeAffinityFixture.REQUIRED_TOPOLY_KEY;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.Map;
+
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.crd.NodeAffinity;
+import io.stackgres.common.LabelMapperForCluster;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
-import io.stackgres.operator.fixture.NodeAffinityFixture;
-import io.stackgres.operator.fixture.StackGresClusterFixture;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class PodTemplateSpecFactoryTest {
+
+  private static final String POSTGRES_VERSION =
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().findFirst().get();
 
   @Mock
   private ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext;
@@ -33,78 +46,96 @@ class PodTemplateSpecFactoryTest {
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Mock
+  private LabelMapperForCluster<StackGresCluster> labelMapper;
+
+  @Mock
   private ContainerFactoryDiscoverer<StackGresClusterContainerContext> containerFactoryDiscoverer;
 
   @Mock
   private InitContainerFactoryDiscover<StackGresClusterContainerContext>
       initContainerFactoryDiscoverer;
 
+  @Mock
+  private ContainerFactory<StackGresClusterContainerContext> patroniContainerFactory;
+
+  @Mock
+  private Container patroniContainer;
+
   @InjectMocks
   private PodTemplateSpecFactory podTemplateSpecFactory;
+
+  @Mock
+  private StackGresClusterContainerContext clusterContainerContext;
+
+  @Mock
+  private StackGresClusterContext clusterContext;
+
+  private StackGresCluster cluster;
 
   @BeforeEach
   public void setupClass() {
     this.podTemplateSpecFactory = new PodTemplateSpecFactory(
         podSecurityContext, labelFactory, containerFactoryDiscoverer,
         initContainerFactoryDiscoverer);
+    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
+    when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
+    when(clusterContext.getSource()).thenReturn(cluster);
+    when(clusterContext.getCluster()).thenReturn(cluster);
+    when(labelFactory.labelMapper()).thenReturn(labelMapper);
   }
 
   @Test
-  void shouldNodeAffinity_HasTheSameRequireDuringSchedulingRequirementsSize() {
-    NodeAffinity nodeAffinity = new NodeAffinityFixture()
-        .withValidRequirement()
-        .build();
-    StackGresCluster cluster = new StackGresClusterFixture().withNodeAffinity(nodeAffinity).build();
-    io.fabric8.kubernetes.api.model.NodeAffinity k8sPodNodeAffinity =
-        cluster.getSpec().getPod().getScheduling().getNodeAffinity();
-    assertEquals(2,
-        k8sPodNodeAffinity
-            .getRequiredDuringSchedulingIgnoredDuringExecution()
-            .getNodeSelectorTerms().size());
+  void clusterWithHugePages_shouldAddHugePagesVolumes() {
+    when(containerFactoryDiscoverer.discoverContainers(clusterContainerContext))
+        .thenReturn(List.of(patroniContainerFactory));
+    when(patroniContainerFactory.getContainer(clusterContainerContext))
+        .thenReturn(patroniContainer);
+    when(patroniContainer.getVolumeMounts()).thenReturn(List.of(
+        new VolumeMountBuilder()
+        .withName(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName())
+        .build(),
+        new VolumeMountBuilder()
+        .withName(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName())
+        .build()));
+    when(clusterContainerContext.availableVolumes()).thenReturn(Map.of(
+        PatroniStaticVolume.HUGEPAGES_2M.getVolumeName(),
+        new VolumeBuilder()
+        .withName(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName())
+        .withNewEmptyDir()
+        .withMedium("HugePages-2Mi")
+        .endEmptyDir()
+        .build(),
+        PatroniStaticVolume.HUGEPAGES_1G.getVolumeName(),
+        new VolumeBuilder()
+        .withName(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName())
+        .withNewEmptyDir()
+        .withMedium("HugePages-1Gi")
+        .endEmptyDir()
+        .build()));
+    var podTemplateSpec = podTemplateSpecFactory.getPodTemplateSpec(clusterContainerContext);
+    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
+        .anyMatch(volume -> volume.getName()
+            .equals(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName())));
+    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
+        .filter(volume -> volume.getName()
+            .equals(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName()))
+        .anyMatch(volume -> volume.getEmptyDir() != null));
+    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
+        .filter(volume -> volume.getName()
+            .equals(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName()))
+        .anyMatch(volume -> volume.getEmptyDir().getMedium().equals("HugePages-2Mi")));
+    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
+        .anyMatch(volume -> volume.getName()
+            .equals(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName())));
+    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
+        .filter(volume -> volume.getName()
+            .equals(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName()))
+        .anyMatch(volume -> volume.getEmptyDir() != null));
+    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
+        .filter(volume -> volume.getName()
+            .equals(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName()))
+        .anyMatch(volume -> volume.getEmptyDir().getMedium().equals("HugePages-1Gi")));
   }
 
-  @Test
-  void shouldNodeAffinity_HasTheSameRequireDuringSchedulingRequirementsKey() {
-    NodeAffinity nodeAffinity = new NodeAffinityFixture()
-        .withValidRequirement()
-        .build();
-    StackGresCluster cluster = new StackGresClusterFixture()
-        .withNodeAffinity(nodeAffinity)
-        .build();
-    io.fabric8.kubernetes.api.model.NodeAffinity k8sPodNodeAffinity =
-        cluster.getSpec().getPod().getScheduling().getNodeAffinity();
-    k8sPodNodeAffinity.getRequiredDuringSchedulingIgnoredDuringExecution().getNodeSelectorTerms()
-        .forEach(term -> {
-          term.getMatchExpressions().forEach(math -> {
-            assertEquals(REQUIRED_TOPOLY_KEY, math.getKey());
-          });
-        });
-  }
-
-  @Test
-  void shouldNodeAffinity_HasTheSamePreferredDuringSchedulingRequirementsSize() {
-    NodeAffinity nodeAffinity = new NodeAffinityFixture()
-        .withValidPreferredScheduling()
-        .build();
-    StackGresCluster cluster = new StackGresClusterFixture().withNodeAffinity(nodeAffinity).build();
-    io.fabric8.kubernetes.api.model.NodeAffinity k8sPodNodeAffinity =
-        cluster.getSpec().getPod().getScheduling().getNodeAffinity();
-    assertEquals(nodeAffinity.getPreferredDuringSchedulingIgnoredDuringExecution().size(),
-        k8sPodNodeAffinity.getPreferredDuringSchedulingIgnoredDuringExecution().size());
-  }
-
-  @Test
-  void shouldNodeAffinity_HasTheSamePreferredDuringSchedulingRequirementsKey() {
-    NodeAffinity nodeAffinity = new NodeAffinityFixture()
-        .withValidPreferredScheduling()
-        .build();
-    StackGresCluster cluster = new StackGresClusterFixture().withNodeAffinity(nodeAffinity).build();
-    io.fabric8.kubernetes.api.model.NodeAffinity k8sPodNodeAffinity =
-        cluster.getSpec().getPod().getScheduling().getNodeAffinity();
-    k8sPodNodeAffinity.getPreferredDuringSchedulingIgnoredDuringExecution().forEach(preference -> {
-      preference.getPreference().getMatchExpressions().forEach(math -> {
-        assertEquals(PREFERRED_TOPOLOGY_KEY, math.getKey());
-      });
-    });
-  }
 }

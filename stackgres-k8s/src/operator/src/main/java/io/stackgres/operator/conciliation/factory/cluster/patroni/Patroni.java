@@ -76,6 +76,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   private final VolumeMountsProvider<ContainerContext> localBinMounts;
   private final VolumeMountsProvider<ContainerContext> restoreMounts;
   private final VolumeMountsProvider<ContainerContext> backupMounts;
+  private final VolumeMountsProvider<StackGresClusterContainerContext> hugePagesMounts;
   private final VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
 
   @Inject
@@ -93,6 +94,8 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
           VolumeMountsProvider<ContainerContext> restoreMounts,
       @ProviderName(VolumeMountProviderName.BACKUP)
           VolumeMountsProvider<ContainerContext> backupMounts,
+      @ProviderName(VolumeMountProviderName.HUGE_PAGES)
+          VolumeMountsProvider<StackGresClusterContainerContext> hugePagesMounts,
       VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer) {
     super();
     this.patroniEnvironmentVariables = patroniEnvironmentVariables;
@@ -103,6 +106,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
     this.localBinMounts = localBinMounts;
     this.restoreMounts = restoreMounts;
     this.backupMounts = backupMounts;
+    this.hugePagesMounts = hugePagesMounts;
     this.volumeDiscoverer = volumeDiscoverer;
   }
 
@@ -163,7 +167,8 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
                 .withMountPath("/etc/patroni")
                 .build())
         .addAll(backupMounts.getVolumeMounts(context))
-        .addAll(postgresExtensions.getVolumeMounts(postgresContext));
+        .addAll(postgresExtensions.getVolumeMounts(postgresContext))
+        .addAll(hugePagesMounts.getVolumeMounts(context));
 
     Optional.ofNullable(cluster.getSpec().getInitData())
         .map(StackGresClusterInitData::getRestore)
@@ -266,6 +271,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
                 .build())
         .addAll(backupMounts.getDerivedEnvVars(context))
         .addAll(restoreMounts.getDerivedEnvVars(context))
+        .addAll(hugePagesMounts.getDerivedEnvVars(context))
         .build();
   }
 

@@ -35,10 +35,16 @@ describe('Create SGInstanceProfile', () => {
         
         // Test Memory
         cy.get('input[data-field="spec.memory"]')
-            .type('1')
+            .type('2')
         
         // Test Submit CPU
         cy.get('input[data-field="spec.cpu"]')
+            .type('1')
+
+        // Test Huge Pages
+        cy.get('input[data-field="spec.hugePages.hugepages-2Mi"]')
+            .type('1')
+        cy.get('input[data-field="spec.hugePages.hugepages-1Gi"]')
             .type('1')
 
         // Test Submit form

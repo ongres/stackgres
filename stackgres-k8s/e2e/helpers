@@ -57,12 +57,14 @@ do_transform_params() {
   local SIZE="$1"
   local TRANSFORMER="$2"
   local PARAMETER
+  local TRASNFORMED_PARAMETER
   shift 2
   if [ "$SIZE" != 0 ]
   then
     PARAMETER="$1"
     shift 1
-    do_transform_params "$((SIZE - 1))" "$TRANSFORMER" "$@" "$("$TRANSFORMER" "$PARAMETER")"
+    TRASNFORMED_PARAMETER="$("$TRANSFORMER" "$PARAMETER")"
+    do_transform_params "$((SIZE - 1))" "$TRANSFORMER" "$@" "$TRASNFORMED_PARAMETER"
   else
     printf "'%s'" "$(escape_quote "$1")"
     shift 1

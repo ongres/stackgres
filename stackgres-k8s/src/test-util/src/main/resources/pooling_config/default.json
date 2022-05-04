@@ -39,5 +39,14 @@
         }
       }
     }
+  },
+  "status": {
+    "pgBouncer": {
+      "defaultParameters": {
+        "default_pool_size": "200",
+        "max_client_conn": "200",
+        "pool_mode": "transaction"
+      }
+    }
   }
 }

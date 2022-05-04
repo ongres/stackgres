@@ -58,4 +58,23 @@ spec:
                     The amount of RAM set is split between all the containers.
 
                     A minimum of 2-4Gi is recommended.
+                hugePages:
+                  type: object
+                  description: |
+                    RAM allocated for huge pages
+                  properties:
+                    hugepages-2Mi:
+                      type: string
+                      pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                      description: |
+                        RAM allocated for huge pages with a size of 2Mi. The suffix `Mi` or `Gi` specifies Mebibytes or Gibibytes, respectively.
+
+                        The amount of RAM set is split between all the containers.
+                    hugepages-1Gi:
+                      type: string
+                      pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                      description: |
+                        RAM allocated for huge pages with a size of 1Gi. The suffix `Mi` or `Gi` specifies Mebibytes or Gibibytes, respectively.
+
+                        The amount of RAM set is split between all the containers.
               required: ["cpu", "memory"]

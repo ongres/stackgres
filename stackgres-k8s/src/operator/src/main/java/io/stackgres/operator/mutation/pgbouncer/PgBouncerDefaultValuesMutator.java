@@ -11,6 +11,7 @@ import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
@@ -19,6 +20,7 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerBlocklist;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 
 @ApplicationScoped
@@ -27,8 +29,17 @@ public class PgBouncerDefaultValuesMutator
     implements PgBouncerMutator {
 
   @Override
+  public JsonNode getSourceNode(StackGresPoolingConfig resource) {
+    var source = (ObjectNode) toNode(resource)
+        .get("status").get("pgBouncer").get("defaultParameters");
+    List.copyOf(PgBouncerBlocklist.getBlocklistParameters())
+        .forEach(source::remove);
+    return source;
+  }
+
+  @Override
   public JsonNode getTargetNode(StackGresPoolingConfig resource) {
-    return super.getTargetNode(resource)
+    return toNode(resource)
         .get("spec").get("pgBouncer").get("pgbouncer.ini").get("pgbouncer");
   }
 

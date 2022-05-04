@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.profile;
 
+import java.util.Objects;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
@@ -36,6 +38,23 @@ public class ProfileDto extends ResourceDto {
 
   public void setStatus(ProfileStatus status) {
     this.status = status;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(spec, status);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof ProfileDto)) {
+      return false;
+    }
+    ProfileDto other = (ProfileDto) obj;
+    return Objects.equals(spec, other.spec) && Objects.equals(status, other.status);
   }
 
   @Override

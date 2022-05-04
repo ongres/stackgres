@@ -7,10 +7,12 @@ package io.stackgres.operator.fixture;
 
 import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
+import io.stackgres.testutil.JsonUtil;
 
 public class StackGresClusterPodSchedulingFixture {
 
   private NodeAffinity nodeAffinity;
+  private StackGresClusterPodScheduling scheduling;
 
   public StackGresClusterPodSchedulingFixture withNodeAffinity(NodeAffinity nodeAffinity) {
     this.nodeAffinity = nodeAffinity;
@@ -18,8 +20,22 @@ public class StackGresClusterPodSchedulingFixture {
   }
 
   public StackGresClusterPodScheduling build() {
-    StackGresClusterPodScheduling scheduling = new StackGresClusterPodScheduling();
-    scheduling.setNodeAffinity(nodeAffinity);
+    buildPodNodeAffinityScheduling();
+    return scheduling;
+  }
+
+  public StackGresClusterPodSchedulingFixture buildPodNodeAffinityScheduling() {
+    scheduling = new StackGresClusterPodScheduling();
+    if (nodeAffinity != null) {
+      scheduling.setNodeAffinity(nodeAffinity);
+    }
+    return this;
+  }
+
+  public StackGresClusterPodScheduling loadPodNodeAffinityScheduling() {
+    scheduling = JsonUtil
+        .readFromJson("stackgres_cluster/scheduling.json",
+            StackGresClusterPodScheduling.class);
     return scheduling;
   }
 

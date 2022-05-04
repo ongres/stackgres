@@ -17,5 +17,7 @@ public enum VolumeMountProviderName {
   LOCAL_BIN,
   BACKUP,
   RESTORE,
-  POSTGRES_LOG
+  POSTGRES_LOG,
+  HUGE_PAGES
+
 }

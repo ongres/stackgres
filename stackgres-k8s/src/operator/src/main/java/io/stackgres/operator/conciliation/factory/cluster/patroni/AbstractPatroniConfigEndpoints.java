@@ -21,7 +21,6 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractPatroniConfigEndpoints
     implements ResourceGenerator<StackGresClusterContext> {
@@ -59,8 +58,7 @@ public abstract class AbstractPatroniConfigEndpoints
 
   protected abstract PatroniConfig getPatroniConfig(StackGresClusterContext context);
 
-  @NotNull
-  public Map<String, String> getPostgresConfigValues(StackGresClusterContext context) {
+  protected Map<String, String> getPostgresConfigValues(StackGresClusterContext context) {
     StackGresPostgresConfig pgConfig = context.getPostgresConfig();
 
     Map<String, String> params = getPostgresParameters(context, pgConfig);
@@ -68,8 +66,7 @@ public abstract class AbstractPatroniConfigEndpoints
     return normalizeParams(pgConfig.getSpec().getPostgresVersion(), params);
   }
 
-  @NotNull
-  public Map<String, String> getPostgresRecoveryConfigValues(StackGresClusterContext context) {
+  protected Map<String, String> getPostgresRecoveryConfigValues(StackGresClusterContext context) {
     StackGresPostgresConfig pgConfig = context.getPostgresConfig();
 
     Map<String, String> params = getPostgresRecoveryParameters(context, pgConfig);

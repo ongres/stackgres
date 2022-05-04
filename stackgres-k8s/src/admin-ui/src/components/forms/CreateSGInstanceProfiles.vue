@@ -67,6 +67,36 @@
                         <span class="helpTooltip" :data-tooltip="getTooltip( 'sgprofile.spec.cpu')"></span>
                     </div>
                 </div>
+
+                <div class="header">
+                    <h2>Huge Pages Specs</h2>
+                </div>
+
+                <div class="col">
+                    <div class="unit-select">
+                        <label for="spec.hugePages.hugepages-2Mi">Huge Pages 2Mi</label>
+                        <input v-model="hugePages2Mi" class="size" data-field="spec.hugePages.hugepages-2Mi" type="number" min="0" :max="profileRAM - hugePages1Gi">
+
+                        <select v-model="hugePages2MiUnit" class="unit" data-field="spec.hugePages.hugepages-2Mi">
+                            <option value="Mi">MiB</option>
+                            <option value="Gi" selected>GiB</option>
+                        </select>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgprofile.spec.hugePages.hugepages-2Mi')"></span>
+                    </div>
+                </div>
+                
+                <div class="col">
+                    <div class="unit-select">
+                        <label for="spec.hugePages.hugepages-1Gi">Huge Pages 1Gi</label>
+                        <input v-model="hugePages1Gi" class="size" data-field="spec.hugePages.hugepages-1Gi" type="number" min="0" :max="profileRAM - hugePages2Mi">
+
+                        <select v-model="hugePages1GiUnit" class="unit" data-field="spec.hugePages.hugepages-1Gi">
+                            <option value="Mi">MiB</option>
+                            <option value="Gi" selected>GiB</option>
+                        </select>
+                        <span class="helpTooltip" :data-tooltip="getTooltip( 'sgprofile.spec.hugePages.hugepages-1Gi')"></span>
+                    </div>
+                </div>
             </div>
                                 
             <hr/>
@@ -122,6 +152,10 @@
                 profileCPUUnit: 'CPU',
                 profileRAM: '',
                 profileRAMUnit: 'Gi',
+                hugePages1Gi: '',
+                hugePages1GiUnit: 'Gi',
+                hugePages2Mi: '',
+                hugePages2MiUnit: 'Gi',
                 profileClusters: []
             }
                 
@@ -159,6 +193,10 @@
                             vm.profileCPUUnit = (conf.data.spec.cpu.match(/[a-zA-Z]+/g) !== null) ? conf.data.spec.cpu.match(/[a-zA-Z]+/g)[0] : 'CPU';
                             vm.profileRAM = conf.data.spec.memory.match(/\d+/g)[0];
                             vm.profileRAMUnit = conf.data.spec.memory.match(/[a-zA-Z]+/g)[0];
+                            vm.hugePages1Gi = vm.hasProp(conf, 'data.spec.hugePages.hugepages-1Gi') ? conf.data.spec.hugePages['hugepages-1Gi'].match(/\d+/g)[0] : '';
+                            vm.hugePages1GiUnit = vm.hasProp(conf, 'data.spec.hugePages.hugepages-1Gi') ? conf.data.spec.hugePages['hugepages-1Gi'].match(/[a-zA-Z]+/g)[0] : 'Gi';
+                            vm.hugePages2Mi = vm.hasProp(conf, 'data.spec.hugePages.hugepages-2Mi') ? conf.data.spec.hugePages['hugepages-2Mi'].match(/\d+/g)[0] : '';
+                            vm.hugePages2MiUnit = vm.hasProp(conf, 'data.spec.hugePages.hugepages-2Mi') ? conf.data.spec.hugePages['hugepages-2Mi'].match(/[a-zA-Z]+/g)[0] : 'Gi';
                             vm.profileClusters = [...conf.data.status.clusters]
                             config = conf;
 
@@ -186,6 +224,16 @@
                         "spec": {
                             "cpu": (this.profileCPUUnit !== 'CPU')? this.profileCPU+this.profileCPUUnit : this.profileCPU,
                             "memory": this.profileRAM+this.profileRAMUnit,
+                            ...( (this.hugePages1Gi.length || this.hugePages2Mi.length) && {
+                                "hugePages": {
+                                    ...( this.hugePages2Mi.length && {
+                                        "hugepages-2Mi": this.hugePages2Mi + this.hugePages2MiUnit
+                                    }),
+                                    ...( this.hugePages1Gi.length && {
+                                        "hugepages-1Gi": this.hugePages1Gi + this.hugePages1GiUnit
+                                    }),
+                                }
+                            })
                         }
                     }
 

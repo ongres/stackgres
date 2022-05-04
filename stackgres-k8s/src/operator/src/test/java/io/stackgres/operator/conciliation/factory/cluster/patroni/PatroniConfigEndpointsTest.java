@@ -84,6 +84,7 @@ class PatroniConfigEndpointsTest {
     when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
     when(context.getSource()).thenReturn(cluster);
+    when(context.getCluster()).thenReturn(cluster);
 
     Map<String, String> pgParams = generator.getPostgresConfigValues(context);
 
@@ -112,6 +113,7 @@ class PatroniConfigEndpointsTest {
     when(context.getBackupConfig()).thenReturn(Optional.empty());
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
     when(context.getSource()).thenReturn(cluster);
+    when(context.getCluster()).thenReturn(cluster);
 
     Map<String, String> pgParams = generator.getPostgresConfigValues(context);
 
@@ -124,6 +126,7 @@ class PatroniConfigEndpointsTest {
     when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
     when(context.getSource()).thenReturn(cluster);
+    when(context.getCluster()).thenReturn(cluster);
 
     Map<String, String> pgParams = generator.getPostgresConfigValues(context);
 
@@ -138,6 +141,7 @@ class PatroniConfigEndpointsTest {
     when(context.getBackupConfig()).thenReturn(Optional.empty());
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
     when(context.getSource()).thenReturn(cluster);
+    when(context.getCluster()).thenReturn(cluster);
 
     final String version = postgresConfig.getSpec().getPostgresVersion();
     Map<String, String> defValues = PostgresDefaultValues.getDefaultValues(version);

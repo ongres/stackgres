@@ -6,8 +6,6 @@
 package io.stackgres.operator.initialization;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -26,7 +24,7 @@ public abstract class AbstractCustomResourceFactory<T>
   protected Properties defaultValues;
 
   private StackGresPropertyContext<OperatorProperty> context;
-  private transient String installedNamespace;
+  private String installedNamespace;
 
   @PostConstruct
   public void init() {
@@ -37,14 +35,13 @@ public abstract class AbstractCustomResourceFactory<T>
 
   protected void loadDefaultProperties() {
     defaultValues = getDefaultPropertiesFile();
-    getExclusionProperties().forEach(p -> defaultValues.remove(p));
   }
 
-  protected <S> S buildSpec(Class<S> specClazz) {
+  protected <S> S buildFromDefaults(Class<S> clazz) {
     try {
-      return MAPPER.readPropertiesAs(defaultValues, specClazz);
-    } catch (IOException e) {
-      throw new RuntimeException("Couldn't map default properties to spec", e);
+      return MAPPER.readPropertiesAs(defaultValues, clazz);
+    } catch (IOException ex) {
+      throw new RuntimeException("Couldn't map default properties to spec", ex);
     }
   }
 
@@ -58,10 +55,6 @@ public abstract class AbstractCustomResourceFactory<T>
   }
 
   abstract Properties getDefaultPropertiesFile();
-
-  List<String> getExclusionProperties() {
-    return Collections.emptyList();
-  }
 
   @Override
   public T buildResource() {

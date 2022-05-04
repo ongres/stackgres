@@ -15,10 +15,7 @@ import javax.enterprise.context.ApplicationScoped;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.mutation.DefaultStateMutator;
@@ -53,10 +50,9 @@ public class PgBouncerDefaultStateMutator
 
   @Override
   protected Map<String, String> getParametersNode(StackGresPoolingConfig incomingResource) {
-    return Optional.ofNullable(incomingResource.getSpec())
-        .map(StackGresPoolingConfigSpec::getPgBouncer)
-        .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
-        .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getParameters)
+    return Optional.ofNullable(incomingResource.getStatus())
+        .map(StackGresPoolingConfigStatus::getPgBouncer)
+        .map(StackGresPoolingConfigPgBouncerStatus::getDefaultParameters)
         .orElseGet(Map::of);
   }
 }

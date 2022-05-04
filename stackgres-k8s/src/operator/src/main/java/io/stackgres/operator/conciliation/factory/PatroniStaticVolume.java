@@ -14,7 +14,9 @@ public enum PatroniStaticVolume {
   USER("user"),
   LOCAL_BIN("local-bin"),
   LOG("log"),
-  PATRONI_CONFIG("patroni-config");
+  PATRONI_CONFIG("patroni-config"),
+  HUGEPAGES_2M("hugepages-2mi"),
+  HUGEPAGES_1G("hugepages-1gi");
 
   private final String volumeName;
 

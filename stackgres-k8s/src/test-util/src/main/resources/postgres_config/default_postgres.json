@@ -18,5 +18,13 @@
       "shared_buffers": "256MB",
       "wal_keep_segments": "32"
     }
+  },
+  "status": {
+    "defaultParameters": {
+      "password_encryption": "scram-sha-256",
+      "random_page_cost": "1.5",
+      "shared_buffers": "256MB",
+      "wal_keep_segments": "32"
+    }
   }
 }

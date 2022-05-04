@@ -26,7 +26,6 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -91,7 +90,7 @@ public abstract class AbstractPgPooling
   protected abstract HasMetadata buildSource(@NotNull StackGresClusterContext context);
 
   protected Map<String, String> getConfigMapData(StackGresClusterContext context) {
-    String configFile = getConfigFile(context.getPoolingConfig());
+    String configFile = getConfigFile(context);
     Map<String, String> data = ImmutableMap.of("pgbouncer.ini", configFile);
     return data;
   }
@@ -117,6 +116,6 @@ public abstract class AbstractPgPooling
 
   protected abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);
 
-  protected abstract String getConfigFile(Optional<StackGresPoolingConfig> pgbouncerConfig);
+  protected abstract String getConfigFile(StackGresClusterContext context);
 
 }

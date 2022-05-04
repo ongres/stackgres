@@ -21,11 +21,11 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -33,7 +33,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Pos
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_2)
 public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
 
   @Inject
@@ -74,14 +74,11 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
   protected Map<String, String> getPostgresParameters(StackGresClusterContext context,
       StackGresPostgresConfig pgConfig) {
     final String version = pgConfig.getSpec().getPostgresVersion();
-    Map<String, String> params = Optional.ofNullable(pgConfig.getStatus())
-        .map(StackGresPostgresConfigStatus::getDefaultParameters)
-        .map(HashMap::new)
-        .orElseGet(() -> new HashMap<>(PostgresDefaultValues.getDefaultValues(version)));
+    Map<String, String> params = new HashMap<>(
+        PostgresDefaultValues.getDefaultValues(
+            StackGresVersion.getStackGresVersion(context.getCluster()), version));
     Map<String, String> userParams = pgConfig.getSpec().getPostgresqlConf();
-    for (String bl : PostgresBlocklist.getBlocklistParameters()) {
-      userParams.remove(bl);
-    }
+    PostgresBlocklist.getBlocklistParameters().forEach(userParams::remove);
     params.putAll(userParams);
 
     params.put("port", String.valueOf(EnvoyUtil.PG_PORT));
@@ -91,10 +88,6 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
           "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(context
               .getSource()) + "'"
               + " -- wal-g wal-push %p");
-      params.put("restore_command",
-          "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(context
-              .getSource()) + "'"
-              + " -- wal-g wal-fetch %f %p");
     } else {
       params.put("archive_command", "/bin/true");
     }
@@ -119,10 +112,6 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
           .orElse("babelfishpg_tds"));
     }
 
-    params.put("wal_level", "logical");
-    params.put("wal_log_hints", "on");
-    params.put("archive_mode", "on");
-
     return params;
   }
 
@@ -137,6 +126,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
               .getSource()) + "'"
               + " -- wal-g wal-fetch %f %p");
     }
+
     return params;
   }
 

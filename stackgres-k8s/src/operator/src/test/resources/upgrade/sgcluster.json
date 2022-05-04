@@ -1,0 +1,157 @@
+{
+    "apiVersion": "stackgres.io/v1",
+    "kind": "SGCluster",
+    "metadata": {
+        "annotations": {
+            "meta.helm.sh/release-name": "dbops-security-upgrade-1",
+            "meta.helm.sh/release-namespace": "dbops-security-upgrade-6270f0b2",
+            "stackgres.io/operatorVersion": "1.0.0"
+        },
+        "creationTimestamp": "2022-05-03T09:12:16Z",
+        "generation": 2,
+        "labels": {
+            "app.kubernetes.io/managed-by": "Helm"
+        },
+        "name": "dbops-security-upgrade-1",
+        "namespace": "dbops-security-upgrade-6270f0b2",
+        "resourceVersion": "4486",
+        "selfLink": "/apis/stackgres.io/v1/namespaces/dbops-security-upgrade-6270f0b2/sgclusters/dbops-security-upgrade-1",
+        "uid": "c5ebe016-3877-4aed-a181-8842aba40cb6"
+    },
+    "spec": {
+        "configurations": {
+            "backupPath": "dbops-security-upgrade-6270f0b2/dbops-security-upgrade-1",
+            "sgBackupConfig": "backupconf",
+            "sgPoolingConfig": "pgbouncerconf",
+            "sgPostgresConfig": "postgresconf"
+        },
+        "distributedLogs": {
+            "retention": "7 days",
+            "sgDistributedLogs": "dbops-security-upgrade-6270f0b2.distributedlogs"
+        },
+        "initialData": {
+            "restore": {
+                "downloadDiskConcurrency": 1,
+                "fromBackup": {
+                    "uid": "23d88536-f28b-4764-b6af-accd82e500f9"
+                }
+            }
+        },
+        "instances": 1,
+        "metadata": {
+            "annotations": {
+                "clusterPods": {
+                    "pod-annotation": "X3VnaUPuNGtadWsp1K6ZrR2TV8CIuTSe"
+                },
+                "primaryService": {
+                    "primary-service-label": "X3VnaUPuNGtadWsp1K6ZrR2TV8CIuTSe"
+                },
+                "replicasService": {
+                    "replicas-service-label": "X3VnaUPuNGtadWsp1K6ZrR2TV8CIuTSe"
+                }
+            },
+            "labels": {
+                "clusterPods": {
+                    "pod-label": "X3VnaUPuNGtadWsp1K6ZrR2TV8CIuTSe"
+                }
+            }
+        },
+        "nonProductionOptions": {
+            "disableClusterPodAntiAffinity": true
+        },
+        "pods": {
+            "disableConnectionPooling": false,
+            "disableMetricsExporter": false,
+            "disablePostgresUtil": false,
+            "persistentVolume": {
+                "size": "128Mi"
+            }
+        },
+        "postgres": {
+            "extensions": [],
+            "flavor": "vanilla",
+            "ssl": {
+                "enabled": false
+            },
+            "version": "14.0"
+        },
+        "postgresServices": {
+            "primary": {
+                "enabled": true,
+                "type": "ClusterIP"
+            },
+            "replicas": {
+                "enabled": true,
+                "type": "ClusterIP"
+            }
+        },
+        "prometheusAutobind": false,
+        "replication": {
+            "mode": "async",
+            "role": "ha-read"
+        },
+        "sgInstanceProfile": "size-xs",
+        "toInstallPostgresExtensions": []
+    },
+    "status": {
+        "conditions": [
+            {
+                "lastTransitionTime": "2022-05-03T09:12:18.657739Z",
+                "reason": "FalseFailed",
+                "status": "False",
+                "type": "Failed"
+            },
+            {
+                "lastTransitionTime": "2022-05-03T09:16:58.647756484Z",
+                "reason": "PodRequiresRestart",
+                "status": "True",
+                "type": "PendingRestart"
+            },
+            {
+                "lastTransitionTime": "2022-05-03T09:16:58.649624898Z",
+                "reason": "ClusterRequiresUpgrade",
+                "status": "True",
+                "type": "PendingUpgrade"
+            }
+        ],
+        "podStatuses": [
+            {
+                "installedPostgresExtensions": [
+                    {
+                        "build": "6.5",
+                        "name": "plpgsql",
+                        "postgresVersion": "14.0",
+                        "publisher": "com.ongres",
+                        "repository": "https://extensions.stackgres.io/postgres/repository",
+                        "version": "1.0"
+                    },
+                    {
+                        "build": "6.5",
+                        "name": "pg_stat_statements",
+                        "postgresVersion": "14.0",
+                        "publisher": "com.ongres",
+                        "repository": "https://extensions.stackgres.io/postgres/repository",
+                        "version": "1.9"
+                    },
+                    {
+                        "build": "6.5",
+                        "name": "dblink",
+                        "postgresVersion": "14.0",
+                        "publisher": "com.ongres",
+                        "repository": "https://extensions.stackgres.io/postgres/repository",
+                        "version": "1.2"
+                    },
+                    {
+                        "build": "6.5",
+                        "name": "plpython3u",
+                        "postgresVersion": "14.0",
+                        "publisher": "com.ongres",
+                        "repository": "https://extensions.stackgres.io/postgres/repository",
+                        "version": "1.0"
+                    }
+                ],
+                "name": "dbops-security-upgrade-1-0"
+            }
+        ]
+    }
+}

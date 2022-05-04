@@ -171,6 +171,11 @@ transform_to_1_1() {
   elif [ "${1%=*}" = 'configurations.backupconfig.baseBackups.performance.maxNetworkBandwidth' ]
   then
     printf "%s=%s" "configurations.backupconfig.baseBackups.performance.maxNetworkBandwitdh" "${1#*=}"
+  elif [ "${1%=*}" = "cluster.initialData.restore.fromBackup.name" ]
+  then
+    local BACKUP_UID
+    BACKUP_UID="$(kubectl get sgbackup -n "$NAMESPACE" "${1#*=}" --template '{{ .metadata.uid }}')"
+    printf "%s=%s" "cluster.initialData.restore.fromBackup.uid" "$BACKUP_UID"
   else
     dont_transform "$1"
   fi

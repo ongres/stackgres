@@ -8,5 +8,14 @@
     "pgBouncer": {
       "pgbouncer.ini": "[pgbouncer]\ndefault_pool_size=200\nmax_client_conn=100\npool_mode='transaction'\n[databases]\n\"foo db\" = pool_mode=statement  dbname =  'bardb' pool_size=40\n[users]\nusr1=pool_mode=session"
     }
+  },
+  "status": {
+    "pgBouncer": {
+      "defaultParameters": {
+        "default_pool_size": "200",
+        "max_client_conn": "200",
+        "pool_mode": "transaction"
+      }
+    }
   }
 }
