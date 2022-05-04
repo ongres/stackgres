@@ -9,9 +9,9 @@
     },
     "labels": {
       "app": "StackGresCluster",
-      "cluster": "true",
-      "cluster-name": "scale-up-and-down",
-      "cluster-uid": "ce2f0c8f-c1fa-4880-b0e6-c109515eec4f"
+      "stackgres.io/cluster": "true",
+      "stackgres.io/cluster-name": "scale-up-and-down",
+      "stackgres.io/cluster-uid": "ce2f0c8f-c1fa-4880-b0e6-c109515eec4f"
     },
     "name": "scale-up-and-down-config",
     "namespace": "scale-up-and-down-5fabfa51",

@@ -44,6 +44,9 @@ public class StackGresClusterStatus implements KubernetesResource {
   @JsonProperty("os")
   private String os;
 
+  @JsonProperty("labelPrefix")
+  private String labelPrefix;
+
   public List<StackGresClusterCondition> getConditions() {
     return conditions;
   }
@@ -84,9 +87,17 @@ public class StackGresClusterStatus implements KubernetesResource {
     this.os = os;
   }
 
+  public String getLabelPrefix() {
+    return labelPrefix;
+  }
+
+  public void setLabelPrefix(String labelPrefix) {
+    this.labelPrefix = labelPrefix;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(arch, conditions, dbOps, podStatuses);
+    return Objects.hash(arch, conditions, dbOps, labelPrefix, os, podStatuses);
   }
 
   @Override
@@ -99,7 +110,8 @@ public class StackGresClusterStatus implements KubernetesResource {
     }
     StackGresClusterStatus other = (StackGresClusterStatus) obj;
     return Objects.equals(arch, other.arch) && Objects.equals(conditions, other.conditions)
-        && Objects.equals(dbOps, other.dbOps) && Objects.equals(podStatuses, other.podStatuses);
+        && Objects.equals(dbOps, other.dbOps) && Objects.equals(labelPrefix, other.labelPrefix)
+        && Objects.equals(os, other.os) && Objects.equals(podStatuses, other.podStatuses);
   }
 
   @Override

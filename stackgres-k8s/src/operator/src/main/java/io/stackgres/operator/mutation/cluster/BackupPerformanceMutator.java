@@ -11,7 +11,6 @@ import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
@@ -25,8 +24,6 @@ import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class BackupPerformanceMutator implements ClusterMutator {
-
-  protected static final JsonMapper JSON_MAPPER = new JsonMapper();
 
   private JsonPointer backupsPointer;
   private JsonPointer maxDiskBandwidthPointer;

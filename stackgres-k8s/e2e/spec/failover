@@ -21,8 +21,8 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      cluster-namespace: $CLUSTER_NAMESPACE
-      cluster-name: $CLUSTER_NAME
+      stackgres.io/cluster-namespace: $CLUSTER_NAMESPACE
+      stackgres.io/cluster-name: $CLUSTER_NAME
       cluster: "true"
   policyTypes:
   - Ingress

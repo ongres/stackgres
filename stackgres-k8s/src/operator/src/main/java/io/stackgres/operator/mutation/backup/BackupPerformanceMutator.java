@@ -11,7 +11,6 @@ import java.util.Optional;
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
@@ -24,8 +23,6 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class BackupPerformanceMutator implements BackupMutator {
-
-  protected static final JsonMapper JSON_MAPPER = new JsonMapper();
 
   private JsonPointer maxDiskBandwidthPointer;
   private JsonPointer maxDiskBandwitdhPointer;

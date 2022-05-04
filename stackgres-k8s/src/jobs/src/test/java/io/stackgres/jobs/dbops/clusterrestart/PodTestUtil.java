@@ -38,6 +38,9 @@ public class PodTestUtil {
   LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
+  LabelFactoryForDbOps labelFactoryForDbOps;
+
+  @Inject
   LabelFactoryForDbOps dbOpsLabelFactory;
 
   @Inject
@@ -87,7 +90,7 @@ public class PodTestUtil {
         .getItems()
         .stream().filter(pod -> !pod.getMetadata()
             .getLabels()
-            .containsKey(StackGresContext.DB_OPS_KEY))
+            .containsKey(labelFactoryForDbOps.labelMapper().resourceNameKey(null)))
         .collect(Collectors.toUnmodifiableList());
   }
 
@@ -100,7 +103,8 @@ public class PodTestUtil {
     final Map<String, String> labels = labelFactory.patroniPrimaryLabels(cluster);
     return buildPod(cluster, index, ImmutableMap.<String, String>builder()
         .putAll(labels)
-        .put(StackGresContext.DISRUPTIBLE_KEY, StackGresContext.WRONG_VALUE)
+        .put(labelFactory.labelMapper().disruptibleKey(cluster),
+            StackGresContext.WRONG_VALUE)
         .build());
   }
 

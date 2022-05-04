@@ -4,7 +4,7 @@
   "metadata": {
     "labels": {
       "app": "StackGresDistributedLogs",
-      "distributed-logs-name": "distributedlogs"
+      "stackgres.io/distributed-logs-name": "distributedlogs"
     },
     "name": "distributedlogs",
     "namespace": "distributed-logs-5fce2f1c",
@@ -25,10 +25,10 @@
     "selector": {
       "matchLabels": {
         "app": "StackGresDistributedLogs",
-        "cluster": "true",
-        "disruptible": "true",
-        "distributed-logs-name": "distributedlogs",
-        "distributed-logs-uid": "566ebf17-c3d0-492b-a182-cd7d0fab6c04"
+        "stackgres.io/cluster": "true",
+        "stackgres.io/disruptible": "true",
+        "stackgres.io/distributed-logs-name": "distributedlogs",
+        "stackgres.io/distributed-logs-uid": "566ebf17-c3d0-492b-a182-cd7d0fab6c04"
       }
     },
     "serviceName": "distributedlogs",
@@ -36,10 +36,10 @@
       "metadata": {
         "labels": {
           "app": "StackGresDistributedLogs",
-          "cluster": "true",
-          "disruptible": "true",
-          "distributed-logs-name": "distributedlogs",
-          "distributed-logs-uid": "566ebf17-c3d0-492b-a182-cd7d0fab6c04"
+          "stackgres.io/cluster": "true",
+          "stackgres.io/disruptible": "true",
+          "stackgres.io/distributed-logs-name": "distributedlogs",
+          "stackgres.io/distributed-logs-uid": "566ebf17-c3d0-492b-a182-cd7d0fab6c04"
         }
       },
       "spec": {
@@ -778,7 +778,7 @@
         "metadata": {
           "labels": {
             "app": "StackGresDistributedLogs",
-            "distributed-logs-name": "distributedlogs"
+            "stackgres.io/distributed-logs-name": "distributedlogs"
           },
           "name": "distributedlogs-data",
           "namespace": "distributed-logs-5fce2f1c"

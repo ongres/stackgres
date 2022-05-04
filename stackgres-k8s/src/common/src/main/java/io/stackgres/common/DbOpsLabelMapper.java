@@ -7,6 +7,8 @@ package io.stackgres.common;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+
 @ApplicationScoped
 public class DbOpsLabelMapper implements LabelMapperForDbOps {
 
@@ -16,18 +18,18 @@ public class DbOpsLabelMapper implements LabelMapperForDbOps {
   }
 
   @Override
-  public String resourceNameKey() {
-    return StackGresContext.DBOPS_NAME_KEY;
+  public String resourceNameKey(StackGresDbOps resource) {
+    return getKeyPrefix(resource) + StackGresContext.DBOPS_NAME_KEY;
   }
 
   @Override
-  public String resourceNamespaceKey() {
-    return StackGresContext.DBOPS_NAMESPACE_KEY;
+  public String resourceNamespaceKey(StackGresDbOps resource) {
+    return getKeyPrefix(resource) + StackGresContext.DBOPS_NAMESPACE_KEY;
   }
 
   @Override
-  public String resourceUidKey() {
-    return StackGresContext.DBOPS_UID_KEY;
+  public String resourceUidKey(StackGresDbOps resource) {
+    return getKeyPrefix(resource) + StackGresContext.DBOPS_UID_KEY;
   }
 
 }

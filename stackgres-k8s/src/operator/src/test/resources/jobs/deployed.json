@@ -4,9 +4,9 @@
   "metadata" : {
     "labels" : {
       "app" : "StackGresCluster",
-      "cluster-name" : "dbops-pgbench",
-      "cluster-uid" : "f5f340dd-db24-4913-beaa-dcba3fa43108",
-      "db-ops" : "true"
+      "stackgres.io/cluster-name" : "dbops-pgbench",
+      "stackgres.io/cluster-uid" : "f5f340dd-db24-4913-beaa-dcba3fa43108",
+      "stackgres.io/db-ops" : "true"
     },
     "name" : "benchmark-benchmark-8d6cb2948606468e-0",
     "namespace" : "dbops-pgbench-6000a807",
@@ -31,8 +31,8 @@
       "metadata" : {
         "labels" : {
           "app" : "StackGresCluster",
-          "cluster-name" : "dbops-pgbench",
-          "cluster-uid" : "f5f340dd-db24-4913-beaa-dcba3fa43108",
+          "stackgres.io/cluster-name" : "dbops-pgbench",
+          "stackgres.io/cluster-uid" : "f5f340dd-db24-4913-beaa-dcba3fa43108",
           "controller-uid" : "c41b5693-48a2-49bc-b7ce-a8d605a10941",
           "db-ops" : "true",
           "job-name" : "benchmark-benchmark-8d6cb2948606468e-0"
@@ -398,7 +398,7 @@
             "value" : "sgdbops.stackgres.io"
           }, {
             "name" : "JOB_POD_LABELS",
-            "value" : "app=StackGresCluster,cluster-uid=f5f340dd-db24-4913-beaa-dcba3fa43108,cluster-name=dbops-pgbench,db-ops=true,job-name=benchmark-benchmark-8d6cb2948606468e-0"
+            "value" : "app=StackGresCluster,stackgres.io/cluster-uid=f5f340dd-db24-4913-beaa-dcba3fa43108,stackgres.io/cluster-name=dbops-pgbench,stackgres.io/db-ops=true,job-name=benchmark-benchmark-8d6cb2948606468e-0"
           }, {
             "name" : "CONDITION_DB_OPS_FALSE_RUNNING",
             "value" : "{\"lastTransitionTime\":\"$LAST_TRANSITION_TIME\",\"reason\":\"OperationNotRunning\",\"status\":\"False\",\"type\":\"Running\"}"

@@ -12,7 +12,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atMost;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
@@ -43,6 +43,8 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.stackgres.common.ClusterLabelFactory;
+import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
@@ -73,8 +75,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
   protected static final Logger LOGGER = LoggerFactory.getLogger(
       ClusterStatefulSetReconciliationHandlerTest.class);
 
-  @Mock
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private LabelFactoryForCluster<StackGresCluster> labelFactory =
+      new ClusterLabelFactory(new ClusterLabelMapper());
 
   @Mock
   private ResourceWriter<StatefulSet> statefulSetWriter;
@@ -163,7 +165,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
-    verify(podScanner, times(3)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(statefulSetWriter).update(any(StatefulSet.class));
     verify(podWriter, never()).update(any(Pod.class));
     verify(podWriter, never()).delete(any());
@@ -181,7 +183,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
-    verify(podScanner, times(3)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(statefulSetWriter).update(any(StatefulSet.class));
     verify(podWriter, never()).update(any(Pod.class));
     verify(podWriter, never()).delete(any());
@@ -199,7 +201,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
-    verify(podScanner, times(3)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(statefulSetWriter).update(any(StatefulSet.class));
     verify(podWriter, times(1)).update(any(Pod.class));
     verify(podWriter, never()).delete(any());
@@ -217,7 +219,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
-    verify(podScanner, times(3)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(statefulSetWriter).update(any(StatefulSet.class));
     verify(podWriter, atMostOnce()).update(any(Pod.class));
     verify(podWriter, never()).delete(any());
@@ -242,12 +244,12 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     for (var updatedPod : podArgumentCaptor.getAllValues()) {
       String disruptableValue = updatedPod.getMetadata().getLabels()
-          .get(StackGresContext.DISRUPTIBLE_KEY);
+          .get(labelFactory.labelMapper().disruptibleKey(cluster));
 
       assertEquals(StackGresContext.RIGHT_VALUE, disruptableValue);
     }
 
-    verify(podScanner, times(3)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(statefulSetWriter).update(any(StatefulSet.class));
     verify(podWriter, atMostOnce()).update(any(Pod.class));
     verify(podWriter, never()).delete(any());
@@ -275,14 +277,14 @@ class ClusterStatefulSetReconciliationHandlerTest {
     var updatedPod = podArgumentCaptor.getValue();
 
     String disruptableValue = updatedPod.getMetadata().getLabels()
-        .get(StackGresContext.DISRUPTIBLE_KEY);
+        .get(labelFactory.labelMapper().disruptibleKey(cluster));
     String podRole = updatedPod.getMetadata().getLabels()
         .get(PatroniUtil.ROLE_KEY);
 
     assertEquals(StackGresContext.WRONG_VALUE, disruptableValue);
     assertEquals(PatroniUtil.PRIMARY_ROLE, podRole);
 
-    verify(podScanner, times(3)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(statefulSetWriter).update(any(StatefulSet.class));
     verify(podWriter, never()).delete(any());
     verify(pvcWriter, never()).update(any());
@@ -324,7 +326,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
-    verify(podScanner, times(5)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(6)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(statefulSetWriter, times(2)).update(any(StatefulSet.class));
     verify(podWriter, never()).update(any());
     verify(podWriter, never()).delete(any());
@@ -356,7 +358,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
-    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(5)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(statefulSetWriter, times(1)).update(any(StatefulSet.class));
     verify(podWriter, times(1)).update(any());
     verify(podWriter, times(1)).delete(any());
@@ -375,7 +377,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
-    verify(podScanner, times(3)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(statefulSetWriter).update(any(StatefulSet.class));
     verify(podWriter, times(1)).update(any(Pod.class));
     verify(podWriter, never()).delete(any());
@@ -394,7 +396,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
-    verify(podScanner, times(3)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(statefulSetWriter).update(any(StatefulSet.class));
     verify(podWriter, times(1)).update(any(Pod.class));
     verify(podWriter, never()).delete(any());
@@ -422,7 +424,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .tuple(pod, Map
             .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
                 "same-key", "old-value")))
-        .peek(t -> t.v1.getMetadata().setAnnotations(t.v2))
+        .map(t -> {
+          t.v1.getMetadata().setAnnotations(t.v2);
+          return t;
+        })
         .map(t -> t.map1(pod -> pod.getMetadata().getName()))
         .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
 
@@ -449,27 +454,58 @@ class ClusterStatefulSetReconciliationHandlerTest {
   }
 
   @Test
-  void givenPodOwnerReferenceChanges_shouldBeAppliedDirectlyToPods() {
-    setUpUpscale(0, 0, PrimaryPosition.FIRST);
+  void givenPodLabelsChanges_shouldBeAppliedDirectlyToPods() {
+    final int replicas = setUpNoScale(0, 0, PrimaryPosition.FIRST);
 
-    requiredStatefulSet.getSpec().getTemplate().getMetadata().setUid("test");
-    final List<OwnerReference> requiredOwnerReferences = getOwnerReferences(requiredStatefulSet);
-    requiredStatefulSet.getSpec().getTemplate()
-        .getMetadata().setOwnerReferences(requiredOwnerReferences);
+    final Map<String, String> requiredLabels = Seq.seq(Map
+        .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
+            "same-key", "new-value"))
+        .append(Seq.seq(requiredStatefulSet.getSpec().getSelector().getMatchLabels()))
+        .toMap(Tuple2::v1, Tuple2::v2);
+    requiredStatefulSet.getSpec().getSelector().setMatchLabels(requiredLabels);
+    final var deployedLabels = Seq.seq(podList).map(pod -> Tuple
+        .tuple(pod, Seq.seq(Map
+            .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
+                "same-key", "old-value"))
+            .append(Seq.seq(pod.getMetadata().getLabels()))
+            .toMap(Tuple2::v1, Tuple2::v2)))
+        .map(t -> {
+          t.v1.getMetadata().setLabels(t.v2);
+          return t;
+        })
+        .map(t -> t.map1(pod -> pod.getMetadata().getName()))
+        .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
 
     when(statefulSetWriter.update(any())).thenReturn(requiredStatefulSet);
 
     handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
 
-    ArgumentCaptor<StatefulSet> statefulSetArgumentCaptor =
-        ArgumentCaptor.forClass(StatefulSet.class);
-    verify(statefulSetWriter).update(statefulSetArgumentCaptor.capture());
-    assertEquals(requiredOwnerReferences,
-        statefulSetArgumentCaptor.getValue().getSpec().getTemplate()
-        .getMetadata().getOwnerReferences());
+    verify(statefulSetWriter).update(any());
 
     ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
-    verify(podWriter, atMost(Integer.MAX_VALUE)).update(podArgumentCaptor.capture());
+    verify(podWriter, times(replicas)).update(podArgumentCaptor.capture());
+    podArgumentCaptor.getAllValues().forEach(pod -> {
+      assertEquals(Seq.seq(deployedLabels.get(pod.getMetadata().getName()))
+          .filter(label -> !requiredLabels.containsKey(label.v1))
+          .append(Seq.seq(requiredLabels))
+          .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)),
+          pod.getMetadata().getLabels());
+    });
+  }
+
+  @Test
+  void givenPodOwnerReferenceChanges_shouldBeAppliedDirectlyToPods() {
+    setUpUpscale(0, 0, PrimaryPosition.FIRST);
+
+    deployedStatefulSet.getMetadata().setUid(StringUtils.getRandomString());
+    final List<OwnerReference> requiredOwnerReferences = getOwnerReferences(deployedStatefulSet);
+
+    when(statefulSetWriter.update(any())).thenReturn(deployedStatefulSet);
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
+    verify(podWriter, atLeastOnce()).update(podArgumentCaptor.capture());
     podArgumentCaptor.getAllValues().forEach(pod -> {
       assertEquals(requiredOwnerReferences, pod.getMetadata().getOwnerReferences());
     });
@@ -488,7 +524,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .tuple(pvc, Map
             .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
                 "same-key", "old-value")))
-        .peek(t -> t.v1.getMetadata().setAnnotations(t.v2))
+        .map(t -> {
+          t.v1.getMetadata().setAnnotations(t.v2);
+          return t;
+        })
         .map(t -> t.map1(pvc -> pvc.getMetadata().getName()))
         .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
 
@@ -513,6 +552,52 @@ class ClusterStatefulSetReconciliationHandlerTest {
           .append(Seq.seq(requiredAnnotations))
           .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)),
           pvc.getMetadata().getAnnotations());
+    });
+  }
+
+  @Test
+  void givenPvcLabelsChanges_shouldBeAppliedDirectlyToPvcs() {
+    final Map<String, String> requiredLabels = Map
+        .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
+            "same-key", "new-value");
+
+    final int desiredReplicas = setUpNoScale(0, 0, PrimaryPosition.FIRST);
+    requiredStatefulSet.getSpec().getVolumeClaimTemplates().forEach(pvc -> pvc
+        .getMetadata().setLabels(requiredLabels));
+    final var deployedLabels = Seq.seq(pvcList).map(pvc -> Tuple
+        .tuple(pvc, Seq.seq(Map
+            .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
+                "same-key", "old-value"))
+            .append(Seq.seq(pvc.getMetadata().getLabels()))
+            .toMap(Tuple2::v1, Tuple2::v2)))
+        .map(t -> {
+          t.v1.getMetadata().setLabels(t.v2);
+          return t;
+        })
+        .map(t -> t.map1(pvc -> pvc.getMetadata().getName()))
+        .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
+
+    deployedStatefulSet.getSpec().getVolumeClaimTemplates().forEach(pvc -> pvc.getMetadata()
+        .setLabels(
+            Map.of(StringUtils.getRandomString(), StringUtils.getRandomString())));
+
+    handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
+
+    ArgumentCaptor<StatefulSet> statefulSetArgumentCaptor =
+        ArgumentCaptor.forClass(StatefulSet.class);
+    verify(statefulSetWriter).update(statefulSetArgumentCaptor.capture());
+    statefulSetArgumentCaptor.getValue().getSpec().getVolumeClaimTemplates()
+        .forEach(pvc -> assertEquals(requiredLabels, pvc.getMetadata().getLabels()));
+
+    ArgumentCaptor<PersistentVolumeClaim> pvcArgumentCaptor =
+        ArgumentCaptor.forClass(PersistentVolumeClaim.class);
+    verify(pvcWriter, times(desiredReplicas)).update(pvcArgumentCaptor.capture());
+    pvcArgumentCaptor.getAllValues().forEach(pvc -> {
+      assertEquals(Seq.seq(deployedLabels.get(pvc.getMetadata().getName()))
+          .filter(label -> !requiredLabels.containsKey(label.v1))
+          .append(Seq.seq(requiredLabels))
+          .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)),
+          pvc.getMetadata().getLabels());
     });
   }
 
@@ -587,10 +672,12 @@ class ClusterStatefulSetReconciliationHandlerTest {
         requiredStatefulSet.getSpec().getSelector().getMatchLabels());
 
     Map<String, String> disruptablePodLabels = new HashMap<>(commonPodLabels);
-    disruptablePodLabels.put(StackGresContext.DISRUPTIBLE_KEY, StackGresContext.RIGHT_VALUE);
+    disruptablePodLabels.put(
+        labelFactory.labelMapper().disruptibleKey(cluster), StackGresContext.RIGHT_VALUE);
 
     Map<String, String> nonDisruptablePodLabels = new HashMap<>(commonPodLabels);
-    nonDisruptablePodLabels.put(StackGresContext.DISRUPTIBLE_KEY, StackGresContext.WRONG_VALUE);
+    nonDisruptablePodLabels.put(
+        labelFactory.labelMapper().disruptibleKey(cluster), StackGresContext.WRONG_VALUE);
 
     podList.clear();
     final int startPodIndex = currentReplicas - afterDistancePods;
@@ -629,11 +716,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
             .then(arguments -> {
               return pvcList
                   .stream()
-                  .filter(pod -> ((Map<String, String>) arguments.getArgument(1))
-                      .entrySet().stream().allMatch(label -> pod.getMetadata().getLabels()
-                          .entrySet().stream().anyMatch(
-                              podLabel -> podLabel.getKey().equals(label.getKey())
-                              && podLabel.getValue().equals(label.getValue()))))
+                  .filter(pvc -> ((Map<String, String>) arguments.getArgument(1))
+                      .entrySet().stream().allMatch(label -> pvc.getMetadata().getLabels()
+                          .entrySet().stream().anyMatch(label::equals)))
                   .collect(ImmutableList.toImmutableList());
             });
 
@@ -675,7 +760,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
       boolean setRole) {
     final Map<String, String> podLabels = new HashMap<>(
         requiredStatefulSet.getSpec().getSelector().getMatchLabels());
-    podLabels.put(StackGresContext.DISRUPTIBLE_KEY,
+    podLabels.put(labelFactory.labelMapper().disruptibleKey(cluster),
         nonDisruptible ? StackGresContext.WRONG_VALUE : StackGresContext.RIGHT_VALUE);
     if (!placeholder && setRole) {
       podLabels.put(PatroniUtil.ROLE_KEY,

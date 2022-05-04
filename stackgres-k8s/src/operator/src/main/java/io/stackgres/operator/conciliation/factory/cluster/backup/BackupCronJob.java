@@ -204,7 +204,7 @@ public class BackupCronJob
                             .build(),
                         new EnvVarBuilder()
                             .withName("SCHEDULED_BACKUP_KEY")
-                            .withValue(StackGresContext.SCHEDULED_BACKUP_KEY)
+                            .withValue(labelFactory.labelMapper().scheduledBackupKey(cluster))
                             .build(),
                         new EnvVarBuilder()
                             .withName("RIGHT_VALUE")

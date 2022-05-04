@@ -61,7 +61,7 @@ EOF
 EOF
     )" | kubectl create -f -
 
-  wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" -l db-ops=true -o name | wc -l | grep -q "^1$"'
+  wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" -l stackgres.io/db-ops=true -o name | wc -l | grep -q "^1$"'
 }
 
 e2e_test() {

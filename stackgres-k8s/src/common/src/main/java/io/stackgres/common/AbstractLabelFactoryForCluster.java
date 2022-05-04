@@ -17,17 +17,17 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
 
   @Override
   public Map<String, String> clusterLabels(T resource) {
-    return ImmutableMap.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceNameKey(), labelValue(resourceName(resource)),
-        labelMapper().resourceUidKey(), labelValue(resourceUid(resource)));
+    return Map.of(labelMapper().appKey(), labelMapper().appName(),
+        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
+        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)));
   }
 
   @Override
   public Map<String, String> patroniClusterLabels(T resource) {
-    return ImmutableMap.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceUidKey(), labelValue(resourceUid(resource)),
-        labelMapper().resourceNameKey(), labelValue(resourceName(resource)),
-        labelMapper().clusterKey(), StackGresContext.RIGHT_VALUE);
+    return Map.of(labelMapper().appKey(), labelMapper().appName(),
+        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)),
+        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
+        labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE);
   }
 
   @Override
@@ -46,32 +46,32 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
 
   @Override
   public Map<String, String> statefulSetPodLabels(T resource) {
-    return ImmutableMap.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().clusterKey(), StackGresContext.RIGHT_VALUE,
-        labelMapper().disruptibleKey(), StackGresContext.RIGHT_VALUE,
-        labelMapper().resourceNameKey(), labelValue(resourceName(resource)),
-        labelMapper().resourceUidKey(), labelValue(resourceUid(resource)));
+    return Map.of(labelMapper().appKey(), labelMapper().appName(),
+        labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE,
+        labelMapper().disruptibleKey(resource), StackGresContext.RIGHT_VALUE,
+        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
+        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)));
   }
 
   @Override
   public Map<String, String> scheduledBackupPodLabels(T resource) {
-    return ImmutableMap.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceUidKey(), labelValue(resourceUid(resource)),
-        labelMapper().resourceNameKey(), labelValue(resourceName(resource)),
-        labelMapper().scheduledBackupKey(), StackGresContext.RIGHT_VALUE);
+    return Map.of(labelMapper().appKey(), labelMapper().appName(),
+        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)),
+        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
+        labelMapper().scheduledBackupKey(resource), StackGresContext.RIGHT_VALUE);
   }
 
   @Override
-  public Map<String, String> anyPatroniClusterLabels() {
-    return ImmutableMap.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().clusterKey(), StackGresContext.RIGHT_VALUE);
+  public Map<String, String> anyPatroniClusterLabels(T resource) {
+    return Map.of(labelMapper().appKey(), labelMapper().appName(),
+        labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE);
   }
 
   public Map<String, String> clusterCrossNamespaceLabels(T resource) {
-    return ImmutableMap.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceNamespaceKey(), labelValue(resourceNamespace(resource)),
-        labelMapper().resourceUidKey(), labelValue(resourceUid(resource)),
-        labelMapper().resourceNameKey(), labelValue(resourceName(resource)));
+    return Map.of(labelMapper().appKey(), labelMapper().appName(),
+        labelMapper().resourceNamespaceKey(resource), labelValue(resourceNamespace(resource)),
+        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)),
+        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)));
   }
 
 }

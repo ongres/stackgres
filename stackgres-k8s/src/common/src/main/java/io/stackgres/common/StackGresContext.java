@@ -9,6 +9,8 @@ import com.google.common.collect.ImmutableMap;
 
 public interface StackGresContext {
 
+  String STACKGRES_KEY_PREFIX = "stackgres.io/";
+
   String APP_KEY = "app";
   String CLUSTER_APP_NAME = "StackGresCluster";
   String CLUSTER_NAME_KEY = "cluster-name";
@@ -21,15 +23,10 @@ public interface StackGresContext {
   String DB_OPS_KEY = "db-ops";
   String SCHEDULED_BACKUP_KEY = "scheduled-backup";
   String DISRUPTIBLE_KEY = "disruptible";
-  String REST_APIUSER_KEY = "apiUsername";
-  String REST_K8SUSER_KEY = "k8sUsername";
-  String REST_PASSWORD_KEY = "password";
   String DISTRIBUTED_LOGS_APP_NAME = "StackGresDistributedLogs";
   String DISTRIBUTED_LOGS_CLUSTER_NAME_KEY = "distributed-logs-name";
   String DISTRIBUTED_LOGS_CLUSTER_NAMESPACE_KEY = "distributed-logs-namespace";
   String DISTRIBUTED_LOGS_CLUSTER_UID_KEY = "distributed-logs-uid";
-  String DISTRIBUTED_LOGS_CLUSTER_KEY = "distributed-logs-cluster";
-  String DISTRIBUTED_LOGS_BACKUP_KEY = "distributed-logs-backup";
   String DBOPS_APP_NAME = "StackGresDbOps";
   String DBOPS_NAME_KEY = "dbops-name";
   String DBOPS_UID_KEY = "dbops-uid";
@@ -39,7 +36,10 @@ public interface StackGresContext {
   String BACKUP_UID_KEY = "backup-uid";
   String BACKUP_NAMESPACE_KEY = "backup-namespace";
 
-  String STACKGRES_KEY_PREFIX = "stackgres.io/";
+  String REST_APIUSER_KEY = "apiUsername";
+  String REST_K8SUSER_KEY = "k8sUsername";
+  String REST_PASSWORD_KEY = "password";
+
   String MANAGED_BY_SERVER_SIDE_APPLY_KEY = STACKGRES_KEY_PREFIX + "managed-by-server-side-apply";
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
@@ -56,6 +56,7 @@ public interface StackGresContext {
       STACKGRES_KEY_PREFIX + "prometheus-postgres-exporter-version";
   String FLUENTBIT_VERSION_KEY = STACKGRES_KEY_PREFIX + "fluentbit-version";
   String FLUENTD_VERSION_KEY = STACKGRES_KEY_PREFIX + "fluentd-version";
+  String CONTAINER_KEY = STACKGRES_KEY_PREFIX + "container";
   ImmutableMap<String, String> ANNOTATIONS_TO_COMPONENT =
       ImmutableMap.<String, String>builder()
       .put(CLUSTER_CONTROLLER_VERSION_KEY, "cluster-controller")

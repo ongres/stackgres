@@ -108,7 +108,8 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
     final int pgPort = EnvoyUtil.PG_PORT;
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_SCOPE", clusterScope(cluster));
-    data.put("PATRONI_KUBERNETES_SCOPE_LABEL", labelFactory.labelMapper().clusterScopeKey());
+    data.put("PATRONI_KUBERNETES_SCOPE_LABEL",
+        labelFactory.labelMapper().clusterScopeKey(cluster));
     data.put("PATRONI_KUBERNETES_LABELS", patroniClusterLabelsAsJson);
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
     data.put("PATRONI_KUBERNETES_PORTS", getKubernetesPorts(pgPort, pgRawPort));

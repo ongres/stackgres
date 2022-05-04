@@ -12,9 +12,11 @@ import org.jetbrains.annotations.NotNull;
 
 public interface LabelFactory<T extends CustomResource<?, ?>> {
 
+  Map<String, String> appLabel();
+
   Map<String, String> genericLabels(@NotNull T resource);
 
-  LabelMapper labelMapper();
+  LabelMapper<T> labelMapper();
 
   default String resourceName(@NotNull T resource) {
     return resource.getMetadata().getName();

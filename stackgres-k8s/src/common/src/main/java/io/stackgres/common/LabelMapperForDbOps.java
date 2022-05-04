@@ -5,10 +5,13 @@
 
 package io.stackgres.common;
 
-public interface LabelMapperForDbOps extends LabelMapper {
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 
-  default String dbOpsKey() {
-    return StackGresContext.DB_OPS_KEY;
+public interface LabelMapperForDbOps
+    extends LabelMapper<StackGresDbOps> {
+
+  default String dbOpsKey(StackGresDbOps resource) {
+    return getKeyPrefix(resource) + StackGresContext.DB_OPS_KEY;
   }
 
 }
