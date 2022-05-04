@@ -29,6 +29,6 @@ public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
   Map<String, String> clusterCrossNamespaceLabels(T resource);
 
   @Override
-  LabelMapperForCluster<T> labelMapper();
+  LabelMapperForCluster labelMapper();
 
 }

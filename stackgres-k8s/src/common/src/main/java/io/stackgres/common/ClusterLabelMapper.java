@@ -7,10 +7,8 @@ package io.stackgres.common;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-
 @ApplicationScoped
-public class ClusterLabelMapper implements LabelMapperForCluster<StackGresCluster> {
+public class ClusterLabelMapper implements LabelMapperForCluster {
 
   @Override
   public String appName() {

@@ -15,8 +15,8 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.LabelMapperForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
@@ -46,7 +46,7 @@ class PodTemplateSpecFactoryTest {
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Mock
-  private LabelMapperForCluster<StackGresCluster> labelMapper;
+  private ClusterLabelMapper labelMapper;
 
   @Mock
   private ContainerFactoryDiscoverer<StackGresClusterContainerContext> containerFactoryDiscoverer;
