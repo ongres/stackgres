@@ -238,21 +238,21 @@
                 switch(vc.$route.meta.componentName) {
                     
                     case 'SGBackupConfig':
-                        // Looks for a clusyer that depends on this resource
-                        c = store.state.clusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ((c.data.spec.configurations.hasOwnProperty('sgBackupConfig')) &&  (c.data.spec.configurations.sgBackupConfig == vc.$route.params.name)))
+                        // Looks for a cluster that depends on this resource
+                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ((c.data.spec.configurations.hasOwnProperty('sgBackupConfig')) &&  (c.data.spec.configurations.sgBackupConfig == vc.$route.params.name)))
                         // If there is any then it can't be deleted
                         return (typeof c == 'undefined')
                     case 'SGDistributedLog':
-                        c = store.state.clusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ((c.data.spec.hasOwnProperty('distributedLogs')) &&  (c.data.spec.distributedLogs.sgDistributedLogs == vc.$route.params.name)))
+                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ((c.data.spec.hasOwnProperty('distributedLogs')) &&  (c.data.spec.distributedLogs.sgDistributedLogs == vc.$route.params.name)))
                         return (typeof c == 'undefined')
                     case 'SGInstanceProfile':
-                        c = store.state.clusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.sgInstanceProfile == vc.$route.params.name))
+                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.sgInstanceProfile == vc.$route.params.name))
                         return (typeof c == 'undefined')
                     case 'SGPgConfig':
-                        c = store.state.clusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPostgresConfig == vc.$route.params.name))
+                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPostgresConfig == vc.$route.params.name))
                         return (typeof c == 'undefined') 
                     case 'SGPoolConfig':
-                        c = store.state.clusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPoolingConfig == vc.$route.params.name))
+                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPoolingConfig == vc.$route.params.name))
                         return (typeof c == 'undefined') 
                 }
 
@@ -262,7 +262,7 @@
             hasLogs () {
                 const vc = this;
 
-                let cluster = store.state.clusters.filter(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name))
+                let cluster = store.state.sgclusters.filter(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name))
 
                 if((cluster.length > 0) && (cluster[0].data.spec.hasOwnProperty('distributedLogs')))
                     return true
@@ -273,7 +273,7 @@
             hasMonitoring () {
                 const vc = this;
 
-                let cluster = store.state.clusters.filter(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name))
+                let cluster = store.state.sgclusters.filter(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name))
 
                 if((cluster.length > 0) && (cluster[0].data.grafanaEmbedded))
                     return true
