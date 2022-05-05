@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.lang.annotation.Annotation;
+import java.util.Locale;
 
 import javax.validation.Validation;
 import javax.validation.ValidatorFactory;
@@ -21,6 +22,7 @@ import io.stackgres.common.ErrorType;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import org.hibernate.validator.HibernateValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +36,10 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
   void setUp() {
     validator = buildValidator();
 
-    ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    ValidatorFactory factory = Validation.byProvider(HibernateValidator.class)
+        .configure()
+        .defaultLocale(Locale.ENGLISH)
+        .buildValidatorFactory();
     validator.setConstraintValidator(factory.getValidator());
     validator.init();
 

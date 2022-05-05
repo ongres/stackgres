@@ -5,11 +5,9 @@
 
 package io.stackgres.common;
 
-import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.resource.ResourceUtil;
 
-public interface LabelMapperForCluster<T extends CustomResource<?, ?>>
-    extends LabelMapper<T> {
+public interface LabelMapperForCluster extends LabelMapper {
 
   default String clusterKey() {
     return StackGresContext.CLUSTER_KEY;

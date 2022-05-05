@@ -7,10 +7,8 @@ package io.stackgres.common;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-
 @ApplicationScoped
-public class DistributedLogsLabelMapper implements LabelMapperForCluster<StackGresDistributedLogs> {
+public class DistributedLogsLabelMapper implements LabelMapperForCluster {
 
   @Override
   public String appName() {

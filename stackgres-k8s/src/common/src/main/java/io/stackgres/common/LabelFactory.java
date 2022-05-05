@@ -14,7 +14,7 @@ public interface LabelFactory<T extends CustomResource<?, ?>> {
 
   Map<String, String> genericLabels(@NotNull T resource);
 
-  LabelMapper<T> labelMapper();
+  LabelMapper labelMapper();
 
   default String resourceName(@NotNull T resource) {
     return resource.getMetadata().getName();

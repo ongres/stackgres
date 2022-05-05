@@ -5,10 +5,7 @@
 
 package io.stackgres.common;
 
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
-
-public interface LabelMapperForBackup
-    extends LabelMapper<StackGresBackup> {
+public interface LabelMapperForBackup extends LabelMapper {
 
   default String backupKey() {
     return StackGresContext.BACKUP_KEY;
