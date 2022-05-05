@@ -136,7 +136,7 @@
                     <a class="documentation" href="https://github.com/babelfish-for-postgresql/babelfish_compass/" target="_blank" title="Babelfish Compass Documentation">Babelfish Compass Documentation</a>
                 </template>
                 <template v-else-if="($route.meta.componentName == 'SGDistributedLog') || ($route.meta.componentName == 'SGDbOp')">
-                    <a class="documentation" :href="'https://stackgres.io/doc/latest/reference/crd/' + $route.meta.componentName.toLowerCase() + 's'" target="_blank" :title="$route.meta.componentName + ' Documentation'">{{ $route.meta.componentName }} Documentation</a>
+                    <a class="documentation" :href="'https://stackgres.io/doc/latest/reference/crd/' + $route.meta.componentName.toLowerCase() + 's'" target="_blank" :title="$route.meta.componentName + 's Documentation'">{{ $route.meta.componentName }}s Documentation</a>
                 </template>
                 <template v-else>
                     <a class="documentation" :href="'https://stackgres.io/doc/latest/reference/crd/' + ($route.meta.customComponentName == 'SGPoolingConfig' ? $route.meta.customComponentName.toLowerCase() : $route.meta.componentName.toLowerCase())" target="_blank" :title="$route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + ' Documentation': $route.meta.componentName + ' Documentation'">{{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName : $route.meta.componentName }} Documentation</a>
