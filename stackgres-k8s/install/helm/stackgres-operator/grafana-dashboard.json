@@ -71,7 +71,6 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": null,
-  "iteration": 1638301532479,
   "links": [],
   "panels": [
     {
@@ -279,7 +278,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:671",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -289,7 +287,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:672",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -390,7 +387,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:564",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -400,7 +396,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:565",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -498,7 +493,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:460",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -508,7 +502,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:461",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -615,7 +608,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:489",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -625,7 +617,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:490",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -724,7 +715,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:783",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -734,7 +724,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:784",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -833,7 +822,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:746",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -843,7 +831,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:747",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -942,7 +929,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:619",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -952,7 +938,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:620",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -1052,7 +1037,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:849",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -1062,7 +1046,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:850",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -1593,7 +1576,6 @@
           ],
           "thresholds": [
             {
-              "$$hashKey": "object:270",
               "colorMode": "warning",
               "fill": true,
               "line": true,
@@ -1621,7 +1603,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:783",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -1631,7 +1612,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:784",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -1825,7 +1805,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:518",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -1835,7 +1814,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:519",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -1934,7 +1912,6 @@
           ],
           "thresholds": [
             {
-              "$$hashKey": "object:1636",
               "colorMode": "warning",
               "fill": true,
               "fillColor": "rgba(51, 162, 229, 0.2)",
@@ -1945,7 +1922,6 @@
               "yaxis": "left"
             },
             {
-              "$$hashKey": "object:3084",
               "colorMode": "critical",
               "fill": true,
               "line": true,
@@ -1973,7 +1949,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:970",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -1983,7 +1958,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:971",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -2079,7 +2053,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:1074",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -2089,7 +2062,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:1075",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -2185,7 +2157,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:1022",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -2195,7 +2166,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:1023",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -2291,7 +2261,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:1129",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -2301,7 +2270,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:1130",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -4429,6 +4397,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -4441,7 +4410,18 @@
                       "text": "Replica"
                     }
                   },
-                  "type": "value"
+                  "text": "Leader",
+                  "type": 1,
+                  "value": "0"
+                },
+                {
+                  "from": "",
+                  "id": null,
+                  "operator": "",
+                  "text": "Replica",
+                  "to": "",
+                  "type": 1,
+                  "value": "1"
                 }
               ],
               "thresholds": {
@@ -4486,7 +4466,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "exemplar": true,
@@ -4509,6 +4489,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -4562,7 +4543,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "pg_settings_maintenance_work_mem_bytes{instance=~\"${instance}:9187\"}",
@@ -4582,6 +4563,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -4635,7 +4617,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "pg_settings_work_mem_bytes{instance=~\"${instance}:9187\"}",
@@ -4656,6 +4638,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "decimals": 1,
               "mappings": [
                 {
@@ -4710,7 +4693,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "pg_settings_max_wal_size_bytes{instance=~\"${instance}:9187\"}",
@@ -4730,6 +4713,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -4783,7 +4767,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "pg_settings_random_page_cost{instance=~\"${instance}:9187\"}",
@@ -4803,6 +4787,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -4856,7 +4841,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "pg_settings_seq_page_cost{instance=~\"${instance}:9187\"}",
@@ -4876,6 +4861,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -4929,7 +4915,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "pg_settings_max_parallel_workers{instance=~\"${instance}:9187\"}",
@@ -4949,6 +4935,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -5002,7 +4989,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "pg_settings_shared_buffers_bytes{instance=~\"${instance}:9187\"}",
@@ -5022,79 +5009,7 @@
               "color": {
                 "mode": "thresholds"
               },
-              "mappings": [
-                {
-                  "options": {
-                    "match": "null",
-                    "result": {
-                      "text": "N/A"
-                    }
-                  },
-                  "type": "special"
-                }
-              ],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green",
-                    "value": null
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "bytes"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 3,
-            "w": 3,
-            "x": 3,
-            "y": 10
-          },
-          "id": 244,
-          "interval": null,
-          "links": [],
-          "maxDataPoints": 100,
-          "options": {
-            "colorMode": "none",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "horizontal",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "text": {},
-            "textMode": "auto"
-          },
-          "pluginVersion": "8.1.2",
-          "targets": [
-            {
-              "expr": "pg_settings_shared_buffers_bytes{instance=~\"${instance}:9187\"}",
-              "format": "time_series",
-              "intervalFactor": 1,
-              "refId": "A"
-            }
-          ],
-          "title": "Shared Buffers",
-          "type": "stat"
-        },
-        {
-          "cacheTimeout": null,
-          "datasource": "${DS_PROMETHEUS}",
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -5126,7 +5041,7 @@
           "gridPos": {
             "h": 3,
             "w": 3,
-            "x": 6,
+            "x": 3,
             "y": 10
           },
           "id": 54,
@@ -5148,7 +5063,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "pg_settings_max_worker_processes{instance=~\"${instance}:9187\"}",
@@ -6632,7 +6547,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:1214",
               "decimals": 2,
               "format": "bytes",
               "label": null,
@@ -6642,7 +6556,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:1215",
               "decimals": 2,
               "format": "bytes",
               "label": null,
@@ -6735,7 +6648,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:1289",
               "decimals": 2,
               "format": "bytes",
               "label": null,
@@ -6745,7 +6657,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:1290",
               "decimals": 2,
               "format": "bytes",
               "label": null,
@@ -6787,6 +6698,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -6840,7 +6752,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "count(pg_replication_status_lag_size{instance=~\"${instance}:9187\", state=\"streaming\"} and on (instance)(pg_replication_is_replica == 0))",
@@ -6862,6 +6774,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -6915,7 +6828,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "count(pg_replication_slots_active{instance=~\"${instance}:9187\"}==1)",
@@ -6935,6 +6848,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -6988,7 +6902,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "pg_wal_position_bytes{instance=~\"${instance}:9187\"}",
@@ -7008,6 +6922,7 @@
           "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
+              "custom": {},
               "links": []
             },
             "overrides": []
@@ -7040,7 +6955,8 @@
           "linewidth": 1,
           "nullPointMode": "null",
           "options": {
-            "alertThreshold": true
+            "alertThreshold": true,
+            "dataLinks": []
           },
           "percentage": false,
           "pluginVersion": "8.1.2",
@@ -7108,6 +7024,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -7166,7 +7083,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "count(pg_replication_status_lag_size{instance=~\"${instance}:9187\", state!=\"streaming\"} and on (instance)(pg_replication_is_replica == 0))",
@@ -7189,6 +7106,7 @@
               "color": {
                 "mode": "thresholds"
               },
+              "custom": {},
               "mappings": [
                 {
                   "options": {
@@ -7247,7 +7165,7 @@
             "text": {},
             "textMode": "auto"
           },
-          "pluginVersion": "8.1.2",
+          "pluginVersion": "7.0.6",
           "targets": [
             {
               "expr": "count(pg_replication_slots_active{instance=~\"${instance}:9187\"}==0)",
@@ -7269,6 +7187,7 @@
           "datasource": "${DS_PROMETHEUS}",
           "fieldConfig": {
             "defaults": {
+              "custom": {},
               "links": []
             },
             "overrides": []
@@ -7297,7 +7216,8 @@
           "linewidth": 1,
           "nullPointMode": "null",
           "options": {
-            "alertThreshold": true
+            "alertThreshold": true,
+            "dataLinks": []
           },
           "percentage": false,
           "pluginVersion": "8.1.2",
@@ -7336,7 +7256,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:355",
               "format": "s",
               "label": null,
               "logBase": 1,
@@ -7345,7 +7264,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:356",
               "format": "short",
               "label": null,
               "logBase": 1,
@@ -7456,7 +7374,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:86",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -7466,7 +7383,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:87",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -7559,7 +7475,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:86",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -7569,7 +7484,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:87",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -7842,7 +7756,6 @@
           },
           "yaxes": [
             {
-              "$$hashKey": "object:817",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -7852,7 +7765,6 @@
               "show": true
             },
             {
-              "$$hashKey": "object:818",
               "decimals": 0,
               "format": "short",
               "label": null,
@@ -8370,7 +8282,7 @@
     }
   ],
   "refresh": false,
-  "schemaVersion": 30,
+  "schemaVersion": 25,
   "style": "dark",
   "tags": [
     "postgres",
@@ -8539,5 +8451,5 @@
   "timezone": "utc",
   "title": "StackGres Dashboard",
   "uid": "000000041",
-  "version": 5
+  "version": 6
 }
