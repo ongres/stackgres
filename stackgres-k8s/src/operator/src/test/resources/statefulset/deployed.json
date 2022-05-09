@@ -4,8 +4,8 @@
   "metadata": {
     "labels": {
       "app": "StackGresCluster",
-      "cluster-name": "scale-up-and-down",
-      "cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d"
+      "stackgres.io/cluster-name": "scale-up-and-down",
+      "stackgres.io/cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d"
     },
     "name": "scale-up-and-down",
     "namespace": "scale-up-and-down-5fabeeb6",
@@ -17,7 +17,8 @@
         "name": "scale-up-and-down",
         "uid": "f789d8d3-61d9-44af-a4d0-29533261c80d"
       }
-    ]
+    ],
+    "uid": "f789d8d3-61d9-44af-a4d0-29533261c80d"
   },
   "spec": {
     "podManagementPolicy": "OrderedReady",
@@ -26,10 +27,10 @@
     "selector": {
       "matchLabels": {
         "app": "StackGresCluster",
-        "cluster": "true",
-        "cluster-name": "scale-up-and-down",
-        "cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d",
-        "disruptible": "true"
+        "stackgres.io/cluster": "true",
+        "stackgres.io/cluster-name": "scale-up-and-down",
+        "stackgres.io/cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d",
+        "stackgres.io/disruptible": "true"
       }
     },
     "serviceName": "scale-up-and-down",
@@ -37,10 +38,10 @@
       "metadata": {
         "labels": {
           "app": "StackGresCluster",
-          "cluster": "true",
-          "cluster-name": "scale-up-and-down",
-          "cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d",
-          "disruptible": "true"
+          "stackgres.io/cluster": "true",
+          "stackgres.io/cluster-name": "scale-up-and-down",
+          "stackgres.io/cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d",
+          "stackgres.io/disruptible": "true"
         }
       },
       "spec": {
@@ -1041,8 +1042,8 @@
         "metadata": {
           "labels": {
             "app": "StackGresCluster",
-            "cluster-name": "scale-up-and-down",
-            "cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d"
+            "stackgres.io/cluster-name": "scale-up-and-down",
+            "stackgres.io/cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d"
           },
           "name": "scale-up-and-down-data",
           "namespace": "scale-up-and-down-5fabeeb6"

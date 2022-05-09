@@ -9,7 +9,6 @@ import static io.stackgres.common.resource.ResourceUtil.labelValue;
 
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 
 public abstract class AbstractLabelFactoryForDbOps
@@ -17,10 +16,10 @@ public abstract class AbstractLabelFactoryForDbOps
 
   @Override
   public Map<String, String> dbOpsPodLabels(StackGresDbOps resource) {
-    return ImmutableMap.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceUidKey(), labelValue(resourceUid(resource)),
-        labelMapper().resourceNameKey(), labelValue(resourceName(resource)),
-        labelMapper().dbOpsKey(), StackGresContext.RIGHT_VALUE);
+    return Map.of(labelMapper().appKey(), labelMapper().appName(),
+        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)),
+        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
+        labelMapper().dbOpsKey(resource), StackGresContext.RIGHT_VALUE);
   }
 
 }

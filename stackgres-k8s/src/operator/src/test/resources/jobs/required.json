@@ -4,9 +4,9 @@
   "metadata" : {
     "labels" : {
       "app" : "StackGresCluster",
-      "cluster-uid" : "f5f340dd-db24-4913-beaa-dcba3fa43108",
-      "cluster-name" : "dbops-pgbench",
-      "db-ops" : "true"
+      "stackgres.io/cluster-uid" : "f5f340dd-db24-4913-beaa-dcba3fa43108",
+      "stackgres.io/cluster-name" : "dbops-pgbench",
+      "stackgres.io/db-ops" : "true"
     },
     "name" : "benchmark-benchmark-8d6cb2948606468e-0",
     "namespace" : "dbops-pgbench-6000a807",
@@ -26,9 +26,9 @@
       "metadata" : {
         "labels" : {
           "app" : "StackGresCluster",
-          "cluster-uid" : "f5f340dd-db24-4913-beaa-dcba3fa43108",
-          "cluster-name" : "dbops-pgbench",
-          "db-ops" : "true"
+          "stackgres.io/cluster-uid" : "f5f340dd-db24-4913-beaa-dcba3fa43108",
+          "stackgres.io/cluster-name" : "dbops-pgbench",
+          "stackgres.io/db-ops" : "true"
         },
         "name" : "benchmark-benchmark-8d6cb2948606468e-0",
         "namespace" : "dbops-pgbench-6000a807"

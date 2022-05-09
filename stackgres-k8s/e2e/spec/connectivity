@@ -114,7 +114,7 @@ pgbouncer_users_check() {
     | jq '.spec.pgBouncer["pgbouncer.ini"].users = { user1: {}, user2: {} }' \
     | kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" pgbouncerconf --type merge -p "$(cat)"
   wait_until eval '! kubectl wait -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
-  kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true"
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true"
   wait_pods_running "$CLUSTER_NAMESPACE" 3
 
   RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-primary -i 1 -p 5432 -u user1:test)"

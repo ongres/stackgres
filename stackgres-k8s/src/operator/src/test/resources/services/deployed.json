@@ -4,10 +4,10 @@
   "metadata": {
     "labels": {
       "app": "StackGresCluster",
-      "cluster-name": "connectivity",
-      "cluster-namespace": "connectivity-5fa07f2f",
-      "cluster-uid": "70127ec1-e667-4bbe-94f7-1ca61e52b46f",
-      "container": "prometheus-postgres-exporter"
+      "stackgres.io/cluster-name": "connectivity",
+      "stackgres.io/cluster-namespace": "connectivity-5fa07f2f",
+      "stackgres.io/cluster-uid": "70127ec1-e667-4bbe-94f7-1ca61e52b46f",
+      "stackgres.io/container": "prometheus-postgres-exporter"
     },
     "name": "connectivity-prometheus-postgres-exporter",
     "namespace": "connectivity-5fa07f2f",
@@ -33,8 +33,8 @@
     ],
     "selector": {
       "app": "StackGresCluster",
-      "cluster-name": "connectivity",
-      "cluster-uid": "70127ec1-e667-4bbe-94f7-1ca61e52b46f"
+      "stackgres.io/cluster-name": "connectivity",
+      "stackgres.io/cluster-uid": "70127ec1-e667-4bbe-94f7-1ca61e52b46f"
     },
     "sessionAffinity": "None",
     "type": "ClusterIP"

@@ -9,7 +9,6 @@ import static io.stackgres.common.resource.ResourceUtil.labelValue;
 
 import java.util.Map;
 
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 
 public abstract class AbstractLabelFactoryForBackup
@@ -17,10 +16,10 @@ public abstract class AbstractLabelFactoryForBackup
 
   @Override
   public Map<String, String> backupPodLabels(StackGresBackup resource) {
-    return ImmutableMap.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceUidKey(), labelValue(resourceUid(resource)),
-        labelMapper().resourceNameKey(), labelValue(resourceName(resource)),
-        labelMapper().backupKey(), StackGresContext.RIGHT_VALUE);
+    return Map.of(labelMapper().appKey(), labelMapper().appName(),
+        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)),
+        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
+        labelMapper().backupKey(resource), StackGresContext.RIGHT_VALUE);
   }
 
 }

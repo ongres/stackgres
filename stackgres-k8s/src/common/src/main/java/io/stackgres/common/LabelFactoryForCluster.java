@@ -24,11 +24,11 @@ public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
 
   Map<String, String> scheduledBackupPodLabels(T resource);
 
-  Map<String, String> anyPatroniClusterLabels();
+  Map<String, String> anyPatroniClusterLabels(T resource);
 
   Map<String, String> clusterCrossNamespaceLabels(T resource);
 
   @Override
-  LabelMapperForCluster labelMapper();
+  LabelMapperForCluster<T> labelMapper();
 
 }

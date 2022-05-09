@@ -7,6 +7,8 @@ package io.stackgres.common;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+
 @ApplicationScoped
 public class BackupLabelMapper implements LabelMapperForBackup {
 
@@ -16,18 +18,18 @@ public class BackupLabelMapper implements LabelMapperForBackup {
   }
 
   @Override
-  public String resourceNameKey() {
-    return StackGresContext.BACKUP_NAME_KEY;
+  public String resourceNameKey(StackGresBackup resource) {
+    return getKeyPrefix(resource) + StackGresContext.BACKUP_NAME_KEY;
   }
 
   @Override
-  public String resourceNamespaceKey() {
-    return StackGresContext.BACKUP_NAMESPACE_KEY;
+  public String resourceNamespaceKey(StackGresBackup resource) {
+    return getKeyPrefix(resource) + StackGresContext.BACKUP_NAMESPACE_KEY;
   }
 
   @Override
-  public String resourceUidKey() {
-    return StackGresContext.BACKUP_UID_KEY;
+  public String resourceUidKey(StackGresBackup resource) {
+    return getKeyPrefix(resource) + StackGresContext.BACKUP_UID_KEY;
   }
 
 }

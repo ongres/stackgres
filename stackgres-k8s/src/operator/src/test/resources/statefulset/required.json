@@ -4,8 +4,8 @@
   "metadata": {
     "labels": {
       "app": "StackGresCluster",
-      "cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d",
-      "cluster-name": "scale-up-and-down"
+      "stackgres.io/cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d",
+      "stackgres.io/cluster-name": "scale-up-and-down"
     },
     "name": "scale-up-and-down",
     "namespace": "scale-up-and-down-5fabeeb6",
@@ -24,10 +24,10 @@
     "selector": {
       "matchLabels": {
         "app": "StackGresCluster",
-        "cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d",
-        "cluster-name": "scale-up-and-down",
-        "cluster": "true",
-        "disruptible": "true"
+        "stackgres.io/cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d",
+        "stackgres.io/cluster-name": "scale-up-and-down",
+        "stackgres.io/cluster": "true",
+        "stackgres.io/disruptible": "true"
       }
     },
     "serviceName": "scale-up-and-down",
@@ -35,10 +35,10 @@
       "metadata": {
         "labels": {
           "app": "StackGresCluster",
-          "cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d",
-          "cluster-name": "scale-up-and-down",
-          "cluster": "true",
-          "disruptible": "true"
+          "stackgres.io/cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d",
+          "stackgres.io/cluster-name": "scale-up-and-down",
+          "stackgres.io/cluster": "true",
+          "stackgres.io/disruptible": "true"
         }
       },
       "spec": {
@@ -995,8 +995,8 @@
         "metadata": {
           "labels": {
             "app": "StackGresCluster",
-            "cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d",
-            "cluster-name": "scale-up-and-down"
+            "stackgres.io/cluster-uid": "f789d8d3-61d9-44af-a4d0-29533261c80d",
+            "stackgres.io/cluster-name": "scale-up-and-down"
           },
           "name": "scale-up-and-down-data",
           "namespace": "scale-up-and-down-5fabeeb6"

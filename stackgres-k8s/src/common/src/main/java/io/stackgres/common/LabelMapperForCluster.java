@@ -5,24 +5,26 @@
 
 package io.stackgres.common;
 
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.resource.ResourceUtil;
 
-public interface LabelMapperForCluster extends LabelMapper {
+public interface LabelMapperForCluster<T extends CustomResource<?, ?>>
+    extends LabelMapper<T> {
 
-  default String clusterKey() {
-    return StackGresContext.CLUSTER_KEY;
+  default String clusterKey(T resource) {
+    return getKeyPrefix(resource) + StackGresContext.CLUSTER_KEY;
   }
 
-  default String disruptibleKey() {
-    return StackGresContext.DISRUPTIBLE_KEY;
+  default String disruptibleKey(T resource) {
+    return getKeyPrefix(resource) + StackGresContext.DISRUPTIBLE_KEY;
   }
 
-  default String scheduledBackupKey() {
-    return StackGresContext.SCHEDULED_BACKUP_KEY;
+  default String scheduledBackupKey(T resource) {
+    return getKeyPrefix(resource) + StackGresContext.SCHEDULED_BACKUP_KEY;
   }
 
-  default String clusterScopeKey() {
-    return ResourceUtil.labelKey(resourceNameKey());
+  default String clusterScopeKey(T resource) {
+    return ResourceUtil.labelKey(resourceNameKey(resource));
   }
 
 }

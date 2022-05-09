@@ -136,7 +136,7 @@ public class BackupJob
         .stream()
         .flatMap(Seq::seq)
         .anyMatch(Tuple.tuple(
-            StackGresContext.SCHEDULED_BACKUP_KEY,
+            labelFactoryForCluster.labelMapper().scheduledBackupKey(context.getCluster()),
             StackGresContext.RIGHT_VALUE)::equals);
   }
 

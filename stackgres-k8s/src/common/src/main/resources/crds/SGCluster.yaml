@@ -952,3 +952,6 @@ spec:
                 os:
                   type: string
                   description: The operative system on which the cluster has been initialized.
+                labelPrefix:
+                  type: string
+                  description: The custom prefix that is prepended to all labels.

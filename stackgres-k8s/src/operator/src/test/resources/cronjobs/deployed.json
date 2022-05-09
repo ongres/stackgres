@@ -4,9 +4,9 @@
   "metadata" : {
     "labels" : {
       "app" : "StackGresCluster",
-      "cluster-name" : "restore-backup",
-      "cluster-uid" : "0bec5d95-e1ba-41ba-98a0-52f3c1abb303",
-      "scheduled-backup" : "true"
+      "stackgres.io/cluster-name" : "restore-backup",
+      "stackgres.io/cluster-uid" : "0bec5d95-e1ba-41ba-98a0-52f3c1abb303",
+      "stackgres.io/scheduled-backup" : "true"
     },
     "name" : "restore-backup-backup",
     "namespace" : "restore-5fc6329d-backup",
@@ -25,9 +25,9 @@
       "metadata" : {
         "labels" : {
           "app" : "StackGresCluster",
-          "cluster-name" : "restore-backup",
-          "cluster-uid" : "0bec5d95-e1ba-41ba-98a0-52f3c1abb303",
-          "scheduled-backup" : "true"
+          "stackgres.io/cluster-name" : "restore-backup",
+          "stackgres.io/cluster-uid" : "0bec5d95-e1ba-41ba-98a0-52f3c1abb303",
+          "stackgres.io/scheduled-backup" : "true"
         },
         "name" : "restore-backup-backup",
         "namespace" : "restore-5fc6329d-backup"
@@ -40,9 +40,9 @@
           "metadata" : {
             "labels" : {
               "app" : "StackGresCluster",
-              "cluster-name" : "restore-backup",
-              "cluster-uid" : "0bec5d95-e1ba-41ba-98a0-52f3c1abb303",
-              "scheduled-backup" : "true"
+              "stackgres.io/cluster-name" : "restore-backup",
+              "stackgres.io/cluster-uid" : "0bec5d95-e1ba-41ba-98a0-52f3c1abb303",
+              "stackgres.io/scheduled-backup" : "true"
             },
             "name" : "restore-backup-backup",
             "namespace" : "restore-5fc6329d-backup"
@@ -184,13 +184,13 @@
                 "value" : "replica"
               }, {
                 "name" : "SCHEDULED_BACKUP_KEY",
-                "value" : "scheduled-backup"
+                "value" : "stackgres.io/scheduled-backup"
               }, {
                 "name" : "RIGHT_VALUE",
                 "value" : "true"
               }, {
                 "name" : "PATRONI_CLUSTER_LABELS",
-                "value" : "app=StackGresCluster,cluster-uid=0bec5d95-e1ba-41ba-98a0-52f3c1abb303,cluster-name=restore-backup,cluster=true"
+                "value" : "app=StackGresCluster,stackgres.io/cluster-uid=0bec5d95-e1ba-41ba-98a0-52f3c1abb303,stackgres.io/cluster-name=restore-backup,stackgres.io/cluster=true"
               }, {
                 "name" : "POD_NAME",
                 "valueFrom" : {

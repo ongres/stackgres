@@ -98,7 +98,8 @@ get_cluster_pod_count() {
 }
 
 get_cluster_stats_pods_ready() {
-  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME-stats/stats" | jq -r '.podsReady'
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME-stats/stats" \
+    | jq -r 'if .podsReady != null then .podsReady else 0 end'
 }
 
 check_cluster_directly() {

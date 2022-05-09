@@ -17,15 +17,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.BooleanSupplier;
 import java.util.function.UnaryOperator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -58,8 +57,8 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
   protected static final Logger LOGGER =
       LoggerFactory.getLogger(AbstractStatefulSetReconciliationHandler.class);
 
-  public static final ImmutableMap<String, String> PLACEHOLDER_NODE_SELECTOR =
-      ImmutableMap.of("schedule", "this-pod-is-a-placeholder");
+  public static final Map<String, String> PLACEHOLDER_NODE_SELECTOR =
+      Map.of("schedule", "this-pod-is-a-placeholder");
 
   private final LabelFactoryForCluster<T> labelFactory;
 
@@ -140,18 +139,18 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     }
   }
 
-  private StatefulSet replaceStatefulSet(StatefulSet requiredSts) {
-    statefulSetWriter.deleteWithoutCascading(requiredSts);
-    waitStatefulSetToBeDeleted(requiredSts);
-    return statefulSetWriter.create(requiredSts);
+  private StatefulSet replaceStatefulSet(StatefulSet statefulSet) {
+    statefulSetWriter.deleteWithoutCascading(statefulSet);
+    waitStatefulSetToBeDeleted(statefulSet);
+    return statefulSetWriter.create(statefulSet);
   }
 
-  private void waitStatefulSetToBeDeleted(StatefulSet requiredSts) {
-    final ObjectMeta metadata = requiredSts.getMetadata();
+  private void waitStatefulSetToBeDeleted(StatefulSet statefulSet) {
+    final ObjectMeta metadata = statefulSet.getMetadata();
     waitWithTimeout(
         () -> statefulSetFinder.findByNameAndNamespace(metadata.getName(), metadata.getNamespace())
             .isEmpty(),
-        "Timeout while waiting StatefulSet " + requiredSts.getMetadata().getName()
+        "Timeout while waiting StatefulSet " + statefulSet.getMetadata().getName()
             + " to be deleted");
   }
 
@@ -159,8 +158,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       UnaryOperator<StatefulSet> writer) {
     final StatefulSet requiredSts = safeCast(resource);
     final StatefulSetSpec spec = requiredSts.getSpec();
-    final Map<String, String> patroniClusterLabels = labelFactory.patroniClusterLabels(context);
-    final Map<String, String> labels = labelFactory.clusterLabels(context);
+    final Map<String, String> appLabel = labelFactory.appLabel();
 
     final String namespace = resource.getMetadata().getNamespace();
 
@@ -171,11 +169,9 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .findByNameAndNamespace(PatroniUtil.configName(context), namespace);
     final int latestPrimaryIndexFromPatroni =
         PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniConfigEndpoints, objectMapper);
-    startPrimaryIfRemoved(context, requiredSts, latestPrimaryIndexFromPatroni, writer);
+    startPrimaryIfRemoved(requiredSts, appLabel, latestPrimaryIndexFromPatroni, writer);
 
-    var pods = podScanner.findByLabelsAndNamespace(namespace, patroniClusterLabels).stream()
-        .sorted(Comparator.comparing(pod -> pod.getMetadata().getName()))
-        .collect(Collectors.toUnmodifiableList());
+    var pods = findStatefulSetPods(requiredSts, appLabel);
     final boolean existsPodWithPrimaryRole =
         pods.stream().anyMatch(Predicates.and(this::hasRoleLabel, this::isRolePrimary));
     final StatefulSet updatedSts;
@@ -185,10 +181,11 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
               pod -> !existsPodWithPrimaryRole
                   && latestPrimaryIndexFromPatroni == getPodIndex(pod)))
           .filter(pod -> getPodIndex(pod) > lastReplicaIndex)
-          .filter(Predicates.not(this::isNonDisruptable)).forEach(this::makePrimaryNonDisruptable);
+          .filter(Predicates.not(pod -> isNonDisruptable(context, pod)))
+          .forEach(pod -> makePrimaryNonDisruptable(context, pod));
 
       long nonDisruptablePodsRemaining =
-          countNonDisruptablePods(pods, lastReplicaIndex);
+          countNonDisruptablePods(context, pods, lastReplicaIndex);
       int replicas = (int) (desiredReplicas - nonDisruptablePodsRemaining);
       spec.setReplicas(replicas);
 
@@ -200,22 +197,21 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
           .findByNameAndNamespace(requiredSts.getMetadata().getName(), namespace).orElseThrow();
     }
 
-    fixPods(updatedSts, requiredSts, patroniClusterLabels, namespace, patroniConfigEndpoints);
+    fixPods(context, requiredSts, updatedSts, appLabel, patroniConfigEndpoints);
 
-    fixPvcs(requiredSts, labels, namespace);
+    fixPvcs(requiredSts, appLabel);
 
     return updatedSts;
   }
 
-  private void startPrimaryIfRemoved(T context, StatefulSet requiredSts,
-      int latestPrimaryIndexFromPatroni, Function<StatefulSet, StatefulSet> updater) {
+  private void startPrimaryIfRemoved(StatefulSet requiredSts, Map<String, String> appLabel,
+      int latestPrimaryIndexFromPatroni, UnaryOperator<StatefulSet> updater) {
     final String namespace = requiredSts.getMetadata().getNamespace();
     final String name = requiredSts.getMetadata().getName();
-    final Map<String, String> patroniClusterLabels = labelFactory.patroniClusterLabels(context);
     if (latestPrimaryIndexFromPatroni <= 0) {
       return;
     }
-    var pods = podScanner.findByLabelsAndNamespace(namespace, patroniClusterLabels);
+    var pods = findStatefulSetPods(requiredSts, appLabel);
     if (pods.stream()
         .noneMatch(pod -> getPodIndex(pod) == latestPrimaryIndexFromPatroni)) {
       LOGGER.debug("Detected missing primary Pod that was at index {} for StatefulSet {}.{}",
@@ -242,20 +238,20 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     }
   }
 
-  private void waitStatefulSetReplicasToBeCreated(StatefulSet requiredSts) {
-    final String namespace = requiredSts.getMetadata().getNamespace();
-    final int stsReplicas = requiredSts.getSpec().getReplicas();
-    final Map<String, String> stsMatchLabels = requiredSts.getSpec().getSelector().getMatchLabels();
+  private void waitStatefulSetReplicasToBeCreated(StatefulSet statefulSet) {
+    final String namespace = statefulSet.getMetadata().getNamespace();
+    final int stsReplicas = statefulSet.getSpec().getReplicas();
+    final Map<String, String> stsMatchLabels = statefulSet.getSpec().getSelector().getMatchLabels();
     waitWithTimeout(
         () -> podScanner.findByLabelsAndNamespace(namespace, stsMatchLabels).size() >= stsReplicas,
-        "Timeout while waiting StatefulSet " + requiredSts.getMetadata().getName() + " to reach "
+        "Timeout while waiting StatefulSet " + statefulSet.getMetadata().getName() + " to reach "
             + stsReplicas + " replicas");
   }
 
-  private void waitWithTimeout(Supplier<Boolean> supplier, String timeoutMessage) {
+  private void waitWithTimeout(BooleanSupplier supplier, String timeoutMessage) {
     Unchecked.runnable(() -> {
       Instant start = Instant.now();
-      while (!supplier.get()) {
+      while (!supplier.getAsBoolean()) {
         if (Instant.now().isAfter(start.plus(Duration.ofSeconds(5)))) {
           throw new TimeoutException(timeoutMessage);
         }
@@ -264,15 +260,15 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     }).run();
   }
 
-  private void removeStatefulSetPlaceholderReplicas(StatefulSet requiredSts) {
-    final String namespace = requiredSts.getMetadata().getNamespace();
-    final Map<String, String> stsMatchLabels = requiredSts.getSpec().getSelector().getMatchLabels();
+  private void removeStatefulSetPlaceholderReplicas(StatefulSet statefulSet) {
+    final String namespace = statefulSet.getMetadata().getNamespace();
+    final Map<String, String> stsMatchLabels = statefulSet.getSpec().getSelector().getMatchLabels();
     podScanner.findByLabelsAndNamespace(namespace, stsMatchLabels).stream()
         .filter(pod -> Objects.equals(PLACEHOLDER_NODE_SELECTOR, pod.getSpec().getNodeSelector()))
         .forEach(pod -> {
           if (LOGGER.isDebugEnabled()) {
             final String podName = pod.getMetadata().getName();
-            final String name = requiredSts.getMetadata().getNamespace();
+            final String name = statefulSet.getMetadata().getNamespace();
             LOGGER.debug("Removing placeholder Pod {}.{} for StatefulSet {}.{}", namespace, podName,
                 namespace, name);
           }
@@ -280,7 +276,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         });
   }
 
-  private void makePrimaryNonDisruptable(Pod primaryPod) {
+  private void makePrimaryNonDisruptable(T context, Pod primaryPod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = primaryPod.getMetadata().getNamespace();
       final String podName = primaryPod.getMetadata().getName();
@@ -289,43 +285,50 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
           + " since in the last index", namespace, podName, namespace, name);
     }
     final Map<String, String> primaryPodLabels = primaryPod.getMetadata().getLabels();
-    primaryPodLabels.put(StackGresContext.DISRUPTIBLE_KEY, StackGresContext.WRONG_VALUE);
+    primaryPodLabels.put(labelFactory.labelMapper().disruptibleKey(context),
+        StackGresContext.WRONG_VALUE);
     podWriter.update(primaryPod);
   }
 
-  private long countNonDisruptablePods(List<Pod> pods,
+  private long countNonDisruptablePods(T context, List<Pod> pods,
       int lastReplicaIndex) {
-    return pods.stream().filter(this::isNonDisruptable).map(pod -> getPodIndex(pod))
-        .filter(pod -> pod >= lastReplicaIndex).count();
+    return pods.stream()
+        .filter(pod -> isNonDisruptable(context, pod))
+        .map(this::getPodIndex)
+        .filter(pod -> pod >= lastReplicaIndex)
+        .count();
   }
 
-  private void fixPods(final StatefulSet updatedSts, final StatefulSet requiredSts,
-      final Map<String, String> patroniClusterLabels, final String namespace,
+  private void fixPods(final T context, final StatefulSet statefulSet,
+      final StatefulSet deployedStatefulSet, final Map<String, String> appLabel,
       @NotNull Optional<Endpoints> patroniConfigEndpoints) {
-    var podsToFix = podScanner.findByLabelsAndNamespace(namespace, patroniClusterLabels).stream()
-        .sorted(Comparator.comparing(pod -> pod.getMetadata().getName()))
-        .collect(Collectors.toUnmodifiableList());
+    var podsToFix = findStatefulSetPods(statefulSet, appLabel);
     List<Pod> disruptablePodsToPatch =
-        fixNonDisruptablePods(patroniConfigEndpoints, podsToFix);
-    List<Pod> podAnnotationsToPatch = fixPodsAnnotations(requiredSts, podsToFix);
-    List<Pod> podOwnerReferencesToPatch = fixPodsOwnerReferences(updatedSts, podsToFix);
-    Seq.concat(disruptablePodsToPatch.stream(), podAnnotationsToPatch.stream(),
-        podOwnerReferencesToPatch.stream())
+        fixNonDisruptablePods(context, patroniConfigEndpoints, podsToFix);
+    List<Pod> podAnnotationsToPatch = fixPodsAnnotations(statefulSet, podsToFix);
+    List<Pod> podOwnerReferencesToPatch = fixPodsOwnerReferences(deployedStatefulSet, podsToFix);
+    List<Pod> podSelectorMatchLabelsToPatch =
+        fixPodsSelectorMatchLabels(context, statefulSet, podsToFix);
+    Seq.seq(disruptablePodsToPatch).append(podAnnotationsToPatch)
+        .append(podOwnerReferencesToPatch).append(podSelectorMatchLabelsToPatch)
         .grouped(pod -> pod.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
         .map(Optional::get).forEach(podWriter::update);
   }
 
-  private List<Pod> fixNonDisruptablePods(
+  private List<Pod> fixNonDisruptablePods(T context,
       Optional<Endpoints> patroniConfigEndpoints, List<Pod> pods) {
     final int latestPrimaryIndexFromPatroni =
         PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniConfigEndpoints, objectMapper);
-    return pods.stream().filter(this::isNonDisruptable).filter(this::hasRoleLabel)
+    return pods.stream()
+        .filter(pod -> isNonDisruptable(context, pod))
+        .filter(this::hasRoleLabel)
         .filter(Predicates.not(this::isRolePrimary))
         .filter(pod -> getPodIndex(pod) != latestPrimaryIndexFromPatroni)
-        .peek(this::fixNonDisruptablePod).collect(ImmutableList.toImmutableList());
+        .map(pod -> fixNonDisruptablePod(context, pod))
+        .toList();
   }
 
-  private String fixNonDisruptablePod(Pod pod) {
+  private Pod fixNonDisruptablePod(T context, Pod pod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = pod.getMetadata().getNamespace();
       final String podName = pod.getMetadata().getName();
@@ -333,17 +336,18 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       LOGGER.debug("Fixing non disruptable Pod {}.{} for StatefulSet {}.{} as disruptible"
           + " since current or latest primary", namespace, podName, namespace, name);
     }
-    return pod.getMetadata().getLabels().put(StackGresContext.DISRUPTIBLE_KEY,
+    pod.getMetadata().getLabels().put(labelFactory.labelMapper().disruptibleKey(context),
         StackGresContext.RIGHT_VALUE);
+    return pod;
   }
 
-  private List<Pod> fixPodsAnnotations(StatefulSet requiredSts, List<Pod> pods) {
+  private List<Pod> fixPodsAnnotations(StatefulSet statefulSet, List<Pod> pods) {
     var requiredPodAnnotations =
-        Optional.ofNullable(requiredSts.getSpec().getTemplate().getMetadata().getAnnotations())
+        Optional.ofNullable(statefulSet.getSpec().getTemplate().getMetadata().getAnnotations())
             .map(annotations -> annotations.entrySet().stream()
                 .filter(annotation -> !ANNOTATIONS_TO_COMPONENT.containsKey(annotation.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
-            .orElse(ImmutableMap.of());
+            .orElse(Map.of());
 
     return pods.stream()
         .filter(pod -> requiredPodAnnotations.entrySet().stream()
@@ -352,17 +356,17 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
                 .map(Map::entrySet)
                 .flatMap(Set::stream)
                 .noneMatch(podAnnotation -> Objects.equals(requiredAnnotation, podAnnotation))))
-        .peek(pod -> fixPodAnnotations(requiredPodAnnotations, pod))
-        .collect(ImmutableList.toImmutableList());
+        .map(pod -> fixPodAnnotations(requiredPodAnnotations, pod))
+        .toList();
   }
 
-  private void fixPodAnnotations(Map<String, String> requiredPodAnnotations, Pod pod) {
+  private Pod fixPodAnnotations(Map<String, String> requiredPodAnnotations, Pod pod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = pod.getMetadata().getNamespace();
       final String podName = pod.getMetadata().getName();
       final String name = podName.substring(0, podName.lastIndexOf("-"));
-      LOGGER.debug("Fixing annotations for Pod {}.{} for StatefulSet {}.{}"
-          + " to {}", namespace, podName, namespace, name, requiredPodAnnotations);
+      LOGGER.debug("Fixing annotations for Pod {}.{} for StatefulSet {}.{} to {}",
+          namespace, podName, namespace, name, requiredPodAnnotations);
     }
     pod.getMetadata().setAnnotations(Optional.ofNullable(pod.getMetadata().getAnnotations())
         .map(Seq::seq)
@@ -370,15 +374,16 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .filter(annotation -> requiredPodAnnotations.keySet()
             .stream().noneMatch(annotation.v1::equals))
         .append(Seq.seq(requiredPodAnnotations))
-        .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)));
+        .toMap(Tuple2::v1, Tuple2::v2));
+    return pod;
   }
 
-  private List<Pod> fixPodsOwnerReferences(StatefulSet updatedSts, List<Pod> pods) {
-    var requiredOwnerReferences = ImmutableList.of(new OwnerReferenceBuilder()
-        .withApiVersion(updatedSts.getApiVersion())
-        .withKind(updatedSts.getKind())
-        .withName(updatedSts.getMetadata().getName())
-        .withUid(updatedSts.getMetadata().getUid())
+  private List<Pod> fixPodsOwnerReferences(StatefulSet statefulSet, List<Pod> pods) {
+    var requiredOwnerReferences = List.of(new OwnerReferenceBuilder()
+        .withApiVersion(statefulSet.getApiVersion())
+        .withKind(statefulSet.getKind())
+        .withName(statefulSet.getMetadata().getName())
+        .withUid(statefulSet.getMetadata().getUid())
         .withBlockOwnerDeletion(true)
         .withController(true)
         .build());
@@ -386,45 +391,100 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return pods.stream()
         .filter(pod -> !Objects.equals(
             requiredOwnerReferences, pod.getMetadata().getOwnerReferences()))
-        .peek(pod -> fixPodOwnerReferences(requiredOwnerReferences, pod))
-        .collect(ImmutableList.toImmutableList());
+        .map(pod -> fixPodOwnerReferences(requiredOwnerReferences, pod))
+        .toList();
   }
 
-  private void fixPodOwnerReferences(List<OwnerReference> requiredOwnerReferences, Pod pod) {
+  private Pod fixPodOwnerReferences(List<OwnerReference> requiredOwnerReferences, Pod pod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = pod.getMetadata().getNamespace();
       final String podName = pod.getMetadata().getName();
       final String name = podName.substring(0, podName.lastIndexOf("-"));
-      LOGGER.debug("Fixing owner references for Pod {}.{} for StatefulSet {}.{}"
-          + " to {}", namespace, podName, namespace, name, requiredOwnerReferences);
+      LOGGER.debug("Fixing owner references for Pod {}.{} for StatefulSet {}.{} to {}",
+          namespace, podName, namespace, name, requiredOwnerReferences);
     }
     pod.getMetadata().setOwnerReferences(requiredOwnerReferences);
+    return pod;
   }
 
-  private void fixPvcs(final StatefulSet requiredSts,
-      final Map<String, String> labels, final String namespace) {
-    var pvcsToFix = pvcScanner.findByLabelsAndNamespace(namespace, labels).stream()
-        .collect(Collectors.toUnmodifiableList());
+  private List<Pod> fixPodsSelectorMatchLabels(final T context, final StatefulSet statefulSet,
+      final List<Pod> pods) {
+    final var requiredPodLabels =
+        Optional.ofNullable(statefulSet.getSpec().getSelector().getMatchLabels())
+        .map(labels -> labels.entrySet().stream()
+            .filter(label -> !labelFactory.labelMapper().disruptibleKey(context)
+                .equals(label.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
+        .orElse(Map.of());
+    return pods.stream()
+        .filter(pod -> requiredPodLabels.entrySet().stream()
+            .anyMatch(requiredPodLabel -> Optional.ofNullable(pod.getMetadata().getLabels())
+                .stream()
+                .map(Map::entrySet)
+                .flatMap(Set::stream)
+                .noneMatch(podLabel -> Objects.equals(requiredPodLabel, podLabel))))
+        .map(pod -> fixPodSelectorMatchLabels(requiredPodLabels, pod))
+        .toList();
+  }
+
+  private Pod fixPodSelectorMatchLabels(Map<String, String> requiredPodLabels, Pod pod) {
+    if (LOGGER.isDebugEnabled()) {
+      final String namespace = pod.getMetadata().getNamespace();
+      final String podName = pod.getMetadata().getName();
+      final String name = podName.substring(0, podName.lastIndexOf("-"));
+      LOGGER.debug("Fixing selector match labels for Pod {}.{} for StatefulSet {}.{} to {}",
+          namespace, podName, namespace, name, requiredPodLabels);
+    }
+    pod.getMetadata().setLabels(Optional.ofNullable(pod.getMetadata().getLabels())
+        .map(Seq::seq)
+        .orElse(Seq.of())
+        .filter(label -> requiredPodLabels.keySet()
+            .stream().noneMatch(label.v1::equals))
+        .append(Seq.seq(requiredPodLabels))
+        .toMap(Tuple2::v1, Tuple2::v2));
+    return pod;
+  }
+
+  private void fixPvcs(final StatefulSet statefulSet, final Map<String, String> appLabel) {
+    var pods = findStatefulSetPods(statefulSet, appLabel);
+    final String namespace = statefulSet.getMetadata().getNamespace();
+    var expectedPvcNames = Optional.of(statefulSet)
+        .map(StatefulSet::getSpec)
+        .map(StatefulSetSpec::getVolumeClaimTemplates)
+        .stream()
+        .flatMap(List::stream)
+        .map(PersistentVolumeClaim::getMetadata)
+        .map(ObjectMeta::getName)
+        .flatMap(pvcTemplateName -> pods.stream()
+            .map(Pod::getMetadata)
+            .map(ObjectMeta::getName)
+            .map(podName -> pvcTemplateName + "-" + podName))
+        .toList();
+    var pvcsToFix = pvcScanner.findByLabelsAndNamespace(namespace, appLabel).stream()
+        .filter(pvc -> expectedPvcNames.contains(pvc.getMetadata().getName()))
+        .toList();
     List<PersistentVolumeClaim> pvcAnnotationsToPatch = fixPvcsAnnotations(
-        requiredSts, pvcsToFix);
-    Seq.seq(pvcAnnotationsToPatch)
+        statefulSet, pvcsToFix);
+    List<PersistentVolumeClaim> pvcLabelsToPatch = fixPvcsLabels(
+        statefulSet, pvcsToFix);
+    Seq.seq(pvcAnnotationsToPatch).append(pvcLabelsToPatch)
         .grouped(pvc -> pvc.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
         .map(Optional::get).forEach(pvcWriter::update);
   }
 
-  private List<PersistentVolumeClaim> fixPvcsAnnotations(StatefulSet requiredSts,
+  private List<PersistentVolumeClaim> fixPvcsAnnotations(StatefulSet statefulSet,
       List<PersistentVolumeClaim> pvcs) {
     var requiredPvcAnnotations =
-        Seq.seq(requiredSts.getSpec().getVolumeClaimTemplates())
+        Seq.seq(statefulSet.getSpec().getVolumeClaimTemplates())
         .map(requiredPvc -> Tuple.tuple(requiredPvc.getMetadata().getName(),
             Optional.ofNullable(requiredPvc.getMetadata().getAnnotations())
-            .orElse(ImmutableMap.of())))
+            .orElse(Map.of())))
         .toList();
 
     return Seq.seq(pvcs)
         .map(pvc -> Tuple.tuple(pvc, requiredPvcAnnotations.stream()
             .filter(requiredPvcAnnotation -> Optional
-                .of(requiredPvcAnnotation.v1 + "-" + requiredSts.getMetadata().getName())
+                .of(requiredPvcAnnotation.v1 + "-" + statefulSet.getMetadata().getName())
                 .filter(pvc.getMetadata().getName()::startsWith)
                 .filter(prefix -> ResourceUtil.getIndexPattern().matcher(
                     pvc.getMetadata().getName().substring(prefix.length())).matches())
@@ -440,19 +500,19 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
                 .map(Map::entrySet)
                 .flatMap(Set::stream)
                 .noneMatch(pvcAnnotation -> Objects.equals(requiredAnnotation, pvcAnnotation))))
-        .peek(pvc -> fixPvcAnnotations(pvc.v2, pvc.v1))
+        .map(pvc -> Tuple.tuple(fixPvcAnnotations(pvc.v2, pvc.v1), pvc.v2))
         .map(Tuple2::v1)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 
-  private void fixPvcAnnotations(Map<String, String> requiredPvcAnnotations,
+  private PersistentVolumeClaim fixPvcAnnotations(Map<String, String> requiredPvcAnnotations,
       PersistentVolumeClaim pvc) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = pvc.getMetadata().getNamespace();
       final String pvcName = pvc.getMetadata().getName();
       final String name = pvcName.substring(0, pvcName.lastIndexOf("-"));
-      LOGGER.debug("Fixing annotations for PersistentVolumeClaim {}.{} for StatefulSet {}.{}"
-          + " to {}", namespace, pvcName, namespace, name, requiredPvcAnnotations);
+      LOGGER.debug("Fixing annotations for PersistentVolumeClaim {}.{} for StatefulSet {}.{} to {}",
+          namespace, pvcName, namespace, name, requiredPvcAnnotations);
     }
     pvc.getMetadata().setAnnotations(Optional.ofNullable(pvc.getMetadata().getAnnotations())
         .map(Seq::seq)
@@ -460,7 +520,76 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .filter(annotation -> requiredPvcAnnotations.keySet()
             .stream().noneMatch(annotation.v1::equals))
         .append(Seq.seq(requiredPvcAnnotations))
-        .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)));
+        .toMap(Tuple2::v1, Tuple2::v2));
+    return pvc;
+  }
+
+  private List<PersistentVolumeClaim> fixPvcsLabels(StatefulSet statefulSet,
+      List<PersistentVolumeClaim> pvcs) {
+    var requiredPvcLabels =
+        Seq.seq(statefulSet.getSpec().getVolumeClaimTemplates())
+        .map(requiredPvc -> Tuple.tuple(requiredPvc.getMetadata().getName(),
+            Optional.ofNullable(requiredPvc.getMetadata().getLabels())
+            .orElse(Map.of())))
+        .toList();
+
+    return Seq.seq(pvcs)
+        .map(pvc -> Tuple.tuple(pvc, requiredPvcLabels.stream()
+            .filter(requiredPvcLabel -> Optional
+                .of(requiredPvcLabel.v1 + "-" + statefulSet.getMetadata().getName())
+                .filter(pvc.getMetadata().getName()::startsWith)
+                .filter(prefix -> ResourceUtil.getIndexPattern().matcher(
+                    pvc.getMetadata().getName().substring(prefix.length())).matches())
+                .isPresent())
+            .map(Tuple2::v2)
+            .findFirst()))
+        .filter(pvc -> pvc.v2.isPresent())
+        .map(pvc -> pvc.map2(Optional::get))
+        .filter(pvc -> pvc.v2.entrySet().stream()
+            .anyMatch(requiredLabel -> Optional
+                .ofNullable(pvc.v1.getMetadata().getLabels())
+                .stream()
+                .map(Map::entrySet)
+                .flatMap(Set::stream)
+                .noneMatch(pvcLabel -> Objects.equals(requiredLabel, pvcLabel))))
+        .map(pvc -> Tuple.tuple(fixPvcLabels(pvc.v2, pvc.v1), pvc.v2))
+        .map(Tuple2::v1)
+        .toList();
+  }
+
+  private PersistentVolumeClaim fixPvcLabels(Map<String, String> requiredPvcLabels,
+      PersistentVolumeClaim pvc) {
+    if (LOGGER.isDebugEnabled()) {
+      final String namespace = pvc.getMetadata().getNamespace();
+      final String pvcName = pvc.getMetadata().getName();
+      final String name = pvcName.substring(0, pvcName.lastIndexOf("-"));
+      LOGGER.debug("Fixing labels for PersistentVolumeClaim {}.{} for StatefulSet {}.{}"
+          + " to {}", namespace, pvcName, namespace, name, requiredPvcLabels);
+    }
+    pvc.getMetadata().setLabels(Optional.ofNullable(pvc.getMetadata().getLabels())
+        .map(Seq::seq)
+        .orElse(Seq.of())
+        .filter(label -> requiredPvcLabels.keySet()
+            .stream().noneMatch(label.v1::equals))
+        .append(Seq.seq(requiredPvcLabels))
+        .toMap(Tuple2::v1, Tuple2::v2));
+    return pvc;
+  }
+
+  private List<Pod> findStatefulSetPods(final StatefulSet updatedSts,
+      final Map<String, String> appLabel) {
+    final String namespace = updatedSts.getMetadata().getNamespace();
+    final String name = updatedSts.getMetadata().getName();
+    var stsPodNameMatcher = Pattern.compile("^" + name + "-[0-9]+$");
+    return podScanner.findByLabelsAndNamespace(namespace, appLabel).stream()
+        .filter(pod -> Optional.of(pod)
+            .map(Pod::getMetadata)
+            .map(ObjectMeta::getName)
+            .map(stsPodNameMatcher::matcher)
+            .filter(Matcher::matches)
+            .isPresent())
+        .sorted(Comparator.comparing(this::getPodIndex))
+        .toList();
   }
 
   private boolean hasRoleLabel(Pod pod) {
@@ -468,18 +597,25 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
   }
 
   private boolean isRolePrimary(Pod pod) {
-    return pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)
-        .equals(PatroniUtil.PRIMARY_ROLE);
+    return Objects.equals(
+        pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY),
+        PatroniUtil.PRIMARY_ROLE);
   }
 
-  private boolean isNonDisruptable(Pod pod) {
-    return pod.getMetadata().getLabels().get(StackGresContext.DISRUPTIBLE_KEY)
-        .equals(StackGresContext.WRONG_VALUE);
+  private boolean isNonDisruptable(T context, Pod pod) {
+    return Objects.equals(
+        pod.getMetadata().getLabels().get(labelFactory.labelMapper().disruptibleKey(context)),
+        StackGresContext.WRONG_VALUE);
   }
 
   private int getPodIndex(Pod pod) {
-    return Integer.parseInt(ResourceUtil.getIndexPattern().matcher(pod.getMetadata().getName())
-        .results().findFirst().orElseThrow().group(1));
+    return ResourceUtil.getIndexPattern()
+        .matcher(pod.getMetadata().getName())
+        .results()
+        .findFirst()
+        .map(result -> result.group(1))
+        .map(Integer::parseInt)
+        .orElseThrow();
   }
 
 }

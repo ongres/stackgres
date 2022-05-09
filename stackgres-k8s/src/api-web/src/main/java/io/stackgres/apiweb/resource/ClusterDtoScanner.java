@@ -6,7 +6,7 @@
 package io.stackgres.apiweb.resource;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.PodFinder;
@@ -65,25 +64,29 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
   }
 
   private Transformer createTransformer() {
-    return new Transformer(Seq.seq(getAllClusterPods())
-        .groupBy(pod -> pod.getMetadata().getLabels().get(StackGresContext.CLUSTER_UID_KEY)));
+    return new Transformer(getAllClusterPods());
   }
 
   private class Transformer {
-    private final Map<String, List<Pod>> clusterPodsMap;
+    private final List<Pod> clusterPods;
 
-    public Transformer(Map<String, List<Pod>> clusterPodsMap) {
-      this.clusterPodsMap = clusterPodsMap;
+    public Transformer(List<Pod> clusterPods) {
+      this.clusterPods = clusterPods;
     }
 
     ClusterDto transform(StackGresCluster cluster) {
       return clusterTransformer.toResourceWithPods(cluster,
-          clusterPodsMap.get(cluster.getMetadata().getUid()));
+          clusterPods.stream()
+          .filter(pod -> Objects.equals(
+              cluster.getMetadata().getUid(),
+              pod.getMetadata().getLabels().get(
+                  labelFactory.labelMapper().resourceUidKey(cluster))))
+          .toList());
     }
   }
 
   private List<Pod> getAllClusterPods() {
-    return podFinder.findResourcesWithLabels(labelFactory.anyPatroniClusterLabels());
+    return podFinder.findResourcesWithLabels(labelFactory.appLabel());
   }
 
   @Inject
@@ -105,4 +108,5 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
   public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
+
 }

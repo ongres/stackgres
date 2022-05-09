@@ -52,6 +52,9 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
   @JsonProperty("os")
   private String os;
 
+  @JsonProperty("labelPrefix")
+  private String labelPrefix;
+
   public List<StackGresDistributedLogsCondition> getConditions() {
     return conditions;
   }
@@ -108,10 +111,18 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
     this.os = os;
   }
 
+  public String getLabelPrefix() {
+    return labelPrefix;
+  }
+
+  public void setLabelPrefix(String labelPrefix) {
+    this.labelPrefix = labelPrefix;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(arch, conditions, connectedClusters, databases, fluentdConfigHash, os,
-        podStatuses);
+    return Objects.hash(arch, conditions, connectedClusters, databases, fluentdConfigHash,
+        labelPrefix, os, podStatuses);
   }
 
   @Override
@@ -127,7 +138,8 @@ public class StackGresDistributedLogsStatus implements KubernetesResource {
         && Objects.equals(connectedClusters, other.connectedClusters)
         && Objects.equals(databases, other.databases)
         && Objects.equals(fluentdConfigHash, other.fluentdConfigHash)
-        && Objects.equals(os, other.os) && Objects.equals(podStatuses, other.podStatuses);
+        && Objects.equals(labelPrefix, other.labelPrefix) && Objects.equals(os, other.os)
+        && Objects.equals(podStatuses, other.podStatuses);
   }
 
   @Override

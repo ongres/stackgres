@@ -153,7 +153,7 @@ public class PodTemplateSpecFactory
                             .withValues(labelFactory.labelMapper().appName())
                             .build(),
                             new LabelSelectorRequirementBuilder()
-                            .withKey("cluster")
+                            .withKey(labelFactory.labelMapper().clusterKey(cluster))
                             .withOperator("In")
                             .withValues("true")
                             .build())

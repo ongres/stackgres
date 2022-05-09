@@ -17,11 +17,11 @@
         "generateName": "stackgres-",
         "labels": {
           "app": "StackGres",
-          "cluster": "true",
-          "cluster-name": "stackgres",
-          "cluster-uid": "bfb53778-f59a-11e9-b1b5-0242ac110002",
+          "stackgres.io/cluster": "true",
+          "stackgres.io/cluster-name": "stackgres",
+          "stackgres.io/cluster-uid": "bfb53778-f59a-11e9-b1b5-0242ac110002",
           "controller-revision-hash": "stackgres-67ddbdf8f8",
-          "disruptible": "true",
+          "stackgres.io/disruptible": "true",
           "role": "master",
           "statefulset.kubernetes.io/pod-name": "stackgres-0",
           "customLabel" : "customLabelValue"
@@ -753,11 +753,11 @@
         "generateName": "stackgres-",
         "labels": {
           "app": "StackGres",
-          "cluster": "true",
-          "cluster-name": "stackgres",
-          "cluster-uid": "bfb53778-f59a-11e9-b1b5-0242ac110002",
+          "stackgres.io/cluster": "true",
+          "stackgres.io/cluster-name": "stackgres",
+          "stackgres.io/cluster-uid": "bfb53778-f59a-11e9-b1b5-0242ac110002",
           "controller-revision-hash": "stackgres-67ddbdf8f8",
-          "disruptible": "true",
+          "stackgres.io/disruptible": "true",
           "statefulset.kubernetes.io/pod-name": "stackgres-1"
         },
         "name": "stackgres-1",

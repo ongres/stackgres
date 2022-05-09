@@ -13,10 +13,10 @@ remove_cluster() {
   helm get hooks "$RELEASE" --namespace "$NAMESPACE" \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
   helm uninstall "$RELEASE" --namespace "$NAMESPACE"
-  kubectl wait sts --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --all --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
-  kubectl wait pvc --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --all --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
-  kubectl wait pod --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --all --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
-  kubectl delete endpoints --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --all --ignore-not-found 2>/dev/null || true
+  kubectl wait sts --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl wait pvc --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl wait pod --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl delete endpoints --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --ignore-not-found 2>/dev/null || true
 }
 
 remove_cluster_if_exists() {
