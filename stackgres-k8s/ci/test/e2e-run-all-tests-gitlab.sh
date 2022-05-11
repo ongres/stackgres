@@ -46,6 +46,7 @@ export KIND_LOG=true
 export KIND_LOG_PATH="/tmp/kind-log$SUFFIX"
 export KIND_LOG_RESOURCES=true
 export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache$SUFFIX"
+export EXTENSIONS_CACHE_HOST_PATH="/containerd-cache/extensions"
 export TEMP_DIR="/tmp/$CI_PROJECT_ID"
 
 copy_project_to_temp_dir() {
