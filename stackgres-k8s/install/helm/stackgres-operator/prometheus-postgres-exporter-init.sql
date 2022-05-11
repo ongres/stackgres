@@ -1,1 +1,0 @@
-../../../src/operator/src/main/resources/prometheus-postgres-exporter/init.sql

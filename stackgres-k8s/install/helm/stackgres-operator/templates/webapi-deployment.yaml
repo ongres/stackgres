@@ -13,7 +13,7 @@ metadata:
   name: {{ .Values.restapi.name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: 0
+  replicas: {{ if and .Release.IsUpgrade .Values.deploy.upgradeCrds }}0{{ else }}1{{ end }}
   selector:
     matchLabels:
       app: {{ .Values.restapi.name }}

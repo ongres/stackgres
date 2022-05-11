@@ -20,6 +20,8 @@ spec:
         job: wait
     spec:
       serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
       containers:
       - name: "{{ .Release.Name }}-wait"
         image: {{ template "kubectl.image" . }}
@@ -30,12 +32,13 @@ spec:
           - |
             kubectl set env -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}' DISABLE_RECONCILIATION-
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
-            kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
             {{- if and .Values.deploy.restapi }}
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
+            {{- end }}
+            kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
+            {{- if and .Values.deploy.restapi }}
             kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
             {{- end }}
             {{- if .Values.extensions.cache.enabled }}
             kubectl rollout status -n '{{ .Release.Namespace }}' 'statefulset/{{ .Release.Name }}-extensions-cache'
             {{- end }}
-      restartPolicy: OnFailure

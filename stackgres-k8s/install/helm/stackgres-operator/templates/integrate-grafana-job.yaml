@@ -22,6 +22,8 @@ spec:
         job: integrate-grafana
     spec:
       serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
       containers:
       - name: "integrate-grafana"
         image: {{ template "kubectl.image" . }}
@@ -101,6 +103,5 @@ spec:
             name: {{ .Release.Name }}-grafana-dashboard
             {{- end }}
       {{- end }}
-      restartPolicy: OnFailure
 {{- if .Values.qutePreprocess }}#grafana.preprocess.end{{- end}}
 {{ end }}

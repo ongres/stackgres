@@ -1,3 +1,4 @@
+{{- if .Values.deploy.upgradeCrds }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -20,6 +21,8 @@ spec:
         job: wait-webhooks
     spec:
       serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
       containers:
       - name: "{{ .Release.Name }}-wait-webhooks"
         image: {{ template "kubectl.image" . }}
@@ -31,4 +34,4 @@ spec:
             kubectl set env -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}' DISABLE_RECONCILIATION=true
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
             kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
-      restartPolicy: OnFailure
+{{- end }}

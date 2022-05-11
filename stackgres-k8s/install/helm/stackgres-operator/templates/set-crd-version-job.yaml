@@ -1,0 +1,39 @@
+{{- if eq "true" (include "stackgres.operator.upgradeCrds" .) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ .Release.Name }}-set-crd-version"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: "{{ .Release.Name }}-set-crd-version"
+    scope: init
+    job: set-crd-version
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "3"
+spec:
+  template:
+    metadata:
+      labels:
+        app: "{{ .Release.Name }}-set-crd-version"
+        scope: init
+        job: set-crd-version
+    spec:
+      serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: "set-crd-version"
+        image: {{ template "kubectl.image" . }}
+        imagePullPolicy: "IfNotPresent"
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          - |
+            kubectl get crd -o name | grep '\.stackgres\.io$' \
+              | while read -r CRD
+                do
+                  kubectl annotate --overwrite "$CRD" stackgres.io/operatorVersion={{ .Chart.Version }}
+                done
+{{- end }}

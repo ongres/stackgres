@@ -9,7 +9,7 @@ metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: 0
+  replicas: {{ if and .Release.IsUpgrade .Values.deploy.upgradeCrds }}0{{ else }}1{{ end }}
   selector:
     matchLabels:
       app: {{ .Release.Name }}
