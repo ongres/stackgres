@@ -464,6 +464,11 @@ install_operator_only() {
       [ "$EXTENSIONS_CACHE_ENABLED" = true ] \
         && printf '%s' "$EXTENSIONS_CACHE_PRELOADED_EXTENSIONS" | jq -r 'join(",")' | tr -d '\n' \
         || true)}" \
+    --set extensions.cache.hostPath="$(
+      # shellcheck disable=SC2015
+      [ "$EXTENSIONS_CACHE_ENABLED" = true ] && [ -n "$EXTENSIONS_CACHE_HOST_PATH" ] \
+        && printf '%s' "$EXTENSIONS_CACHE_HOST_PATH" \
+        || printf null)" \
     $E2E_OPERATOR_OPTS "$@"
   fi
 }

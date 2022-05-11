@@ -26,14 +26,18 @@ spec:
         group:  stackgres.io
     spec:
       securityContext:
-        {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
+        {{- if and (or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser) (not .Values.extensions.cache.hostPath) }}
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
         {{- end }}
+        {{- if .Values.extensions.cache.hostPath }}
+        runAsUser: 0
+        {{- end }}
       serviceAccountName: {{ .Release.Name }}-extensions-cache
       shareProcessNamespace: true
       terminationGracePeriodSeconds: 0
+      restartPolicy: Always
       containers:
       - name: http
         image: "registry.access.redhat.com/ubi8/nginx-118:1-42"
@@ -126,8 +130,13 @@ spec:
             subPath: var/log/nginx
             mountPath: /var/log/nginx
             readOnly: true
-      restartPolicy: Always
       volumes:
+        {{- if .Values.extensions.cache.hostPath }}
+        - name: {{ .Release.Name }}-extensions-cache
+          hostPath:
+            path: "{{ .Values.extensions.cache.hostPath }}"
+            type: DirectoryOrCreate
+        {{- end }}
         - name: extensions-cache-config
           configMap:
             name: {{ .Release.Name }}-extensions-cache
@@ -141,6 +150,7 @@ spec:
                 path: extensions-cache-conciliator.sh
         - name: extensions-cache-nginx-var
           emptyDir: {}
+  {{- if not .Values.extensions.cache.hostPath }}
   volumeClaimTemplates:
   - metadata:
       annotations:
@@ -164,4 +174,5 @@ spec:
       resources:
         requests:
           storage: "{{ .Values.extensions.cache.persistentVolume.size }}"
+  {{- end }}
 {{- end }}
