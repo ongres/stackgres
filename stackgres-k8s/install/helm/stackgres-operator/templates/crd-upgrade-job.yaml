@@ -1,3 +1,4 @@
+{{- if eq "true" (include "stackgres.operator.upgradeCrds" .) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -19,7 +20,7 @@ spec:
         scope: init
         job: upgrade-crd
     spec:
-      serviceAccountName: {{ .Release.Name }}-crd-upgrade
+      serviceAccountName: {{ .Release.Name }}-init
       {{- if .Values.serviceAccount.create }}
       {{- if .Values.serviceAccount.repoCredentials }}
       imagePullSecrets:
@@ -28,8 +29,10 @@ spec:
       {{- end }}
       {{- end }}
       {{- end }}
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
       containers:
-      - name: "{{ .Values.jobs.name }}"
+      - name: "crd-upgrade"
         image: "{{ .Values.jobs.image.name }}:{{ .Values.jobs.image.tag }}"
         imagePullPolicy: "{{ .Values.jobs.image.pullPolicy }}"
         env:
@@ -52,4 +55,4 @@ spec:
         resources:
         {{- toYaml . | nindent 10 }}
         {{- end }}
-      restartPolicy: OnFailure
+{{- end }}
