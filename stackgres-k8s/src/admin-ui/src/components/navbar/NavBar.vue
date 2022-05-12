@@ -287,7 +287,7 @@
 				const vc = this;
 
 				sgApi
-				.createCustomResource('auth/login', {
+				.create('login', {
 					username: this.loginUser,
 					password: this.loginPassword
 				})
