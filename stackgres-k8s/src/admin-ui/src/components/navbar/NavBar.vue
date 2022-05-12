@@ -155,6 +155,7 @@
 	import store from '../../store'
 	import router from '../../router'
 	import axios from 'axios'
+	import sgApi from '../../api/sgApi'
 	import { mixin } from '../mixins/mixin'
 
 	/* Child Components */
@@ -285,8 +286,8 @@
 
 				const vc = this;
 
-				axios
-				.post('/stackgres/auth/login',{
+				sgApi
+				.createCustomResource('auth/login', {
 					username: this.loginUser,
 					password: this.loginPassword
 				})
@@ -362,11 +363,8 @@
 				}
 
 				if (!vc.missingCRDs.length) {
-					const res = axios
-					.post(
-						'/stackgres/' + cloneKind.toLowerCase(),
-						cloneCRD
-					)
+					sgApi
+					.create(cloneKind.toLowerCase(), cloneCRD)
 					.then(function (response) {
 						vc.notify('Resource <strong>"'+store.state.cloneCRD.data.metadata.name+'"</strong> cloned successfully', 'message', store.state.cloneCRD.kind.toLowerCase());
 						vc.fetchAPI(cloneKind.toLowerCase());
@@ -404,9 +402,8 @@
 				if(confirmName == item.name) {
 					$("#delete .warning").fadeOut();
 
-					const res = axios
-					.delete('/stackgres/' + item.kind,
-					{
+					sgApi
+					.delete(item.kind, {
 						data: {
 							"metadata": {
 								"name": item.name,
@@ -468,11 +465,8 @@
 					}
 				}
 
-				axios
-				.post(
-					'/stackgres/sgdbops', 
-					dbOp
-				)
+				sgApi
+				.create('sgdbops', dbOp)
 				.then(function (response) {
 					vc.setRestartCluster();
 					vc.notify('Restart operation created successfully', 'message', 'sgdbops');

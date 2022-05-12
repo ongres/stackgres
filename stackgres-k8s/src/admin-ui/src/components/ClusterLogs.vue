@@ -452,7 +452,7 @@
 
 <script>
 	import store from '../store'
-	import axios from 'axios'
+	import sgApi from '../api/sgApi'
 	import { mixin } from './mixins/mixin'
 	import moment from 'moment'
 
@@ -634,7 +634,7 @@
 
 				vc.records = parseInt($('.records').height() / 15);
 				vc.getLogs();
-
+				
 				$(document).on('keyup', 'input.search', function(e){
 					if (e.keyCode === 13)
 						vc.getLogs();
@@ -724,11 +724,11 @@
 
 			getLogs(append = false, byDate = false) {
 
+				const vc = this;
+
 				if(store.state.notFound) {
 					return false;
 				}
-
-				const vc = this;
 
 				$('.records').addClass('loading');
 
@@ -791,11 +791,10 @@
 					params += '&to='+this.dateEnd;
 				}
 				
-				let thisCall = '/stackgres/namespaces/' + this.$route.params.namespace + '/sgclusters/' + this.$route.params.name + '/logs' + params;
 				vc.fetching = true;
-
-				axios
-				.get(thisCall)
+				
+				sgApi
+				.getResourceDetails('sgclusters', vc.$route.params.namespace, vc.$route.params.name, 'logs', params)
 				.then( function(response){
 
 					if( vc.liveMonitoring && (!append || ( $('.scroller')[0].scrollTop == ( $('.scroller')[0].scrollHeight - $('.scroller')[0].clientHeight ) ) ) ) {

@@ -146,7 +146,7 @@
 </template>
 
 <script>
-    import axios from 'axios'
+    import sgApi from '../../api/sgApi'
 	import { mixin } from '../mixins/mixin'
 
     export default {
@@ -195,11 +195,8 @@
                     formData.append('sqlFiles', file)
                 })
 
-                axios
-                .post(
-                    '/stackgres/applications/com.ongres/babelfish-compass',
-                    formData
-                )
+                sgApi
+                .createCustomResource('applications/com.ongres/babelfish-compass', formData)
                 .then( function(response){
                     let parser = new DOMParser();
                     let htmlDoc = parser.parseFromString(response.data.report, 'text/html');

@@ -63,7 +63,7 @@
     import {mixin} from '../mixins/mixin'
     import router from '../../router'
     import store from '../../store'
-    import axios from 'axios'
+    import sgApi from '../../api/sgApi'
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
@@ -159,11 +159,8 @@
                     } else {
 
                         if(this.editMode) {
-                            const res = axios
-                            .put(
-                                '/stackgres/sgpgconfigs', 
-                                config 
-                            )
+                            sgApi
+                            .update('sgpgconfigs', config)
                             .then(function (response) {
                                 vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'sgpgconfigs');
 
@@ -175,11 +172,8 @@
                                 vc.notify(error.response.data,'error', 'sgpgconfigs');
                             });
                         } else {
-                            const res = axios
-                            .post(
-                                '/stackgres/sgpgconfigs', 
-                                config 
-                            )
+                            sgApi
+                            .create('sgpgconfigs', config)
                             .then(function (response) {
                                 
                                 var urlParams = new URLSearchParams(window.location.search);

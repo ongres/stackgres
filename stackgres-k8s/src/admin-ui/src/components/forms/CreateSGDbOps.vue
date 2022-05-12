@@ -659,7 +659,7 @@
     import {mixin} from '../mixins/mixin'
     import router from '../../router'
     import store from '../../store'
-    import axios from 'axios'
+    import sgApi from '../../api/sgApi'
     import moment from 'moment'
     import CRDSummary from './summary/CRDSummary.vue'
 
@@ -946,11 +946,8 @@
                         vc.showSummary = true;
 
                     } else {
-                        axios
-                        .post(
-                            '/stackgres/sgdbops', 
-                            dbOps 
-                        )
+                        sgApi
+                        .create('sgdbops', dbOps)
                         .then(function (response) {
                             vc.notify('Database operation "' + dbOps.metadata.name + '" created successfully', 'message', 'sgdbops');
 

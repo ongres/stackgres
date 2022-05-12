@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import store from '../store'
-import axios from 'axios'
+import sgApi from '../api/sgApi'
 
 // Form Components
 import CreateCluster from '../components/forms/CreateSGClusters.vue'
@@ -570,8 +570,8 @@ router.beforeResolve((to, from, next) => {
 
       let namespaceName = to.params.namespace;
       
-      axios
-      .get('/stackgres/namespaces')
+      sgApi
+      .get('namespaces')
       .then( function(response){
         store.commit('addNamespaces', response.data)
         
@@ -588,8 +588,8 @@ router.beforeResolve((to, from, next) => {
             if(to.name.includes('ClusterBackup')) {
 
               if(to.params.hasOwnProperty('backupname')) {
-                axios
-                .get('/stackgres/namespaces/' + namespaceName + '/' + kind.toLowerCase() + '/' + to.params.backupname )
+                sgApi
+                .getResourceDetails('sgbackups', namespaceName, to.params.backupname)
                 .catch(function(error) {
                   checkAuthError(error);
                   notFound();
@@ -601,8 +601,8 @@ router.beforeResolve((to, from, next) => {
 
             }
     
-            axios
-            .get('/stackgres/namespaces/' + namespaceName + '/' + kind.toLowerCase() + '/' + resourceName )
+            sgApi
+            .getResourceDetails(kind.toLowerCase(), namespaceName, resourceName)
             .catch(function(error) {
               checkAuthError(error)
               notFound()

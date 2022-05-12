@@ -61,7 +61,7 @@
     import {mixin} from '../mixins/mixin'
     import router from '../../router'
     import store from '../../store'
-    import axios from 'axios'
+    import sgApi from '../../api/sgApi'
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
@@ -157,11 +157,8 @@
                     } else {
 
                         if(this.editMode) {
-                            const res = axios
-                            .put(
-                                '/stackgres/sgbackups', 
-                                backup 
-                            )
+                            sgApi
+                            .update('sgbackups', backup)
                             .then(function (response) {
                                 vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message', 'sgbackups');
 
@@ -190,11 +187,8 @@
                             });
 
                         } else {
-                            const res = axios
-                            .post(
-                                '/stackgres/sgbackups', 
-                                backup 
-                            )
+                            sgApi
+                            .create('sgbackups', backup)
                             .then(function (response) {
 
                                 var urlParams = new URLSearchParams(window.location.search);

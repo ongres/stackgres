@@ -1305,7 +1305,7 @@
     import {mixin} from '../mixins/mixin'
     import router from '../../router'
     import store from '../../store'
-    import axios from 'axios'
+    import sgApi from '../../api/sgApi'
     import moment from 'moment'
     import ClusterSummary from './summary/SGClusterSummary.vue'
 
@@ -1851,11 +1851,8 @@
                     } else {
 
                         if(this.editMode) {
-                            const res = axios
-                            .put(
-                                '/stackgres/sgclusters', 
-                                cluster 
-                            )
+                            sgApi
+                            .update('sgclusters', cluster)
                             .then(function (response) {
                                 vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgclusters');
 
@@ -1870,11 +1867,8 @@
                                 vc.checkValidSteps(vc._data, 'submit')
                             });
                         } else {
-                            const res = axios
-                            .post(
-                                '/stackgres/sgclusters', 
-                                cluster 
-                            )
+                            sgApi
+                            .create('sgclusters', cluster)
                             .then(function (response) {
                                 vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgclusters');
 
@@ -2223,8 +2217,8 @@
                 const vc = this;
 
                 if(!vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) || !vc.extensionsList[vc.flavor][vc.postgresVersion].length ) {
-                    axios
-                    .get('/stackgres/extensions/' + ( (vc.postgresVersion == 'latest') ? 'latest' : vc.postgresVersion ) + '?flavor=' + vc.flavor)
+                    sgApi
+                    .getPostgresExtensions(vc.postgresVersion)
                     .then(function (response) {
                         
                         vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.parseExtensions(response.data.extensions);
@@ -2337,8 +2331,8 @@
         created() {
             const vc = this;
 
-            axios
-            .get('/stackgres/extensions/latest')
+            sgApi
+            .getPostgresExtensions('latest', 'vanilla')
             .then(function (response) {
                 vc.extensionsList[vc.flavor][vc.postgresVersion] =  vc.parseExtensions(response.data.extensions)
             })

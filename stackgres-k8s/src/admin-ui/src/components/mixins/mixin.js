@@ -1,5 +1,5 @@
 import store from '../../store'
-import axios from 'axios'
+import sgApi from '../../api/sgApi'
 import router from '../../router'
 import VueMarkdown from 'vue-markdown'
 import moment from 'moment'
@@ -96,8 +96,8 @@ export const mixin = {
         $('#reload').addClass('active');
   
         // Read and set user permissions
-        axios
-        .get('/stackgres/auth/rbac/can-i')
+        sgApi
+        .get('can_i')
         .then( function(response) {
           store.commit('setPermissions', response.data);
         }).catch(function(err) {
@@ -107,8 +107,8 @@ export const mixin = {
 
         if ( !store.state.permissions.forbidden.includes('namespaces') && ( !kind.length || (kind == 'namespaces') ) ) {
           /* Namespaces Data */
-          axios
-          .get('/stackgres/namespaces')
+          sgApi
+          .get('namespaces')
           .then( function(response){
   
             if(vc.$route.params.hasOwnProperty('namespace') && !response.data.includes(vc.$route.params.namespace)) {
@@ -125,8 +125,8 @@ export const mixin = {
   
         if ( !store.state.permissions.forbidden.includes('sgclusters') && ( !kind.length || (kind == 'sgclusters') ) ){
           /* Clusters Data */
-          axios
-          .get('/stackgres/sgclusters')
+          sgApi
+          .get('sgclusters')
           .then( function(response){
 
             vc.lookupCRDs('sgclusters', response.data);
@@ -145,8 +145,8 @@ export const mixin = {
 
               store.commit('updateClusters', cluster);
 
-              axios
-              .get('/stackgres/namespaces/'+cluster.data.metadata.namespace+'/sgclusters/'+cluster.data.metadata.name+'/stats')
+              sgApi
+              .getResourceDetails('sgclusters', cluster.data.metadata.namespace, cluster.data.metadata.name, '/stats')
               .then( function(resp) {
                 store.commit('updateClusterStats', {
                   name: cluster.data.metadata.name,
@@ -173,8 +173,8 @@ export const mixin = {
         if (!store.state.permissions.forbidden.includes('sgbackups') && ( !kind.length || (kind == 'sgbackups') )) {
           
           /* Backups */
-          axios
-          .get('/stackgres/sgbackups')
+          sgApi
+          .get('sgbackups')
           .then( function(response) {
 
             vc.lookupCRDs('sgbackups', response.data);
@@ -226,8 +226,8 @@ export const mixin = {
         if ( !store.state.permissions.forbidden.includes('sgpgconfigs') && (!kind.length || (kind == 'sgpgconfigs') ) ){
   
           /* PostgreSQL Config */
-          axios
-          .get('/stackgres/sgpgconfigs')
+          sgApi
+          .get('sgpgconfigs')
           .then( function(response) {
 
             vc.lookupCRDs('sgpgconfigs', response.data);
@@ -257,8 +257,8 @@ export const mixin = {
         if (!store.state.permissions.forbidden.includes('sgpoolconfigs') && ( !kind.length || (kind == 'sgpoolconfig') ) ){
   
           /* Connection Pooling Config */
-          axios
-          .get('/stackgres/sgpoolconfigs')
+          sgApi
+          .get('sgpoolconfigs')
           .then( function(response) {
 
             vc.lookupCRDs('sgpoolconfigs', response.data);
@@ -287,8 +287,8 @@ export const mixin = {
         if ( !store.state.permissions.forbidden.includes('sgbackupconfigs') && ( !kind.length || (kind == 'sgbackupconfigs')) ) {
   
           /* Backup Config */
-          axios
-          .get('/stackgres/sgbackupconfigs')
+          sgApi
+          .get('sgbackupconfigs')
           .then( function(response) {
 
             vc.lookupCRDs('sgbackupconfigs', response.data);
@@ -319,8 +319,8 @@ export const mixin = {
         if ( !store.state.permissions.forbidden.includes('sginstanceprofiles') && (!kind.length || (kind == 'sginstanceprofiles') ) ) {
   
           /* Profiles */
-          axios
-          .get('/stackgres/sginstanceprofiles')
+          sgApi
+          .get('sginstanceprofiles')
           .then( function(response) {
 
             vc.lookupCRDs('sginstanceprofiles', response.data);
@@ -349,13 +349,8 @@ export const mixin = {
   
         if (!store.state.permissions.forbidden.includes('storageclasss') && ( !kind.length || (kind == 'storageclasses') )) {
           /* Storage Classes Data */
-          axios
-          .get('/stackgres/storageclasses',
-            { headers: {
-                //'content-type': 'application/json'
-              }
-            }
-          )
+          sgApi
+          .get('storageclasses')
           .then( function(response){
   
             store.commit('addStorageClasses', response.data);
@@ -368,13 +363,8 @@ export const mixin = {
   
         if (!store.state.permissions.forbidden.includes('sgdistributedlogs') && ( !kind.length || (kind == 'sgdistributedlogs') ) ){
           /* Distribude Logs Data */
-          axios
-          .get('/stackgres/sgdistributedlogs',
-            { headers: {
-                //'content-type': 'application/json'
-              }
-            }
-          )
+          sgApi
+          .get('sgdistributedlogs')
           .then( function(response){
 
             vc.lookupCRDs('sgdistributedlogs', response.data);
@@ -398,13 +388,8 @@ export const mixin = {
 
         if (!store.state.permissions.forbidden.includes('sgdbops') && ( !kind.length || (kind == 'sgdbops') ) ){
           /* DbOps Data */
-          axios
-          .get('/stackgres/sgdbops',
-            { headers: {
-                //'content-type': 'application/json'
-              }
-            }
-          )
+          sgApi
+          .get('sgdbops')
           .then( function(response){
 
             vc.lookupCRDs('sgdbops', response.data);
@@ -464,8 +449,8 @@ export const mixin = {
 
           Object.keys(pgFlavors).forEach(function(flavor) {
             /* Postgres versions */
-            axios
-            .get('/stackgres/version/postgresql?flavor=' + flavor)
+            sgApi
+            .getPostgresVersions(flavor)
             .then( function(response){
 
               let postgresVersions = {};
@@ -495,8 +480,8 @@ export const mixin = {
         if(!store.state.applications.length) {
 
           /* Get SG Applications */
-          axios
-          .get('/stackgres/applications')
+          sgApi
+          .get('applications')
           .then( function(response) {
 
             store.commit('setApplications', response.data.applications);
@@ -574,32 +559,35 @@ export const mixin = {
       },
   
       iCan( action = 'any', kind, namespace = '' ) {
-        
-        if(namespace.length) { // If filtered by namespace
-          let permissions = store.state.permissions.allowed.namespaced.find(p => (p.namespace == namespace));
-
-          return (
-            (typeof permissions != 'undefined') && (
-              ( (action == 'any') && permissions.resources[kind].length) ||
-              ( (action != 'any') && permissions.resources[kind].includes(action) )
+        const vc = this;
+          
+          if(namespace.length) { // If filtered by namespace
+  
+            let permissions = store.state.permissions.allowed.namespaced.find(p => (p.namespace == namespace));
+            return (
+              (typeof permissions != 'undefined') &&
+                (
+                  ( (action == 'any') && permissions.resources[kind].length) ||
+                  ( (action != 'any') && permissions.resources[kind].includes(action) 
+                )
+              )
             )
-          )
-          
-        } else if(!['namespaces', 'storageclasses'].includes(kind)) { // For CRDs when no namespace indicated
-          
-          return (store.state.permissions.allowed.namespaced.find(p => 
-            (p.resources[kind].length) ).length > 0
-          );
 
-        } else if(['namespaces', 'storageclasses'].includes(kind)) {
+          } else if(!['namespaces', 'storageclasses'].includes(kind)) { // For CRDs when no namespace indicated
+            
+            return (store.state.permissions.allowed.namespaced.find(p => 
+              (p.resources[kind].length) ).length > 0
+            );
 
-          return store.state.permissions.allowed.unnamespaced[kind].includes(action)
-        
-        } else {
+          } else if(['namespaces', 'storageclasses'].includes(kind)) {
+
+            return store.state.permissions.allowed.unnamespaced[kind].includes(action)
           
-          return !store.state.permissions.forbidden.includes(kind)
-          
-        }
+          } else {
+            
+            return !store.state.permissions.forbidden.includes(kind)
+            
+          }
   
       },
   

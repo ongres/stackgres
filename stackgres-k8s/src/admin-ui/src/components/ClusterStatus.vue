@@ -198,7 +198,7 @@
 
 <script>
 	import store from '../store'
-	import axios from 'axios'
+	import sgApi from '../api/sgApi'
 	import { mixin } from './mixins/mixin'
 
     export default {
@@ -268,8 +268,8 @@
 			getClusterEvents() {
 				const vc = this;
 				
-				axios
-				.get('/stackgres/namespaces/' + vc.$route.params.namespace + '/sgclusters/' + vc.$route.params.name + '/events')
+				sgApi
+				.getResourceDetails('sgclusters', vc.$route.params.namespace, vc.$route.params.name, 'events')
 				.then( function(response) {
 					vc.events = [...response.data]
 				}).catch(function(err) {

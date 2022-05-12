@@ -58,7 +58,7 @@
 
 <script>
 	import store from '../store'
-	import axios from 'axios'
+	import sgApi from '../api/sgApi'
 	import { mixin } from './mixins/mixin'
 	import ClusterDetails from './details/ClusterDetails.vue'
 	
@@ -90,8 +90,8 @@
 
 			if(!vc.extensionsList.length) {
 
-				axios
-				.get('/stackgres/extensions/latest')
+				sgApi
+				.getPostgresExtensions('latest')
 				.then(function (response) {
 					vc.extensionsList = response.data.extensions
 				})

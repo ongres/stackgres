@@ -102,7 +102,7 @@
     import {mixin} from '../mixins/mixin'
     import router from '../../router'
     import store from '../../store'
-    import axios from 'axios'
+    import sgApi from '../../api/sgApi'
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
@@ -223,11 +223,8 @@
                     } else {
 
                         if(this.editMode) {
-                            axios
-                            .put(
-                                '/stackgres/sginstanceprofiles', 
-                                profile 
-                            )
+                            sgApi
+                            .update('sginstanceprofiles', profile)
                             .then(function (response) {
                                 vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> updated successfully', 'message','sginstanceprofiles');
 
@@ -241,11 +238,8 @@
                             });
 
                         } else {
-                            axios
-                            .post(
-                                '/stackgres/sginstanceprofiles', 
-                                profile 
-                            )
+                            sgApi
+                            .create('sginstanceprofiles', profile)
                             .then(function (response) {
 
                                 var urlParams = new URLSearchParams(window.location.search);

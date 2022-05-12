@@ -54,7 +54,7 @@
     import {mixin} from '../mixins/mixin'
     import router from '../../router'
     import store from '../../store'
-    import axios from 'axios'
+    import sgApi from '../../api/sgApi'
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
@@ -145,11 +145,8 @@
                     } else {
 
                         if(this.editMode) {
-                            const res = axios
-                            .put(
-                                '/stackgres/sgpoolconfigs', 
-                                config 
-                            )
+                            sgApi
+                            .update('sgpoolconfigs', config)
                             .then(function (response) {
                                 vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgpoolconfigs');
 
@@ -162,11 +159,8 @@
                             });
 
                         } else {
-                            const res = axios
-                            .post(
-                                '/stackgres/sgpoolconfigs', 
-                                config 
-                            )
+                            sgApi
+                            .create('sgpoolconfigs', config)
                             .then(function (response) {
                                 
                                 var urlParams = new URLSearchParams(window.location.search);
