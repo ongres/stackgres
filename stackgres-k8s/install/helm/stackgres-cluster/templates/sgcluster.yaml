@@ -277,7 +277,10 @@ spec:
           tolerationSeconds: {{ .tolerationSeconds }}
         {{- end }}
       {{- end }}
-    {{- end }} 
+    {{- end }}
+    {{- if .Values.cluster.pods.managementPolicy }}
+    managementPolicy: {{ .Values.cluster.pods.managementPolicy }}
+    {{- end }}
   {{- if .Values.distributedLogs.enabled }}
   distributedLogs:
     sgDistributedLogs: {{ .Values.cluster.distributedLogs.sgDistributedLogs }}
