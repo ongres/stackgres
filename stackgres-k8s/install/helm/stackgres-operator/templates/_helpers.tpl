@@ -10,6 +10,10 @@
 {{- end -}}
 {{- end }}
 
+{{- define "stackgres.operator.resetCert" }}
+{{- if and .Release.IsUpgrade .Values.cert.reset }}true{{- end }}
+{{- end }}
+
 {{- define "stackgres.operator.upgradeCrds" }}
 {{- $upgradeCrds := false }}
 {{- $noStackGresCrdAvailable := true }}

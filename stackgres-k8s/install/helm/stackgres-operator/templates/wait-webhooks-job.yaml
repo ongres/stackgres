@@ -1,4 +1,4 @@
-{{- if .Values.deploy.upgradeCrds }}
+{{- if eq "true" (include "stackgres.operator.upgradeCrds" .) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -11,7 +11,7 @@ metadata:
   annotations:
     "helm.sh/hook": post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-weight": "40"
 spec:
   template:
     metadata:
