@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.validation.ValidEnum;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -34,6 +35,11 @@ public class StackGresClusterPod {
 
   @JsonProperty("disablePostgresUtil")
   private Boolean disablePostgresUtil;
+
+  @JsonProperty("managementPolicy")
+  @ValidEnum(enumClass = StackGresPodManagementPolicy.class, allowNulls = true,
+      message = "managementPolicy must be OrderedReady or Parallel")
+  private String managementPolicy;
 
   @Valid
   private StackGresClusterPodScheduling scheduling;
@@ -78,10 +84,18 @@ public class StackGresClusterPod {
     this.scheduling = scheduling;
   }
 
+  public String getManagementPolicy() {
+    return managementPolicy;
+  }
+
+  public void setManagementPolicy(String managementPolicy) {
+    this.managementPolicy = managementPolicy;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(disableConnectionPooling, disableMetricsExporter, disablePostgresUtil,
-        persistentVolume, scheduling);
+        managementPolicy, persistentVolume, scheduling);
   }
 
   @Override
@@ -96,6 +110,7 @@ public class StackGresClusterPod {
     return Objects.equals(disableConnectionPooling, other.disableConnectionPooling)
         && Objects.equals(disableMetricsExporter, other.disableMetricsExporter)
         && Objects.equals(disablePostgresUtil, other.disablePostgresUtil)
+        && Objects.equals(managementPolicy, other.managementPolicy)
         && Objects.equals(persistentVolume, other.persistentVolume)
         && Objects.equals(scheduling, other.scheduling);
   }
