@@ -13,7 +13,7 @@ metadata:
   name: {{ .Values.restapi.name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: {{ if and .Release.IsUpgrade .Values.deploy.upgradeCrds }}0{{ else }}1{{ end }}
+  replicas: {{ if or (eq "true" (include "stackgres.operator.resetCert" .)) (eq "true" (include "stackgres.operator.upgradeCrds" .)) }}0{{ else }}1{{ end }}
   selector:
     matchLabels:
       app: {{ .Values.restapi.name }}
