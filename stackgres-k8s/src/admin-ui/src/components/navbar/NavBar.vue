@@ -336,6 +336,7 @@
 			},
 
 			cloneCRD: function() {
+				
 				const vc = this
 				let cloneCRD = store.state.cloneCRD.data;
 				let cloneKind = store.state.cloneCRD.kind;
@@ -344,8 +345,21 @@
 					cloneKind = 'sgpoolconfigs'
 				else if (cloneKind == 'SGPostgresConfigs')
 					cloneKind = 'sgpgconfigs'
-				else if ( (cloneKind == 'SGClusters') && vc.hasProp(cloneCRD.spec, 'distributedLogs.sgDistributedLogs') && !cloneCRD.spec.distributedLogs.sgDistributedLogs.includes('.') )
-					cloneCRD.spec.distributedLogs.sgDistributedLogs = vc.$route.params.namespace + '.' + cloneCRD.spec.distributedLogs.sgDistributedLogs;
+				else if (cloneKind == 'SGClusters') {
+					
+					if( vc.hasProp(cloneCRD.spec, 'distributedLogs.sgDistributedLogs') && !cloneCRD.spec.distributedLogs.sgDistributedLogs.includes('.') ) {
+						cloneCRD.spec.distributedLogs.sgDistributedLogs = vc.$route.params.namespace + '.' + cloneCRD.spec.distributedLogs.sgDistributedLogs;
+					}
+
+					if( vc.hasProp(cloneCRD, 'spec.initialData.scripts') ) {
+						cloneCRD.spec.initialData.scripts.forEach( s => {
+							if(vc.hasProp(s, 'scriptFrom.configMapKeyRef')) {
+								delete s.scriptFrom.configMapScript
+							}
+						});
+					}
+
+				}
 
 				if (!vc.missingCRDs.length) {
 					const res = axios
