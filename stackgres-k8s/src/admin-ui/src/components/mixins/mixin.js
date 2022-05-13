@@ -247,7 +247,6 @@ export const mixin = {
   
               });
   
-              // console.log("PGconf Data updated");
             }).catch(function(err) {
               console.log(err);
               vc.checkAuthError(err);
@@ -293,23 +292,21 @@ export const mixin = {
   
               vc.lookupCRDs('sgbackupconfigs', response.data);
     
-                response.data.forEach( function(item, index) {
+              response.data.forEach( function(item, index) {
+                
+                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                  store.commit('updateNamespaces', item.metadata.namespace);
+                
+                if(!index)
+                  store.commit('flushResource', 'sgbackupconfigs')
                   
-                  if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
-                    store.commit('updateNamespaces', item.metadata.namespace);
-                  
-                  if(!index)
-                    store.commit('flushResource', 'sgbackupconfigs')
-                    
-                  store.commit('updateBackupConfig', { 
-                    name: item.metadata.name,
-                    data: item
-                  });
-    
+                store.commit('updateBackupConfig', { 
+                  name: item.metadata.name,
+                  data: item
                 });
-    
-                // console.log("BackupConfig Data updated");
-    
+  
+              });
+        
             }).catch(function(err) {
               console.log(err);
               vc.checkAuthError(err);
@@ -340,7 +337,6 @@ export const mixin = {
     
               });
     
-                // console.log("Profiles Data updated");
             }).catch(function(err) {
               console.log(err);
               vc.checkAuthError(err);
@@ -362,7 +358,7 @@ export const mixin = {
           }
     
           if ( vc.iCan('list', 'sgdistributedlogs') && ( !kind.length || (kind == 'sgdistributedlogs') ) ){
-            /* Distribude Logs Data */
+            /* Distributed Logs Data */
             sgApi
             .get('sgdistributedlogs')
             .then( function(response){
@@ -572,7 +568,6 @@ export const mixin = {
 
           } else if( !['namespaces', 'storageclasses'].includes(kind) && (action != 'any') ) { // For CRDs when no namespace indicated
             
-            console.log(store.state.permissions.allowed.namespaced.filter(n => (n.resources[kind].includes(action)) ).length + ' / ' + store.state.permissions.allowed.namespaced.length);
             return (store.state.permissions.allowed.namespaced.filter(n => 
               (n.resources[kind].includes(action)) ).length == store.state.permissions.allowed.namespaced.length
             );
