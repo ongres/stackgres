@@ -19,7 +19,7 @@
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
-# Maven Start Up Batch script
+# Apache Maven Wrapper startup batch script, version 3.1.1
 #
 # Required ENV vars:
 # ------------------
@@ -135,7 +135,6 @@ fi
 # traverses directory structure from process work directory to filesystem root
 # first directory with .mvn subdirectory is considered project base directory
 find_maven_basedir() {
-
   if [ -z "$1" ]
   then
     echo "Path not specified to find_maven_basedir"
@@ -188,9 +187,9 @@ else
       echo "Couldn't find .mvn/wrapper/maven-wrapper.jar, downloading it ..."
     fi
     if [ -n "$MVNW_REPOURL" ]; then
-      wrapperUrl="$MVNW_REPOURL/org/apache/maven/wrapper/maven-wrapper/3.1.0/maven-wrapper-3.1.0.jar"
+      wrapperUrl="$MVNW_REPOURL/org/apache/maven/wrapper/maven-wrapper/3.1.1/maven-wrapper-3.1.1.jar"
     else
-      wrapperUrl="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.1.0/maven-wrapper-3.1.0.jar"
+      wrapperUrl="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.1.1/maven-wrapper-3.1.1.jar"
     fi
     while IFS="=" read key value; do
       case "$key" in (wrapperUrl) wrapperUrl="$value"; break ;;
@@ -211,10 +210,11 @@ else
           QUIET=""
         fi
         if [ -z "$MVNW_USERNAME" ] || [ -z "$MVNW_PASSWORD" ]; then
-            wget $QUIET "$wrapperUrl" -O "$wrapperJarPath" || rm -f "$wrapperJarPath"
+            wget $QUIET "$wrapperUrl" -O "$wrapperJarPath"
         else
-            wget $QUIET --http-user="$MVNW_USERNAME" --http-password="$MVNW_PASSWORD" "$wrapperUrl" -O "$wrapperJarPath" || rm -f "$wrapperJarPath"
+            wget $QUIET --http-user="$MVNW_USERNAME" --http-password="$MVNW_PASSWORD" "$wrapperUrl" -O "$wrapperJarPath"
         fi
+        [ $? -eq 0 ] || rm -f "$wrapperJarPath"
     elif command -v curl > /dev/null; then
         QUIET="--silent"
         if [ "$MVNW_VERBOSE" = true ]; then
@@ -222,29 +222,31 @@ else
           QUIET=""
         fi
         if [ -z "$MVNW_USERNAME" ] || [ -z "$MVNW_PASSWORD" ]; then
-            curl $QUIET -o "$wrapperJarPath" "$wrapperUrl" -f
+            curl $QUIET -o "$wrapperJarPath" "$wrapperUrl" -f -L
         else
-            curl $QUIET --user "$MVNW_USERNAME:$MVNW_PASSWORD" -o "$wrapperJarPath" "$wrapperUrl" -f
+            curl $QUIET --user "$MVNW_USERNAME:$MVNW_PASSWORD" -o "$wrapperJarPath" "$wrapperUrl" -f -L
         fi
-
+        [ $? -eq 0 ] || rm -f "$wrapperJarPath"
     else
         if [ "$MVNW_VERBOSE" = true ]; then
           echo "Falling back to using Java to download"
         fi
-        javaClass="$BASE_DIR/.mvn/wrapper/MavenWrapperDownloader.java"
+        javaSource="$BASE_DIR/.mvn/wrapper/MavenWrapperDownloader.java"
+        javaClass="$BASE_DIR/.mvn/wrapper/MavenWrapperDownloader.class"
         # For Cygwin, switch paths to Windows format before running javac
         if $cygwin; then
+          javaSource=`cygpath --path --windows "$javaSource"`
           javaClass=`cygpath --path --windows "$javaClass"`
         fi
-        if [ -e "$javaClass" ]; then
-            if [ ! -e "$BASE_DIR/.mvn/wrapper/MavenWrapperDownloader.class" ]; then
+        if [ -e "$javaSource" ]; then
+            if [ ! -e "$javaClass" ]; then
                 if [ "$MVNW_VERBOSE" = true ]; then
                   echo " - Compiling MavenWrapperDownloader.java ..."
                 fi
                 # Compiling the Java class
-                ("$JAVA_HOME/bin/javac" "$javaClass")
+                ("$JAVA_HOME/bin/javac" "$javaSource")
             fi
-            if [ -e "$BASE_DIR/.mvn/wrapper/MavenWrapperDownloader.class" ]; then
+            if [ -e "$javaClass" ]; then
                 # Running the downloader
                 if [ "$MVNW_VERBOSE" = true ]; then
                   echo " - Running MavenWrapperDownloader.java ..."
@@ -274,9 +276,6 @@ fi
 # work with both Windows and non-Windows executions.
 MAVEN_CMD_LINE_ARGS="$MAVEN_CONFIG $@"
 export MAVEN_CMD_LINE_ARGS
-
-LANG="C.UTF-8"
-export LANG
 
 WRAPPER_LAUNCHER=org.apache.maven.wrapper.MavenWrapperMain
 
