@@ -1,3 +1,109 @@
+# :rocket: Release 1.2.0 (2022-05-17)
+
+## :notepad_spiral: NOTES
+
+Here comes StackGres 1.2.0 bringing more fishy stuffs and let you be the first by not letting you lose even a bit of info!! :first_place: :fishing_pole_and_fish: :tada: :bottle_with_popping_cork:
+
+The day has come, never more lose a single commit by enabling synchronous replication and add dedicated instances to be readonly. Also try out the Babelfish Compass application from StackGres Web UI and check if your SQLServer schema is compatible with Babelfish for Postgres!
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Dropped support for Kubernetes 1.16 and 1.17
+* Support Postgres 14.2, 13.6 and 12.10
+* Support for synchronous replication
+* Support for replication groups
+* New Babelfish Compass application integrated in the Web UI
+* Removed support for StackGres 0.9
+* When SGCluster requires upgrade PendingUpgrade will be set
+* Backups are now restored by name to avoid security issues
+* Backups can now be copied across namespaces requiring the `.spec.sgCluster` field to be prepended the cluster name with the cluster namespace plus the `.` character so that it still points to the original cluster.
+* Backup paths are stored in SGCluster configuration and SGBackup status for better visibility and to allow to be changed
+* Set `restore_command` when backup is enabled to allow replica to catch up from backup storage
+* Deep validation of postgresql parameters
+* Support for huge pages
+* Added backupPath to SGCluster, SGBackup and SGDbOps (for op majorVersionUpgrade)
+* SGDbOps restart operation restart the primary instance first only if it is pending restart and wait if already restarting
+
+### Web Console
+
+* Enhance the date picker to filter cluster logs
+* Suggest default names for manual Backups and DbOps
+* Improve mandatory fields notification
+
+## :bug: FIXES
+
+* SGDbOps pgbench benchmark is not setting correctly TPS
+* When SGCluster requires upgrade PendingRestart should not be set
+* Restart only if pending restart and wait if already restarting
+* Removed idle timeout for Patroni REST API that were causing restart and other SGDbOps to fail
+* Removed creation of default StackGres configurations in operator namespace
+* Using new CSR v1 when creating certificates only for k8s 1.22+
+* Labels are too generic and should be changed to avoid collisions
+* Blocklisted parameters with a default value where not included in generated configurations for `SGPostgresConfig` and `SGPoolingConfig`
+* Fixed helm validation to print the generated password
+* Potential security issue in OpenJDK image
+* Escape special characters in field returned on failed validation
+* Backup breaks after major version upgrade
+* Typo on SGBackupConfig and SGBackup bandwidth properties
+* Set disableMetricsExporter to true does not remove the postgres exporter sidecar
+* Fields property empty on a REST API response for babelfish flavor
+* Only allow patching Job annotations and Pod annotations
+* Set backup information timestamp as a String
+* SGDbOps may get stuck running in some cases
+* SGCluster does not validate restore section
+* Restart based operation are failing and Patroni log error "BrokenPipeError: [Errno 32] Broken pipe"
+* kubectl throttling in backup pod
+
+### Web Console
+
+* Support SGDistributedLogs retention spec on SGCluster form
+* Namespace link on web console's breadcrumbs point to wrong path on SGInstanceProfile listings
+* The disableClusterPodAntiAffinity config is not shown on SGDistributedLogs details
+* Main dashboard does not validate user permissions
+* Sidebar shows top level CRDs when user has no permissions
+* Error message do not include details coming from the REST API
+* Fix "go to default dashboard" link on not-found page
+* Repeated names when creating restart SGDbOps
+* Prevent input of invalid runAt values for SGDbOps
+* Empty notification when toggling twice between timezones
+* Selected extensions are not disabled when changing flavor
+* Fixed dbops and distributedlogs doc links name
+* Adjust computed property match on header section
+* Prevent auto scrolling on log records when log details are visible
+* SGBackupConfig summary is empty when on edit mode
+* Notification won't load when resource has been deleted
+* Unify Backup Config icons
+* Initialization scripts from configmaps or secrets are not set when creating a cluster
+* Improve layout of logs records
+* Wrong mapping for S3Compatible storageClass info
+* Repack Databases tables is missing styling
+* Tooltips which are too long won't fit the screen
+* CRD titles appear floating on collapsed Sidebar
+* Missing 404/Not Found validations on monitoring tab
+* Missing tooltip for initialization scripts source type
+* Delete resource popup remains open when clicking anywhere else
+* Notifications should allow HTML tags
+
+## :construction: KNOWN ISSUES
+
+* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368))
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.0 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.2.0)
+
 # :rocket: Release 1.2.0-RC1 (2022-05-10)
 
 ## :notepad_spiral: NOTES
