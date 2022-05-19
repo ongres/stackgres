@@ -37,6 +37,22 @@ spec:
       {{- end }}
       {{- end }}
       {{- end }}
+      {{- if or .Values.nodeSelector .Values.restapi.nodeSelector }}
+      nodeSelector:
+        {{- if .Values.restapi.nodeSelector }}
+        {{- with (index .Values.restapi.nodeSelector) }}
+        {{- range $label,$value := . }}
+        {{ $label }}: '{{ $value }}'
+        {{- end}}
+        {{- end}}
+        {{- else }}
+        {{- with (index .Values.nodeSelector) }}
+        {{- range $label,$value := . }}
+        {{ $label }}: '{{ $value }}'
+        {{- end }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
       containers:
       - name: {{ .Values.restapi.name }}
         image: "{{ .Values.restapi.image.name }}:{{ .Values.restapi.image.tag }}"

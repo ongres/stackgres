@@ -51,7 +51,6 @@ serviceAccount:
   create: true
   # repoCredentials:
   # - <secret name>
-
 initClusterRole: cluster-admin
 
 rbac:

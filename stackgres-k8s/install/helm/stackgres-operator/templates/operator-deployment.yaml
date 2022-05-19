@@ -35,6 +35,22 @@ spec:
       {{- end }}
       {{- end }}
       {{- end }}
+      {{- if or .Values.nodeSelector .Values.operator.nodeSelector }}
+      nodeSelector:
+        {{- if .Values.operator.nodeSelector }}
+        {{- with (index .Values.operator.nodeSelector) }}
+        {{- range $label,$value := . }}
+        {{ $label }}: '{{ $value }}'
+        {{- end}}
+        {{- end}}
+        {{- else }}
+        {{- with (index .Values.nodeSelector) }}
+        {{- range $label,$value := . }}
+        {{ $label }}: '{{ $value }}'
+        {{- end }}
+        {{- end }}
+        {{- end }}
+      {{- end }}
       containers:
       {{- if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}
       - name: {{ .Release.Name }}
