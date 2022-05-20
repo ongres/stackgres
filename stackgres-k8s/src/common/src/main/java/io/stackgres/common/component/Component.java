@@ -510,6 +510,11 @@ public class Component {
     return Seq.seq(getComposedVersions());
   }
 
+  @Override
+  public String toString() {
+    return name;
+  }
+
   private void checkSubComponents(Map<Component, String> subComponentVersions) {
     Preconditions.checkArgument(Seq.seq(this.subComponents)
         .allMatch(alternativeSubComponents -> alternativeSubComponents.stream()
