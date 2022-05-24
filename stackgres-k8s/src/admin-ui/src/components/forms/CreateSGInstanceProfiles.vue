@@ -1,5 +1,5 @@
 <template>
-    <div id="create-profile" class="createProfile noSubmit" v-if="loggedIn && isReady && !notFound">
+    <div id="create-profile" class="createProfile noSubmit" v-if="iCanLoad">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 

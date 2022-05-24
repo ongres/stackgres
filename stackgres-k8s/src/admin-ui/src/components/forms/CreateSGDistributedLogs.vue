@@ -1,5 +1,5 @@
 <template>
-    <div id="create-logs-server" v-if="loggedIn && isReady && !notFound">
+    <div id="create-logs-server" v-if="iCanLoad">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
 

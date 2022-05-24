@@ -1,5 +1,5 @@
 <template>
-    <div id="create-backup" v-if="loggedIn && isReady && !notFound">
+    <div id="create-backup" v-if="iCanLoad">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(backup).length > 0"></template>
                 

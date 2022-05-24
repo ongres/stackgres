@@ -1,5 +1,5 @@
 <template>
-	<div id="sg-profile" v-if="loggedIn && isReady && !notFound">
+	<div id="sg-profile" v-if="iCanLoad">
 		<div class="content">
 			<template v-if="!$route.params.hasOwnProperty('name')">
 				<table id="profiles" class="profiles pgConfig resizable fullWidth" v-columns-resizable>

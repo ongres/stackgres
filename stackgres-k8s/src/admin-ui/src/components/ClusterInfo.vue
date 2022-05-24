@@ -1,5 +1,5 @@
 <template>
-	<div id="cluster-info" v-if="loggedIn && isReady && !notFound">
+	<div id="cluster-info" v-if="iCanLoad">
 		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 			<div class="content noScroll">
 				<h2>Cluster Details</h2>

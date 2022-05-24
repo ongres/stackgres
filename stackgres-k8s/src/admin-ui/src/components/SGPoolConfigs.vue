@@ -1,5 +1,5 @@
 <template>
-	<div id="pool-config" v-if="loggedIn && isReady && !notFound">
+	<div id="pool-config" v-if="iCanLoad">
 		<div class="content">
 			<template v-if="!$route.params.hasOwnProperty('name')">
 				<table id="connectionpooling" class="configurations poolConfig resizable fullWidth" v-columns-resizable>

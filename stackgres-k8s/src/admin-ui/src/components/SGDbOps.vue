@@ -1,5 +1,5 @@
 <template>
-    <div id="dbops" v-if="loggedIn && isReady && !notFound">
+    <div id="dbops" v-if="iCanLoad">
         <div class="content">
             <template v-if="!$route.params.hasOwnProperty('name')">
                 <div class="toolbar">

@@ -1,5 +1,5 @@
 <template>
-	<div id="cluster-overview" v-if="loggedIn && isReady && !notFound">
+	<div id="cluster-overview" v-if="iCanLoad">
 		<template v-for="namespace in namespaces" v-if="(namespace == $route.params.namespace)">
 			<div class="content">
 				

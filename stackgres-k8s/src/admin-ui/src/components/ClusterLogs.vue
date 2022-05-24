@@ -1,5 +1,5 @@
 <template>
-	<div id="sg-logs" v-if="loggedIn && isReady && !notFound">
+	<div id="sg-logs" v-if="iCanLoad">
 		<div class="content noScroll">
 			<div id="logs">
 				<div class="toolbar">

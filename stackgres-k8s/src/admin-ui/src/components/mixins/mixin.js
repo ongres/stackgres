@@ -41,6 +41,20 @@ export const mixin = {
 
       tooltips () {
         return store.state.tooltips
+      },
+
+      iCanLoad() {
+        const vc = this;
+
+        let kind = (vc.$route.meta.componentName + 's').toLowerCase();
+
+        return ( vc.loggedIn && vc.isReady && !vc.notFound && 
+          ( 
+            ( vc.$route.name.startsWith('Create') && vc.iCan('create', kind, vc.$route.params.namespace) ) || 
+            ( vc.$route.name.startsWith('Edit') && vc.iCan('patch', kind, vc.$route.params.namespace) ) ||
+            ( ( !vc.$route.name.startsWith('Edit') && !vc.$route.name.startsWith('Create') ) && vc.iCan('list', kind, vc.$route.params.namespace) )
+          )
+        )
       }
   
     },

@@ -1,5 +1,5 @@
 <template>
-    <div id="create-dbops" v-if="loggedIn && isReady && !notFound">
+    <div id="create-dbops" v-if="iCanLoad">
         <form id="createDbops" class="form dbopsForm" @submit.prevent>
             <div class="header">
                 <h2>Database Operation Details</h2>

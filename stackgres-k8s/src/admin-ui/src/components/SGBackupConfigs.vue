@@ -1,5 +1,5 @@
 <template>
-	<div id="bk-config" v-if="loggedIn && isReady && !notFound">
+	<div id="bk-config" v-if="iCanLoad">
 		<div class="content">
 			<template v-if="!$route.params.hasOwnProperty('name')">
 				<table id="backup" class="configurations backupConfig resizable fullWidth" v-columns-resizable>
