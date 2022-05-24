@@ -633,27 +633,37 @@ export const mixin = {
       },
 
       notify (message, type = 'message', crd = 'general') {
-        let now = new Date();
 
-        $('#nav .active:not(#notifications').removeClass('active');
-        $('.form .alert').removeClass('alert');
+        let msgExists = store.state.notifications.messages.find( m =>
+          m.show && (m.kind == crd) && (m.level == type) && (m.message.content == message)
+        );
 
-        store.commit('addNotification', {
-          kind: crd,
-          level: type,
-          message: {
-            content: message.hasOwnProperty('title') ? message.title : message,
-            ...(message.hasOwnProperty('detail') && {details: message.detail}),
-            ...(message.hasOwnProperty('type') && {link: message.type}),
-          },
-          timestamp: now,
-          show: true
-        });
+        // Show only if there are no active notifications with the exact same info
+        if(typeof msgExists == 'undefined') {
 
-        if(message.hasOwnProperty('fields')) {
-          message.fields.forEach( function(item, index) {
-            $("[data-field='"+item+"']").addClass("notValid");
-          });
+          let now = new Date();
+          let msg = {
+            kind: crd,
+            level: type,
+            message: {
+              content: message.hasOwnProperty('title') ? message.title : message,
+              ...(message.hasOwnProperty('detail') && {details: message.detail}),
+              ...(message.hasOwnProperty('type') && {link: message.type}),
+            },
+            timestamp: now,
+            show: true
+          };
+
+          $('#nav .active:not(#notifications').removeClass('active');
+          $('.form .alert').removeClass('alert');
+
+          store.commit('addNotification', msg);
+
+          if(message.hasOwnProperty('fields')) {
+            message.fields.forEach( function(item, index) {
+              $("[data-field='"+item+"']").addClass("notValid");
+            });
+          }
         }
         
       },
