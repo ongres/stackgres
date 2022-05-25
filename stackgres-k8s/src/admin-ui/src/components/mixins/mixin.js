@@ -521,7 +521,7 @@ export const mixin = {
       setContentTooltip( el = '', warning = false ) {
         const tooltip = `<div class="contentTooltip show">
           <div class="close"></div>
-          <div class="info` + (warning ? 'warning' : '') + `">
+          <div class="info` + (warning ? ' warning' : '') + `">
             <span class="close">CLOSE</span>
             <div class="content">` + $(el).html() + `</div>
           </div>
