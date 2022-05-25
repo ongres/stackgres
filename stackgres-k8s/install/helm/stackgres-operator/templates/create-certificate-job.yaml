@@ -1,4 +1,5 @@
-{{ if and (or (not .Values.cert.key) (not .Values.cert.crt) (not .Values.cert.webKey) (not .Values.cert.webCrt)) ( or .Values.deploy.operator .Values.deploy.restapi ) }}
+{{- if or .Release.IsInstall (eq "true" (include "stackgres.operator.resetCert" .)) }}
+{{- if and (or (not .Values.cert.key) (not .Values.cert.crt) (not .Values.cert.webKey) (not .Values.cert.webCrt)) ( or .Values.deploy.operator .Values.deploy.restapi ) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -9,9 +10,9 @@ metadata:
     scope: init
     job: create-certificate
   annotations:
-    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-weight": "10"
 spec:
   template:
     metadata:
@@ -21,8 +22,10 @@ spec:
         job: create-certificate
     spec:
       serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
       containers:
-      - name: "{{ .Release.Name }}-create-certificate"
+      - name: "create-certificate"
         image: {{ template "kubectl.image" . }}
         imagePullPolicy: "IfNotPresent"
         command:
@@ -193,5 +196,5 @@ spec:
             
             kubectl apply -f /tmp/web-certificate-secret.yaml
             {{- end }}
-      restartPolicy: OnFailure
-{{ end }}
+{{- end }}
+{{- end }}

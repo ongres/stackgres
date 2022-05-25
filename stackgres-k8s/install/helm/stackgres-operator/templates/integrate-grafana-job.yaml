@@ -1,5 +1,4 @@
 {{- if .Values.grafana.autoEmbed }}
-{{- if .Values.qutePreprocess }}#grafana.preprocess.start{{- end}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -12,7 +11,7 @@ metadata:
   annotations:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-weight": "10"
 spec:
   template:
     metadata:
@@ -22,6 +21,8 @@ spec:
         job: integrate-grafana
     spec:
       serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
       containers:
       - name: "integrate-grafana"
         image: {{ template "kubectl.image" . }}
@@ -101,6 +102,4 @@ spec:
             name: {{ .Release.Name }}-grafana-dashboard
             {{- end }}
       {{- end }}
-      restartPolicy: OnFailure
-{{- if .Values.qutePreprocess }}#grafana.preprocess.end{{- end}}
 {{ end }}

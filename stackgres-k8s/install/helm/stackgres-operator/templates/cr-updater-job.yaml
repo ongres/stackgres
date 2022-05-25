@@ -1,3 +1,4 @@
+{{- if eq "true" (include "stackgres.operator.upgradeCrds" .) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -10,7 +11,7 @@ metadata:
   annotations:
     "helm.sh/hook": post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    "helm.sh/hook-weight": "2"
+    "helm.sh/hook-weight": "50"
 spec:
   template:
     metadata:
@@ -19,7 +20,9 @@ spec:
         scope: init
         job: cr-updater
     spec:
-      serviceAccountName: {{ .Release.Name }}-cr-updater
+      serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
       containers:
       - name: "{{ .Values.jobs.name }}"
         image: "{{ .Values.jobs.image.name }}:{{ .Values.jobs.image.tag }}"
@@ -42,4 +45,4 @@ spec:
         resources:
         {{- toYaml . | nindent 10 }}
         {{- end }}
-      restartPolicy: OnFailure
+{{- end }}

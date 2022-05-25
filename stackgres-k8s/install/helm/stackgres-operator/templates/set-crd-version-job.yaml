@@ -2,36 +2,38 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ .Release.Name }}-wait-webhooks"
+  name: "{{ .Release.Name }}-set-crd-version"
   namespace: {{ .Release.Namespace }}
   labels:
-    app: stackgres-operator
+    app: "{{ .Release.Name }}-set-crd-version"
     scope: init
-    job: wait-webhooks
+    job: set-crd-version
   annotations:
-    "helm.sh/hook": post-upgrade
+    "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    "helm.sh/hook-weight": "40"
+    "helm.sh/hook-weight": "60"
 spec:
   template:
     metadata:
       labels:
-        app: stackgres-operator
+        app: "{{ .Release.Name }}-set-crd-version"
         scope: init
-        job: wait-webhooks
+        job: set-crd-version
     spec:
       serviceAccountName: {{ .Release.Name }}-init
       restartPolicy: OnFailure
       terminationGracePeriodSeconds: 0
       containers:
-      - name: "{{ .Release.Name }}-wait-webhooks"
+      - name: "set-crd-version"
         image: {{ template "kubectl.image" . }}
         imagePullPolicy: "IfNotPresent"
         command:
           - "/bin/bash"
           - "-ecx"
           - |
-            kubectl set env -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}' DISABLE_RECONCILIATION=true
-            kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
-            kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
+            kubectl get crd -o name | grep '\.stackgres\.io$' \
+              | while read -r CRD
+                do
+                  kubectl annotate --overwrite "$CRD" stackgres.io/operatorVersion={{ .Chart.Version }}
+                done
 {{- end }}

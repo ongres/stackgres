@@ -9,7 +9,7 @@ metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: 0
+  replicas: {{ if or (eq "true" (include "stackgres.operator.resetCert" .)) (eq "true" (include "stackgres.operator.upgradeCrds" .)) }}0{{ else }}1{{ end }}
   selector:
     matchLabels:
       app: {{ .Release.Name }}

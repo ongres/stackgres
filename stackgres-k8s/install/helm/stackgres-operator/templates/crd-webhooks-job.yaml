@@ -1,3 +1,4 @@
+{{- if eq "true" (include "stackgres.operator.upgradeCrds" .) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -8,9 +9,9 @@ metadata:
     scope: init
     job: configure-crd-webhooks
   annotations:
-    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook": post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    "helm.sh/hook-weight": "3"
+    "helm.sh/hook-weight": "30"
 spec:
   template:
     metadata:
@@ -19,9 +20,11 @@ spec:
         scope: init
         job: configure-crd-webhooks
     spec:
-      serviceAccountName: {{ .Release.Name }}-crd-webhooks
+      serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
       containers:
-      - name: "{{ .Values.jobs.name }}"
+      - name: "conversion-webhooks"
         image: "{{ .Values.jobs.image.name }}:{{ .Values.jobs.image.tag }}"
         imagePullPolicy: "{{ .Values.jobs.image.pullPolicy }}"
         env:
@@ -39,5 +42,5 @@ spec:
         {{- with .Values.jobs.resources }}
         resources:
         {{- toYaml . | nindent 10 }}
-        {{- end }}   
-      restartPolicy: OnFailure
+        {{- end }}
+{{- end }}

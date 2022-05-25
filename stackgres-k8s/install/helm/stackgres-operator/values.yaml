@@ -63,6 +63,7 @@ deploy:
 
 cert:
   autoapprove: true
+  reset: false
   # key:
   # crt:
   # jwtRsaKey:
@@ -138,3 +139,4 @@ extensions:
       ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
       ##   GKE, AWS & OpenStack)
       # storageClass: "-"
+    # hostPath: /tmp/extensions-cache
