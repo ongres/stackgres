@@ -16,6 +16,7 @@
 #
 # Download CRC pull secret from https://console.redhat.com/openshift/create/local to "$HOME/.crc/pull-secret"
 #
+CRC_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
 
 if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
 then
@@ -46,6 +47,11 @@ update_crc_config() {
   fi
 
   ~/.crc/bin/oc/oc adm policy add-scc-to-user hostmount-anyuid -n default -z default
+  kubectl patch networks.config.openshift.io cluster --type json \
+    -p '[{"op":"replace","path":"/spec/externalIP/policy","value":{"allowedCIDRs":["0.0.0.0/0"]}}]'
+  kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.22/deploy/local-path-storage.yaml
+  ~/.crc/bin/oc/oc adm policy add-scc-to-user hostmount-anyuid -n local-path-storage -z local-path-provisioner-service-account
+  kubectl annotate storageclass local-path --overwrite storageclass.kubernetes.io/is-default-class=true
 }
 
 update_k8s_config() {
@@ -86,6 +92,7 @@ reuse_k8s() {
   update_crc_config
   update_k8s_config
   crc_start_debug_node
+  crc_run_on_node setenforce 0
 }
 
 reset_k8s() {
@@ -108,9 +115,12 @@ reset_k8s() {
   else
     crc stop -f || true
   fi
-  screen -ls 2>/dev/null | grep '\.crc-daemon' \
-    | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
-    | xargs -r -I % kill %
+  if [ "$CRC_ENABLE_DAEMON" = true ]
+  then
+    screen -ls 2>/dev/null | grep '\.crc-daemon' \
+      | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
+      | xargs -r -I % kill %
+  fi
 
   rm -Rf "$HOME/.crc/machines"
 
@@ -120,7 +130,10 @@ reset_k8s() {
     return 1
   fi
 
-  screen -dmS crc-daemon -L -Logfile "$HOME/.crc/crc-daemon.log" crc daemon
+  if [ "$CRC_ENABLE_DAEMON" = true ]
+  then
+    screen -dmS crc-daemon -L -Logfile "$HOME/.crc/crc-daemon.log" crc daemon
+  fi
   crc start \
     --pull-secret-file "$HOME/.crc/pull-secret" \
     --cpus "$K8S_CRC_CPUS" \
@@ -128,10 +141,9 @@ reset_k8s() {
     --disk-size "$K8S_CRC_DISK"
 
   update_crc_config
-
   update_k8s_config
-
   crc_start_debug_node
+  crc_run_on_node setenforce 0
 
   echo "...done"
 }
@@ -140,9 +152,12 @@ delete_k8s() {
   echo "Deleting crc environment..."
 
   crc delete -f || true
-  screen -ls 2>/dev/null | grep '\.crc-daemon' \
-    | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
-    | xargs -r -I % kill %
+  if [ "$CRC_ENABLE_DAEMON" = true ]
+  then
+    screen -ls 2>/dev/null | grep '\.crc-daemon' \
+      | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
+      | xargs -r -I % kill %
+  fi
 
   echo "...done"
 }
@@ -203,6 +218,8 @@ crc_start_debug_node() {
   NODE="$(printf '%s' "$NODE" | head -n 1)"
   screen -dmS crc-debug -L -Logfile "$HOME/.crc/crc-debug.log" \
     ~/.crc/bin/oc/oc debug -q "$NODE" -- sh -c 'while true; do sleep 300; done'
+
+  wait_until crc_run_on_node true
 }
 
 crc_run_on_node() {
@@ -221,6 +238,7 @@ excluded_namespaces() {
   echo "kube-.*"
   echo "openshift"
   echo "openshift-.*"
+  echo "local-path-storage"
 }
 
 excluded_validatingwebhookconfigurations() {
@@ -312,6 +330,7 @@ excluded_clusterroles() {
   echo "cluster-samples-operator-imageconfig-reader"
   echo "cloud-controller-manager"
   echo "machine-api-operator-ext-remediation"
+  echo "local-path-provisioner-role"
 }
 
 excluded_clusterrolebindings() {
@@ -374,4 +393,21 @@ excluded_clusterrolebindings() {
   echo "machine-api-operator-ext-remediation"
   echo "cloud-controller-manager"
   echo "cluster-samples-operator-imageconfig-reader"
+  echo "local-path-provisioner-bind"
 }
+
+create_expandable_storage_class_k8s(){
+  cat << EOF | kubectl apply -f - > /dev/null
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: $CRC_EXPANDABLE_STORAGE_CLASSNAME
+provisioner: rancher.io/local-path
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+EOF
+
+  printf '%s' "$CRC_EXPANDABLE_STORAGE_CLASSNAME"
+}
+

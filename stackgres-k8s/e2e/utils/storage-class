@@ -35,6 +35,7 @@ get_expandable_storage_class_configured(){
 create_expandable_storage_class_from_default(){
   local DEFAULT_STORAGE_CLASSNAME
   DEFAULT_STORAGE_CLASSNAME="$(get_default_storage_class_name)"
+  command -v generate_storage_class_from_default
   generate_storage_class_from_default \
     "$DEFAULT_STORAGE_CLASSNAME" \
     "$DEFAULT_EXPANDABLE_STORAGE_CLASSNAME" \

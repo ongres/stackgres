@@ -83,6 +83,8 @@ spec:
       - name: "controller"
         image: {{ template "kubectl.image" . }}
         env:
+          - name: HOME
+            value: /tmp
           - name: EXTENSIONS_REPOSITORY_URLS
             value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
           - name: OPERATOR_NAMESPACE
