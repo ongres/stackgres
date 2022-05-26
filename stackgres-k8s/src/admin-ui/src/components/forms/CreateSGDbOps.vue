@@ -173,14 +173,14 @@
                                 </div>    
                                 <div class="row row-50">
                                     <div class="col">
-                                        <label for="spec.vacuum.databases.name">Name <span class="req">*</span></label>
-                                        <input v-model="db.name" placeholder="Type a name..." required autocomplete="off" data-field="spec.vacuum.databases.name">
+                                        <label :for="'spec.vacuum.databases[' + index + '].name'">Name <span class="req">*</span></label>
+                                        <input v-model="db.name" placeholder="Type a name..." required autocomplete="off" :data-field="'spec.vacuum.databases[' + index + '].name'">
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.databases.name')"></span>
                                     </div>
 
                                     <div class="col">
-                                        <label for="spec.vacuum.databases.full">Full</label>
-                                        <select v-model="db.full" data-field="spec.vacuum.databases.full">
+                                        <label :for="'spec.vacuum.databases[' + index + '].full'">Full</label>
+                                        <select v-model="db.full" :data-field="'spec.vacuum.databases[' + index + '].full'">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -189,8 +189,8 @@
                                     </div>
 
                                     <div class="col">
-                                        <label for="spec.vacuum.databases.freeze">Freeze</label>
-                                        <select v-model="db.freeze" data-field="spec.vacuum.databases.freeze">
+                                        <label :for="'spec.vacuum.databases[' + index + '].freeze'">Freeze</label>
+                                        <select v-model="db.freeze" :data-field="'spec.vacuum.databases[' + index + '].freeze'">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -199,8 +199,8 @@
                                     </div>
 
                                     <div class="col">
-                                        <label for="spec.vacuum.databases.analyze">Analyze</label>
-                                        <select v-model="db.analyze" data-field="spec.vacuum.databases.analyze">
+                                        <label :for="'spec.vacuum.databases[' + index + '].analyze'">Analyze</label>
+                                        <select v-model="db.analyze" :data-field="'spec.vacuum.databases[' + index + '].analyze'">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -209,8 +209,8 @@
                                     </div>
 
                                     <div class="col">
-                                        <label for="spec.vacuum.databases.disablePageSkipping">Page Skipping</label>
-                                        <select v-model="db.disablePageSkipping" data-field="spec.vacuum.databases.disablePageSkipping">
+                                        <label :for="'spec.vacuum.databases[' + index + '].disablePageSkipping'">Page Skipping</label>
+                                        <select v-model="db.disablePageSkipping" :data-field="'spec.vacuum.databases[' + index + '].disablePageSkipping'">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="false">Enable</option>
                                             <option :value="true">Disable</option>
@@ -562,14 +562,14 @@
                                 </div>    
                                 <div class="row row-50">
                                     <div class="col">
-                                        <label for="spec.repack.databases.name">Name <span class="req">*</span></label>
+                                        <label :for="'spec.repack.databases[' + index + '].name'">Name <span class="req">*</span></label>
                                         <input v-model="db.name" placeholder="Type a name..." required autocomplete="off" data-field="spec.repack.databases.name">
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.name')"></span>
                                     </div>
 
                                     <div class="col">
-                                        <label for="spec.repack.databases.noOrder">No Order</label>
-                                        <select v-model="db.noOrder" data-field="spec.repack.databases.noOrder">
+                                        <label :for="'spec.repack.databases[' + index + '].noOrder'">No Order</label>
+                                        <select v-model="db.noOrder" :data-field="'spec.repack.databases[' + index + '].noOrder'">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -578,8 +578,8 @@
                                     </div>
 
                                     <div class="col">                                
-                                        <label for="spec.repack.databases.noKillBackend">No Kill Backend</label>
-                                        <select v-model="db.noKillBackend" data-field="spec.repack.databases.noKillBackend">
+                                        <label :for="'spec.repack.databases[' + index + '].noKillBackend'">No Kill Backend</label>
+                                        <select v-model="db.noKillBackend" :data-field="'spec.repack.databases[' + index + '].noKillBackend'">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -588,8 +588,8 @@
                                     </div>
 
                                     <div class="col">
-                                        <label for="spec.repack.databases.noAnalyze">No Analyze</label>
-                                        <select v-model="db.noAnalyze" data-field="spec.repack.databases.noAnalyze">
+                                        <label :for="'spec.repack.databases[' + index + '].noAnalyze'">No Analyze</label>
+                                        <select v-model="db.noAnalyze" :data-field="'spec.repack.databases[' + index + '].noAnalyze'">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -598,8 +598,8 @@
                                     </div>
 
                                     <div class="col">
-                                        <label for="spec.repack.databases.excludeExtension">Exclude Extension</label>
-                                        <select v-model="db.excludeExtension" data-field="spec.repack.databases.excludeExtension">
+                                        <label :for="'spec.repack.databases[' + index + '].excludeExtension'">Exclude Extension</label>
+                                        <select v-model="db.excludeExtension" :data-field="'spec.repack.databases[' + index + '].excludeExtension'">
                                             <option value="inherit" selected>Inherit from global settings</option>
                                             <option :value="true">ON</option>
                                             <option :value="false">OFF</option>
@@ -608,8 +608,8 @@
                                     </div>
 
                                     <div class="col">
-                                        <label for="spec.repack.databases.waitTimeout">Wait Timeout</label>
-                                        <select v-model="db.inheritTimeout" data-field="spec.repack.databases.waitTimeout">
+                                        <label :for="'spec.repack.databases[' + index + '].waitTimeout'">Wait Timeout</label>
+                                        <select v-model="db.inheritTimeout" :data-field="'spec.repack.databases[' + index + '].waitTimeout'">
                                             <option :value="true">Inherit from global settings</option>
                                             <option :value="false">Set custom timeout</option>
                                         </select>
@@ -617,18 +617,18 @@
                                     </div>
 
                                     <div class="col" v-if="!db.inheritTimeout">
-                                        <label for="spec.repack.databases.waitTimeout">Custom Wait Timeout</label>
+                                        <label :for="'spec.repack.databases[' + index + '].waitTimeout'">Custom Wait Timeout</label>
                                         <div class="timeSelect">
-                                            <select v-model="db.waitTimeout.d" class="round dayselect" data-field="spec.repack.databases.waitTimeout.days">
+                                            <select v-model="db.waitTimeout.d" class="round dayselect" :data-field="'spec.repack.databases[' + index + '].waitTimeout.days'">
                                                 <option disabled selected value="inherit">Days</option><option value="inherit">Inherit from global</option><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option>
                                             </select>
-                                            <select v-model="db.waitTimeout.h" class="round hourselect" data-field="spec.repack.databases.waitTimeout.hours">
+                                            <select v-model="db.waitTimeout.h" class="round hourselect" :data-field="'spec.repack.databases[' + index + '].waitTimeout.hours'">
                                                 <option disabled selected value="inherit">Hours</option><option value="inherit">Inherit from global</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option>
                                             </select>
-                                            <select v-model="db.waitTimeout.m" class="round minuteselect" data-field="spec.repack.databases.waitTimeout.minutes">
+                                            <select v-model="db.waitTimeout.m" class="round minuteselect" :data-field="'spec.repack.databases[' + index + '].waitTimeout.minutes'">
                                                 <option disabled selected value="inherit">Minutes</option><option value="inherit">Inherit from global</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
                                             </select>
-                                            <select v-model="db.waitTimeout.s" class="round secondselect" data-field="spec.repack.databases.waitTimeout.seconds">
+                                            <select v-model="db.waitTimeout.s" class="round secondselect" :data-field="'spec.repack.databases[' + index + '].waitTimeout.seconds'">
                                                 <option disabled selected value="inherit">Seconds</option><option value="inherit">Inherit from global</option><option value="0">00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
                                             </select>
                                         </div>

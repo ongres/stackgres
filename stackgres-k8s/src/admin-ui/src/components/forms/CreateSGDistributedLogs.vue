@@ -210,12 +210,12 @@
                                 <div class="annotation" v-if="annotationsAll.length">
                                     <div class="row" v-for="(field, index) in annotationsAll">
                                         <label>Annotation</label>
-                                        <input class="annotation" v-model="field.annotation" autocomplete="off">
+                                        <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.metadata.annotations.allResources[' + index + '].annotation'">
 
                                         <span class="eqSign"></span>
 
                                         <label>Value</label>
-                                        <input class="annotationValue" v-model="field.value" autocomplete="off">
+                                        <input class="annotationValue" v-model="field.value" autocomplete="off" :data-field="'spec.metadata.annotations.allResources[' + index + '].value'">
 
                                         <a class="addRow" @click="spliceArray(annotationsAll, index)">Delete</a>
                                     </div>
@@ -239,12 +239,12 @@
                                 <div class="annotation" v-if="annotationsPods.length">
                                     <div class="row" v-for="(field, index) in annotationsPods">
                                         <label>Annotation</label>
-                                        <input class="annotation" v-model="field.annotation" autocomplete="off">
+                                        <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.metadata.annotations.pods[' + index + '].annotation'">
 
                                         <span class="eqSign"></span>
 
                                         <label>Value</label>
-                                        <input class="annotationValue" v-model="field.value" autocomplete="off">
+                                        <input class="annotationValue" v-model="field.value" autocomplete="off" :data-field="'spec.metadata.annotations.pods[' + index + '].value'">
 
                                         <a class="addRow" @click="spliceArray(annotationsPods, index)">Delete</a>
                                     </div>
@@ -268,12 +268,12 @@
                                 <div class="annotation" v-if="annotationsServices.length">
                                     <div class="row" v-for="(field, index) in annotationsServices">
                                         <label>Annotation</label>
-                                        <input class="annotation" v-model="field.annotation" autocomplete="off">
+                                        <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.metadata.annotations.services[' + index + '].annotation'">
 
                                         <span class="eqSign"></span>
 
                                         <label>Value</label>
-                                        <input class="annotationValue" v-model="field.value" autocomplete="off">
+                                        <input class="annotationValue" v-model="field.value" autocomplete="off" :data-field="'spec.metadata.annotations.services[' + index + '].value'">
 
                                         <a class="addRow" @click="spliceArray(annotationsServices, index)">Delete</a>
                                     </div>
@@ -302,13 +302,13 @@
                             <fieldset v-if="nodeSelector.length" data-field="spec.scheduling.nodeSelector">
                                 <div class="scheduling">
                                     <div class="row" v-for="(field, index) in nodeSelector">
-                                        <label>Key</label>
-                                        <input class="label" v-model="field.label" autocomplete="off">
+                                        <label>Label</label>
+                                        <input class="label" v-model="field.label" autocomplete="off" :data-field="'spec.scheduling.nodeSelector[' + index + '].label'">
 
                                         <span class="eqSign"></span>
 
                                         <label>Value</label>
-                                        <input class="labelValue" v-model="field.value" autocomplete="off">
+                                        <input class="labelValue" v-model="field.value" autocomplete="off" :data-field="'spec.scheduling.nodeSelector[' + index + '].value'">
                                         
                                         <a class="addRow" @click="spliceArray(nodeSelector, index)">Delete</a>
                                     </div>
@@ -338,14 +338,14 @@
 
                                     <div class="row-50">
                                         <div class="col">
-                                            <label for="spec.scheduling.tolerations.key">Key</label>
-                                            <input v-model="field.key" autocomplete="off" data-field="spec.scheduling.tolerations.key">
+                                            <label :for="'spec.scheduling.tolerations[' + index + '].key'">Key</label>
+                                            <input v-model="field.key" autocomplete="off" :data-field="'spec.scheduling.tolerations[' + index + '].key'">
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling.tolerations.key')"></span>
                                         </div>
                                         
                                         <div class="col">
-                                            <label for="spec.scheduling.tolerations.operator">Operator</label>
-                                            <select v-model="field.operator" @change="( (field.operator == 'Exists') ? (delete field.value) : (field.value = '') )" data-field="spec.scheduling.tolerations.operator">
+                                            <label :for="'spec.scheduling.tolerations[' + index + '].operator'">Operator</label>
+                                            <select v-model="field.operator" @change="( (field.operator == 'Exists') ? (delete field.value) : (field.value = '') )" :data-field="'spec.scheduling.tolerations[' + index + '].operator'">
                                                 <option>Equal</option>
                                                 <option>Exists</option>
                                             </select>
@@ -353,14 +353,14 @@
                                         </div>
 
                                         <div class="col" v-if="field.operator == 'Equal'">
-                                            <label for="spec.scheduling.tolerations.value">Value</label>
-                                            <input v-model="field.value" :disabled="(field.operator == 'Exists')" autocomplete="off" data-field="spec.scheduling.tolerations.value">
+                                            <label :for="'spec.scheduling.tolerations[' + index + '].value'">Value</label>
+                                            <input v-model="field.value" :disabled="(field.operator == 'Exists')" autocomplete="off" :data-field="'spec.scheduling.tolerations[' + index + '].value'">
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling.tolerations.value')"></span>
                                         </div>
 
                                         <div class="col">
-                                            <label for="spec.scheduling.tolerations.effect">Effect</label>
-                                            <select v-model="field.effect" data-field="spec.scheduling.tolerations.effect">>
+                                            <label :for="'spec.scheduling.tolerations[' + index + '].effect'">Effect</label>
+                                            <select v-model="field.effect" :data-field="'spec.scheduling.tolerations[' + index + '].effect'">
                                                 <option :value="nullVal">MatchAll</option>
                                                 <option>NoSchedule</option>
                                                 <option>PreferNoSchedule</option>
@@ -370,8 +370,8 @@
                                         </div>
 
                                         <div class="col" v-if="field.effect == 'NoExecute'">
-                                            <label for="spec.scheduling.tolerations.tolerationSeconds">Toleration Seconds</label>
-                                            <input type="number" min="0" v-model="field.tolerationSeconds">
+                                            <label :for="'spec.scheduling.tolerations[' + index + '].seconds'">Toleration Seconds</label>
+                                            <input type="number" min="0" v-model="field.tolerationSeconds" :data-field="'spec.scheduling.tolerations[' + index + '].seconds'">
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling.tolerations.tolerationSeconds')"></span>
                                         </div>
                                     </div>
