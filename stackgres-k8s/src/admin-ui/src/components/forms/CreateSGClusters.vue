@@ -682,7 +682,7 @@
                             </h3>
                         </div>
 
-                        <fieldset data-field="spec.pods.metadata.labels">
+                        <fieldset data-field="spec.metadata.labels.clusterPods">
                             <div class="header">
                                 <h3 for="spec.metadata.labels.clusterPods">
                                     Cluster Pods

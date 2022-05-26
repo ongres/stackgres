@@ -419,17 +419,17 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="hasProp(cluster, 'data.spec.pods.metadata') || hasProp(cluster, 'data.spec.metadata.annotations')">
+                    <ul class="section" v-if="hasProp(cluster, 'data.spec.metadata.labels.clusterPods') || hasProp(cluster, 'data.spec.metadata.annotations')">
                         <li>
                             <strong class="sectionTitle">Metadata</strong>
                             <ul>
                                 <li v-if="hasProp(cluster, 'data.spec.pods.metadata')">
                                     <strong class="sectionTitle">Labels</strong>
                                     <ul>
-                                        <li v-if="hasProp(cluster, 'data.spec.pods.metadata.labels')">
+                                        <li v-if="hasProp(cluster, 'data.spec.metadata.labels.clusterPods')">
                                             <strong class="sectionTitle">Cluster Pods</strong>
                                             <ul>
-                                                <li v-for="(value, label) in cluster.data.spec.pods.metadata.labels">
+                                                <li v-for="(value, label) in cluster.data.spec.metadata.labels.clusterPods">
                                                     <strong class="label">{{ label }}:</strong>
                                                     <span class="value">{{ value }}</span>
                                                 </li>

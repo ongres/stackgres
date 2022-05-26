@@ -378,30 +378,6 @@
                 </table>
             </div>
 
-            <div class="podsMetadata" v-if="hasProp(cluster, 'data.spec.pods.metadata')">
-                <h2>Pods Metadata <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.metadata')"></span></h2>
-                <table v-if="hasProp(cluster, 'data.spec.pods.metadata.labels')" class="clusterConfig">
-                    <tbody>
-                        <tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.metadata.labels)">
-                            <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
-                                Pods Metadata
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.metadata')"></span>
-                            </td>
-                            <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.metadata.labels).length">
-                                Labels
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.metadata.labels')"></span>
-                            </td>
-                            <td class="label">
-                                {{ item.annotation }}
-                            </td>
-                            <td>
-                                {{ item.value }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
             <div class="podsScheduling" v-if="hasProp(cluster, 'data.spec.pods.scheduling')">
                 <h2>Pods Scheduling <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling')"></span></h2>
                 <table class="clusterConfig">
