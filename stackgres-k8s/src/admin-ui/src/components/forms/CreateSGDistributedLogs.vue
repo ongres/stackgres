@@ -339,7 +339,7 @@
                                     <div class="row-50">
                                         <div class="col">
                                             <label :for="'spec.scheduling.tolerations[' + index + '].key'">Key</label>
-                                            <input v-model="field.key" autocomplete="off" data-field="spec.scheduling.tolerations.key">
+                                            <input v-model="field.key" autocomplete="off" :data-field="'spec.scheduling.tolerations[' + index + '].key'">
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling.tolerations.key')"></span>
                                         </div>
                                         

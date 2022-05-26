@@ -82,36 +82,36 @@ describe('Create SGDistributedLog', () => {
         cy.get('form#createLogsServer li[data-step="metadata"]')
             .click()
         
-        cy.get('fieldset[data-field="spec.metadata.annotations.allResources"] input.annotation')
+        cy.get('input[data-field="spec.metadata.annotations.allResources[0].annotation"]')
             .type('annotation')
-        cy.get('fieldset[data-field="spec.metadata.annotations.allResources"] input.annotationValue')
+        cy.get('input[data-field="spec.metadata.annotations.allResources[0].value"]')
             .type('value')
 
-        cy.get('fieldset[data-field="spec.metadata.annotations.pods"] input.annotation')
+        cy.get('input[data-field="spec.metadata.annotations.pods[0].annotation"]')
             .type('annotation')
-        cy.get('fieldset[data-field="spec.metadata.annotations.pods"] input.annotationValue')
+        cy.get('input[data-field="spec.metadata.annotations.pods[0].value"]')
             .type('value')
 
-        cy.get('fieldset[data-field="spec.metadata.annotations.services"] input.annotation')
+        cy.get('input[data-field="spec.metadata.annotations.services[0].annotation"]')
             .type('annotation')        
-        cy.get('fieldset[data-field="spec.metadata.annotations.services"] input.annotationValue')
+        cy.get('input[data-field="spec.metadata.annotations.services[0].value"]')
             .type('value')
         
         // Tests Node Selectors
         cy.get('form#createLogsServer li[data-step="scheduling"]')
             .click()
 
-        cy.get('fieldset[data-field="spec.scheduling.nodeSelector"] input.label')
+        cy.get('input[data-field="spec.scheduling.nodeSelector[0].label"]')
             .type('key')
-        cy.get('fieldset[data-field="spec.scheduling.nodeSelector"] input.labelValue')
+        cy.get('input[data-field="spec.scheduling.nodeSelector[0].value"]')
             .type('value')
 
         // Tests Node Tolerations
-        cy.get('input[data-field="spec.scheduling.tolerations.key"]')
+        cy.get('input[data-field="spec.scheduling.tolerations[0].key"]')
             .type('key')
-        cy.get('input[data-field="spec.scheduling.tolerations.value"]')
+        cy.get('input[data-field="spec.scheduling.tolerations[0].value"]')
             .type('value')
-        cy.get('select[data-field="spec.scheduling.tolerations.effect"]')
+        cy.get('select[data-field="spec.scheduling.tolerations[0].effect"]')
             .select('NoSchedule')
         
         // Test Non Production Options

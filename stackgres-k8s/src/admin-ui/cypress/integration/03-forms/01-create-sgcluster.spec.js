@@ -140,28 +140,28 @@ describe('Create SGCluster', () => {
             .clear()
             .type('2')
 
-        cy.get('[data-group="replication-group-0"] input[data-field="spec.replication.groups.name"]')
+        cy.get('[data-group="replication-group-0"] input[data-field="spec.replication.groups[0].name"]')
             .clear()
             .type('group-0')
         
-        cy.get('[data-group="replication-group-0"] select[data-field="spec.replication.groups.role"]')
+        cy.get('[data-group="replication-group-0"] select[data-field="spec.replication.groups[0].role"]')
             .select('readonly')
         
-        cy.get('[data-group="replication-group-0"] input[data-field="spec.replication.groups.instances"]')
+        cy.get('[data-group="replication-group-0"] input[data-field="spec.replication.groups[0].instances"]')
             .clear()
             .type('1')
         
         cy.get('[data-add="spec.replication.groups"]')
             .click()
 
-        cy.get('[data-group="replication-group-1"] input[data-field="spec.replication.groups.name"]')
+        cy.get('[data-group="replication-group-1"] input[data-field="spec.replication.groups[1].name"]')
             .clear()
             .type('group-1')
         
-        cy.get('[data-group="replication-group-1"] select[data-field="spec.replication.groups.role"]')
+        cy.get('[data-group="replication-group-1"] select[data-field="spec.replication.groups[1].role"]')
             .select('none')
         
-        cy.get('[data-group="replication-group-1"] input[data-field="spec.replication.groups.instances"]')
+        cy.get('[data-group="replication-group-1"] input[data-field="spec.replication.groups[1].instances"]')
             .clear()
             .type('1')
 
@@ -179,51 +179,51 @@ describe('Create SGCluster', () => {
         cy.get('form#createCluster li[data-step="metadata"]')
             .click()
 
-        cy.get('fieldset[data-field="spec.pods.metadata.labels"] input.label')
+        cy.get('input[data-field="spec.metadata.labels.clusterPods[0].label"]')
             .type('label')
-        cy.get('fieldset[data-field="spec.pods.metadata.labels"] input.labelValue')
+        cy.get('input[data-field="spec.metadata.labels.clusterPods[0].value"]')
             .type('value')
         
-        cy.get('fieldset[data-field="spec.metadata.annotations.allResources"] input.annotation')
+        cy.get('input[data-field="spec.metadata.annotations.allResources[0].annotation"]')
             .type('annotation')
-        cy.get('fieldset[data-field="spec.metadata.annotations.allResources"] input.annotationValue')
+        cy.get('input[data-field="spec.metadata.annotations.allResources[0].value"]')
             .type('value')
 
-        cy.get('fieldset[data-field="spec.metadata.annotations.clusterPods"] input.annotation')
+        cy.get('input[data-field="spec.metadata.annotations.clusterPods[0].annotation"]')
             .type('annotation')
-        cy.get('fieldset[data-field="spec.metadata.annotations.clusterPods"] input.annotationValue')
+        cy.get('input[data-field="spec.metadata.annotations.clusterPods[0].value"]')
             .type('value')
 
-        cy.get('fieldset[data-field="spec.metadata.annotations.services"] input.annotation')
+        cy.get('input[data-field="spec.metadata.annotations.services[0].annotation"]')
             .type('annotation')        
-        cy.get('fieldset[data-field="spec.metadata.annotations.services"] input.annotationValue')
+        cy.get('input[data-field="spec.metadata.annotations.services[0].value"]')
             .type('value')
         
-        cy.get('fieldset[data-field="spec.metadata.annotations.primaryService"] input.annotation')
+        cy.get('input[data-field="spec.metadata.annotations.primaryService[0].annotation"]')
             .type('annotation')        
-        cy.get('fieldset[data-field="spec.metadata.annotations.primaryService"] input.annotationValue')
+        cy.get('input[data-field="spec.metadata.annotations.primaryService[0].value"]')
             .type('value')
         
-        cy.get('fieldset[data-field="spec.metadata.annotations.replicasService"] input.annotation')
+        cy.get('input[data-field="spec.metadata.annotations.replicasService[0].annotation"]')
             .type('annotation')        
-        cy.get('fieldset[data-field="spec.metadata.annotations.replicasService"] input.annotationValue')
+        cy.get('input[data-field="spec.metadata.annotations.replicasService[0].value"]')
             .type('value')
 
         // Tests Node Selectors
         cy.get('form#createCluster li[data-step="scheduling"]')
             .click()
 
-        cy.get('fieldset[data-field="spec.pods.scheduling.nodeSelector"] input.label')
+        cy.get('input[data-field="spec.pods.scheduling.nodeSelector[0].label"]')
             .type('key')
-        cy.get('fieldset[data-field="spec.pods.scheduling.nodeSelector"] input.labelValue')
+        cy.get('input[data-field="spec.pods.scheduling.nodeSelector[0].value"]')
             .type('value')
 
         // Tests Node Tolerations
-        cy.get('input[data-field="spec.pods.scheduling.tolerations.key"]')
+        cy.get('input[data-field="spec.pods.scheduling.tolerations[0].key"]')
             .type('key')
-        cy.get('input[data-field="spec.pods.scheduling.tolerations.value"]')
+        cy.get('input[data-field="spec.pods.scheduling.tolerations[0].value"]')
             .type('value')
-        cy.get('select[data-field="spec.pods.scheduling.tolerations.effect"]')
+        cy.get('select[data-field="spec.pods.scheduling.tolerations[0].effect"]')
             .select('NoSchedule')
         
         // Tests Node Affinity (Required)
@@ -277,5 +277,29 @@ describe('Create SGCluster', () => {
 
         // Test user redirection
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgclusters')
+    }); 
+
+    it('Repeater fields should match error responses coming from the API', () => {
+        // Enable advanced options
+        cy.get('form#createCluster input#advancedMode')
+            .click()
+        
+        // Test Cluster Name
+        cy.get('input[data-field="metadata.name"]')
+            .type('repeater-' + resourceName)
+        
+        // Tests Node Tolerations repeaters
+        cy.get('form#createCluster li[data-step="scheduling"]')
+            .click()
+            
+        cy.get('input[data-field="spec.pods.scheduling.tolerations[0].value"]')
+            .type('value')
+
+        // Test Submit form
+        cy.get('form#createCluster button[type="submit"]')
+            .click()
+        
+        cy.get('input[data-field="spec.pods.scheduling.tolerations[0].key"]')
+            .should('have.class', 'notValid')
     }); 
   })
