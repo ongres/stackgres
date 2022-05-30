@@ -85,7 +85,7 @@
                 showSummary: false,
                 backupName: 'bk' + vm.getDateString(),
                 backupNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
-                backupCluster: (vm.$route.params.hasOwnProperty('cluster')) ? vm.$route.params.cluster : '',
+                backupCluster: (vm.$route.params.hasOwnProperty('name')) ? vm.$route.params.name : '',
                 managedLifecycle: false
             }
         },

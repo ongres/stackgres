@@ -5106,7 +5106,6 @@ a.disabled {
 
 .card a {
     color: var(--textColor);
-    display: block;
 }
 
 .card th {

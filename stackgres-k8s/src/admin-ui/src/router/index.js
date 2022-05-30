@@ -142,7 +142,7 @@ const routes = [
     },
   },
   { 
-    path: '/:namespace/sgcluster/:cluster/sgbackups/new', 
+    path: '/:namespace/sgcluster/:name/sgbackups/new', 
     component: CreateBackup,
     name: 'CreateClusterBackup',
     meta: {
@@ -160,7 +160,7 @@ const routes = [
     },
   },
   { 
-    path: '/:namespace/sgcluster/:cluster/sgbackup/:backupname/edit', 
+    path: '/:namespace/sgcluster/:name/sgbackup/:backupname/edit', 
     component: CreateBackup,
     name: 'EditClusterBackup',
     meta: {
@@ -560,7 +560,7 @@ function iCan( action = 'any', kind, namespace = '' ) {
 function actionForbidden() {
   const content = `
                 <h2>Action Forbidden</h2>
-                <p>You don't have enough privileges to access the requested resource. For more information on authorization management on StackGres, click the button below.</p>
+                <p>You don't have enough permissions to access the requested resource. For more information on authorization management on StackGres, click the button below.</p>
                 <br/><br/><a class="btn" href="https://stackgres.io/doc/latest/api/rbac/" target="_blank" title="https://stackgres.io/doc/latest/api/rbac/">More Info</a>
               `;
   const tooltip = `<div class="contentTooltip show">
@@ -615,42 +615,49 @@ router.beforeResolve((to, from, next) => {
             
             store.commit('setCurrentNamespace', namespaceName);
 
-            if ( 
-                ( ( to.params.hasOwnProperty('name') || to.params.hasOwnProperty('backupname') ) && to.name.startsWith('Edit') && !iCan('patch', kind.toLowerCase(), to.params.namespace) ) ||
-                ( to.name.startsWith('Create') && !iCan('create', kind.toLowerCase(), to.params.namespace) ) 
-            ) {
+            if(to.params.hasOwnProperty('name') || to.params.hasOwnProperty('backupname')) {
+
+              if ( 
+                  ( ( to.params.hasOwnProperty('name') || to.params.hasOwnProperty('backupname') ) && to.name.startsWith('Edit') && !iCan('patch', kind.toLowerCase(), to.params.namespace) ) ||
+                  ( to.name.startsWith('Create') && !iCan('create', kind.toLowerCase(), to.params.namespace) )                  
+              ) {
+                actionForbidden();
+                router.push('/' + to.params.namespace);
+              } else {
+                let resourceName = ( to.params.hasOwnProperty('name') ? to.params.name : ( to.params.hasOwnProperty('backupname') ? to.params.backupname : '' ) );
+              
+                // Then check if requested resource exists
+                if(resourceName.length) {
+
+                  // If requesting for backups inside a single cluster
+                  if(to.name.includes('ClusterBackup')) {
+
+                    if(to.params.hasOwnProperty('backupname')) {
+                      sgApi
+                      .getResourceDetails('sgbackups', namespaceName, to.params.backupname)
+                      .catch(function(error) {
+                        checkAuthError(error);
+                        notFound();
+                        return false;
+                      });
+                    }
+
+                    kind = 'sgclusters';
+
+                  }
+          
+                  sgApi
+                  .getResourceDetails(kind.toLowerCase(), namespaceName, resourceName)
+                  .catch(function(error) {
+                    checkAuthError(error)
+                    notFound()
+                  });
+                }
+              }
+              
+            } else if ( to.meta.hasOwnProperty('componentName') && !to.params.hasOwnProperty('name') && !to.params.hasOwnProperty('backupname') && !iCan('list', kind.toLowerCase(), to.params.namespace) ) {
               actionForbidden();
               router.push('/' + to.params.namespace);
-            } else {
-              let resourceName = ( to.params.hasOwnProperty('name') ? to.params.name : ( to.params.hasOwnProperty('backupname') ? to.params.backupname : '' ) );
-            
-              // Then check if requested resource exists
-              if(resourceName.length) {
-
-                // If requesting for backups inside a single cluster
-                if(to.name.includes('ClusterBackup')) {
-
-                  if(to.params.hasOwnProperty('backupname')) {
-                    sgApi
-                    .getResourceDetails('sgbackups', namespaceName, to.params.backupname)
-                    .catch(function(error) {
-                      checkAuthError(error);
-                      notFound();
-                      return false;
-                    });
-                  }
-
-                  kind = 'sgclusters';
-
-                }
-        
-                sgApi
-                .getResourceDetails(kind.toLowerCase(), namespaceName, resourceName)
-                .catch(function(error) {
-                  checkAuthError(error)
-                  notFound()
-                });
-              }
             }
               
           } else {
