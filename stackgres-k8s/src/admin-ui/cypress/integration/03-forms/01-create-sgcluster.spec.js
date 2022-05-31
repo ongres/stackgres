@@ -301,5 +301,50 @@ describe('Create SGCluster', () => {
         
         cy.get('input[data-field="spec.pods.scheduling.tolerations[0].key"]')
             .should('have.class', 'notValid')
+    });
+
+    it('Enable Monitoring to enable Metrics Exporter and Prometheus Autobind ', () => {
+        // Enable advanced options
+        cy.get('input#advancedMode')
+            .click()
+
+        //If Monitoring is ON, Metrics Exporter and Prometheus Autobind should be ON
+        cy.get('input#enableMonitoring')
+            .click()
+
+        cy.get('form#createCluster li[data-step="sidecars"]')
+            .click()
+
+        cy.get('input#metricsExporter')
+            .should('be.checked')
+
+        cy.get('input#prometheusAutobind')
+            .should('be.checked')
+
+        //If Metrics Exporter is OFF, Monitoring should be OFF
+        cy.get('input#metricsExporter')
+            .click()
+
+        cy.get('form#createCluster li[data-step="cluster"]')
+            .click()
+
+        cy.get('input#enableMonitoring')
+            .should('not.be.checked')
+
+        //If Monitoring is switched OFF from ON state, Metrics Exporter and Prometheus Autobind should return to their default states (ME: ON, PA: OFF)
+        cy.get('input#enableMonitoring')
+            .click()
+            .click()
+
+        cy.get('form#createCluster li[data-step="sidecars"]')
+            .click()
+
+        cy.get('input#metricsExporter')
+            .should('be.checked')
+
+        cy.get('input#prometheusAutobind')
+            .should('not.be.checked')
+
     }); 
+
   })
