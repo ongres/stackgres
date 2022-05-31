@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.backup;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -12,6 +13,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -88,36 +90,32 @@ public class BackupRequiredResourcesGenerator
         .clusterBackupNamespaces(clusterBackupNamespaces);
 
     if (isBackupInTheSameSgClusterNamespace(config, clusterNamespace)) {
+      final var specConfiguration = Optional.of(cluster.getSpec())
+          .map(StackGresClusterSpec::getConfiguration);
 
-      final Optional<String> sgBackupConfigurationName = Optional.of(cluster.getSpec())
-          .map(StackGresClusterSpec::getConfiguration)
+      final Optional<String> sgBackupConfigurationName = specConfiguration
           .map(StackGresClusterConfiguration::getBackupConfig);
 
-      final Optional<String> sgObjectConfigurationName = Optional.of(cluster.getSpec())
-          .map(StackGresClusterSpec::getConfiguration)
+      final Optional<String> sgObjectStorageName = specConfiguration
           .map(StackGresClusterConfiguration::getBackups)
-          .filter(bs -> !bs.isEmpty())
-          .map(bs -> bs.get(0))
+          .map(Collection::stream)
+          .flatMap(Stream::findFirst)
           .map(StackGresClusterBackupConfiguration::getObjectStorage);
 
-      if (sgObjectConfigurationName.isEmpty() && sgBackupConfigurationName.isEmpty()) {
+      if (sgObjectStorageName.isEmpty() && sgBackupConfigurationName.isEmpty()) {
         throw new IllegalArgumentException(
             "SGBackup " + backupNamespace + "/" + backupName
                 + " target SGCluster " + spec.getSgCluster()
-                + " without a SGObjectStorage or SGBackupConfig"
-        );
+                + " without a SGObjectStorage or SGBackupConfig");
       }
 
-      sgObjectConfigurationName.ifPresent(osName -> contextBuilder.objectStorage(
+      sgObjectStorageName.ifPresent(osName -> contextBuilder.objectStorage(
           objectStorageFinder.findByNameAndNamespace(osName, backupNamespace)
               .orElseThrow(
                   () -> new IllegalArgumentException(
                       "SGBackup " + backupNamespace + "/" + backupName
                           + " target SGCluster " + spec.getSgCluster()
-                          + " with a non existent SGObjectStorage " + osName
-                  )
-              )
-      ));
+                          + " with a non existent SGObjectStorage " + osName))));
 
       sgBackupConfigurationName.ifPresent(bcName -> contextBuilder.backupConfig(
           backupConfigFinder.findByNameAndNamespace(bcName, backupNamespace)
@@ -125,20 +123,15 @@ public class BackupRequiredResourcesGenerator
                   () -> new IllegalArgumentException(
                       "SGBackup " + backupNamespace + "/" + backupName
                           + " target SGCluster " + spec.getSgCluster()
-                          + " with a non existent SGBackupConfig " + bcName
-                  )
-              )));
+                          + " with a non existent SGBackupConfig " + bcName))));
     }
 
     return decorator.decorateResources(contextBuilder.build());
   }
 
   private boolean isBackupInTheSameSgClusterNamespace(
-      StackGresBackup backup,
-      String clusterNamespace) {
-    return Objects.equals(
-        backup.getMetadata().getNamespace(),
-        clusterNamespace);
+      StackGresBackup backup, String clusterNamespace) {
+    return Objects.equals(backup.getMetadata().getNamespace(), clusterNamespace);
   }
 
   private Set<String> getClusterBackupNamespaces(final String backupNamespace) {
@@ -150,7 +143,7 @@ public class BackupRequiredResourcesGenerator
             .map(ObjectMeta::getNamespace))
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .filter(((Predicate<String>) backupNamespace::equals).negate())
+        .filter(Predicate.not(backupNamespace::equals))
         .collect(Collectors.groupingBy(Function.identity()))
         .keySet();
   }

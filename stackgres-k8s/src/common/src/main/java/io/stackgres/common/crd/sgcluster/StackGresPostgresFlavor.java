@@ -5,6 +5,8 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.jetbrains.annotations.NotNull;
 
 public enum StackGresPostgresFlavor {
@@ -19,7 +21,18 @@ public enum StackGresPostgresFlavor {
   }
 
   @Override
+  @JsonValue
   public @NotNull String toString() {
     return type;
   }
+
+  @JsonCreator
+  public static @NotNull StackGresPostgresFlavor fromString(@NotNull String name) {
+    return switch (name) {
+      case "vanilla" -> VANILLA;
+      case "babelfish" -> BABELFISH;
+      default -> throw new IllegalArgumentException("Unknown flavor " + name);
+    };
+  }
+
 }

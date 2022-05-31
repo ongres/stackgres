@@ -34,9 +34,11 @@ public class StackGresClusterConfiguration {
   private String connectionPoolingConfig;
 
   @JsonProperty("sgBackupConfig")
+  @Deprecated(since = "1.3.0", forRemoval = true)
   private String backupConfig;
 
   @JsonProperty("backupPath")
+  @Deprecated(since = "1.3.0", forRemoval = true)
   private String backupPath;
 
   @JsonProperty("backups")

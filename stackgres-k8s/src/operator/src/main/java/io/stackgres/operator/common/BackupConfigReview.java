@@ -11,6 +11,4 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 
 @RegisterForReflection
 public class BackupConfigReview extends AdmissionReview<StackGresBackupConfig> {
-
-  private static final long serialVersionUID = 1L;
 }

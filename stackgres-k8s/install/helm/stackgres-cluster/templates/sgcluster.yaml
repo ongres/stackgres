@@ -87,6 +87,9 @@ spec:
         maxDiskBandwitdh: {{ .Values.cluster.configurations.backups.performance.maxDiskBandwitdh }}
         {{- end }}
       sgObjectStorage: '{{ .Values.cluster.configurations.backups.sgObjectStorage }}'
+      {{- if .Values.cluster.configurations.backups.path }}
+      path: '{{ .Values.cluster.configurations.backups.path }}'
+      {{- end }}
     {{- end }}
   sgInstanceProfile: '{{ .Values.cluster.sgInstanceProfile }}'
   {{- if .Values.cluster.initialData }}

@@ -30,7 +30,7 @@
     },
     "object": {
       "kind": "SGObjectStorage",
-      "apiVersion": "stackgres.io/v1",
+      "apiVersion": "stackgres.io/v1beta1",
       "metadata": {
         "creationTimestamp": "2019-11-08T14:46:41Z",
         "generation": 1,

@@ -7,11 +7,11 @@ package io.stackgres.operatorframework.admissionwebhook.mutating;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.fge.jackson.JacksonUtils;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.AddOperation;
@@ -19,6 +19,7 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.github.fge.jsonpatch.MoveOperation;
 import com.github.fge.jsonpatch.RemoveOperation;
 import com.github.fge.jsonpatch.ReplaceOperation;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple3;
@@ -34,14 +35,14 @@ public interface JsonPatchMutatorUtil {
     return value == null || value.isEmpty();
   }
 
-  default String getJsonMappingField(String field, Class<?> clazz) throws NoSuchFieldException {
-    return Optional.ofNullable(clazz.getDeclaredField(field).getAnnotation(JsonProperty.class))
-        .map(JsonProperty::value)
-        .orElse(field);
+  default @NotNull String getJsonMappingField(@NotNull String field, @NotNull Class<?> clazz)
+      throws NoSuchFieldException {
+    JsonProperty annotation = clazz.getDeclaredField(field).getAnnotation(JsonProperty.class);
+    return annotation != null ? annotation.value() : field;
   }
 
   default JsonPatchOperation buildAddOperation(JsonPointer path, String value) {
-    return buildAddOperation(path, FACTORY.textNode(value));
+    return buildAddOperation(path, TextNode.valueOf(value));
   }
 
   default JsonPatchOperation buildAddOperation(JsonPointer path, JsonNode value) {
@@ -49,7 +50,7 @@ public interface JsonPatchMutatorUtil {
   }
 
   default JsonPatchOperation buildReplaceOperation(JsonPointer path, String value) {
-    return buildReplaceOperation(path, FACTORY.textNode(value));
+    return buildReplaceOperation(path, TextNode.valueOf(value));
   }
 
   default JsonPatchOperation buildReplaceOperation(JsonPointer path, JsonNode value) {

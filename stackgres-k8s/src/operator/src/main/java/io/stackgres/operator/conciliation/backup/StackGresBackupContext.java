@@ -5,9 +5,12 @@
 
 package io.stackgres.operator.conciliation.backup;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterContext;
@@ -40,31 +43,30 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
 
   default String getConfigCrdName() {
     if (getObjectStorage().isPresent()) {
-      return CustomResource.getCRDName(StackGresObjectStorage.class);
+      return HasMetadata.getFullResourceName(StackGresObjectStorage.class);
     } else {
-      return CustomResource.getCRDName(StackGresBackupConfig.class);
+      return HasMetadata.getFullResourceName(StackGresBackupConfig.class);
     }
   }
 
   default String getConfigCustomResourceName() {
     return getObjectStorage()
-        .map(CustomResource::getMetadata)
+        .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getName)
         .or(() -> getBackupConfig()
-            .map(CustomResource::getMetadata)
+            .map(HasMetadata::getMetadata)
             .map(ObjectMeta::getName)
         ).orElseThrow();
   }
 
   default BackupConfiguration getBackupConfiguration() {
-
     if (getObjectStorage().isPresent()) {
       return Optional.of(getCluster())
           .map(StackGresCluster::getSpec)
           .map(StackGresClusterSpec::getConfiguration)
           .map(StackGresClusterConfiguration::getBackups)
-          .filter(bs -> !bs.isEmpty())
-          .map(bs -> bs.get(0))
+          .map(Collection::stream)
+          .flatMap(Stream::findFirst)
           .map(bc -> new BackupConfiguration(
               bc.getRetention(),
               bc.getCronSchedule(),
@@ -78,8 +80,7 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
                   .orElse(null)
           )).orElseThrow();
     } else {
-      String path = getSource()
-          .getStatus().getBackupPath();
+      String path = getSource().getStatus().getBackupPath();
       return getBackupConfig()
           .map(StackGresBackupConfig::getSpec)
           .map(StackGresBackupConfigSpec::getBaseBackups)

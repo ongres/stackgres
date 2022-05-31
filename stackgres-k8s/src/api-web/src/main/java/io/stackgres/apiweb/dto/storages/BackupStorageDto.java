@@ -88,14 +88,8 @@ public class BackupStorageDto {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    BackupStorageDto that = (BackupStorageDto) o;
-    return Objects.equals(type, that.type) && Objects.equals(s3, that.s3)
+    return o instanceof BackupStorageDto that
+        && Objects.equals(type, that.type) && Objects.equals(s3, that.s3)
         && Objects.equals(s3Compatible, that.s3Compatible)
         && Objects.equals(gcs, that.gcs)
         && Objects.equals(azureBlob, that.azureBlob);

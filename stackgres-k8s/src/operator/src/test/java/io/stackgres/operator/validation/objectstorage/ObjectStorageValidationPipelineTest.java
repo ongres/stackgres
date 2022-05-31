@@ -57,6 +57,8 @@ class ObjectStorageValidationPipelineTest {
         .getSecretAccessKey();
     secretAccessKey.setName(accessKeyId.getName());
 
+    s3Storage.setStorageClass(null);
+
     writer.create(new SecretBuilder()
         .withNewMetadata()
         .withNamespace(objectStorage.getMetadata().getNamespace())
@@ -65,9 +67,7 @@ class ObjectStorageValidationPipelineTest {
         .withData(
             Map.of(
                 accessKeyId.getKey(), StringUtils.getRandomString(),
-                secretAccessKey.getKey(), StringUtils.getRandomString()
-            )
-        )
+                secretAccessKey.getKey(), StringUtils.getRandomString()))
         .build());
 
     pipeline.validate(review);
@@ -80,8 +80,7 @@ class ObjectStorageValidationPipelineTest {
         "objectstorage_allow_request/create.json", ObjectStorageReview.class);
     var objectStorage = review.getRequest().getObject();
     objectStorage.setSpec(
-        RandomObjectUtils.generateRandomObject(BackupStorage.class)
-    );
+        RandomObjectUtils.generateRandomObject(BackupStorage.class));
 
     ValidationUtils.assertErrorType(
         ErrorType.CONSTRAINT_VIOLATION, () -> pipeline.validate(review));

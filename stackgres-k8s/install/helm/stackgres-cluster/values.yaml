@@ -94,7 +94,7 @@ cluster:
   configurations:
     sgPostgresConfig: postgresconf
     sgPoolingConfig: pgbouncerconf
-    backups: 
+    backups:
       retention: 5
       cronSchedule: "*/2 * * * *"
       compression: lz4
@@ -103,6 +103,7 @@ cluster:
         #maxNetworkBandwitdh:
         #maxDiskBandwitdh:
     # sgObjectStorage: objectstorage
+    # path: "demo/mypath"
   distributedLogs:
     sgDistributedLogs: distributedlogs
     retention: 7 days

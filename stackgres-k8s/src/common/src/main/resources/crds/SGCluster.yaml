@@ -661,6 +661,12 @@ spec:
                             type: string
                             description: |
                               Name of the [SGObjectStorage](https://stackgres.io/doc/latest/reference/crd/sgobjectstorage) to use for the cluster. It defines the location in which the the backups will be stored.
+                          path:
+                            type: string
+                            description: |
+                              The path were the backup is stored. If not set this field is filled up by the operator.
+
+                              When provided will indicate were the backups and WAL files will be stored.
                         required: ["sgObjectStorage"]
                 initialData:
                   type: object

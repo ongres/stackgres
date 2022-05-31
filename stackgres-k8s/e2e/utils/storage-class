@@ -53,10 +53,12 @@ generate_expandable_storage_class_from(){
 
 get_default_storage_class_name() {
   kubectl get storageclasses.storage.k8s.io -o json \
-    | jq -r '.items | map(select(.metadata.annotations."storageclass.kubernetes.io/is-default-class" == "true")) | map(.metadata.name) | first'
+    | jq -r '.items | map(select(.metadata.annotations."storageclass.kubernetes.io/is-default-class" == "true"))
+      | map(.metadata.name) | first | select (.!=null)'
 }
 
 get_first_expandable_storage_class_name() {
   kubectl get storageclasses.storage.k8s.io -o json \
-    | jq -r '.items | map(select(.allowVolumeExpansion == true)) | map(.metadata.name) | first'
+    | jq -r '.items | map(select(.allowVolumeExpansion == true))
+      | map(.metadata.name) | first | select (.!=null)'
 }

@@ -45,21 +45,16 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
     this.errorTypeDocumentationUri = ErrorType.getErrorTypeUri(
         ErrorType.CONSTRAINT_VIOLATION);
-
   }
 
   @Test
   void validResource_shouldNotThrowAnyValidationError() throws ValidationFailed {
-
     T validReview = getValidReview();
-
     validator.validate(validReview);
-
   }
 
   @Test
   void ifReviewIsNull_shouldPass() throws ValidationFailed {
-
     T validReview = getValidReview();
     validReview.getRequest().setObject(null);
 
@@ -68,7 +63,6 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
   @Test
   void validationErrors_shouldIncludeTheErrorType() {
-
     T invalidReview = getInvalidReview();
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
@@ -76,13 +70,9 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
     });
 
     assertNotNull(ex.getResult(), "constraint violations should return a result");
-
     Status status = ex.getResult();
-
     assertNotNull(status.getReason(), "constraint violations should have a reason");
-
     assertEquals(errorTypeDocumentationUri, status.getReason());
-
   }
 
   protected abstract ConstraintValidator<T> buildValidator();
@@ -92,29 +82,21 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
   protected abstract T getInvalidReview();
 
   protected void checkNotNullErrorCause(Class<?> outerClass, String fieldPath, T review) {
-
     String lastField = getLastField(fieldPath);
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> validator.validate(review));
 
     String message = ValidationUtils.getNotNullMessage(outerClass, lastField);
-
     ValidationUtils.checkErrorCause(ex.getResult(), fieldPath, message,
         NotNull.class.getName());
-
   }
 
   protected void checkNotEmptyErrorCause(Class<?> outerClass, String fieldPath, T review) {
-
     String lastField = getLastField(fieldPath);
-
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> validator.validate(review));
-
     String message = ValidationUtils.getNotEmptyMessage(outerClass, lastField);
-
     ValidationUtils.checkErrorCause(ex.getResult(), fieldPath, message,
         NotEmpty.class.getName());
-
   }
 
   protected void checkErrorCause(Class<?> outerClass, String fieldPath, T review,

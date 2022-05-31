@@ -8,7 +8,7 @@ package io.stackgres.common;
 import java.util.Optional;
 import java.util.function.Function;
 
-import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.storages.AwsS3CompatibleStorage;
@@ -63,7 +63,7 @@ public interface BackupStorageUtil {
       String namespace,
       String name,
       String postgresMajorVersion) {
-    return CustomResource.getCRDName(StackGresBackup.class) + "/"
+    return HasMetadata.getFullResourceName(StackGresBackup.class) + "/"
         + namespace + "/" + name + "/" + postgresMajorVersion;
   }
 
@@ -167,8 +167,7 @@ public interface BackupStorageUtil {
       AwsS3CompatibleStorage storageFor,
       Function<AwsS3CompatibleStorage, T> getter) {
     return BackupStorageUtil.convertEnvValue(
-        getter.apply(storageFor)
-    );
+        getter.apply(storageFor));
 
   }
 
@@ -178,25 +177,21 @@ public interface BackupStorageUtil {
       CheckedFunction<T, R> transformer) {
     return BackupStorageUtil.convertEnvValue(
         Unchecked.function(transformer).apply(
-            getter.apply(storageFor)
-        )
-    );
+            getter.apply(storageFor)));
   }
 
   static <T> String getFromGcs(
       GoogleCloudStorage storageFor,
       Function<GoogleCloudStorage, T> getter) {
     return BackupStorageUtil.convertEnvValue(
-      getter.apply(storageFor)
-    );
+        getter.apply(storageFor));
   }
 
   static <T> String getFromAzureBlob(
       AzureBlobStorage storageFor,
       Function<AzureBlobStorage, T> getter) {
     return BackupStorageUtil.convertEnvValue(
-        getter.apply(storageFor)
-    );
+        getter.apply(storageFor));
   }
 
   static <T> String convertEnvValue(T value) {

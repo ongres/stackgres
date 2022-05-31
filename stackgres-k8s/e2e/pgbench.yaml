@@ -31,13 +31,13 @@ spec:
         cpu: "500m"    
   initContainers:
   - name: install
-    image: "bitnami/kubectl:1.19.2"
+    image: "ongres/kubectl:v1.23.3-build-6.10"
     command:
     - "/bin/bash"
     - "-ecx"
     - |
       cp /creds/.pgpass /work-dir/.pgpass
-      chmod 600 /work-dir/.pgpass      
+      chmod 600 /work-dir/.pgpass
     volumeMounts:
     - name: creds
       mountPath: "/creds/.pgpass"

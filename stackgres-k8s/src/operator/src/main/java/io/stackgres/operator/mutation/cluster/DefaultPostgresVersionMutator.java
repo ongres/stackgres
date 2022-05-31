@@ -54,17 +54,16 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
     final StackGresCluster cluster = review.getRequest().getObject();
-    final String postgresVersion = cluster.getSpec()
-        .getPostgres().getVersion();
-    final String postgresFlavor = cluster.getSpec()
-        .getPostgres().getFlavor();
+    final String postgresVersion = cluster.getSpec().getPostgres().getVersion();
+    final String postgresFlavor = cluster.getSpec().getPostgres().getFlavor();
 
     if (review.getRequest().getOperation() == Operation.CREATE
         || review.getRequest().getOperation() == Operation.UPDATE) {
       final ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList
           .builderWithExpectedSize(2);
+      final StackGresComponent postgresFlavorComponent = getPostgresFlavorComponent(postgresFlavor);
       if (postgresVersion != null) {
-        final String calculatedPostgresVersion = getPostgresFlavorComponent(postgresFlavor)
+        final String calculatedPostgresVersion = postgresFlavorComponent
             .get(cluster).findVersion(postgresVersion);
 
         if (!calculatedPostgresVersion.equals(postgresVersion)) {
@@ -72,12 +71,12 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
           operations.add(applyReplaceValue(postgresVersionPointer, target));
         }
       } else {
-        JsonNode target = jsonMapper.valueToTree(getPostgresFlavorComponent(postgresFlavor)
+        JsonNode target = jsonMapper.valueToTree(postgresFlavorComponent
             .get(cluster).findVersion(StackGresComponent.LATEST));
         operations.add(applyAddValue(postgresVersionPointer, target));
       }
 
-      if (!Objects.equals(postgresFlavor, getPostgresFlavor(postgresFlavor))) {
+      if (!Objects.equals(postgresFlavor, getPostgresFlavor(postgresFlavor).toString())) {
         JsonNode target = jsonMapper.valueToTree(getPostgresFlavor(postgresFlavor));
         operations.add(applyAddValue(postgresFlavorPointer, target));
       }

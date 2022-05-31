@@ -8,7 +8,6 @@ package io.stackgres.operator.mutation;
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -23,18 +22,6 @@ class ObjectStorageMutationResourceTest extends MutationResourceTest<ObjectStora
 
     review = JsonUtil
         .readFromJson("objectstorage_allow_request/create.json", ObjectStorageReview.class);
-
   }
 
-  @Override
-  @Test
-  void givenAnValidAdmissionReview_itShouldReturnAnyPath() {
-    super.givenAnValidAdmissionReview_itShouldReturnAnyPath();
-  }
-
-  @Override
-  @Test
-  void givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath() {
-    super.givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath();
-  }
 }

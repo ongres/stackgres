@@ -6,7 +6,6 @@
 package io.stackgres.common.event;
 
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -26,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractEventEmitter<T extends HasMetadata> implements EventEmitter<T> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEventEmitter.class);
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final Random random = new Random();
 
@@ -35,7 +34,7 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
   @Override
   public void sendEvent(EventReason reason, String message, T involvedObject) {
     if (involvedObject == null) {
-      LOGGER.warn("Can not send event {} ({}), involved object was null", reason, message);
+      log.warn("Can not send event {} ({}), involved object was null", reason, message);
       return;
     }
     final Instant now = Instant.now();
@@ -53,7 +52,7 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
         .map(event -> patchEvent(event, now, client))
         .orElseGet(() -> createEvent(namespace, now,
             reason, message, involvedObject, client));
-    LOGGER.debug("Sending event {}", ev);
+    log.debug("Sending event {}", ev.getMessage());
   }
 
   private String nextId() {
@@ -87,7 +86,7 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
 
   private Event patchEvent(Event event, Instant now, KubernetesClient client) {
     event.setCount(event.getCount() + 1);
-    event.setLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(now));
+    event.setLastTimestamp(now.toString());
     return client.v1().events()
         .inNamespace(event.getMetadata().getNamespace())
         .withName(event.getMetadata().getName())
@@ -111,8 +110,8 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
             .withReason(reason.reason())
             .withMessage(message)
             .withCount(1)
-            .withFirstTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
-            .withLastTimestamp(DateTimeFormatter.ISO_INSTANT.format(now))
+            .withFirstTimestamp(now.toString())
+            .withLastTimestamp(now.toString())
             .withSource(new EventSourceBuilder()
                 .withComponent(reason.component())
                 .build())

@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class ConstraintValidator<T extends AdmissionReview<?>> implements Validator<T> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(ConstraintValidator.class);
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   private javax.validation.Validator constraintValidator;
 
@@ -99,8 +99,7 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
         .anyMatch(Optional::isPresent)) {
       final String basePath = propertyPath.substring(0, propertyPath.lastIndexOf('.'));
       return Seq.seq(violation.getConstraintDescriptor().getPayload())
-          .map(fieldReference -> fieldReference
-              .getAnnotation(FieldReference.ReferencedField.class))
+          .map(fieldReference -> fieldReference.getAnnotation(FieldReference.ReferencedField.class))
           .map(FieldReference.ReferencedField::value)
           .map(field -> basePath + "." + field)
           .map(field -> replacePropertyPathWithJsonProperties(object, field))
@@ -119,7 +118,7 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
               (u, v) -> v)
           .v1().toString();
     } catch (Exception ex) {
-      LOGGER.warn("Can not translate path " + propertyPath + " using @JsonProperty annotations",
+      log.warn("Can not translate path " + propertyPath + " using @JsonProperty annotations",
           ex);
       return propertyPath;
     }
@@ -143,7 +142,7 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
     return tuple
         .map1(builder -> builder.isEmpty()
             ? builder.append(jsonFieldName + fieldSuffix)
-                : builder.append('.').append(jsonFieldName + fieldSuffix))
+            : builder.append('.').append(jsonFieldName + fieldSuffix))
         .map2(clazz -> {
           if (clazz.isAssignableFrom(Map.class)) {
             return Class.class.cast(ParameterizedType.class

@@ -728,7 +728,7 @@ check_backup_performance_using_deprecated_fields_in_previous_versions() {
 check_mutations() {
   check_backup_performance_mutation
 
-  check_backup_path_mutation
+  check_backups_path_mutation
 }
 
 check_backup_performance_mutation() {
@@ -799,8 +799,8 @@ check_backup_performance_mutation() {
   fi
 }
 
-check_backup_path_mutation() {
-  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" --template '{{ .spec.configurations.backupPath }}')" \
+check_backups_path_mutation() {
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }')" \
     = "$CLUSTER_NAMESPACE/$CLUSTER_1_NAME" ]
   then
     echo "SUCCESS. Backup path was added to cluster backup configuration after operator upgrade"

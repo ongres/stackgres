@@ -29,7 +29,7 @@
       "username": "system:serviceaccount:kube-system:tiller"
     },
     "object": {
-      "apiVersion": "stackgres.io/v1",
+      "apiVersion": "stackgres.io/v1beta1",
       "kind": "SGObjectStorage",
       "metadata": {
         "creationTimestamp": "2019-11-08T14:46:41Z",

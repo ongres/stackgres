@@ -18,16 +18,11 @@ import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path(MutationUtil.CONNPOOLCONFIG_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SgPgBouncerMutationResource implements MutationResource<PoolingReview> {
-
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(SgPgBouncerMutationResource.class);
 
   private JsonPatchMutationPipeline<PoolingReview> pipeline;
 
@@ -37,7 +32,7 @@ public class SgPgBouncerMutationResource implements MutationResource<PoolingRevi
   }
 
   void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("PgBouncer configuration mutation resource started");
+    getLogger().info("PgBouncer configuration mutation resource started");
   }
 
   @POST

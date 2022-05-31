@@ -18,16 +18,11 @@ import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path(MutationUtil.BACKUP_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class BackupMutationResource implements MutationResource<BackupReview> {
-
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(BackupMutationResource.class);
 
   private JsonPatchMutationPipeline<BackupReview> pipeline;
 
@@ -37,7 +32,7 @@ public class BackupMutationResource implements MutationResource<BackupReview> {
   }
 
   void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("Backup mutation resource started");
+    getLogger().info("Backup mutation resource started");
   }
 
   @POST

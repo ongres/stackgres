@@ -7,7 +7,7 @@ configurations:
     # Avoid backups before waiting for pods (since backup pods could biase the wait)
     baseBackups:
   objectstorage:
-    create: true    
+    create: true
 cluster:
   pods:
     persistentVolume:

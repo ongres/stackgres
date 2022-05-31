@@ -57,25 +57,25 @@ describe('Create SGObjectStorage', () => {
             .type('s3-' + resourceName)
 
         // Storage Details
-        cy.get('[data-field="spec.storage.s3"]')
+        cy.get('[data-field="spec.s3"]')
             .click()
 
         cy.get('form#createObjectStorage input#advancedModeStorage')
             .click()
 
-        cy.get('[data-field="spec.storage.s3.bucket"]')
+        cy.get('[data-field="spec.s3.bucket"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.storage.s3.path"]')
+        cy.get('[data-field="spec.s3.path"]')
             .type('//' + resourceName)
 
-        cy.get('[data-field="spec.storage.s3.region"]')
+        cy.get('[data-field="spec.s3.region"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.storage.s3.awsCredentials.secretKeySelectors.accessKeyId"]')
+        cy.get('[data-field="spec.s3.awsCredentials.secretKeySelectors.accessKeyId"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.storage.s3.awsCredentials.secretKeySelectors.secretAccessKey"]')
+        cy.get('[data-field="spec.s3.awsCredentials.secretKeySelectors.secretAccessKey"]')
             .type(resourceName)
         
         // Submit
@@ -102,28 +102,28 @@ describe('Create SGObjectStorage', () => {
             .type('s3compatible-' + resourceName)
         
         // Storage Details
-        cy.get('[data-field="spec.storage.s3Compatible"]')
+        cy.get('[data-field="spec.s3Compatible"]')
             .click()
 
         cy.get('form#createObjectStorage input#advancedModeStorage')
             .click()
 
-        cy.get('[data-field="spec.storage.s3Compatible.bucket"]')
+        cy.get('[data-field="spec.s3Compatible.bucket"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.storage.s3Compatible.path"]')
+        cy.get('[data-field="spec.s3Compatible.path"]')
             .type('//' + resourceName)
 
-        cy.get('[data-field="spec.storage.s3Compatible.endpoint"]')
+        cy.get('[data-field="spec.s3Compatible.endpoint"]')
             .type('https://' + resourceName)
 
-        cy.get('[data-field="spec.storage.s3Compatible.region"]')
+        cy.get('[data-field="spec.s3Compatible.region"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId"]')
+        cy.get('[data-field="spec.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey"]')
+        cy.get('[data-field="spec.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey"]')
             .type(resourceName)
 
         cy.get('#enablePathStyleAddressing')
@@ -152,16 +152,16 @@ describe('Create SGObjectStorage', () => {
             .type('gcs-' + resourceName) 
         
         // Storage Details
-        cy.get('[data-field="spec.storage.gcs"]')
+        cy.get('[data-field="spec.gcs"]')
             .click()
         
         cy.get('form#createObjectStorage input#advancedModeStorage')
             .click()
 
-        cy.get('[data-field="spec.storage.gcs.bucket"]')
+        cy.get('[data-field="spec.gcs.bucket"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.storage.gcs.path"]')
+        cy.get('[data-field="spec.gcs.path"]')
             .type('//' + resourceName)
 
         cy.get('#fetchGCSCredentials')
@@ -190,22 +190,22 @@ describe('Create SGObjectStorage', () => {
             .type('azure-' + resourceName)
         
         // Storage Details
-        cy.get('[data-field="spec.storage.azureBlob"]')
+        cy.get('[data-field="spec.azureBlob"]')
             .click()
         
         cy.get('form#createObjectStorage input#advancedModeStorage')
             .click()
 
-        cy.get('[data-field="spec.storage.azureBlob.bucket"]')
+        cy.get('[data-field="spec.azureBlob.bucket"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.storage.azureBlob.path"]')
+        cy.get('[data-field="spec.azureBlob.path"]')
             .type('//' + resourceName)
 
-        cy.get('[data-field="spec.storage.azureBlob.azureCredentials.secretKeySelectors.storageAccount"]')
+        cy.get('[data-field="spec.azureBlob.azureCredentials.secretKeySelectors.storageAccount"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.storage.azureBlob.azureCredentials.secretKeySelectors.accessKey"]')
+        cy.get('[data-field="spec.azureBlob.azureCredentials.secretKeySelectors.accessKey"]')
             .type(resourceName)
         
         // Submit
