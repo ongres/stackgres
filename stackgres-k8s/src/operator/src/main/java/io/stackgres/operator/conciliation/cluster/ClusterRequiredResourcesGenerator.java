@@ -8,17 +8,19 @@ package io.stackgres.operator.conciliation.cluster;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.base.Predicates;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -154,8 +156,8 @@ public class ClusterRequiredResourcesGenerator
 
     final Optional<StackGresObjectStorage> objectStorage = Optional
         .ofNullable(clusterConfiguration.getBackups())
-        .filter(b -> !b.isEmpty())
-        .map(b -> b.get(0))
+        .map(Collection::stream)
+        .flatMap(Stream::findFirst)
         .map(StackGresClusterBackupConfiguration::getObjectStorage)
         .flatMap(objectStorageName -> objectStorageFinder
             .findByNameAndNamespace(objectStorageName, clusterNamespace));
@@ -201,7 +203,7 @@ public class ClusterRequiredResourcesGenerator
             .map(ObjectMeta::getNamespace))
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .filter(Predicates.not(clusterNamespace::equals))
+        .filter(Predicate.not(clusterNamespace::equals))
         .collect(Collectors.groupingBy(Function.identity()))
         .keySet();
   }

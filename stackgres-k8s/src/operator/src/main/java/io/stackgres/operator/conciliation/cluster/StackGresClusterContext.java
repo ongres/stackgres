@@ -5,11 +5,13 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -35,6 +37,7 @@ import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.backup.BackupPerformance;
 import io.stackgres.operator.conciliation.factory.PatroniScriptsConfigMap;
 import org.immutables.value.Value;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple4;
 
@@ -81,11 +84,11 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
         .zipWithIndex()
         .map(t -> t.concat(PatroniScriptsConfigMap.INTERNAL_SCRIPT))
         .append(Seq.of(Optional.ofNullable(
-                    getSource().getSpec().getInitData())
-                .map(StackGresClusterInitData::getScripts))
+            getSource().getSpec().getInitData())
+            .map(StackGresClusterInitData::getScripts))
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .flatMap(List::stream)
+            .flatMap(Collection::stream)
             .zipWithIndex()
             .map(t -> t.concat(PatroniScriptsConfigMap.SCRIPT)))
         .zipWithIndex()
@@ -94,15 +97,15 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   }
 
   default Optional<String> getBackupPath() {
-    return Optional.of(getCluster())
+    Optional<@NotNull StackGresClusterConfiguration> config = Optional.of(getCluster())
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getConfiguration)
+        .map(StackGresClusterSpec::getConfiguration);
+
+    return config
         .map(StackGresClusterConfiguration::getBackupPath)
-        .or(() -> Optional.of(getCluster())
-            .map(StackGresCluster::getSpec)
-            .map(StackGresClusterSpec::getConfiguration)
+        .or(() -> config
             .map(StackGresClusterConfiguration::getBackups)
-            .map(List::stream)
+            .map(Collection::stream)
             .flatMap(Stream::findFirst)
             .map(StackGresClusterBackupConfiguration::getPath));
   }
@@ -113,8 +116,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
           .map(StackGresCluster::getSpec)
           .map(StackGresClusterSpec::getConfiguration)
           .map(StackGresClusterConfiguration::getBackups)
-          .filter(bs -> !bs.isEmpty())
-          .map(bs -> bs.get(0))
+          .map(Collection::stream)
+          .flatMap(Stream::findFirst)
           .map(bc -> new BackupConfiguration(
               bc.getRetention(),
               bc.getCronSchedule(),
@@ -122,11 +125,10 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
               bc.getPath(),
               Optional.ofNullable(bc.getPerformance())
                   .map(bp -> new BackupPerformance(
-                      bp.getMaxNetworkBandwitdh(),
-                      bp.getMaxDiskBandwitdh(),
+                      bp.getMaxNetworkBandwidth(),
+                      bp.getMaxDiskBandwidth(),
                       bp.getUploadDiskConcurrency()))
-                  .orElse(null)
-          ));
+                  .orElse(null)));
     } else {
       return getBackupConfig()
           .map(StackGresBackupConfig::getSpec)
@@ -142,11 +144,10 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
                   .orElse(null),
               Optional.ofNullable(bc.getPerformance())
                   .map(bp -> new BackupPerformance(
-                      bp.getMaxNetworkBandwitdh(),
-                      bp.getMaxDiskBandwitdh(),
-                      bp.getUploadDiskConcurrency()
-                  )).orElse(null)
-          ));
+                      bp.getMaxNetworkBandwidth(),
+                      bp.getMaxDiskBandwidth(),
+                      bp.getUploadDiskConcurrency()))
+                  .orElse(null)));
     }
   }
 
@@ -158,15 +159,15 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   default String getConfigCrdName() {
     if (getObjectStorageConfig().isPresent()) {
-      return CustomResource.getCRDName(StackGresObjectStorage.class);
+      return HasMetadata.getFullResourceName(StackGresObjectStorage.class);
     } else {
-      return CustomResource.getCRDName(StackGresBackupConfig.class);
+      return HasMetadata.getFullResourceName(StackGresBackupConfig.class);
     }
   }
 
   default Optional<ObjectMeta> getBackupConfigurationMetadata() {
     return getObjectStorageConfig()
-        .map(CustomResource::getMetadata)
+        .map(HasMetadata::getMetadata)
         .or(() -> getBackupConfig().map(CustomResource::getMetadata));
   }
 

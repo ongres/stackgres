@@ -20,11 +20,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.google.common.collect.ImmutableList;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewBuilder;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatus;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.PermissionsListDto;
@@ -35,6 +34,7 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -121,18 +121,19 @@ public class RbacResource {
     // Connect with the serviceaccount permissions
     try (KubernetesClient client = new DefaultKubernetesClient()) {
 
-      List<String> verbs = ImmutableList.of("get", "list", "create", "patch", "delete");
-      List<String> resourcesNamespaced = ImmutableList.of("pods", "secrets", "configmaps",
-          CustomResource.getCRDName(StackGresBackupConfig.class),
-          CustomResource.getCRDName(StackGresBackup.class),
-          CustomResource.getCRDName(StackGresCluster.class),
-          CustomResource.getCRDName(StackGresDistributedLogs.class),
-          CustomResource.getCRDName(StackGresProfile.class),
-          CustomResource.getCRDName(StackGresDbOps.class),
-          CustomResource.getCRDName(StackGresPostgresConfig.class),
-          CustomResource.getCRDName(StackGresPoolingConfig.class));
+      List<String> verbs = List.of("get", "list", "create", "patch", "delete");
+      List<String> resourcesNamespaced = List.of("pods", "secrets", "configmaps",
+          HasMetadata.getFullResourceName(StackGresObjectStorage.class),
+          HasMetadata.getFullResourceName(StackGresBackupConfig.class),
+          HasMetadata.getFullResourceName(StackGresBackup.class),
+          HasMetadata.getFullResourceName(StackGresCluster.class),
+          HasMetadata.getFullResourceName(StackGresDistributedLogs.class),
+          HasMetadata.getFullResourceName(StackGresProfile.class),
+          HasMetadata.getFullResourceName(StackGresDbOps.class),
+          HasMetadata.getFullResourceName(StackGresPostgresConfig.class),
+          HasMetadata.getFullResourceName(StackGresPoolingConfig.class));
       List<String> resourcesUnnamespaced =
-          ImmutableList.of("namespaces", "storageclasses.storage.k8s.io");
+          List.of("namespaces", "storageclasses.storage.k8s.io");
 
       PermissionsListDto permissionsList = new PermissionsListDto();
       List<PermissionsListDto.Namespaced> listNamespaced = new ArrayList<>();

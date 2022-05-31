@@ -132,7 +132,7 @@ public enum StackGresVersion {
         .map(ObjectMeta::getAnnotations)
         .map(annotations -> annotations.get(StackGresContext.VERSION_KEY))
         .map(StackGresVersion::getVersionAsNumber)
-        .orElseGet(() -> StackGresVersion.LATEST.getVersionAsNumber());
+        .orElseGet(StackGresVersion.LATEST::getVersionAsNumber);
   }
 
 }

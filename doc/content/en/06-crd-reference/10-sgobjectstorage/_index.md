@@ -66,7 +66,6 @@ spec:
 | Property                                           | Required | Updatable | Type    | Default | Description |
 |:---------------------------------------------------|----------|-----------|:--------|:--------|:------------|
 | bucket                                             | ✓        | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.s3.bucket >}} |
-| path                                               |          | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.s3.path >}} |
 | [awsCredentials](#amazon-web-services-credentials) | ✓        | ✓         | object  |         | {{< crd-field-description SGObjectStorage.spec.s3.awsCredentials >}} |
 | region                                             |          | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.s3.region >}} |
 | storageClass                                       |          | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.s3.storageClass >}} |
@@ -76,7 +75,6 @@ spec:
 | Property                                           | Required | Updatable | Type    | Default | Description |
 |:---------------------------------------------------|----------|-----------|:--------|:--------|:------------|
 | bucket                                             | ✓        | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.bucket >}} |
-| path                                               |          | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.path >}} |
 | [awsCredentials](#amazon-web-services-credentials) | ✓        | ✓         | object  |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.awsCredentials >}} |
 | region                                             |          | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.region >}} |
 | storageClass                                       |          | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.storageClass >}} |
@@ -101,7 +99,6 @@ spec:
 | Property                           | Required | Updatable | Type   | Default | Description |
 |:-----------------------------------|----------|-----------|:-------|:--------|:------------|
 | bucket                             | ✓        | ✓         | string |         | {{< crd-field-description SGObjectStorage.spec.gcs.bucket >}} |
-| path                               |          | ✓         | string |         | {{< crd-field-description SGObjectStorage.spec.gcs.path >}} |
 | [gcpCredentials](#gcp-credentials) | ✓        | ✓         | object |         | {{< crd-field-description SGObjectStorage.spec.gcs.gcpCredentials >}} |
 
 ### GCP Credentials
@@ -122,7 +119,6 @@ spec:
 | Property                               | Required | Updatable | Type    | Default | Description |
 |:---------------------------------------|----------|-----------|:--------|:--------|:-------------|
 | bucket                                 | ✓        | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.azureBlob.bucket >}} |
-| path                                   |          | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.azureBlob.path >}} |
 | [azureCredentials](#azure-credentials) | ✓        | ✓         | object  |         | {{< crd-field-description SGObjectStorage.spec.azureBlob.azureCredentials >}} |
 
 ### Azure Credentials

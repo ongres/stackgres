@@ -58,11 +58,6 @@ spec:
                       pattern: '^((s3|https?)://)?[^/]+(/[^/]*)*$'
                       description: |
                         AWS S3 bucket name.
-                    path:
-                      type: string
-                      pattern: '^(/[^/]*)*$'
-                      description: |
-                        Optional path within the S3 bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                     region:
                       type: string
                       description: |
@@ -121,11 +116,6 @@ spec:
                       pattern: '^((s3|https?)://)?[^/]+(/[^/]*)*$'
                       description: |
                         Bucket name.
-                    path:
-                      type: string
-                      pattern: '^(/[^/]*)*$'
-                      description: |
-                        Optional path within the S3 bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                     enablePathStyleAddressing:
                       type: boolean
                       description: |
@@ -196,11 +186,6 @@ spec:
                       pattern: "^(gs://)?[^/]+(/[^/]*)*$"
                       description: |
                         GCS bucket name.
-                    path:
-                      type: string
-                      pattern: "^(/[^/]*)*$"
-                      description: |
-                        Optional path within the GCS bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                     gcpCredentials:
                       type: object
                       description: |
@@ -243,11 +228,6 @@ spec:
                       pattern: "^(azure://)?[^/]+(/[^/]*)*$"
                       description: |
                         Azure Blob Storage bucket name.
-                    path:
-                      type: string
-                      pattern: "^(/[^/]*)*$"
-                      description: |
-                        Optional path within the Azure Blob bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
                     azureCredentials:
                       type: object
                       description: |

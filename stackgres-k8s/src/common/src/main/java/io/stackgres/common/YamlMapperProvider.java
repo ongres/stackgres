@@ -16,8 +16,10 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.client.utils.Serialization;
+import io.quarkus.arc.Unremovable;
 
 @Singleton
+@Unremovable
 public class YamlMapperProvider implements Supplier<YAMLMapper> {
 
   private static final YAMLMapper YAML_MAPPER = YAMLMapper.builder(new YAMLFactory()

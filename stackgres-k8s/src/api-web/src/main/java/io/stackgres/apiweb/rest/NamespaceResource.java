@@ -12,7 +12,6 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
@@ -54,7 +53,7 @@ public class NamespaceResource {
   public List<String> get() {
     return namespaceScanner.findResources().stream()
         .map(namespace -> namespace.getMetadata().getName())
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 
 }

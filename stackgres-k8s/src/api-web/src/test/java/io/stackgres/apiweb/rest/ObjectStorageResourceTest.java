@@ -60,13 +60,13 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
 
     var objectStorageTuple = ObjectStorageTransformerTest.createObjectStorage();
     doReturn(
-        List.of(objectStorageTuple.getSource())
+        List.of(objectStorageTuple.source())
     ).when(scanner).getResources();
 
-    String namespace = objectStorageTuple.getSource().getMetadata().getNamespace();
-    String storageName = objectStorageTuple.getSource().getMetadata().getName();
+    String namespace = objectStorageTuple.source().getMetadata().getNamespace();
+    String storageName = objectStorageTuple.source().getMetadata().getName();
 
-    var clusters = objectStorageTuple.getTarget().getStatus().getClusters()
+    var clusters = objectStorageTuple.target().getStatus().getClusters()
         .stream().map(clusterName -> {
           var cluster = JsonUtil
               .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
@@ -92,7 +92,7 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
         .as(ObjectStorageDto[].class);
 
     assertEquals(
-        List.of(objectStorageTuple.getTarget()),
+        List.of(objectStorageTuple.target()),
         Arrays.asList(response)
     );
 
@@ -110,19 +110,19 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
             (Answer<StackGresObjectStorage>) invocationOnMock -> invocationOnMock
                 .getArgument(0, StackGresObjectStorage.class)
         );
-    objectStorageTuple.getTarget().getMetadata().setNamespace(null);
-    objectStorageTuple.getTarget().getSpec().getS3().getCredentials()
+    objectStorageTuple.target().getMetadata().setNamespace(null);
+    objectStorageTuple.target().getSpec().getS3().getCredentials()
         .setAccessKey(StringUtils.getRandomString());
-    objectStorageTuple.getTarget().getSpec().getS3().getCredentials()
+    objectStorageTuple.target().getSpec().getS3().getCredentials()
         .setSecretKey(StringUtils.getRandomString());
-    objectStorageTuple.getTarget().getSpec().getS3().getCredentials().setSecretKeySelectors(null);
-    objectStorageTuple.getTarget().getSpec().getS3().setStorageClass(null);
-    objectStorageTuple.getTarget().setStatus(null);
+    objectStorageTuple.target().getSpec().getS3().getCredentials().setSecretKeySelectors(null);
+    objectStorageTuple.target().getSpec().getS3().setStorageClass(null);
+    objectStorageTuple.target().setStatus(null);
 
     given().header(AUTHENTICATION_HEADER)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
-        .body(objectStorageTuple.getTarget())
+        .body(objectStorageTuple.target())
         .post("/stackgres/sgobjectstorages")
         .then()
         .statusCode(204);
@@ -137,11 +137,11 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
     var objectStorageTuple = ObjectStorageTransformerTest
         .createObjectStorage();
 
-    String namespace = objectStorageTuple.getSource().getMetadata().getNamespace();
-    String name = objectStorageTuple.getSource().getMetadata().getName();
+    String namespace = objectStorageTuple.source().getMetadata().getNamespace();
+    String name = objectStorageTuple.source().getMetadata().getName();
 
     when(finder.findByNameAndNamespace(name, namespace)).thenReturn(
-        Optional.of(objectStorageTuple.getSource())
+        Optional.of(objectStorageTuple.source())
     );
 
     when(scheduler.update(any()))
@@ -153,7 +153,7 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
     given().header(AUTHENTICATION_HEADER)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
-        .body(objectStorageTuple.getTarget())
+        .body(objectStorageTuple.target())
         .put("/stackgres/sgobjectstorages")
         .then()
         .statusCode(204);
@@ -168,11 +168,11 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
     var objectStorageTuple = ObjectStorageTransformerTest
         .createObjectStorage();
 
-    String namespace = objectStorageTuple.getSource().getMetadata().getNamespace();
-    String name = objectStorageTuple.getSource().getMetadata().getName();
+    String namespace = objectStorageTuple.source().getMetadata().getNamespace();
+    String name = objectStorageTuple.source().getMetadata().getName();
 
     when(finder.findByNameAndNamespace(name, namespace)).thenReturn(
-        Optional.of(objectStorageTuple.getSource())
+        Optional.of(objectStorageTuple.source())
     );
 
     doNothing().when(scheduler).delete(any());
@@ -180,7 +180,7 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
     given().header(AUTHENTICATION_HEADER)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
-        .body(objectStorageTuple.getTarget())
+        .body(objectStorageTuple.target())
         .delete("/stackgres/sgobjectstorages")
         .then()
         .statusCode(204);

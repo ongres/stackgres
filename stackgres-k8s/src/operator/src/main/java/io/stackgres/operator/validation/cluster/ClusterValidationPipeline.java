@@ -26,7 +26,6 @@ public class ClusterValidationPipeline implements ValidationPipeline<StackGresCl
   @Override
   public void validate(StackGresClusterReview review) throws ValidationFailed {
     genericPipeline.validate(review);
-
   }
 
   @Inject

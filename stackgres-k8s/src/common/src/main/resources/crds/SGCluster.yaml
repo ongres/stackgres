@@ -72,8 +72,8 @@ spec:
                       description: |
                         Postgres version used on the cluster. It is either of:
                         *  The string 'latest', which automatically sets the latest major.minor Postgres version.
-                        *  A major version, like '12' or '11', which sets that major version and the latest minor version.
-                        *  A specific major.minor version, like '12.2'.
+                        *  A major version, like '14' or '13', which sets that major version and the latest minor version.
+                        *  A specific major.minor version, like '14.4'.
                     flavor:
                       type: string
                       description: |
@@ -596,10 +596,14 @@ spec:
                     sgBackupConfig:
                       type: string
                       description: |
-                              Name of the [SGBackupConfig](https://stackgres.io/doc/latest/reference/crd/sgbackupconfig) to use for the cluster. It defines the backups policy, storage and retention, among others, applied to the cluster. When not set, backup configuration will not be used.
+                        **Deprecated**: use instead .spec.configurations.backups with sgObjectStorage.
+
+                        Name of the [SGBackupConfig](https://stackgres.io/doc/latest/reference/crd/sgbackupconfig) to use for the cluster. It defines the backups policy, storage and retention, among others, applied to the cluster. When not set, backup configuration will not be used.
                     backupPath:
                       type: string
                       description: |
+                        **Deprecated**: use instead .spec.configurations.backups[].path
+
                         The path were the backup is stored. If not set this field is filled up by the operator.
 
                         When provided will indicate were the backups and WAL files will be stored.
@@ -634,12 +638,14 @@ spec:
                               If not set, full backups are performed each day at 05:00 UTC.
                           performance:
                             type: object
+                            description: |
+                              Configuration that affects the backup network and disk usage performance.
                             properties:
-                              maxNetworkBandwitdh:
+                              maxNetworkBandwidth:
                                 type: integer
                                 description: |
                                   Maximum storage upload bandwidth used when storing a backup. In bytes (per second).
-                              maxDiskBandwitdh:
+                              maxDiskBandwidth:
                                 type: integer
                                 description: |
                                   Maximum disk read I/O when performing a backup. In bytes (per second).
@@ -661,6 +667,12 @@ spec:
                             type: string
                             description: |
                               Name of the [SGObjectStorage](https://stackgres.io/doc/latest/reference/crd/sgobjectstorage) to use for the cluster. It defines the location in which the the backups will be stored.
+                          path:
+                            type: string
+                            description: |
+                              The path were the backup is stored. If not set this field is filled up by the operator.
+
+                              When provided will indicate were the backups and WAL files will be stored.
                         required: ["sgObjectStorage"]
                 initialData:
                   type: object

@@ -11,15 +11,15 @@ e2e_test_install() {
      --from-literal=accesskey=test --from-literal=secretkey=test
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
-    --set cluster.configurations.sgBackupConfig="$BACKUPCONF" \
+    --set cluster.configurations.backups.sgObjectStorage="$BACKUPCONF" \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
-    --set configurations.backupconfig.create=true \
-    --set-string configurations.backupconfig.storage.s3Compatible.bucket=test \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name="$CLUSTER_NAME-minio" \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=accesskey \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name="$CLUSTER_NAME-minio" \
-    --set-string configurations.backupconfig.storage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=secretkey \
-    --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *'
+    --set configurations.objectstorage.create=true \
+    --set-string configurations.objectstorage.s3Compatible.bucket=test \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name="$CLUSTER_NAME-minio" \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.key=accesskey \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name="$CLUSTER_NAME-minio" \
+    --set-string configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key=secretkey \
+    --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *'
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 

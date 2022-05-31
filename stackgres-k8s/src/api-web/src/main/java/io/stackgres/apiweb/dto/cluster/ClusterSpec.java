@@ -29,7 +29,7 @@ public class ClusterSpec {
   private ClusterReplication replication;
 
   @JsonProperty("configurations")
-  private ClusterConfiguration configurations;
+  private ClusterConfiguration configuration;
 
   @JsonProperty("sgInstanceProfile")
   private String sgInstanceProfile;
@@ -83,11 +83,11 @@ public class ClusterSpec {
   }
 
   public ClusterConfiguration getConfigurations() {
-    return configurations;
+    return configuration;
   }
 
   public void setConfigurations(ClusterConfiguration configurations) {
-    this.configurations = configurations;
+    this.configuration = configurations;
   }
 
   public String getSgInstanceProfile() {
@@ -178,7 +178,7 @@ public class ClusterSpec {
     }
     ClusterSpec that = (ClusterSpec) o;
     return instances == that.instances && Objects.equals(postgres, that.postgres)
-        && Objects.equals(configurations, that.configurations)
+        && Objects.equals(configuration, that.configuration)
         && Objects.equals(sgInstanceProfile, that.sgInstanceProfile)
         && Objects.equals(initData, that.initData)
         && Objects.equals(distributedLogs, that.distributedLogs)
@@ -192,7 +192,7 @@ public class ClusterSpec {
 
   @Override
   public int hashCode() {
-    return Objects.hash(postgres, instances, configurations, sgInstanceProfile,
+    return Objects.hash(postgres, instances, configuration, sgInstanceProfile,
         initData, distributedLogs, toInstallPostgresExtensions, pods, prometheusAutobind,
         nonProductionOptions, postgresServices, metadata);
   }

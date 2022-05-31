@@ -31,12 +31,12 @@ class ProfileTransformerTest {
     ProfileDto target = new ProfileDto();
 
     var metadata = TransformerTestUtil.createMetadataTuple();
-    source.setMetadata(metadata.getSource());
-    target.setMetadata(metadata.getTarget());
+    source.setMetadata(metadata.source());
+    target.setMetadata(metadata.target());
 
     var spec = createSpec();
-    source.setSpec(spec.getSource());
-    target.setSpec(spec.getTarget());
+    source.setSpec(spec.source());
+    target.setSpec(spec.target());
 
     target.setStatus(new ProfileStatus());
     target.getStatus().setClusters(List.of(StringUtils.getRandomClusterName()));
@@ -58,7 +58,7 @@ class ProfileTransformerTest {
   void testProfileTransformation() {
     var tuple = createProfile();
 
-    final List<String> clusters = Optional.of(tuple.getTarget())
+    final List<String> clusters = Optional.of(tuple.target())
         .map(ProfileDto::getStatus)
         .map(ProfileStatus::getClusters).orElse(List.of());
 

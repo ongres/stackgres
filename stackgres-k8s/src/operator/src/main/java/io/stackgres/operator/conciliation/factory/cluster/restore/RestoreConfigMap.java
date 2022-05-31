@@ -144,8 +144,8 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
               Optional.of(backupConfig.getBaseBackups())
                   .map(StackGresBaseBackupConfig::getPerformance)
                   .map(p -> new BackupPerformance(
-                      p.getMaxNetworkBandwitdh(),
-                      p.getMaxDiskBandwitdh(),
+                      p.getMaxNetworkBandwidth(),
+                      p.getMaxDiskBandwidth(),
                       p.getUploadDiskConcurrency()
                   )).orElse(null)
           ))

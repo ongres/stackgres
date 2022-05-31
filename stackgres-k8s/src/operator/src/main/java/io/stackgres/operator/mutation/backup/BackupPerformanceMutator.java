@@ -62,16 +62,15 @@ public class BackupPerformanceMutator implements BackupMutator {
         || review.getRequest().getOperation() == Operation.UPDATE) {
       final StackGresBaseBackupPerformance performance =
           Optional.ofNullable(review.getRequest().getObject().getStatus())
-          .map(StackGresBackupStatus::getBackupConfig)
-          .map(StackGresBackupConfigSpec::getBaseBackups)
-          .map(StackGresBaseBackupConfig::getPerformance)
-          .orElseGet(StackGresBaseBackupPerformance::new);
+              .map(StackGresBackupStatus::getBackupConfig)
+              .map(StackGresBackupConfigSpec::getBaseBackups)
+              .map(StackGresBaseBackupConfig::getPerformance)
+              .orElseGet(StackGresBaseBackupPerformance::new);
 
       ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
 
       if (performance.getMaxDiskBandwitdh() != null) {
-        operations.add(applyRemoveValue(
-            maxDiskBandwitdhPointer));
+        operations.add(applyRemoveValue(maxDiskBandwitdhPointer));
         if (performance.getMaxDiskBandwidth() == null) {
           operations.add(applyAddValue(
               maxDiskBandwidthPointer,
@@ -79,8 +78,7 @@ public class BackupPerformanceMutator implements BackupMutator {
         }
       }
       if (performance.getMaxNetworkBandwitdh() != null) {
-        operations.add(applyRemoveValue(
-            maxNetworkBandwitdhPointer));
+        operations.add(applyRemoveValue(maxNetworkBandwitdhPointer));
         if (performance.getMaxNetworkBandwidth() == null) {
           operations.add(applyAddValue(
               maxNetworkBandwidthPointer,

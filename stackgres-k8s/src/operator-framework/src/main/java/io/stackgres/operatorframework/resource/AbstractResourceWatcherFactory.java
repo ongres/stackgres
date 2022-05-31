@@ -16,8 +16,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractResourceWatcherFactory {
 
-  private static final Logger LOGGER =
-      LoggerFactory.getLogger(AbstractResourceWatcherFactory.class);
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   public <T extends HasMetadata> Watcher<T> createWatcher(Consumer<Action> actionConsumer) {
     return new WatcherInstance<>(actionConsumer, new EmptyWatcherListener<>());
@@ -45,26 +44,26 @@ public abstract class AbstractResourceWatcherFactory {
 
     @Override
     public void eventReceived(Action action, T resource) {
-      LOGGER.debug("Action <{}> on resource: [{}] {}.{}", action, resource.getKind(),
+      log.debug("Action <{}> on resource: [{}] {}.{}", action, resource.getKind(),
           resource.getMetadata().getNamespace(), resource.getMetadata().getName());
       try {
         actionConsumer.accept(action);
         watcherListener.eventReceived(action, resource);
       } catch (Exception ex) {
-        LOGGER.error("Error while performing action: <{}>", action, ex);
+        log.error("Error while performing action: <{}>", action, ex);
       }
     }
 
     @Override
     public void onClose(WatcherException cause) {
-      LOGGER.error("onClose was called, ", cause);
+      log.error("onClose was called, ", cause);
       AbstractResourceWatcherFactory.this.onError(cause);
       watcherListener.watcherError(cause);
     }
 
     @Override
     public void onClose() {
-      LOGGER.debug("Watcher closed");
+      log.debug("Watcher closed");
       AbstractResourceWatcherFactory.this.onClose();
     }
 

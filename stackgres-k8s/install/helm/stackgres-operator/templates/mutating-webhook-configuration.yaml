@@ -23,7 +23,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgcluster'
-      caBundle: {{ .Values.cert.crt }}
+      caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1beta1"]
   - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
@@ -38,7 +38,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgpgconfig'
-      caBundle: {{ .Values.cert.crt }} 
+      caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1beta1"]
   - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
@@ -53,7 +53,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgpoolconfig'
-      caBundle: {{ .Values.cert.crt }}
+      caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1beta1"]
   - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
@@ -68,7 +68,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sginstanceprofile'
-      caBundle: {{ .Values.cert.crt }}
+      caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1beta1"]
   - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
@@ -83,7 +83,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgbackupconfig'
-      caBundle: {{ .Values.cert.crt }}
+      caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1beta1"]
   - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
@@ -98,7 +98,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgbackup'
-      caBundle: {{ .Values.cert.crt }}
+      caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1beta1"]
   - name: sgdistributedlogs.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
@@ -113,7 +113,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgdistributedlogs'
-      caBundle: {{ .Values.cert.crt }}
+      caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1beta1"]
   - name: sgdbops.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
@@ -128,9 +128,9 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgdbops'
-      caBundle: {{ .Values.cert.crt }}
+      caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1beta1"]
-  - name: sgobjectstorages.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgobjectstorage.{{ .Release.Name }}.{{ .Release.Namespace }}
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -142,7 +142,7 @@ webhooks:
       service:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
-        path: '/stackgres/mutation/sgobjectstorages'
-      caBundle: {{ .Values.cert.crt }}
+        path: '/stackgres/mutation/sgobjectstorage'
+      caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1beta1"]
 {{- end }}

@@ -5,6 +5,9 @@
 
 package io.stackgres.common;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -23,6 +26,7 @@ public class KubectlUtil {
   private static final Logger LOG = LoggerFactory.getLogger(KubectlUtil.class);
 
   private final int k8sMinorVersion;
+  private final Map<StackGresVersion, String> cache;
 
   @Inject
   public KubectlUtil(KubernetesClient client) {
@@ -36,20 +40,23 @@ public class KubectlUtil {
       minor = -1;
     }
     this.k8sMinorVersion = minor;
+    this.cache = new EnumMap<>(StackGresVersion.class);
   }
 
   public String getImageName(@NotNull StackGresVersion sgversion) {
-    Component kubectl = StackGresComponent.KUBECTL.getOrThrow(sgversion);
-    final String imageName = kubectl.getOrderedVersions()
-        .filter(ver -> k8sMinorVersion != -1)
-        .findFirst(ver -> {
-          int minor = Integer.parseInt(ver.split("\\.")[1]);
-          return (k8sMinorVersion >= minor - 1 && k8sMinorVersion <= minor + 1);
-        })
-        .map(kubectl::findImageName)
-        .orElseGet(kubectl::findLatestImageName);
-    LOG.debug("Using kubectl image: {}", imageName);
-    return imageName;
+    return cache.computeIfAbsent(sgversion, value -> {
+      Component kubectl = StackGresComponent.KUBECTL.getOrThrow(sgversion);
+      final String imageName = kubectl.getOrderedVersions()
+          .filter(ver -> k8sMinorVersion != -1)
+          .findFirst(ver -> {
+            int minor = Integer.parseInt(ver.split("\\.")[1]);
+            return (k8sMinorVersion >= minor - 1 && k8sMinorVersion <= minor + 1);
+          })
+          .map(kubectl::findImageName)
+          .orElseGet(kubectl::findLatestImageName);
+      LOG.debug("Using kubectl image: {}", imageName);
+      return imageName;
+    });
   }
 
   public String getImageName(@NotNull StackGresCluster cluster) {

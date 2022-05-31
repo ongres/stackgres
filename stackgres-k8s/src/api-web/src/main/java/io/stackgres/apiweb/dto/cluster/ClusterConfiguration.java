@@ -29,9 +29,11 @@ public class ClusterConfiguration {
   private String sgPoolingConfig;
 
   @JsonProperty("sgBackupConfig")
+  @Deprecated(since = "1.3.0", forRemoval = true)
   private String sgBackupConfig;
 
   @JsonProperty("backupPath")
+  @Deprecated(since = "1.3.0", forRemoval = true)
   private String backupPath;
 
   @JsonProperty("backups")
@@ -53,18 +55,22 @@ public class ClusterConfiguration {
     this.sgPoolingConfig = sgPoolingConfig;
   }
 
+  @Deprecated(since = "1.3.0", forRemoval = true)
   public String getSgBackupConfig() {
     return sgBackupConfig;
   }
 
+  @Deprecated(since = "1.3.0", forRemoval = true)
   public void setSgBackupConfig(String sgBackupConfig) {
     this.sgBackupConfig = sgBackupConfig;
   }
 
+  @Deprecated(since = "1.3.0", forRemoval = true)
   public String getBackupPath() {
     return backupPath;
   }
 
+  @Deprecated(since = "1.3.0", forRemoval = true)
   public void setBackupPath(String backupPath) {
     this.backupPath = backupPath;
   }
@@ -79,14 +85,9 @@ public class ClusterConfiguration {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterConfiguration)) {
-      return false;
-    }
-    ClusterConfiguration other = (ClusterConfiguration) obj;
-    return Objects.equals(backupPath, other.backupPath) && Objects.equals(backups, other.backups)
+    return obj instanceof ClusterConfiguration other
+        && Objects.equals(backupPath, other.backupPath)
+        && Objects.equals(backups, other.backups)
         && Objects.equals(sgBackupConfig, other.sgBackupConfig)
         && Objects.equals(sgPoolingConfig, other.sgPoolingConfig)
         && Objects.equals(sgPostgresConfig, other.sgPostgresConfig);

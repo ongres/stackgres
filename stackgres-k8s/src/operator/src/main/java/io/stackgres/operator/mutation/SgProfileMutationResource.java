@@ -18,16 +18,11 @@ import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path(MutationUtil.PROFILE_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SgProfileMutationResource implements MutationResource<SgProfileReview> {
-
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(SgProfileMutationResource.class);
 
   private JsonPatchMutationPipeline<SgProfileReview> pipeline;
 
@@ -37,7 +32,7 @@ public class SgProfileMutationResource implements MutationResource<SgProfileRevi
   }
 
   void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("SgProfile configuration mutation resource started");
+    getLogger().info("SgProfile configuration mutation resource started");
   }
 
   @POST

@@ -11,7 +11,4 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 
 @RegisterForReflection
 public class StackGresDistributedLogsReview extends AdmissionReview<StackGresDistributedLogs> {
-
-  private static final long serialVersionUID = 1L;
-
 }

@@ -75,6 +75,7 @@ class ObjectStorageValidationResourceTest {
     backupStorage.setS3Compatible(null);
     var s3Storage = RandomObjectUtils.generateRandomObject(AwsS3Storage.class);
     backupStorage.setS3(s3Storage);
+    s3Storage.setStorageClass("REDUCED_REDUNDANCY");
 
     return review;
   }

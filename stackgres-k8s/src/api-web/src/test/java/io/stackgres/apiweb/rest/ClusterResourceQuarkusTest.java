@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 
@@ -21,21 +22,22 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.http.ContentType;
-import io.stackgres.apiweb.dto.Metadata;
+import io.stackgres.apiweb.dto.backupconfig.BaseBackupPerformance;
+import io.stackgres.apiweb.dto.cluster.ClusterBackupsConfiguration;
+import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterScriptFrom;
+import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
-import io.stackgres.common.resource.ClusterScheduler;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import io.stackgres.testutil.StringUtils;
@@ -50,16 +52,16 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
   @KubernetesTestServer
   KubernetesServer mockServer;
 
-  @InjectMock
-  ClusterScheduler clusterScheduler;
-
   private final StackGresCluster cluster = getCluster();
+
+  private final ClusterDto clusterDto = getClusterInlineScripts();
 
   @BeforeEach
   void setUp() {
     mockServer.getClient().secrets().inNamespace("test").delete();
     mockServer.getClient().configMaps().inNamespace("test").delete();
 
+    clusterDto.getMetadata().setNamespace("test");
     cluster.getMetadata().setNamespace("test");
     cluster.getMetadata().setName(StringUtils.getRandomClusterName());
     cluster.getSpec().setConfiguration(new StackGresClusterConfiguration());
@@ -110,6 +112,12 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .inNamespace(cluster.getMetadata().getNamespace())
         .withName(cluster.getMetadata().getName())
         .delete();
+    mockServer.getClient().resources(
+        StackGresCluster.class,
+        StackGresClusterList.class)
+        .inNamespace(clusterDto.getMetadata().getNamespace())
+        .withName(clusterDto.getMetadata().getName())
+        .delete();
   }
 
   private ClusterDto getClusterInlineScripts() {
@@ -122,17 +130,15 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
   @Test
   void givenACreationWithInlineScripts_shouldNotFail() {
-    ClusterDto cluster = getClusterInlineScripts();
-    final Metadata metadata = cluster.getMetadata();
-    metadata.setNamespace("test");
-
     given()
         .header(AUTHENTICATION_HEADER)
-        .body(cluster)
+        .body(clusterDto)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post("/stackgres/sgclusters")
-        .then().statusCode(204);
+        .then()
+        .log().all()
+        .statusCode(204);
   }
 
   @Test
@@ -187,16 +193,12 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
   @Test
   void givenACreationWithConfigMapsScripts_shouldNotFail() {
-    ClusterDto cluster = getClusterInlineScripts();
     ClusterScriptEntry entry = getConfigMapScriptEntry();
-
-    cluster.getSpec().getInitData().setScripts(Collections.singletonList(entry));
-    final Metadata metadata = cluster.getMetadata();
-    metadata.setNamespace("test");
+    clusterDto.getSpec().getInitData().setScripts(Collections.singletonList(entry));
 
     given()
         .header(AUTHENTICATION_HEADER)
-        .body(cluster)
+        .body(clusterDto)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post("/stackgres/sgclusters")
@@ -214,16 +216,12 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
   @Test
   void givenACreationWithSecretScripts_shouldNotFail() {
-    ClusterDto cluster = getClusterInlineScripts();
     ClusterScriptEntry entry = getSecretScriptEntry();
-
-    cluster.getSpec().getInitData().setScripts(Collections.singletonList(entry));
-    final Metadata metadata = cluster.getMetadata();
-    metadata.setNamespace("test");
+    clusterDto.getSpec().getInitData().setScripts(Collections.singletonList(entry));
 
     given()
         .header(AUTHENTICATION_HEADER)
-        .body(cluster)
+        .body(clusterDto)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post("/stackgres/sgclusters")
@@ -243,19 +241,15 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
   @Test
   void givenACreationWithSecretAndConfigMapScripts_shouldNotFail() {
-    ClusterDto cluster = getClusterInlineScripts();
     ClusterScriptEntry secretScriptEntry = getSecretScriptEntry();
     ClusterScriptEntry configMapScriptEntry = getConfigMapScriptEntry();
 
-    cluster.getSpec().getInitData().setScripts(ImmutableList
+    clusterDto.getSpec().getInitData().setScripts(ImmutableList
         .of(secretScriptEntry, configMapScriptEntry));
-
-    final Metadata metadata = cluster.getMetadata();
-    metadata.setNamespace("test");
 
     given()
         .header(AUTHENTICATION_HEADER)
-        .body(cluster)
+        .body(clusterDto)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post("/stackgres/sgclusters")
@@ -308,6 +302,55 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     configMapKeyRef.setName("initScript");
     entry.setScriptFrom(scriptFrom);
     return entry;
+  }
+
+  @Test
+  void givenACreationWithBackups_shouldNotFail() {
+    clusterDto.getMetadata().setName(StringUtils.getRandomClusterName());
+    ClusterSpec spec = clusterDto.getSpec();
+    spec.setInitData(null);
+    spec.setConfigurations(new ClusterConfiguration());
+    spec.getConfigurations().setBackups(new ArrayList<>());
+
+    ClusterBackupsConfiguration clusterBackupsConfiguration = new ClusterBackupsConfiguration();
+    clusterBackupsConfiguration.setCompressionMethod("brotli");
+    clusterBackupsConfiguration.setCronSchedule("100 8 10 10 10");
+    clusterBackupsConfiguration.setRetention(10);
+    clusterBackupsConfiguration.setObjectStorage("backupconf");
+    clusterBackupsConfiguration.setPerformance(new BaseBackupPerformance());
+    clusterBackupsConfiguration.getPerformance().setMaxDiskBandwidth(10L);
+    clusterBackupsConfiguration.getPerformance().setMaxNetworkBandwidth(10L);
+    clusterBackupsConfiguration.getPerformance().setUploadDiskConcurrency(10);
+
+    spec.getConfigurations().getBackups().add(clusterBackupsConfiguration);
+
+    given()
+        .header(AUTHENTICATION_HEADER)
+        .body(clusterDto)
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .post("/stackgres/sgclusters")
+        .then().statusCode(204);
+
+    given()
+        .header(AUTHENTICATION_HEADER)
+        .pathParam("namespace", clusterDto.getMetadata().getNamespace())
+        .pathParam("name", clusterDto.getMetadata().getName())
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .get("/stackgres/namespaces/{namespace}/sgclusters/{name}")
+        .then()
+        .body("metadata.namespace", equalTo("test"),
+            "metadata.name", equalTo(clusterDto.getMetadata().getName()),
+            "spec.instances", equalTo(1),
+            "spec.configurations.backups[0].compression", equalTo("brotli"),
+            "spec.configurations.backups[0].cronSchedule", equalTo("100 8 10 10 10"),
+            "spec.configurations.backups[0].retention", equalTo(10),
+            "spec.configurations.backups[0].sgObjectStorage", equalTo("backupconf"),
+            "spec.configurations.backups[0].performance.maxNetworkBandwidth", equalTo(10),
+            "spec.configurations.backups[0].performance.maxDiskBandwidth", equalTo(10),
+            "spec.configurations.backups[0].performance.uploadDiskConcurrency", equalTo(10))
+        .statusCode(200);
   }
 
 }

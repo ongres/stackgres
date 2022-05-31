@@ -5,17 +5,38 @@
 
 package io.stackgres.operatorframework.admissionwebhook;
 
-import java.util.Objects;
-
-import io.fabric8.kubernetes.api.model.GroupVersionKind;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
-public class AdmissionReviewResponse extends GroupVersionKind {
+public class AdmissionReviewResponse {
 
-  private static final long serialVersionUID = -2087380329442965085L;
+  @JsonProperty("apiVersion")
+  private String apiVersion = "admission.k8s.io/v1";
 
+  @JsonProperty("kind")
+  private String kind = "AdmissionReview";
+
+  @JsonProperty("response")
   private AdmissionResponse response;
+
+  public String getApiVersion() {
+    return apiVersion;
+  }
+
+  public void setApiVersion(String apiVersion) {
+    this.apiVersion = apiVersion;
+  }
+
+  public String getKind() {
+    return kind;
+  }
+
+  public void setKind(String kind) {
+    this.kind = kind;
+  }
 
   public AdmissionResponse getResponse() {
     return response;
@@ -23,29 +44,6 @@ public class AdmissionReviewResponse extends GroupVersionKind {
 
   public void setResponse(AdmissionResponse response) {
     this.response = response;
-  }
-
-  @Override
-  public int hashCode() {
-    final int prime = 31;
-    int result = super.hashCode();
-    result = prime * result + Objects.hash(response);
-    return result;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!super.equals(obj)) {
-      return false;
-    }
-    if (!(obj instanceof AdmissionReviewResponse)) {
-      return false;
-    }
-    AdmissionReviewResponse other = (AdmissionReviewResponse) obj;
-    return Objects.equals(response, other.response);
   }
 
 }

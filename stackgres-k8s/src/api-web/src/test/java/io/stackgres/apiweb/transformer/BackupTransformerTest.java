@@ -28,24 +28,24 @@ class BackupTransformerTest {
     BackupDto target = new BackupDto();
 
     var metadata = TransformerTestUtil.createMetadataTuple();
-    source.setMetadata(metadata.getSource());
-    target.setMetadata(metadata.getTarget());
+    source.setMetadata(metadata.source());
+    target.setMetadata(metadata.target());
 
     var spec = TransformerTestUtil
         .fillTupleWithRandomData(
             BackupSpec.class,
             StackGresBackupSpec.class
         );
-    source.setSpec(spec.getSource());
-    target.setSpec(spec.getTarget());
+    source.setSpec(spec.source());
+    target.setSpec(spec.target());
 
     var status = TransformerTestUtil
         .fillTupleWithRandomData(
             BackupStatus.class,
             StackGresBackupStatus.class
         );
-    source.setStatus(status.getSource());
-    target.setStatus(status.getTarget());
+    source.setStatus(status.source());
+    target.setStatus(status.target());
 
     return new TransformerTuple<>(target, source);
   }

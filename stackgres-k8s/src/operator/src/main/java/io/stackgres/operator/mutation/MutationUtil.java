@@ -16,6 +16,6 @@ public interface MutationUtil {
   String PROFILE_MUTATION_PATH = MUTATION_PATH + "/sginstanceprofile";
   String DISTRIBUTED_LOGS_MUTATION_PATH = MUTATION_PATH + "/sgdistributedlogs";
   String DBOPS_MUTATION_PATH = MUTATION_PATH + "/sgdbops";
-  String OBJECT_STORAGE_MUTATION_PATH = MUTATION_PATH + "/sgobjectstorages";
+  String OBJECT_STORAGE_MUTATION_PATH = MUTATION_PATH + "/sgobjectstorage";
 
 }

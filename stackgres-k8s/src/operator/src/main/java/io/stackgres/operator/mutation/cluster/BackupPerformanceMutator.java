@@ -71,6 +71,7 @@ public class BackupPerformanceMutator implements ClusterMutator {
       Seq.seq(backups)
           .map(StackGresClusterBackupConfiguration::getPerformance)
           .zipWithIndex()
+          .filter(tuple -> tuple.v1 != null)
           .forEach(t -> {
             if (t.v1.getMaxDiskBandwitdh() != null) {
               operations.add(applyRemoveValue(

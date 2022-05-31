@@ -71,6 +71,8 @@ class ClusterValidationQuarkusTest {
     spec.setDistributedLogs(null);
     spec.setInitData(null);
     spec.getPostgres().setVersion("12.8");
+    spec.getConfiguration().setBackupConfig(null);
+    spec.getConfiguration().setBackupPath(null);
 
     return review;
   }

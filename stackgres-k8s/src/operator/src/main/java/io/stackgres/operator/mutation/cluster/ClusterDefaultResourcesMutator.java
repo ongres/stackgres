@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.mutation.cluster;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -91,8 +90,7 @@ public class ClusterDefaultResourcesMutator implements ClusterMutator {
 
     }
 
-    return new ArrayList<>();
-
+    return List.of();
   }
 
 }

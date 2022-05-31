@@ -12,7 +12,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
@@ -505,7 +504,6 @@ class ClusterStatefulSetReconciliationHandlerTest {
     handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
 
     ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
-    verify(podWriter, atLeastOnce()).update(podArgumentCaptor.capture());
     podArgumentCaptor.getAllValues().forEach(pod -> {
       assertEquals(requiredOwnerReferences, pod.getMetadata().getOwnerReferences());
     });

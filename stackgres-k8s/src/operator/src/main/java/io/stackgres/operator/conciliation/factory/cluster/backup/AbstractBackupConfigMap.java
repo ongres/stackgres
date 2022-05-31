@@ -22,6 +22,7 @@ import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.common.crd.storages.GoogleCloudCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
+import io.stackgres.operator.conciliation.backup.BackupPerformance;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterStatefulSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,26 +45,23 @@ public abstract class AbstractBackupConfigMap {
         .map(BackupConfiguration::compression)
         .ifPresent(compression -> backupEnvVars.put("WALG_COMPRESSION_METHOD", compression));
 
-    Optional.ofNullable(backupConfiguration)
-        .map(BackupConfiguration::performance)
-        .ifPresent(performance -> {
-          Optional.ofNullable(performance.maxNetworkBandwitdh())
-              .ifPresent(maxNetworkBandwitdh -> backupEnvVars
-                  .put(
-                      "WALG_NETWORK_RATE_LIMIT",
-                      BackupStorageUtil.convertEnvValue(maxNetworkBandwitdh)));
+    Optional<BackupPerformance> performance = Optional.ofNullable(backupConfiguration)
+        .map(BackupConfiguration::performance);
 
-          Optional.ofNullable(performance.maxDiskBandwitdh())
-              .ifPresent(maxDiskBandwitdh -> backupEnvVars
-                  .put(
-                      "WALG_DISK_RATE_LIMIT",
-                      BackupStorageUtil.convertEnvValue(maxDiskBandwitdh)));
+    performance.map(BackupPerformance::maxNetworkBandwidth)
+        .ifPresent(maxNetworkBandwidth -> backupEnvVars.put(
+            "WALG_NETWORK_RATE_LIMIT",
+            BackupStorageUtil.convertEnvValue(maxNetworkBandwidth)));
 
-          Optional.ofNullable(performance.uploadDiskConcurrency())
-              .ifPresent(uploadDiskConcurrency -> backupEnvVars.put(
-                  "WALG_UPLOAD_DISK_CONCURRENCY",
-                  BackupStorageUtil.convertEnvValue(uploadDiskConcurrency)));
-        });
+    performance.map(BackupPerformance::maxDiskBandwidth)
+        .ifPresent(maxDiskBandwidth -> backupEnvVars.put(
+            "WALG_DISK_RATE_LIMIT",
+            BackupStorageUtil.convertEnvValue(maxDiskBandwidth)));
+
+    performance.map(BackupPerformance::uploadDiskConcurrency)
+        .ifPresent(uploadDiskConcurrency -> backupEnvVars.put(
+            "WALG_UPLOAD_DISK_CONCURRENCY",
+            BackupStorageUtil.convertEnvValue(uploadDiskConcurrency)));
 
     if (WAL_G_LOGGER.isTraceEnabled()) {
       backupEnvVars.put("WALG_LOG_LEVEL", "DEVEL");
@@ -73,8 +71,8 @@ public abstract class AbstractBackupConfigMap {
   }
 
   protected Map<String, String> getBackupEnvVars(ClusterContext context,
-                                                 String path,
-                                                 BackupStorage storage) {
+      String path,
+      BackupStorage storage) {
 
     Optional<AwsS3Storage> storageForS3 = storage.getS3Opt();
     if (storageForS3.isPresent()) {
@@ -94,21 +92,20 @@ public abstract class AbstractBackupConfigMap {
 
     Optional<AzureBlobStorage> storageForAzureBlob = storage.getAzureBlobOpt();
     return storageForAzureBlob.map(
-            azureBlobStorage -> getAzureBlobStorageEnvVars(path, azureBlobStorage))
+        azureBlobStorage -> getAzureBlobStorageEnvVars(path, azureBlobStorage))
         .orElseGet(Map::of);
 
   }
 
   private Map<String, String> getS3StorageEnvVars(String path,
-                                                  AwsS3Storage storageForS3) {
+      AwsS3Storage storageForS3) {
 
     return Map.of(
         "WALG_S3_PREFIX", BackupStorageUtil.getPrefixForS3(path, storageForS3),
         "AWS_REGION", BackupStorageUtil.getFromS3(
             storageForS3, AwsS3Storage::getRegion),
         "WALG_S3_STORAGE_CLASS", BackupStorageUtil.getFromS3(
-            storageForS3, AwsS3Storage::getStorageClass)
-    );
+            storageForS3, AwsS3Storage::getStorageClass));
   }
 
   private Map<String, String> getS3CompatibleStorageEnvVars(
@@ -131,13 +128,12 @@ public abstract class AbstractBackupConfigMap {
         "AWS_S3_FORCE_PATH_STYLE", BackupStorageUtil.getFromS3Compatible(
             storageForS3Compatible, AwsS3CompatibleStorage::isForcePathStyle),
         "WALG_S3_STORAGE_CLASS", BackupStorageUtil.getFromS3Compatible(
-            storageForS3Compatible, AwsS3CompatibleStorage::getStorageClass)
-    );
+            storageForS3Compatible, AwsS3CompatibleStorage::getStorageClass));
   }
 
   private Map<String, String> getGcsStorageEnvVars(ClusterContext context,
-                                                   String path,
-                                                   GoogleCloudStorage storageForGcs) {
+      String path,
+      GoogleCloudStorage storageForGcs) {
 
     Map<String, String> backupEnvVars = new HashMap<>();
     backupEnvVars.put("WALG_GS_PREFIX", BackupStorageUtil.getPrefixForGcs(
@@ -157,7 +153,7 @@ public abstract class AbstractBackupConfigMap {
   }
 
   private Map<String, String> getAzureBlobStorageEnvVars(String path,
-                                                         AzureBlobStorage storageForAzureBlob) {
+      AzureBlobStorage storageForAzureBlob) {
     return Map.of("WALG_AZ_PREFIX", BackupStorageUtil.getPrefixForAzureBlob(
         path, storageForAzureBlob));
   }

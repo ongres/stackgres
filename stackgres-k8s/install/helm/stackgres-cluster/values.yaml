@@ -94,7 +94,7 @@ cluster:
   configurations:
     sgPostgresConfig: postgresconf
     sgPoolingConfig: pgbouncerconf
-    backups: 
+    backups:
       retention: 5
       cronSchedule: "*/2 * * * *"
       compression: lz4
@@ -103,6 +103,7 @@ cluster:
         #maxNetworkBandwitdh:
         #maxDiskBandwitdh:
     # sgObjectStorage: objectstorage
+    # path: "demo/mypath"
   distributedLogs:
     sgDistributedLogs: distributedlogs
     retention: 7 days
@@ -168,7 +169,6 @@ configurations:
     create: false
     s3: {}
     #  bucket: stackgres
-    #  path: /mypath
     #  awsCredentials:
     #    secretKeySelectors:
     #      accessKeyId:
@@ -181,7 +181,6 @@ configurations:
     #  storageClass:
     s3Compatible: {}
     #  bucket: stackgres
-    #  path: /mypath
     #  awsCredentials:
     #    secretKeySelectors:
     #      accessKeyId:
@@ -196,7 +195,6 @@ configurations:
     #  storageClass:
     gcs: {}
     #  bucket: stackgres
-    #  path: /mypath
     #  gcpCredentials:
     #    fetchCredentialsFromMetadataService: false
     #    secretKeySelectors:
@@ -205,7 +203,6 @@ configurations:
     #        key: key
     azureBlob: {}
     #  bucket: stackgres
-    #  path: /mypath
     #  azureCredentials:
     #    secretKeySelectors:
     #      storageAccount:
@@ -227,7 +224,6 @@ configurations:
     storage:
       s3: {}
       #  bucket: stackgres
-      #  path: /mypath
       #  awsCredentials:
       #    secretKeySelectors:
       #      accessKeyId:
@@ -240,7 +236,6 @@ configurations:
       #  storageClass:
       s3Compatible: {}
       #  bucket: stackgres
-      #  path: /mypath
       #  awsCredentials:
       #    secretKeySelectors:
       #      accessKeyId:
@@ -255,7 +250,6 @@ configurations:
       #  storageClass:
       gcs: {}
       #  bucket: stackgres
-      #  path: /mypath
       #  gcpCredentials:
       #    fetchCredentialsFromMetadataService: false
       #    secretKeySelectors:
@@ -264,7 +258,6 @@ configurations:
       #        key: key
       azureBlob: {}
       #  bucket: stackgres
-      #  path: /mypath
       #  azureCredentials:
       #    secretKeySelectors:
       #      storageAccount:

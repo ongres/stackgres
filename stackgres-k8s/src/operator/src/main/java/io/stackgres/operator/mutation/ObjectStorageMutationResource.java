@@ -18,16 +18,11 @@ import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path(MutationUtil.OBJECT_STORAGE_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ObjectStorageMutationResource implements MutationResource<ObjectStorageReview> {
-
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(ObjectStorageMutationResource.class);
 
   private JsonPatchMutationPipeline<ObjectStorageReview> pipeline;
 
@@ -37,7 +32,7 @@ public class ObjectStorageMutationResource implements MutationResource<ObjectSto
   }
 
   void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("Backup configuration mutation resource started");
+    getLogger().info("Object Storage mutation resource started");
   }
 
   @POST

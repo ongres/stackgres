@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.storages.AwsSecretKeySelector;
+import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operator.validation.DefaultCustomResourceHolder;
@@ -49,55 +50,60 @@ public class ObjectStorageReferencesValidator implements ObjectStorageValidator 
 
   @Override
   public void validate(ObjectStorageReview review) throws ValidationFailed {
-
     Operation operation = review.getRequest().getOperation();
-
     if (operation == Operation.CREATE || operation == Operation.UPDATE) {
-
       var objectStorage = review.getRequest().getObject();
 
       if (holder.isDefaultCustomResource(objectStorage)) {
         return;
       }
 
-      var namespace = objectStorage.getMetadata().getNamespace();
-
-      String storageType = objectStorage.getSpec().getType();
+      BackupStorage spec = objectStorage.getSpec();
+      String namespace = objectStorage.getMetadata().getNamespace();
+      String storageType = spec.getType();
 
       switch (storageType) {
         case "s3" -> {
-          final AwsSecretKeySelector s3Selectors = objectStorage.getSpec().getS3()
-              .getAwsCredentials().getSecretKeySelectors();
-          var s3AccessKeySelector = s3Selectors.getAccessKeyId();
-          var s3SecretKeySelector = s3Selectors.getSecretAccessKey();
-          checkSecret(namespace, s3AccessKeySelector, "accessKeyId", "s3");
-          checkSecret(namespace, s3SecretKeySelector, "secretAccessKey", "s3");
+          if (spec.getS3() != null) {
+            final AwsSecretKeySelector s3Selectors = spec.getS3()
+                .getAwsCredentials().getSecretKeySelectors();
+            var s3AccessKeySelector = s3Selectors.getAccessKeyId();
+            var s3SecretKeySelector = s3Selectors.getSecretAccessKey();
+            checkSecret(namespace, s3AccessKeySelector, "accessKeyId", "s3");
+            checkSecret(namespace, s3SecretKeySelector, "secretAccessKey", "s3");
+          }
         }
         case "s3Compatible" -> {
-          final AwsSecretKeySelector s3CompatibleSelectors = objectStorage.getSpec()
-              .getS3Compatible().getAwsCredentials().getSecretKeySelectors();
-          var accessKeySelector = s3CompatibleSelectors.getAccessKeyId();
-          var secretKeySelector = s3CompatibleSelectors.getSecretAccessKey();
-          checkSecret(namespace, accessKeySelector, "accessKeyId", "s3Compatible");
-          checkSecret(namespace, secretKeySelector, "secretAccessKey", "s3Compatible");
+          if (spec.getS3Compatible() != null) {
+            final AwsSecretKeySelector s3CompatibleSelectors =
+                spec.getS3Compatible().getAwsCredentials().getSecretKeySelectors();
+            var accessKeySelector = s3CompatibleSelectors.getAccessKeyId();
+            var secretKeySelector = s3CompatibleSelectors.getSecretAccessKey();
+            checkSecret(namespace, accessKeySelector, "accessKeyId", "s3Compatible");
+            checkSecret(namespace, secretKeySelector, "secretAccessKey", "s3Compatible");
+          }
         }
         case "azureblob" -> {
-          final var azureSelectors = objectStorage.getSpec().getAzureBlob()
-              .getAzureCredentials().getSecretKeySelectors();
-          checkSecret(namespace,
-              azureSelectors.getAccessKey(),
-              "accessKey", "azureblob");
-          checkSecret(namespace,
-              azureSelectors.getAccount(),
-              "account", "azureblob");
+          if (spec.getAzureBlob() != null) {
+            final var azureSelectors = spec.getAzureBlob()
+                .getAzureCredentials().getSecretKeySelectors();
+            checkSecret(namespace,
+                azureSelectors.getAccessKey(),
+                "accessKey", "azureblob");
+            checkSecret(namespace,
+                azureSelectors.getAccount(),
+                "account", "azureblob");
+          }
         }
         case "gcs" -> {
-          final var gcsSelector = objectStorage.getSpec().getGcs()
-              .getCredentials().getSecretKeySelectors();
-          checkSecret(namespace,
-              gcsSelector.getServiceAccountJsonKey(),
-              "serviceAccountJsonKey",
-              "gcs");
+          if (spec.getGcs() != null
+              && spec.getGcs().getCredentials().getSecretKeySelectors() != null) {
+            final var gcsSelector = spec.getGcs().getCredentials().getSecretKeySelectors();
+            checkSecret(namespace,
+                gcsSelector.getServiceAccountJsonKey(),
+                "serviceAccountJsonKey",
+                "gcs");
+          }
         }
         default -> {
         }
@@ -107,13 +113,12 @@ public class ObjectStorageReferencesValidator implements ObjectStorageValidator 
   }
 
   private void checkSecret(String namespace,
-                           SecretKeySelector secretKeySelector,
-                           String selectorProperty,
-                           String storageType) throws ValidationFailed {
+      SecretKeySelector secretKeySelector,
+      String selectorProperty,
+      String storageType) throws ValidationFailed {
     var secretOpt = secretFinder.findByNameAndNamespace(
         secretKeySelector.getName(),
-        namespace
-    );
+        namespace);
 
     if (secretOpt.isPresent()) {
       var data = secretOpt.map(Secret::getData)
@@ -126,8 +131,7 @@ public class ObjectStorageReferencesValidator implements ObjectStorageValidator 
                 secretKeySelector.getKey(),
                 secretKeySelector.getName(),
                 selectorProperty,
-                storageType)
-        );
+                storageType));
       }
     } else {
       fail(
@@ -136,8 +140,7 @@ public class ObjectStorageReferencesValidator implements ObjectStorageValidator 
               MISSING_SECRET_MESSAGE_FORMAT,
               secretKeySelector.getName(),
               selectorProperty,
-              storageType)
-      );
+              storageType));
     }
 
   }

@@ -18,16 +18,11 @@ import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path(MutationUtil.PGCONFIG_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class PgConfigMutationResource implements MutationResource<PgConfigReview> {
-
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(PgConfigMutationResource.class);
 
   private JsonPatchMutationPipeline<PgConfigReview> pipeline;
 
@@ -37,7 +32,7 @@ public class PgConfigMutationResource implements MutationResource<PgConfigReview
   }
 
   void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("Postgres configuration mutation resource started");
+    getLogger().info("Postgres configuration mutation resource started");
   }
 
   @POST

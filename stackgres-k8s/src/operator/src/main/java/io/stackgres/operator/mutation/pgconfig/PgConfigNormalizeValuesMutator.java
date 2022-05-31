@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 public class PgConfigNormalizeValuesMutator implements PgConfigMutator {
 
   @Override
-  public @NotNull List<JsonPatchOperation> mutate(PgConfigReview review) {
+  public List<JsonPatchOperation> mutate(PgConfigReview review) {
     Optional<StackGresPostgresConfigSpec> spec = Optional.of(review)
         .map(PgConfigReview::getRequest)
         .map(AdmissionRequest::getObject)

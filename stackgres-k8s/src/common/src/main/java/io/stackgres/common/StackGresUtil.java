@@ -183,8 +183,8 @@ public interface StackGresUtil {
   /**
    * Loads a properties file from the classpath.
    *
-   * @param path the path of the properties file to load
-   * @return the loaded file
+   * @param  path                 the path of the properties file to load
+   * @return                      the loaded file
    * @throws UncheckedIOException if cannot load the properties file
    */
   static @NotNull Properties loadProperties(@NotNull String path) {
@@ -220,8 +220,8 @@ public interface StackGresUtil {
   /**
    * Extract the hostname from a LoadBalancer service or get the Internal FQDN of the service.
    *
-   * @param service name.
-   * @return String fqdn of the provided service.
+   * @param  service               name.
+   * @return                       String fqdn of the provided service.
    * @throws IllegalStateException if the service is invalid.
    */
   @NotNull
@@ -387,42 +387,35 @@ public interface StackGresUtil {
   }
 
   static @NotNull StackGresComponent getPostgresFlavorComponent(@Nullable String flavor) {
-    StackGresComponent postgresComponentFlavor;
-    final String postgresFlavor = getPostgresFlavor(flavor);
-    if (postgresFlavor
-        .equals(StackGresPostgresFlavor.VANILLA.toString())) {
-      postgresComponentFlavor = StackGresComponent.POSTGRESQL;
-    } else if (postgresFlavor
-        .equals(StackGresPostgresFlavor.BABELFISH.toString())) {
-      postgresComponentFlavor = StackGresComponent.BABELFISH;
-    } else {
-      throw new IllegalArgumentException("Unknown flavor " + postgresFlavor);
-    }
-    return postgresComponentFlavor;
+    final StackGresPostgresFlavor postgresFlavor = getPostgresFlavor(flavor);
+    return switch (postgresFlavor) {
+      case VANILLA -> StackGresComponent.POSTGRESQL;
+      case BABELFISH -> StackGresComponent.BABELFISH;
+      default -> throw new IllegalArgumentException("Unknown flavor " + postgresFlavor);
+    };
   }
 
-  static @NotNull String getPostgresFlavor(StackGresCluster cluster) {
+  static StackGresPostgresFlavor getPostgresFlavor(@NotNull StackGresCluster cluster) {
     return getPostgresFlavor(cluster.getSpec().getPostgres().getFlavor());
   }
 
-  static @NotNull String getPostgresFlavor(@Nullable String flavor) {
+  static StackGresPostgresFlavor getPostgresFlavor(@Nullable String flavor) {
     return Optional.ofNullable(flavor)
-        .orElse(StackGresPostgresFlavor.VANILLA.toString());
+        .map(value -> {
+          try {
+            return StackGresPostgresFlavor.fromString(value);
+          } catch (IllegalArgumentException e) {
+            return null;
+          }
+        })
+        .orElse(StackGresPostgresFlavor.VANILLA);
   }
 
   /**
    * This is a best-effort to parse the /etc/resolv.conf file and get the search path of K8s.
    */
   static String domainSearchPath() {
-    ResolvConfResolverConfig resolver = new ResolvConfResolverConfig();
-    List<String> searchPath = resolver.getSearchPath("/etc/resolv.conf");
-    for (var sp : searchPath) {
-      if (sp.startsWith("svc.")) {
-        return "." + sp;
-      }
-    }
-    // fallback default value
-    return ".svc.cluster.local";
+    return ResolvConfResolverConfig.CACHED_DOMAIN_SEARCH_PATH;
   }
 
   /**
@@ -453,8 +446,8 @@ public interface StackGresUtil {
         .collect(ImmutableMap.toImmutableMap(
             matcher -> matcher.group("parameter"),
             matcher -> Optional.ofNullable(matcher.group("quoted"))
-              .map(quoted -> quoted.replaceAll("[\\']'", "'"))
-              .orElseGet(() -> matcher.group("unquoted"))));
+                .map(quoted -> quoted.replaceAll("[\\']'", "'"))
+                .orElseGet(() -> matcher.group("unquoted"))));
   }
 
 }

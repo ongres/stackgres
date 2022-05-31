@@ -24,7 +24,6 @@ class ObjectStorageDependenciesValidatorTest
 
   @Override
   protected ObjectStorageReview getReview_givenAReviewCreation_itShouldDoNothing() {
-
     return JsonUtil.readFromJson("objectstorage_allow_request/create.json",
         ObjectStorageReview.class);
   }

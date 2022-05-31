@@ -39,11 +39,9 @@ public class ObjectStorageDefaultValuesMutator
 
   @Override
   public List<JsonPatchOperation> applyDefaults(JsonPointer basePointer,
-                                                JsonNode defaultNode,
-                                                JsonNode incomingNode) {
+      JsonNode defaultNode, JsonNode incomingNode) {
     if (incomingNode.has("type")
-        && !incomingNode.get("type").equals(
-        defaultNode.get("type"))) {
+        && !incomingNode.get("type").equals(defaultNode.get("type"))) {
       defaultNode = FACTORY.objectNode();
     }
     return super.applyDefaults(basePointer, defaultNode, incomingNode);
