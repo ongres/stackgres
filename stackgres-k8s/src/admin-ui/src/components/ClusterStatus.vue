@@ -1,5 +1,5 @@
 <template>
-	<div id="cluster-status" v-if="loggedIn && isReady && !notFound">
+	<div id="cluster-status" v-if="iCanLoad">
 		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">			
 			<div class="content noScroll" v-if="hasProp(cluster, 'status.pods') && cluster.status.pods.length">
 				<h2>
@@ -198,7 +198,7 @@
 
 <script>
 	import store from '../store'
-	import axios from 'axios'
+	import sgApi from '../api/sgApi'
 	import { mixin } from './mixins/mixin'
 
     export default {
@@ -268,8 +268,8 @@
 			getClusterEvents() {
 				const vc = this;
 				
-				axios
-				.get('/stackgres/namespaces/' + vc.$route.params.namespace + '/sgclusters/' + vc.$route.params.name + '/events')
+				sgApi
+				.getResourceDetails('sgclusters', vc.$route.params.namespace, vc.$route.params.name, 'events')
 				.then( function(response) {
 					vc.events = [...response.data]
 				}).catch(function(err) {

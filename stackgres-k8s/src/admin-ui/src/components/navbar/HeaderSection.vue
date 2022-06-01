@@ -26,9 +26,14 @@
                     <span class="component" :class="$route.meta.componentName.toLowerCase()"></span>
 
                     <template v-if="currentPath.name || $route.name.startsWith('Create') || $route.params.hasOwnProperty('backupname')">
-                        <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + 's'" :title="$route.meta.componentName + 's'">
+                        <template v-if="iCan('list', $route.meta.componentName.toLowerCase() + 's', $route.params.namespace)">
+                            <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + 's'" :title="$route.meta.componentName + 's'">
+                                {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + 's' : $route.meta.componentName + 's' }}
+                            </router-link>
+                        </template>
+                        <template v-else>
                             {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + 's' : $route.meta.componentName + 's' }}
-                        </router-link>
+                        </template>
                     </template>
                     <template v-else>
                         {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + 's' : $route.meta.componentName + 's' }}
@@ -37,7 +42,7 @@
             </template>
             
             <!--CRD Name-->
-            <template v-if="!$route.params.hasOwnProperty('cluster') && currentPath.name">
+            <template v-if="!$route.params.hasOwnProperty('name') && currentPath.name">
                 <li>
                     <template v-if="(currentPath.component.startsWith('Edit')) || ($route.meta.componentName == 'SGCluster')">
                         <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + currentPath.name" :title="currentPath.name">
@@ -51,15 +56,15 @@
             </template>
 
             <!--Cluster name on Backups Tab-->
-            <template v-if="$route.params.hasOwnProperty('cluster') && !currentPath.name">
+            <template v-if="$route.params.hasOwnProperty('name') && !currentPath.name">
                 <li>
                     <template v-if="currentPath.component.startsWith('Edit') || $route.name == 'CreateClusterBackup'">
-                        <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.cluster" :title="$route.params.cluster">
-                            {{ $route.params.cluster }}
+                        <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name" :title="$route.params.name">
+                            {{ $route.params.name }}
                         </router-link>
                     </template>
                     <template v-else>
-                        <span>{{ $route.params.cluster }}</span>
+                        <span>{{ $route.params.name }}</span>
                     </template>
                 </li>
             </template>
@@ -68,7 +73,7 @@
             <template v-if="($route.meta.componentName == 'SGCluster') && (($route.name != 'ClusterOverview') && ($route.name != 'EditCluster') && ($route.name != 'CreateCluster'))">
                 <li>
                     <template v-if="$route.name.includes('Backup') && $route.name != 'ClusterBackups'">
-                        <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + ($route.params.hasOwnProperty('cluster') ? $route.params.cluster : currentPath.name) + '/sgbackups'" title="Backups">
+                        <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + ($route.params.hasOwnProperty('name') ? $route.params.name : currentPath.name) + '/sgbackups'" title="Backups">
                             Backups
                         </router-link>
                     </template>
@@ -90,8 +95,8 @@
             <template v-if="$route.params.hasOwnProperty('backupname')">
                 <li>
                     <template v-if="currentPath.component.startsWith('Edit')">
-                        <template v-if="$route.params.hasOwnProperty('cluster')">
-                            <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.cluster + '/sgbackup/' + $route.params.backupname" :title="$route.params.backupname">
+                        <template v-if="$route.params.hasOwnProperty('name')">
+                            <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/sgbackup/' + $route.params.backupname" :title="$route.params.backupname">
                                 {{ $route.params.backupname }}
                             </router-link>
                         </template>

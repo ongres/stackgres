@@ -1,5 +1,5 @@
 <template>
-    <div id="logs-cluster" v-if="loggedIn && isReady && !notFound">
+    <div id="logs-cluster" v-if="iCanLoad">
         <div class="content">
             <template v-if="!$route.params.hasOwnProperty('name')">
                 <table id="logs" class="logsCluster pgConfig resizable fullWidth" v-columns-resizable>

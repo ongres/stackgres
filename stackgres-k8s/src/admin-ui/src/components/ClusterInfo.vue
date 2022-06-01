@@ -1,5 +1,5 @@
 <template>
-	<div id="cluster-info" v-if="loggedIn && isReady && !notFound">
+	<div id="cluster-info" v-if="iCanLoad">
 		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 			<div class="content noScroll">
 				<h2>Cluster Details</h2>
@@ -58,7 +58,7 @@
 
 <script>
 	import store from '../store'
-	import axios from 'axios'
+	import sgApi from '../api/sgApi'
 	import { mixin } from './mixins/mixin'
 	import ClusterDetails from './details/ClusterDetails.vue'
 	
@@ -90,8 +90,8 @@
 
 			if(!vc.extensionsList.length) {
 
-				axios
-				.get('/stackgres/extensions/latest')
+				sgApi
+				.getPostgresExtensions('latest')
 				.then(function (response) {
 					vc.extensionsList = response.data.extensions
 				})

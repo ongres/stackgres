@@ -1,5 +1,5 @@
 <template>
-    <div id="create-logs-server" v-if="loggedIn && isReady && !notFound">
+    <div id="create-logs-server" v-if="iCanLoad">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
 
@@ -429,7 +429,7 @@
     import {mixin} from '../mixins/mixin'
     import router from '../../router'
     import store from '../../store'
-    import axios from 'axios'
+    import sgApi from '../../api/sgApi'
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
@@ -642,11 +642,8 @@
                     } else {
                     
                         if(this.editMode) {
-                            const res = axios
-                            .put(
-                                '/stackgres/sgdistributedlogs/', 
-                                cluster 
-                            )
+                            sgApi
+                            .update('sgdistributedlogs', cluster)
                             .then(function (response) {
                                 vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgdistributedlogs');
 
@@ -661,11 +658,8 @@
                                 vc.checkValidSteps(vc._data, 'submit')
                             });
                         } else {
-                            const res = axios
-                            .post(
-                                '/stackgres/sgdistributedlogs/', 
-                                cluster 
-                            )
+                            sgApi
+                            .create('sgdistributedlogs', cluster)
                             .then(function (response) {
                                 
                                 var urlParams = new URLSearchParams(window.location.search);

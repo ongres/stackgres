@@ -1,5 +1,5 @@
 <template>
-	<div id="sg-backup" v-if="loggedIn && isReady && !notFound">
+	<div id="sg-backup" v-if="iCanLoad">
 		<div class="content" :class="isCluster ? 'cluster' : ''">
 			<template v-if="!$route.params.hasOwnProperty('backupname')">
 				<div id="backups">

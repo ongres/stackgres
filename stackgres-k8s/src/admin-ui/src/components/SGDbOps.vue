@@ -1,5 +1,5 @@
 <template>
-    <div id="dbops" v-if="loggedIn && isReady && !notFound">
+    <div id="dbops" v-if="iCanLoad">
         <div class="content">
             <template v-if="!$route.params.hasOwnProperty('name')">
                 <div class="toolbar">
@@ -1422,7 +1422,7 @@
     import { mixin } from './mixins/mixin'
     import store from '../store'
     import moment from 'moment'
-    import axios from 'axios'
+    import sgApi from '../api/sgApi'
 
     export default {
         name: 'SGDbOps',
@@ -1567,8 +1567,8 @@
             getOpEvents() {
 				const vc = this;
 				
-				axios
-				.get('/stackgres/namespaces/' + vc.$route.params.namespace + '/sgdbops/' + vc.$route.params.name + '/events')
+				sgApi
+				.getResourceDetails('sgdbops', vc.$route.params.namespace, vc.$route.params.name, 'events')
 				.then( function(response) {
 					vc.events = [...response.data]
 
@@ -1632,14 +1632,8 @@
                         if(typeof status != 'undefined') {
 
                             vc.pollClusterStats = setInterval( function() {
-                                axios
-                                .get('/stackgres/namespaces/' + vc.$route.params.namespace + '/sgclusters/' + op.data.spec.sgCluster + '/stats',
-                                    { 
-                                        headers: {
-                                            'content-type': 'application/json'
-                                        }
-                                    }
-                                )
+                                sgApi
+                                .getResourceDetails('sgclusters', vc.$route.params.namespace, op.data.spec.sgCluster, 'stats')
                                 .then( function(resp) {
                                     store.commit('updateClusterStats', {
                                         name: op.data.spec.sgCluster,

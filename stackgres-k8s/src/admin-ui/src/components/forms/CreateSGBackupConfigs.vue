@@ -355,7 +355,7 @@
     import {mixin} from '../mixins/mixin'
     import router from '../../router'
     import store from '../../store'
-    import axios from 'axios'
+    import sgApi from '../../api/sgApi'
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
@@ -615,11 +615,8 @@
 
                         if(this.editMode) {
                             
-                            const res = axios
-                            .put(
-                                '/stackgres/sgbackupconfigs', 
-                                config 
-                            )
+                            sgApi
+                            .update('sgbackupconfigs', config)
                             .then(function (response) {
                                 vc.notify('Backup configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgbackupconfigs');
 
@@ -632,11 +629,8 @@
                             });
 
                         } else {
-                            const res = axios
-                            .post(
-                                '/stackgres/sgbackupconfigs', 
-                                config 
-                            )
+                            sgApi
+                            .create('sgbackupconfigs', config)
                             .then(function (response) {
                                 
                                 var urlParams = new URLSearchParams(window.location.search);

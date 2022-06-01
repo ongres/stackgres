@@ -1,5 +1,5 @@
 <template>
-    <div id="create-backup" v-if="loggedIn && isReady && !notFound">
+    <div id="create-backup" v-if="iCanLoad">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(backup).length > 0"></template>
                 
@@ -61,7 +61,7 @@
     import {mixin} from '../mixins/mixin'
     import router from '../../router'
     import store from '../../store'
-    import axios from 'axios'
+    import sgApi from '../../api/sgApi'
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
@@ -85,7 +85,7 @@
                 showSummary: false,
                 backupName: 'bk' + vm.getDateString(),
                 backupNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
-                backupCluster: (vm.$route.params.hasOwnProperty('cluster')) ? vm.$route.params.cluster : '',
+                backupCluster: (vm.$route.params.hasOwnProperty('name')) ? vm.$route.params.name : '',
                 managedLifecycle: false
             }
         },
@@ -157,11 +157,8 @@
                     } else {
 
                         if(this.editMode) {
-                            const res = axios
-                            .put(
-                                '/stackgres/sgbackups', 
-                                backup 
-                            )
+                            sgApi
+                            .update('sgbackups', backup)
                             .then(function (response) {
                                 vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message', 'sgbackups');
 
@@ -190,11 +187,8 @@
                             });
 
                         } else {
-                            const res = axios
-                            .post(
-                                '/stackgres/sgbackups', 
-                                backup 
-                            )
+                            sgApi
+                            .create('sgbackups', backup)
                             .then(function (response) {
 
                                 var urlParams = new URLSearchParams(window.location.search);

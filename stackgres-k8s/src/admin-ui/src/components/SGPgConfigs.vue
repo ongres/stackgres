@@ -1,5 +1,5 @@
 <template>
-	<div id="pg-config" v-if="loggedIn && isReady && !notFound">
+	<div id="pg-config" v-if="iCanLoad">
 		<div class="content">
 			<template v-if="!$route.params.hasOwnProperty('name')">
 				<table id="postgres" class="configurations pgConfig resizable fullWidth" v-columns-resizable>

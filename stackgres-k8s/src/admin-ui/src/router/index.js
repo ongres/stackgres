@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 import store from '../store'
-import axios from 'axios'
+import sgApi from '../api/sgApi'
 
 // Form Components
 import CreateCluster from '../components/forms/CreateSGClusters.vue'
@@ -142,7 +142,7 @@ const routes = [
     },
   },
   { 
-    path: '/:namespace/sgcluster/:cluster/sgbackups/new', 
+    path: '/:namespace/sgcluster/:name/sgbackups/new', 
     component: CreateBackup,
     name: 'CreateClusterBackup',
     meta: {
@@ -160,7 +160,7 @@ const routes = [
     },
   },
   { 
-    path: '/:namespace/sgcluster/:cluster/sgbackup/:backupname/edit', 
+    path: '/:namespace/sgcluster/:name/sgbackup/:backupname/edit', 
     component: CreateBackup,
     name: 'EditClusterBackup',
     meta: {
@@ -524,7 +524,6 @@ function checkLogin() {
   }
 }
 
-
 function checkAuthError(error) {
   if(error.response) {
     if(error.response.status == 401 ) {
@@ -546,6 +545,36 @@ function checkAuthError(error) {
   
 }
 
+function iCan( action = 'any', kind, namespace = '' ) {
+  let permissions = store.state.permissions.allowed.namespaced.find(p => (p.namespace == namespace));
+  return (
+    (typeof permissions != 'undefined') &&
+      (
+        ( (action == 'any') && permissions.resources[kind].length) ||
+        ( (action != 'any') && permissions.resources[kind].includes(action) 
+      )
+    )
+  )
+}
+
+function actionForbidden() {
+  const content = `
+                <h2>Action Forbidden</h2>
+                <p>You don't have enough permissions to access the requested resource. For more information on authorization management on StackGres, click the button below.</p>
+                <br/><br/><a class="btn" href="https://stackgres.io/doc/latest/api/rbac/" target="_blank" title="https://stackgres.io/doc/latest/api/rbac/">More Info</a>
+              `;
+  const tooltip = `<div class="contentTooltip show">
+    <div class="close"></div>
+    <div class="info center">
+      <span class="close">CLOSE</span>
+      <div class="content">` + content + `</div>
+    </div>
+  </div>`;
+
+  $('#main').append(tooltip);
+}
+
+
 router.beforeResolve((to, from, next) => {
 
   // If loading CRD from direct URL validate if CRD exists on the API before loading
@@ -565,60 +594,86 @@ router.beforeResolve((to, from, next) => {
       return;
     }
 
-    /* First check if Namespace exist */
-    if(to.params.hasOwnProperty('namespace')) {
+    // Read and set user permissions first
+    sgApi
+    .get('can_i')
+    .then( function(response) {
+      store.commit('setPermissions', response.data);
+    })
+    .then( function() {
+      /* First check if Namespace exist */
+      if(to.params.hasOwnProperty('namespace')) {
 
-      let namespaceName = to.params.namespace;
-      
-      axios
-      .get('/stackgres/namespaces')
-      .then( function(response){
-        store.commit('addNamespaces', response.data)
+        let namespaceName = to.params.namespace;
         
-        if(response.data.includes(namespaceName)) {
+        sgApi
+        .get('namespaces')
+        .then( function(response){
+          store.commit('addNamespaces', response.data)
           
-          store.commit('setCurrentNamespace', namespaceName);
-
-          let resourceName = ( to.params.hasOwnProperty('name') ? to.params.name : ( to.params.hasOwnProperty('backupname') ? to.params.backupname : '' ) );
-          
-          // Then check if requested resource exists
-          if(resourceName.length) {
-
-            // If requesting for backups inside a single cluster
-            if(to.name.includes('ClusterBackup')) {
-
-              if(to.params.hasOwnProperty('backupname')) {
-                axios
-                .get('/stackgres/namespaces/' + namespaceName + '/' + kind.toLowerCase() + '/' + to.params.backupname )
-                .catch(function(error) {
-                  checkAuthError(error);
-                  notFound();
-                  return false;
-                });
-              }
-
-              kind = 'sgclusters';
-
-            }
-    
-            axios
-            .get('/stackgres/namespaces/' + namespaceName + '/' + kind.toLowerCase() + '/' + resourceName )
-            .catch(function(error) {
-              checkAuthError(error)
-              notFound()
-            });
+          if(response.data.includes(namespaceName)) {
             
-          }
+            store.commit('setCurrentNamespace', namespaceName);
 
-        } else {
-          notFound();
-        }
-      }).catch(function(error) {
-        checkAuthError(error)
-        notFound()
-      });
-      
-    }
+            if(to.params.hasOwnProperty('name') || to.params.hasOwnProperty('backupname')) {
+
+              if ( 
+                  ( ( to.params.hasOwnProperty('name') || to.params.hasOwnProperty('backupname') ) && to.name.startsWith('Edit') && !iCan('patch', kind.toLowerCase(), to.params.namespace) ) ||
+                  ( to.name.startsWith('Create') && !iCan('create', kind.toLowerCase(), to.params.namespace) )                  
+              ) {
+                actionForbidden();
+                router.push('/' + to.params.namespace);
+              } else {
+                let resourceName = ( to.params.hasOwnProperty('name') ? to.params.name : ( to.params.hasOwnProperty('backupname') ? to.params.backupname : '' ) );
+              
+                // Then check if requested resource exists
+                if(resourceName.length) {
+
+                  // If requesting for backups inside a single cluster
+                  if(to.name.includes('ClusterBackup')) {
+
+                    if(to.params.hasOwnProperty('backupname')) {
+                      sgApi
+                      .getResourceDetails('sgbackups', namespaceName, to.params.backupname)
+                      .catch(function(error) {
+                        checkAuthError(error);
+                        notFound();
+                        return false;
+                      });
+                    }
+
+                    kind = 'sgclusters';
+
+                  }
+          
+                  sgApi
+                  .getResourceDetails(kind.toLowerCase(), namespaceName, resourceName)
+                  .catch(function(error) {
+                    checkAuthError(error)
+                    notFound()
+                  });
+                }
+              }
+              
+            } else if ( to.meta.hasOwnProperty('componentName') && !to.params.hasOwnProperty('name') && !to.params.hasOwnProperty('backupname') && !iCan('list', kind.toLowerCase(), to.params.namespace) ) {
+              actionForbidden();
+              router.push('/' + to.params.namespace);
+            }
+              
+          } else {
+            notFound();
+          }
+        }).catch(function(error) {
+          checkAuthError(error)
+          notFound()
+        });
+        
+      }
+    })
+    .catch(function(err) {
+      console.log(err);
+      vc.checkAuthError(err);
+    });
 
   }
 
