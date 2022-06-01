@@ -59,6 +59,10 @@ public class StackGresClusterSpec implements KubernetesResource {
   @Valid
   private StackGresClusterInitData initData;
 
+  @JsonProperty("managedSql")
+  @Valid
+  private StackGresClusterManagedSql managedSql;
+
   @JsonProperty("pods")
   @NotNull(message = "pods section is required")
   @Valid
@@ -186,6 +190,14 @@ public class StackGresClusterSpec implements KubernetesResource {
     this.initData = initData;
   }
 
+  public StackGresClusterManagedSql getManagedSql() {
+    return managedSql;
+  }
+
+  public void setManagedSql(StackGresClusterManagedSql managedSql) {
+    this.managedSql = managedSql;
+  }
+
   public StackGresClusterPod getPod() {
     return pod;
   }
@@ -245,7 +257,7 @@ public class StackGresClusterSpec implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(configuration, distributedLogs, initData, instances, metadata,
+    return Objects.hash(configuration, distributedLogs, initData, instances, managedSql, metadata,
         nonProductionOptions, pod, postgres, postgresServices, prometheusAutobind, replication,
         resourceProfile, toInstallPostgresExtensions);
   }
@@ -262,7 +274,7 @@ public class StackGresClusterSpec implements KubernetesResource {
     return Objects.equals(configuration, other.configuration)
         && Objects.equals(distributedLogs, other.distributedLogs)
         && Objects.equals(initData, other.initData) && instances == other.instances
-        && Objects.equals(metadata, other.metadata)
+        && Objects.equals(managedSql, other.managedSql) && Objects.equals(metadata, other.metadata)
         && Objects.equals(nonProductionOptions, other.nonProductionOptions)
         && Objects.equals(pod, other.pod) && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresServices, other.postgresServices)

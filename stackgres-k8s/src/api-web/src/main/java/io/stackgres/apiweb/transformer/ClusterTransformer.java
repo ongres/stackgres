@@ -18,6 +18,7 @@ import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.dto.cluster.ClusterCondition;
 import io.stackgres.apiweb.dto.cluster.ClusterDbOpsStatus;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
+import io.stackgres.apiweb.dto.cluster.ClusterManagedSqlStatus;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
 import io.stackgres.common.CdiUtil;
@@ -25,6 +26,7 @@ import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import org.jetbrains.annotations.NotNull;
@@ -126,6 +128,7 @@ public class ClusterTransformer
     }
 
     transformation.setDbOps(getDbOpsStatus(source.getDbOps()));
+    transformation.setManagedSql(getManagedSqlStatus(source.getManagedSql()));
 
     return transformation;
   }
@@ -137,6 +140,10 @@ public class ClusterTransformer
 
   private ClusterDbOpsStatus getDbOpsStatus(StackGresClusterDbOpsStatus source) {
     return mapper.convertValue(source, ClusterDbOpsStatus.class);
+  }
+
+  private ClusterManagedSqlStatus getManagedSqlStatus(StackGresClusterManagedSqlStatus source) {
+    return mapper.convertValue(source, ClusterManagedSqlStatus.class);
   }
 
 }

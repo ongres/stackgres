@@ -37,6 +37,9 @@ public class ClusterSpec {
   @JsonProperty("initialData")
   private ClusterInitData initData;
 
+  @JsonProperty("managedSql")
+  private ClusterManagedSql managedSql;
+
   @JsonProperty("distributedLogs")
   private ClusterDistributedLogs distributedLogs;
 
@@ -130,6 +133,14 @@ public class ClusterSpec {
     this.initData = initData;
   }
 
+  public ClusterManagedSql getManagedSql() {
+    return managedSql;
+  }
+
+  public void setManagedSql(ClusterManagedSql managedSql) {
+    this.managedSql = managedSql;
+  }
+
   public ClusterDistributedLogs getDistributedLogs() {
     return distributedLogs;
   }
@@ -164,36 +175,36 @@ public class ClusterSpec {
   }
 
   @Override
-  public String toString() {
-    return StackGresUtil.toPrettyYaml(this);
+  public int hashCode() {
+    return Objects.hash(configuration, distributedLogs, initData, instances, managedSql, metadata,
+        nonProductionOptions, pods, postgres, postgresServices, prometheusAutobind, replication,
+        sgInstanceProfile, toInstallPostgresExtensions);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof ClusterSpec)) {
       return false;
     }
-    ClusterSpec that = (ClusterSpec) o;
-    return instances == that.instances && Objects.equals(postgres, that.postgres)
-        && Objects.equals(configuration, that.configuration)
-        && Objects.equals(sgInstanceProfile, that.sgInstanceProfile)
-        && Objects.equals(initData, that.initData)
-        && Objects.equals(distributedLogs, that.distributedLogs)
-        && Objects.equals(toInstallPostgresExtensions, that.toInstallPostgresExtensions)
-        && Objects.equals(pods, that.pods)
-        && Objects.equals(prometheusAutobind, that.prometheusAutobind)
-        && Objects.equals(nonProductionOptions, that.nonProductionOptions)
-        && Objects.equals(postgresServices, that.postgresServices)
-        && Objects.equals(metadata, that.metadata);
+    ClusterSpec other = (ClusterSpec) obj;
+    return Objects.equals(configuration, other.configuration)
+        && Objects.equals(distributedLogs, other.distributedLogs)
+        && Objects.equals(initData, other.initData) && instances == other.instances
+        && Objects.equals(managedSql, other.managedSql) && Objects.equals(metadata, other.metadata)
+        && Objects.equals(nonProductionOptions, other.nonProductionOptions)
+        && Objects.equals(pods, other.pods) && Objects.equals(postgres, other.postgres)
+        && Objects.equals(postgresServices, other.postgresServices)
+        && Objects.equals(prometheusAutobind, other.prometheusAutobind)
+        && Objects.equals(replication, other.replication)
+        && Objects.equals(sgInstanceProfile, other.sgInstanceProfile)
+        && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(postgres, instances, configuration, sgInstanceProfile,
-        initData, distributedLogs, toInstallPostgresExtensions, pods, prometheusAutobind,
-        nonProductionOptions, postgresServices, metadata);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 }
