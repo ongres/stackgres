@@ -120,7 +120,7 @@ xargs_parallel_shell() {
   local PLACEHOLDER="$1"
   shift
   # shellcheck disable=SC2086
-  xargs -r -n 1 -I "$PLACEHOLDER" -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$@"
+  xargs -r -I "$PLACEHOLDER" -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$@"
 }
 
 xargs_shell() {
@@ -128,7 +128,7 @@ xargs_shell() {
   local PLACEHOLDER="$1"
   shift
   # shellcheck disable=SC2086
-  xargs -r -n 1 -I "$PLACEHOLDER" "$SHELL" $SHELL_XTRACE "$@"
+  xargs -r -I "$PLACEHOLDER" "$SHELL" $SHELL_XTRACE "$@"
 }
 
 urlencode() {

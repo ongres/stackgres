@@ -486,9 +486,10 @@ get_already_passed_tests() {
 }
 
 store_test_results() {
+  E2E_SUFFIX="${E2E_SUFFIX:-$(printf '%s%x-%s' - "$(date +%s)" "$(random_string_lowercase 3)")}"
+
   [ -n "$E2E_TEST_REGISTRY" ] \
     && [ -n "$E2E_TEST_REGISTRY_PATH" ] \
-    && [ -n "$E2E_SUFFIX" ] \
     && true || false
 
   cat << EOF > "$TARGET_PATH/Dockerfile.e2e"

@@ -176,6 +176,10 @@ public abstract class DbOpsJob implements JobFactory {
                     new EnvVarBuilder()
                         .withName("CURRENT_RETRY")
                         .withValue(retries)
+                        .build(),
+                    new EnvVarBuilder()
+                        .withName("HOME")
+                        .withValue("/tmp")
                         .build())
                 .addAll(Seq.of(DbOpsStatusCondition.values())
                     .map(c -> new EnvVarBuilder()
@@ -240,6 +244,10 @@ public abstract class DbOpsJob implements JobFactory {
                         new EnvVarBuilder()
                             .withName("TIMEOUT")
                             .withValue(timeout)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("HOME")
+                            .withValue("/tmp")
                             .build())
                     .addAll(runEnvVars)
                     .build())

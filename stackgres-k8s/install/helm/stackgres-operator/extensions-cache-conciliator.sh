@@ -629,7 +629,7 @@ apply_extension_cache_retention_policy() {
   [ "$1" -ge 0 ] && true || false
   local REQUIRED_BYTES="$1"
   local AVAILABLE_BYTES BLOCK_SIZE REQUIRED_BYTES_WITH_BLOCK_SIZE
-  AVAILABLE_BYTES="$(df -B 1 . | tail -n 1 | tr '[:space:]' ':' | cut -d : -f 4)"
+  AVAILABLE_BYTES="$(df -B 1 . | tail -n 1 | tr -s '[:space:]' ':' | cut -d : -f 4)"
   BLOCK_SIZE="$(stat -fc '%s' .)"
   REQUIRED_BYTES_WITH_BLOCK_SIZE="$((REQUIRED_BYTES + BLOCK_SIZE))"
   if [ "$AVAILABLE_BYTES" -lt "$REQUIRED_BYTES_WITH_BLOCK_SIZE" ]
