@@ -38,6 +38,10 @@ public class StackGresClusterStatus implements KubernetesResource {
   @Valid
   private StackGresClusterDbOpsStatus dbOps;
 
+  @JsonProperty("managedSql")
+  @Valid
+  private StackGresClusterManagedSqlStatus managedSql;
+
   @JsonProperty("arch")
   private String arch;
 
@@ -71,6 +75,14 @@ public class StackGresClusterStatus implements KubernetesResource {
     this.dbOps = dbOps;
   }
 
+  public StackGresClusterManagedSqlStatus getManagedSql() {
+    return managedSql;
+  }
+
+  public void setManagedSql(StackGresClusterManagedSqlStatus managedSql) {
+    this.managedSql = managedSql;
+  }
+
   public String getArch() {
     return arch;
   }
@@ -97,7 +109,7 @@ public class StackGresClusterStatus implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(arch, conditions, dbOps, labelPrefix, os, podStatuses);
+    return Objects.hash(arch, conditions, dbOps, labelPrefix, managedSql, os, podStatuses);
   }
 
   @Override
@@ -111,7 +123,8 @@ public class StackGresClusterStatus implements KubernetesResource {
     StackGresClusterStatus other = (StackGresClusterStatus) obj;
     return Objects.equals(arch, other.arch) && Objects.equals(conditions, other.conditions)
         && Objects.equals(dbOps, other.dbOps) && Objects.equals(labelPrefix, other.labelPrefix)
-        && Objects.equals(os, other.os) && Objects.equals(podStatuses, other.podStatuses);
+        && Objects.equals(managedSql, other.managedSql) && Objects.equals(os, other.os)
+        && Objects.equals(podStatuses, other.podStatuses);
   }
 
   @Override

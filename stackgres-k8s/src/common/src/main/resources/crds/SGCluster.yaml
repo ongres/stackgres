@@ -689,6 +689,30 @@ spec:
 
                               When provided will indicate were the backups and WAL files will be stored.
                         required: ["sgObjectStorage"]
+                managedSql:
+                  type: object
+                  description: |
+                    This section allow to reference SQL scripts that will be applied to the cluster live.
+                  properties:
+                    continueOnSGScriptError:
+                      type: boolean
+                      description: If true, when any entry of any `SGScript` fail will not prevent subsequent `SGScript` from being executed. By default is `false`.
+                    scripts:
+                      type: array
+                      description: |
+                        A list of script references that will be executed in sequence.
+                      items:
+                        type: object
+                        description: |
+                          A script reference. Each version of each entry of the script referenced will be executed exactly once following the sequence defined
+                           in the referenced script and skipping any script entry that have already been executed.
+                        properties:
+                          id:
+                            type: integer
+                            description: The id is immutable and must be unique across all the `SGScript` entries. It is replaced by the operator and is used to identify the `SGScript` entry.
+                          sgScript:
+                            type: string
+                            description: A reference to an `SGScript`
                 initialData:
                   type: object
                   description: Cluster initialization data options. Cluster may be initialized empty, or from a backup restoration. Specifying scripts to run on the database after cluster creation is also possible.
@@ -732,10 +756,14 @@ spec:
                     scripts:
                       type: array
                       description: |
+                        **Deprecated** use instead .spec.managedSql with SGScript.
+
                         A list of SQL scripts executed in sequence, exactly once, when the database is bootstrap and/or after restore is completed.
                       items:
                         type: object
                         description: |
+                          **Deprecated** use instead .spec.managedSql with SGScript.
+
                           Scripts are executed in auto-commit mode with the user `postgres` in the specified database (or in database `postgres` if not specified).
 
                           Fields `script` and `scriptFrom` are mutually exclusive and only one of them is required.
@@ -1041,3 +1069,50 @@ spec:
                 labelPrefix:
                   type: string
                   description: The custom prefix that is prepended to all labels.
+                managedSql:
+                  type: object
+                  description: |
+                    This section store the state of referenced SQL scripts that are applied to the cluster live.
+                  properties:
+                    lastId:
+                      type: integer
+                      description: The latest assigned `SGScript` entry id.
+                    scripts:
+                      type: array
+                      description: A list of statues for script references.
+                      items:
+                        type: object
+                        description: The status of a script reference.
+                        properties:
+                          id:
+                            type: integer
+                            description: Identify the associated `SGScript` entry with the same value in the `id` field.
+                          startedAt:
+                            type: string
+                            description: ISO-8601 datetime of when the script execution has been started. Will be reset each time the referenced `SGScripts` will be re-applied.
+                          failedAt:
+                            type: string
+                            description: ISO-8601 datetime of when the script execution had failed (mutually exclusive with `completedAt`). Will be reset each time the referenced `SGScripts` will be re-applied.
+                          completedAt:
+                            type: string
+                            description: ISO-8601 datetime of when the script execution had completed (mutually exclusive with `failedAt`). Will be reset each time the referenced `SGScripts` will be re-applied.
+                          scripts:
+                            type: array
+                            description: A list of statues for script entries of referenced script.
+                            items:
+                              type: object
+                              description: The status of a script entry of a referenced script.
+                              properties:
+                                id:
+                                  type: integer
+                                  description: Identify the associated script entry with the same value in the `id` field.
+                                version:
+                                  type: integer
+                                  description: The latest version applied
+                                failureCode:
+                                  type: string
+                                  description: If failed, the error code of the failure. See also https://www.postgresql.org/docs/current/errcodes-appendix.html
+                                failure:
+                                  type: string
+                                  description: If failed, a message of the failure
+

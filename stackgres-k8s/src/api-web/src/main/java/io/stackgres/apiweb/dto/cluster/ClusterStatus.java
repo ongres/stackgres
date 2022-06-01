@@ -26,8 +26,15 @@ public class ClusterStatus {
   @JsonProperty("dbOps")
   private ClusterDbOpsStatus dbOps;
 
+  @JsonProperty("managedSql")
+  private ClusterManagedSqlStatus managedSql;
+
   public List<ClusterCondition> getConditions() {
     return conditions;
+  }
+
+  public void setConditions(List<ClusterCondition> conditions) {
+    this.conditions = conditions;
   }
 
   public ClusterDbOpsStatus getDbOps() {
@@ -38,30 +45,34 @@ public class ClusterStatus {
     this.dbOps = dbOps;
   }
 
-  public void setConditions(List<ClusterCondition> conditions) {
-    this.conditions = conditions;
+  public ClusterManagedSqlStatus getManagedSql() {
+    return managedSql;
+  }
+
+  public void setManagedSql(ClusterManagedSqlStatus managedSql) {
+    this.managedSql = managedSql;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(conditions, dbOps, managedSql);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof ClusterStatus)) {
+      return false;
+    }
+    ClusterStatus other = (ClusterStatus) obj;
+    return Objects.equals(conditions, other.conditions) && Objects.equals(dbOps, other.dbOps)
+        && Objects.equals(managedSql, other.managedSql);
   }
 
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterStatus that = (ClusterStatus) o;
-    return Objects.equals(conditions, that.conditions)
-        && Objects.equals(dbOps, that.dbOps);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(conditions, dbOps);
   }
 }
