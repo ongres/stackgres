@@ -2,11 +2,11 @@
 	<div id="grafana" v-if="iCanLoad">
 		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 			<div class="content grafana">
-				<template v-if="cluster.data.pods.length">
+				<template v-if="cluster.data.pods.length && cluster.data.pods.filter(p => (p.status == 'Active')).length">
 					<iframe v-if="grafanaUrl.length" :src="(grafanaUrl + (($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? $route.params.pod : selectedNode) + ($route.params.hasOwnProperty('range') ? timeRangeOptions[timeRange].range : ''))" id="grafana"></iframe>
 				</template>
-				<div v-else class="no-data">
-					No pods yet available
+				<div v-else class="warningText">
+					No active pods have been found for this cluster
 				</div>
 			</div>
 		</template>
