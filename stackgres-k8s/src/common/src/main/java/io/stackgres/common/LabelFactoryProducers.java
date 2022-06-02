@@ -9,7 +9,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 
 import io.quarkus.arc.DefaultBean;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 
 @ApplicationScoped
@@ -25,6 +27,18 @@ public class LabelFactoryProducers {
   @DefaultBean
   LabelFactoryForCluster<StackGresDistributedLogs>
       labelForDistributedLogs(DistributedLogsLabelFactory factory) {
+    return factory;
+  }
+
+  @Produces
+  @DefaultBean
+  LabelFactory<StackGresBackup> labelForBackup(BackupLabelFactory factory) {
+    return factory;
+  }
+
+  @Produces
+  @DefaultBean
+  LabelFactory<StackGresDbOps> labelForDbOps(DbOpsLabelFactory factory) {
     return factory;
   }
 }
