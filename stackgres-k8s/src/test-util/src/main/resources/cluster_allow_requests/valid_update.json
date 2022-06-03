@@ -61,18 +61,7 @@
             "fromBackup": {
               "name": "backup-with-default-storage-0-296"
             }
-          },
-          "scripts": [{
-            "name": "test",
-            "script": "CREATE DATABASE test;"
-          },{
-            "scriptFrom": {
-              "secretKeyRef": {
-                "name": "test",
-                "key": "test"
-              }
-            }
-          }]
+          }
         },
         "configurations": {
           "sgPostgresConfig": "postgresconf",
@@ -120,18 +109,7 @@
             "fromBackup": {
               "name": "backup-with-default-storage-0-296"
             }
-          },
-          "scripts": [{
-            "name": "test",
-            "script": "CREATE DATABASE test;"
-          },{
-            "scriptFrom": {
-              "secretKeyRef": {
-                "name": "test",
-                "key": "test"
-              }
-            }
-          }]
+          }
         },
         "configurations": {
           "sgPostgresConfig": "postgresconf",

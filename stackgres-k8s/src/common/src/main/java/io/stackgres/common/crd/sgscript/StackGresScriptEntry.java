@@ -6,6 +6,7 @@
 package io.stackgres.common.crd.sgscript;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
@@ -101,12 +102,22 @@ public class StackGresScriptEntry {
     return database;
   }
 
+  @JsonIgnore
+  public String getDatabaseOrDefault() {
+    return Optional.ofNullable(database).orElse("postgres");
+  }
+
   public void setDatabase(String database) {
     this.database = database;
   }
 
   public String getUser() {
     return user;
+  }
+
+  @JsonIgnore
+  public String getUserOrDefault() {
+    return Optional.ofNullable(user).orElse("postgres");
   }
 
   public void setUser(String user) {

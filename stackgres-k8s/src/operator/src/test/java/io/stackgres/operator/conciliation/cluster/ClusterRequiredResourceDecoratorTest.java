@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.cluster;
 import static java.util.Optional.ofNullable;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -71,7 +70,6 @@ class ClusterRequiredResourceDecoratorTest
         .backupConfig(backupConfig)
         .poolingConfig(pooling)
         .prometheus(new Prometheus(false, null))
-        .internalScripts(List.of(getTestInitScripts()))
         .databaseCredentials(secret)
         .build();
   }

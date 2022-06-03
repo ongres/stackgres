@@ -16,13 +16,24 @@ import javax.validation.constraints.NotNull;
 @Singleton
 public class PostgresConnectionManager {
 
-  public Connection getConnection(@NotNull String host, @NotNull String database,
-      @NotNull String username, @NotNull String password)
+  public Connection getConnection(@NotNull String host, @NotNull int port, @NotNull String database,
+      @NotNull String username, @NotNull String password) throws SQLException {
+    Properties properties = new Properties();
+    properties.setProperty("user", username);
+    properties.setProperty("password", password);
+    return DriverManager.getConnection(
+        "jdbc:postgresql://" + host + ":" + port + "/" + database, properties);
+  }
+
+  public Connection getUnixConnection(@NotNull String host, @NotNull int port,
+      @NotNull String database, @NotNull String username, @NotNull String password)
       throws SQLException {
     Properties properties = new Properties();
     properties.setProperty("user", username);
     properties.setProperty("password", password);
-    return DriverManager.getConnection("jdbc:postgresql://" + host + "/" + database, properties);
+    properties.setProperty("socketFactory", PostgresUnixSocketFactory.class.getName());
+    return DriverManager.getConnection(
+        "jdbc:postgresql://" + host + ":" + port + "/" + database, properties);
   }
 
 }

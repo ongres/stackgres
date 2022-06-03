@@ -12,10 +12,10 @@ import java.util.Random;
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Null;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 
-import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -30,7 +30,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationGroup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitr;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresFeatureGates;
@@ -103,241 +102,6 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
 
     checkErrorCause(StackGresPodPersistentVolume.class, "spec.pods.persistentVolume.size",
         review, Pattern.class);
-  }
-
-  @Test
-  void validScript_shouldPass() throws ValidationFailed {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScript("SELECT 1");
-
-    validator.validate(review);
-  }
-
-  @Test
-  void missingScript_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-
-    checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[] {"spec.initialData.scripts[0].script",
-            "spec.initialData.scripts[0].scriptFrom"},
-        "isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
-  }
-
-  @Test
-  void validScriptAndScriptFrom_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScript("SELECT 1");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .setConfigMapKeyRef(new ConfigMapKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getConfigMapKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getConfigMapKeyRef().setKey("test");
-
-    checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[] {"spec.initialData.scripts[0].script",
-            "spec.initialData.scripts[0].scriptFrom"},
-        "isScriptMutuallyExclusiveAndRequired", review, AssertTrue.class);
-  }
-
-  @Test
-  void scriptWithEmptyDatabaseName_shouldFail() throws ValidationFailed {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).setDatabase("");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScript("SELECT 1");
-
-    checkErrorCause(StackGresClusterScriptEntry.class,
-        new String[] {"spec.initialData.scripts[0].database"},
-        "isDatabaseNameNonEmpty", review, AssertTrue.class);
-  }
-
-  @Test
-  void validScriptFromConfigMap_shouldPass() throws ValidationFailed {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .setConfigMapKeyRef(new ConfigMapKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getConfigMapKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getConfigMapKeyRef().setKey("test");
-
-    validator.validate(review);
-  }
-
-  @Test
-  void validScriptFromSecret_shouldPass() throws ValidationFailed {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .setSecretKeyRef(new SecretKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getSecretKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getSecretKeyRef().setKey("test");
-
-    validator.validate(review);
-  }
-
-  @Test
-  void missingScriptFrom_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScriptFrom(new StackGresClusterScriptFrom());
-
-    checkErrorCause(StackGresClusterScriptFrom.class,
-        new String[] {"spec.initialData.scripts[0].scriptFrom.secretKeyRef",
-            "spec.initialData.scripts[0].scriptFrom.configMapKeyRef"},
-        "isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
-        review, AssertTrue.class);
-  }
-
-  @Test
-  void validScriptFromConfigMapAndSecret_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .setConfigMapKeyRef(new ConfigMapKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getConfigMapKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getConfigMapKeyRef().setKey("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .setSecretKeyRef(new SecretKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getSecretKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getSecretKeyRef().setKey("test");
-
-    checkErrorCause(StackGresClusterScriptFrom.class,
-        new String[] {"spec.initialData.scripts[0].scriptFrom.secretKeyRef",
-            "spec.initialData.scripts[0].scriptFrom.configMapKeyRef"},
-        "isSecretKeySelectorAndConfigMapKeySelectorMutuallyExclusiveAndRequired",
-        review, AssertTrue.class);
-  }
-
-  @Test
-  void scriptFromConfigMapWithEmptyKey_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .setConfigMapKeyRef(new ConfigMapKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getConfigMapKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getConfigMapKeyRef().setKey("");
-
-    checkErrorCause(SecretKeySelector.class,
-        "spec.initialData.scripts[0].scriptFrom.configMapKeyRef.key",
-        "isKeyNotEmpty", review, AssertTrue.class);
-  }
-
-  @Test
-  void scriptFromConfigMapWithEmptyName_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .setConfigMapKeyRef(new ConfigMapKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getConfigMapKeyRef().setName("");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getConfigMapKeyRef().setKey("test");
-
-    checkErrorCause(SecretKeySelector.class,
-        "spec.initialData.scripts[0].scriptFrom.configMapKeyRef.name",
-        "isNameNotEmpty", review, AssertTrue.class);
-  }
-
-  @Test
-  void scriptFromSecretWithEmptyKey_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .setSecretKeyRef(new SecretKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getSecretKeyRef().setName("test");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getSecretKeyRef().setKey("");
-
-    checkErrorCause(SecretKeySelector.class,
-        "spec.initialData.scripts[0].scriptFrom.secretKeyRef.key",
-        "isKeyNotEmpty", review, AssertTrue.class);
-  }
-
-  @Test
-  void scriptFromSecretWithEmptyName_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScriptFrom(new StackGresClusterScriptFrom());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .setSecretKeyRef(new SecretKeySelector());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getSecretKeyRef().setName("");
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0).getScriptFrom()
-        .getSecretKeyRef().setKey("test");
-
-    checkErrorCause(SecretKeySelector.class,
-        "spec.initialData.scripts[0].scriptFrom.secretKeyRef.name",
-        "isNameNotEmpty", review, AssertTrue.class);
   }
 
   @Test
@@ -869,6 +633,20 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     checkErrorCause(StackGresClusterBackupConfiguration.class,
         "spec.configurations.backups[0].sgObjectStorage",
         review, NotNull.class, "must not be null");
+  }
+
+  @Test
+  void notNullInitialDataScripts_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setInitData(new StackGresClusterInitData());
+    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getInitData().getScripts()
+        .add(new StackGresClusterScriptEntry());
+    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
+        .setScript("SELECT 1");
+
+    checkErrorCause(StackGresClusterInitData.class, "spec.initialData.scripts",
+        review, Null.class);
   }
 
 }

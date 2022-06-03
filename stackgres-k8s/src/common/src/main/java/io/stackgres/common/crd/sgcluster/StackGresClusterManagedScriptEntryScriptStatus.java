@@ -18,7 +18,7 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresClusterManagedScriptEntryScriptsStatus {
+public class StackGresClusterManagedScriptEntryScriptStatus {
 
   @JsonProperty("id")
   @NotNull(message = "id can not be null")
@@ -76,11 +76,11 @@ public class StackGresClusterManagedScriptEntryScriptsStatus {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresClusterManagedScriptEntryScriptsStatus)) {
+    if (!(obj instanceof StackGresClusterManagedScriptEntryScriptStatus)) {
       return false;
     }
-    StackGresClusterManagedScriptEntryScriptsStatus other =
-        (StackGresClusterManagedScriptEntryScriptsStatus) obj;
+    StackGresClusterManagedScriptEntryScriptStatus other =
+        (StackGresClusterManagedScriptEntryScriptStatus) obj;
     return Objects.equals(failure, other.failure) && Objects.equals(failureCode, other.failureCode)
         && Objects.equals(id, other.id) && Objects.equals(version, other.version);
   }

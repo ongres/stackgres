@@ -5,6 +5,7 @@
 
 package io.stackgres.cluster.common;
 
+import static io.stackgres.operatorframework.resource.EventReason.Type.NORMAL;
 import static io.stackgres.operatorframework.resource.EventReason.Type.WARNING;
 
 import io.stackgres.common.StackGresContainer;
@@ -12,6 +13,8 @@ import io.stackgres.operatorframework.resource.EventReason;
 
 public enum ClusterControllerEventReason implements EventReason {
 
+  CLUSTER_MANAGED_SQL(NORMAL, "ClusterManagedSql"),
+  CLUSTER_MANAGED_SQL_ERROR(WARNING, "ClusterManagedSqlFailed"),
   CLUSTER_CONTROLLER_ERROR(WARNING, "ClusterControllerFailed");
 
   private final Type type;

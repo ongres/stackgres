@@ -50,12 +50,15 @@
         "managedSql": {
           "scripts": [{
             "id": 0,
-            "sgScript": "test1"
+            "sgScript": "stackgres-default"
           },{
             "id": 1,
-            "sgScript": "test2"
+            "sgScript": "test1"
           },{
             "id": 2,
+            "sgScript": "test2"
+          },{
+            "id": 3,
             "sgScript": "test3"
           }]
         },
@@ -73,18 +76,7 @@
             "fromBackup": {
               "name": "backup-with-default-storage-0-296"
             }
-          },
-          "scripts": [{
-            "name": "test",
-            "script": "CREATE DATABASE test;"
-          },{
-            "scriptFrom": {
-              "secretKeyRef": {
-                "name": "test",
-                "key": "test"
-              }
-            }
-          }]
+          }
         },
         "configurations": {
           "sgPostgresConfig": "postgresconf",
@@ -107,18 +99,19 @@
       },
       "status": {
         "managedSql": {
-          "lastId": 2,
           "scripts": [{
-            "id": 0,
+            "id": 0
+          },{
+            "id": 1,
             "scripts": [{
               "id": 0,
               "version": 0
             }]
           },{
-            "id": 1,
+            "id": 2,
             "scripts": []
           },{
-            "id": 2
+            "id": 3
           }]
         }
       }
@@ -137,12 +130,15 @@
         "managedSql": {
           "scripts": [{
             "id": 0,
-            "sgScript": "test1"
+            "sgScript": "stackgres-default"
           },{
             "id": 1,
-            "sgScript": "test2"
+            "sgScript": "test1"
           },{
             "id": 2,
+            "sgScript": "test2"
+          },{
+            "id": 3,
             "sgScript": "test3"
           }]
         },
@@ -160,18 +156,7 @@
             "fromBackup": {
               "name": "backup-with-default-storage-0-296"
             }
-          },
-          "scripts": [{
-            "name": "test",
-            "script": "CREATE DATABASE test;"
-          },{
-            "scriptFrom": {
-              "secretKeyRef": {
-                "name": "test",
-                "key": "test"
-              }
-            }
-          }]
+          }
         },
         "configurations": {
           "sgPostgresConfig": "postgresconf",
@@ -194,18 +179,19 @@
       },
       "status": {
         "managedSql": {
-          "lastId": 2,
           "scripts": [{
-            "id": 0,
+            "id": 0
+          },{
+            "id": 1,
             "scripts": [{
               "id": 0,
               "version": 0
             }]
           },{
-            "id": 1,
+            "id": 2,
             "scripts": []
           },{
-            "id": 2
+            "id": 3
           }]
         }
       }

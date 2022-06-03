@@ -146,10 +146,8 @@ public class PatroniReconciliator {
     if (podReplicationRole.isEmpty()) {
       return false;
     }
-    final boolean statusUpdated =
-        setPodReplicatinGroupInClusterStatus(cluster, podReplicationRole.get().v2.intValue());
     final Map<String, String> tagsMap =
-        getPatroniTagsForReplicationRole(podReplicationRole.get().v1);
+        getPatroniTagsForReplicationRole(podReplicationRole.get());
     final String tags = getTagsAsYamlString(tagsMap);
     boolean needsUpdate = Seq.seq(Files.readAllLines(PATRONI_CONF_PATH))
         .filter(line -> TAGS_LINE_PATTERN.matcher(line).matches())
