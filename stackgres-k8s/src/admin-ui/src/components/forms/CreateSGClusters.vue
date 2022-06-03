@@ -198,9 +198,7 @@
                     <div class="row-50">
                         <h3>Monitoring</h3>
                         <p>
-                            By enabling Monitoring, you are enabling Prometheus metrics scraping via service monitors.
-                            <strong>Please keep in mind that by setting Monitoring to true, you are automatically setting Metrics Exporter and Prometheus Autobind to true.</strong>
-                            You can find these options under the Sidecars section when Advanced Mode is enabled.
+                            By enabling Monitoring, you are activating metrics scrapping via service monitors, which is done by enabling both, Prometheus Autobind and Metrics Exporter. Such options can be found on the <a @click="advancedMode = true">Advanced Mode</a> under the <a @click="(advancedMode = true) && (currentStep = 'sidecars')">Sidecars</a> section.
                         </p>
                         <div class="col">
                             <label>Monitoring</label>  
@@ -503,6 +501,10 @@
                             </label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.prometheusAutobind')"></span>
                         </div>
+                    </div>
+
+                    <div class="warning noMarginTop" v-if="!enableMonitoring">
+                        In order to enable Monitoring, you need to set both options to true.
                     </div>
 
                     <hr/>
@@ -2794,6 +2796,10 @@
 
     .noMargin {
         margin-bottom: -20px;
+    }
+
+    .noMarginTop {
+        margin-top: -20px;
     }
 
 </style>
