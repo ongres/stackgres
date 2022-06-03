@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Null;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,7 +27,8 @@ public class StackGresClusterInitData {
   private StackGresClusterRestore restore;
 
   @JsonProperty("scripts")
-  @Valid
+  @Null(message = "scripts section is deprecated,"
+      + " please use .spec.managedSql.scripts section instead.")
   private List<StackGresClusterScriptEntry> scripts;
 
   public StackGresClusterRestore getRestore() {

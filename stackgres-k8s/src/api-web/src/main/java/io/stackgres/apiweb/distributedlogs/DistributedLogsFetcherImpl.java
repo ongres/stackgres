@@ -26,6 +26,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
@@ -127,7 +128,7 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
         .orElseThrow(() -> new NotFoundException(
             "Secret with username and password for user postgres can not be found."));
     return postgresConnectionManager.getConnection(
-        serviceName + "." + namespace,
+        serviceName + "." + namespace, EnvoyUtil.PG_PORT,
         FluentdUtil.databaseName(
             cluster.getMetadata().getNamespace(),
             cluster.getMetadata().getName()),

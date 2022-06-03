@@ -1,0 +1,65 @@
+{
+    "apiVersion": "v1",
+    "kind": "Endpoints",
+    "metadata": {
+        "annotations": {
+            "acquireTime": "2022-06-03T12:22:25.564463+00:00",
+            "leader": "stackgres-0",
+            "optime": "50361736",
+            "renewTime": "2022-06-03T13:20:26.162914+00:00",
+            "stackgres.io/managed-by-server-side-apply": "true",
+            "transitions": "0",
+            "ttl": "30"
+        },
+        "creationTimestamp": "2022-06-03T12:22:07Z",
+        "labels": {
+            "app": "StackGresCluster",
+            "stackgres.io/cluster": "true",
+            "stackgres.io/cluster-name": "stackgres",
+            "stackgres.io/cluster-uid": "8786355a-8f85-484a-8a98-a90272e500e0"
+        },
+        "name": "stackgres",
+        "namespace": "default",
+        "ownerReferences": [
+            {
+                "apiVersion": "stackgres.io/v1",
+                "controller": true,
+                "kind": "SGCluster",
+                "name": "stackgres",
+                "uid": "8786355a-8f85-484a-8a98-a90272e500e0"
+            }
+        ],
+        "resourceVersion": "11237",
+        "uid": "957b6766-0b43-4ef0-ba95-ade01d78887e"
+    },
+    "subsets": [
+        {
+            "addresses": [
+                {
+                    "hostname": "stackgres-0",
+                    "ip": "192.168.55.39",
+                    "nodeName": "kind-web-control-plane",
+                    "targetRef": {
+                        "kind": "Pod",
+                        "name": "stackgres-0",
+                        "namespace": "default",
+                        "resourceVersion": "3031",
+                        "uid": "8cefd693-ee5c-4a38-921c-a2464ae0e83f"
+                    }
+                }
+            ],
+            "ports": [
+                {
+                    "name": "pgport",
+                    "port": 7432,
+                    "protocol": "TCP"
+                },
+                {
+                    "name": "pgreplication",
+                    "port": 7433,
+                    "protocol": "TCP"
+                }
+            ]
+        }
+    ]
+}

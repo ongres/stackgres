@@ -56,12 +56,6 @@
           "role": "ha-read"
         },
         "sgInstanceProfile": "size-xs",
-        "initialData": {
-          "scripts": [{
-            "name": "test",
-            "script": "CREATE DATABASE test;"
-          }]
-        },        
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf",
@@ -106,12 +100,6 @@
           "sgBackupConfig": "backupconf"
         },
         "sgInstanceProfile": "size-xs",
-        "initialData":{
-          "scripts": [{
-            "name": "test2",
-            "script": "CREATE DATABASE test2;"
-          }]
-        },
         "pods":{
           "persistentVolume": {
             "size": "5Gi",

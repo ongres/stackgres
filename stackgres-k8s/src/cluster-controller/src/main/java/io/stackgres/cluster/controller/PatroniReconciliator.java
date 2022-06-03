@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -148,7 +149,7 @@ public class PatroniReconciliator {
     if (podReplicationRole.isEmpty()) {
       return statusUpdated;
     }
-    final ImmutableMap<String, String> tagsMap =
+    final Map<String, String> tagsMap =
         getPatroniTagsForReplicationRole(podReplicationRole.get());
     final String tags = getTagsAsYamlString(tagsMap);
     boolean needsUpdate = Seq.seq(Files.readAllLines(PATRONI_CONF_PATH))
@@ -186,7 +187,7 @@ public class PatroniReconciliator {
     final StackGresClusterPodStatus podStatus =
         cluster.getStatus().getPodStatuses().stream()
         .filter(status -> status.getName().equals(podName))
-        .findAny().get();
+        .findAny().orElseThrow();
     boolean statusUpdated =
         !Objects.equals(podStatus.getReplicationGroup(), podReplicationGroupIndex);
     podStatus.setReplicationGroup(podReplicationGroupIndex);
@@ -212,23 +213,23 @@ public class PatroniReconciliator {
 
   @SuppressFBWarnings(value = "DB_DUPLICATE_SWITCH_CLAUSES",
       justification = "False positive")
-  private ImmutableMap<String, String> getPatroniTagsForReplicationRole(
+  private Map<String, String> getPatroniTagsForReplicationRole(
       final StackGresReplicationRole podReplicationRole) {
     switch (podReplicationRole) {
       case HA_READ:
-        return ImmutableMap.of(
+        return Map.of(
             NOFAILOVER_TAG, FALSE_TAG_VALUE,
             NOLOADBALANCE_TAG, FALSE_TAG_VALUE);
       case HA:
-        return ImmutableMap.of(
+        return Map.of(
             NOFAILOVER_TAG, FALSE_TAG_VALUE,
             NOLOADBALANCE_TAG, TRUE_TAG_VALUE);
       case READONLY:
-        return ImmutableMap.of(
+        return Map.of(
             NOFAILOVER_TAG, TRUE_TAG_VALUE,
             NOLOADBALANCE_TAG, FALSE_TAG_VALUE);
       case NONE:
-        return ImmutableMap.of(
+        return Map.of(
             NOFAILOVER_TAG, TRUE_TAG_VALUE,
             NOLOADBALANCE_TAG, TRUE_TAG_VALUE);
       default:
@@ -237,7 +238,7 @@ public class PatroniReconciliator {
     }
   }
 
-  private String getTagsAsYamlString(final ImmutableMap<String, String> tagsMap) {
+  private String getTagsAsYamlString(final Map<String, String> tagsMap) {
     return String.format("tags: { %s }",
         Seq.seq(tagsMap).map(t -> t.v1 + ": " + t.v2).toString(", "));
   }
@@ -276,7 +277,7 @@ public class PatroniReconciliator {
   }
 
   private void setPatroniTagsAsPodLabels(KubernetesClient client, final StackGresCluster cluster,
-      final ImmutableMap<String, String> tagsMap) {
+      final Map<String, String> tagsMap) {
     KubernetesClientUtil.retryOnConflict(() -> {
       Pod pod = client.pods()
           .inNamespace(cluster.getMetadata().getNamespace())
@@ -285,7 +286,7 @@ public class PatroniReconciliator {
       pod.getMetadata().setLabels(ImmutableMap.<String, String>builder()
           .putAll(Seq.seq(
               Optional.ofNullable(pod.getMetadata().getLabels())
-              .orElse(ImmutableMap.of())
+              .orElse(Map.of())
               .entrySet())
               .filter(entry -> tagsMap.keySet().stream().noneMatch(entry.getKey()::equals)))
           .putAll(tagsMap)

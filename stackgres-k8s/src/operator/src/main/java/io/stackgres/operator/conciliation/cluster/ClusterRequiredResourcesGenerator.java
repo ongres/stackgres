@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -21,14 +18,11 @@ import java.util.stream.Stream;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -37,14 +31,11 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.common.patroni.StackGresRandomPasswordKeys;
 import io.stackgres.common.prometheus.PrometheusConfig;
 import io.stackgres.common.prometheus.PrometheusConfigSpec;
 import io.stackgres.common.prometheus.PrometheusInstallation;
@@ -54,10 +45,7 @@ import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
-import org.jooq.lambda.Seq;
-import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,13 +168,6 @@ public class ClusterRequiredResourcesGenerator
         .poolingConfig(clusterPooling)
         .restoreBackup(restoreBackup)
         .prometheus(getPrometheus(config))
-        .internalScripts(Seq.of(getPostgresExporterInitScript())
-            .append(Seq.of(
-                getBabelfishUserScript(config),
-                getBabelfishDatabaseScript(),
-                getBabelfishInitDatabaseScript())
-                .filter(
-                    script -> getPostgresFlavorComponent(config) == StackGresComponent.BABELFISH)))
         .clusterBackupNamespaces(clusterBackupNamespaces)
         .databaseCredentials(secretFinder.findByNameAndNamespace(clusterName, clusterNamespace))
         .build();
@@ -218,48 +199,6 @@ public class ClusterRequiredResourcesGenerator
         .flatMap(backupName -> backupFinder.findByNameAndNamespace(backupName, clusterNamespace));
   }
 
-  private StackGresClusterScriptEntry getPostgresExporterInitScript() {
-    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
-    script.setName("prometheus-postgres-exporter-init");
-    script.setDatabase("postgres");
-    script.setScript(Unchecked.supplier(() -> Resources
-        .asCharSource(ClusterRequiredResourcesGenerator.class.getResource(
-            "/prometheus-postgres-exporter/init.sql"),
-            StandardCharsets.UTF_8)
-        .read()).get());
-    return script;
-  }
-
-  private StackGresClusterScriptEntry getBabelfishUserScript(StackGresCluster cluster) {
-    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
-    script.setName("babelfish-user");
-    script.setDatabase("postgres");
-    script.setScriptFrom(new StackGresClusterScriptFrom());
-    script.getScriptFrom().setSecretKeyRef(new SecretKeySelector(
-        StackGresRandomPasswordKeys.BABELFISH_CREATE_USER_SQL_KEY, PatroniSecret.name(cluster)));
-    return script;
-  }
-
-  private StackGresClusterScriptEntry getBabelfishDatabaseScript() {
-    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
-    script.setName("babelfish-database");
-    script.setDatabase("postgres");
-    script.setScript("CREATE DATABASE babelfish OWNER babelfish");
-    return script;
-  }
-
-  private StackGresClusterScriptEntry getBabelfishInitDatabaseScript() {
-    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
-    script.setName("babelfish-init");
-    script.setDatabase("babelfish");
-    script.setScript(Unchecked.supplier(() -> Resources
-        .asCharSource(ClusterRequiredResourcesGenerator.class.getResource(
-            "/babelfish/init.sql"),
-            StandardCharsets.UTF_8)
-        .read()).get());
-    return script;
-  }
-
   public Optional<Prometheus> getPrometheus(StackGresCluster cluster) {
     boolean isAutobindAllowed = operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND);
 
@@ -275,7 +214,7 @@ public class ClusterRequiredResourcesGenerator
       return prometheusConfigsOpt
           .map(prometheusConfigs -> prometheusConfigs.stream()
               .map(ClusterRequiredResourcesGenerator::toPrometheusInstallation)
-              .collect(Collectors.toUnmodifiableList()))
+              .toList())
           .map(installations -> new Prometheus(!installations.isEmpty(), installations));
 
     } else {

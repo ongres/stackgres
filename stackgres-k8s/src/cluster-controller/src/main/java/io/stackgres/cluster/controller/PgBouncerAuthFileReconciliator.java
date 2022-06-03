@@ -12,7 +12,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,10 +25,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
@@ -68,7 +67,7 @@ public class PgBouncerAuthFileReconciliator {
   }
 
   public void updatePgbouncerUsersInAuthFile(ClusterContext context)
-      throws IOException, SQLException, UnsupportedEncodingException {
+      throws IOException, SQLException {
     if (!fileSystemHandler.exists(ORIGINAL_AUTH_FILE_PATH)) {
       fileSystemHandler.copyOrReplace(AUTH_FILE_PATH, ORIGINAL_AUTH_FILE_PATH);
     }
@@ -107,21 +106,20 @@ public class PgBouncerAuthFileReconciliator {
         context.getCluster().getMetadata().getNamespace())
         .orElseThrow(() -> new RuntimeException("Can not find pool config "
             + context.getCluster().getSpec().getConfiguration().getConnectionPoolingConfig()));
-    Collection<String> users = Optional.of(poolingConfig)
+    return Optional.of(poolingConfig)
         .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
         .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getUsers)
         .<Collection<String>>map(Map::keySet)
-        .orElseGet(ImmutableList::of);
-    return users;
+        .orElseGet(List::of);
   }
 
   private String extractAuthFileSectionForUsers(String postgresPassword, Collection<String> users)
       throws SQLException {
     List<String> authFileUsersLines = new ArrayList<>();
     try (Connection connection = postgresConnectionManager.getConnection(
-        "localhost",
+        "localhost", EnvoyUtil.PG_PORT,
         "postgres",
         SUPERUSER_USER_NAME,
         postgresPassword);
@@ -135,10 +133,9 @@ public class PgBouncerAuthFileReconciliator {
         }
       }
     }
-    final String usersSection = "\n"
+    return "\n"
         + Seq.seq(authFileUsersLines).toString("\n")
         + "\n";
-    return usersSection;
   }
 
 }

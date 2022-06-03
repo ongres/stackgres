@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -23,8 +22,6 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -35,11 +32,8 @@ import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.GenerationContext;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.backup.BackupPerformance;
-import io.stackgres.operator.conciliation.factory.PatroniScriptsConfigMap;
 import org.immutables.value.Value;
 import org.jetbrains.annotations.NotNull;
-import org.jooq.lambda.Seq;
-import org.jooq.lambda.tuple.Tuple4;
 
 @Value.Immutable
 public interface StackGresClusterContext extends GenerationContext<StackGresCluster>,
@@ -69,32 +63,11 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   Optional<StackGresBackup> getRestoreBackup();
 
-  List<StackGresClusterScriptEntry> getInternalScripts();
-
   Optional<Prometheus> getPrometheus();
 
   Optional<Secret> getDatabaseCredentials();
 
   Set<String> getClusterBackupNamespaces();
-
-  @Value.Derived
-  default List<Tuple4<StackGresClusterScriptEntry, Long, String, Long>> getIndexedScripts() {
-    Seq<StackGresClusterScriptEntry> internalScripts = Seq.seq(getInternalScripts());
-    return internalScripts
-        .zipWithIndex()
-        .map(t -> t.concat(PatroniScriptsConfigMap.INTERNAL_SCRIPT))
-        .append(Seq.of(Optional.ofNullable(
-            getSource().getSpec().getInitData())
-            .map(StackGresClusterInitData::getScripts))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .flatMap(Collection::stream)
-            .zipWithIndex()
-            .map(t -> t.concat(PatroniScriptsConfigMap.SCRIPT)))
-        .zipWithIndex()
-        .map(t -> t.v1.concat(t.v2))
-        .toList();
-  }
 
   default Optional<String> getBackupPath() {
     Optional<@NotNull StackGresClusterConfiguration> config = Optional.of(getCluster())

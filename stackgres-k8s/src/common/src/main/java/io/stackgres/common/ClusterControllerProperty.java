@@ -19,7 +19,9 @@ public enum ClusterControllerProperty implements StackGresPropertyReader {
   CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER(
       "stackgres.clusterReconcilePgBouncer"),
   CLUSTER_CONTROLLER_RECONCILE_PATRONI(
-      "stackgres.clusterReconcilePatroni");
+      "stackgres.clusterReconcilePatroni"),
+  CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL(
+      "stackgres.clusterReconcileManagedSql");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(ClusterControllerProperty.class);

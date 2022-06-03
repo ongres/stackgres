@@ -5,14 +5,12 @@
 
 package io.stackgres.operator.conciliation;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -22,7 +20,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
@@ -30,11 +27,9 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.common.Prometheus;
-import io.stackgres.operator.conciliation.cluster.ClusterRequiredResourcesGenerator;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.testutil.GeneratorTestUtil;
-import org.jooq.lambda.Unchecked;
 import org.opentest4j.AssertionFailedError;
 
 public class GeneratedResourceMatcher {
@@ -72,21 +67,12 @@ public class GeneratedResourceMatcher {
   }
 
   private StackGresClusterContext buildContext() {
-    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
-    script.setName("prometheus-postgres-exporter-init");
-    script.setDatabase("postgres");
-    script.setScript(Unchecked.supplier(() -> Resources
-        .asCharSource(ClusterRequiredResourcesGenerator.class.getResource(
-                "/prometheus-postgres-exporter/init.sql"),
-            StandardCharsets.UTF_8)
-        .read()).get());
     return ImmutableStackGresClusterContext.builder()
         .source(cluster)
         .stackGresProfile(stackGresProfile)
         .postgresConfig(stackGresPostgresConfig)
         .databaseCredentials(Optional.ofNullable(databaseCredentials))
         .prometheus(new Prometheus(false, null))
-        .internalScripts(List.of(script))
         .build();
   }
 

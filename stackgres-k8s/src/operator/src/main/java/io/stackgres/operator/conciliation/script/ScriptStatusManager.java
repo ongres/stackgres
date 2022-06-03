@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.script;
 
+import static io.stackgres.common.ManagedSqlUtil.generateScriptEntryHash;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,9 +16,9 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
+import io.stackgres.common.crd.sgscript.StackGresScriptEntryStatus;
 import io.stackgres.common.crd.sgscript.StackGresScriptFrom;
 import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 import io.stackgres.common.crd.sgscript.StackGresScriptStatus;
@@ -64,23 +66,28 @@ public class ScriptStatusManager {
               statusEntry.getId(), scriptEntry.getId()))
           .findFirst()
           .orElseThrow();
-      final Integer version = scriptEntry.getVersion();
-      if (statusScriptEntry.getHash() == null) {
-        scriptEntry.setVersion(Optional.ofNullable(version).orElse(0));
-      } else if (!Objects.equals(hash, statusScriptEntry.getHash())) {
-        scriptEntry.setVersion(Optional.ofNullable(version).map(v -> v + 1).orElse(0));
+      if (Optional.of(source.getSpec())
+          .map(StackGresScriptSpec::isManagedVersions).orElse(true)) {
+        setScriptEntryVersion(scriptEntry, hash, statusScriptEntry);
       }
       statusScriptEntry.setHash(hash);
     }
     return source;
   }
 
+  private void setScriptEntryVersion(StackGresScriptEntry scriptEntry, final String hash,
+      StackGresScriptEntryStatus statusScriptEntry) {
+    final Integer version = scriptEntry.getVersion();
+    if (statusScriptEntry.getHash() == null) {
+      scriptEntry.setVersion(Optional.ofNullable(version).orElse(0));
+    } else if (!Objects.equals(hash, statusScriptEntry.getHash())) {
+      scriptEntry.setVersion(Optional.ofNullable(version).map(v -> v + 1).orElse(0));
+    }
+  }
+
   private Optional<String> generateHash(StackGresScript source, StackGresScriptEntry scriptEntry) {
     if (scriptEntry.getScript() != null) {
-      return Optional.of(StackGresUtil.getMd5Sum(
-          scriptEntry.getDatabase(),
-          scriptEntry.getUser(),
-          scriptEntry.getScript()));
+      return Optional.of(generateScriptEntryHash(scriptEntry, scriptEntry.getScript()));
     } else if (Optional.of(scriptEntry).map(StackGresScriptEntry::getScriptFrom)
         .map(StackGresScriptFrom::getConfigMapKeyRef).isPresent()) {
       return configMapFinder.findByNameAndNamespace(
@@ -88,10 +95,7 @@ public class ScriptStatusManager {
           source.getMetadata().getNamespace())
           .map(ConfigMap::getData)
           .map(data -> data.get(scriptEntry.getScriptFrom().getConfigMapKeyRef().getKey()))
-          .map(script -> StackGresUtil.getMd5Sum(
-              scriptEntry.getDatabase(),
-              scriptEntry.getUser(),
-              script));
+          .map(script -> generateScriptEntryHash(scriptEntry, script));
     } else if (Optional.of(scriptEntry).map(StackGresScriptEntry::getScriptFrom)
         .map(StackGresScriptFrom::getSecretKeyRef).isPresent()) {
       return secretFinder.findByNameAndNamespace(
@@ -100,10 +104,7 @@ public class ScriptStatusManager {
           .map(Secret::getData)
           .map(data -> data.get(scriptEntry.getScriptFrom().getSecretKeyRef().getKey()))
           .map(ResourceUtil::dencodeSecret)
-          .map(script -> StackGresUtil.getMd5Sum(
-              scriptEntry.getDatabase(),
-              scriptEntry.getUser(),
-              script));
+          .map(script -> generateScriptEntryHash(scriptEntry, script));
     } else {
       LOGGER.warn("Misconfigured script entry {}", getScriptId(source));
       return Optional.empty();

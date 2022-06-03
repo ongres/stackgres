@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.cluster.patroni.v12;
 
 import static io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
 
@@ -58,9 +58,11 @@ import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniDefaultScripts;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_3)
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_0, stopAt = StackGresVersion.V_1_2)
 @RunningContainer(ClusterRunningContainer.PATRONI)
 public class Patroni implements ContainerFactory<StackGresClusterContainerContext> {
 
@@ -74,6 +76,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   private final VolumeMountsProvider<ContainerContext> backupMounts;
   private final VolumeMountsProvider<StackGresClusterContainerContext> hugePagesMounts;
   private final VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
+  private final PatroniDefaultScripts patroniDefaultScripts;
 
   @Inject
   public Patroni(
@@ -91,7 +94,8 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
           VolumeMountsProvider<ContainerContext> backupMounts,
       @ProviderName(VolumeMountProviderName.HUGE_PAGES)
           VolumeMountsProvider<StackGresClusterContainerContext> hugePagesMounts,
-      VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer) {
+      VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer,
+      PatroniDefaultScripts patroniDefaultScripts) {
     super();
     this.patroniEnvironmentVariables = patroniEnvironmentVariables;
     this.requirementsFactory = requirementsFactory;
@@ -102,6 +106,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
     this.backupMounts = backupMounts;
     this.hugePagesMounts = hugePagesMounts;
     this.volumeDiscoverer = volumeDiscoverer;
+    this.patroniDefaultScripts = patroniDefaultScripts;
   }
 
   @Override
@@ -186,6 +191,20 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
                 .withContainerPort(EnvoyUtil.PATRONI_ENTRY_PORT)
                 .build())
         .withVolumeMounts(volumeMounts.build())
+        .addToVolumeMounts(
+            patroniDefaultScripts.getIndexedScripts(cluster).stream()
+                .map(t -> new VolumeMountBuilder()
+                    .withName(PatroniScriptsConfigMap.name(clusterContext, t))
+                    .withMountPath("/etc/patroni/init-script.d/"
+                        + PatroniScriptsConfigMap.scriptName(t))
+                    .withSubPath(t.v1.getScript() != null
+                        ? PatroniScriptsConfigMap.scriptName(t)
+                        : t.v1.getScriptFrom().getConfigMapKeyRef() != null
+                        ? t.v1.getScriptFrom().getConfigMapKeyRef().getKey()
+                        : t.v1.getScriptFrom().getSecretKeyRef().getKey())
+                    .withReadOnly(true)
+                    .build())
+                .toArray(VolumeMount[]::new))
         .withEnv(getEnvVars(context))
         .withEnvFrom(new EnvFromSourceBuilder()
             .withConfigMapRef(new ConfigMapEnvSourceBuilder()

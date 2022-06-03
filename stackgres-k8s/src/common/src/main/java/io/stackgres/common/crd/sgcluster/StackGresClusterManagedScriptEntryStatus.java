@@ -37,7 +37,7 @@ public class StackGresClusterManagedScriptEntryStatus {
 
   @JsonProperty("scripts")
   @Valid
-  private List<StackGresClusterManagedScriptEntryScriptsStatus> scripts;
+  private List<StackGresClusterManagedScriptEntryScriptStatus> scripts;
 
   public Integer getId() {
     return id;
@@ -71,11 +71,11 @@ public class StackGresClusterManagedScriptEntryStatus {
     this.completedAt = completedAt;
   }
 
-  public List<StackGresClusterManagedScriptEntryScriptsStatus> getScripts() {
+  public List<StackGresClusterManagedScriptEntryScriptStatus> getScripts() {
     return scripts;
   }
 
-  public void setScripts(List<StackGresClusterManagedScriptEntryScriptsStatus> scripts) {
+  public void setScripts(List<StackGresClusterManagedScriptEntryScriptStatus> scripts) {
     this.scripts = scripts;
   }
 

@@ -27,7 +27,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ResourceUtil;
-import io.stackgres.operator.conciliation.factory.PatroniScriptsConfigMap;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.v12.PatroniScriptsConfigMap;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceHandlerContext;
 import org.jetbrains.annotations.NotNull;
