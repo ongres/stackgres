@@ -95,6 +95,15 @@
                                         </li>
                                     </ul>
                                 </li>
+                                <li v-if="showDefaults || (!cluster.data.spec.pods.disableMetricsExporter && cluster.data.spec.prometheusAutobind)">
+                                    <strong class="sectionTitle">Monitoring</strong>
+                                    <ul>
+                                        <li>
+                                            <strong class="label">Enable:</strong>
+                                            <span class="value">{{ (!cluster.data.spec.pods.disableMetricsExporter && cluster.data.spec.prometheusAutobind) ? 'YES' : 'NO' }}</span>
+                                        </li>
+                                    </ul>
+                                </li>
                             </ul>
                         </li>
                     </ul>
