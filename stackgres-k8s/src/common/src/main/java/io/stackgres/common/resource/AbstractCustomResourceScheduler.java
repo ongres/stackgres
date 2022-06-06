@@ -58,24 +58,24 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
   public T update(T resource, BiConsumer<T, T> setter) {
     return KubernetesClientUtil.retryOnConflict(
         () -> {
-          T resourceOverwrite = getCustomResourceEndpoints()
+          T resourceToUpdate = getCustomResourceEndpoints()
               .inNamespace(resource.getMetadata().getNamespace())
               .withName(resource.getMetadata().getName())
               .get();
-          if (resourceOverwrite == null) {
-            throw new RuntimeException("Can not update status of resource "
+          if (resourceToUpdate == null) {
+            throw new RuntimeException("Can not update resource "
                 + resource.getKind()
                 + "." + resource.getGroup()
                 + " " + resource.getMetadata().getNamespace()
                 + "." + resource.getMetadata().getName()
                 + ": resource not found");
           }
-          setter.accept(resourceOverwrite, resource);
+          setter.accept(resourceToUpdate, resource);
           return getCustomResourceEndpoints()
               .inNamespace(resource.getMetadata().getNamespace())
               .withName(resource.getMetadata().getName())
-              .lockResourceVersion(resourceOverwrite.getMetadata().getResourceVersion())
-              .replace(resourceOverwrite);
+              .lockResourceVersion(resourceToUpdate.getMetadata().getResourceVersion())
+              .replace(resourceToUpdate);
         });
   }
 

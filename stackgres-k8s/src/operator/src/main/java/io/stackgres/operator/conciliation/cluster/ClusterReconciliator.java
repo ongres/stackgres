@@ -86,19 +86,19 @@ public class ClusterReconciliator
   public void onPostReconciliation(StackGresCluster config) {
     statusManager.refreshCondition(config);
 
-    clusterScheduler.updateStatus(config,
-        StackGresCluster::getStatus, (targetCluster, status) -> {
+    clusterScheduler.update(config,
+        (targetCluster, clusterWithStatus) -> {
           var targetPodStatuses = Optional.ofNullable(targetCluster.getStatus())
               .map(StackGresClusterStatus::getPodStatuses)
               .orElse(null);
           var targetDbOps = Optional.ofNullable(targetCluster.getStatus())
               .map(StackGresClusterStatus::getDbOps)
               .orElse(null);
-          if (status != null) {
-            status.setPodStatuses(targetPodStatuses);
-            status.setDbOps(targetDbOps);
+          if (clusterWithStatus.getStatus() != null) {
+            clusterWithStatus.getStatus().setPodStatuses(targetPodStatuses);
+            clusterWithStatus.getStatus().setDbOps(targetDbOps);
           }
-          targetCluster.setStatus(status);
+          targetCluster.setStatus(clusterWithStatus.getStatus());
         });
   }
 

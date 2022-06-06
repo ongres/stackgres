@@ -98,17 +98,19 @@ public class DistributedLogsControllerReconciliator
         || clusterReconciliationResult.result().orElse(false)) {
       final String podName = propertyContext.getString(
           DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME);
-      distributedLogsScheduler.updateStatus(context.getDistributedLogs(),
-          StackGresDistributedLogs::getStatus, (targetDistributedLogs, status) -> {
-            var podStatus = Optional.ofNullable(status)
+      distributedLogsScheduler.update(context.getDistributedLogs(),
+          (targetDistributedLogs, distributedLogsWithStatus) -> {
+            var podStatus = Optional.ofNullable(distributedLogsWithStatus.getStatus())
                 .map(StackGresDistributedLogsStatus::getPodStatuses)
                 .flatMap(podStatuses -> findPodStatus(podStatuses, podName))
                 .orElseThrow();
             if (targetDistributedLogs.getStatus() == null) {
               targetDistributedLogs.setStatus(new StackGresDistributedLogsStatus());
             }
-            targetDistributedLogs.getStatus().setArch(status.getArch());
-            targetDistributedLogs.getStatus().setOs(status.getOs());
+            targetDistributedLogs.getStatus().setArch(
+                distributedLogsWithStatus.getStatus().getArch());
+            targetDistributedLogs.getStatus().setOs(
+                distributedLogsWithStatus.getStatus().getOs());
             if (targetDistributedLogs.getStatus().getPodStatuses() == null) {
               targetDistributedLogs.getStatus().setPodStatuses(new ArrayList<>());
             }

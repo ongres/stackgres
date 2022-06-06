@@ -76,15 +76,15 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
     refreshConnectedClusters(config);
 
     statusManager.refreshCondition(config);
-    distributedLogsScheduler.updateStatus(config,
-        StackGresDistributedLogs::getStatus, (targetDistributedLogs, status) -> {
+    distributedLogsScheduler.update(config,
+        (targetDistributedLogs, distributedLogsWithStatus) -> {
           var targetPodStatuses = Optional.ofNullable(targetDistributedLogs.getStatus())
               .map(StackGresDistributedLogsStatus::getPodStatuses)
               .orElse(null);
-          if (status != null) {
-            status.setPodStatuses(targetPodStatuses);
+          if (distributedLogsWithStatus.getStatus() != null) {
+            distributedLogsWithStatus.getStatus().setPodStatuses(targetPodStatuses);
           }
-          targetDistributedLogs.setStatus(status);
+          targetDistributedLogs.setStatus(distributedLogsWithStatus.getStatus());
         });
   }
 
