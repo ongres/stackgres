@@ -101,17 +101,17 @@ public class ClusterControllerReconciliator
     if (podStatusMissing
         || extensionReconciliationResult.result().orElse(false)
         || patroniReconciliationResult.result().orElse(false)) {
-      clusterScheduler.updateStatus(cluster,
-          StackGresCluster::getStatus, (targetCluster, status) -> {
-            var podStatus = Optional.ofNullable(status)
+      clusterScheduler.update(cluster,
+          (targetCluster, clusterWithStatus) -> {
+            var podStatus = Optional.ofNullable(clusterWithStatus.getStatus())
                 .map(StackGresClusterStatus::getPodStatuses)
                 .flatMap(podStatuses -> findPodStatus(podStatuses, podName))
                 .orElseThrow();
             if (targetCluster.getStatus() == null) {
               targetCluster.setStatus(new StackGresClusterStatus());
             }
-            targetCluster.getStatus().setArch(status.getArch());
-            targetCluster.getStatus().setOs(status.getOs());
+            targetCluster.getStatus().setArch(clusterWithStatus.getStatus().getArch());
+            targetCluster.getStatus().setOs(clusterWithStatus.getStatus().getOs());
             if (targetCluster.getStatus().getPodStatuses() == null) {
               targetCluster.getStatus().setPodStatuses(new ArrayList<>());
             }

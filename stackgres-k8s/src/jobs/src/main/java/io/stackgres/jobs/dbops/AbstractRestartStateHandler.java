@@ -239,9 +239,9 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
             return initClusterDbOpsStatusValues(
                 clusterRestartState, tuple.getItem1(), tuple.getItem2())
                 .onItem()
-                .invoke(v -> clusterScheduler.updateStatus(tuple.getItem2(),
-                    StackGresCluster::getStatus, (targetCluster, status) -> {
-                      var dbOps = Optional.ofNullable(status)
+                .invoke(v -> clusterScheduler.update(tuple.getItem2(),
+                    (targetCluster, clusterWithStatus) -> {
+                      var dbOps = Optional.ofNullable(clusterWithStatus.getStatus())
                           .map(StackGresClusterStatus::getDbOps)
                           .orElse(null);
                       if (targetCluster.getStatus() == null) {
@@ -422,9 +422,9 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   protected Uni<StackGresCluster> cleanCluster(StackGresCluster cluster) {
     return Uni.createFrom().voidItem()
         .invoke(item -> cleanClusterStatus(cluster))
-        .map(item -> clusterScheduler.updateStatus(cluster,
-          StackGresCluster::getStatus, (targetCluster, status) -> {
-            var dbOps = Optional.ofNullable(status)
+        .map(item -> clusterScheduler.update(cluster,
+          (targetCluster, clusterWithStatus) -> {
+            var dbOps = Optional.ofNullable(clusterWithStatus.getStatus())
                 .map(StackGresClusterStatus::getDbOps)
                 .orElse(null);
             if (targetCluster.getStatus() == null) {
