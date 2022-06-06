@@ -198,11 +198,11 @@
                     <div class="row-50">
                         <h3>Monitoring</h3>
                         <p>
-                            By enabling Monitoring, you are activating metrics scrapping via service monitors, which is done by enabling both, Prometheus Autobind and Metrics Exporter. Such options can be found on the <a @click="advancedMode = true">Advanced Mode</a> under the <a @click="(advancedMode = true) && (currentStep = 'sidecars')">Sidecars</a> section.
+                            By enabling Monitoring, you are activating metrics scrapping via service monitors, which is done by enabling both, Prometheus Autobind and Metrics Exporter. Such options can be found on the <a @click="(advancedMode = true) && (currentStep = 'sidecars')">Advanced Mode under the Sidecars section</a>.
                         </p>
                         <div class="col">
                             <label>Monitoring</label>  
-                            <label for="enableMonitoring" class="switch">Enable<input type="checkbox" id="enableMonitoring" v-model="enableMonitoring" data-switch="ON" @change="checkenableMonitoring()"></label>
+                            <label for="enableMonitoring" class="switch yes-no">Enable<input type="checkbox" id="enableMonitoring" v-model="enableMonitoring" data-switch="ON" @change="checkenableMonitoring()"></label>
                             <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
                         </div>                  
                     </div>
@@ -489,22 +489,22 @@
 
                         <div class="col">
                             <label for="spec.pods.disableMetricsExporter">Metrics Exporter</label>  
-                            <label for="metricsExporter" class="switch">Metrics Exporter <input type="checkbox" id="metricsExporter" v-model="metricsExporter" data-switch="ON" @change="checkMetricsExporter()"></label>
+                            <label for="metricsExporter" class="switch yes-no">Enable <input type="checkbox" id="metricsExporter" v-model="metricsExporter" data-switch="YES" @change="checkMetricsExporter()"></label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disableMetricsExporter')"></span>
                         </div>
 
                         <div class="col">
                             <label for="spec.prometheusAutobind">Prometheus Autobind</label>  
-                            <label for="prometheusAutobind" class="switch">
-                                Prometheus Autobind
-                                <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="OFF" data-field="spec.prometheusAutobind" @change="checkPrometheusAutobind()">
+                            <label for="prometheusAutobind" class="switch yes-no">
+                                Enable
+                                <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="NO" data-field="spec.prometheusAutobind" @change="checkPrometheusAutobind()">
                             </label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.prometheusAutobind')"></span>
                         </div>
                     </div>
 
                     <div class="warning noMarginTop" v-if="!enableMonitoring">
-                        In order to enable Monitoring, you need to set both options to true.
+                        In order to enable monitoring from within the web console, both of these options should be enabled.
                     </div>
 
                     <hr/>
