@@ -2,7 +2,7 @@
 	<aside id="side" :class="currentPath.namespace" v-if="loggedIn && isReady">
 		<div id="ns-set">
 			<ul>
-				<li id="current-namespace">
+				<li id="current-namespace" @click="openNamespace = !openNamespace" :class="openNamespace && 'open'">
 					<span><svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg></span>
 					<h2>
 						<template v-if="!isCollapsed">
@@ -16,18 +16,20 @@
 					</h2>
 				</li>
 
-				<li><ul id="ns-select" tabindex="0" class="set namespaces">
-					<li>
-						<router-link :to="'/'" class="item">
-							Stackgres Namespaces
-						</router-link>
-					</li>
-					<template v-for="namespace in namespaces">
-						<li :class="{'active':(namespace == currentPath.namespace)}">
-							<router-link :to="'/' + namespace" class="item namespace" :class="(namespace == currentPath.namespace) ? 'router-link-exact-active' : ''" :title="namespace">{{ namespace }}</router-link>
+				<li>
+					<ul id="ns-select" tabindex="0" class="set namespaces" :class="openNamespace && 'open'">
+						<li>
+							<router-link :to="'/'" class="item">
+								Stackgres Namespaces
+							</router-link>
 						</li>
-					</template>
-				</ul></li>
+						<template v-for="namespace in namespaces">
+							<li :class="{'active':(namespace == currentPath.namespace)}">
+								<router-link :to="'/' + namespace" class="item namespace" :class="(namespace == currentPath.namespace) ? 'router-link-exact-active' : ''" :title="namespace">{{ namespace }}</router-link>
+							</li>
+						</template>
+					</ul>
+				</li>
 			</ul>
 		</div>
 
@@ -309,16 +311,12 @@
 		data: function() {
 
 			return {
+				openNamespace: false
 			}
 
 		},
 
 		created: function() {
-			$(document).on("click", "#current-namespace , #ns-select a", function(){
-				$("#current-namespace").toggleClass("open");
-				$("#ns-select").slideToggle();
-				$(".set.active").removeClass('active');
-			});
 
 			$(document).on("mouseover", ".set:not(.active), .collapsed .set", function(){
 				let offset = $(this).offset();
@@ -371,8 +369,7 @@
 			});
 
 			$(document).on("click", ".nav-item, .collapsed .nav-item", function(){
-				$("#current-namespace").removeClass('open');
-				$('#ns-select').slideUp();
+				$('#current-namespace, #ns-select').removeClass('open');
 				$(".crdSubmenu").removeClass("show");
 				$(".crdSubmenu").removeAttr('style'); 
 
@@ -484,9 +481,18 @@
 	#ns-select {
 		list-style: none;
 		line-height: 50px;
-		display: none;
+		max-height: 0;
+		overflow: hidden;
 		margin-top: -1px;
 		border-bottom: 1px solid var(--borderColor);
+		transition: max-height 0.3s ease-out;
+	}
+
+	#ns-select.open {
+		display: block;
+		height: auto;
+		max-height: 100vh;
+		transition: max-height 0.5s ease-out;
 	}
 
 	#ns-select a {
