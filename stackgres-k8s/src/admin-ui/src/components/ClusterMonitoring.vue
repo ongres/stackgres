@@ -3,6 +3,30 @@
 		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
 			<div class="content grafana">
 				<template v-if="cluster.data.pods.length && cluster.data.pods.filter(p => (p.status == 'Active')).length">
+					<div class="grafanaActions">
+						<select class="plain" id="timeRange" v-model="timeRange" @change="goTo('/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/monitor/' + selectedNode + '/' + timeRange)">
+							<option disabled value=""><strong>Choose time range</strong></option>
+							<option v-for="(time, id) in timeRangeOptions" :value="id">
+								{{ time.label }}
+							</option>
+						</select>
+
+						<select class="plain" v-model="selectedNode" @change="goTo('/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/monitor/' + selectedNode + '/' + timeRange)">
+							<option disabled value=""><strong>Choose node</strong></option>
+							<option v-for="pod in cluster.data.pods" v-if="pod.status == 'Active'" :value="pod.ip">
+								{{ pod.name }}
+								<template v-if="(pod.role == 'primary')"><span>(primary) </span></template>
+							</option>
+							<template v-if="cluster.data.pods.filter(p => (p.status != 'Active')).length">
+								<option disabled value="">--</option>
+								<option disabled value="">Inactive nodes:</option>
+								<option v-for="pod in cluster.data.pods" v-if="pod.status != 'Active'" :value="pod.ip" disabled>
+									{{ pod.name }}
+								</option>
+							</template>
+						</select>
+					</div>
+
 					<iframe v-if="grafanaUrl.length" :src="(grafanaUrl + (($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? $route.params.pod : selectedNode) + ($route.params.hasOwnProperty('range') ? timeRangeOptions[timeRange].range : ''))" id="grafana"></iframe>
 				</template>
 				<div v-else class="warningText">
@@ -141,43 +165,21 @@
 </script>
 
 <style scoped>
-	header select {
+	.grafana {
+		position: relative;
+	}
+
+	.grafanaActions {
 		position: absolute;
 		right: 0;
-		top: 102px;
-		background-position-x: 90%;
-		width: 160px;
+		top: -63px;
+	}
+
+	.grafanaActions select {
+		margin-left: 10px;
 		text-align: left;
 	}
-
-	header select.active {
-		background-color: var(--bgColor) !important;
-	}
-
-	select li.selected {
-		padding: 0;
-	}
-
-	select.active li.selected a {
-		background: var(--borderColor);
-	}
-
-	select.active li:first-child {
-		border-bottom: 1px solid var(--blue);
-	}
-
-	select.active li.selected {
-		border: 0;
-	}
-
-	select:not(.active) a:hover {
-		background: transparent;
-	}
-
-	#timeRange {
-		right: 170px;
-	}
-
+	
 	#timeRange.active {
 	    max-height: 40vh;
 		overflow-y: auto;

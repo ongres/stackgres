@@ -1663,7 +1663,7 @@ ul.tabs {
 .tabs li {
     display: block;
     float: left;
-    margin-right: 25px;
+    margin-right: 20px;
 }
 
 .tabs a {
