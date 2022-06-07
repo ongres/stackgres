@@ -141,7 +141,7 @@
                         <label for="disablePageSkippingVacuum" class="switch yes-no reverse" data-field="spec.vacuum.disablePageSkipping">
                             Enable
                             <input type="checkbox" id="disablePageSkippingVacuum" v-model="vacuum.disablePageSkipping" data-switch="ON"></label>
-                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping').replace('By default false', 'Enabled by default')"></span>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping').replace('Defaults to: `false`', 'Enabled by default')"></span>
                     </div>
 
                     <div class="col">
@@ -215,7 +215,7 @@
                                             <option :value="false">Enable</option>
                                             <option :value="true">Disable</option>
                                         </select>
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.databases.disablePageSkipping')"></span>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.databases.disablePageSkipping').replace('Defaults to: `false`', 'Enabled by default')"></span>
                                     </div>
                                 </div>
                             </fieldset>

@@ -109,7 +109,7 @@
                     <tr>
                         <td class="label">
                             Metrics Exporter
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.pods.disableMetricsExporter')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disableMetricsExporter').replace('If set to `true`', 'If disabled').replace('Recommended', 'Recommended to be disabled')"></span>
                         </td>
                         <td colspan="3">
                             <template v-if="!cluster.data.spec.pods.disableMetricsExporter">

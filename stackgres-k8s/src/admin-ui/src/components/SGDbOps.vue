@@ -800,11 +800,11 @@
                                     </tr>
                                     <tr>
                                         <td class="label">
-                                            Disable PageSkipping
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping')"></span> 
+                                            Page Skipping
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping').replace('Defaults to: `false`', 'Enabled by default')"></span> 
                                         </td>
                                         <td>
-                                            {{ op.data.spec.vacuum.hasOwnProperty('disablePageSkipping') ? op.data.spec.vacuum.disablePageSkipping : 'False' }}
+                                            {{ op.data.spec.vacuum.hasOwnProperty('disablePageSkipping') ? !op.data.spec.vacuum.disablePageSkipping : 'True' }}
                                         </td>
                                     </tr>
                                 </tbody>
@@ -916,11 +916,11 @@
                                     </tr>
                                     <tr v-if="db.hasOwnProperty('disablePageSkipping')">
                                         <td class="label">
-                                            Disable PageSkipping
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping')"></span> 
+                                            Page Skipping
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping').replace('Defaults to: `false`', 'Enabled by default')"></span> 
                                         </td>
                                         <td>
-                                            {{ db.hasOwnProperty('disablePageSkipping') ? db.disablePageSkipping : 'False' }}
+                                            {{ db.hasOwnProperty('disablePageSkipping') ? !db.disablePageSkipping : 'True' }}
                                         </td>
                                     </tr>
                                 </template>
