@@ -21,7 +21,10 @@
         computed: {
 
             loggedIn () {
-                return store.state.loginToken.length
+                if (store.state.hasOwnProperty('loginToken'))
+                    return store.state.loginToken.length > 0
+                else
+                    return false
             } 
 
         }
