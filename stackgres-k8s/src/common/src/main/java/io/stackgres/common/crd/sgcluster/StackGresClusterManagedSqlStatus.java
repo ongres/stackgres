@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,21 +21,9 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class StackGresClusterManagedSqlStatus {
 
-  @JsonProperty("lastId")
-  @NotNull(message = "lastId can not be null")
-  private Integer lastId;
-
   @JsonProperty("scripts")
   @Valid
   private List<StackGresClusterManagedScriptEntryStatus> scripts;
-
-  public Integer getLastId() {
-    return lastId;
-  }
-
-  public void setLastId(Integer lastId) {
-    this.lastId = lastId;
-  }
 
   public List<StackGresClusterManagedScriptEntryStatus> getScripts() {
     return scripts;
@@ -48,7 +35,7 @@ public class StackGresClusterManagedSqlStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hash(lastId, scripts);
+    return Objects.hash(scripts);
   }
 
   @Override
@@ -60,7 +47,7 @@ public class StackGresClusterManagedSqlStatus {
       return false;
     }
     StackGresClusterManagedSqlStatus other = (StackGresClusterManagedSqlStatus) obj;
-    return Objects.equals(lastId, other.lastId) && Objects.equals(scripts, other.scripts);
+    return Objects.equals(scripts, other.scripts);
   }
 
   @Override

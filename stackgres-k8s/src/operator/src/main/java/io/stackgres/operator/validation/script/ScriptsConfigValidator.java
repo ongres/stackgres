@@ -64,41 +64,12 @@ public class ScriptsConfigValidator implements ScriptValidator {
         .map(StackGresScript::getStatus)
         .map(StackGresScriptStatus::getScripts)
         .orElse(List.of());
-    if (review.getRequest().getOperation() == Operation.UPDATE) {
-      checkLastIdDoNotDecrease(review, script);
-    }
     if (review.getRequest().getOperation() == Operation.UPDATE
         || review.getRequest().getOperation() == Operation.CREATE) {
-      checkLastIdIsGreatherOrEqualsThanIds(script, scripts);
       checkIdsUniqueness(scripts);
       checkStatusIdsCorrelation(scripts, scriptsStatuses);
       checkSecretKeySelectors(review, scripts);
       checkConfigMapsSelectors(review, scripts);
-    }
-  }
-
-  private void checkLastIdDoNotDecrease(StackGresScriptReview review, StackGresScript script)
-      throws ValidationFailed {
-    if (Optional.of(review.getRequest().getOldObject())
-        .map(StackGresScript::getStatus)
-        .map(StackGresScriptStatus::getLastId)
-        .filter(oldLastId -> script.getStatus().getLastId().intValue() < oldLastId.intValue())
-        .isPresent()) {
-      fail(constraintViolationUri,
-          "Status lastId must not decrease");
-    }
-  }
-
-  private void checkLastIdIsGreatherOrEqualsThanIds(StackGresScript script,
-      List<StackGresScriptEntry> scripts) throws ValidationFailed {
-    final int lastId = script.getStatus().getLastId();
-    if (scripts.stream()
-        .collect(Collectors.groupingBy(StackGresScriptEntry::getId))
-        .keySet()
-        .stream()
-        .anyMatch(id -> id.intValue() > lastId)) {
-      fail(constraintViolationUri,
-          "Script entries ids must be less or equals than status lastId");
     }
   }
 

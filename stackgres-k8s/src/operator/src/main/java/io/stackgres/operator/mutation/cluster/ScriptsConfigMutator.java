@@ -69,14 +69,14 @@ public class ScriptsConfigMutator
         .map(StackGresClusterStatus::getManagedSql)
         .orElse(null);
     final boolean addDefaultScripts = addDefaultScripts(request, builder);
-    final boolean fillRequiredFields = fillRequiredFields(request, builder);
+    final boolean fillRequiredFields = fillRequiredFields(request);
     if (addDefaultScripts || fillRequiredFields) {
       if (managedSql == null) {
         builder.add(new AddOperation(MANAGED_SQL_POINTER,
-            FACTORY.pojoNode(managedSql)));
+            FACTORY.pojoNode(request.getObject().getSpec().getManagedSql())));
       } else {
         builder.add(new ReplaceOperation(MANAGED_SQL_POINTER,
-            FACTORY.pojoNode(managedSql)));
+            FACTORY.pojoNode(request.getObject().getSpec().getManagedSql())));
       }
     }
     final boolean updateScriptsStatuses = updateScriptsStatuses(request);
@@ -180,8 +180,7 @@ public class ScriptsConfigMutator
     return true;
   }
 
-  private boolean fillRequiredFields(AdmissionRequest<StackGresCluster> request,
-      ImmutableList.Builder<JsonPatchOperation> builder) {
+  private boolean fillRequiredFields(AdmissionRequest<StackGresCluster> request) {
     if (request.getOperation() == Operation.CREATE
         || request.getOperation() == Operation.UPDATE) {
       boolean result = false;
@@ -192,7 +191,7 @@ public class ScriptsConfigMutator
           .stream()
           .flatMap(List::stream)
           .map(StackGresClusterManagedScriptEntry::getId)
-          .reduce(-1, (last, id) -> last = id == null || last >= id ? last : id, (u, v) -> v);
+          .reduce(-1, (last, id) -> id == null || last >= id ? last : id, (u, v) -> v);
       for (StackGresClusterManagedScriptEntry scriptEntry : Optional.of(request.getObject())
           .map(StackGresCluster::getSpec)
           .map(StackGresClusterSpec::getManagedSql)
@@ -232,7 +231,7 @@ public class ScriptsConfigMutator
             .noneMatch(statusScript -> Objects.equals(
                 statusScript.getId(), script.getId())))
         .toList();
-    scriptsToAdd.forEach(scriptEntry -> addScriptStatusEntry(
+    scriptsToAdd.forEach(scriptEntry -> addScriptEntryStatus(
             scriptEntry, scriptsStatuses));
     var scriptsToRemove = Seq.seq(scriptsStatuses)
         .zipWithIndex()
@@ -250,12 +249,12 @@ public class ScriptsConfigMutator
     return !scriptsToAdd.isEmpty() || !scriptsToRemove.isEmpty();
   }
 
-  private void addScriptStatusEntry(StackGresClusterManagedScriptEntry scriptEntry,
+  private void addScriptEntryStatus(StackGresClusterManagedScriptEntry scriptEntry,
       List<StackGresClusterManagedScriptEntryStatus> scriptsStatuses) {
-    StackGresClusterManagedScriptEntryStatus statusScript =
+    StackGresClusterManagedScriptEntryStatus scriptEntryStatus =
         new StackGresClusterManagedScriptEntryStatus();
-    statusScript.setId(scriptEntry.getId());
-    scriptsStatuses.add(statusScript);
+    scriptEntryStatus.setId(scriptEntry.getId());
+    scriptsStatuses.add(scriptEntryStatus);
   }
 
 }

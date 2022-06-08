@@ -10,7 +10,7 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.apiweb.dto.script.ScriptDto;
 import io.stackgres.apiweb.dto.script.ScriptEntry;
@@ -26,10 +26,10 @@ import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 public class ScriptTransformer
     extends AbstractResourceTransformer<ScriptDto, StackGresScript> {
 
-  private final JsonMapper mapper;
+  private final ObjectMapper mapper;
 
   @Inject
-  public ScriptTransformer(JsonMapper mapper) {
+  public ScriptTransformer(ObjectMapper mapper) {
     super();
     this.mapper = mapper;
   }
@@ -73,7 +73,7 @@ public class ScriptTransformer
     return transformation;
   }
 
-  private StackGresScriptEntry getCustomResourceScriptEntry(
+  public StackGresScriptEntry getCustomResourceScriptEntry(
       ScriptEntry source) {
     if (source == null) {
       return null;

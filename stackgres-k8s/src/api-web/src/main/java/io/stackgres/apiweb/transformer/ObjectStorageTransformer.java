@@ -11,7 +11,7 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageStatus;
 import io.stackgres.apiweb.dto.storages.BackupStorageDto;
@@ -25,12 +25,12 @@ public class ObjectStorageTransformer
     extends AbstractDependencyResourceTransformer<ObjectStorageDto, StackGresObjectStorage> {
 
   private final Transformer<BackupStorageDto, BackupStorage> storageTransformer;
-  private final JsonMapper mapper;
+  private final ObjectMapper mapper;
 
   @Inject
   public ObjectStorageTransformer(
       Transformer<BackupStorageDto, BackupStorage> storageTransformer,
-      JsonMapper mapper) {
+      ObjectMapper mapper) {
     this.storageTransformer = storageTransformer;
     this.mapper = mapper;
   }

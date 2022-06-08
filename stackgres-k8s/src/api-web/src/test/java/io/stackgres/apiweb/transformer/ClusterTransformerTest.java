@@ -16,6 +16,8 @@ import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterExtension;
 import io.stackgres.apiweb.dto.cluster.ClusterInitData;
+import io.stackgres.apiweb.dto.cluster.ClusterManagedScriptEntry;
+import io.stackgres.apiweb.dto.cluster.ClusterManagedSql;
 import io.stackgres.apiweb.dto.cluster.ClusterNonProduction;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgres;
@@ -25,20 +27,20 @@ import io.stackgres.apiweb.dto.cluster.ClusterReplicationGroup;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
-import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationGroup;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
@@ -117,6 +119,14 @@ class ClusterTransformerTest {
     source.setInitData(initialData.source());
     target.setInitData(initialData.target());
 
+    var managedSql = createManagedSql();
+    source.setManagedSql(managedSql.getSource());
+    target.setManagedSql(managedSql.getTarget());
+
+    var managedSql = createManagedSql();
+    source.setManagedSql(managedSql.getSource());
+    target.setManagedSql(managedSql.getTarget());
+
     var distributedLogs = createDistributedLogs();
     source.setDistributedLogs(distributedLogs.source());
     target.setDistributedLogs(distributedLogs.target());
@@ -141,7 +151,6 @@ class ClusterTransformerTest {
   }
 
   private static TransformerTuple<ClusterPostgres, StackGresClusterPostgres> createPostgres() {
-
     TransformerTuple<ClusterPostgres, StackGresClusterPostgres> tuple = TransformerTestUtil
         .fillTupleWithRandomData(
             ClusterPostgres.class,
@@ -162,7 +171,6 @@ class ClusterTransformerTest {
 
   private static TransformerTuple<ClusterReplication, StackGresClusterReplication>
       createReplication() {
-
     TransformerTuple<ClusterReplication, StackGresClusterReplication> tuple = TransformerTestUtil
         .fillTupleWithRandomData(
             ClusterReplication.class,
@@ -194,16 +202,33 @@ class ClusterTransformerTest {
   }
 
   private static TransformerTuple<ClusterInitData, StackGresClusterInitData> createInitialData() {
-
     var initialData = TransformerTestUtil
         .fillTupleWithRandomData(ClusterInitData.class, StackGresClusterInitData.class);
-    var scripts = TransformerTestUtil.generateRandomListTuple(
-        ScriptEntry.class, StackGresClusterScriptEntry.class
-    );
-    initialData.target().setScripts(scripts.target());
-    initialData.source().setScripts(scripts.source());
     return initialData;
+  }
 
+  private static TransformerTuple<ClusterManagedSql,
+      StackGresClusterManagedSql> createManagedSql() {
+    var managedSql = TransformerTestUtil
+        .fillTupleWithRandomData(ClusterManagedSql.class, StackGresClusterManagedSql.class);
+    var scripts = TransformerTestUtil.generateRandomListTuple(
+        ClusterManagedScriptEntry.class, StackGresClusterManagedScriptEntry.class
+    );
+    managedSql.getTarget().setScripts(scripts.getTarget());
+    managedSql.getSource().setScripts(scripts.getSource());
+    return managedSql;
+  }
+
+  private static TransformerTuple<ClusterManagedSql,
+      StackGresClusterManagedSql> createManagedSql() {
+    var managedSql = TransformerTestUtil
+        .fillTupleWithRandomData(ClusterManagedSql.class, StackGresClusterManagedSql.class);
+    var scripts = TransformerTestUtil.generateRandomListTuple(
+        ClusterManagedScriptEntry.class, StackGresClusterManagedScriptEntry.class
+    );
+    managedSql.getTarget().setScripts(scripts.getTarget());
+    managedSql.getSource().setScripts(scripts.getSource());
+    return managedSql;
   }
 
   private static TransformerTuple<
@@ -241,13 +266,8 @@ class ClusterTransformerTest {
 
   @Test
   void testClusterTransformation() {
-
     var tuple = createCluster();
-    tuple.getTarget().getSpec().getInitData().getScripts().forEach(script -> {
-      script.setId(null);
-      script.setVersion(null);
-    });
     TransformerTestUtil.assertTransformation(transformer, tuple);
-
   }
+
 }

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
@@ -23,6 +24,12 @@ public class ClusterManagedScriptEntry {
 
   @JsonProperty("sgScript")
   private String sgScript;
+
+  @JsonProperty("continueOnError")
+  private Boolean continueOnError;
+
+  @JsonProperty("scriptSpec")
+  private ScriptSpec scriptSpec;
 
   public Integer getId() {
     return id;
@@ -40,9 +47,25 @@ public class ClusterManagedScriptEntry {
     this.sgScript = sgScript;
   }
 
+  public Boolean getContinueOnError() {
+    return continueOnError;
+  }
+
+  public void setContinueOnError(Boolean continueOnError) {
+    this.continueOnError = continueOnError;
+  }
+
+  public ScriptSpec getScriptSpec() {
+    return scriptSpec;
+  }
+
+  public void setScriptSpec(ScriptSpec scriptSpec) {
+    this.scriptSpec = scriptSpec;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(id, sgScript);
+    return Objects.hash(continueOnError, id, scriptSpec, sgScript);
   }
 
   @Override
@@ -54,7 +77,8 @@ public class ClusterManagedScriptEntry {
       return false;
     }
     ClusterManagedScriptEntry other = (ClusterManagedScriptEntry) obj;
-    return Objects.equals(id, other.id) && Objects.equals(sgScript, other.sgScript);
+    return Objects.equals(continueOnError, other.continueOnError) && Objects.equals(id, other.id)
+        && Objects.equals(scriptSpec, other.scriptSpec) && Objects.equals(sgScript, other.sgScript);
   }
 
   @Override

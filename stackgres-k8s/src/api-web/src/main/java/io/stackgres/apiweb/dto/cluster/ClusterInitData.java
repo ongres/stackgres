@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
@@ -13,7 +12,6 @@ import javax.validation.Valid;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize
@@ -24,23 +22,12 @@ public class ClusterInitData {
   @Valid
   private ClusterRestore restore;
 
-  @Valid
-  private List<ScriptEntry> scripts;
-
   public ClusterRestore getRestore() {
     return restore;
   }
 
   public void setRestore(ClusterRestore restore) {
     this.restore = restore;
-  }
-
-  public List<ScriptEntry> getScripts() {
-    return scripts;
-  }
-
-  public void setScripts(List<ScriptEntry> scripts) {
-    this.scripts = scripts;
   }
 
   @Override
@@ -57,12 +44,11 @@ public class ClusterInitData {
       return false;
     }
     ClusterInitData that = (ClusterInitData) o;
-    return Objects.equals(restore, that.restore)
-        && Objects.equals(scripts, that.scripts);
+    return Objects.equals(restore, that.restore);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(restore, scripts);
+    return Objects.hash(restore);
   }
 }

@@ -53,6 +53,7 @@ public class NamespacedClusterResource
   @Override
   public ClusterDto get(String namespace, String name) {
     return clusterFinder.findByNameAndNamespace(name, namespace)
+        .map(clusterResource::setScripts)
         .map(clusterResource::setConfigMaps)
         .map(clusterResource::setInfo)
         .orElseThrow(NotFoundException::new);

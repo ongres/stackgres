@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,21 +25,9 @@ public class StackGresScriptStatus implements KubernetesResource {
 
   private static final long serialVersionUID = -1L;
 
-  @JsonProperty("lastId")
-  @NotNull(message = "lastId cannot be null")
-  private Integer lastId;
-
   @JsonProperty("scripts")
   @Valid
   private List<StackGresScriptEntryStatus> scripts = new ArrayList<>();
-
-  public Integer getLastId() {
-    return lastId;
-  }
-
-  public void setLastId(Integer lastId) {
-    this.lastId = lastId;
-  }
 
   public List<StackGresScriptEntryStatus> getScripts() {
     return scripts;
@@ -52,7 +39,7 @@ public class StackGresScriptStatus implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(lastId, scripts);
+    return Objects.hash(scripts);
   }
 
   @Override
@@ -64,7 +51,7 @@ public class StackGresScriptStatus implements KubernetesResource {
       return false;
     }
     StackGresScriptStatus other = (StackGresScriptStatus) obj;
-    return Objects.equals(lastId, other.lastId) && Objects.equals(scripts, other.scripts);
+    return Objects.equals(scripts, other.scripts);
   }
 
   @Override

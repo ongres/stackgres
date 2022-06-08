@@ -175,12 +175,16 @@ create_or_replace_cluster_for_version_only() {
   VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
   VERSION_1_0_0_ALPHA1_AS_NUMBER="$(get_version_as_number 1.0.0-alpha1)"
   VERSION_1_2_0_RC1_AS_NUMBER="$(get_version_as_number 1.2.0-RC1)"
+  VERSION_1_2_0_AS_NUMBER="$(get_version_as_number 1.2.0)"
   if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA1_AS_NUMBER" ]
   then
     TRANSFORMER="transform_to_0_9"
   elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_2_0_RC1_AS_NUMBER" ]
   then
     TRANSFORMER="transform_to_1_1"
+  elif [ "$VERSION_AS_NUMBER" -le "$VERSION_1_2_0_AS_NUMBER" ]
+  then
+    TRANSFORMER="transform_to_1_2"
   fi
 
   if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
@@ -198,8 +202,20 @@ create_or_replace_cluster_for_version_only() {
   fi
 }
 
+transform_to_1_2() {
+  if printf '%s' "$1" | grep -q '^cluster\.initialData\.scripts'
+  then
+    printf '%s' "$1" | sed 's/^cluster\.initialData\.scripts\(.*\)/cluster.managedSql.scripts\1/'
+  else
+    dont_transform "$1"
+  fi
+}
+
 transform_to_1_1() {
-  if [ "${1%=*}" = 'configurations.backupconfig.baseBackups.performance.maxDiskBandwidth' ]
+  if printf '%s' "$1" | grep -q '^cluster\.initialData\.scripts'
+  then
+    printf '%s' "$1" | sed 's/^cluster\.initialData\.scripts\(.*\)/cluster.managedSql.scripts\1/'
+  elif [ "${1%=*}" = 'configurations.backupconfig.baseBackups.performance.maxDiskBandwidth' ]
   then
     printf "%s=%s" "configurations.backupconfig.baseBackups.performance.maxDiskBandwitdh" "${1#*=}"
   elif [ "${1%=*}" = 'configurations.backupconfig.baseBackups.performance.maxNetworkBandwidth' ]

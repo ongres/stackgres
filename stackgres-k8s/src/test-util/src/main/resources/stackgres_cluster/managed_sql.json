@@ -93,7 +93,6 @@
   },
   "status": {
     "managedSql": {
-      "lastId": 0,
       "scripts": [{
         "id": 0
       }]
