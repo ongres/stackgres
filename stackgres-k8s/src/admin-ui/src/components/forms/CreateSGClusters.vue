@@ -477,7 +477,7 @@
                         <div class="col">
                             <label for="spec.pods.disablePostgresUtil">Postgres Utils</label>  
                             <label for="postgresUtil" class="switch">Postgres Utils <input type="checkbox" id="postgresUtil" v-model="postgresUtil" data-switch="ON"></label>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disablePostgresUtil')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disablePostgresUtil').replace('If set to `true`', 'If disabled')"></span>
                         </div>
                     </div>
 
@@ -489,8 +489,8 @@
 
                         <div class="col">
                             <label for="spec.pods.disableMetricsExporter">Metrics Exporter</label>  
-                            <label for="metricsExporter" class="switch yes-no">Enable <input type="checkbox" id="metricsExporter" v-model="metricsExporter" data-switch="YES" @change="checkMetricsExporter()"></label>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disableMetricsExporter')"></span>
+                            <label for="metricsExporter" class="switch yes-no">Enable <input type="checkbox" id="metricsExporter" v-model="metricsExporter" data-switch="ON" @change="checkMetricsExporter()"></label>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disableMetricsExporter').replace('If set to `true`', 'If disabled').replace('Recommended', 'Recommended to be disabled')"></span>
                         </div>
 
                         <div class="col">
