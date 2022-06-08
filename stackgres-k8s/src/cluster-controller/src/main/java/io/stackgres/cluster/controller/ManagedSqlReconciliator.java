@@ -17,6 +17,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -225,8 +226,8 @@ public class ManagedSqlReconciliator {
       List<StackGresClusterManagedScriptEntryStatus> scriptsStatus,
       StackGresClusterManagedScriptEntry managedScript) {
     return scriptsStatus.stream()
-          .filter(aManagedScriptStatus -> Objects.equals(
-              managedScript.getId(), aManagedScriptStatus.getId()))
+          .filter(anManagedScriptStatus -> Objects.equals(
+              managedScript.getId(), anManagedScriptStatus.getId()))
           .findFirst()
           .orElseThrow(() -> new IllegalArgumentException(
               "Status for managed script " + managedScript.getId() + "("
@@ -241,8 +242,8 @@ public class ManagedSqlReconciliator {
         .map(StackGresScriptStatus::getScripts)
         .stream()
         .flatMap(List::stream)
-        .filter(aScriptStatus -> Objects.equals(
-            scriptEntry.getId(), aScriptStatus.getId()))
+        .filter(anScriptStatus -> Objects.equals(
+            scriptEntry.getId(), anScriptStatus.getId()))
         .findFirst()
         .orElseThrow(() -> new IllegalArgumentException(
             "Status for entry " + scriptEntry.getId() + " of managed script "
@@ -255,8 +256,8 @@ public class ManagedSqlReconciliator {
     return Optional.of(managedScriptStatus)
         .map(StackGresClusterManagedScriptEntryStatus::getScripts)
         .stream().flatMap(List::stream)
-        .filter(aScriptEntryStatus -> Objects.equals(
-            scriptEntry.getId(), aScriptEntryStatus.getId()))
+        .filter(anScriptEntryStatus -> Objects.equals(
+            scriptEntry.getId(), anScriptEntryStatus.getId()))
         .anyMatch(scriptEntryStatus -> isScriptEntryUpToDate(scriptEntry, scriptEntryStatus));
   }
 
@@ -266,6 +267,8 @@ public class ManagedSqlReconciliator {
         && Objects.equals(scriptEntry.getVersion(), mangedScriptStatus.getVersion());
   }
 
+  @SuppressFBWarnings(value = "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+      justification = "This is the feature not a bug")
   private boolean safeManageScriptEntry(KubernetesClient client, StackGresClusterContext context,
       StackGresClusterManagedSqlStatus managedSqlStatus,
       StackGresClusterManagedScriptEntry managedScript,
@@ -284,7 +287,7 @@ public class ManagedSqlReconciliator {
           getManagedScriptEntryDescription(managedScript, scriptEntry));
       return false;
     }
-    executeScriptEntry(context, managedScriptStatus, managedScript,
+    executeScriptEntry(managedScriptStatus, managedScript,
         script, scriptEntry, managedScriptEntryStatus, sql);
     clusterScheduler.updateStatus(context.getCluster(),
         StackGresCluster::getStatus,
@@ -301,8 +304,8 @@ public class ManagedSqlReconciliator {
     var foundScriptEntryStatus = Optional.of(managedScriptEntryStatus)
         .map(StackGresClusterManagedScriptEntryStatus::getScripts)
         .stream().flatMap(List::stream)
-        .filter(aScriptEntryStatus -> Objects.equals(
-            scriptEntry.getId(), aScriptEntryStatus.getId()))
+        .filter(anScriptEntryStatus -> Objects.equals(
+            scriptEntry.getId(), anScriptEntryStatus.getId()))
         .findFirst();
     final StackGresClusterManagedScriptEntryScriptStatus scriptEntryStatus;
     if (foundScriptEntryStatus.isPresent()) {
@@ -318,7 +321,7 @@ public class ManagedSqlReconciliator {
     return scriptEntryStatus;
   }
 
-  private void executeScriptEntry(StackGresClusterContext context,
+  private void executeScriptEntry(
       StackGresClusterManagedScriptEntryStatus managedScriptStatus,
       StackGresClusterManagedScriptEntry managedScript,
       StackGresScript script,
@@ -329,7 +332,7 @@ public class ManagedSqlReconciliator {
       managedScriptStatus.setStartedAt(Instant.now().toString());
     }
     try {
-      executeScriptEntry(context, scriptEntry, sql);
+      executeScriptEntry(scriptEntry, sql);
       managedScriptEntryStatus.setFailureCode(null);
       managedScriptEntryStatus.setFailure(null);
       if (Seq.seq(script.getSpec().getScripts()).findLast().orElseThrow() == scriptEntry
@@ -352,8 +355,8 @@ public class ManagedSqlReconciliator {
     }
   }
 
-  private void executeScriptEntry(StackGresClusterContext context, StackGresScriptEntry scriptEntry,
-      String sql) throws SQLException {
+  private void executeScriptEntry(StackGresScriptEntry scriptEntry, String sql)
+      throws SQLException {
     try (Connection connection = getConnection(
         scriptEntry.getDatabaseOrDefault(), scriptEntry.getUserOrDefault());
         var statement = connection.createStatement()) {

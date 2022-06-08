@@ -116,10 +116,6 @@ spec:
             status:
               type: object
               properties:
-                lastId:
-                  type: integer
-                  description: |
-                    The latest assigned script entry id.
                 scripts:
                   type: array
                   description: |

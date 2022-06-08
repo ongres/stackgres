@@ -104,6 +104,7 @@ e2e_test_install() {
     --set configurations.backupconfig.create=true \
     --set cluster.configurations.backups.retention=2 \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set-string cluster.managedSql.scripts[0].script="CREATE DATABASE managed_sql;"
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
@@ -713,6 +714,8 @@ check_mutations() {
   check_backup_performance_mutation
 
   check_backups_path_mutation
+
+  check_managed_sql_mutation
 }
 
 check_backup_performance_mutation() {
@@ -766,6 +769,17 @@ check_backups_path_mutation() {
     echo "SUCCESS. Backup path was added to backup status after operator upgrade"
   else
     echo "FAIL. Backup path was not added to backup status after operator upgrade"
+    return 1
+  fi
+}
+
+check_managed_sql_mutation() {
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" --template '{{ len .spec.managedSql.scripts }}')" \
+    = "1" ]
+  then
+    echo "SUCCESS. Managed SQL was added to cluster configuration after operator upgrade"
+  else
+    echo "FAIL. Managed SQL was not added to cluster configuration after operator upgrade"
     return 1
   fi
 }

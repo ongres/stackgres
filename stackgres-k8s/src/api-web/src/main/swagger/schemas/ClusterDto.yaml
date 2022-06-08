@@ -239,16 +239,23 @@ schema:
           Number of pods of the cluster that are ready.
       spec:
         properties:
-          initialData:
+          managedSql:
             properties:
               scripts:
                 items:
                   properties:
-                    scriptFrom:
+                    scriptSpec:
+                      description: |
+                        Allow to specify an SGScript spec that will be sotred in an SGScript as specified by `sgScript` field. The SGScript will be created or patched with specified value.
                       properties:
-                        secretScript:
-                          description: |
-                            A script that will be stored in a [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) as specified by `secretKeyRef` field or, if not specified, with same name as the `name` field or, if not specified, with the name of the cluster `.metadata.name` with the suffix `-init-data-<index>`. The secret will be created or patched with specified value.
-                        configMapScript:
-                          description: |
-                            A script that will be stored in a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) as specified by `configMapKeyRef` field or, if not specified, with same name as the `name` field or, if not specified, with the name of the cluster `.metadata.name` with the suffix `-init-data-<index>`. The config map will be created or patched with specified value.
+                        scripts:
+                          items:
+                            properties:
+                              scriptFrom:
+                                properties:
+                                  secretScript:
+                                    description: |
+                                      A script that will be stored in a [Secret](https://kubernetes.io/docs/concepts/configuration/secret/) as specified by `secretKeyRef` field or, if not specified, with name of the referenced SGScript `.metadata.name` with the suffix `-` followed by the script entry id. The Secret will be created or patched with specified value.
+                                  configMapScript:
+                                    description: |
+                                      A script that will be stored in a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) as specified by `configMapKeyRef` field or, if not specified, with name of the referenced SGScript `.metadata.name` with the suffix `-` followed by the script entry id. The ConfigMap will be created or patched with specified value.

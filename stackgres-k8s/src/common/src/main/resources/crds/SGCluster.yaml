@@ -1072,9 +1072,6 @@ spec:
                   description: |
                     This section store the state of referenced SQL scripts that are applied to the cluster live.
                   properties:
-                    lastId:
-                      type: integer
-                      description: The latest assigned `SGScript` entry id.
                     scripts:
                       type: array
                       description: A list of statues for script references.

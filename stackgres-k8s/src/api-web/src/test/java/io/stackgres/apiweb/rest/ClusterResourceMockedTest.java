@@ -5,18 +5,18 @@
 
 package io.stackgres.apiweb.rest;
 
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,7 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -33,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.BadRequestException;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -55,6 +53,8 @@ import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterInitData;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
+import io.stackgres.apiweb.dto.cluster.ClusterManagedScriptEntry;
+import io.stackgres.apiweb.dto.cluster.ClusterManagedSql;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
 import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
@@ -65,13 +65,14 @@ import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.apiweb.dto.script.ScriptFrom;
+import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.apiweb.resource.ClusterDtoFinder;
 import io.stackgres.apiweb.resource.ClusterDtoScanner;
 import io.stackgres.apiweb.resource.ClusterStatsDtoFinder;
-import io.stackgres.apiweb.resource.ResourceTransactionHandler;
 import io.stackgres.apiweb.transformer.ClusterPodTransformer;
 import io.stackgres.apiweb.transformer.ClusterStatsTransformer;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
+import io.stackgres.apiweb.transformer.ScriptTransformer;
 import io.stackgres.common.ClusterLabelFactory;
 import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.PatroniUtil;
@@ -83,19 +84,23 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.PersistentVolumeClaimFinder;
 import io.stackgres.common.resource.PodExecutor;
 import io.stackgres.common.resource.PodFinder;
 import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.testutil.JsonUtil;
 import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jooq.lambda.Seq;
@@ -132,16 +137,21 @@ class ClusterResourceMockedTest extends
   private PersistentVolumeClaimFinder persistentVolumeClaimFinder;
 
   @Mock
-  private ResourceTransactionHandler<ConfigMap> configMapTransactionHandler;
-
+  private CustomResourceScheduler<StackGresScript> scriptScheduler;
   @Mock
-  private ResourceTransactionHandler<Secret> secretTransactionHandler;
-
+  private ResourceWriter<ConfigMap> configMapWriter;
+  @Mock
+  private ResourceWriter<Secret> secretWriter;
+  @Mock
+  private CustomResourceFinder<StackGresScript> scriptFinder;
   @Mock
   private ResourceFinder<ConfigMap> configMapFinder;
-
+  @Mock
+  private ResourceFinder<Secret> secretFinder;
   @Mock
   private ResourceFinder<Service> serviceFinder;
+
+  private ScriptTransformer scriptTransformer;
 
   private ExecutorService executorService;
 
@@ -155,6 +165,7 @@ class ClusterResourceMockedTest extends
   @Override
   @BeforeEach
   void setUp() {
+    scriptTransformer = new ScriptTransformer(JsonUtil.JSON_MAPPER);
     super.setUp();
     servicePrimary = new ServiceBuilder()
         .withNewMetadata()
@@ -228,39 +239,136 @@ class ClusterResourceMockedTest extends
   }
 
   @Test
-  void createClusterWithInlineScript_shouldNotFail() {
-    dto = getClusterInlineScripts();
+  void createClusterWithScriptReference_shouldNotFail() {
+    dto = getClusterScriptReference();
+
     super.createShouldNotFail();
+
+    verify(scanner, times(0)).findResources();
+    verify(scanner, times(0)).findResources(any());
+    verify(scanner, times(0)).getResources();
+    verify(scanner, times(0)).getResources(any());
+    verify(finder, times(0)).findByNameAndNamespace(any(), any());
+    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(0)).update(any());
+    verify(scriptScheduler, times(0)).create(any());
+    verify(scriptScheduler, times(0)).update(any());
+    verify(secretWriter, times(0)).create(any());
+    verify(secretWriter, times(0)).update(any());
+    verify(configMapWriter, times(0)).create(any());
+    verify(configMapWriter, times(0)).update(any());
   }
 
   @Test
-  void updateClusterWithInlineScript_shouldNotFail() {
-    dto = getClusterInlineScripts();
+  void updateClusterWithScriptReference_shouldNotFail() {
+    dto = getClusterScriptReference();
+
     super.updateShouldNotFail();
+
+    verify(scanner, times(0)).findResources();
+    verify(scanner, times(0)).findResources(any());
+    verify(scanner, times(0)).getResources();
+    verify(scanner, times(0)).getResources(any());
+    verify(finder, times(1)).findByNameAndNamespace(any(), any());
+    verify(scheduler, times(0)).create(any());
+    verify(scheduler, times(1)).update(any());
+    verify(scriptScheduler, times(0)).create(any());
+    verify(scriptScheduler, times(0)).update(any());
+    verify(secretWriter, times(0)).create(any());
+    verify(secretWriter, times(0)).update(any());
+    verify(configMapWriter, times(0)).create(any());
+    verify(configMapWriter, times(0)).update(any());
   }
 
   @Test
-  void createClusterWithSecretScriptReference_shouldNotFail() {
-    dto = getClusterInlineScripts();
+  void createClusterWithExistingInlineScript_shouldNotFail() {
+    dto = getClusterScriptReference();
+    ScriptSpec scriptSpec = buildInlineScriptSpec();
+    dto.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
 
-    ScriptEntry entry = buildSecretScriptEntry();
+    when(scriptFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(new StackGresScript()));
 
-    dto.getSpec().getInitData().setScripts(Collections.singletonList(entry));
+    super.createShouldNotFail();
 
-    doNothing()
-        .when(secretTransactionHandler)
-        .create(any(Secret.class), any(Runnable.class));
+    verify(scanner, times(0)).findResources();
+    verify(scanner, times(0)).findResources(any());
+    verify(scanner, times(0)).getResources();
+    verify(scanner, times(0)).getResources(any());
+    verify(finder, times(0)).findByNameAndNamespace(any(), any());
+    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(0)).update(any());
+    verify(scriptScheduler, times(0)).create(any());
+    verify(scriptScheduler, times(1)).update(any());
+    verify(secretWriter, times(0)).create(any());
+    verify(secretWriter, times(0)).update(any());
+    verify(configMapWriter, times(0)).create(any());
+    verify(configMapWriter, times(0)).update(any());
+  }
+
+  @Test
+  void createClusterWithInlineScript_shouldNotFail() {
+    dto = getClusterScriptReference();
+    ScriptSpec scriptSpec = buildInlineScriptSpec();
+    dto.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
+
+    super.createShouldNotFail();
+
+    verify(scanner, times(0)).findResources();
+    verify(scanner, times(0)).findResources(any());
+    verify(scanner, times(0)).getResources();
+    verify(scanner, times(0)).getResources(any());
+    verify(finder, times(0)).findByNameAndNamespace(any(), any());
+    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any());
+    verify(scriptScheduler, times(0)).update(any());
+    verify(secretWriter, times(0)).create(any());
+    verify(secretWriter, times(0)).update(any());
+    verify(configMapWriter, times(0)).create(any());
+    verify(configMapWriter, times(0)).update(any());
+  }
+
+  @Test
+  void createClusterWithInlineScriptWithoutName_shouldNotFail() {
+    dto = getClusterScriptReference();
+    ScriptSpec scriptSpec = buildInlineScriptSpec();
+    dto.getSpec().getManagedSql().getScripts().get(0).setSgScript(null);
+    dto.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
+
+    super.createShouldNotFail();
+
+    verify(scanner, times(0)).findResources();
+    verify(scanner, times(0)).findResources(any());
+    verify(scanner, times(0)).getResources();
+    verify(scanner, times(0)).getResources(any());
+    verify(finder, times(0)).findByNameAndNamespace(any(), any());
+    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any());
+    verify(scriptScheduler, times(0)).update(any());
+    verify(secretWriter, times(0)).create(any());
+    verify(secretWriter, times(0)).update(any());
+    verify(configMapWriter, times(0)).create(any());
+    verify(configMapWriter, times(0)).update(any());
+  }
+
+  @Test
+  void createClusterWithSecretScript_shouldNotFail() {
+    dto = getClusterScriptReference();
+    ScriptSpec scriptSpec = buildSecretScriptSpec();
+    dto.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
 
     ArgumentCaptor<Secret> secretArgument = ArgumentCaptor.forClass(Secret.class);
 
-    verify(secretTransactionHandler).create(secretArgument.capture(), any(Runnable.class));
+    verify(secretWriter).create(secretArgument.capture());
 
     Secret createdSecret = secretArgument.getValue();
     assertEquals(dto.getMetadata().getNamespace(), createdSecret.getMetadata().getNamespace());
 
-    final ScriptFrom scriptFrom = entry.getScriptFrom();
+    final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
     final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
 
     assertEquals(secretKeyRef.getName(), createdSecret.getMetadata().getName());
@@ -269,31 +377,80 @@ class ClusterResourceMockedTest extends
         .decode(createdSecret.getData().get(secretKeyRef.getKey())), StandardCharsets.UTF_8);
     assertEquals(scriptFrom.getSecretScript(), actualScript);
 
+    verify(scanner, times(0)).findResources();
+    verify(scanner, times(0)).findResources(any());
+    verify(scanner, times(0)).getResources();
+    verify(scanner, times(0)).getResources(any());
+    verify(finder, times(0)).findByNameAndNamespace(any(), any());
+    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any());
+    verify(scriptScheduler, times(0)).update(any());
+    verify(secretWriter, times(1)).create(any());
+    verify(secretWriter, times(0)).update(any());
+    verify(configMapWriter, times(0)).create(any());
+    verify(configMapWriter, times(0)).update(any());
   }
 
   @Test
-  void createClusterWithSecretScript_shouldNotFail() {
-    dto = getClusterInlineScripts();
+  void createClusterWithExistingSecretScript_shouldNotFail() {
+    dto = getClusterScriptReference();
+    ScriptSpec scriptSpec = buildSecretScriptSpec();
+    dto.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
 
-    ScriptEntry entry = buildSecretScriptEntry();
-    entry.getScriptFrom().setSecretKeyRef(null);
-
-    dto.getSpec().getInitData().setScripts(Collections.singletonList(entry));
-
-    doNothing()
-        .when(secretTransactionHandler)
-        .create(any(Secret.class), any(Runnable.class));
+    when(secretFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(new Secret()));
 
     super.createShouldNotFail();
 
     ArgumentCaptor<Secret> secretArgument = ArgumentCaptor.forClass(Secret.class);
 
-    verify(secretTransactionHandler).create(secretArgument.capture(), any(Runnable.class));
+    verify(secretWriter).update(secretArgument.capture());
 
     Secret createdSecret = secretArgument.getValue();
     assertEquals(dto.getMetadata().getNamespace(), createdSecret.getMetadata().getNamespace());
 
-    final ScriptFrom scriptFrom = entry.getScriptFrom();
+    final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
+    final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
+
+    assertEquals(secretKeyRef.getName(), createdSecret.getMetadata().getName());
+    assertTrue(createdSecret.getData().containsKey(secretKeyRef.getKey()));
+    final String actualScript = new String(Base64.getDecoder()
+        .decode(createdSecret.getData().get(secretKeyRef.getKey())), StandardCharsets.UTF_8);
+    assertEquals(scriptFrom.getSecretScript(), actualScript);
+
+    verify(scanner, times(0)).findResources();
+    verify(scanner, times(0)).findResources(any());
+    verify(scanner, times(0)).getResources();
+    verify(scanner, times(0)).getResources(any());
+    verify(finder, times(0)).findByNameAndNamespace(any(), any());
+    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any());
+    verify(scriptScheduler, times(0)).update(any());
+    verify(secretWriter, times(0)).create(any());
+    verify(secretWriter, times(1)).update(any());
+    verify(configMapWriter, times(0)).create(any());
+    verify(configMapWriter, times(0)).update(any());
+  }
+
+  @Test
+  void createClusterWithSecretScriptWithoutName_shouldNotFail() {
+    dto = getClusterScriptReference();
+    ScriptSpec scriptSpec = buildSecretScriptSpec();
+    scriptSpec.getScripts().get(0).getScriptFrom().setSecretKeyRef(null);
+    dto.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
+
+    super.createShouldNotFail();
+
+    ArgumentCaptor<Secret> secretArgument = ArgumentCaptor.forClass(Secret.class);
+
+    verify(secretWriter).create(secretArgument.capture());
+
+    Secret createdSecret = secretArgument.getValue();
+    assertEquals(dto.getMetadata().getNamespace(), createdSecret.getMetadata().getNamespace());
+
+    final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
     final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
 
     assertEquals(secretKeyRef.getName(), createdSecret.getMetadata().getName());
@@ -302,39 +459,148 @@ class ClusterResourceMockedTest extends
         createdSecret.getData().get(secretKeyRef.getKey())), StandardCharsets.UTF_8);
     assertEquals(scriptFrom.getSecretScript(), actualScript);
 
+    verify(scanner, times(0)).findResources();
+    verify(scanner, times(0)).findResources(any());
+    verify(scanner, times(0)).getResources();
+    verify(scanner, times(0)).getResources(any());
+    verify(finder, times(0)).findByNameAndNamespace(any(), any());
+    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any());
+    verify(scriptScheduler, times(0)).update(any());
+    verify(secretWriter, times(1)).create(any());
+    verify(secretWriter, times(0)).update(any());
+    verify(configMapWriter, times(0)).create(any());
+    verify(configMapWriter, times(0)).update(any());
   }
 
   @Test
-  void createClusterWithConfigMapScriptReference_shouldNotFail() {
-    dto = getClusterInlineScripts();
-    ScriptEntry entry = buildConfigMapScriptEntry();
-
-    dto.getSpec().getInitData().setScripts(Collections.singletonList(entry));
-
-    doNothing()
-        .when(configMapTransactionHandler)
-        .create(any(ConfigMap.class), any(Runnable.class));
+  void createClusterWithConfigMapScript_shouldNotFail() {
+    dto = getClusterScriptReference();
+    ScriptSpec scriptSpec = buildConfigMapScriptSpec();
+    dto.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
 
     ArgumentCaptor<ConfigMap> secretArgument = ArgumentCaptor.forClass(ConfigMap.class);
 
-    verify(configMapTransactionHandler).create(secretArgument.capture(), any(Runnable.class));
+    verify(configMapWriter).create(secretArgument.capture());
 
-    ConfigMap createdSecret = secretArgument.getValue();
-    assertEquals(dto.getMetadata().getNamespace(), createdSecret.getMetadata().getNamespace());
+    ConfigMap createdConfigMap = secretArgument.getValue();
+    assertEquals(dto.getMetadata().getNamespace(), createdConfigMap.getMetadata().getNamespace());
 
-    final ScriptFrom scriptFrom = entry.getScriptFrom();
+    final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
     final ConfigMapKeySelector configMapKeyRef = scriptFrom.getConfigMapKeyRef();
-    assertEquals(configMapKeyRef.getName(), createdSecret.getMetadata().getName());
-    assertTrue(createdSecret.getData().containsKey(configMapKeyRef.getKey()));
+    assertEquals(configMapKeyRef.getName(), createdConfigMap.getMetadata().getName());
+    assertTrue(createdConfigMap.getData().containsKey(configMapKeyRef.getKey()));
     assertEquals(scriptFrom.getConfigMapScript(),
-        createdSecret.getData().get(configMapKeyRef.getKey()));
+        createdConfigMap.getData().get(configMapKeyRef.getKey()));
 
+    verify(scanner, times(0)).findResources();
+    verify(scanner, times(0)).findResources(any());
+    verify(scanner, times(0)).getResources();
+    verify(scanner, times(0)).getResources(any());
+    verify(finder, times(0)).findByNameAndNamespace(any(), any());
+    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any());
+    verify(scriptScheduler, times(0)).update(any());
+    verify(secretWriter, times(0)).create(any());
+    verify(secretWriter, times(0)).update(any());
+    verify(configMapWriter, times(1)).create(any());
+    verify(configMapWriter, times(0)).update(any());
   }
 
-  private ScriptEntry buildSecretScriptEntry() {
+  @Test
+  void createClusterWithExistingConfigMapScript_shouldNotFail() {
+    dto = getClusterScriptReference();
+    ScriptSpec scriptSpec = buildConfigMapScriptSpec();
+    dto.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
+
+    when(configMapFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(new ConfigMap()));
+
+    super.createShouldNotFail();
+
+    ArgumentCaptor<ConfigMap> secretArgument = ArgumentCaptor.forClass(ConfigMap.class);
+
+    verify(configMapWriter).update(secretArgument.capture());
+
+    ConfigMap createdConfigMap = secretArgument.getValue();
+    assertEquals(dto.getMetadata().getNamespace(), createdConfigMap.getMetadata().getNamespace());
+
+    final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
+    final ConfigMapKeySelector configMapKeyRef = scriptFrom.getConfigMapKeyRef();
+    assertEquals(configMapKeyRef.getName(), createdConfigMap.getMetadata().getName());
+    assertTrue(createdConfigMap.getData().containsKey(configMapKeyRef.getKey()));
+    assertEquals(scriptFrom.getConfigMapScript(),
+        createdConfigMap.getData().get(configMapKeyRef.getKey()));
+
+    verify(scanner, times(0)).findResources();
+    verify(scanner, times(0)).findResources(any());
+    verify(scanner, times(0)).getResources();
+    verify(scanner, times(0)).getResources(any());
+    verify(finder, times(0)).findByNameAndNamespace(any(), any());
+    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any());
+    verify(scriptScheduler, times(0)).update(any());
+    verify(secretWriter, times(0)).create(any());
+    verify(secretWriter, times(0)).update(any());
+    verify(configMapWriter, times(0)).create(any());
+    verify(configMapWriter, times(1)).update(any());
+  }
+
+  @Test
+  void createClusterWithConfigMapScriptWithoutName_shouldNotFail() {
+    dto = getClusterScriptReference();
+    ScriptSpec scriptSpec = buildConfigMapScriptSpec();
+    scriptSpec.getScripts().get(0).getScriptFrom().setConfigMapKeyRef(null);
+    dto.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
+
+    super.createShouldNotFail();
+
+    ArgumentCaptor<ConfigMap> secretArgument = ArgumentCaptor.forClass(ConfigMap.class);
+
+    verify(configMapWriter).create(secretArgument.capture());
+
+    ConfigMap createdConfigMap = secretArgument.getValue();
+    assertEquals(dto.getMetadata().getNamespace(), createdConfigMap.getMetadata().getNamespace());
+
+    final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
+    final ConfigMapKeySelector configMapKeyRef = scriptFrom.getConfigMapKeyRef();
+    assertEquals(configMapKeyRef.getName(), createdConfigMap.getMetadata().getName());
+    assertTrue(createdConfigMap.getData().containsKey(configMapKeyRef.getKey()));
+    assertEquals(scriptFrom.getConfigMapScript(),
+        createdConfigMap.getData().get(configMapKeyRef.getKey()));
+
+    verify(scanner, times(0)).findResources();
+    verify(scanner, times(0)).findResources(any());
+    verify(scanner, times(0)).getResources();
+    verify(scanner, times(0)).getResources(any());
+    verify(finder, times(0)).findByNameAndNamespace(any(), any());
+    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any());
+    verify(scriptScheduler, times(0)).update(any());
+    verify(secretWriter, times(0)).create(any());
+    verify(secretWriter, times(0)).update(any());
+    verify(configMapWriter, times(1)).create(any());
+    verify(configMapWriter, times(0)).update(any());
+  }
+
+  private ScriptSpec buildInlineScriptSpec() {
+    ScriptSpec scriptSpec = new ScriptSpec();
     ScriptEntry entry = new ScriptEntry();
+    scriptSpec.setScripts(List.of(entry));
+    entry.setScript("CREATE DATABASE test");
+    return scriptSpec;
+  }
+
+  private ScriptSpec buildSecretScriptSpec() {
+    ScriptSpec scriptSpec = new ScriptSpec();
+    ScriptEntry entry = new ScriptEntry();
+    scriptSpec.setScripts(List.of(entry));
     entry.setScript(null);
 
     final ScriptFrom scriptFrom = new ScriptFrom();
@@ -349,11 +615,13 @@ class ClusterResourceMockedTest extends
 
     secretKeyRef.setKey(randomKey);
     secretKeyRef.setName(randomSecretName);
-    return entry;
+    return scriptSpec;
   }
 
-  private ScriptEntry buildConfigMapScriptEntry() {
+  private ScriptSpec buildConfigMapScriptSpec() {
+    ScriptSpec scriptSpec = new ScriptSpec();
     ScriptEntry entry = new ScriptEntry();
+    scriptSpec.setScripts(List.of(entry));
 
     entry.setScript(null);
 
@@ -369,7 +637,7 @@ class ClusterResourceMockedTest extends
 
     configMapKeyRef.setKey(randomKey);
     configMapKeyRef.setName(randomSecretName);
-    return entry;
+    return scriptSpec;
   }
 
   private void clusterMocks() {
@@ -441,14 +709,14 @@ class ClusterResourceMockedTest extends
     return JsonUtil.readFromJson("stackgres_cluster/dto.json", ClusterDto.class);
   }
 
-  private ClusterDto getClusterInlineScripts() {
+  private ClusterDto getClusterScriptReference() {
     return JsonUtil.readFromJson("stackgres_cluster/inline_scripts.json", ClusterDto.class);
   }
 
   @Override
   protected ClusterTransformer getTransformer() {
     return new ClusterTransformer(
-        configContext, new ClusterPodTransformer(), JsonMapper.builder().build());
+        configContext, new ClusterPodTransformer(), JsonUtil.JSON_MAPPER);
   }
 
   @Override
@@ -474,9 +742,8 @@ class ClusterResourceMockedTest extends
     statsDtoFinder.setManagedExecutor(managedExecutor);
 
     return new ClusterResource(
-        dtoScanner,
-        secretTransactionHandler, configMapTransactionHandler,
-        configMapFinder, serviceFinder);
+        dtoScanner, scriptScheduler, secretWriter, configMapWriter,
+        scriptFinder, scriptTransformer, secretFinder, configMapFinder, serviceFinder);
   }
 
   @Override
@@ -688,51 +955,25 @@ class ClusterResourceMockedTest extends
         } else {
           assertNull(resourceRestore);
         }
+      }
 
-        if (dtoInitData.getScripts() != null) {
-          assertNotNull(resourceInitData.getScripts());
-          assertEquals(dtoInitData.getScripts().size(), resourceInitData.getScripts().size());
+      final ClusterManagedSql dtoManagedSql = dtoSpec.getManagedSql();
+      final StackGresClusterManagedSql resourceManagedSql = resourceSpec.getManagedSql();
+      if (dtoManagedSql != null) {
+        if (dtoManagedSql.getScripts() != null) {
+          assertNotNull(resourceManagedSql.getScripts());
+          assertEquals(dtoManagedSql.getScripts().size(), resourceManagedSql.getScripts().size());
 
-          Seq.zip(dtoInitData.getScripts(), resourceInitData.getScripts())
+          Seq.zip(dtoManagedSql.getScripts(), resourceManagedSql.getScripts())
               .forEach(entryTuple -> {
-                ScriptEntry dtoEntry = entryTuple.v1;
-                StackGresClusterScriptEntry resourceEntry = entryTuple.v2;
-                assertEquals(dtoEntry.getDatabase(), resourceEntry.getDatabase());
-                assertEquals(dtoEntry.getName(), resourceEntry.getName());
-                assertEquals(dtoEntry.getScript(), resourceEntry.getScript());
-
-                final ScriptFrom dtoScriptFrom = dtoEntry.getScriptFrom();
-                final StackGresClusterScriptFrom resourceScriptFrom = resourceEntry.getScriptFrom();
-                if (dtoScriptFrom != null) {
-                  assertNotNull(resourceScriptFrom);
-                  final SecretKeySelector dtoSecretKeyRef = dtoScriptFrom.getSecretKeyRef();
-                  final SecretKeySelector resourceSecretKeyRef =
-                      resourceScriptFrom.getSecretKeyRef();
-                  if (dtoSecretKeyRef != null) {
-                    assertNotNull(resourceSecretKeyRef);
-                    assertEquals(dtoSecretKeyRef.getName(), resourceSecretKeyRef.getName());
-                    assertEquals(dtoSecretKeyRef.getKey(), resourceSecretKeyRef.getKey());
-                  } else {
-                    assertNull(resourceSecretKeyRef);
-                  }
-                  final ConfigMapKeySelector resourceConfigMapKeyRef =
-                      resourceScriptFrom.getConfigMapKeyRef();
-                  final ConfigMapKeySelector dtoConfigMapKeyRef =
-                      dtoScriptFrom.getConfigMapKeyRef();
-                  if (dtoConfigMapKeyRef != null) {
-                    assertNotNull(resourceConfigMapKeyRef);
-                    assertEquals(dtoConfigMapKeyRef.getName(), resourceConfigMapKeyRef.getName());
-                    assertEquals(dtoConfigMapKeyRef.getKey(), resourceConfigMapKeyRef.getKey());
-                  } else {
-                    assertNull(resourceConfigMapKeyRef);
-                  }
-                } else {
-                  assertNull(resourceScriptFrom);
-                }
+                ClusterManagedScriptEntry dtoEntry = entryTuple.v1;
+                StackGresClusterManagedScriptEntry resourceEntry = entryTuple.v2;
+                assertEquals(dtoEntry.getId(), resourceEntry.getId());
+                assertEquals(dtoEntry.getSgScript(), resourceEntry.getSgScript());
               });
         }
       } else {
-        assertNull(resourceInitData);
+        assertNull(resourceManagedSql);
       }
 
       if (dtoSpec.getDistributedLogs() != null) {

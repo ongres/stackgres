@@ -116,6 +116,9 @@ cluster:
   #      pointInTimeRecovery:
   #        restoreToTimestamp:
   #    downloadDiskConcurrency:
+  #managedSql:
+  #  continueOnSGScriptError:
+  #  continueOnError:
   #  scripts:
   #  - name: create-stackgres-user
   #    scriptFrom:

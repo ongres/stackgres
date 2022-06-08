@@ -11,7 +11,7 @@ cluster:
   configurations:
     sgBackupConfig: null
   prometheusAutobind: false
-  initialData:
+  managedSql:
     scripts:
       - script: 'CREATE EXTENSION pg_repack'
   postgres:

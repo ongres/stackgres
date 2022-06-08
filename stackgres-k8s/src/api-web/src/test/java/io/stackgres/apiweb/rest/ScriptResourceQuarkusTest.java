@@ -24,11 +24,9 @@ import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.http.ContentType;
 import io.stackgres.apiweb.dto.Metadata;
-import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.script.ScriptDto;
 import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.apiweb.dto.script.ScriptFrom;
-import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgscript.StackGresScript;
@@ -81,13 +79,8 @@ class ScriptResourceQuarkusTest implements AuthenticatedResourceTest {
   }
 
   private ScriptDto getScriptInlineScripts() {
-    ClusterDto cluster = JsonUtil.readFromJson(
-        "stackgres_cluster/inline_scripts.json", ClusterDto.class);
-    ScriptDto script = new ScriptDto();
-    script.setMetadata(cluster.getMetadata());
-    script.setSpec(new ScriptSpec());
-    script.getSpec().setScripts(cluster.getSpec().getInitData().getScripts());
-    return script;
+    return JsonUtil.readFromJson(
+        "stackgres_script/inline_scripts.json", ScriptDto.class);
   }
 
   private StackGresScript getScript() {

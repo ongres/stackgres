@@ -14,6 +14,9 @@ import java.nio.channels.SocketChannel;
 
 import javax.net.SocketFactory;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public class PostgresUnixSocketFactory extends SocketFactory {
 
   @Override

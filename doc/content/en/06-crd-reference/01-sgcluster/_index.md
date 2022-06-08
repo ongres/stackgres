@@ -33,6 +33,7 @@ ___
 | [configurations](#configurations)                                                          |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.configurations >}}        |
 | prometheusAutobind                                                                         |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.prometheusAutobind >}}    |
 | [initialData](#initial-data-configuration)                                                 |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.initialData >}}           |
+| [managedSql](#managed-sql)                                                                 |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.managedSql >}}            |
 | [distributedLogs](#distributed-logs)                                                       |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.distributedLogs >}}       |
 | [nonProductionOptions](#non-production-options)                                            |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.nonProductionOptions >}}  |
 
@@ -356,6 +357,7 @@ spec:
 ```
 
 ## Initial Data Configuration
+
 Specifies the cluster initialization data configurations
 
 | Property                          | Required | Updatable | Type     | Default | Description |
@@ -462,12 +464,30 @@ spec:
 | name      |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef.name >}} |
 | key       |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef.key >}} |
 
+## Manged SQL
+
+By default, stackgres creates as an empty database. To execute some scripts, we have the managed SQL
+ options where you can reference an SGScript contains the script to execute. When this configuration is
+ changed scripts are executed ASAP.
+
+| Property                       | Required | Updatable | Type     | Default  | Description |
+|:-------------------------------|----------|-----------|:---------|:---------|:------------|
+| continueOnSGScriptError        |          | ✓         | boolean  |          | {{< crd-field-description SGCluster.spec.managedSql.continueOnSGScriptError >}} |
+| [scripts](managed-sql-scripts) |          | ✓         | boolean  |          | {{< crd-field-description SGCluster.spec.managedSql.scripts >}} |
+
+## Manged SQL Scripts
+
+| Property  | Required | Updatable | Type     | Default     | Description |
+|:----------|----------|-----------|:---------|:------------|:------------|
+| id        |          |           | integer  | auto-filled  | {{< crd-field-description SGCluster.spec.managedSql.scripts.items.id >}} |
+| sgScript  |          | ✓         | string   |             | {{< crd-field-description SGCluster.spec.managedSql.scripts.items.sgScript >}} |
+
 ## Distributed logs
 Specifies the distributed logs cluster to send logs to:
 
 | Property                                                                     | Required | Updatable | Type     | Default | Description |
 |:-----------------------------------------------------------------------------|----------|-----------|:---------|:--------|:------------|
-| [sgDistributedLogs]({{% relref "/06-crd-reference/07-sgdistributedlogs" %}})  |          |           | string   |         | {{< crd-field-description SGCluster.spec.distributedLogs.sgDistributedLogs >}} |
+| [sgDistributedLogs]({{% relref "/06-crd-reference/07-sgdistributedlogs" %}}) |          |           | string   |         | {{< crd-field-description SGCluster.spec.distributedLogs.sgDistributedLogs >}} |
 
 Example:
 

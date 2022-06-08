@@ -8,73 +8,39 @@ package io.stackgres.operator.conciliation.factory.cluster.patroni;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.io.Resources;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
-import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptFrom;
-import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 import io.stackgres.common.patroni.StackGresRandomPasswordKeys;
-import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.ResourceGenerator;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.v12.PatroniScriptsConfigMap;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple4;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_3)
-public class PatroniDefaultScripts implements ResourceGenerator<StackGresClusterContext> {
+public class PatroniDefaultScripts {
 
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
-
-  @Inject
-  public PatroniDefaultScripts(LabelFactoryForCluster<StackGresCluster> labelFactory) {
-    this.labelFactory = labelFactory;
-  }
-
-  @Override
-  public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    return Stream.of(getDefaultScript(context.getSource()));
-  }
-
-  private StackGresScript getDefaultScript(StackGresCluster cluster) {
-    StackGresScript defaultScript = new StackGresScript();
-    defaultScript.setMetadata(new ObjectMeta());
-    defaultScript.getMetadata().setNamespace(cluster.getMetadata().getNamespace());
-    defaultScript.getMetadata().setName(ManagedSqlUtil.defaultName(cluster));
-    defaultScript.getMetadata().setLabels(labelFactory.genericLabels(cluster));
-    defaultScript.setSpec(new StackGresScriptSpec());
-    defaultScript.getSpec().setScripts(new ArrayList<>());
-    defaultScript.getSpec().getScripts().addAll(
-        Seq.of(getPostgresExporterInitScript())
+  public List<StackGresScriptEntry> getDefaultScripts(StackGresCluster cluster) {
+    return Seq.of(getPostgresExporterInitScript())
         .append(Seq.of(
             getBabelfishUserScript(cluster),
             getBabelfishDatabaseScript(),
             getBabelfishInitDatabaseScript())
             .filter(
                 script -> getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH))
-        .toList());
-    return defaultScript;
+        .toList();
   }
 
   private StackGresScriptEntry getPostgresExporterInitScript() {
@@ -139,9 +105,7 @@ public class PatroniDefaultScripts implements ResourceGenerator<StackGresCluster
   }
 
   private Stream<StackGresClusterScriptEntry> getInternalScripts(StackGresCluster cluster) {
-    return getDefaultScript(cluster)
-        .getSpec()
-        .getScripts()
+    return getDefaultScripts(cluster)
         .stream()
         .map(script -> {
           var clusterScript = new StackGresClusterScriptEntry();

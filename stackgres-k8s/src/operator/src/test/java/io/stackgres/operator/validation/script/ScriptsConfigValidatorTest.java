@@ -61,31 +61,6 @@ class ScriptsConfigValidatorTest {
   }
 
   @Test
-  void givenAnUpdateWithDecreasedLastId_shouldFail()
-      throws ValidationFailed {
-    final StackGresScriptReview review = getUpdateReview();
-
-    prepareForScript(review, "test", "CREATE DATABASE test;");
-    review.getRequest().getObject().getStatus().setLastId(0);
-
-    ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-        ErrorType.CONSTRAINT_VIOLATION,
-        "Status lastId must not decrease");
-  }
-
-  @Test
-  void givenACreationWithLastIdLowerThanSomeIds_shouldFail() throws ValidationFailed {
-    final StackGresScriptReview review = getCreationReview();
-
-    prepareForScript(review, "test", "CREATE DATABASE test;");
-    review.getRequest().getObject().getStatus().setLastId(0);
-
-    ValidationUtils.assertValidationFailed(() -> validator.validate(review),
-        ErrorType.CONSTRAINT_VIOLATION,
-        "Script entries ids must be less or equals than status lastId");
-  }
-
-  @Test
   void givenACreationWithDuplicatedId_shouldFail() throws ValidationFailed {
     final StackGresScriptReview review = getCreationReview();
 

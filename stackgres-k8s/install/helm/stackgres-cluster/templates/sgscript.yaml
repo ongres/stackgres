@@ -1,0 +1,47 @@
+{{- if .Values.cluster.managedSql }}
+{{- if .Values.cluster.managedSql.scripts }}
+apiVersion: stackgres.io/v1
+kind: SGScript
+metadata:
+  name: {{ .Release.Name }}-scripts
+  {{- if and .Release.IsInstall .Values.cluster.create }}
+  annotations:
+    helm.sh/hook: "pre-install"
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: "Helm"
+  {{- end }}
+spec:
+  {{- if .Values.cluster.managedSql.continueOnError }}
+  continueOnError: {{ .Values.cluster.managedSql.continueOnError }}
+  {{- end }}
+  scripts:
+  {{- range .Values.cluster.managedSql.scripts }}
+  - {{- if .name }}
+    name: {{ .name }}
+    {{- end }}
+    {{- if .database }}
+    database: {{ .database }}
+    {{- end }}
+    {{- if .script }}
+    script: {{ .script }}
+    {{- end }}
+    {{- if .scriptFrom }}
+    {{- if or .scriptFrom.secretKeyRef .scriptFrom.configMapKeyRef }}
+    scriptFrom:
+      {{- if .scriptFrom.secretKeyRef }}
+      secretKeyRef:
+        name: {{ .scriptFrom.secretKeyRef.name }}
+        key: {{ .scriptFrom.secretKeyRef.key }}
+      {{- end }}
+      {{- if .scriptFrom.configMapKeyRef }}
+      configMapKeyRef:
+        name: {{ .scriptFrom.configMapKeyRef.name }}
+        key: {{ .scriptFrom.configMapKeyRef.key }}
+      {{- end }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

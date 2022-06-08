@@ -67,6 +67,7 @@ spec:
 | id                         |          |           | integer  |          | {{< crd-field-description SGScript.spec.scripts.items.id >}} |
 | version                    |          | ✓         | integer  |          | {{< crd-field-description SGScript.spec.scripts.items.version >}} |
 | database                   |          | ✓         | string   | postgres | {{< crd-field-description SGScript.spec.scripts.items.database >}} |
+| user                       |          | ✓         | string   | postgres | {{< crd-field-description SGScript.spec.scripts.items.user >}} |
 | script                     |          | ✓         | string   |          | {{< crd-field-description SGScript.spec.scripts.items.script >}} |
 | [scriptFrom](#script-from) |          | ✓         | object   |          | {{< crd-field-description SGScript.spec.scripts.items.scriptFrom >}} |
 
