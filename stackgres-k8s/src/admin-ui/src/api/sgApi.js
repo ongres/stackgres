@@ -4,7 +4,7 @@ const baseURL = '/stackgres';
 
 const resources = {
   can_i: '/auth/rbac/can-i',
-  login: 'auth/login',
+  login: '/auth/login',
   namespaces: '/namespaces',
   sgclusters: '/sgclusters',
   sginstanceprofiles: '/sginstanceprofiles',

@@ -177,7 +177,20 @@
                             </td>
                         </tr>
                     </template>
-                    
+                    <tr>
+                        <td class="label">
+                            Monitoring
+                            <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
+                        </td>
+                        <td colspan="3">
+                            <template v-if="(typeof cluster.data.spec.prometheusAutobind !== 'undefined') && !cluster.data.spec.pods.disableMetricsExporter">
+                                ON
+                            </template>
+                            <template v-else>
+                                OFF
+                            </template>
+                        </td>
+                    </tr>
                     <tr>
                         <td class="label">
                             Prometheus Autobind
