@@ -1,5 +1,5 @@
 <template>
-    <header id="header" v-if="!notFound" :class="(($route.meta.componentName == 'SGCluster') && ((!$route.name.includes('Create') && (!$route.name.includes('Edit')) && ($route.name != 'ClusterOverview')))? 'clusterHeader' : '')">
+    <header id="header" v-if="loggedIn && !notFound" :class="(($route.meta.componentName == 'SGCluster') && ((!$route.name.includes('Create') && (!$route.name.includes('Edit')) && ($route.name != 'ClusterOverview')))? 'clusterHeader' : '')">
         <ul class="breadcrumbs">
 
             <!--Namespace-->
