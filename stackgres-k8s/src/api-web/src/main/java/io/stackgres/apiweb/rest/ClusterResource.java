@@ -403,4 +403,9 @@ public class ClusterResource
     return ScriptResource.scriptEntryResourceName(managedScriptEntry.getSgScript(), scriptEntry);
   }
 
+  @Override
+  protected void updateSpec(StackGresCluster resourceToUpdate, StackGresCluster resource) {
+    resourceToUpdate.setSpec(resource.getSpec());
+  }
+
 }

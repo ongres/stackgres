@@ -75,4 +75,10 @@ public class ConnectionPoolingConfigResource extends
     super.update(resource);
   }
 
+  @Override
+  protected void updateSpec(StackGresPoolingConfig resourceToUpdate,
+      StackGresPoolingConfig resource) {
+    resourceToUpdate.setSpec(resource.getSpec());
+  }
+
 }

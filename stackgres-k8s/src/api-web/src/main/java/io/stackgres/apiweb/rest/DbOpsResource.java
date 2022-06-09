@@ -65,4 +65,9 @@ public class DbOpsResource
     super.update(resource);
   }
 
+  @Override
+  protected void updateSpec(StackGresDbOps resourceToUpdate, StackGresDbOps resource) {
+    resourceToUpdate.setSpec(resource.getSpec());
+  }
+
 }
