@@ -63,4 +63,9 @@ public class BackupResource extends AbstractRestService<BackupDto, StackGresBack
     super.update(resource);
   }
 
+  @Override
+  protected void updateSpec(StackGresBackup resourceToUpdate, StackGresBackup resource) {
+    resourceToUpdate.setSpec(resource.getSpec());
+  }
+
 }

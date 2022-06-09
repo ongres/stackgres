@@ -75,4 +75,10 @@ public class PostgresConfigResource extends
     super.update(resource);
   }
 
+  @Override
+  protected void updateSpec(StackGresPostgresConfig resourceToUpdate,
+      StackGresPostgresConfig resource) {
+    resourceToUpdate.setSpec(resource.getSpec());
+  }
+
 }

@@ -114,7 +114,9 @@ public abstract class AbstractRestServiceDependency
     scheduler.update(transformer.toCustomResource(resource,
         finder.findByNameAndNamespace(
                 resource.getMetadata().getName(), resource.getMetadata().getNamespace())
-            .orElseThrow(NotFoundException::new)));
+            .orElseThrow(NotFoundException::new)), this::updateSpec);
   }
+
+  protected abstract void updateSpec(R resourceToUpdate, R resource);
 
 }

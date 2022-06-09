@@ -144,4 +144,10 @@ public class BackupConfigResource extends
         .ifPresent(secretWriter::delete);
   }
 
+  @Override
+  protected void updateSpec(StackGresBackupConfig resourceToUpdate,
+      StackGresBackupConfig resource) {
+    resourceToUpdate.setSpec(resource.getSpec());
+  }
+
 }

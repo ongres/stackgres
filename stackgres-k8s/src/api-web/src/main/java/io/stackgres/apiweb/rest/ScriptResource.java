@@ -225,4 +225,9 @@ public class ScriptResource
     return scriptName + "-" + scriptEntry.getId();
   }
 
+  @Override
+  protected void updateSpec(StackGresScript resourceToUpdate, StackGresScript resource) {
+    resourceToUpdate.setSpec(resource.getSpec());
+  }
+
 }
