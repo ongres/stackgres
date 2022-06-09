@@ -94,11 +94,15 @@ public class ClusterReconciliator
           var targetDbOps = Optional.ofNullable(targetCluster.getStatus())
               .map(StackGresClusterStatus::getDbOps)
               .orElse(null);
+          var targetManagedSql = Optional.ofNullable(targetCluster.getStatus())
+              .map(StackGresClusterStatus::getManagedSql)
+              .orElse(null);
           if (clusterWithStatus.getStatus() != null) {
             clusterWithStatus.getStatus().setPodStatuses(targetPodStatuses);
             clusterWithStatus.getStatus().setDbOps(targetDbOps);
+            clusterWithStatus.getStatus().setManagedSql(targetManagedSql);
+            targetCluster.setStatus(clusterWithStatus.getStatus());
           }
-          targetCluster.setStatus(clusterWithStatus.getStatus());
         });
   }
 

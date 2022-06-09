@@ -250,7 +250,7 @@ class ClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any());
-    verify(scheduler, times(0)).update(any());
+    verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(0)).create(any());
     verify(scriptScheduler, times(0)).update(any());
     verify(secretWriter, times(0)).create(any());
@@ -271,7 +271,7 @@ class ClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(1)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(0)).create(any());
-    verify(scheduler, times(1)).update(any());
+    verify(scheduler, times(1)).update(any(), any());
     verify(scriptScheduler, times(0)).create(any());
     verify(scriptScheduler, times(0)).update(any());
     verify(secretWriter, times(0)).create(any());
@@ -297,7 +297,7 @@ class ClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any());
-    verify(scheduler, times(0)).update(any());
+    verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(0)).create(any());
     verify(scriptScheduler, times(1)).update(any());
     verify(secretWriter, times(0)).create(any());
@@ -320,7 +320,7 @@ class ClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any());
-    verify(scheduler, times(0)).update(any());
+    verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
     verify(secretWriter, times(0)).create(any());
@@ -344,7 +344,7 @@ class ClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any());
-    verify(scheduler, times(0)).update(any());
+    verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
     verify(secretWriter, times(0)).create(any());
@@ -383,7 +383,7 @@ class ClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any());
-    verify(scheduler, times(0)).update(any());
+    verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
     verify(secretWriter, times(1)).create(any());
@@ -425,7 +425,7 @@ class ClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any());
-    verify(scheduler, times(0)).update(any());
+    verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
     verify(secretWriter, times(0)).create(any());
@@ -465,7 +465,7 @@ class ClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any());
-    verify(scheduler, times(0)).update(any());
+    verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
     verify(secretWriter, times(1)).create(any());
@@ -502,7 +502,7 @@ class ClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any());
-    verify(scheduler, times(0)).update(any());
+    verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
     verify(secretWriter, times(0)).create(any());
@@ -542,7 +542,7 @@ class ClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any());
-    verify(scheduler, times(0)).update(any());
+    verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
     verify(secretWriter, times(0)).create(any());
@@ -580,7 +580,7 @@ class ClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any());
-    verify(scheduler, times(0)).update(any());
+    verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
     verify(secretWriter, times(0)).create(any());

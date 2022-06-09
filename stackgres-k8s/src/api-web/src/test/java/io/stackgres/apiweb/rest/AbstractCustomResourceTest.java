@@ -109,7 +109,7 @@ public abstract class AbstractCustomResourceTest
       checkCustomResource(customResource, dto, Operation.UPDATE);
 
       return null;
-    }).when(scheduler).update(any());
+    }).when(scheduler).update(any(), any());
 
     service.update(dto);
   }

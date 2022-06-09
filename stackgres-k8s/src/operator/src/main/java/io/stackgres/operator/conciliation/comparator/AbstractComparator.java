@@ -22,8 +22,8 @@ public abstract class AbstractComparator
 
   static final SimpleIgnorePatch MANAGED_FIELDS_IGNORE_PATCH =
       new SimpleIgnorePatch("/metadata/managedFields", "add");
-  static final ManagedByServerSideApplyIgnorePatch MANAGED_BY_SERVER_SIDE_APPLY_IGNORE_PATCH =
-      new ManagedByServerSideApplyIgnorePatch();
+  static final AnnotationsIgnorePatch MANAGED_BY_SERVER_SIDE_APPLY_IGNORE_PATCH =
+      new AnnotationsIgnorePatch(StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY);
 
   @Override
   public ArrayNode getJsonDiff(HasMetadata required, HasMetadata deployed) {
@@ -59,18 +59,26 @@ public abstract class AbstractComparator
 
   }
 
-  static class ManagedByServerSideApplyIgnorePatch implements IgnorePatch {
-    private static final String MANAGED_BY_SERVER_SIDE_APPLY_PATH =
-        "/metadata/annotations/"
-        + ResourceComparator.escapePatchPath(StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY);
+  protected static class AnnotationsIgnorePatch implements IgnorePatch {
+    final List<String> keys;
+    final List<String> paths;
 
+    public AnnotationsIgnorePatch(String...keys) {
+      this.keys = Arrays.asList(keys);
+      this.paths = this.keys.stream()
+          .map(key -> "/metadata/annotations/"
+              + ResourceComparator.escapePatchPath(key))
+          .toList();
+    }
+
+    @Override
     public boolean matches(JsonPatch patch) {
       return patch.op.equals("add")
-          && (patch.path.equals(MANAGED_BY_SERVER_SIDE_APPLY_PATH)
+          && (paths.stream().anyMatch(patch.path::equals)
               || (
                   patch.path.equals("/metadata/annotations")
-                  && Seq.seq(patch.jsonValue.fields()).count() == 1
-                  && patch.jsonValue.has(StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY)
+                  && Seq.seq(patch.jsonValue.fields()).count() == keys.size()
+                  && keys.stream().allMatch(patch.jsonValue::has)
                   )
               );
     }
@@ -95,6 +103,7 @@ public abstract class AbstractComparator
       this.value = null;
     }
 
+    @Override
     public boolean matches(JsonPatch patch) {
       if (value != null) {
         return Objects.equals(op, patch.op)
@@ -214,15 +223,11 @@ public abstract class AbstractComparator
 
     @Override
     public boolean matches(JsonPatch patch) {
-      if (excludes.stream().noneMatch(ignorePatch -> ignorePatch.matches(patch))) {
-        return false;
-      }
-
       if (exceptIncludes.stream().anyMatch(ignorePatch -> ignorePatch.matches(patch))) {
         return false;
       }
 
-      return true;
+      return excludes.stream().anyMatch(ignorePatch -> ignorePatch.matches(patch));
     }
   }
 }

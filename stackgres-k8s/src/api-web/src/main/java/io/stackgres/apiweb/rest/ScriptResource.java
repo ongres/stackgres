@@ -79,7 +79,9 @@ public class ScriptResource
       })
   @Override
   public List<ScriptDto> list() {
-    return super.list();
+    return Seq.seq(super.list())
+        .map(this::setConfigMaps)
+        .toList();
   }
 
   @Operation(
@@ -124,11 +126,12 @@ public class ScriptResource
     Seq.seq(Optional.ofNullable(resource.getSpec())
         .map(ScriptSpec::getScripts)
         .stream()
-        .flatMap(List::stream)
-        .filter(scriptEntry -> scriptEntry.getScriptFrom() != null
-            && scriptEntry.getScriptFrom().getConfigMapKeyRef() != null)
-        .map(script -> extractConfigMapInfo(resource, script))
-        .filter(t -> t.v2.v3 != null))
+        .flatMap(List::stream))
+        .zipWithIndex()
+        .filter(t -> t.v1.getScriptFrom() != null
+            && t.v1.getScriptFrom().getConfigMapKeyRef() != null)
+        .map(t -> extractConfigMapInfo(resource, t.v1, t.v2.intValue()))
+        .filter(t -> t.v2.v3 != null)
         .grouped(t -> t.v2.v3.getName())
         .flatMap(t -> {
           Optional<Map<String, String>> configMaps = configMapFinder
@@ -144,17 +147,18 @@ public class ScriptResource
   }
 
   private List<ConfigMap> getConfigMapsToCreate(ScriptDto resource) {
-    return Optional.ofNullable(resource.getSpec())
+    return Seq.seq(Optional.ofNullable(resource.getSpec())
         .map(ScriptSpec::getScripts)
         .stream()
-        .flatMap(List::stream)
-        .filter(scriptEntry -> scriptEntry.getScriptFrom() != null)
-        .filter(scriptEntry -> scriptEntry.getScriptFrom().getConfigMapScript() != null)
-        .map(scriptEntry -> {
-          ScriptFrom clusterScriptFrom = scriptEntry.getScriptFrom();
+        .flatMap(List::stream))
+        .zipWithIndex()
+        .filter(t -> t.v1.getScriptFrom() != null)
+        .filter(t -> t.v1.getScriptFrom().getConfigMapScript() != null)
+        .map(t -> {
+          ScriptFrom clusterScriptFrom = t.v1.getScriptFrom();
           final String configMapScript = clusterScriptFrom.getConfigMapScript();
           if (clusterScriptFrom.getConfigMapKeyRef() == null) {
-            String configMapName = scriptEntryResourceName(resource, scriptEntry);
+            String configMapName = scriptEntryResourceName(resource, t.v2.intValue());
             ConfigMapKeySelector configMapKeyRef = new ConfigMapKeySelector();
             configMapKeyRef.setName(configMapName);
             configMapKeyRef.setKey(DEFAULT_SCRIPT_KEY);
@@ -173,18 +177,19 @@ public class ScriptResource
   }
 
   private List<Secret> getSecretsToCreate(ScriptDto resource) {
-    return Optional.ofNullable(resource.getSpec())
+    return Seq.seq(Optional.ofNullable(resource.getSpec())
         .map(ScriptSpec::getScripts)
         .stream()
-        .flatMap(List::stream)
-        .filter(entry -> entry.getScriptFrom() != null)
-        .filter(entry -> entry.getScriptFrom().getSecretScript() != null)
-        .map(tuple -> {
-          ScriptFrom clusterScriptFrom = tuple.getScriptFrom();
+        .flatMap(List::stream))
+        .zipWithIndex()
+        .filter(t -> t.v1.getScriptFrom() != null)
+        .filter(t -> t.v1.getScriptFrom().getSecretScript() != null)
+        .map(t -> {
+          ScriptFrom clusterScriptFrom = t.v1.getScriptFrom();
           final String secretScript = ResourceUtil
               .encodeSecret(clusterScriptFrom.getSecretScript());
           if (clusterScriptFrom.getSecretKeyRef() == null) {
-            String secretName = scriptEntryResourceName(resource, tuple);
+            String secretName = scriptEntryResourceName(resource, t.v2.intValue());
             SecretKeySelector secretKeyRef = new SecretKeySelector();
             secretKeyRef.setName(secretName);
             secretKeyRef.setKey(DEFAULT_SCRIPT_KEY);
@@ -204,10 +209,10 @@ public class ScriptResource
 
   private Tuple2<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
       Consumer<ConfigMapKeySelector>>> extractConfigMapInfo(
-      ScriptDto resource, ScriptEntry scriptEntry) {
+      ScriptDto resource, ScriptEntry scriptEntry, int index) {
     return Tuple.<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
         Consumer<ConfigMapKeySelector>>>tuple(
-        scriptEntryResourceName(resource, scriptEntry),
+        scriptEntryResourceName(resource, index),
         Tuple.<String, Consumer<String>, ConfigMapKeySelector,
             Consumer<ConfigMapKeySelector>>tuple(
             scriptEntry.getScriptFrom().getConfigMapScript(),
@@ -216,13 +221,12 @@ public class ScriptResource
             scriptEntry.getScriptFrom()::setConfigMapKeyRef));
   }
 
-  private String scriptEntryResourceName(ScriptDto resource, ScriptEntry scriptEntry) {
-    return scriptEntryResourceName(resource.getMetadata().getName(), scriptEntry);
+  private String scriptEntryResourceName(ScriptDto resource, int index) {
+    return scriptEntryResourceName(resource.getMetadata().getName(), index);
   }
 
-  public static String scriptEntryResourceName(
-      String scriptName, ScriptEntry scriptEntry) {
-    return scriptName + "-" + scriptEntry.getId();
+  public static String scriptEntryResourceName(String scriptName, int index) {
+    return scriptName + "-" + index;
   }
 
   @Override

@@ -66,6 +66,8 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.kubernetes.client.utils.URLUtils.URLBuilder;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresKubernetesClient;
+import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgscript.StackGresScriptList;
 import io.stackgres.common.kubernetesclient.workaround.SecretOperationsImpl;
 import io.stackgres.common.kubernetesclient.workaround.ServiceOperationsImpl;
 import io.stackgres.common.prometheus.ServiceMonitor;
@@ -590,6 +592,8 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
           .put(Job.class, client -> client.batch().v1().jobs())
           .put(ServiceMonitor.class, client -> client
               .resources(ServiceMonitor.class, ServiceMonitorList.class))
+          .put(StackGresScript.class, client -> client
+              .resources(StackGresScript.class, StackGresScriptList.class))
           .build();
 
   @Override

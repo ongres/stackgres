@@ -1291,4 +1291,7 @@ spec:
                                 failure:
                                   type: string
                                   description: If failed, a message of the failure
+                                failures:
+                                  type: integer
+                                  description: If failed, indicates the number of failures occurred
 

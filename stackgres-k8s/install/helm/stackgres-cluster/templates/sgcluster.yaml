@@ -114,9 +114,7 @@ spec:
   {{- end }}
   {{- if .Values.cluster.managedSql.scripts }}
     scripts:
-  {{- range .Values.cluster.managedSql.scripts }}
-    - sgScript: {{ .Release.Name }}-scripts
-  {{- end }}
+    - sgScript: {{ $.Release.Name }}-scripts
   {{- end }}
   {{- end }}
   {{- if .Values.cluster.postgresServices }}

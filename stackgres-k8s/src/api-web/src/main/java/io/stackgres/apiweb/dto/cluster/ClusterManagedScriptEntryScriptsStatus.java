@@ -30,6 +30,9 @@ public class ClusterManagedScriptEntryScriptsStatus {
   @JsonProperty("failure")
   private String failure;
 
+  @JsonProperty("failures")
+  private Integer failures;
+
   public Integer getId() {
     return id;
   }
@@ -62,9 +65,17 @@ public class ClusterManagedScriptEntryScriptsStatus {
     this.failure = failure;
   }
 
+  public Integer getFailures() {
+    return failures;
+  }
+
+  public void setFailures(Integer failures) {
+    this.failures = failures;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(failure, failureCode, id, version);
+    return Objects.hash(failure, failureCode, failures, id, version);
   }
 
   @Override
@@ -75,10 +86,10 @@ public class ClusterManagedScriptEntryScriptsStatus {
     if (!(obj instanceof ClusterManagedScriptEntryScriptsStatus)) {
       return false;
     }
-    ClusterManagedScriptEntryScriptsStatus other =
-        (ClusterManagedScriptEntryScriptsStatus) obj;
+    ClusterManagedScriptEntryScriptsStatus other = (ClusterManagedScriptEntryScriptsStatus) obj;
     return Objects.equals(failure, other.failure) && Objects.equals(failureCode, other.failureCode)
-        && Objects.equals(id, other.id) && Objects.equals(version, other.version);
+        && Objects.equals(failures, other.failures) && Objects.equals(id, other.id)
+        && Objects.equals(version, other.version);
   }
 
   @Override

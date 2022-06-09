@@ -57,15 +57,15 @@ public class ScriptsConfigValidator implements ScriptValidator {
   @Override
   public void validate(StackGresScriptReview review) throws ValidationFailed {
     StackGresScript script = review.getRequest().getObject();
-    List<StackGresScriptEntry> scripts = Optional.of(script.getSpec())
-        .map(StackGresScriptSpec::getScripts)
-        .orElse(List.of());
-    List<StackGresScriptEntryStatus> scriptsStatuses = Optional.of(script)
-        .map(StackGresScript::getStatus)
-        .map(StackGresScriptStatus::getScripts)
-        .orElse(List.of());
     if (review.getRequest().getOperation() == Operation.UPDATE
         || review.getRequest().getOperation() == Operation.CREATE) {
+      List<StackGresScriptEntry> scripts = Optional.of(script.getSpec())
+          .map(StackGresScriptSpec::getScripts)
+          .orElse(List.of());
+      List<StackGresScriptEntryStatus> scriptsStatuses = Optional.of(script)
+          .map(StackGresScript::getStatus)
+          .map(StackGresScriptStatus::getScripts)
+          .orElse(List.of());
       checkIdsUniqueness(scripts);
       checkStatusIdsCorrelation(scripts, scriptsStatuses);
       checkSecretKeySelectors(review, scripts);

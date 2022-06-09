@@ -203,18 +203,18 @@ create_or_replace_cluster_for_version_only() {
 }
 
 transform_to_1_2() {
-  if printf '%s' "$1" | grep -q '^cluster\.initialData\.scripts'
+  if printf '%s' "$1" | grep -q '^cluster\.managedSql\.scripts'
   then
-    printf '%s' "$1" | sed 's/^cluster\.initialData\.scripts\(.*\)/cluster.managedSql.scripts\1/'
+    printf '%s' "$1" | sed 's/^cluster\.managedSql\.scripts\(.*\)/cluster.initialData.scripts\1/'
   else
     dont_transform "$1"
   fi
 }
 
 transform_to_1_1() {
-  if printf '%s' "$1" | grep -q '^cluster\.initialData\.scripts'
+  if printf '%s' "$1" | grep -q '^cluster\.managedSql\.scripts'
   then
-    printf '%s' "$1" | sed 's/^cluster\.initialData\.scripts\(.*\)/cluster.managedSql.scripts\1/'
+    printf '%s' "$1" | sed 's/^cluster\.managedSql\.scripts\(.*\)/cluster.initialData.scripts\1/'
   elif [ "${1%=*}" = 'configurations.backupconfig.baseBackups.performance.maxDiskBandwidth' ]
   then
     printf "%s=%s" "configurations.backupconfig.baseBackups.performance.maxDiskBandwitdh" "${1#*=}"

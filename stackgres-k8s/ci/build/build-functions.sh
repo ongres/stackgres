@@ -124,7 +124,7 @@ run_commands_in_container() {
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
   eval "cat << EOF
 $(
-    jq -r ".modules[\"$MODULE\"].build_env
+    jq -r ".modules[\"$MODULE\"].build_env | if . != null then . else {} end
           | to_entries
           | map(\"export \" + .key + \"=\\\"\" + .value + \"\\\"\")
           | .[]" stackgres-k8s/ci/build/target/config.json)
@@ -171,7 +171,7 @@ build_module_image() {
     post_build_in_container "$MODULE" "$BUILD_IMAGE_NAME"
   fi
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
-  MODULE_DOCKERFILE="$(jq -r ".modules[\"$MODULE\"].dockerfile.path" stackgres-k8s/ci/build/target/config.json)"
+  MODULE_DOCKERFILE="$(jq -r ".modules[\"$MODULE\"].dockerfile | if . != null then .path else null end" stackgres-k8s/ci/build/target/config.json)"
   MODULE_ARTIFACTS="$(module_list_of_files "$MODULE" artifacts)"
   (
   echo '*'
