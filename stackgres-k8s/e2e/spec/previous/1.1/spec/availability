@@ -176,6 +176,22 @@ EOF
   
   cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
+kind: SGScript
+metadata:
+  name: $CLUSTER_NAME-scripts
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  scripts:
+  - name: create-pgbench-user
+    scriptFrom:
+      secretKeyRef:
+        name: pgbench-credentials
+        key: pgbench-create-user-sql
+  - name: create-pgbench-database
+    script: |
+      CREATE DATABASE pgbench OWNER pguser;
+---
+apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   name: $CLUSTER_NAME
@@ -185,18 +201,11 @@ spec:
   postgres:
     version: 'latest'
   pods:
-    persistentVolume: 
+    persistentVolume:
       size: '1Gi'
   managedSql:
     scripts:
-    - name: create-pgbench-user
-      scriptFrom:
-        secretKeyRef:
-          name: pgbench-credentials
-          key: pgbench-create-user-sql
-    - name: create-pgbench-database
-      script: |
-        CREATE DATABASE pgbench OWNER pguser;
+    - sgScript: $CLUSTER_NAME-scripts
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF

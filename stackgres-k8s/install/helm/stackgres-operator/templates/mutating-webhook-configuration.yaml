@@ -16,7 +16,7 @@ webhooks:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
-        resources: ["sgclusters", "sgclusters/*"]
+        resources: ["sgclusters"]
     failurePolicy: Fail
     clientConfig:
       service:
@@ -106,7 +106,7 @@ webhooks:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["stackgres.io"]
         apiVersions: ["*"]
-        resources: ["sgdistributedlogs", "sgdistributedlogs/*"]
+        resources: ["sgdistributedlogs"]
     failurePolicy: Fail
     clientConfig:
       service:
@@ -144,5 +144,20 @@ webhooks:
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgobjectstorage'
       caBundle: '{{ .Values.cert.crt }}'
+    admissionReviewVersions: ["v1beta1"]
+  - name: sgscripts.{{ .Release.Name }}.{{ .Release.Namespace }}
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgscripts"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/mutation/sgscript'
+      caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1beta1"]
 {{- end }}

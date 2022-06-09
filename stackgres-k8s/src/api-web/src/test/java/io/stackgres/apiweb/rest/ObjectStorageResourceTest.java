@@ -144,7 +144,7 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
         Optional.of(objectStorageTuple.source())
     );
 
-    when(scheduler.update(any()))
+    when(scheduler.update(any(), any()))
         .then(
             (Answer<StackGresObjectStorage>) invocationOnMock -> invocationOnMock
                 .getArgument(0, StackGresObjectStorage.class)
@@ -158,7 +158,7 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
         .then()
         .statusCode(204);
 
-    verify(scheduler).update(any());
+    verify(scheduler).update(any(), any());
   }
 
   @Test

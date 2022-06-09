@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
 
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_DATA;
+import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
 
 import java.util.Map;
 import java.util.Optional;
@@ -52,15 +53,19 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
 
   private final VolumeMountsProvider<ContainerContext> postgresDataMounts;
   private final VolumeMountsProvider<ContainerContext> userContainerMounts;
+  private final VolumeMountsProvider<ContainerContext> postgresSocket;
 
   @Inject
   public ClusterController(
       @ProviderName(POSTGRES_DATA)
-          VolumeMountsProvider<ContainerContext> postgresDataMounts,
+      VolumeMountsProvider<ContainerContext> postgresDataMounts,
       @ProviderName(CONTAINER_USER_OVERRIDE)
-      VolumeMountsProvider<ContainerContext> userContainerMounts) {
+      VolumeMountsProvider<ContainerContext> userContainerMounts,
+      @ProviderName(POSTGRES_SOCKET)
+      VolumeMountsProvider<ContainerContext> postgresSocket) {
     this.postgresDataMounts = postgresDataMounts;
     this.userContainerMounts = userContainerMounts;
+    this.postgresSocket = postgresSocket;
   }
 
   @Override
@@ -150,6 +155,7 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
                 .build())
         .withVolumeMounts(userContainerMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
             .withName(StatefulSetDynamicVolumes.PGBOUNCER_AUTH_FILE.getVolumeName())

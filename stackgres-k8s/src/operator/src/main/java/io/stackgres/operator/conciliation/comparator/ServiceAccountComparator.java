@@ -9,42 +9,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.zjsonpatch.JsonDiff;
-import io.stackgres.common.StackGresContext;
 
 public class ServiceAccountComparator extends StackGresAbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
       new StackGresAbstractComparator.SimpleIgnorePatch("/managedFields",
           "add"),
-      new ManagedByServerSideApplyIgnorePatch(),
       new StackGresAbstractComparator.SimpleIgnorePatch("/secrets",
           "add"),
   };
 
-  static class ManagedByServerSideApplyIgnorePatch implements IgnorePatch {
-    private static final String MANAGED_BY_SERVER_SIDE_APPLY_PATH =
-        "/annotations/"
-        + ResourceComparator.escapePatchPath(StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY);
-
-    public boolean matches(JsonPatch patch) {
-      return patch.getOp().equals("add")
-          && (patch.getPath().equals(MANAGED_BY_SERVER_SIDE_APPLY_PATH)
-              || (
-                  patch.getPath().equals("/annotations")
-                  && patch.getJsonValue().has(StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY)
-                  )
-              );
-    }
-  }
-
   @Override
   protected IgnorePatch[] getPatchPattersToIgnore() {
     return IGNORE_PATCH_PATTERNS;
-  }
-
-  @Override
-  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
-    return super.isResourceContentEqual(required, deployed);
   }
 
   @Override

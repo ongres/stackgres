@@ -199,20 +199,21 @@ public class ClusterResource
 
   ClusterDto setConfigMaps(ClusterDto resource) {
     final String namespace = resource.getMetadata().getNamespace();
-    Seq.of(Optional.ofNullable(resource.getSpec())
+    Seq.seq(Optional.ofNullable(resource.getSpec())
         .map(ClusterSpec::getManagedSql)
-        .map(ClusterManagedSql::getScripts))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .flatMap(List::stream)
-        .flatMap(managedScriptEntry -> Optional.ofNullable(managedScriptEntry.getScriptSpec())
+        .map(ClusterManagedSql::getScripts)
+        .stream()
+        .flatMap(List::stream))
+        .flatMap(managedScriptEntry -> Seq.seq(
+            Optional.ofNullable(managedScriptEntry.getScriptSpec())
             .map(ScriptSpec::getScripts)
             .stream()
-            .flatMap(List::stream)
+            .flatMap(List::stream))
+            .zipWithIndex()
             .map(Tuple.tuple(managedScriptEntry)::concat))
         .filter(t -> t.v2.getScriptFrom() != null
             && t.v2.getScriptFrom().getConfigMapKeyRef() != null)
-        .map(t -> extractConfigMapInfo(t.v1, t.v2))
+        .map(t -> extractConfigMapInfo(t.v1, t.v2, t.v3.intValue()))
         .filter(t -> t.v2.v3 != null)
         .grouped(t -> t.v2.v3.getName())
         .flatMap(t -> {
@@ -283,21 +284,22 @@ public class ClusterResource
         .map(ClusterManagedSql::getScripts)
         .stream()
         .flatMap(List::stream))
-        .filter(managedScriptEntry -> managedScriptEntry.getScriptSpec() != null)
-        .map(managedScriptEntry -> {
+        .zipWithIndex()
+        .filter(t -> t.v1.getScriptSpec() != null)
+        .map(t -> {
           StackGresScript script = new StackGresScript();
           script.setMetadata(new ObjectMeta());
-          if (managedScriptEntry.getSgScript() == null) {
-            managedScriptEntry.setSgScript(
-                scriptResourceName(resource, managedScriptEntry));
+          if (t.v1.getSgScript() == null) {
+            t.v1.setSgScript(scriptResourceName(
+                resource, t.v2.intValue()));
           }
-          script.getMetadata().setName(managedScriptEntry.getSgScript());
+          script.getMetadata().setName(t.v1.getSgScript());
           script.getMetadata().setNamespace(resource.getMetadata().getNamespace());
           script.setSpec(new StackGresScriptSpec());
           script.getSpec().setContinueOnError(
-              managedScriptEntry.getScriptSpec().isContinueOnError());
-          if (managedScriptEntry.getScriptSpec().getScripts() != null) {
-            script.getSpec().setScripts(managedScriptEntry.getScriptSpec().getScripts().stream()
+              t.v1.getScriptSpec().isContinueOnError());
+          if (t.v1.getScriptSpec().getScripts() != null) {
+            script.getSpec().setScripts(t.v1.getScriptSpec().getScripts().stream()
                 .map(scriptTransformer::getCustomResourceScriptEntry)
                 .collect(ImmutableList.toImmutableList()));
           }
@@ -312,10 +314,12 @@ public class ClusterResource
         .map(ClusterManagedSql::getScripts)
         .stream()
         .flatMap(List::stream))
-        .flatMap(managedScriptEntry -> Optional.ofNullable(managedScriptEntry.getScriptSpec())
+        .flatMap(managedScriptEntry -> Seq.seq(
+            Optional.ofNullable(managedScriptEntry.getScriptSpec())
             .map(ScriptSpec::getScripts)
             .stream()
-            .flatMap(List::stream)
+            .flatMap(List::stream))
+            .zipWithIndex()
             .map(Tuple.tuple(managedScriptEntry)::concat))
         .filter(t -> t.v2.getScriptFrom() != null)
         .filter(t -> t.v2.getScriptFrom().getConfigMapScript() != null)
@@ -323,7 +327,7 @@ public class ClusterResource
           ScriptFrom clusterScriptFrom = t.v2.getScriptFrom();
           final String configMapScript = clusterScriptFrom.getConfigMapScript();
           if (clusterScriptFrom.getConfigMapKeyRef() == null) {
-            String configMapName = scriptEntryResourceName(t.v1, t.v2);
+            String configMapName = scriptEntryResourceName(t.v1, t.v3.intValue());
             ConfigMapKeySelector configMapKeyRef = new ConfigMapKeySelector();
             configMapKeyRef.setName(configMapName);
             configMapKeyRef.setKey(DEFAULT_SCRIPT_KEY);
@@ -348,10 +352,12 @@ public class ClusterResource
         .map(ClusterManagedSql::getScripts)
         .stream()
         .flatMap(List::stream))
-        .flatMap(managedScriptEntry -> Optional.ofNullable(managedScriptEntry.getScriptSpec())
+        .flatMap(managedScriptEntry -> Seq.seq(
+            Optional.ofNullable(managedScriptEntry.getScriptSpec())
             .map(ScriptSpec::getScripts)
             .stream()
-            .flatMap(List::stream)
+            .flatMap(List::stream))
+            .zipWithIndex()
             .map(Tuple.tuple(managedScriptEntry)::concat))
         .filter(t -> t.v2.getScriptFrom() != null)
         .filter(t -> t.v2.getScriptFrom().getSecretScript() != null)
@@ -360,7 +366,7 @@ public class ClusterResource
           final String secretScript = ResourceUtil
               .encodeSecret(clusterScriptFrom.getSecretScript());
           if (clusterScriptFrom.getSecretKeyRef() == null) {
-            String secretName = scriptEntryResourceName(t.v1, t.v2);
+            String secretName = scriptEntryResourceName(t.v1, t.v3.intValue());
             SecretKeySelector secretKeyRef = new SecretKeySelector();
             secretKeyRef.setName(secretName);
             secretKeyRef.setKey(DEFAULT_SCRIPT_KEY);
@@ -381,10 +387,11 @@ public class ClusterResource
   private Tuple2<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
       Consumer<ConfigMapKeySelector>>> extractConfigMapInfo(
       ClusterManagedScriptEntry managedScriptEntry,
-      ScriptEntry scriptEntry) {
+      ScriptEntry scriptEntry,
+      int index) {
     return Tuple.<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
         Consumer<ConfigMapKeySelector>>>tuple(
-        scriptEntryResourceName(managedScriptEntry, scriptEntry),
+        scriptEntryResourceName(managedScriptEntry, index),
         Tuple.<String, Consumer<String>, ConfigMapKeySelector,
             Consumer<ConfigMapKeySelector>>tuple(
             scriptEntry.getScriptFrom().getConfigMapScript(),
@@ -394,13 +401,12 @@ public class ClusterResource
   }
 
   private String scriptResourceName(ClusterDto cluster,
-      ClusterManagedScriptEntry managedScriptEntry) {
-    return cluster.getMetadata().getName() + "-managed-sql-" + managedScriptEntry.getId();
+      int index) {
+    return cluster.getMetadata().getName() + "-managed-sql-" + index;
   }
 
-  private String scriptEntryResourceName(ClusterManagedScriptEntry managedScriptEntry,
-      ScriptEntry scriptEntry) {
-    return ScriptResource.scriptEntryResourceName(managedScriptEntry.getSgScript(), scriptEntry);
+  private String scriptEntryResourceName(ClusterManagedScriptEntry managedScriptEntry, int index) {
+    return ScriptResource.scriptEntryResourceName(managedScriptEntry.getSgScript(), index);
   }
 
   @Override

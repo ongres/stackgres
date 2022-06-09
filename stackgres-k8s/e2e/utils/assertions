@@ -58,21 +58,21 @@ assert_api_error(){
   EXPECTED_ERROR_TITLE="${EXPECTED_ERROR_TITLE:-"do not comply with the syntactic rules"}"
   EXPECTED_ERROR_DETAIL="${EXPECTED_ERROR_DETAIL:-"in body"}"
   EXPECTED_ERROR_FIELD="${EXPECTED_ERROR_FIELD:-""}"
-  ERROR_TYPE="$(echo "$RESPONSE" | jq '.type' )"
+  ERROR_TYPE="$(echo true | jq --arg response "$RESPONSE" '$response | fromjson | .type' )"
 
   assert_string_contains "$EXPECTED_ERROR_TYPE" "$ERROR_TYPE"
 
-  ERROR_TITLE="$(echo "$RESPONSE" | jq '.title' )"
+  ERROR_TITLE="$(echo true | jq --arg response "$RESPONSE" '$response | fromjson | .title' )"
 
   assert_string_contains "$EXPECTED_ERROR_TITLE" "$ERROR_TITLE"
 
-  ERROR_DETAIL="$(echo "$RESPONSE" | jq '.detail' )"
+  ERROR_DETAIL="$(echo true | jq --arg response "$RESPONSE" '$response | fromjson | .detail' )"
 
   assert_string_contains "$EXPECTED_ERROR_DETAIL" "$ERROR_DETAIL"
 
   if [ "$EXPECTED_ERROR_FIELD" != "" ]
   then
-    ERROR_FIELD="$(echo "$RESPONSE" | jq '.fields[0]' )"
+    ERROR_FIELD="$(echo true | jq --arg response "$RESPONSE" '$response | fromjson | .fields[0]' )"
     assert_string_contains "$EXPECTED_ERROR_FIELD" "$ERROR_FIELD"
   fi
 }

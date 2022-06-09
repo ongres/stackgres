@@ -104,7 +104,6 @@ e2e_test_install() {
     --set configurations.backupconfig.create=true \
     --set cluster.configurations.backups.retention=2 \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
-    --set-string cluster.managedSql.scripts[0].script="CREATE DATABASE managed_sql;"
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
@@ -164,6 +163,7 @@ EOF
     --set backupconfig.create=true \
     --set backupconfig.retention=2 \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set-string cluster.managedSql.scripts[0].script="CREATE DATABASE managed_sql;" \
     --set-string cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
     --set-string cluster.metadata.labels.clusterPods.pod-label="$RANDOM_VALUE" \
     --set-string cluster.metadata.annotations.clusterPods.pod-annotation="$RANDOM_VALUE" \
@@ -775,11 +775,19 @@ check_backups_path_mutation() {
 
 check_managed_sql_mutation() {
   if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" --template '{{ len .spec.managedSql.scripts }}')" \
-    = "1" ]
+    = "2" ]
   then
     echo "SUCCESS. Managed SQL was added to cluster configuration after operator upgrade"
   else
     echo "FAIL. Managed SQL was not added to cluster configuration after operator upgrade"
+    return 1
+  fi
+  if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-inital-data" -o name | wc -l)" \
+    = "1" ]
+  then
+    echo "SUCCESS. Initial data SGScript was created after operator upgrade"
+  else
+    echo "FAIL. Initial data SGScript was not created after operator upgrade"
     return 1
   fi
 }

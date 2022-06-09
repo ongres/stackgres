@@ -24,6 +24,8 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgscript.StackGresScriptList;
 import io.stackgres.common.prometheus.ServiceMonitor;
 import io.stackgres.common.prometheus.ServiceMonitorList;
 
@@ -53,6 +55,8 @@ public interface ReconciliationOperations {
           .put(CronJob.class, client -> client.batch().v1beta1().cronjobs())
           .put(Pod.class, KubernetesClient::pods)
           .put(Job.class, client -> client.batch().v1().jobs())
+          .put(StackGresScript.class, client -> client
+              .resources(StackGresScript.class, StackGresScriptList.class))
           .build();
 
   ImmutableMap<
