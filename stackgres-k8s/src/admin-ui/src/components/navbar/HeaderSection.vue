@@ -1,5 +1,5 @@
 <template>
-    <header id="header" :class="(($route.meta.componentName == 'SGCluster') && ((!$route.name.includes('Create') && (!$route.name.includes('Edit')) && ($route.name != 'ClusterOverview')))? 'clusterHeader' : '')">
+    <header id="header" v-if="!notFound" :class="(($route.meta.componentName == 'SGCluster') && ((!$route.name.includes('Create') && (!$route.name.includes('Edit')) && ($route.name != 'ClusterOverview')))? 'clusterHeader' : '')">
         <ul class="breadcrumbs">
 
             <!--Namespace-->
@@ -217,14 +217,6 @@
         name: 'HeaderSection',
 
         mixins: [mixin],
-
-        data: function() {
-
-			return {
-            
-			}
-
-		},
 
         computed: {
 

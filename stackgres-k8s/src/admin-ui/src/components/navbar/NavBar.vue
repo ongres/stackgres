@@ -211,13 +211,6 @@
 				return store.state.timezone
 			},
 
-			loggedIn () {
-				if (typeof store.state.loginToken !== 'undefined')
-					return store.state.loginToken.length > 0
-				else
-					return false
-			},
-
 			clone () {
 				return store.state.cloneCRD
 			},
