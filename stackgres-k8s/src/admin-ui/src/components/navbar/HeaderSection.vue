@@ -4,7 +4,7 @@
 
             <!--Namespace-->
             <li class="namespace">
-                <template v-if="$route.name == 'GlobalDashboard'">
+                <template v-if="$route.name.includes('GlobalDashboard')">
                     Namespaces Overview
                 </template>
                 <template v-else>
@@ -20,121 +20,124 @@
                 </template>
             </li>
 
-            <!--Kind-->
-            <template v-if="($route.name != 'NamespaceOverview') && ($route.name != 'GlobalDashboard')">
-                <li>
-                    <span class="component" :class="$route.meta.componentName.toLowerCase()"></span>
+            <template v-if="$route.meta.hasOwnProperty('componentName')">
 
-                    <template v-if="currentPath.name || $route.name.startsWith('Create') || $route.params.hasOwnProperty('backupname')">
-                        <template v-if="iCan('list', $route.meta.componentName.toLowerCase() + 's', $route.params.namespace)">
-                            <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + 's'" :title="$route.meta.componentName + 's'">
+                <!--Kind-->
+                <template v-if="($route.name != 'NamespaceOverview') && ($route.name != 'GlobalDashboard')">
+                    <li>
+                        <span class="component" :class="$route.meta.componentName.toLowerCase()"></span>
+
+                        <template v-if="currentPath.name || $route.name.startsWith('Create') || $route.params.hasOwnProperty('backupname')">
+                            <template v-if="iCan('list', $route.meta.componentName.toLowerCase() + 's', $route.params.namespace)">
+                                <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + 's'" :title="$route.meta.componentName + 's'">
+                                    {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + 's' : $route.meta.componentName + 's' }}
+                                </router-link>
+                            </template>
+                            <template v-else>
                                 {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + 's' : $route.meta.componentName + 's' }}
-                            </router-link>
+                            </template>
                         </template>
                         <template v-else>
                             {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + 's' : $route.meta.componentName + 's' }}
                         </template>
-                    </template>
-                    <template v-else>
-                        {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + 's' : $route.meta.componentName + 's' }}
-                    </template>
-                </li>
-            </template>
-            
-            <!--CRD Name-->
-            <template v-if="!$route.params.hasOwnProperty('name') && currentPath.name">
-                <li>
-                    <template v-if="(currentPath.component.startsWith('Edit')) || ($route.meta.componentName == 'SGCluster')">
-                        <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + currentPath.name" :title="currentPath.name">
-                            {{ currentPath.name }}
-                        </router-link>
-                    </template>
-                    <template v-else>
-                        <span>{{ currentPath.name }}</span>
-                    </template>
-                </li>
-            </template>
+                    </li>
+                </template>
+                
+                <!--CRD Name-->
+                <template v-if="!$route.params.hasOwnProperty('name') && currentPath.name">
+                    <li>
+                        <template v-if="(currentPath.component.startsWith('Edit')) || ($route.meta.componentName == 'SGCluster')">
+                            <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + currentPath.name" :title="currentPath.name">
+                                {{ currentPath.name }}
+                            </router-link>
+                        </template>
+                        <template v-else>
+                            <span>{{ currentPath.name }}</span>
+                        </template>
+                    </li>
+                </template>
 
-            <!--Cluster name on Backups Tab-->
-            <template v-if="$route.params.hasOwnProperty('name') && !currentPath.name">
-                <li>
-                    <template v-if="currentPath.component.startsWith('Edit') || $route.name == 'CreateClusterBackup'">
-                        <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name" :title="$route.params.name">
-                            {{ $route.params.name }}
-                        </router-link>
-                    </template>
-                    <template v-else>
-                        <span>{{ $route.params.name }}</span>
-                    </template>
-                </li>
-            </template>
+                <!--Cluster name on Backups Tab-->
+                <template v-if="$route.params.hasOwnProperty('name') && !currentPath.name">
+                    <li>
+                        <template v-if="currentPath.component.startsWith('Edit') || $route.name == 'CreateClusterBackup'">
+                            <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name" :title="$route.params.name">
+                                {{ $route.params.name }}
+                            </router-link>
+                        </template>
+                        <template v-else>
+                            <span>{{ $route.params.name }}</span>
+                        </template>
+                    </li>
+                </template>
 
-            <!--Cluster Tabs-->
-            <template v-if="($route.meta.componentName == 'SGCluster') && (($route.name != 'ClusterOverview') && ($route.name != 'EditCluster') && ($route.name != 'CreateCluster'))">
-                <li>
-                    <template v-if="$route.name.includes('Backup') && $route.name != 'ClusterBackups'">
-                        <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + ($route.params.hasOwnProperty('name') ? $route.params.name : currentPath.name) + '/sgbackups'" title="Backups">
-                            Backups
-                        </router-link>
-                    </template>
-
-                    <template v-else>
-                        <span>
-                            <template v-if="$route.name == 'ClusterStatus'">Status</template>
-                            <template v-else-if="$route.name == 'ClusterInfo'">Configuration</template>
-                            <template v-else-if="$route.name.includes('Backup')">Backups</template>
-                            <template v-else-if="$route.name == 'ClusterLogs'">Logs</template>
-                            <template v-else-if="$route.name.includes('Monitor')">Monitoring</template>
-                            <template v-else-if="$route.name.includes('Events')">Events</template>
-                        </span>
-                    </template>
-                </li>
-            </template>
-
-            <!--Backup Name-->
-            <template v-if="$route.params.hasOwnProperty('backupname')">
-                <li>
-                    <template v-if="currentPath.component.startsWith('Edit')">
-                        <template v-if="$route.params.hasOwnProperty('name')">
-                            <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/sgbackup/' + $route.params.backupname" :title="$route.params.backupname">
-                                {{ $route.params.backupname }}
+                <!--Cluster Tabs-->
+                <template v-if="($route.meta.componentName == 'SGCluster') && (($route.name != 'ClusterOverview') && ($route.name != 'EditCluster') && ($route.name != 'CreateCluster'))">
+                    <li>
+                        <template v-if="$route.name.includes('Backup') && $route.name != 'ClusterBackups'">
+                            <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + ($route.params.hasOwnProperty('name') ? $route.params.name : currentPath.name) + '/sgbackups'" title="Backups">
+                                Backups
                             </router-link>
                         </template>
 
                         <template v-else>
-                            <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.backupname" :title="$route.params.backupname">
-                                {{ $route.params.backupname }}
-                            </router-link>
-                        </template>   
-                    </template>
-                    
-                    <template v-else>
-                        <span>{{ $route.params.backupname }}</span>
-                    </template>
-                </li>
-            </template>
+                            <span>
+                                <template v-if="$route.name == 'ClusterStatus'">Status</template>
+                                <template v-else-if="$route.name == 'ClusterInfo'">Configuration</template>
+                                <template v-else-if="$route.name.includes('Backup')">Backups</template>
+                                <template v-else-if="$route.name == 'ClusterLogs'">Logs</template>
+                                <template v-else-if="$route.name.includes('Monitor')">Monitoring</template>
+                                <template v-else-if="$route.name.includes('Events')">Events</template>
+                            </span>
+                        </template>
+                    </li>
+                </template>
 
-            <!--Create / Edit-->
-            <template v-if="currentPath.component.startsWith('Edit') || currentPath.component.startsWith('Create')">
-                <li>
-                    <template v-if="currentPath.component.startsWith('Edit')">
-                        <span>Edit</span>
-                    </template>
-                    <template v-else>
-                        <span>Create</span>
-                    </template>
-                </li>
-            </template>
+                <!--Backup Name-->
+                <template v-if="$route.params.hasOwnProperty('backupname')">
+                    <li>
+                        <template v-if="currentPath.component.startsWith('Edit')">
+                            <template v-if="$route.params.hasOwnProperty('name')">
+                                <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/sgbackup/' + $route.params.backupname" :title="$route.params.backupname">
+                                    {{ $route.params.backupname }}
+                                </router-link>
+                            </template>
 
-            <!--Babelfish Compass-->
-            <template v-if="$route.meta.componentName == 'Application'">
-                <li>
-                    <span>Babelfish Compass</span>
-                </li>
+                            <template v-else>
+                                <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.backupname" :title="$route.params.backupname">
+                                    {{ $route.params.backupname }}
+                                </router-link>
+                            </template>   
+                        </template>
+                        
+                        <template v-else>
+                            <span>{{ $route.params.backupname }}</span>
+                        </template>
+                    </li>
+                </template>
+
+                <!--Create / Edit-->
+                <template v-if="currentPath.component.startsWith('Edit') || currentPath.component.startsWith('Create')">
+                    <li>
+                        <template v-if="currentPath.component.startsWith('Edit')">
+                            <span>Edit</span>
+                        </template>
+                        <template v-else>
+                            <span>Create</span>
+                        </template>
+                    </li>
+                </template>
+
+                <!--Babelfish Compass-->
+                <template v-if="$route.meta.componentName == 'Application'">
+                    <li>
+                        <span>Babelfish Compass</span>
+                    </li>
+                </template>
             </template>
         </ul>
 
-        <template v-if="($route.name != 'NamespaceOverview') && ($route.name != 'GlobalDashboard')">
+        <template v-if="($route.name != 'NamespaceOverview') && ($route.name != 'GlobalDashboard') && $route.meta.hasOwnProperty('componentName')">
             <div class="actions">
                 <!--Docs Links-->
                 <template v-if="currentPath.component == 'BabelfishCompass'">
