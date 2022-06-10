@@ -261,10 +261,10 @@
 
                             <template v-if="advancedModeStorage">
                                 <div class="col">
-                                    <label for="spec.storage.s3Compatible.enablePathStyleAddressing">Enable Path Style Addressing</label>
-                                    <label for="backupS3CompatibleEnablePathStyleAddressing" class="switch">
+                                    <label for="spec.storage.s3Compatible.enablePathStyleAddressing">Path Style Addressing</label>
+                                    <label for="backupS3CompatibleEnablePathStyleAddressing" class="switch yes-no">
                                         Bucket URL Force Path Style
-                                        <input type="checkbox" id="enablePathStyleAddressing" v-model="backupS3CompatibleEnablePathStyleAddressing" data-switch="OFF" data-field="spec.storage.s3Compatible.enablePathStyleAddressing">
+                                        <input type="checkbox" id="enablePathStyleAddressing" v-model="backupS3CompatibleEnablePathStyleAddressing" data-switch="NO" data-field="spec.storage.s3Compatible.enablePathStyleAddressing">
                                     </label>
                                     <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.s3Compatible.enablePathStyleAddressing')"></span>
                                 </div>
@@ -293,7 +293,7 @@
 
                             <div class="col">
                                 <label for="spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService">Fetch Credentials from Metadata Service</label>  
-                                <label for="fetchGCSCredentials" class="switch yes-no">Fetch <input type="checkbox" id="fetchGCSCredentials" v-model="fetchGCSCredentials" data-switch="NO"></label>
+                                <label for="fetchGCSCredentials" class="switch yes-no">Enable<input type="checkbox" id="fetchGCSCredentials" v-model="fetchGCSCredentials" data-switch="NO"></label>
                                 <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackupconfig.spec.storage.gcs.gcpCredentials.fetchCredentialsFromMetadataService')"></span>
                             </div>
 

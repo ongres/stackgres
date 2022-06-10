@@ -96,7 +96,7 @@
                                         Cluster Pod Anti Affinity
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('If set to `true` it will allow','When disabled, it allows running')"></span>
                                     </td>
-                                    <td>{{ cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity ? 'OFF' : 'ON' }}</td>
+                                    <td>{{ cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity ? 'Disabled' : 'Enabled' }}</td>
                                 </tr>
                                 <tr v-if="cluster.data.status.clusters.length">
 									<td class="label">Used on  <span class="helpTooltip" :data-tooltip="getTooltip('sgpoosgdistributedlogslingconfig.status.clusters')"></span></td>

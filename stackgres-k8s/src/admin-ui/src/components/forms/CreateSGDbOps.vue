@@ -113,7 +113,7 @@
                         <label for="spec.vacuum.full">Full Vacuum</label>
                         <label for="fullVacuum" class="switch yes-no" data-field="spec.vacuum.full">
                             Enable
-                            <input type="checkbox" id="fullVacuum" v-model="vacuum.full" data-switch="ON">
+                            <input type="checkbox" id="fullVacuum" v-model="vacuum.full" data-switch="YES">
                         </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.full')"></span>
                     </div>
@@ -122,7 +122,7 @@
                         <label for="spec.vacuum.freeze">Freeze</label>
                         <label for="freezeVacuum" class="switch yes-no" data-field="spec.vacuum.freeze">
                             Enable
-                            <input type="checkbox" id="freezeVacuum" v-model="vacuum.freeze" data-switch="ON">
+                            <input type="checkbox" id="freezeVacuum" v-model="vacuum.freeze" data-switch="YES">
                         </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.freeze')"></span>
                     </div>
@@ -131,7 +131,7 @@
                         <label for="spec.vacuum.analyze">Analyze</label>
                         <label for="analyzeVacuum" class="switch yes-no" data-field="spec.vacuum.analyze">
                             Enable
-                            <input type="checkbox" id="analyzeVacuum" v-model="vacuum.analyze" data-switch="ON">
+                            <input type="checkbox" id="analyzeVacuum" v-model="vacuum.analyze" data-switch="YES">
                         </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.analyze')"></span>
                     </div>
@@ -140,15 +140,15 @@
                         <label for="spec.vacuum.disablePageSkipping">Page Skipping</label>
                         <label for="disablePageSkippingVacuum" class="switch yes-no reverse" data-field="spec.vacuum.disablePageSkipping">
                             Enable
-                            <input type="checkbox" id="disablePageSkippingVacuum" v-model="vacuum.disablePageSkipping" data-switch="ON"></label>
-                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping').replace('Defaults to: `false`', 'Enabled by default')"></span>
+                            <input type="checkbox" id="disablePageSkippingVacuum" v-model="vacuum.disablePageSkipping" data-switch="YES"></label>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping').replace('Defaults to: `false`', 'Enabled by default')"></span>
                     </div>
 
                     <div class="col">
                         <label for="spec.vacuum.databases">Database Specific Options</label>
-                        <label for="vacuumPerDbs" class="switch" data-field="spec.vacuum.databases">
+                        <label for="vacuumPerDbs" class="switch yes-no" data-field="spec.vacuum.databases">
                             Enable
-                            <input type="checkbox" id="vacuumPerDbs" v-model="vacuumPerDbs" data-switch="ON">
+                            <input type="checkbox" id="vacuumPerDbs" v-model="vacuumPerDbs" data-switch="YES">
                         </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.databases')"></span>
                     </div>
@@ -182,8 +182,8 @@
                                         <label :for="'spec.vacuum.databases[' + index + '].full'">Full</label>
                                         <select v-model="db.full" :data-field="'spec.vacuum.databases[' + index + '].full'">
                                             <option value="inherit" selected>Inherit from global settings</option>
-                                            <option :value="true">ON</option>
-                                            <option :value="false">OFF</option>
+                                            <option :value="true">YES</option>
+                                            <option :value="false">NO</option>
                                         </select>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.databases.full')"></span>
                                     </div>
@@ -192,8 +192,8 @@
                                         <label :for="'spec.vacuum.databases[' + index + '].freeze'">Freeze</label>
                                         <select v-model="db.freeze" :data-field="'spec.vacuum.databases[' + index + '].freeze'">
                                             <option value="inherit" selected>Inherit from global settings</option>
-                                            <option :value="true">ON</option>
-                                            <option :value="false">OFF</option>
+                                            <option :value="true">YES</option>
+                                            <option :value="false">NO</option>
                                         </select>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.databases.freeze')"></span>
                                     </div>
@@ -202,8 +202,8 @@
                                         <label :for="'spec.vacuum.databases[' + index + '].analyze'">Analyze</label>
                                         <select v-model="db.analyze" :data-field="'spec.vacuum.databases[' + index + '].analyze'">
                                             <option value="inherit" selected>Inherit from global settings</option>
-                                            <option :value="true">ON</option>
-                                            <option :value="false">OFF</option>
+                                            <option :value="true">YES</option>
+                                            <option :value="false">NO</option>
                                         </select>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.databases.analyze')"></span>
                                     </div>
@@ -212,8 +212,8 @@
                                         <label :for="'spec.vacuum.databases[' + index + '].disablePageSkipping'">Page Skipping</label>
                                         <select v-model="db.disablePageSkipping" :data-field="'spec.vacuum.databases[' + index + '].disablePageSkipping'">
                                             <option value="inherit" selected>Inherit from global settings</option>
-                                            <option :value="false">Enable</option>
-                                            <option :value="true">Disable</option>
+                                            <option :value="false">YES</option>
+                                            <option :value="true">NO</option>
                                         </select>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.databases.disablePageSkipping').replace('Defaults to: `false`', 'Enabled by default')"></span>
                                     </div>
@@ -328,7 +328,7 @@
                                     <label for="spec.majorVersionUpgrade.link">Hard Link Files</label>
                                     <label for="majorVersionUpgradeLink" class="switch yes-no" data-field="spec.majorVersionUpgrade.link">
                                         Enable
-                                        <input type="checkbox" id="majorVersionUpgradeLink" v-model="majorVersionUpgrade.link" data-switch="ON">
+                                        <input type="checkbox" id="majorVersionUpgradeLink" v-model="majorVersionUpgrade.link" data-switch="YES">
                                     </label>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.link')"></span>
                                 </div>
@@ -337,7 +337,7 @@
                                     <label for="spec.majorVersionUpgrade.clone">Clone Files</label>
                                     <label for="majorVersionUpgradeClone" class="switch yes-no" data-field="spec.majorVersionUpgrade.clone">
                                         Enable
-                                        <input type="checkbox" id="majorVersionUpgradeClone" v-model="majorVersionUpgrade.clone" data-switch="ON">
+                                        <input type="checkbox" id="majorVersionUpgradeClone" v-model="majorVersionUpgrade.clone" data-switch="YES">
                                     </label>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.clone')"></span>
                                 </div>
@@ -346,7 +346,7 @@
                                     <label for="spec.majorVersionUpgrade.check">Check Clusters</label>
                                     <label for="majorVersionUpgradeCheck" class="switch yes-no" data-field="spec.majorVersionUpgrade.check">
                                         Enable
-                                        <input type="checkbox" id="majorVersionUpgradeCheck" v-model="majorVersionUpgrade.check" data-switch="ON">
+                                        <input type="checkbox" id="majorVersionUpgradeCheck" v-model="majorVersionUpgrade.check" data-switch="YES">
                                     </label>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.check')"></span>
                                 </div>
@@ -482,7 +482,7 @@
                         <label for="spec.repack.noOrder">No Order</label>
                         <label for="repackNoOrder" class="switch yes-no" data-field="spec.repack.noOrder">
                             Enable
-                            <input type="checkbox" id="repackNoOrder" v-model="repack.noOrder" data-switch="ON">
+                            <input type="checkbox" id="repackNoOrder" v-model="repack.noOrder" data-switch="YES">
                         </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noOrder')"></span>
                     </div>
@@ -491,7 +491,7 @@
                         <label for="spec.repack.noKillBackend">No Kill Backend</label>
                         <label for="repackNoKillBackend" class="switch yes-no" data-field="spec.repack.noKillBackend">
                             Enable
-                            <input type="checkbox" id="repackNoKillBackend" v-model="repack.noKillBackend" data-switch="ON">
+                            <input type="checkbox" id="repackNoKillBackend" v-model="repack.noKillBackend" data-switch="YES">
                         </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noKillBackend')"></span>
                     </div>
@@ -500,7 +500,7 @@
                         <label for="spec.repack.noAnalyze">No Analyze</label>
                         <label for="repackNoAnalyze" class="switch yes-no" data-field="spec.repack.noAnalyze">
                             Enable
-                            <input type="checkbox" id="repackNoAnalyze" v-model="repack.noAnalyze" data-switch="ON">
+                            <input type="checkbox" id="repackNoAnalyze" v-model="repack.noAnalyze" data-switch="YES">
                         </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noAnalyze')"></span>
                     </div>
@@ -509,7 +509,7 @@
                         <label for="spec.repack.excludeExtension">Exclude Extension</label>
                         <label for="repackExcludeExtension" class="switch yes-no" data-field="spec.repack.excludeExtension">
                             Enable
-                            <input type="checkbox" id="repackExcludeExtension" v-model="repack.excludeExtension" data-switch="ON">
+                            <input type="checkbox" id="repackExcludeExtension" v-model="repack.excludeExtension" data-switch="YES">
                         </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.excludeExtension')"></span>
                     </div>
@@ -537,7 +537,7 @@
                         <label for="spec.repack.databases">Database Specific Options</label>
                         <label for="repackPerDbs" class="switch yes-no" data-field="spec.repack.databases">
                             Enable
-                            <input type="checkbox" id="repackPerDbs" v-model="repackPerDbs" data-switch="ON">
+                            <input type="checkbox" id="repackPerDbs" v-model="repackPerDbs" data-switch="YES">
                         </label>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases')"></span>
                     </div>
@@ -571,8 +571,8 @@
                                         <label :for="'spec.repack.databases[' + index + '].noOrder'">No Order</label>
                                         <select v-model="db.noOrder" :data-field="'spec.repack.databases[' + index + '].noOrder'">
                                             <option value="inherit" selected>Inherit from global settings</option>
-                                            <option :value="true">ON</option>
-                                            <option :value="false">OFF</option>
+                                            <option :value="true">YES</option>
+                                            <option :value="false">NO</option>
                                         </select>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.noOrder')"></span>
                                     </div>
@@ -581,8 +581,8 @@
                                         <label :for="'spec.repack.databases[' + index + '].noKillBackend'">No Kill Backend</label>
                                         <select v-model="db.noKillBackend" :data-field="'spec.repack.databases[' + index + '].noKillBackend'">
                                             <option value="inherit" selected>Inherit from global settings</option>
-                                            <option :value="true">ON</option>
-                                            <option :value="false">OFF</option>
+                                            <option :value="true">YES</option>
+                                            <option :value="false">NO</option>
                                         </select>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.noKillBackend')"></span>
                                     </div>
@@ -591,8 +591,8 @@
                                         <label :for="'spec.repack.databases[' + index + '].noAnalyze'">No Analyze</label>
                                         <select v-model="db.noAnalyze" :data-field="'spec.repack.databases[' + index + '].noAnalyze'">
                                             <option value="inherit" selected>Inherit from global settings</option>
-                                            <option :value="true">ON</option>
-                                            <option :value="false">OFF</option>
+                                            <option :value="true">YES</option>
+                                            <option :value="false">NO</option>
                                         </select>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.noAnalyze')"></span>
                                     </div>
@@ -601,8 +601,8 @@
                                         <label :for="'spec.repack.databases[' + index + '].excludeExtension'">Exclude Extension</label>
                                         <select v-model="db.excludeExtension" :data-field="'spec.repack.databases[' + index + '].excludeExtension'">
                                             <option value="inherit" selected>Inherit from global settings</option>
-                                            <option :value="true">ON</option>
-                                            <option :value="false">OFF</option>
+                                            <option :value="true">YES</option>
+                                            <option :value="false">NO</option>
                                         </select>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.excludeExtension')"></span>
                                     </div>

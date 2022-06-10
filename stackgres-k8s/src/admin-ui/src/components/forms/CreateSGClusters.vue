@@ -202,7 +202,7 @@
                         </p>
                         <div class="col">
                             <label>Monitoring</label>  
-                            <label for="enableMonitoring" class="switch yes-no">Enable<input type="checkbox" id="enableMonitoring" v-model="enableMonitoring" data-switch="ON" @change="checkenableMonitoring()"></label>
+                            <label for="enableMonitoring" class="switch yes-no">Enable<input type="checkbox" id="enableMonitoring" v-model="enableMonitoring" data-switch="YES" @change="checkenableMonitoring()"></label>
                             <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
                         </div>                  
                     </div>
@@ -450,7 +450,7 @@
 
                         <div class="col">
                             <label for="spec.configurations.sgPoolingConfig">Connection Pooling</label>  
-                            <label for="connPooling" class="switch yes-no">Enable <input type="checkbox" id="connPooling" v-model="connPooling" data-switch="NO"></label>
+                            <label for="connPooling" class="switch yes-no">Enable<input type="checkbox" id="connPooling" v-model="connPooling" data-switch="NO"></label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>
                         </div>
 
@@ -476,7 +476,7 @@
 
                         <div class="col">
                             <label for="spec.pods.disablePostgresUtil">Postgres Utils</label>  
-                            <label for="postgresUtil" class="switch">Postgres Utils <input type="checkbox" id="postgresUtil" v-model="postgresUtil" data-switch="ON"></label>
+                            <label for="postgresUtil" class="switch yes-no">Enable<input type="checkbox" id="postgresUtil" v-model="postgresUtil" data-switch="YES"></label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disablePostgresUtil').replace('If set to `true`', 'If disabled')"></span>
                         </div>
                     </div>
@@ -489,7 +489,7 @@
 
                         <div class="col">
                             <label for="spec.pods.disableMetricsExporter">Metrics Exporter</label>  
-                            <label for="metricsExporter" class="switch yes-no">Enable <input type="checkbox" id="metricsExporter" v-model="metricsExporter" data-switch="ON" @change="checkMetricsExporter()"></label>
+                            <label for="metricsExporter" class="switch yes-no">Enable<input type="checkbox" id="metricsExporter" v-model="metricsExporter" data-switch="YES" @change="checkMetricsExporter()"></label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disableMetricsExporter').replace('If set to `true`', 'If disabled').replace('Recommended', 'Recommended to be disabled')"></span>
                         </div>
 
