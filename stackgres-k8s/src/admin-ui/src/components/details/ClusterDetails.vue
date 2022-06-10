@@ -205,7 +205,7 @@
                             </template>
                         </td>
                     </tr>
-                    <tr v-if="(typeof cluster.data.spec.nonProductionOptions !== 'undefined')">
+                    <tr>
                         <td class="label">
                             Non-Production Settings
                         </td>
@@ -214,11 +214,11 @@
                             <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true to allow','When disabled, it allows running')"></span>
                         </td>
                         <td colspan="2">
-                            <template v-if="(typeof cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined')">
+                            <template v-if="(typeof cluster.data.spec.nonProductionOptions !== 'undefined')">
                                 {{ cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity ? 'Disabled' : 'Enabled' }}
                             </template>
                             <template v-else>
-                                Disabled
+                                Enabled
                             </template>
                         </td>
                     </tr>

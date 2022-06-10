@@ -629,7 +629,7 @@
                                         {{ ( (op.data.spec.majorVersionUpgrade.hasOwnProperty('check')) && (op.data.spec.majorVersionUpgrade.check) ) ? 'Enabled' : 'Disabled' }}
                                     </td>
                                 </tr>
-                                <tr v-if="hasProp(op, 'data.spec.majorVersionUpgrade.backupPath')">
+                                <tr v-if="hasProp(op, 'data.spec.majorVersionUpgrade.backupPath') && op.data.spec.majorVersionUpgrade.backupPath.length">
                                     <td class="label">
                                         Backup Path
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.backupPath')"></span>
