@@ -10,7 +10,7 @@ describe('Not Found', () => {
 
     beforeEach( () => {
         Cypress.Cookies.preserveOnce('sgToken')
-        cy.visit(namespace + '/default/sgcluster/' + resourceName)
+        cy.visit(namespace + '/sgcluster/' + resourceName)
     });
     
     it( 'Not Found message should appear when resource doesn\'t exist', () => {
