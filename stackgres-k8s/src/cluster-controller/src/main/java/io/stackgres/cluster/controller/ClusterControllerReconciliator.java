@@ -92,7 +92,7 @@ public class ClusterControllerReconciliator
       cluster.getStatus().getPodStatuses().add(podStatus);
     }
 
-    ReconciliationResult<Void> postgresBootstrapReconciliatorResult =
+    ReconciliationResult<Boolean> postgresBootstrapReconciliatorResult =
         postgresBootstrapReconciliator.reconcile(client, context);
     ReconciliationResult<Boolean> extensionReconciliationResult =
         extensionReconciliator.reconcile(client, context);
@@ -104,6 +104,7 @@ public class ClusterControllerReconciliator
         managedSqlReconciliator.reconcile(client, context);
 
     if (podStatusMissing
+        || postgresBootstrapReconciliatorResult.result().orElse(false)
         || extensionReconciliationResult.result().orElse(false)
         || patroniReconciliationResult.result().orElse(false)) {
       clusterScheduler.update(cluster,

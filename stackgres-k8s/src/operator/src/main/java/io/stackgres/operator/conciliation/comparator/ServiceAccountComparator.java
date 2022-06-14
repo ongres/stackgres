@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.comparator;
 
+import static io.stackgres.common.StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -15,6 +17,11 @@ public class ServiceAccountComparator extends StackGresAbstractComparator {
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
       new StackGresAbstractComparator.SimpleIgnorePatch("/managedFields",
           "add"),
+      new StackGresAbstractComparator.SimpleIgnorePatch("/annotations",
+          "add", "{\"" + MANAGED_BY_SERVER_SIDE_APPLY_KEY + "\":\"true\"}"),
+      new StackGresAbstractComparator.SimpleIgnorePatch("/annotations/"
+          + ResourceComparator.escapePatchPath(MANAGED_BY_SERVER_SIDE_APPLY_KEY),
+          "add", "\"true\""),
       new StackGresAbstractComparator.SimpleIgnorePatch("/secrets",
           "add"),
   };
@@ -24,7 +31,6 @@ public class ServiceAccountComparator extends StackGresAbstractComparator {
     return IGNORE_PATCH_PATTERNS;
   }
 
-  @Override
   public ArrayNode getRawJsonDiff(HasMetadata required, HasMetadata deployed) {
     final JsonNode source = PATCH_MAPPER.valueToTree(required.getMetadata());
     final JsonNode target = PATCH_MAPPER.valueToTree(deployed.getMetadata());

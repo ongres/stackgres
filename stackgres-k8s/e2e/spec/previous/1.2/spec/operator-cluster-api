@@ -39,13 +39,13 @@ e2e_test() {
 
   run_test "Check that a created cluster is included in the response" check_cluster_in_list
 
-  run_test "Check that the stats endpoint are returning the master stats" test_cluster_stats_are_loaded
+  run_test "Check that the stats endpoint are returning the primary stats" test_cluster_stats_are_loaded
 
   run_test "Check that the stats endpoint are returning when pods are ready" test_cluster_stats_pods_ready
 
   run_test "Check that the component versions are annotated" test_cluster_component_versions_are_annotated
 
-  run_test "Check that the number of pods match with the master and replicas" test_cluster_pod_count
+  run_test "Check that the number of pods match with the primary and replicas" test_cluster_pod_count
 
   run_test "Check that a cluster was removed after its deletion in the API" check_cluster_removed
 
