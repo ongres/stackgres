@@ -32,7 +32,7 @@
 
                 <div class="col">
                     <label for="spec.managedLifecycle">Managed Lifecycle</label>  
-                    <label for="permanent" class="switch yes-no" data-field="spec.managedLifecycle">Managed 
+                    <label for="permanent" class="switch yes-no" data-field="spec.managedLifecycle">Enable 
                         <input type="checkbox" id="permanent" v-model="managedLifecycle" data-switch="NO">
                     </label>
                     <span class="helpTooltip" :data-tooltip="getTooltip( 'sgbackup.spec.managedLifecycle')"></span>

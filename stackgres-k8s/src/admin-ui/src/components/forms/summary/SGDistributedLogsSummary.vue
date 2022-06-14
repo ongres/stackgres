@@ -39,7 +39,7 @@
                 <strong class="sectionTitle">Customize generated Kubernetes service</strong>
                 <ul>
                     <li v-if="showDefaults || hasProp(crd, 'data.spec.postgresServices.primary')">
-                        <strong class="sectionTitle">Primary</strong>
+                        <strong class="sectionTitle">Primary Service</strong>
                         <ul>
                             <li v-if="( showDefaults || hasProp(crd, 'data.spec.postgresServices.primary.enabled') )">
                                 <strong class="label">Enable:</strong>
@@ -52,7 +52,7 @@
                         </ul>
                     </li>
                     <li v-if="showDefaults || hasProp(crd, 'data.spec.postgresServices.replicas')">
-                        <strong class="sectionTitle">Replicas</strong>
+                        <strong class="sectionTitle">Replicas Service</strong>
                         <ul>
                             <li v-if="( showDefaults || hasProp(crd, 'data.spec.postgresServices.replicas.enabled') )">
                                 <strong class="label">Enable:</strong>

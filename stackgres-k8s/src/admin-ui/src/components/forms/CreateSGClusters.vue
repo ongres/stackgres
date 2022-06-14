@@ -648,15 +648,15 @@
                 <div class="fields">                    
                     <div class="header">
                         <h3 for="spec.postgresServices.primary">
-                            Primary
+                            Primary Service
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary')"></span>
                         </h3>
                     </div>
                     
                     <div class="row-50">
                         <div class="col">
-                            <label for="spec.postgresServices.primary.enabled">Primary</label>  
-                            <label for="postgresServicesPrimary" class="switch yes-no" data-field="spec.postgresServices.primary.enabled">Enable Primary <input type="checkbox" id="postgresServicesPrimary" v-model="postgresServicesPrimary" data-switch="YES"></label>
+                            <label for="spec.postgresServices.primary.enabled">Service</label>  
+                            <label for="postgresServicesPrimary" class="switch yes-no" data-field="spec.postgresServices.primary.enabled">Enable<input type="checkbox" id="postgresServicesPrimary" v-model="postgresServicesPrimary" data-switch="YES"></label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.enabled')"></span>
                         </div>
 
@@ -673,15 +673,15 @@
 
                     <div class="header">
                         <h3 for="spec.postgresServices.replicas">
-                            Replicas
+                            Replicas Service
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas')"></span>
                         </h3>
                     </div>
                         
                     <div class="row-50">
                         <div class="col">
-                            <label for="spec.postgresServices.replicas.enabled">Replicas</label>  
-                            <label for="postgresServicesReplicas" class="switch yes-no" data-field="spec.postgresServices.replicas.enabled">Enable Replicas <input type="checkbox" id="postgresServicesReplicas" v-model="postgresServicesReplicas" data-switch="YES"></label>
+                            <label for="spec.postgresServices.replicas.enabled">Service</label>  
+                            <label for="postgresServicesReplicas" class="switch yes-no" data-field="spec.postgresServices.replicas.enabled">Enable <input type="checkbox" id="postgresServicesReplicas" v-model="postgresServicesReplicas" data-switch="YES"></label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.enabled')"></span>
                         </div>
 
