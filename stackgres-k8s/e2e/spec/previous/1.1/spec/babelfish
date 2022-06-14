@@ -35,8 +35,8 @@ e2e_test() {
 }
 
 ports_check() {
-  RESPONSE_5432="$(run_query -i 0 -p 5432)"
-  RESPONSE_1433="$(run_query -t babelfish -i 0 -p 1433 | tr -d '\n')"
+  RESPONSE_5432="$(wait_until run_query -i 0 -p 5432)"
+  RESPONSE_1433="$(wait_until run_query -t babelfish -i 0 -p 1433 | tr -d '\n')"
   RESPONSE_6432="$(run_query -i 0 -p 6432)"
   RESPONSE_7432="$(run_query -i 0 -p 7432)"
   RESPONSE_7433="$(run_query -i 0 -p 7433)"
@@ -48,8 +48,8 @@ ports_check() {
     echo "Skipping replica check for babelfish"
     return
 
-    RESPONSE_5432="$(run_query -i 1 -p 5432)"
-    RESPONSE_1433="$(run_query -t babelfish -i 1 -p 1433 | tr -d '\n')"
+    RESPONSE_5432="$(wait_until run_query -i 1 -p 5432)"
+    RESPONSE_1433="$(wait_until run_query -t babelfish -i 1 -p 1433 | tr -d '\n')"
     RESPONSE_6432="$(run_query -i 1 -p 6432)"
     RESPONSE_7432="$(run_query -i 1 -p 7432)"
     RESPONSE_7433="$(run_query -i 1 -p 7433)"

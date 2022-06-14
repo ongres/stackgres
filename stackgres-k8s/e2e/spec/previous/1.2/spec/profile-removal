@@ -14,7 +14,7 @@ e2e_test() {
   run_test "Trying to delete size-xs without cluster running" delete_whitout_cluster
 }
 
-delete_with_cluster(){
+delete_with_cluster() {
   if ERROR="$(kubectl delete -n "$CLUSTER_NAMESPACE" sginstanceprofiles.stackgres.io size-xs 2>&1)"
   then
     echo "INFO: It should not be able to delete size-xs"
