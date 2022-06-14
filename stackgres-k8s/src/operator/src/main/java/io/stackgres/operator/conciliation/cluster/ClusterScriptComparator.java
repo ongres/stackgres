@@ -14,7 +14,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.StackGresAbstractComparator;
 
-@ReconciliationScope(value = StackGresCluster.class, kind = "StackGresScript")
+@ReconciliationScope(value = StackGresCluster.class, kind = "SGScript")
 @ApplicationScoped
 public class ClusterScriptComparator extends StackGresAbstractComparator {
 
