@@ -7,6 +7,7 @@ package io.stackgres.common.patroni;
 
 public interface StackGresRandomPasswordKeys {
 
+  String SUPERUSER_DATABASE = "postgres";
   String SUPERUSER_USER_NAME = "postgres";
   String SUPERUSER_PASSWORD_KEY = "superuser-password";
   String REPLICATION_USER_NAME = "replication";

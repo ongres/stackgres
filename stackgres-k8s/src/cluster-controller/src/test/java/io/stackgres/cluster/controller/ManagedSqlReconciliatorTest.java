@@ -9,15 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.sql.Connection;
-import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,8 +40,6 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryScriptStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlStatus;
 import io.stackgres.common.crd.sgscript.StackGresScript;
-import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
-import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
@@ -74,15 +71,11 @@ public class ManagedSqlReconciliatorTest {
   @Mock
   ResourceFinder<ConfigMap> configMapFinder;
   @Mock
-  PostgresConnectionManager postgresConnectionManager;
-  @Mock
   CustomResourceScheduler<StackGresCluster> clusterScheduler;
   @Mock
   EventController eventController;
   @Mock
-  Connection connection;
-  @Mock
-  Statement statement;
+  ManagedSqlScriptEntryExecutor managedSqlScriptEntryExecutor;
   @Mock
   StackGresClusterContext context;
 
@@ -134,12 +127,12 @@ public class ManagedSqlReconciliatorTest {
         ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL)).thenReturn(true);
 
     parameters = new ManagedSqlReconciliator.Parameters();
-    parameters.propertyContext = propertyContext;;
+    parameters.managedSqlScriptEntryExecutor = managedSqlScriptEntryExecutor;
+    parameters.propertyContext = propertyContext;
     parameters.endpointsFinder = endpointsFinder;
     parameters.scriptFinder = scriptFinder;
     parameters.secretFinder = secretFinder;
     parameters.configMapFinder = configMapFinder;
-    parameters.postgresConnectionManager = postgresConnectionManager;
     parameters.clusterScheduler = clusterScheduler;
     parameters.eventController = eventController;
 
@@ -163,8 +156,6 @@ public class ManagedSqlReconciliatorTest {
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
-    verify(postgresConnectionManager, times(0)).getUnixConnection(
-        any(), anyInt(), any(), any(), any());
     verify(clusterScheduler, times(0)).update(any(), any());
     verify(eventController, times(0)).sendEvent(any(), any(), any(), any());
   }
@@ -182,8 +173,6 @@ public class ManagedSqlReconciliatorTest {
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
-    verify(postgresConnectionManager, times(0)).getUnixConnection(
-        any(), anyInt(), any(), any(), any());
     verify(clusterScheduler, times(0)).update(any(), any());
     verify(eventController, times(0)).sendEvent(any(), any(), any(), any());
   }
@@ -202,9 +191,6 @@ public class ManagedSqlReconciliatorTest {
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
     when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
-    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
-        .thenReturn(connection);
-    when(connection.createStatement()).thenReturn(statement);
     var actualUpdatedManagedSqlStatusList = new ArrayList<StackGresClusterManagedSqlStatus>();
     when(clusterScheduler.update(any(), any())).then(invocation -> {
       addUpdatedManagedSqlStatus(invocation, cluster, actualUpdatedManagedSqlStatusList);
@@ -217,20 +203,7 @@ public class ManagedSqlReconciliatorTest {
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
-    ArgumentCaptor<String> databaseArgumentCaptor =
-        ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<String> userArgumentCaptor =
-        ArgumentCaptor.forClass(String.class);
-    verify(postgresConnectionManager, times(3)).getUnixConnection(any(), anyInt(),
-        databaseArgumentCaptor.capture(),
-        userArgumentCaptor.capture(), any());
-    assertEquals(script.getSpec().getScripts().stream()
-        .map(StackGresScriptEntry::getDatabaseOrDefault).toList(),
-        databaseArgumentCaptor.getAllValues());
-    assertEquals(script.getSpec().getScripts().stream()
-        .map(StackGresScriptEntry::getUserOrDefault).toList(),
-        userArgumentCaptor.getAllValues());
-    verify(connection, times(3)).createStatement();
+    verify(managedSqlScriptEntryExecutor, times(3)).executeScriptEntry(any(), any());
     verify(clusterScheduler, times(3)).update(any(), any());
     var expectedUpdatedManagedSqlStatus = originalCluster.getStatus().getManagedSql();
     var expectedUpdatedManagedSqlEntryStatus = expectedUpdatedManagedSqlStatus.getScripts().get(0);
@@ -310,9 +283,6 @@ public class ManagedSqlReconciliatorTest {
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
     when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
-    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
-        .thenReturn(connection);
-    when(connection.createStatement()).thenReturn(statement);
     var actualUpdatedManagedSqlStatusList = new ArrayList<StackGresClusterManagedSqlStatus>();
     when(clusterScheduler.update(any(), any())).then(invocation -> {
       addUpdatedManagedSqlStatus(invocation, cluster, actualUpdatedManagedSqlStatusList);
@@ -325,22 +295,7 @@ public class ManagedSqlReconciliatorTest {
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
-    ArgumentCaptor<String> databaseArgumentCaptor =
-        ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<String> userArgumentCaptor =
-        ArgumentCaptor.forClass(String.class);
-    verify(postgresConnectionManager, times(2)).getUnixConnection(any(), anyInt(),
-        databaseArgumentCaptor.capture(),
-        userArgumentCaptor.capture(), any());
-    assertEquals(script.getSpec().getScripts().stream()
-        .skip(1)
-        .map(StackGresScriptEntry::getDatabaseOrDefault).toList(),
-        databaseArgumentCaptor.getAllValues());
-    assertEquals(script.getSpec().getScripts().stream()
-        .skip(1)
-        .map(StackGresScriptEntry::getUserOrDefault).toList(),
-        userArgumentCaptor.getAllValues());
-    verify(connection, times(2)).createStatement();
+    verify(managedSqlScriptEntryExecutor, times(2)).executeScriptEntry(any(), any());
     verify(clusterScheduler, times(2)).update(any(), any());
     var expectedUpdatedManagedSqlStatus = originalCluster.getStatus().getManagedSql();
     var expectedUpdatedManagedSqlEntryStatus = expectedUpdatedManagedSqlStatus.getScripts().get(0);
@@ -404,9 +359,6 @@ public class ManagedSqlReconciliatorTest {
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
     when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
-    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
-        .thenReturn(connection);
-    when(connection.createStatement()).thenReturn(statement);
     var actualUpdatedManagedSqlStatusList = new ArrayList<StackGresClusterManagedSqlStatus>();
     when(clusterScheduler.update(any(), any())).then(invocation -> {
       addUpdatedManagedSqlStatus(invocation, cluster, actualUpdatedManagedSqlStatusList);
@@ -419,20 +371,7 @@ public class ManagedSqlReconciliatorTest {
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
-    ArgumentCaptor<String> databaseArgumentCaptor =
-        ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<String> userArgumentCaptor =
-        ArgumentCaptor.forClass(String.class);
-    verify(postgresConnectionManager, times(3)).getUnixConnection(any(), anyInt(),
-        databaseArgumentCaptor.capture(),
-        userArgumentCaptor.capture(), any());
-    assertEquals(script.getSpec().getScripts().stream()
-        .map(StackGresScriptEntry::getDatabaseOrDefault).toList(),
-        databaseArgumentCaptor.getAllValues());
-    assertEquals(script.getSpec().getScripts().stream()
-        .map(StackGresScriptEntry::getUserOrDefault).toList(),
-        userArgumentCaptor.getAllValues());
-    verify(connection, times(3)).createStatement();
+    verify(managedSqlScriptEntryExecutor, times(3)).executeScriptEntry(any(), any());
     verify(clusterScheduler, times(3)).update(any(), any());
     var expectedUpdatedManagedSqlStatus = originalCluster.getStatus().getManagedSql();
     var expectedUpdatedManagedSqlEntryStatus = expectedUpdatedManagedSqlStatus.getScripts().get(0);
@@ -506,12 +445,8 @@ public class ManagedSqlReconciliatorTest {
         .thenReturn(Optional.of(patroniConfigEndpoints));
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
-    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
-        .thenReturn(connection);
-    when(connection.createStatement()).thenReturn(statement);
-    when(statement.execute(any()))
-        .thenReturn(true)
-        .thenThrow(new RuntimeException("test"));
+    doNothing().doThrow(new RuntimeException("test"))
+        .when(managedSqlScriptEntryExecutor).executeScriptEntry(any(), any());
     var actualUpdatedManagedSqlStatusList = new ArrayList<StackGresClusterManagedSqlStatus>();
     when(clusterScheduler.update(any(), any())).then(invocation -> {
       addUpdatedManagedSqlStatus(invocation, cluster, actualUpdatedManagedSqlStatusList);
@@ -524,22 +459,7 @@ public class ManagedSqlReconciliatorTest {
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
-    ArgumentCaptor<String> databaseArgumentCaptor =
-        ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<String> userArgumentCaptor =
-        ArgumentCaptor.forClass(String.class);
-    verify(postgresConnectionManager, times(2)).getUnixConnection(any(), anyInt(),
-        databaseArgumentCaptor.capture(),
-        userArgumentCaptor.capture(), any());
-    assertEquals(script.getSpec().getScripts().stream()
-        .limit(2)
-        .map(StackGresScriptEntry::getDatabaseOrDefault).toList(),
-        databaseArgumentCaptor.getAllValues());
-    assertEquals(script.getSpec().getScripts().stream()
-        .limit(2)
-        .map(StackGresScriptEntry::getUserOrDefault).toList(),
-        userArgumentCaptor.getAllValues());
-    verify(connection, times(2)).createStatement();
+    verify(managedSqlScriptEntryExecutor, times(2)).executeScriptEntry(any(), any());
     verify(clusterScheduler, times(2)).update(any(), any());
     var expectedUpdatedManagedSqlStatus = originalCluster.getStatus().getManagedSql();
     var expectedUpdatedManagedSqlEntryStatus = expectedUpdatedManagedSqlStatus.getScripts().get(0);
@@ -608,9 +528,7 @@ public class ManagedSqlReconciliatorTest {
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
-    verify(postgresConnectionManager, times(0)).getUnixConnection(
-        any(), anyInt(), any(), any(), any());
-    verify(connection, times(0)).createStatement();
+    verify(managedSqlScriptEntryExecutor, times(0)).executeScriptEntry(any(), any());
     verify(clusterScheduler, times(0)).update(any(), any());
     verify(eventController, times(0)).sendEvent(any(), any(), any(), any());
   }
@@ -631,13 +549,8 @@ public class ManagedSqlReconciliatorTest {
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
     when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
-    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
-        .thenReturn(connection);
-    when(connection.createStatement()).thenReturn(statement);
-    when(statement.execute(any()))
-        .thenReturn(true)
-        .thenThrow(new RuntimeException("test"))
-        .thenReturn(true);
+    doNothing().doThrow(new RuntimeException("test")).doNothing()
+        .when(managedSqlScriptEntryExecutor).executeScriptEntry(any(), any());
     var actualUpdatedManagedSqlStatusList = new ArrayList<StackGresClusterManagedSqlStatus>();
     when(clusterScheduler.update(any(), any())).then(invocation -> {
       addUpdatedManagedSqlStatus(invocation, cluster, actualUpdatedManagedSqlStatusList);
@@ -650,20 +563,7 @@ public class ManagedSqlReconciliatorTest {
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
-    ArgumentCaptor<String> databaseArgumentCaptor =
-        ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<String> userArgumentCaptor =
-        ArgumentCaptor.forClass(String.class);
-    verify(postgresConnectionManager, times(3)).getUnixConnection(any(), anyInt(),
-        databaseArgumentCaptor.capture(),
-        userArgumentCaptor.capture(), any());
-    assertEquals(script.getSpec().getScripts().stream()
-        .map(StackGresScriptEntry::getDatabaseOrDefault).toList(),
-        databaseArgumentCaptor.getAllValues());
-    assertEquals(script.getSpec().getScripts().stream()
-        .map(StackGresScriptEntry::getUserOrDefault).toList(),
-        userArgumentCaptor.getAllValues());
-    verify(connection, times(3)).createStatement();
+    verify(managedSqlScriptEntryExecutor, times(3)).executeScriptEntry(any(), any());
     verify(clusterScheduler, times(3)).update(any(), any());
     var expectedUpdatedManagedSqlStatus = originalCluster.getStatus().getManagedSql();
     var expectedUpdatedManagedSqlEntryStatus = expectedUpdatedManagedSqlStatus.getScripts().get(0);
@@ -748,11 +648,8 @@ public class ManagedSqlReconciliatorTest {
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
-    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
-        .thenReturn(connection);
-    when(connection.createStatement()).thenReturn(statement);
-    when(statement.execute(any()))
-        .thenThrow(new RuntimeException("test"));
+    doThrow(new RuntimeException("test"))
+        .when(managedSqlScriptEntryExecutor).executeScriptEntry(any(), any());
     var actualUpdatedManagedSqlStatusList = new ArrayList<StackGresClusterManagedSqlStatus>();
     when(clusterScheduler.update(any(), any())).then(invocation -> {
       addUpdatedManagedSqlStatus(invocation, cluster, actualUpdatedManagedSqlStatusList);
@@ -765,26 +662,7 @@ public class ManagedSqlReconciliatorTest {
     verify(scriptFinder, times(2)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
-    ArgumentCaptor<String> databaseArgumentCaptor =
-        ArgumentCaptor.forClass(String.class);
-    ArgumentCaptor<String> userArgumentCaptor =
-        ArgumentCaptor.forClass(String.class);
-    verify(postgresConnectionManager, times(2)).getUnixConnection(any(), anyInt(),
-        databaseArgumentCaptor.capture(),
-        userArgumentCaptor.capture(), any());
-    assertEquals(Seq.seq(script.getSpec().getScripts())
-        .limit(1)
-        .append(Seq.seq(script.getSpec().getScripts())
-            .limit(1))
-        .map(StackGresScriptEntry::getDatabaseOrDefault).toList(),
-        databaseArgumentCaptor.getAllValues());
-    assertEquals(Seq.seq(script.getSpec().getScripts())
-        .limit(1)
-        .append(Seq.seq(script.getSpec().getScripts())
-            .limit(1))
-        .map(StackGresScriptEntry::getUserOrDefault).toList(),
-        userArgumentCaptor.getAllValues());
-    verify(connection, times(2)).createStatement();
+    verify(managedSqlScriptEntryExecutor, times(2)).executeScriptEntry(any(), any());
     verify(clusterScheduler, times(2)).update(any(), any());
     var expectedUpdatedManagedSqlStatus = originalCluster.getStatus().getManagedSql();
     var expectedUpdatedManagedSqlEntryStatus0 = expectedUpdatedManagedSqlStatus.getScripts().get(0);

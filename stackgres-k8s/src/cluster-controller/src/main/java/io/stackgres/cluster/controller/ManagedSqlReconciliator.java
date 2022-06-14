@@ -5,8 +5,6 @@
 
 package io.stackgres.cluster.controller;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -25,8 +23,6 @@ import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
@@ -41,7 +37,6 @@ import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntryStatus;
 import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 import io.stackgres.common.crd.sgscript.StackGresScriptStatus;
-import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
@@ -56,37 +51,37 @@ public class ManagedSqlReconciliator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ManagedSqlReconciliator.class);
 
+  private final ManagedSqlScriptEntryExecutor managedSqlScriptEntryExecutor;
   private final boolean reconcileManagedSql;
   private final ResourceFinder<Endpoints> endpointsFinder;
   private final CustomResourceFinder<StackGresScript> scriptFinder;
   private final ResourceFinder<Secret> secretFinder;
   private final ResourceFinder<ConfigMap> configMapFinder;
-  private final PostgresConnectionManager postgresConnectionManager;
   private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
   private final String podName;
   private final EventController eventController;
 
   @Dependent
   public static class Parameters {
+    @Inject ManagedSqlScriptEntryExecutor managedSqlScriptEntryExecutor;
     @Inject ClusterControllerPropertyContext propertyContext;
     @Inject ResourceFinder<Endpoints> endpointsFinder;
     @Inject CustomResourceFinder<StackGresScript> scriptFinder;
     @Inject ResourceFinder<Secret> secretFinder;
     @Inject ResourceFinder<ConfigMap> configMapFinder;
-    @Inject PostgresConnectionManager postgresConnectionManager;
     @Inject CustomResourceScheduler<StackGresCluster> clusterScheduler;
     @Inject EventController eventController;
   }
 
   @Inject
   public ManagedSqlReconciliator(Parameters parameters) {
+    this.managedSqlScriptEntryExecutor = parameters.managedSqlScriptEntryExecutor;
     this.reconcileManagedSql = parameters.propertyContext
         .getBoolean(ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL);
     this.endpointsFinder = parameters.endpointsFinder;
     this.scriptFinder = parameters.scriptFinder;
     this.secretFinder = parameters.secretFinder;
     this.configMapFinder = parameters.configMapFinder;
-    this.postgresConnectionManager = parameters.postgresConnectionManager;
     this.clusterScheduler = parameters.clusterScheduler;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
@@ -164,10 +159,17 @@ public class ManagedSqlReconciliator {
           .toList();
       boolean scriptResult = true;
       for (var managedScriptEntry : managedScriptEntries) {
+        ManagedSqlScriptEntry managedSqlScriptEntry = ImmutableManagedSqlScriptEntry.builder()
+            .managedSqlStatus(managedSqlStatus)
+            .managedScript(managedScriptEntry.v1)
+            .script(managedScriptEntry.v2)
+            .managedScriptStatus(managedScriptEntry.v3)
+            .scriptEntry(managedScriptEntry.v4)
+            .scriptEntryStatus(managedScriptEntry.v5)
+            .build();
         ManagedSqlScriptEntryReconciliator scriptEntryReconciliator =
-            new ManagedSqlScriptEntryReconciliator(this, client, context, managedSqlStatus,
-                Tuple.tuple(managedScriptEntry.v1, managedScriptEntry.v3),
-                Tuple.tuple(managedScriptEntry.v2, managedScriptEntry.v4, managedScriptEntry.v5));
+            new ManagedSqlScriptEntryReconciliator(this, client, context,
+                managedSqlScriptEntry);
         boolean result = scriptEntryReconciliator.reconcile();
         scriptResult = scriptResult && result;
         if (!result && !doesScriptEntryContinueOnError(managedScriptEntry.v2)) {
@@ -331,13 +333,8 @@ public class ManagedSqlReconciliator {
             .map(name -> " (" + name + ")").orElse("");
   }
 
-  protected Connection getConnection(String database, String user)
-      throws SQLException {
-    return postgresConnectionManager.getUnixConnection(
-        ClusterStatefulSetPath.PG_RUN_PATH.path(), EnvoyUtil.PG_PORT,
-        database,
-        user,
-        "");
+  protected ManagedSqlScriptEntryExecutor getManagedSqlScriptEntryExecutor() {
+    return managedSqlScriptEntryExecutor;
   }
 
 }

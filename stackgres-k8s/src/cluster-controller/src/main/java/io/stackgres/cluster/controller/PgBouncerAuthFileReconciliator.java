@@ -5,6 +5,7 @@
 
 package io.stackgres.cluster.controller;
 
+import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_DATABASE;
 import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_USER_NAME;
 
@@ -120,7 +121,7 @@ public class PgBouncerAuthFileReconciliator {
     List<String> authFileUsersLines = new ArrayList<>();
     try (Connection connection = postgresConnectionManager.getConnection(
         "localhost", EnvoyUtil.PG_PORT,
-        "postgres",
+        SUPERUSER_DATABASE,
         SUPERUSER_USER_NAME,
         postgresPassword);
         PreparedStatement statement = connection.prepareStatement(
