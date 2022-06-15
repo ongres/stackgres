@@ -1254,7 +1254,11 @@ export const mixin = {
             }
           })
         }
-      }
+      },
+      //isEnabled(op.data.spec.vacuum, full)
+      isEnabled(path, prop) {
+        return ( (path.hasOwnProperty(prop) && path[prop]) ? 'Enabled' : 'Disabled')
+      } 
     },
   
     beforeCreate: function() {
