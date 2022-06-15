@@ -33,20 +33,20 @@ class StackGresVersionTest {
 
   @Test
   void givenAValidVersion_shouldReturnTheCorrectStackGresVersion() {
-    setStackGresClusterVersion("1.0.0");
+    setStackGresClusterVersion(StackGresVersion.LATEST.getVersion() + ".0");
 
     var version = StackGresVersion.getStackGresVersion(backup);
 
-    assertEquals(StackGresVersion.V_1_0, version);
+    assertEquals(StackGresVersion.LATEST, version);
   }
 
   @Test
   void givenASnapshotVersion_shouldReturnTheCorrectStackGresVersion() {
-    setStackGresClusterVersion("1.0.0-SNAPSHOT");
+    setStackGresClusterVersion(StackGresVersion.LATEST.getVersion() + ".0-SNAPSHOT");
 
     var version = StackGresVersion.getStackGresVersion(backup);
 
-    assertEquals(StackGresVersion.V_1_0, version);
+    assertEquals(StackGresVersion.LATEST, version);
   }
 
   @Test
