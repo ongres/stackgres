@@ -6,7 +6,7 @@
                     <tr>
                         <td class="label">
                             Cluster Namespace
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.metadata.namespace')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.namespace')"></span>
                         </td>
                         <td colspan="3">
                             <router-link :to="'/' + cluster.data.metadata.namespace">
@@ -37,21 +37,21 @@
                     <tr>
                         <td class="label">
                             Postgres Version
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
                         </td>
                         <td colspan="3">{{ cluster.data.spec.postgres.version }}</td>
                     </tr>
                     <tr>
                         <td class="label">
                             Instances
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
                         </td>
                         <td colspan="3" class="textRight">{{ cluster.data.spec.instances }}</td>
                     </tr>
                     <tr>
                         <td class="label">
                             Instance Profile
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.sgInstanceProfile')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.sgInstanceProfile')"></span>
                         </td>
                         <template v-if="hasProp(cluster, 'data.spec.sgInstanceProfile')">
                             <td colspan="3" v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
@@ -88,14 +88,14 @@
                     <tr v-if="(typeof cluster.data.spec.pods.persistentVolume.storageClass !== 'undefined')">
                         <td class="label">
                             Storage Class
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.storageClass')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.storageClass')"></span>
                         </td>
                         <td>{{ cluster.data.spec.pods.persistentVolume.storageClass }}</td>
                     </tr>
                     <tr>
                         <td class="label">
                             Connection Pooling
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>
                         </td>
                         <td colspan="2">
                             <template v-if="hasProp(cluster, 'data.spec.pods.disableConnectionPooling') && cluster.data.spec.pods.disableConnectionPooling">
@@ -194,7 +194,7 @@
                     <tr>
                         <td class="label">
                             Prometheus Autobind
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.prometheusAutobind')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.prometheusAutobind')"></span>
                         </td>
                         <td colspan="3">
                             <template v-if="(typeof cluster.data.spec.prometheusAutobind !== 'undefined')">
@@ -211,7 +211,7 @@
                         </td>
                         <td class="label">
                             Cluster Pod Anti Affinity
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true to allow','When disabled, it allows running')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true to allow','When disabled, it allows running')"></span>
                         </td>
                         <td colspan="2">
                             <template v-if="(typeof cluster.data.spec.nonProductionOptions !== 'undefined')">
@@ -225,11 +225,11 @@
                     <tr v-if="hasProp(cluster, 'data.spec.distributedLogs.sgDistributedLogs')">
                         <td class="label" :rowspan="Object.keys(cluster.data.spec.distributedLogs).length">
                             Distributed Logs
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.distributedLogs')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs')"></span>
                         </td>
                         <td class="label">
                             Logs Server
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.sgDistributedLogs')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.sgDistributedLogs')"></span>
                         </td>
                         <td colspan="2">
                             <router-link :to="'/' + (cluster.data.spec.distributedLogs.sgDistributedLogs.includes('.') ? cluster.data.spec.distributedLogs.sgDistributedLogs.split('.')[0] : $route.params.namespace) + '/sgdistributedlog/' +  (cluster.data.spec.distributedLogs.sgDistributedLogs.includes('.') ? cluster.data.spec.distributedLogs.sgDistributedLogs.split('.')[1] : cluster.data.spec.distributedLogs.sgDistributedLogs)">
@@ -247,7 +247,7 @@
                     <tr v-if="hasProp(cluster, 'data.spec.distributedLogs.retention')">
                         <td class="label">
                             Retention
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.retention')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.retention')"></span>
                         </td>
                         <td colspan="2">
                             {{ cluster.data.spec.distributedLogs.retention }}
@@ -337,10 +337,10 @@
                         <tr>
                             <td class="label">
                                 Postgres
-                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPostgresConfig')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPostgresConfig')"></span>
                             </td>
                             <template v-if="hasProp(cluster, 'data.spec.configurations.sgPostgresConfig')">
-                                <td colspan="2">
+                                <td colspan="3">
                                     <router-link :to="'/' + $route.params.namespace + '/sgpgconfig/' + cluster.data.spec.configurations.sgPostgresConfig">
                                         {{ cluster.data.spec.configurations.sgPostgresConfig }}
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
@@ -348,7 +348,7 @@
                                 </td>
                             </template>
                             <template v-else>
-                                <td colspan="2">
+                                <td colspan="3">
                                     Default
                                 </td>
                             </template>
@@ -356,10 +356,10 @@
                         <tr>
                             <td class="label">
                                 Connection Pooling
-                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>
                             </td>
                             <template v-if="hasProp(cluster, 'data.spec.configurations.sgPoolingConfig')">
-                                <td colspan="2">
+                                <td colspan="3">
                                     <router-link :to="'/' + $route.params.namespace + '/sgpoolconfig/' + cluster.data.spec.configurations.sgPoolingConfig">
                                         {{ cluster.data.spec.configurations.sgPoolingConfig }}
                                         <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
@@ -367,32 +367,97 @@
                                 </td>
                             </template>
                             <template v-else-if="!hasProp(cluster, 'data.spec.pods.disableConnectionPooling') || !cluster.data.spec.pods.disableConnectionPooling">
-                                <td colspan="2">
+                                <td colspan="3">
                                     Default
                                 </td>
                             </template>
                         </tr>
-                        <tr v-if="hasProp(cluster, 'data.spec.configurations.sgBackupConfig')">
-                            <td class="label">
-                                Managed Backups
-                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.configurations.sgBackupConfig')"></span>
-                            </td>
-                            <td colspan="2">
-                                <router-link :to="'/' + $route.params.namespace + '/sgbackupconfig/' + cluster.data.spec.configurations.sgBackupConfig">
-                                    {{ cluster.data.spec.configurations.sgBackupConfig }}
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-                                </router-link>
-                            </td>
-                        </tr>
-                        <tr v-if="hasProp(cluster, 'data.spec.configurations.backupPath')">
-                            <td class="label">
-                                Backup Path
-                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.configurations.backupPath')"></span>
-                            </td>
-                            <td colspan="2">
-                                {{ cluster.data.spec.configurations.backupPath }}
-                            </td>
-                        </tr>
+                        <template v-if="hasProp(cluster, 'data.spec.configurations.backups')">
+                            <template v-for="backup in cluster.data.spec.configurations.backups">
+                                <tr>
+                                    <td class="label" :rowspan="(Object.keys(backup).length + ( hasProp(backup, 'performance.uploadDiskConcurrency') ? 3 : 2 ) )">
+                                        Managed Backups
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups')"></span>
+                                    </td>
+                                    <td class="label">
+                                        Object Storage
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.sgObjectStorage')"></span>
+                                    <td :colspan="backup.hasOwnProperty('performance') && 2">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgobjectstorage/' + backup.sgObjectStorage">
+                                            {{ backup.sgObjectStorage }}
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+                                        </router-link>
+                                    </td>
+                                </tr>
+                                <tr v-if="backup.hasOwnProperty('cronSchedule')">
+                                    <td class="label">
+                                        Cron Schedule
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.cronSchedule')"></span>
+                                    </td>
+                                    <td :colspan="backup.hasOwnProperty('performance') && 2">
+                                        {{ tzCrontab(backup.cronSchedule) | prettyCRON(false) }}
+                                    </td>
+                                </tr>
+                                <tr v-if="(backup.hasOwnProperty('path') && backup.path.length)">
+                                    <td class="label">
+                                        Path
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.path')"></span>
+                                    </td>
+                                    <td :colspan="backup.hasOwnProperty('performance') && 2">
+                                        {{ backup.path }}
+                                    </td>
+                                </tr>
+                                <tr v-if="backup.hasOwnProperty('retention')">
+                                    <td class="label">
+                                        Retention Window
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.retention')"></span>
+                                    </td>
+                                    <td :colspan="backup.hasOwnProperty('performance') && 2">
+                                        {{ backup.retention }}
+                                    </td>
+                                </tr>
+                                <tr v-if="backup.hasOwnProperty('retention')">
+                                    <td class="label">
+                                        Compression Method
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.compression')"></span>
+                                    </td>
+                                    <td :colspan="backup.hasOwnProperty('performance') && 2">
+                                        {{ backup.compression }}
+                                    </td>
+                                </tr>
+                                <tr v-if="backup.hasOwnProperty('performance')">
+                                    <td class="label" :rowspan="(backup.performance.hasOwnProperty('uploadDiskConcurrency') ? 3 : 2)">
+                                        Performance
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.performance')"></span>
+                                    </td>
+                                    <td class="label">
+                                        Maximum Network Bandwidth
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.performance.properties.maxNetworkBandwidth')"></span>
+                                    </td>
+                                    <td>
+                                        {{ backup.performance.hasOwnProperty('maxNetworkBandwidth') ? backup.performance.maxNetworkBandwidth : 'Unlimited' }}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label">
+                                        Maximum Disk Bandwidth
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.performance.properties.maxDiskBandwidth')"></span>
+                                    </td>
+                                    <td>
+                                        {{ backup.performance.hasOwnProperty('maxDiskBandwidth') ? backup.performance.maxDiskBandwidth : 'Unlimited' }}
+                                    </td>
+                                </tr>
+                                <tr v-if="backup.performance.hasOwnProperty('uploadDiskConcurrency')">
+                                    <td class="label">
+                                        Upload Disk Concurrency
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.performance.properties.uploadDiskConcurrency')"></span>
+                                    </td>
+                                    <td>
+                                        {{ backup.performance.uploadDiskConcurrency }}
+                                    </td>
+                                </tr>
+                            </template>
+                        </template>
                     </tbody>
                 </table>
             </div>
@@ -538,7 +603,7 @@
             </div>
 
             <div class="scripts" v-if="hasProp(cluster, 'data.spec.initialData.scripts')">
-                <h2>Scripts <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts')"></span></h2>
+                <h2>Scripts <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts')"></span></h2>
                 <table class="clusterConfig">
                     <tbody>
                         <template v-for="(item, index) in cluster.data.spec.initialData.scripts">
@@ -630,13 +695,13 @@
             </div>
 
             <div class="resourcesMetadata" v-if="hasProp(cluster, 'data.spec.metadata.annotations') && Object.keys(cluster.data.spec.metadata.annotations).length">
-                <h2>Resources Annotations <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations')"></span></h2>
+                <h2>Resources Annotations <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations')"></span></h2>
                 <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')" class="clusterConfig">
                     <tbody>
                         <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.allResources)">
                             <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.allResources).length">
                                 All Resources
-                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.allResources')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.allResources')"></span>
                             </td>
                             <td class="label">
                                 {{ item.annotation }}
@@ -653,7 +718,7 @@
                         <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.clusterPods)">
                             <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.clusterPods).length">
                                 Cluster Pods
-                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.clusterPods')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.clusterPods')"></span>
                             </td>
                             <td class="label">
                                 {{ item.annotation }}
@@ -670,7 +735,7 @@
                         <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.services)">
                             <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.services).length">
                                 Services
-                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.services')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.services')"></span>
                             </td>
                             <td class="label">
                                 {{ item.annotation }}
@@ -687,7 +752,7 @@
                         <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.primaryService)">
                             <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.primaryService).length">
                                 Primary Service
-                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.primaryService')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.primaryService')"></span>
                             </td>
                             <td class="label">
                                 {{ item.annotation }}
@@ -704,7 +769,7 @@
                         <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.replicasService)">
                             <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.replicasService).length">
                                 Replicas Service
-                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.replicasService')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.replicasService')"></span>
                             </td>
                             <td class="label">
                                 {{ item.annotation }}
@@ -738,7 +803,7 @@
             </div>
 
             <div class="postgresServices" v-if="hasProp(cluster, 'data.spec.postgresServices') && ((hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled) || (hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled))">
-                <h2>Postgres Services <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices')"></span></h2>
+                <h2>Postgres Services <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices')"></span></h2>
 
                 <table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="clusterConfig">
                     <tbody>
@@ -757,7 +822,7 @@
                         <tr>
                             <td class="label">
                                 Type
-                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName+'.type')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName+'.type')"></span>
                             </td>
                             <td colspan="2">
                                 {{ service.type }}
@@ -768,22 +833,22 @@
             </div>
             
             <div class="postgresExtensions" v-if="hasProp(cluster, 'data.spec.postgres.extensions') && cluster.data.spec.postgres.extensions.length">
-                <h2>Postgres Extensions Deployed/To Be Deployed <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgres.extensions')"></span></h2>
+                <h2>Postgres Extensions Deployed/To Be Deployed <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.extensions')"></span></h2>
                 <span class="warning">The extension(s) are installed into the StackGres Postgres container. To start using them, you need to execute an appropriate <code>CREATE EXTENSION</code> command in the database(s) where you want to use the extension(s). Note that depending on each extension's requisites you may also need to add configuration to the cluster's <code>SGPostgresConfig</code> configuration, like adding the extension to <code>shared_preload_libraries</code> or adding extension-specific configuration parameters.</span>
 
                 <table class="clusterConfig">
                     <thead>
                         <th>
                             Name
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.name')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgextensions.extensions.name')"></span>
                         </th>
                         <th class="textRight">
                             Version
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.versions')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgextensions.extensions.versions')"></span>
                         </th>
                         <th colspan="2">
                             Description
-                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgextensions.extensions.description')"></span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgextensions.extensions.description')"></span>
                         </th>
                     </thead>
                     <tbody>

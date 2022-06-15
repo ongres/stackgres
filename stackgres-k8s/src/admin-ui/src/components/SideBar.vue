@@ -172,7 +172,7 @@
 				</ul>
 			</div>
 
-			<div v-if="iCan('any','sgobjectstorages', currentPath.namespace)" class="backup set subset" :class="currentPath.component.includes('BackupConfig') ? 'active' : ''" >
+			<div v-if="iCan('any','sgobjectstorages', currentPath.namespace)" class="backup set subset" :class="currentPath.component.includes('ObjectStorage') ? 'active' : ''" >
 				<ul>
 					<li class="crdName">
 						<template v-if="iCan('list', 'sgobjectstorages', currentPath.namespace)">
@@ -194,9 +194,9 @@
 					</li>
 					
 					<li><ul v-if="iCan('list', 'sgobjectstorages', currentPath.namespace)" class="crdSubmenu">
-						<template v-for="config in bkConfig">
-							<li v-if="config.data.metadata.namespace == currentPath.namespace" :class="'sgbackupconfig-'+config.data.metadata.namespace+'-'+config.name">
-								<router-link :to="'/' + config.data.metadata.namespace + '/sgbackupconfig/' + config.name" class="item" :title="config.name" :class="(currentPath.component.includes('BackupConfig') && (currentPath.name == config.name)) ? 'router-link-exact-active' : ''">{{ config.name }}</router-link>
+						<template v-for="config in objectStorages">
+							<li v-if="config.data.metadata.namespace == currentPath.namespace" :class="'sgobjectstorage-'+config.data.metadata.namespace+'-'+config.name">
+								<router-link :to="'/' + config.data.metadata.namespace + '/sgobjectstorage/' + config.name" class="item" :title="config.name" :class="(currentPath.component.includes('ObjectStorage') && (currentPath.name == config.name)) ? 'router-link-exact-active' : ''">{{ config.name }}</router-link>
 							</li>
 						</template>
 					</ul></li>

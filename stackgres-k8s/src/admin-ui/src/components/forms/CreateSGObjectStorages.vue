@@ -3,29 +3,6 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
-        <header>
-            <ul class="breadcrumbs">
-                <li class="namespace">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20.026" height="27"><g fill="#00adb5"><path d="M1.513.9l-1.5 13a.972.972 0 001 1.1h18a.972.972 0 001-1.1l-1.5-13a1.063 1.063 0 00-1-.9h-15a1.063 1.063 0 00-1 .9zm.6 11.5l.9-8c0-.2.3-.4.5-.4h12.9a.458.458 0 01.5.4l.9 8a.56.56 0 01-.5.6h-14.7a.56.56 0 01-.5-.6zM1.113 17.9a1.063 1.063 0 011-.9h15.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-15.8a1.028 1.028 0 01-1-1.1zM3.113 23h13.8a.972.972 0 001-1.1 1.063 1.063 0 00-1-.9h-13.8a1.063 1.063 0 00-1 .9 1.028 1.028 0 001 1.1zM3.113 25.9a1.063 1.063 0 011-.9h11.8a1.063 1.063 0 011 .9.972.972 0 01-1 1.1h-11.8a1.028 1.028 0 01-1-1.1z"/></g></svg>
-                    <router-link :to="'/' + $route.params.namespace" title="Namespace Overview">{{ $route.params.namespace }}</router-link>
-                </li>
-                <li class="action">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27.1 20"><path d="M15.889 13.75a2.277 2.277 0 011.263.829 2.394 2.394 0 01.448 1.47 2.27 2.27 0 01-.86 1.885 3.721 3.721 0 01-2.375.685h-3.449a.837.837 0 01-.6-.213.8.8 0 01-.22-.6v-7.795a.8.8 0 01.22-.6.835.835 0 01.609-.214h3.306a3.679 3.679 0 012.306.648 2.165 2.165 0 01.836 1.815 2.159 2.159 0 01-.395 1.3 2.254 2.254 0 01-1.089.79zm-4.118-.585h2.179q1.779 0 1.778-1.323a1.143 1.143 0 00-.441-.989 2.267 2.267 0 00-1.337-.321h-2.179zm2.407 4.118a2.219 2.219 0 001.363-.335 1.242 1.242 0 00.428-1.042 1.271 1.271 0 00-.435-1.056 2.155 2.155 0 00-1.356-.348h-2.407v2.781zm8.929 1.457a3.991 3.991 0 01-2.941-1 3.968 3.968 0 01-1-2.927V9.984a.854.854 0 01.227-.622.925.925 0 011.23 0 .854.854 0 01.227.622V14.9a2.623 2.623 0 00.573 1.838 2.18 2.18 0 001.684.622 2.153 2.153 0 001.671-.628 2.624 2.624 0 00.573-1.832V9.984a.85.85 0 01.228-.622.924.924 0 011.229 0 .85.85 0 01.228.622v4.826a3.969 3.969 0 01-1 2.92 3.95 3.95 0 01-2.929 1.01zM.955 4.762h10.5a.953.953 0 100-1.9H.955a.953.953 0 100 1.9zM14.8 7.619a.954.954 0 00.955-.952V4.762h4.3a.953.953 0 100-1.9h-4.3V.952a.955.955 0 00-1.909 0v5.715a.953.953 0 00.954.952zM.955 10.952h4.3v1.9a.955.955 0 001.909 0V7.143a.955.955 0 00-1.909 0v1.9h-4.3a.953.953 0 100 1.9zm6.681 4.286H.955a.953.953 0 100 1.905h6.681a.953.953 0 100-1.905z"></path></svg>
-                    <router-link :to="'/' + $route.params.namespace + '/sgobjectstorages' " title="SGObjectStorages">SGObjectStorages</router-link>
-                </li>
-                <li v-if="editMode">
-                    <router-link :to="'/' + $route.params.namespace + '/sgobjectstorage/' + $route.params.name" title="Configuration Details">{{ $route.params.name }}</router-link>
-                </li>
-                <li class="action">
-                    {{ $route.name == 'EditObjectStorage' ? 'Edit' : 'Create' }}
-                </li>
-            </ul>
-
-            <div class="actions">
-                <a class="documentation" href="https://stackgres.io/doc/latest/reference/crd/sgobjectstorage/" target="_blank" title="SGObjectStorage Documentation">SGObjectStorage Documentation</a>
-            </div>
-        </header>
-                
         <form id="createObjectStorage" class="form" @submit.prevent>
             <div class="header">
                 <h2>Object Storage Details</h2>
@@ -111,12 +88,6 @@
                         
                         <template v-if="advancedModeStorage">
                             <div class="col">
-                                <label for="spec.s3.path">Path</label>
-                                <input v-model="s3Path" data-field="spec.s3.path">
-                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.spec.s3.path')"></span>
-                            </div>
-
-                            <div class="col">
                                 <label for="spec.s3.region">Region</label>
                                 <input v-model="s3Region" data-field="spec.s3.region">
                                 <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.spec.s3.region')"></span>
@@ -161,12 +132,6 @@
 
                         <template v-if="advancedModeStorage">
                             
-                            <div class="col">
-                                <label for="spec.s3Compatible.path">Path</label>
-                                <input v-model="s3CompatiblePath" data-field="spec.s3Compatible.path">
-                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.spec.s3Compatible.path')"></span>
-                            </div>
-
                             <div class="col">
                                 <label for="spec.s3Compatible.endpoint">Endpoint</label>
                                 <input v-model="s3CompatibleEndpoint" data-field="spec.s3Compatible.endpoint">
@@ -226,14 +191,6 @@
                             <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.spec.gcs.bucket')"></span>
                         </div>
 
-                        <template v-if="advancedModeStorage">
-                            <div class="col">
-                                <label for="spec.gcs.path">Path</label>
-                                <input v-model="gcsPath" data-field="spec.gcs.path">
-                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.spec.gcs.path')"></span>
-                            </div>
-                        </template>
-
                         <div class="col">
                             <label for="spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService">Fetch Credentials from Metadata Service</label>  
                             <label for="fetchGCSCredentials" class="switch yes-no">Fetch <input type="checkbox" id="fetchGCSCredentials" v-model="fetchGCSCredentials" data-switch="NO"></label>
@@ -260,14 +217,6 @@
                             <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.spec.azureBlob.bucket')"></span>
                         </div>
                         
-                        <template v-if="advancedModeStorage">
-                            <div class="col">
-                                <label for="spec.azureBlob.path">Path</label>
-                                <input v-model="azurePath" data-field="spec.azureBlob.path">
-                                <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.spec.azureBlob.path')"></span>
-                            </div>
-                        </template>
-                            
                         <div class="col">
                             <label for="spec.azureBlob.azureCredentials.secretKeySelectors.storageAccount">Account Name <span class="req">*</span></label>
                             <input v-model="azureAccount" required data-field="spec.azureBlob.azureCredentials.secretKeySelectors.storageAccount">
@@ -331,13 +280,11 @@
                 namespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 type: '',
                 s3Bucket: '',
-                s3Path: '',
                 s3Region: '',
                 s3AccessKeyId: '',
                 s3SecretAccessKey: '',
                 s3StorageClass: '',
                 s3CompatibleBucket: '',
-                s3CompatiblePath: '',
                 s3CompatibleEndpoint: '',
                 s3CompatibleRegion: '',
                 s3CompatibleAccessKeyId: '',
@@ -345,11 +292,9 @@
                 s3CompatibleStorageClass: '',
                 s3CompatibleEnablePathStyleAddressing: false,
                 gcsBucket: '',
-                gcsPath: '',
                 fetchGCSCredentials: false,
                 gcsServiceAccountJSON: '',
                 azureBucket: '',
-                azurePath: '',
                 azureAccount: '',
                 azureAccessKey: '',
                 secretKeySelectors: {}
@@ -387,7 +332,6 @@
                             //s3
                             if(config.data.spec.type === 's3') {
                                 vm.s3Bucket = config.data.spec.s3.bucket;
-                                vm.s3Path =  (typeof config.data.spec.s3.path !== 'undefined') ? config.data.spec.s3.path : '';
                                 vm.s3Region =  (typeof config.data.spec.s3.region !== 'undefined') ? config.data.spec.s3.region : '';
                                 vm.s3AccessKeyId = vm.hasProp(config, 'data.spec.s3.awsCredentials.secretKeySelectors') ? '******' : '';
                                 vm.s3SecretAccessKey = vm.hasProp(config, 'data.spec.s3.awsCredentials.secretKeySelectors') ? '******' : '';
@@ -398,7 +342,6 @@
                             //s3Compatible
                             if(config.data.spec.type === 's3Compatible') {
                                 vm.s3CompatibleBucket = config.data.spec.s3Compatible.bucket;
-                                vm.s3CompatiblePath = (typeof config.data.spec.s3Compatible.path !== 'undefined') ? config.data.spec.s3Compatible.path : '';
                                 vm.s3CompatibleEndpoint = (typeof config.data.spec.s3Compatible.endpoint !== 'undefined') ? config.data.spec.s3Compatible.endpoint : '';
                                 vm.s3CompatibleRegion = (typeof config.data.spec.s3Compatible.region !== 'undefined') ? config.data.spec.s3Compatible.region : '';
                                 vm.s3CompatibleAccessKeyId = vm.hasProp(config, 'data.spec.s3Compatible.awsCredentials.secretKeySelectors') ? '******' : '';
@@ -411,7 +354,6 @@
                             //gcs
                             if(config.data.spec.type === 'gcs') {
                                 vm.gcsBucket = config.data.spec.gcs.bucket;
-                                vm.gcsPath = (typeof config.data.spec.gcs.path !== 'undefined') ? config.data.spec.gcs.path : '';
                                 vm.fetchGCSCredentials = vm.hasProp(config, 'data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService') ? config.data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService : false ;
                                 vm.gcsServiceAccountJSON = vm.hasProp(config, 'data.spec.gcs.gcpCredentials.secretKeySelectors') ? '******' : '';
                                 vm.secretKeySelectors = vm.hasProp(config, 'data.spec.gcs.gcpCredentials.secretKeySelectors') ? config.data.spec.gcs.gcpCredentials.secretKeySelectors : {};
@@ -420,7 +362,6 @@
                             //azure
                             if(config.data.spec.type === 'azureBlob') {
                                 vm.azureBucket = config.data.spec.azureBlob.bucket;
-                                vm.azurePath = (typeof config.data.spec.azureBlob.path !== 'undefined') ? config.data.spec.azureBlob.path : '';
                                 vm.azureAccount = vm.hasProp(config, 'data.spec.azureBlob.azureCredentials.secretKeySelectors') ? '******' : '';
                                 vm.azureAccessKey = vm.hasProp(config, 'data.spec.azureBlob.azureCredentials.secretKeySelectors') ? '******' : '';
                                 vm.secretKeySelectors = vm.hasProp(config, 'data.spec.azureBlob.azureCredentials.secretKeySelectors') ? config.data.spec.azureBlob.azureCredentials.secretKeySelectors : {};
@@ -461,7 +402,6 @@
                         case 's3':
                             config.spec['s3'] = {
                                 "bucket": this.s3Bucket,
-                                ...( ((typeof this.s3Path !== 'undefined') && this.s3Path.length ) && ( {"path": this.s3Path }) ),
                                 ...( ((typeof this.s3Region !== 'undefined') && this.s3Region.length ) && ( {"region": this.s3Region }) ),
                                 ...( ((typeof this.s3StorageClass !== 'undefined') && this.s3StorageClass.length ) && ( {"storageClass": this.s3StorageClass }) ),
                                 "awsCredentials": {
@@ -475,7 +415,6 @@
                         case 's3Compatible':
                             config.spec['s3Compatible'] = {
                                 "bucket": this.s3CompatibleBucket,
-                                ...( ((typeof this.s3CompatiblePath !== 'undefined') && this.s3CompatiblePath.length ) && ( {"path": this.s3CompatiblePath }) ),
                                 ...( ((typeof this.s3CompatibleEnablePathStyleAddressing !== 'undefined') && this.s3CompatibleEnablePathStyleAddressing ) && ( {"enablePathStyleAddressing": this.s3CompatibleEnablePathStyleAddressing }) ),
                                 ...( ((typeof this.s3CompatibleEndpoint !== 'undefined') && this.s3CompatibleEndpoint.length ) && ( {"endpoint": this.s3CompatibleEndpoint }) ),
                                 ...( ((typeof this.s3CompatibleRegion !== 'undefined') && this.s3CompatibleRegion.length ) && ( {"region": this.s3CompatibleRegion }) ),
@@ -491,7 +430,6 @@
                         case 'gcs':
                             config.spec['gcs'] = {
                                 "bucket": this.gcsBucket,
-                                ...( ((typeof this.gcsPath !== 'undefined') && this.gcsPath.length ) && ( {"path": this.gcsPath }) ),
                                 "gcpCredentials": {
                                     ...( this.fetchGCSCredentials && {
                                         "fetchCredentialsFromMetadataService": true
@@ -511,7 +449,6 @@
                         case 'azureBlob':
                             config.spec['azureBlob'] = {
                                 "bucket": this.azureBucket,
-                                ...( ((typeof this.azurePath !== 'undefined') && this.azurePath.length ) && ( {"path": this.azurePath }) ),
                                 "azureCredentials": {
                                     ...( ( (this.editMode && (this.azureAccount != '******')) || (!this.editMode) ) && ( { "storageAccount": this.azureAccount}) ),
                                     ...( ( (this.editMode && (this.azureAccessKey != '******')) || (!this.editMode) ) && ( { "accessKey": this.azureAccessKey}) ),
