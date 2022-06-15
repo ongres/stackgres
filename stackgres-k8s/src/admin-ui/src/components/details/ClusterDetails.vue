@@ -99,10 +99,10 @@
                         </td>
                         <td colspan="2">
                             <template v-if="hasProp(cluster, 'data.spec.pods.disableConnectionPooling') && cluster.data.spec.pods.disableConnectionPooling">
-                                OFF
+                                Disabled
                             </template>
                             <template v-else>
-                                ON
+                                Enabled
                             </template>
                         </td>
                     </tr>
@@ -113,10 +113,10 @@
                         </td>
                         <td colspan="3">
                             <template v-if="!cluster.data.spec.pods.disableMetricsExporter">
-                                ON
+                                Enabled
                             </template>
                             <template v-else>
-                                OFF
+                                Disabled
                             </template>
                         </td>
                     </tr>
@@ -184,10 +184,10 @@
                         </td>
                         <td colspan="3">
                             <template v-if="(typeof cluster.data.spec.prometheusAutobind !== 'undefined') && !cluster.data.spec.pods.disableMetricsExporter">
-                                ON
+                                Enabled
                             </template>
                             <template v-else>
-                                OFF
+                                Disabled
                             </template>
                         </td>
                     </tr>
@@ -198,14 +198,14 @@
                         </td>
                         <td colspan="3">
                             <template v-if="(typeof cluster.data.spec.prometheusAutobind !== 'undefined')">
-                                ON
+                                Enabled
                             </template>
                             <template v-else>
-                                OFF
+                                Disabled
                             </template>
                         </td>
                     </tr>
-                    <tr v-if="(typeof cluster.data.spec.nonProductionOptions !== 'undefined')">
+                    <tr>
                         <td class="label">
                             Non-Production Settings
                         </td>
@@ -214,11 +214,11 @@
                             <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true to allow','When disabled, it allows running')"></span>
                         </td>
                         <td colspan="2">
-                            <template v-if="(typeof cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity !== 'undefined')">
-                                {{ cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity ? 'OFF' : 'ON' }}
+                            <template v-if="(typeof cluster.data.spec.nonProductionOptions !== 'undefined')">
+                                {{ cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity ? 'Disabled' : 'Enabled' }}
                             </template>
                             <template v-else>
-                                OFF
+                                Enabled
                             </template>
                         </td>
                     </tr>

@@ -88,7 +88,7 @@
                                     </td>
                                     <td>{{ cluster.data.spec.persistentVolume.storageClass }}</td>
                                 </tr>
-                                <tr v-if="(typeof cluster.data.spec.nonProductionOptions !== 'undefined')">
+                                <tr>
                                     <td class="label">
                                         Non-Production Settings
                                     </td>
@@ -96,7 +96,12 @@
                                         Cluster Pod Anti Affinity
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('If set to `true` it will allow','When disabled, it allows running')"></span>
                                     </td>
-                                    <td>{{ cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity ? 'OFF' : 'ON' }}</td>
+                                    <td v-if="(typeof cluster.data.spec.nonProductionOptions !== 'undefined')">
+                                        {{ cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity ? 'Disabled' : 'Enabled' }}
+                                    </td>
+                                    <td v-else>
+                                        Enabled
+                                    </td>
                                 </tr>
                                 <tr v-if="cluster.data.status.clusters.length">
 									<td class="label">Used on  <span class="helpTooltip" :data-tooltip="getTooltip('sgpoosgdistributedlogslingconfig.status.clusters')"></span></td>

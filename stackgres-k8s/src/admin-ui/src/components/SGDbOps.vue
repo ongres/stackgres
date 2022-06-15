@@ -567,7 +567,7 @@
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.pgbench.usePreparedStatements')"></span>
                                     </td>
                                     <td>
-                                        {{ op.data.spec.benchmark.pgbench.hasOwnProperty('usePreparedStatements') ? op.data.spec.benchmark.pgbench.usePreparedStatements : 'False' }}
+                                        {{ isEnabled(op.data.spec.benchmark.pgbench.usePreparedStatements) }}
                                     </td>
                                 </tr>
                                 <tr>
@@ -608,7 +608,7 @@
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.link')"></span>
                                     </td>
                                     <td>
-                                        {{ op.data.spec.majorVersionUpgrade.hasOwnProperty('link') ? op.data.spec.majorVersionUpgrade.link : 'False' }}
+                                        {{ isEnabled(op.data.spec.majorVersionUpgrade.link) }}
                                     </td>
                                 </tr>
                                 <tr>
@@ -617,7 +617,7 @@
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.clone')"></span>
                                     </td>
                                     <td>
-                                        {{ op.data.spec.majorVersionUpgrade.hasOwnProperty('clone') ? op.data.spec.majorVersionUpgrade.clone : 'False' }}
+                                        {{ isEnabled(op.data.spec.majorVersionUpgrade.clone) }}
                                     </td>
                                 </tr>
                                 <tr>
@@ -626,10 +626,10 @@
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.check')"></span>
                                     </td>
                                     <td>
-                                        {{ op.data.spec.majorVersionUpgrade.hasOwnProperty('check') ? op.data.spec.majorVersionUpgrade.check : 'False' }}
+                                        {{ isEnabled(op.data.spec.majorVersionUpgrade.check) }}
                                     </td>
                                 </tr>
-                                <tr v-if="hasProp(op, 'data.spec.majorVersionUpgrade.backupPath')">
+                                <tr v-if="hasProp(op, 'data.spec.majorVersionUpgrade.backupPath') && op.data.spec.majorVersionUpgrade.backupPath.length">
                                     <td class="label">
                                         Backup Path
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.backupPath')"></span>
@@ -690,7 +690,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noOrder')"></span>
                                         </td>
                                         <td>
-                                            {{ op.data.spec.repack.hasOwnProperty('noOrder') ? op.data.spec.repack.noOrder : 'False' }}
+                                            {{ isEnabled(op.data.spec.repack.noOrder) }}
                                         </td>
                                     </tr>
                                     <tr v-if="op.data.spec.repack.hasOwnProperty('waitTimeout')">
@@ -708,7 +708,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noKillBackend')"></span> 
                                         </td>
                                         <td>
-                                            {{ op.data.spec.repack.hasOwnProperty('noKillBackend') ? op.data.spec.repack.noKillBackend : 'False' }}
+                                            {{ isEnabled(op.data.spec.repack.noKillBackend) }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -717,7 +717,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noAnalyze')"></span> 
                                         </td>
                                         <td>
-                                            {{ op.data.spec.repack.hasOwnProperty('noAnalyze') ? op.data.spec.repack.noAnalyze : 'False' }}
+                                            {{ isEnabled(op.data.spec.repack.noAnalyze) }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -726,7 +726,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.excludeExtension')"></span> 
                                         </td>
                                         <td>
-                                            {{ op.data.spec.repack.hasOwnProperty('excludeExtension') ? op.data.spec.repack.excludeExtension : 'False' }}
+                                            {{ isEnabled(op.data.spec.repack.excludeExtension) }}
                                         </td>
                                     </tr>
                                 </tbody>
@@ -777,7 +777,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.full')"></span> 
                                         </td>
                                         <td>
-                                            {{ op.data.spec.vacuum.hasOwnProperty('full') ? op.data.spec.vacuum.full : 'False' }}
+                                            {{ isEnabled(op.data.spec.vacuum.full) }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -786,7 +786,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.freeze')"></span> 
                                         </td>
                                         <td>
-                                            {{ op.data.spec.vacuum.hasOwnProperty('freeze') ? op.data.spec.vacuum.freeze : 'False' }}
+                                            {{ isEnabled(op.data.spec.vacuum.freeze) }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -795,7 +795,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.analyze')"></span> 
                                         </td>
                                         <td>
-                                            {{ op.data.spec.vacuum.hasOwnProperty('analyze') ? op.data.spec.vacuum.analyze : 'True' }}
+                                            {{ isEnabled(op.data.spec.vacuum.analyze) }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -804,7 +804,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping').replace('Defaults to: `false`', 'Enabled by default')"></span> 
                                         </td>
                                         <td>
-                                            {{ op.data.spec.vacuum.hasOwnProperty('disablePageSkipping') ? !op.data.spec.vacuum.disablePageSkipping : 'True' }}
+                                            {{ isEnabled(op.data.spec.vacuum.disablePageSkipping, true) }}
                                         </td>
                                     </tr>
                                 </tbody>
@@ -830,7 +830,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noOrder')"></span>
                                         </td>
                                         <td>
-                                            {{ db.hasOwnProperty('noOrder') ? db.noOrder : 'False' }}
+                                            {{ isEnabled(db.noOrder) }}
                                         </td>
                                     </tr>
                                     <tr v-if="db.hasOwnProperty('waitTimeout')">
@@ -848,7 +848,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noKillBackend')"></span>
                                         </td>
                                         <td>
-                                            {{ db.hasOwnProperty('noKillBackend') ? db.noKillBackend : 'False' }}
+                                            {{ isEnabled(db.noKillBackend) }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -857,7 +857,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noAnalyze')"></span>
                                         </td>
                                         <td>
-                                            {{ db.hasOwnProperty('noAnalyze') ? db.noAnalyze : 'False' }}
+                                            {{ isEnabled(db.noAnalyze) }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -866,7 +866,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.excludeExtension')"></span>
                                         </td>
                                         <td>
-                                            {{ db.hasOwnProperty('excludeExtension') ? db.excludeExtension : 'False' }}
+                                            {{ isEnabled(db.excludeExtension) }}                                            
                                         </td>
                                     </tr>
                                 </template>
@@ -893,7 +893,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.full')"></span> 
                                         </td>
                                         <td>
-                                            {{ db.hasOwnProperty('full') ? db.full : 'False' }}
+                                            {{ isEnabled(db.full) }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -902,7 +902,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.freeze')"></span> 
                                         </td>
                                         <td>
-                                            {{ db.hasOwnProperty('freeze') ? db.freeze : 'False' }}
+                                            {{ isEnabled(db.freeze) }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -911,7 +911,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.analyze')"></span> 
                                         </td>
                                         <td>
-                                            {{ db.hasOwnProperty('analyze') ? db.analyze : 'True' }}
+                                            {{ isEnabled(db.analyze) }}
                                         </td>
                                     </tr>
                                     <tr v-if="db.hasOwnProperty('disablePageSkipping')">
@@ -920,7 +920,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.disablePageSkipping').replace('Defaults to: `false`', 'Enabled by default')"></span> 
                                         </td>
                                         <td>
-                                            {{ db.hasOwnProperty('disablePageSkipping') ? !db.disablePageSkipping : 'True' }}
+                                            {{ isEnabled(db.disablePageSkipping, true) }}
                                         </td>
                                     </tr>
                                 </template>

@@ -1254,7 +1254,15 @@ export const mixin = {
             }
           })
         }
+      },
+
+      isEnabled(spec, reversed = false) {
+        if((spec && !reversed) || (!spec && reversed))
+          return 'Enabled'
+        else
+          return 'Disabled'
       }
+            
     },
   
     beforeCreate: function() {
