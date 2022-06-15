@@ -8,6 +8,9 @@ metadata:
   annotations:
     meta.helm.sh/release-name: {{ .Release.Name }}
     meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+    {{- with .Values.restapi.service.annotations }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
   labels:
     app.kubernetes.io/managed-by: Helm
 spec:

@@ -5,6 +5,9 @@ metadata:
   annotations:
     meta.helm.sh/release-name: {{ .Release.Name }}
     meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+    {{- with .Values.restapi.annotations }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
   labels:
     app.kubernetes.io/managed-by: Helm
     app: {{ .Values.restapi.name }}
@@ -24,6 +27,10 @@ spec:
         app: {{ .Values.restapi.name }}
         group:  stackgres.io
     spec:
+      {{- with .Values.restapi.affinity}}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
       serviceAccountName: {{ .Values.restapi.name }}
       securityContext:
         {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
@@ -37,21 +44,11 @@ spec:
       {{- end }}
       {{- end }}
       {{- end }}
-      {{- if or .Values.nodeSelector .Values.restapi.nodeSelector }}
+      {{- with .Values.restapi.nodeSelector}}
       nodeSelector:
-        {{- if .Values.restapi.nodeSelector }}
-        {{- with (index .Values.restapi.nodeSelector) }}
         {{- range $label,$value := . }}
         {{ $label }}: '{{ $value }}'
         {{- end}}
-        {{- end}}
-        {{- else }}
-        {{- with (index .Values.nodeSelector) }}
-        {{- range $label,$value := . }}
-        {{ $label }}: '{{ $value }}'
-        {{- end }}
-        {{- end }}
-        {{- end }}
       {{- end }}
       containers:
       - name: {{ .Values.restapi.name }}
@@ -262,4 +259,8 @@ spec:
                 path: stackgres-operator.template
         - name: operator-nginx-etc
           emptyDir: {}
+      {{- with .Values.restapi.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
 {{- end }}
