@@ -160,7 +160,7 @@ export const mixin = {
                 store.commit('updateClusters', cluster);
   
                 sgApi
-                .getResourceDetails('sgclusters', cluster.data.metadata.namespace, cluster.data.metadata.name, '/stats')
+                .getResourceDetails('sgclusters', cluster.data.metadata.namespace, cluster.data.metadata.name, 'stats')
                 .then( function(resp) {
                   store.commit('updateClusterStats', {
                     name: cluster.data.metadata.name,

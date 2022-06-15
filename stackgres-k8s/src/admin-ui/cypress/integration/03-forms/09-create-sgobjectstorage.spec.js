@@ -66,9 +66,6 @@ describe('Create SGObjectStorage', () => {
         cy.get('[data-field="spec.s3.bucket"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.s3.path"]')
-            .type('//' + resourceName)
-
         cy.get('[data-field="spec.s3.region"]')
             .type(resourceName)
 
@@ -110,9 +107,6 @@ describe('Create SGObjectStorage', () => {
 
         cy.get('[data-field="spec.s3Compatible.bucket"]')
             .type(resourceName)
-
-        cy.get('[data-field="spec.s3Compatible.path"]')
-            .type('//' + resourceName)
 
         cy.get('[data-field="spec.s3Compatible.endpoint"]')
             .type('https://' + resourceName)
@@ -161,9 +155,6 @@ describe('Create SGObjectStorage', () => {
         cy.get('[data-field="spec.gcs.bucket"]')
             .type(resourceName)
 
-        cy.get('[data-field="spec.gcs.path"]')
-            .type('//' + resourceName)
-
         cy.get('#fetchGCSCredentials')
             .click()
         
@@ -198,9 +189,6 @@ describe('Create SGObjectStorage', () => {
 
         cy.get('[data-field="spec.azureBlob.bucket"]')
             .type(resourceName)
-
-        cy.get('[data-field="spec.azureBlob.path"]')
-            .type('//' + resourceName)
 
         cy.get('[data-field="spec.azureBlob.azureCredentials.secretKeySelectors.storageAccount"]')
             .type(resourceName)
