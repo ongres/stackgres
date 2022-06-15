@@ -1255,10 +1255,14 @@ export const mixin = {
           })
         }
       },
-      //isEnabled(op.data.spec.vacuum, full)
-      isEnabled(path, prop) {
-        return ( (path.hasOwnProperty(prop) && path[prop]) ? 'Enabled' : 'Disabled')
-      } 
+
+      isEnabled(spec, reversed = false) {
+        if((spec && !reversed) || (!spec && reversed))
+          return 'Enabled'
+        else
+          return 'Disabled'
+      }
+            
     },
   
     beforeCreate: function() {
