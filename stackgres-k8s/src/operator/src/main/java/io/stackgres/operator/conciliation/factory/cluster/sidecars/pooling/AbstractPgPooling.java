@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContainers;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -38,8 +39,6 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AbstractPgPooling
     implements ContainerFactory<StackGresClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
-
-  private static final String NAME = "pgbouncer";
 
   protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
@@ -98,7 +97,7 @@ public abstract class AbstractPgPooling
   @Override
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
-        .withName(NAME)
+        .withName(StackGresContainers.PGBOUNCER.getName())
         .withImage(StackGresComponent.PGBOUNCER.get(context.getClusterContext().getCluster())
             .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")

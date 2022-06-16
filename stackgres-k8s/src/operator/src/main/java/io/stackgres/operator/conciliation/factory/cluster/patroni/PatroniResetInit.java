@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
+import io.stackgres.common.StackGresInitContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -28,7 +29,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
@@ -40,7 +40,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 
 @Singleton
 @OperatorVersionBinder
-@InitContainer(ClusterInitContainer.RESET_PATRONI_INIT)
+@InitContainer(StackGresInitContainers.RESET_PATRONI)
 public class PatroniResetInit implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final PatroniServices patroniServices;
@@ -94,7 +94,7 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
 
     return
         new ContainerBuilder()
-            .withName("reset-patroni")
+            .withName(StackGresInitContainers.RESET_PATRONI.getName())
             .withImage(kubectl.getImageName(clusterContext.getCluster()))
             .withImagePullPolicy("IfNotPresent")
             .withCommand("/bin/sh", "-ex",

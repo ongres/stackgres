@@ -11,13 +11,13 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.zjsonpatch.JsonDiff;
 import io.stackgres.common.StackGresContext;
 
-public class ServiceAccountComparator extends StackGresAbstractComparator {
+public class ServiceAccountComparator extends AbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
-      new StackGresAbstractComparator.SimpleIgnorePatch("/managedFields",
+      new AbstractComparator.SimpleIgnorePatch("/managedFields",
           "add"),
       new ManagedByServerSideApplyIgnorePatch(),
-      new StackGresAbstractComparator.SimpleIgnorePatch("/secrets",
+      new AbstractComparator.SimpleIgnorePatch("/secrets",
           "add"),
   };
 

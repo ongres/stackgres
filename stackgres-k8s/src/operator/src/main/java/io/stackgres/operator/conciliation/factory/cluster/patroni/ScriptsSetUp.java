@@ -22,8 +22,8 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.KubectlUtil;
+import io.stackgres.common.StackGresInitContainers;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
@@ -33,7 +33,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 
 @Singleton
 @OperatorVersionBinder
-@InitContainer(ClusterInitContainer.SCRIPTS_SET_UP)
+@InitContainer(StackGresInitContainers.SETUP_SCRIPTS)
 public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
@@ -59,7 +59,7 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerC
   @Override
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
-        .withName("setup-scripts")
+        .withName(StackGresInitContainers.SETUP_SCRIPTS.getName())
         .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",

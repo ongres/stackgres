@@ -3,10 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.dto.profile;
+package io.stackgres.common.crd.sgprofile;
 
-import java.util.Map;
 import java.util.Objects;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -17,22 +19,19 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ProfileSpec {
+public class StackGresProfileContainer {
 
   @JsonProperty("cpu")
+  @NotBlank(message = "cpu must be provided")
   private String cpu;
 
   @JsonProperty("memory")
+  @NotBlank(message = "memory must be provided")
   private String memory;
 
   @JsonProperty("hugePages")
-  private ProfileHugePages hugePages;
-
-  @JsonProperty("containers")
-  private Map<String, ProfileContainer> containers;
-
-  @JsonProperty("initContainers")
-  private Map<String, ProfileContainer> initContainers;
+  @Valid
+  private StackGresProfileHugePages hugePages;
 
   public String getCpu() {
     return cpu;
@@ -50,33 +49,17 @@ public class ProfileSpec {
     this.memory = memory;
   }
 
-  public ProfileHugePages getHugePages() {
+  public StackGresProfileHugePages getHugePages() {
     return hugePages;
   }
 
-  public void setHugePages(ProfileHugePages hugePages) {
+  public void setHugePages(StackGresProfileHugePages hugePages) {
     this.hugePages = hugePages;
-  }
-
-  public Map<String, ProfileContainer> getContainers() {
-    return containers;
-  }
-
-  public void setContainers(Map<String, ProfileContainer> containers) {
-    this.containers = containers;
-  }
-
-  public Map<String, ProfileContainer> getInitContainers() {
-    return initContainers;
-  }
-
-  public void setInitContainers(Map<String, ProfileContainer> initContainers) {
-    this.initContainers = initContainers;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(containers, cpu, hugePages, initContainers, memory);
+    return Objects.hash(cpu, hugePages, memory);
   }
 
   @Override
@@ -84,13 +67,11 @@ public class ProfileSpec {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof ProfileSpec)) {
+    if (!(obj instanceof StackGresProfileContainer)) {
       return false;
     }
-    ProfileSpec other = (ProfileSpec) obj;
-    return Objects.equals(containers, other.containers) && Objects.equals(cpu, other.cpu)
-        && Objects.equals(hugePages, other.hugePages)
-        && Objects.equals(initContainers, other.initContainers)
+    StackGresProfileContainer other = (StackGresProfileContainer) obj;
+    return Objects.equals(cpu, other.cpu) && Objects.equals(hugePages, other.hugePages)
         && Objects.equals(memory, other.memory);
   }
 

@@ -24,15 +24,14 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresContainers;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
-import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
@@ -43,12 +42,10 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
-@Sidecar(ClusterController.NAME)
+@Sidecar(StackGresContainers.CLUSTER_CONTROLLER)
 @OperatorVersionBinder
-@RunningContainer(ClusterRunningContainer.CLUSTER_CONTROLLER)
+@RunningContainer(StackGresContainers.CLUSTER_CONTROLLER)
 public class ClusterController implements ContainerFactory<StackGresClusterContainerContext> {
-
-  public static final String NAME = StackgresClusterContainers.CLUSTER_CONTROLLER;
 
   private final VolumeMountsProvider<ContainerContext> postgresDataMounts;
   private final VolumeMountsProvider<ContainerContext> userContainerMounts;
@@ -66,7 +63,7 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
   @Override
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
-        .withName(StackgresClusterContainers.CLUSTER_CONTROLLER)
+        .withName(StackGresContainers.CLUSTER_CONTROLLER.getName())
         .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
         .withImagePullPolicy(getDefaultPullPolicy())
         .withEnv(new EnvVarBuilder()

@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-public class EndpointComparator extends StackGresAbstractComparator {
+public class EndpointComparator extends AbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
       new SimpleIgnorePatch("/metadata/annotations/initialize",

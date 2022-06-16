@@ -16,8 +16,8 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
+import io.stackgres.common.StackGresInitContainers;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
@@ -29,7 +29,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 
 @Singleton
 @OperatorVersionBinder
-@InitContainer(ClusterInitContainer.SCRIPTS_SET_UP)
+@InitContainer(StackGresInitContainers.SETUP_SCRIPTS)
 public class ScriptsSetUp implements ContainerFactory<DistributedLogsContainerContext> {
 
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
@@ -47,7 +47,7 @@ public class ScriptsSetUp implements ContainerFactory<DistributedLogsContainerCo
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
-        .withName("setup-scripts")
+        .withName(StackGresInitContainers.SETUP_SCRIPTS.getName())
         .withImage(kubectl
             .getImageName(context.getDistributedLogsContext().getSource()))
         .withImagePullPolicy("IfNotPresent")

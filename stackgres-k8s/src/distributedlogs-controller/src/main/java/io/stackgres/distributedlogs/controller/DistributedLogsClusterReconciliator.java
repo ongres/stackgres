@@ -22,7 +22,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.FluentdUtil;
-import io.stackgres.common.StackgresClusterContainers;
+import io.stackgres.common.StackGresContainers;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatusCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatusDatabase;
@@ -167,7 +167,7 @@ public class DistributedLogsClusterReconciliator {
         .map(PodStatus::getContainerStatuses)
         .filter(containerStatuses -> containerStatuses.stream()
             .anyMatch(containerStatus -> containerStatus.getName().equals(
-                StackgresClusterContainers.PATRONI)
+                StackGresContainers.PATRONI.getName())
                 && containerStatus.getReady()))
         .map(containersWithReadyPatroni -> true)
         .orElse(false));

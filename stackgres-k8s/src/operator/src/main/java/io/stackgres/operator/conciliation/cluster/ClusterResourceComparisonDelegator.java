@@ -12,14 +12,14 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.operator.conciliation.CustomResourceComparisonDelegator;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.ReconciliationScopeLiteral;
-import io.stackgres.operator.conciliation.StackGresResourceComparisonDelegator;
 import io.stackgres.operator.conciliation.comparator.ResourceComparator;
 
 @ApplicationScoped
 public class ClusterResourceComparisonDelegator
-    extends StackGresResourceComparisonDelegator<StackGresCluster> {
+    extends CustomResourceComparisonDelegator<StackGresCluster> {
 
   private final Instance<ResourceComparator> comparators;
 

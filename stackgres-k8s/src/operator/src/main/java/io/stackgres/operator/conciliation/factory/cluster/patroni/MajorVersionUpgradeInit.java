@@ -23,15 +23,14 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.StackGresInitContainers;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutablePostgresContainerContext;
@@ -45,7 +44,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 
 @Singleton
 @OperatorVersionBinder
-@InitContainer(ClusterInitContainer.INIT_MAJOR_VERSION_UPGRADE)
+@InitContainer(StackGresInitContainers.MAJOR_VERSION_UPGRADE)
 public class MajorVersionUpgradeInit implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final VolumeMountsProvider<PostgresContainerContext> majorVersionUpgradeMounts;
@@ -113,7 +112,7 @@ public class MajorVersionUpgradeInit implements ContainerFactory<StackGresCluste
             .build();
     return
         new ContainerBuilder()
-            .withName(StackgresClusterContainers.MAJOR_VERSION_UPGRADE)
+            .withName(StackGresInitContainers.MAJOR_VERSION_UPGRADE.getName())
             .withImage(targetPatroniImageName)
             .withImagePullPolicy("IfNotPresent")
             .withCommand("/bin/sh", "-ex",

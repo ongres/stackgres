@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter;
+package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter.v10;
 
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
@@ -59,7 +59,7 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar(StackGresContainers.POSTGRES_EXPORTER)
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_1)
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_0, stopAt = StackGresVersion.V_1_0)
 @RunningContainer(StackGresContainers.POSTGRES_EXPORTER)
 public class PostgresExporter implements ContainerFactory<StackGresClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
@@ -198,7 +198,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
         .withData(ImmutableMap.of("queries.yaml",
             Unchecked.supplier(() -> Resources
                 .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
-                    "/prometheus-postgres-exporter/queries.yaml")),
+                    "/prometheus-postgres-exporter/queries-1.0.yaml")),
                     StandardCharsets.UTF_8)
                 .read()).get()))
         .build();

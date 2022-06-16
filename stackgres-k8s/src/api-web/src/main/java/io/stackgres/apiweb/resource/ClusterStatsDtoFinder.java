@@ -27,8 +27,8 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.transformer.ClusterStatsTransformer;
 import io.stackgres.common.ClusterLabelFactory;
+import io.stackgres.common.StackGresContainers;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.PersistentVolumeClaimFinder;
@@ -84,7 +84,7 @@ public class ClusterStatsDtoFinder
       if (Optional.ofNullable(pod.getStatus())
           .map(PodStatus::getContainerStatuses).stream()
           .flatMap(List::stream)
-          .noneMatch(container -> container.getName().equals(StackgresClusterContainers.PATRONI)
+          .noneMatch(container -> container.getName().equals(StackGresContainers.PATRONI.getName())
               && Optional.of(container).map(ContainerStatus::getState)
                   .map(ContainerState::getRunning)
                   .map(ContainerStateRunning::getStartedAt).isPresent()
@@ -97,7 +97,7 @@ public class ClusterStatsDtoFinder
         return ImmutableMap.<PatroniStatsScripts, String>of();
       }
 
-      return Seq.seq(podExecutor.exec(pod, StackgresClusterContainers.PATRONI, "sh", "-c",
+      return Seq.seq(podExecutor.exec(pod, StackGresContainers.PATRONI.getName(), "sh", "-c",
           Seq.seq(PatroniStatsScripts.getScripts())
               .map(tt -> "echo \"" + tt.v1.getName() + ":$( (" + tt.v2
                   + ") 2>&1 | tr -d '\\n')\"\n")

@@ -10,7 +10,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.conciliation.comparator.ResourceComparator;
 
-public abstract class StackGresResourceComparisonDelegator<T extends CustomResource<?, ?>>
+public abstract class CustomResourceComparisonDelegator<T extends CustomResource<?, ?>>
     implements ComparisonDelegator<T> {
 
   protected abstract ResourceComparator getComparator(HasMetadata r1);

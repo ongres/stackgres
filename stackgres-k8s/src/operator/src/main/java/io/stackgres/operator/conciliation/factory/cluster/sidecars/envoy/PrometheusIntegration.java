@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresContainers;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.prometheus.Endpoint;
@@ -59,14 +60,14 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
             .withName(AbstractEnvoy.serviceName(context))
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(crossNamespaceLabels)
-                .put(StackGresContext.CONTAINER_KEY, AbstractEnvoy.NAME)
+                .put(StackGresContext.CONTAINER_KEY, StackGresContainers.ENVOY.getName())
                 .build())
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(clusterSelectorLabels)
                 .withPorts(new ServicePortBuilder()
                     .withProtocol("TCP")
-                    .withName(AbstractEnvoy.NAME)
+                    .withName(StackGresContainers.ENVOY.getName())
                     .withPort(8001)
                     .build())
                 .build())
@@ -106,7 +107,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
 
       selector.setMatchLabels(labels);
       Endpoint endpoint = new Endpoint();
-      endpoint.setPort(AbstractEnvoy.NAME);
+      endpoint.setPort(StackGresContainers.ENVOY.getName());
       endpoint.setPath("/stats/prometheus");
       spec.setEndpoints(Collections.singletonList(endpoint));
       return serviceMonitor;

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory;
+package io.stackgres.operator.conciliation.factory.cluster;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,7 +18,9 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
+import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 
 @ApplicationScoped
 @ProviderName(VolumeMountProviderName.HUGE_PAGES)

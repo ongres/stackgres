@@ -21,9 +21,9 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.StackGresInitContainers;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContextUtil;
@@ -35,7 +35,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLog
 
 @Singleton
 @OperatorVersionBinder
-@InitContainer(ClusterInitContainer.INIT_RELOCATE_BINARIES)
+@InitContainer(StackGresInitContainers.RELOCATE_BINARIES)
 public class InitRelocateBinaries implements ContainerFactory<DistributedLogsContainerContext> {
 
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
@@ -58,7 +58,7 @@ public class InitRelocateBinaries implements ContainerFactory<DistributedLogsCon
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
-        .withName("relocate-binaries")
+        .withName(StackGresInitContainers.RELOCATE_BINARIES.getName())
         .withImage(StackGresUtil.getPatroniImageName(
             context.getDistributedLogsContext().getSource()))
         .withImagePullPolicy("IfNotPresent")

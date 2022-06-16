@@ -7,7 +7,7 @@ package io.stackgres.operator.conciliation.comparator;
 
 import java.util.regex.Pattern;
 
-public class JobComparator extends StackGresAbstractComparator {
+public class JobComparator extends AbstractComparator {
 
   private static final Pattern SPEC_TEMPLATE_PATTERN = Pattern.compile("/spec/template(|/.*)$");
   private static final Pattern SPEC_TEMPLATE_ANNOTATIONS_PATTERN =

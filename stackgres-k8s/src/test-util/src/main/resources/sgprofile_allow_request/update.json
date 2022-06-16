@@ -29,8 +29,8 @@
       "username": "system:serviceaccount:kube-system:tiller"
     },
     "object": {
-      "kind": "SGInstanceProfile",
       "apiVersion": "stackgres.io/v1",
+      "kind": "SGInstanceProfile",
       "metadata": {
         "annotations": {
           "helm.sh/hook": "pre-install"
@@ -43,12 +43,84 @@
       },
       "spec": {
         "cpu": "500m",
-        "memory": "512Mi"
+        "memory": "512Mi",
+        "containers": {
+          "cluster-controller": {
+            "cpu": "32m",
+            "memory": "512Mi"
+          },
+          "distributedlogs-controller": {
+            "cpu": "32m",
+            "memory": "512Mi"
+          },
+          "envoy": {
+            "cpu": "125m",
+            "memory": "64Mi"
+          },
+          "fluent-bit": {
+            "cpu": "32m",
+            "memory": "8Mi"
+          },
+          "fluentd": {
+            "cpu": "125m",
+            "memory": "2Gi"
+          },
+          "pgbouncer": {
+            "cpu": "32m",
+            "memory": "64Mi"
+          },
+          "postgres-util": {
+            "cpu": "32m",
+            "memory": "8Mi"
+          },
+          "prometheus-postgres-exporter": {
+            "cpu": "32m",
+            "memory": "8Mi"
+          }
+        },
+        "initContainers": {
+          "cluster-reconciliation-cycle": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "distributedlogs-reconciliation-cycle": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "major-version-upgrade": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "pgbouncer-auth-file": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "relocate-binaries": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "reset-patroni": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "setup-arbitrary-user": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "setup-data-paths": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "setup-scripts": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          }
+        }
       }
     },
     "oldObject": {
-      "kind": "SGInstanceProfile",
       "apiVersion": "stackgres.io/v1",
+      "kind": "SGInstanceProfile",
       "metadata": {
         "annotations": {
           "helm.sh/hook": "pre-install"
@@ -61,7 +133,79 @@
       },
       "spec": {
         "cpu": "200m",
-        "memory": "512Mi"
+        "memory": "512Mi",
+        "containers": {
+          "cluster-controller": {
+            "cpu": "32m",
+            "memory": "512Mi"
+          },
+          "distributedlogs-controller": {
+            "cpu": "32m",
+            "memory": "512Mi"
+          },
+          "envoy": {
+            "cpu": "125m",
+            "memory": "64Mi"
+          },
+          "fluent-bit": {
+            "cpu": "32m",
+            "memory": "8Mi"
+          },
+          "fluentd": {
+            "cpu": "125m",
+            "memory": "2Gi"
+          },
+          "pgbouncer": {
+            "cpu": "32m",
+            "memory": "64Mi"
+          },
+          "postgres-util": {
+            "cpu": "32m",
+            "memory": "8Mi"
+          },
+          "prometheus-postgres-exporter": {
+            "cpu": "32m",
+            "memory": "8Mi"
+          }
+        },
+        "initContainers": {
+          "cluster-reconciliation-cycle": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "distributedlogs-reconciliation-cycle": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "major-version-upgrade": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "pgbouncer-auth-file": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "relocate-binaries": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "reset-patroni": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "setup-arbitrary-user": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "setup-data-paths": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          },
+          "setup-scripts": {
+            "cpu": "500m",
+            "memory": "1Mi"
+          }
+        }
       }
     },
     "options": null,

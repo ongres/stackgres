@@ -9,23 +9,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import io.stackgres.operator.conciliation.AnnotatedResourceDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
-import io.stackgres.operator.conciliation.ResourceDiscoverer;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 
 @ApplicationScoped
 public class InitContainerFactoryDiscoverImpl
-    extends ResourceDiscoverer<ContainerFactory<StackGresClusterContainerContext>>
+    extends AnnotatedResourceDiscoverer<ContainerFactory<StackGresClusterContainerContext>,
+        InitContainer>
     implements InitContainerFactoryDiscover<StackGresClusterContainerContext> {
 
   @Inject
   public InitContainerFactoryDiscoverImpl(
-      @InitContainer
-          Instance<ContainerFactory<StackGresClusterContainerContext>> instance) {
+      @Any
+      Instance<ContainerFactory<StackGresClusterContainerContext>> instance) {
     init(instance);
     resourceHub.forEach((key, value) -> {
       value.sort((f1, f2) -> {
@@ -36,6 +38,11 @@ public class InitContainerFactoryDiscoverImpl
         return Integer.compare(f1Order, f2Order);
       });
     });
+  }
+
+  @Override
+  protected Class<InitContainer> getAnnotationClass() {
+    return InitContainer.class;
   }
 
   @Override

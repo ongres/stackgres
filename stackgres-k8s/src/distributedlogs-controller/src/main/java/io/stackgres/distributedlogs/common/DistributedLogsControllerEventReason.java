@@ -7,7 +7,7 @@ package io.stackgres.distributedlogs.common;
 
 import static io.stackgres.operatorframework.resource.EventReason.Type.WARNING;
 
-import io.stackgres.common.StackgresClusterContainers;
+import io.stackgres.common.StackGresContainers;
 import io.stackgres.operatorframework.resource.EventReason;
 
 public enum DistributedLogsControllerEventReason implements EventReason {
@@ -24,7 +24,7 @@ public enum DistributedLogsControllerEventReason implements EventReason {
 
   @Override
   public String component() {
-    return StackgresClusterContainers.DISTRIBUTEDLOGS_CONTROLLER;
+    return StackGresContainers.DISTRIBUTEDLOGS_CONTROLLER.getName();
   }
 
   @Override

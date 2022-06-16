@@ -23,8 +23,8 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContainers;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
@@ -39,7 +39,6 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AbstractFluentBit implements
     ContainerFactory<StackGresClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
-  public static final String NAME = StackgresClusterContainers.FLUENT_BIT;
 
   private static final String CONFIG_SUFFIX = "-fluent-bit";
 
@@ -79,7 +78,7 @@ public abstract class AbstractFluentBit implements
   @Override
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
-        .withName(NAME)
+        .withName(StackGresContainers.FLUENT_BIT.getName())
         .withImage(StackGresComponent.FLUENT_BIT.get(context.getClusterContext().getCluster())
             .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
