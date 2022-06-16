@@ -25,7 +25,7 @@ restapi:
   annotations: {}
   nodeSelector: {}
   serviceAccount:
-    anntations: {}
+    annotations: {}
   service:
     annotations: {}
   tolerations: {}
