@@ -272,6 +272,7 @@ check_operator_install_using_specific_properties() {
   --set operator.annotations."$ANNOT_KEY"="$ANNOT_VALUE" \
   --set operator.serviceAccount.annotations."$ANNOT_KEY"="$ANNOT_VALUE" \
   --set operator.service.annotations."$ANNOT_KEY"="$ANNOT_VALUE"
+  --set operator.tolerations={"key":"value"}
 
   check_operator_has_property "deployment" ".metadata.annotations.$ANNOT_KEY" "$ANNOT_VALUE"
   check_operator_has_property "serviceAccount" ".metadata.annotations.$ANNOT_KEY" "$ANNOT_VALUE"
