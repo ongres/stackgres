@@ -1,7 +1,11 @@
 image: null
 
 variables:
+<<<<<<< HEAD
   SG_CI_IMAGE_NAME: "ci:1.13"
+=======
+  SG_CI_IMAGE_NAME: "ci:1.14"
+>>>>>>> 2a1d1559d (ci: support for kind 0.14.0)
   BUILDER_IMAGE_NAME: "builder:1.4"
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
@@ -16,7 +20,7 @@ variables:
   RESTORE_CACHE_ATTEMPTS: 3
   E2E_SHELL: sh
   E2E_ENV: kind
-  K8S_VERSION: 1.18.19
+  K8S_VERSION: 1.18.20
   LATEST: "false"
 
 stages:
