@@ -31,7 +31,8 @@ update_k8s_config() {
     if docker network ls --format '{{ .Name }}' | grep -q '^kind$'
     then
       local CONTAINER_NAME
-      CONTAINER_NAME="$(hostname || cat /proc/self/cgroup | grep '^1:name' | cut -d / -f 3)"
+      CONTAINER_NAME="$(cat /proc/self/cgroup | grep '^1:name' | cut -d / -f 3)"
+      CONTAINER_NAME="${CONTAINER_NAME:-$(hostname)}"
       docker inspect "$CONTAINER_NAME" \
         -f '{{ range $key,$value := .NetworkSettings.Networks }}{{ printf "%s\n" $key }}{{ end }}' \
         | grep -q '^kind$' \
