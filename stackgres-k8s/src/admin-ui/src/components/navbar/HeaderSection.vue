@@ -177,8 +177,8 @@
                             </a>
                         </template>
                         <template v-if="$route.meta.componentName != 'SGCluster'">
-                            <router-link :to="'/' + $route.params.namespace + '/' + ($route.meta.componentName.toLowerCase() + 's')" title="Close Details">
-                                Close Details
+                            <router-link :to="'/' + $route.params.namespace + '/' + ($route.meta.componentName.toLowerCase() + 's')" :title="$route.meta.hasOwnProperty('customComponentName') ? 'Go to ' + $route.meta.customComponentName +'s List' : 'Go to ' + $route.meta.componentName + 's List'">
+                                Go to {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName : $route.meta.componentName }}s List
                             </router-link>
                         </template>
                     </template>
