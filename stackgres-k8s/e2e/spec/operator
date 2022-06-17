@@ -33,7 +33,6 @@ e2e_test() {
   run_test "Check that operator can be installed from outside" check_operator_install_outside
   run_test "Check that operator can be installed with load balancer" check_operator_install_load_balancer
   run_test "Check that operator can be installed with the '--wait' option" check_operator_install_with_wait
-  run_test "Check that operator can be installed with annotations properties" check_operator_install_using_specific_properties
 }
 
 check_operator_install() {
@@ -260,39 +259,6 @@ check_operator_upgrade_with_cluster_using_1_0_0_and_1_1_0_and_1_2_0() {
   remove_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"
   remove_cluster "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-}
-
-check_operator_install_using_specific_properties() {
-  delete_operator_only
-  ANNOT_KEY="$(random_string)"
-  ANNOT_VALUE="$(random_string)"
-  install_operator_only --set restapi.annotations."$ANNOT_KEY"="$ANNOT_VALUE" \
-  --set restapi.serviceAccount.annotations."$ANNOT_KEY"="$ANNOT_VALUE" \
-  --set restapi.service.annotations."$ANNOT_KEY"="$ANNOT_VALUE" \
-  --set operator.annotations."$ANNOT_KEY"="$ANNOT_VALUE" \
-  --set operator.serviceAccount.annotations."$ANNOT_KEY"="$ANNOT_VALUE" \
-  --set operator.service.annotations."$ANNOT_KEY"="$ANNOT_VALUE"
-  --set operator.tolerations={"key":"value"}
-
-  check_operator_has_property "deployment" ".metadata.annotations.$ANNOT_KEY" "$ANNOT_VALUE"
-  check_operator_has_property "serviceAccount" ".metadata.annotations.$ANNOT_KEY" "$ANNOT_VALUE"
-  check_operator_has_property "service" ".metadata.annotations.$ANNOT_KEY" "$ANNOT_VALUE"
-}
-
-check_operator_has_property(){
-  CRD_TYPE="$1"
-  PROPERTY="$2"
-  EXPECTED_VALUE="$3"
-  for app in operator restapi; do
-    CURRENT_VALUE=$(kubectl get -n "$OPERATOR_NAMESPACE" "$CRD_TYPE/stackgres-${app}" --template "{{ ${PROPERTY} }}")
-    if [ "$CURRENT_VALUE" = "$EXPECTED_VALUE" ]
-    then
-      echo "SUCCESS! Property $PROPERTY found on ${app} deployment with value $EXPECTED_VALUE"
-    else
-      echo "Property $PROPERTY or it value was not found on restapi deployment"
-      return 1
-    fi
-  done
 }
 
 
