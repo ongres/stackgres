@@ -27,6 +27,7 @@ import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
+import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
@@ -68,6 +69,16 @@ public class ClusterReconciliator
         }
         config.getStatus().setLabelPrefix("");
       }
+    }
+
+    if (PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()
+        .contains(config.getSpec().getPostgres().getVersion())) {
+      eventController.sendEvent(ClusterEventReason.CLUSTER_SECURITY_WARNING,
+          "Cluster " + config.getMetadata().getNamespace() + "."
+              + config.getMetadata().getName() + " is using PostgreSQL "
+              + config.getSpec().getPostgres().getVersion() + ". "
+              + PostgresConfigValidator.BUGGY_PG_VERSIONS.get(
+                  config.getSpec().getPostgres().getVersion()), config);
     }
   }
 
