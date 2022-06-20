@@ -393,9 +393,9 @@ exec-with-env "$BACKUP_ENV" \\
       then
         if echo "\$BACKUP" | grep -q "\\"is_permanent\\":true"
         then
-          echo "Mark \$BACKUP_NAME as impermanent and will retain \$RETAIN backups"
+          echo "Deleting \$BACKUP_NAME and will retain \$RETAIN backups"
           exec-with-env "$BACKUP_ENV" \\
-            -- wal-g backup-mark -i "\$BACKUP_NAME"
+            -- wal-g delete target FIND_FULL "\$BACKUP_NAME" --confirm
         fi
       # if is inside the retain window, mark as permanent and decrease RETAIN counter
       elif [ "\$RETAIN" -gt 0 ]
@@ -403,9 +403,7 @@ exec-with-env "$BACKUP_ENV" \\
         if [ "\$BACKUP_NAME" = "$CURRENT_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
           || echo "\$BACKUP" | grep -q "\\"is_permanent\\":false"
         then
-          echo "Mark \$BACKUP_NAME as permanent and will retain \$((RETAIN-1)) more backups"
-          exec-with-env "$BACKUP_ENV" \\
-            -- wal-g backup-mark "\$BACKUP_NAME"
+          echo "Retaining \$BACKUP_NAME and will retain \$((RETAIN-1)) more backups"
         fi
         RETAIN="\$((RETAIN-1))"
       # if is outside the retain window...
@@ -419,9 +417,9 @@ exec-with-env "$BACKUP_ENV" \\
           | grep -q "^\$BACKUP_NAME\$" \\
           && echo "\$BACKUP" | grep -q "\\"is_permanent\\":true"
         then
-          echo "Mark \$BACKUP_NAME as impermanent"
+          echo "Deleting \$BACKUP_NAME"
           exec-with-env "$BACKUP_ENV" \\
-            -- wal-g backup-mark -i "\$BACKUP_NAME"
+            -- wal-g delete target FIND_FULL "\$BACKUP_NAME" --confirm
         # ... and has not a managed lifecycle, mark as permanent
         elif echo '$(cat /tmp/backups)' \\
           | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
@@ -430,17 +428,10 @@ exec-with-env "$BACKUP_ENV" \\
           | grep -q "^\$BACKUP_NAME\$" \\
           && echo "\$BACKUP" | grep -q "\\"is_permanent\\":false"
         then
-          echo "Mark \$BACKUP_NAME as permanent"
-          exec-with-env "$BACKUP_ENV" \\
-            -- wal-g backup-mark "\$BACKUP_NAME"
+          echo "Retaining \$BACKUP_NAME"
         fi
       fi
     done)
-
-# removes all backups that are marked as impermanent
-echo "Cleaning up impermanent backups"
-exec-with-env "$BACKUP_ENV" \\
-  -- wal-g delete retain FIND_FULL "0" --confirm
 
 # for each existing backup
 exec-with-env "$BACKUP_ENV" \\
