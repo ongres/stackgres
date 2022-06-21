@@ -14,7 +14,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition.Status;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition.Type;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -32,7 +32,7 @@ public class DbOpsJobReconciliationHandler
 
   @Inject
   public DbOpsJobReconciliationHandler(
-      LabelFactory<StackGresDbOps> labelFactory,
+      LabelFactoryForDbOps labelFactory,
       ResourceFinder<Job> jobFinder,
       ResourceWriter<Job> jobWriter,
       ResourceScanner<Pod> podScanner,

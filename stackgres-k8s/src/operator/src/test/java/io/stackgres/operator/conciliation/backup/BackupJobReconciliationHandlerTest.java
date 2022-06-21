@@ -32,7 +32,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForBackup;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.resource.ResourceFinder;
@@ -59,7 +59,7 @@ class BackupJobReconciliationHandlerTest {
       BackupJobReconciliationHandlerTest.class);
 
   @Mock
-  private LabelFactory<StackGresBackup> labelFactory;
+  private LabelFactoryForBackup labelFactory;
 
   @Mock
   private ResourceWriter<Job> jobWriter;
