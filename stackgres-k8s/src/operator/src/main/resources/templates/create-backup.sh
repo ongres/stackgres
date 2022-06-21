@@ -434,35 +434,23 @@ exec-with-env "$BACKUP_ENV" \\
       # if is inside the retain window, retain it and decrease RETAIN counter
       elif [ "\$RETAIN" -gt 1 ]
       then
-        if [ "\$BACKUP_NAME" = "$CURRENT_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
-          || echo "\$BACKUP" | grep -q "\\"is_permanent\\":false"
-        then
-          echo "Retaining \$BACKUP_NAME and will retain \$((RETAIN-1)) more backups"
-        fi
+        echo "Retaining \$BACKUP_NAME and will retain \$((RETAIN-1)) more backups"
         RETAIN="\$((RETAIN-1))"
-      # if is outside the retain window...
-      elif [ "\$RETAIN" -eq 1 ]
-      then
-        # ... and has a managed lifecycle, delete it
-        if echo '$(cat /tmp/backups)' \\
+      # if is outside the retain window and has a managed lifecycle, delete it
+      elif [ "\$RETAIN" -eq 1 ] \\
+        && echo '$(cat /tmp/backups)' \\
           | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
           | cut -d : -f 5 \\
           | grep -v '^\$' \\
           | grep -q "^\$BACKUP_NAME\$"
-        then
-          echo "Deleting \$BACKUP_NAME"
-          exec-with-env "$BACKUP_ENV" \\
-            -- wal-g delete before FIND_FULL "\$BACKUP_NAME" --confirm
-          break
-        # ... and has not a managed lifecycle, retain it
-        elif echo '$(cat /tmp/backups)' \\
-          | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
-          | cut -d : -f 5 \\
-          | grep -v '^\$' \\
-          | grep -q "^\$BACKUP_NAME\$"
-        then
-          echo "Retaining \$BACKUP_NAME"
-        fi
+      then
+        echo "Deleting \$BACKUP_NAME"
+        exec-with-env "$BACKUP_ENV" \\
+          -- wal-g delete before FIND_FULL "\$BACKUP_NAME" --confirm
+        RETAIN="\$((RETAIN-1))"
+      # or retain it
+      else
+        echo "Retaining \$BACKUP_NAME"
       fi
     done)
 EOF
