@@ -38,7 +38,7 @@ jobs:
   resources: {}
   annotations: {}
   serviceAccount:
-    anntations: {}
+    annotations: {}
   tolerations: {}
   nodeSelector: {}
   affinity: {}

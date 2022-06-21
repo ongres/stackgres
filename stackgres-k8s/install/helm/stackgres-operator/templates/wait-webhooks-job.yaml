@@ -12,6 +12,9 @@ metadata:
     "helm.sh/hook": post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "40"
+    {{- with .Values.jobs.annotations }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   template:
     metadata:
@@ -20,9 +23,23 @@ spec:
         scope: init
         job: wait-webhooks
     spec:
+      {{- with .Values.jobs.affinity}}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
+      {{- with .Values.jobs.nodeSelector}}
+      nodeSelector:
+        {{- range $label,$value := . }}
+        {{ $label }}: '{{ $value }}'
+        {{- end}}
+      {{- end }}
       serviceAccountName: {{ .Release.Name }}-init
       restartPolicy: OnFailure
       terminationGracePeriodSeconds: 0
+      {{- with .Values.jobs.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: "{{ .Release.Name }}-wait-webhooks"
         image: {{ template "kubectl.image" . }}

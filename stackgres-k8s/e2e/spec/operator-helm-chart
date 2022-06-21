@@ -2,15 +2,58 @@
 
 e2e_test_install() {
   echo "Check Operator Helm Chart properties"
+  OPERATOR_HELM_JOB_NAMES="stackgres-operator-wait-webhooks stackgres-operator-cr-updater stackgres-operator-crd-upgrade stackgres-operator-conversion-webhooks stackgres-operator-create-certificate stackgres-operator-set-crd-version stackgres-operator-wait stackgres-operator-wait-webhooks"
 }
 
 e2e_test() {
-  run_test "Check that operator can be installed with toleration properties" check_operator_helm_tolerations
-  run_test "Check that operator can be installed with serviceAcctount annotations properties" check_operator_helm_service_account_annotations
-  run_test "Check that operator can be installed with service annotations properties" check_operator_helm_service_annotations
-  run_test "Check that operator can be installed with affinity properties" check_operator_helm_affinity
-  run_test "Check that operator can be installed with nodeSelector properties" check_operator_helm_nodeSelector
-  run_test "Check that operator can be installed with nodeSelector properties" check_operator_helm_annotations
+  # run_test "Check that operator can be installed with toleration properties" check_operator_helm_tolerations
+  # run_test "Check that operator can be installed with serviceAcctount annotations properties" check_operator_helm_service_account_annotations
+  # run_test "Check that operator can be installed with service annotations properties" check_operator_helm_service_annotations
+  # run_test "Check that operator can be installed with affinity properties" check_operator_helm_affinity
+  # run_test "Check that operator can be installed with nodeSelector properties" check_operator_helm_nodeSelector
+  # run_test "Check that operator can be installed with annotations properties" check_operator_helm_annotations
+  run_test "Check that operator can be installed with job toleration properties" check_operator_helm_job_tolerations
+  run_test "Check that operator can be installed with job affinity properties" check_operator_helm_job_affinity
+  run_test "Check that operator can be installed with job nodeSelector properties" check_operator_helm_job_nodeSelector
+  run_test "Check that operator can be installed with job annotations properties" check_operator_helm_job_annotations
+}
+
+check_operator_helm_job_tolerations() {
+  EFFECT="$(random_string)"
+  KEY="$(random_string)"
+  VALUE="$(random_string)"
+  check_operator_specific_property "--set jobs.tolerations[0].effect=$EFFECT \
+  --set jobs.tolerations[0].key=$KEY \
+  --set jobs.tolerations[0].operator=Equal \
+  --set jobs.tolerations[0].value=$VALUE" "Job" "$OPERATOR_HELM_JOB_NAMES" "spec.template.spec.tolerations"
+}
+
+check_operator_helm_job_affinity() {
+  KEY="$(random_string)"
+  VALUE="$(random_string)"
+  
+  check_operator_specific_property "--set jobs.affinity.nodeSelector.key=$KEY \
+  --set jobs.affinity.nodeSelector.operator== \
+  --set jobs.affinity.nodeSelector.values[0]=value1 \
+  --set jobs.affinity.nodeSelector.values[1]=value2" "Job" "$OPERATOR_HELM_JOB_NAMES" "spec.template.spec.affinity"
+}
+
+check_operator_helm_job_nodeSelector() {
+  KEY="$(random_string)"
+  VALUE="$(random_string)"
+  
+  check_operator_specific_property "--set jobs.nodeSelector.key=$KEY \
+  --set jobs.nodeSelector.operator== \
+  --set jobs.nodeSelector.values[0]=value1 \
+  --set jobs.nodeSelector.values[1]=value2" "Job" "$OPERATOR_HELM_JOB_NAMES" "spec.template.spec.nodeSelector"
+}
+
+check_operator_helm_job_annotations() {
+  KEY="$(random_string)"
+  VALUE="$(random_string)"
+  
+  check_operator_specific_property "--set jobs.annotations.$KEY=$VALUE \
+  --set jobs.annotations.$KEY=$VALUE" "Job" "$OPERATOR_HELM_JOB_NAMES" "metadata.annotations.$KEY"
 }
 
 check_operator_helm_tolerations() {
@@ -24,7 +67,7 @@ check_operator_helm_tolerations() {
   --set restapi.tolerations[0].effect=$EFFECT \
   --set restapi.tolerations[0].key=$KEY \
   --set restapi.tolerations[0].operator=Equal \
-  --set restapi.tolerations[0].value=$VALUE" "Deployment" "operator restapi" "spec.template.spec.tolerations"
+  --set restapi.tolerations[0].value=$VALUE" "Deployment" "stackgres-operator stackgres-restapi" "spec.template.spec.tolerations"
 }
 
 check_operator_helm_affinity() {
@@ -38,7 +81,7 @@ check_operator_helm_affinity() {
   --set restapi.affinity.nodeSelector.key=$KEY \
   --set restapi.affinity.nodeSelector.operator== \
   --set restapi.affinity.nodeSelector.values[0]=$VALUE-1 \
-  --set restapi.affinity.nodeSelector.values[1]=$VALUE-2" "Deployment" "operator restapi" "spec.template.spec.affinity"
+  --set restapi.affinity.nodeSelector.values[1]=$VALUE-2" "Deployment" "stackgres-operator stackgres-restapi" "spec.template.spec.affinity"
 }
 
 check_operator_helm_nodeSelector() {
@@ -52,7 +95,7 @@ check_operator_helm_nodeSelector() {
   --set restapi.nodeSelector.key=$KEY \
   --set restapi.nodeSelector.operator== \
   --set restapi.nodeSelector.values[0]=$VALUE-1 \
-  --set restapi.nodeSelector.values[1]=$VALUE-2" "Deployment" "operator restapi" "spec.template.spec.nodeSelector"
+  --set restapi.nodeSelector.values[1]=$VALUE-2" "Deployment" "stackgres-operator stackgres-restapi" "spec.template.spec.nodeSelector"
 }
 
 check_operator_helm_annotations() {
@@ -60,7 +103,7 @@ check_operator_helm_annotations() {
   VALUE="$(random_string)"
   
   check_operator_specific_property "--set operator.annotations.$KEY=$VALUE \
-  --set restapi.annotations.$KEY=$VALUE" "Deployment" "operator restapi" "metadata.annotations.$KEY"
+  --set restapi.annotations.$KEY=$VALUE" "Deployment" "stackgres-operator stackgres-restapi" "metadata.annotations.$KEY"
 }
 
 check_operator_helm_service_account_annotations() {
@@ -68,7 +111,7 @@ check_operator_helm_service_account_annotations() {
   VALUE="$(random_string)"
   
   check_operator_specific_property "--set operator.serviceAccount.annotations.$KEY=$VALUE \
-  --set restapi.serviceAccount.annotations.$KEY=$VALUE" "ServiceAccount" "operator restapi" "metadata.annotations.$KEY"
+  --set restapi.serviceAccount.annotations.$KEY=$VALUE" "ServiceAccount" "stackgres-operator stackgres-restapi" "metadata.annotations.$KEY"
 }
 
 check_operator_helm_service_annotations() {
@@ -76,7 +119,7 @@ check_operator_helm_service_annotations() {
   VALUE="$(random_string)"
   
   check_operator_specific_property "--set operator.service.annotations.$KEY=$VALUE \
-  --set restapi.service.annotations.$KEY=$VALUE" "Service" "operator restapi" "metadata.annotations.$KEY"
+  --set restapi.service.annotations.$KEY=$VALUE" "Service" "stackgres-operator stackgres-restapi" "metadata.annotations.$KEY"
 }
 
 check_operator_specific_property() {
@@ -85,7 +128,7 @@ check_operator_specific_property() {
   KEY=$4
   for app in $3; do
     ACTUAL_VALUE="$(helm template -n "$OPERATOR_NAMESPACE" stackgres-operator "$OPERATOR_CHART_PATH" \
-        $PARAMETERS | yq -r 'select( select(.kind == "'$KIND'").metadata.name == "stackgres-'$app'")'.$KEY)"  
+        $PARAMETERS | yq -r 'select( select(.kind == "'$KIND'").metadata.name == "'$app'")'.$KEY)"  
     if [ -z "$ACTUAL_VALUE" ] || [ "$ACTUAL_VALUE" == "null" ]
     then
       echo "FAILURE! Property "$KEY" or it value was not found on restapi deployment"
