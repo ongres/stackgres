@@ -371,7 +371,7 @@ describe('Create SGDbOp', () => {
             .type('/backup/path/test')
 
         cy.get('select[data-field="spec.majorVersionUpgrade.postgresVersion"]')
-            .select('14.0')
+            .select('14.4')
 
         cy.get('select[data-field="spec.majorVersionUpgrade.sgPostgresConfig"]')
             .select(pgConfigName)
