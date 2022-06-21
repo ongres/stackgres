@@ -11,7 +11,6 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
@@ -57,7 +56,7 @@ public class DbOpsHandlerDelegator implements HandlerDelegator<StackGresDbOps> {
 
   private ReconciliationHandler<StackGresDbOps> getHandler(HasMetadata r1) {
     Instance<ReconciliationHandler<StackGresDbOps>> instance = handlers
-        .select(new ReconciliationScopeLiteral(StackGresCluster.class, r1.getKind()));
+        .select(new ReconciliationScopeLiteral(StackGresDbOps.class, r1.getKind()));
     if (!instance.isResolvable()) {
       return defaultHandler;
     } else {
