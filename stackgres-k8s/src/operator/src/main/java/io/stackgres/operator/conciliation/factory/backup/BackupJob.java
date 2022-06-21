@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.factory.backup;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -64,7 +65,7 @@ import org.slf4j.LoggerFactory;
 public class BackupJob
     implements ResourceGenerator<StackGresBackupContext> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(BackupJob.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
   private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
       clusterEnvVarFactoryDiscoverer;
@@ -97,6 +98,9 @@ public class BackupJob
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresBackupContext context) {
+    if (isBackupCopy(context)) {
+      return Stream.of();
+    }
     if (isBackupConfigNotConfigured(context)
         && !isBackupJobCompleted(context)) {
       return Stream.of();
@@ -105,6 +109,12 @@ public class BackupJob
       return Stream.of();
     }
     return Stream.of(createBackupJob(context));
+  }
+
+  private boolean isBackupCopy(StackGresBackupContext context) {
+    return !Objects.equals(
+        context.getSource().getSpec().getSgCluster(),
+        context.getCluster().getMetadata().getName());
   }
 
   private boolean isBackupConfigNotConfigured(StackGresBackupContext context) {
