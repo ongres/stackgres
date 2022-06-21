@@ -12,7 +12,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
@@ -57,7 +56,7 @@ public class BackupHandlerDelegator implements HandlerDelegator<StackGresBackup>
 
   private ReconciliationHandler<StackGresBackup> getHandler(HasMetadata r1) {
     Instance<ReconciliationHandler<StackGresBackup>> instance = handlers
-        .select(new ReconciliationScopeLiteral(StackGresCluster.class, r1.getKind()));
+        .select(new ReconciliationScopeLiteral(StackGresBackup.class, r1.getKind()));
     if (!instance.isResolvable()) {
       return defaultHandler;
     } else {

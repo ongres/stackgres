@@ -5,6 +5,9 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
+import java.util.List;
+import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -12,7 +15,10 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactory;
+import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition.Status;
+import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition.Type;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceWriter;
@@ -37,6 +43,18 @@ public class DbOpsJobReconciliationHandler
   public DbOpsJobReconciliationHandler() {
     super(null, null, null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+  }
+
+  @Override
+  protected boolean isAlreadyCompleted(StackGresDbOps context) {
+    return Optional.of(context)
+        .map(StackGresDbOps::getStatus)
+        .map(StackGresDbOpsStatus::getConditions)
+        .stream()
+        .flatMap(List::stream)
+        .filter(condition -> Status.TRUE.getStatus().equals(condition.getStatus()))
+        .anyMatch(condition -> Type.COMPLETED.getType().equals(condition.getType())
+            || Type.FAILED.getType().equals(condition.getType()));
   }
 
 }

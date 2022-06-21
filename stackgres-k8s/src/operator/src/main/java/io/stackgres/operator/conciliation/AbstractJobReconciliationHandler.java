@@ -59,14 +59,28 @@ public abstract class AbstractJobReconciliationHandler<T extends CustomResource<
 
   @Override
   public HasMetadata create(T context, HasMetadata resource) {
+    if (isAlreadyCompleted(context)) {
+      LOGGER.debug("Skipping creating Job {}.{}",
+          resource.getMetadata().getNamespace(),
+          resource.getMetadata().getName());
+      return resource;
+    }
     return concileJob(context, resource, jobWriter::create);
   }
 
   @Override
   public HasMetadata patch(T context, HasMetadata newResource,
       HasMetadata oldResource) {
+    if (isAlreadyCompleted(context)) {
+      LOGGER.debug("Skipping patching Job {}.{}",
+          oldResource.getMetadata().getNamespace(),
+          oldResource.getMetadata().getName());
+      return oldResource;
+    }
     return concileJob(context, newResource, this::updateJob);
   }
+
+  protected abstract boolean isAlreadyCompleted(T resource);
 
   @Override
   public HasMetadata replace(T context, HasMetadata resource) {
