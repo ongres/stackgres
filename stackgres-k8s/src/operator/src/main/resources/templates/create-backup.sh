@@ -372,66 +372,6 @@ EOF
 retain_backups() {
   cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
   -- sh -e $SHELL_XTRACE
-# for each existing backup sorted by backup name ascending (this also mean sorted by creation date ascending)
-exec-with-env "$BACKUP_ENV" \\
-  -- wal-g backup-list --detail --json \\
-  | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
-  | grep '"backup_name"' \\
-  | sort -r -t , -k 2 \\
-  | (RETAIN="$RETAIN"
-    while read BACKUP
-    do
-      BACKUP_NAME="\$(echo "\$BACKUP" | tr -d '{}\\42' | tr ',' '\\n' \\
-          | grep 'backup_name' | cut -d : -f 2-)"
-      echo "Check if backup \$BACKUP_NAME has to be retained and will retain \$RETAIN backups"
-      # if is not the created backup and is not in backup CR list, mark as impermanent
-      if [ "\$BACKUP_NAME" != "$CURRENT_BACKUP_NAME" ] \\
-        && ! echo '$(cat /tmp/backups)' \\
-        | cut -d : -f 5 \\
-        | grep -v '^\$' \\
-        | grep -q "^\$BACKUP_NAME\$"
-      then
-        if echo "\$BACKUP" | grep -q "\\"is_permanent\\":true"
-        then
-          echo "Deleting \$BACKUP_NAME and will retain \$RETAIN backups"
-          exec-with-env "$BACKUP_ENV" \\
-            -- wal-g delete target FIND_FULL "\$BACKUP_NAME" --confirm
-        fi
-      # if is inside the retain window, mark as permanent and decrease RETAIN counter
-      elif [ "\$RETAIN" -gt 0 ]
-      then
-        if [ "\$BACKUP_NAME" = "$CURRENT_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
-          || echo "\$BACKUP" | grep -q "\\"is_permanent\\":false"
-        then
-          echo "Retaining \$BACKUP_NAME and will retain \$((RETAIN-1)) more backups"
-        fi
-        RETAIN="\$((RETAIN-1))"
-      # if is outside the retain window...
-      elif [ "\$RETAIN" -le 0 ]
-      then
-        # ... and has a managed lifecycle, mark as impermanent
-        if echo '$(cat /tmp/backups)' \\
-          | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
-          | cut -d : -f 5 \\
-          | grep -v '^\$' \\
-          | grep -q "^\$BACKUP_NAME\$" \\
-          && echo "\$BACKUP" | grep -q "\\"is_permanent\\":true"
-        then
-          echo "Deleting \$BACKUP_NAME"
-          exec-with-env "$BACKUP_ENV" \\
-            -- wal-g delete target FIND_FULL "\$BACKUP_NAME" --confirm
-        # ... and has not a managed lifecycle, mark as permanent
-        elif echo '$(cat /tmp/backups)' \\
-          | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
-          | cut -d : -f 5 \\
-          | grep -v '^\$' \\
-          | grep -q "^\$BACKUP_NAME\$" \\
-          && echo "\$BACKUP" | grep -q "\\"is_permanent\\":false"
-        then
-          echo "Retaining \$BACKUP_NAME"
-        fi
-      fi
-    done)
 
 # for each existing backup
 exec-with-env "$BACKUP_ENV" \\
@@ -443,19 +383,19 @@ exec-with-env "$BACKUP_ENV" \\
       BACKUP_NAME="\$(echo "\$BACKUP" | tr -d '{}\\42' | tr ',' '\\n' \\
           | grep 'backup_name' | cut -d : -f 2-)"
       echo "Check if backup \$BACKUP_NAME has to be set permanent or impermanent"
-      # if is the created backup and has a managed lifecycle, mark as impermanent
-      if [ "\$BACKUP_NAME" = "$CURRENT_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
-        || (echo '$(cat /tmp/backups)' \\
-        | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
-        | cut -d : -f 5 \\
-        | grep -v '^\$' \\
-        | grep -q "^\$BACKUP_NAME\$" \\
-        && echo "\$BACKUP" | grep -q "\\"is_permanent\\":true")
+      # if has a managed lifecycle and is marked as permanent, mark as impermanent
+      if { [ "\$BACKUP_NAME" = "$CURRENT_BACKUP_NAME" ] && [ "$BACKUP_IS_PERMANENT" != true ]; } \\
+        || { echo '$(cat /tmp/backups)' \\
+          | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+          | cut -d : -f 5 \\
+          | grep -v '^\$' \\
+          | grep -q "^\$BACKUP_NAME\$" \\
+        && echo "\$BACKUP" | grep -q "\\"is_permanent\\":true"; }
       then
         echo "Mark \$BACKUP_NAME as impermanent"
         exec-with-env "$BACKUP_ENV" \\
           -- wal-g backup-mark -i "\$BACKUP_NAME"
-      # if has not a managed lifecycle, mark as permanent
+      # if has not a managed lifecycle and in not marked as permanent, mark as permanent
       elif echo '$(cat /tmp/backups)' \\
         | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
         | cut -d : -f 5 \\
@@ -468,6 +408,63 @@ exec-with-env "$BACKUP_ENV" \\
           -- wal-g backup-mark "\$BACKUP_NAME"
       fi
     done
+
+# for each existing backup sorted by backup name ascending (this also mean sorted by creation date ascending)
+exec-with-env "$BACKUP_ENV" \\
+  -- wal-g backup-list --detail --json \\
+  | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
+  | grep '"backup_name"' \\
+  | sort -r -t , -k 2 \\
+  | (RETAIN="$RETAIN"
+    while read BACKUP
+    do
+      BACKUP_NAME="\$(echo "\$BACKUP" | tr -d '{}\\42' | tr ',' '\\n' \\
+          | grep 'backup_name' | cut -d : -f 2-)"
+      echo "Check if backup \$BACKUP_NAME has to be retained and will retain \$RETAIN backups"
+      # if is not the created backup and is not in backup CR list, delete it
+      if [ "\$BACKUP_NAME" != "$CURRENT_BACKUP_NAME" ] \\
+        && ! echo '$(cat /tmp/backups)' \\
+        | cut -d : -f 5 \\
+        | grep -v '^\$' \\
+        | grep -q "^\$BACKUP_NAME\$"
+      then
+        echo "Deleting \$BACKUP_NAME and will retain \$RETAIN backups"
+        exec-with-env "$BACKUP_ENV" \\
+          -- wal-g delete target FIND_FULL "\$BACKUP_NAME" --confirm
+      # if is inside the retain window, retain it and decrease RETAIN counter
+      elif [ "\$RETAIN" -gt 1 ]
+      then
+        if [ "\$BACKUP_NAME" = "$CURRENT_BACKUP_NAME" -a "$BACKUP_IS_PERMANENT" != true ] \\
+          || echo "\$BACKUP" | grep -q "\\"is_permanent\\":false"
+        then
+          echo "Retaining \$BACKUP_NAME and will retain \$((RETAIN-1)) more backups"
+        fi
+        RETAIN="\$((RETAIN-1))"
+      # if is outside the retain window...
+      elif [ "\$RETAIN" -eq 1 ]
+      then
+        # ... and has a managed lifecycle, delete it
+        if echo '$(cat /tmp/backups)' \\
+          | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+          | cut -d : -f 5 \\
+          | grep -v '^\$' \\
+          | grep -q "^\$BACKUP_NAME\$"
+        then
+          echo "Deleting \$BACKUP_NAME"
+          exec-with-env "$BACKUP_ENV" \\
+            -- wal-g delete before FIND_FULL "\$BACKUP_NAME" --confirm
+          break
+        # ... and has not a managed lifecycle, retain it
+        elif echo '$(cat /tmp/backups)' \\
+          | grep -v '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
+          | cut -d : -f 5 \\
+          | grep -v '^\$' \\
+          | grep -q "^\$BACKUP_NAME\$"
+        then
+          echo "Retaining \$BACKUP_NAME"
+        fi
+      fi
+    done)
 EOF
 }
 
