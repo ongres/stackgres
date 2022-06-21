@@ -20,10 +20,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
@@ -90,12 +90,12 @@ class PostgresVersionValidatorTest {
           .get(0).get();
 
   private static String getRandomPostgresVersion() {
-    Random r = new Random();
+    Random random = new Random();
     List<String> validPostgresVersions = SUPPORTED_POSTGRES_VERSIONS.stream()
-        .filter(Predicates.not(PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()::contains))
+        .filter(Predicate.not(PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()::contains))
         .toList();
 
-    int versionIndex = r.nextInt(validPostgresVersions.size());
+    int versionIndex = random.nextInt(validPostgresVersions.size());
     return validPostgresVersions.get(versionIndex);
   }
 
@@ -111,10 +111,10 @@ class PostgresVersionValidatorTest {
   private static String getRandomInvalidPostgresVersion() {
     String version;
 
-    Random r = new Random();
+    Random random = new Random();
     do {
 
-      Stream<String> versionDigits = r.ints(1, 100)
+      Stream<String> versionDigits = random.ints(1, 100)
           .limit(2).mapToObj(i -> Integer.valueOf(i).toString());
 
       version = String.join(".", versionDigits.collect(Collectors.toList()));
@@ -125,13 +125,13 @@ class PostgresVersionValidatorTest {
   }
 
   private static String getRandomBuggyPostgresVersion() {
-    Random r = new Random();
+    Random random = new Random();
     List<String> validBuggyPostgresVersions = PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()
         .stream()
         .filter(PostgresVersionValidatorTest::isPostgresVersionValid)
         .toList();
     return validBuggyPostgresVersions.stream().toList()
-        .get(r.nextInt(validBuggyPostgresVersions.size()));
+        .get(random.nextInt(validBuggyPostgresVersions.size()));
   }
 
   private PostgresConfigValidator validator;
