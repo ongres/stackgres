@@ -428,7 +428,7 @@ exec-with-env "$BACKUP_ENV" \\
         | grep -v '^\$' \\
         | grep -q "^\$BACKUP_NAME\$"
       then
-        echo "Deleting \$BACKUP_NAME and will retain \$RETAIN backups"
+        echo "Deleting \$BACKUP_NAME since no associated SGBackup exists and will retain \$RETAIN backups"
         exec-with-env "$BACKUP_ENV" \\
           -- wal-g delete target FIND_FULL "\$BACKUP_NAME" --confirm
       # if is inside the retain window, retain it and decrease RETAIN counter
@@ -444,15 +444,21 @@ exec-with-env "$BACKUP_ENV" \\
           | grep -v '^\$' \\
           | grep -q "^\$BACKUP_NAME\$"
       then
-        echo "Deleting \$BACKUP_NAME"
+        echo "Deleting WAL files and backups with managed lifecycle older than \$BACKUP_NAME"
         exec-with-env "$BACKUP_ENV" \\
           -- wal-g delete before FIND_FULL "\$BACKUP_NAME" --confirm
         RETAIN="\$((RETAIN-1))"
       # or retain it
       else
-        echo "Retaining \$BACKUP_NAME"
+        echo "Retaining \$BACKUP_NAME with unmanaged lifecycle"
       fi
     done)
+
+exec-with-env "$BACKUP_ENV" \\
+  -- wal-g wal-verify integrity
+
+exec-with-env "$BACKUP_ENV" \\
+  -- wal-g wal-verify timeline
 EOF
 }
 
