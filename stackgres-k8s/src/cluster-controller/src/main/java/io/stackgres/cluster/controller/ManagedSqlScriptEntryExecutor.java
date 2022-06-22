@@ -5,13 +5,13 @@
 
 package io.stackgres.cluster.controller;
 
+import static io.stackgres.common.crd.sgscript.StackGresScriptTransactionIsolationLevel.fromString;
 import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_USER_NAME;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -19,6 +19,7 @@ import javax.inject.Inject;
 
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
+import io.stackgres.common.crd.sgscript.StackGresScriptTransactionIsolationLevel;
 import io.stackgres.common.postgres.PostgresConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,30 +68,66 @@ public class ManagedSqlScriptEntryExecutor {
   protected void executeScriptEntry(
       ManagedSqlScriptEntry scriptEntry, String sql)
       throws SQLException {
-    try {
-      LOGGER.info("Executing managed script {}",
+    if (scriptEntry.getScriptEntry().getWrapInTransaction() == null) {
+      LOGGER.info("Executing managed script {} with no transaction",
           scriptEntry.getManagedScriptEntryDescription());
-      executeScriptEntryInTransaction(scriptEntry, sql);
-    } catch (SQLException ex) {
-      if (Objects.equals("25001", ex.getSQLState())) {
-        LOGGER.info("Managed script {} can not be run in a transaction",
-            scriptEntry.getManagedScriptEntryDescription());
-        LOGGER.info("Executing managed script {} without a transaction",
-            scriptEntry.getManagedScriptEntryDescription());
-        executeScriptEntryWithoutTransaction(scriptEntry, sql);
+      executeScriptEntryWithoutTransaction(scriptEntry, sql);
+    } else {
+      StackGresScriptTransactionIsolationLevel transactionIsolationLevel =
+          fromString(scriptEntry.getScriptEntry().getWrapInTransaction());
+      if (scriptEntry.getScriptEntry().getStoreStatusInDatabaseOrDefault()) {
+        LOGGER.info("Executing managed script {} and store status wrapped in a transaction with"
+            + " isolation level {}",
+            scriptEntry.getManagedScriptEntryDescription(),
+            transactionIsolationLevel.toSqlString());
+        executeScriptEntryAndStoreStatusInTransaction(scriptEntry, transactionIsolationLevel, sql);
       } else {
+        LOGGER.info("Executing managed script {} wrapped in a transaction with isolation level {}",
+            scriptEntry.getManagedScriptEntryDescription(),
+            transactionIsolationLevel.toSqlString());
+        executeScriptEntryInTransaction(scriptEntry, transactionIsolationLevel, sql);
+      }
+    }
+  }
+
+  private void executeScriptEntryWithoutTransaction(
+      ManagedSqlScriptEntry scriptEntry, String sql)
+      throws SQLException {
+    try (Connection connection = getConnection(
+        scriptEntry.getScriptEntry().getDatabaseOrDefault(),
+        scriptEntry.getScriptEntry().getUserOrDefault())) {
+      try (var statement = connection.createStatement()) {
+        statement.execute(sql);
+      }
+    }
+  }
+
+  private void executeScriptEntryInTransaction(ManagedSqlScriptEntry scriptEntry,
+      StackGresScriptTransactionIsolationLevel transactionIsolationLevel, String sql)
+      throws SQLException {
+    try (Connection connection = getConnection(
+        scriptEntry.getScriptEntry().getDatabaseOrDefault(),
+        scriptEntry.getScriptEntry().getUserOrDefault())) {
+      connection.setAutoCommit(false);
+      connection.setTransactionIsolation(transactionIsolationLevel.toJdbcConstant());
+      try {
+        try (var statement = connection.createStatement()) {
+          statement.execute(sql);
+        }
+        connection.commit();
+      } catch (SQLException | RuntimeException ex) {
+        connection.rollback();
         throw ex;
       }
     }
   }
 
-  private void executeScriptEntryInTransaction(ManagedSqlScriptEntry scriptEntry, String sql)
+  private void executeScriptEntryAndStoreStatusInTransaction(ManagedSqlScriptEntry scriptEntry,
+      StackGresScriptTransactionIsolationLevel transactionIsolationLevel, String sql)
       throws SQLException {
     try (Connection connection = getConnection(
         scriptEntry.getScriptEntry().getDatabaseOrDefault(),
         SUPERUSER_USER_NAME)) {
-      connection.setAutoCommit(false);
-      connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
       try {
         boolean managedSqlStatusTableMissing = isManagedSqlStatusTableMissing(connection);
         if (managedSqlStatusTableMissing) {
@@ -107,11 +144,11 @@ public class ManagedSqlScriptEntryExecutor {
         scriptEntry.getScriptEntry().getDatabaseOrDefault(),
         scriptEntry.getScriptEntry().getUserOrDefault())) {
       connection.setAutoCommit(false);
-      connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+      connection.setTransactionIsolation(transactionIsolationLevel.toJdbcConstant());
       try {
         var foundScriptAppliedTimestamp = findScriptAppliedTimestamp(scriptEntry, connection);
         if (foundScriptAppliedTimestamp.isPresent()) {
-          LOGGER.warn("Script {} was already applied at timestamp {}",
+          LOGGER.warn("Script {} was already applied at timestamp {}, skipping execution",
               scriptEntry.getManagedScriptEntryDescription(),
               foundScriptAppliedTimestamp.orElseThrow());
           return;
@@ -119,27 +156,6 @@ public class ManagedSqlScriptEntryExecutor {
         try (var statement = connection.createStatement()) {
           statement.execute(sql);
         }
-        updateManagedSqlStatusTable(scriptEntry, connection);
-        connection.commit();
-      } catch (SQLException | RuntimeException ex) {
-        connection.rollback();
-        throw ex;
-      }
-    }
-  }
-
-  private void executeScriptEntryWithoutTransaction(
-      ManagedSqlScriptEntry scriptEntry, String sql)
-      throws SQLException {
-    try (Connection connection = getConnection(
-        scriptEntry.getScriptEntry().getDatabaseOrDefault(),
-        scriptEntry.getScriptEntry().getUserOrDefault())) {
-      try (var statement = connection.createStatement()) {
-        statement.execute(sql);
-      }
-      try {
-        connection.setAutoCommit(false);
-        connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
         updateManagedSqlStatusTable(scriptEntry, connection);
         connection.commit();
       } catch (SQLException | RuntimeException ex) {

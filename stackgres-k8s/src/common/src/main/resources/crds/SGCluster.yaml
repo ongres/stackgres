@@ -1285,6 +1285,9 @@ spec:
                                 version:
                                   type: integer
                                   description: The latest version applied
+                                intent:
+                                  type: boolean
+                                  description: Set  to `true` before the script entry is executed and set to `null` on its completion or failure.
                                 failureCode:
                                   type: string
                                   description: If failed, the error code of the failure. See also https://www.postgresql.org/docs/current/errcodes-appendix.html

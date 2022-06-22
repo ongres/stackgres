@@ -17,10 +17,14 @@
       "name": "test",
       "id": 0,
       "version": 0,
-      "script": "CREATE DATABASE test;"
+      "retryOnFailure": true,
+      "script": "CREATE DATABASE IF NOT EXISTS test;"
     },{
       "id": 1,
       "version": 0,
+      "wrapInTransaction": "serializable",
+      "storeStatusInDatabase": true,
+      "retryOnFailure": true,
       "scriptFrom": {
         "secretKeyRef": {
           "name": "test",
@@ -30,6 +34,9 @@
     },{
       "id": 2,
       "version": 0,
+      "wrapInTransaction": "serializable",
+      "storeStatusInDatabase": true,
+      "retryOnFailure": true,
       "scriptFrom": {
         "configMapKeyRef": {
           "name": "test",

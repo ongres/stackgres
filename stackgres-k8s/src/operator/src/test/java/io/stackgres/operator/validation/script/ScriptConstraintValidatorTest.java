@@ -374,4 +374,24 @@ class ScriptConstraintValidatorTest extends ConstraintValidationTest<StackGresSc
         "isNameNotEmpty", review, AssertTrue.class);
   }
 
+  @Test
+  void scriptWithStoreStatusInDatabaseAndNoWrapInTransaction_shouldFail() {
+    StackGresScriptReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setScripts(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getScripts()
+        .add(new StackGresScriptEntry());
+    review.getRequest().getObject().getSpec().getScripts().get(0)
+        .setId(0);
+    review.getRequest().getObject().getSpec().getScripts().get(0)
+        .setVersion(0);
+    review.getRequest().getObject().getSpec().getScripts().get(0)
+        .setScript("SELECT 1");
+    review.getRequest().getObject().getSpec().getScripts().get(0)
+        .setStoreStatusInDatabase(true);
+
+    checkErrorCause(StackGresScriptEntry.class,
+        new String[] {"spec.scripts[0].storeStatusInDatabase"},
+        "isWrapInTransactionSetWhenStoreStatusInDatabaseIsSet", review, AssertTrue.class);
+  }
+
 }

@@ -21,7 +21,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgcluster.StackGresReplicationMode;
 import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.ValidEnum;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 
 @JsonDeserialize
@@ -43,6 +45,17 @@ public class StackGresScriptEntry {
   @JsonProperty("database")
   private String database;
 
+  @JsonProperty("wrapInTransaction")
+  @ValidEnum(enumClass = StackGresReplicationMode.class, allowNulls = true,
+      message = "wrapInTransaction must be read-committed, repeatable-read or serializable")
+  private String wrapInTransaction;
+
+  @JsonProperty("storeStatusInDatabase")
+  private Boolean storeStatusInDatabase;
+
+  @JsonProperty("retryOnError")
+  private Boolean retryOnError;
+
   @JsonProperty("user")
   private String user;
 
@@ -62,6 +75,9 @@ public class StackGresScriptEntry {
   @ReferencedField("scriptFrom")
   interface ScriptFrom extends FieldReference { }
 
+  @ReferencedField("storeStatusInDatabase")
+  interface StoreStatusInDatabase extends FieldReference { }
+
   @JsonIgnore
   @AssertTrue(message = "script and scriptFrom are mutually exclusive and required.",
       payload = { Script.class, ScriptFrom.class })
@@ -75,6 +91,13 @@ public class StackGresScriptEntry {
       payload = Database.class)
   public boolean isDatabaseNameNonEmpty() {
     return database == null || !database.isEmpty();
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "Can not set storeStatusInDatabase when wrapInTransaction is not set.",
+      payload = StoreStatusInDatabase.class)
+  public boolean isWrapInTransactionSetWhenStoreStatusInDatabaseIsSet() {
+    return storeStatusInDatabase == null || !storeStatusInDatabase || wrapInTransaction != null;
   }
 
   public String getName() {
@@ -127,6 +150,40 @@ public class StackGresScriptEntry {
     this.user = user;
   }
 
+  public String getWrapInTransaction() {
+    return wrapInTransaction;
+  }
+
+  public void setWrapInTransaction(String wrapInTransaction) {
+    this.wrapInTransaction = wrapInTransaction;
+  }
+
+  public Boolean getStoreStatusInDatabase() {
+    return storeStatusInDatabase;
+  }
+
+  @JsonIgnore
+  public boolean getStoreStatusInDatabaseOrDefault() {
+    return Optional.ofNullable(storeStatusInDatabase).orElse(false);
+  }
+
+  public void setStoreStatusInDatabase(Boolean storeStatusInDatabase) {
+    this.storeStatusInDatabase = storeStatusInDatabase;
+  }
+
+  public Boolean getRetryOnError() {
+    return retryOnError;
+  }
+
+  @JsonIgnore
+  public boolean getRetryOnErrorOrDefault() {
+    return Optional.ofNullable(retryOnError).orElse(false);
+  }
+
+  public void setRetryOnError(Boolean retryOnError) {
+    this.retryOnError = retryOnError;
+  }
+
   public String getScript() {
     return script;
   }
@@ -145,7 +202,8 @@ public class StackGresScriptEntry {
 
   @Override
   public int hashCode() {
-    return Objects.hash(database, id, name, script, scriptFrom, user, version);
+    return Objects.hash(database, id, name, retryOnError, script, scriptFrom, storeStatusInDatabase,
+        user, version, wrapInTransaction);
   }
 
   @Override
@@ -158,9 +216,11 @@ public class StackGresScriptEntry {
     }
     StackGresScriptEntry other = (StackGresScriptEntry) obj;
     return Objects.equals(database, other.database) && Objects.equals(id, other.id)
-        && Objects.equals(name, other.name) && Objects.equals(script, other.script)
-        && Objects.equals(scriptFrom, other.scriptFrom) && Objects.equals(user, other.user)
-        && Objects.equals(version, other.version);
+        && Objects.equals(name, other.name) && Objects.equals(retryOnError, other.retryOnError)
+        && Objects.equals(script, other.script) && Objects.equals(scriptFrom, other.scriptFrom)
+        && Objects.equals(storeStatusInDatabase, other.storeStatusInDatabase)
+        && Objects.equals(user, other.user) && Objects.equals(version, other.version)
+        && Objects.equals(wrapInTransaction, other.wrapInTransaction);
   }
 
   @Override
