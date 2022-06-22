@@ -54,9 +54,9 @@ public class DbOpsHandlerDelegator implements HandlerDelegator<StackGresDbOps> {
     getHandler(resource).delete(context, resource);
   }
 
-  private ReconciliationHandler<StackGresDbOps> getHandler(HasMetadata r1) {
+  private ReconciliationHandler<StackGresDbOps> getHandler(HasMetadata resource) {
     Instance<ReconciliationHandler<StackGresDbOps>> instance = handlers
-        .select(new ReconciliationScopeLiteral(StackGresDbOps.class, r1.getKind()));
+        .select(new ReconciliationScopeLiteral(StackGresDbOps.class, resource.getKind()));
     if (!instance.isResolvable()) {
       return defaultHandler;
     } else {
