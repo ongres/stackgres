@@ -8,6 +8,7 @@ package io.stackgres.apiweb.dto.script;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -26,6 +27,15 @@ public class ScriptEntry {
   private String database;
 
   private String user;
+
+  @JsonProperty("wrapInTransaction")
+  private String wrapInTransaction;
+
+  @JsonProperty("storeStatusInDatabase")
+  private Boolean storeStatusInDatabase;
+
+  @JsonProperty("retryOnError")
+  private Boolean retryOnError;
 
   private String script;
 
@@ -71,6 +81,30 @@ public class ScriptEntry {
     this.user = user;
   }
 
+  public String getWrapInTransaction() {
+    return wrapInTransaction;
+  }
+
+  public void setWrapInTransaction(String wrapInTransaction) {
+    this.wrapInTransaction = wrapInTransaction;
+  }
+
+  public Boolean getStoreStatusInDatabase() {
+    return storeStatusInDatabase;
+  }
+
+  public void setStoreStatusInDatabase(Boolean storeStatusInDatabase) {
+    this.storeStatusInDatabase = storeStatusInDatabase;
+  }
+
+  public Boolean getRetryOnError() {
+    return retryOnError;
+  }
+
+  public void setRetryOnError(Boolean retryOnError) {
+    this.retryOnError = retryOnError;
+  }
+
   public String getScript() {
     return script;
   }
@@ -89,7 +123,8 @@ public class ScriptEntry {
 
   @Override
   public int hashCode() {
-    return Objects.hash(database, id, name, script, scriptFrom, user, version);
+    return Objects.hash(database, id, name, retryOnError, script, scriptFrom, storeStatusInDatabase,
+        user, version, wrapInTransaction);
   }
 
   @Override
@@ -102,9 +137,11 @@ public class ScriptEntry {
     }
     ScriptEntry other = (ScriptEntry) obj;
     return Objects.equals(database, other.database) && Objects.equals(id, other.id)
-        && Objects.equals(name, other.name) && Objects.equals(script, other.script)
-        && Objects.equals(scriptFrom, other.scriptFrom) && Objects.equals(user, other.user)
-        && Objects.equals(version, other.version);
+        && Objects.equals(name, other.name) && Objects.equals(retryOnError, other.retryOnError)
+        && Objects.equals(script, other.script) && Objects.equals(scriptFrom, other.scriptFrom)
+        && Objects.equals(storeStatusInDatabase, other.storeStatusInDatabase)
+        && Objects.equals(user, other.user) && Objects.equals(version, other.version)
+        && Objects.equals(wrapInTransaction, other.wrapInTransaction);
   }
 
   @Override

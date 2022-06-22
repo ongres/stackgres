@@ -319,10 +319,20 @@ public class ManagedSqlReconciliator {
         .anyMatch(scriptEntryStatus -> isScriptEntryUpToDate(scriptEntry, scriptEntryStatus));
   }
 
-  private boolean isScriptEntryUpToDate(StackGresScriptEntry scriptEntry,
-      StackGresClusterManagedScriptEntryScriptStatus mangedScriptStatus) {
-    return mangedScriptStatus.getFailureCode() == null
-        && Objects.equals(scriptEntry.getVersion(), mangedScriptStatus.getVersion());
+  protected boolean isScriptEntryUpToDate(StackGresScriptEntry scriptEntry,
+      StackGresClusterManagedScriptEntryScriptStatus mangedScriptEntryStatus) {
+    return mangedScriptEntryStatus.isIntent() == null
+        && mangedScriptEntryStatus.getFailureCode() == null
+        && mangedScriptEntryStatus.getFailure() == null
+        && Objects.equals(scriptEntry.getVersion(), mangedScriptEntryStatus.getVersion());
+  }
+
+  protected boolean isScriptEntryFailed(StackGresScriptEntry scriptEntry,
+      StackGresClusterManagedScriptEntryScriptStatus mangedScriptEntryStatus) {
+    return Objects.equals(scriptEntry.getVersion(), mangedScriptEntryStatus.getVersion())
+        && (mangedScriptEntryStatus.isIntent() != null
+        || mangedScriptEntryStatus.getFailureCode() != null
+        || mangedScriptEntryStatus.getFailure() != null);
   }
 
   private String getManagedScriptEntryDescription(StackGresClusterManagedScriptEntry managedScript,

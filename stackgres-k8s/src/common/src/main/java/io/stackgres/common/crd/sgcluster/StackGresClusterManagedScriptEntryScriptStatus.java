@@ -28,6 +28,9 @@ public class StackGresClusterManagedScriptEntryScriptStatus {
   @NotNull(message = "version can not be null")
   private Integer version;
 
+  @JsonProperty("intent")
+  private Boolean intent;
+
   @JsonProperty("failureCode")
   private String failureCode;
 
@@ -51,6 +54,14 @@ public class StackGresClusterManagedScriptEntryScriptStatus {
 
   public void setVersion(Integer version) {
     this.version = version;
+  }
+
+  public Boolean isIntent() {
+    return intent;
+  }
+
+  public void setIntent(Boolean intent) {
+    this.intent = intent;
   }
 
   public String getFailureCode() {
@@ -79,7 +90,7 @@ public class StackGresClusterManagedScriptEntryScriptStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hash(failure, failureCode, failures, id, version);
+    return Objects.hash(failure, failureCode, failures, id, intent, version);
   }
 
   @Override
@@ -94,7 +105,7 @@ public class StackGresClusterManagedScriptEntryScriptStatus {
         (StackGresClusterManagedScriptEntryScriptStatus) obj;
     return Objects.equals(failure, other.failure) && Objects.equals(failureCode, other.failureCode)
         && Objects.equals(failures, other.failures) && Objects.equals(id, other.id)
-        && Objects.equals(version, other.version);
+        && Objects.equals(intent, other.intent) && Objects.equals(version, other.version);
   }
 
   @Override

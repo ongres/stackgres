@@ -78,6 +78,36 @@ spec:
                         type: string
                         description: |
                           User that will execute the script. Defaults to the `postgres` user.
+                      wrapInTransaction:
+                        type: string
+                        description: |
+                          Wrap the script in a transaction using the specified transaction mode:
+
+                          * `read-committed`: The script will be wrapped in a transaction using [READ COMMITTED](https://www.postgresql.org/docs/current/transaction-iso.html#XACT-READ-COMMITTED) isolation level.
+                          * `repeatable-read`: The script will be wrapped in a transaction using [REPEATABLE READ](https://www.postgresql.org/docs/current/transaction-iso.html#XACT-REPEATABLE-READ) isolation level.
+                          * `serializable`: The script will be wrapped in a transaction using [SERIALIZABLE](https://www.postgresql.org/docs/current/transaction-iso.html#XACT-SERIALIZABLE) isolation level.
+
+                          If not set the script entry will not be wrapped in a transaction
+                      storeStatusInDatabase:
+                        type: boolean
+                        description: |
+                          When set to `true` the script entry execution will include storing the status of the execution of this
+                           script entry in the table `managed_sql.status` that will be created in the specified `database`. This
+                           will avoid an operation that fails partially to be unrecoverable requiring the intervention from the user
+                           if user in conjunction with `retryOnFailure`.
+
+                          If set to `true` then `wrapInTransaction` field must be set.
+
+                          This is `false` by default.
+                      retryOnFailure:
+                        type: boolean
+                        description: |
+                          If not set or set to `false` the script entry will not be retried if it fails.
+
+                          When set to `true` the script execution will be retried with an exponential backoff of 5 minutes
+                           and a standard deviation of 1 minute.
+
+                          This is `false` by default.
                       script:
                         type: string
                         description: |
