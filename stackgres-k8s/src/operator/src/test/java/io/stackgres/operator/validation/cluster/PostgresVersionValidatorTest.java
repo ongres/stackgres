@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -51,7 +52,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PostgresVersionValidatorTest {
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().toList();
+      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
+          .toList();
   private static final List<String> SUPPORTED_BABELFISH_VERSIONS =
       StackGresComponent.BABELFISH.getLatest().getOrderedVersions().toList();
   private static final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
@@ -88,9 +90,13 @@ class PostgresVersionValidatorTest {
           .get(0).get();
 
   private static String getRandomPostgresVersion() {
-    Random r = new Random();
-    int versionIndex = r.nextInt(2);
-    return SUPPORTED_POSTGRES_VERSIONS.get(versionIndex);
+    Random random = new Random();
+    List<String> validPostgresVersions = SUPPORTED_POSTGRES_VERSIONS.stream()
+        .filter(Predicate.not(PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()::contains))
+        .toList();
+
+    int versionIndex = random.nextInt(validPostgresVersions.size());
+    return validPostgresVersions.get(versionIndex);
   }
 
   private static String getMajorPostgresVersion(String pgVersion) {
@@ -99,24 +105,16 @@ class PostgresVersionValidatorTest {
   }
 
   private static boolean isPostgresVersionValid(String version) {
-    for (int i = 0; i < ALL_SUPPORTED_POSTGRES_VERSIONS
-        .get(StackGresComponent.POSTGRESQL).size(); i++) {
-      if (ALL_SUPPORTED_POSTGRES_VERSIONS.get(StackGresComponent.POSTGRESQL)
-          .values().iterator().next().get(i).equals(version)) {
-        return true;
-      }
-    }
-    return false;
-
+    return SUPPORTED_POSTGRES_VERSIONS.stream().anyMatch(version::equals);
   }
 
   private static String getRandomInvalidPostgresVersion() {
     String version;
 
-    Random r = new Random();
+    Random random = new Random();
     do {
 
-      Stream<String> versionDigits = r.ints(1, 100)
+      Stream<String> versionDigits = random.ints(1, 100)
           .limit(2).mapToObj(i -> Integer.valueOf(i).toString());
 
       version = String.join(".", versionDigits.collect(Collectors.toList()));
@@ -124,7 +122,16 @@ class PostgresVersionValidatorTest {
     } while (isPostgresVersionValid(version));
 
     return version;
+  }
 
+  private static String getRandomBuggyPostgresVersion() {
+    Random random = new Random();
+    List<String> validBuggyPostgresVersions = PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()
+        .stream()
+        .filter(PostgresVersionValidatorTest::isPostgresVersionValid)
+        .toList();
+    return validBuggyPostgresVersions.stream().toList()
+        .get(random.nextInt(validBuggyPostgresVersions.size()));
   }
 
   private PostgresConfigValidator validator;
@@ -508,6 +515,26 @@ class PostgresVersionValidatorTest {
     review.getRequest().setOperation(Operation.DELETE);
 
     validator.validate(review);
+    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
+  }
+
+  @Test
+  void givenBuggyPostgresVersion_shouldFail() {
+    final StackGresClusterReview review = JsonUtil
+        .readFromJson("cluster_allow_requests/valid_creation.json",
+            StackGresClusterReview.class);
+
+    String postgresVersion = getRandomBuggyPostgresVersion();
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(postgresVersion);
+
+    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = exception.getResult().getMessage();
+
+    assertTrue(resultMessage.contains("Do not use PostgreSQL " + postgresVersion), resultMessage);
+
     verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
   }
 
