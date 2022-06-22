@@ -37,8 +37,6 @@ jobs:
     pullPolicy: "IfNotPresent"
   resources: {}
   annotations: {}
-  serviceAccount:
-    annotations: {}
   tolerations: {}
   nodeSelector: {}
   affinity: {}

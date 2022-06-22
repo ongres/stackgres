@@ -45,9 +45,7 @@ spec:
       {{- end }}
       {{- with .Values.operator.nodeSelector }}
       nodeSelector:
-        {{- range $label,$value := . }}
-        {{ $label }}: '{{ $value }}'
-        {{- end}}
+        {{- toYaml . | nindent 8 }}
       {{- end}}
       containers:
       {{- if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}

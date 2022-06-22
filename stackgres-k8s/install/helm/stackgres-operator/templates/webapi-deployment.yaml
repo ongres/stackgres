@@ -46,9 +46,7 @@ spec:
       {{- end }}
       {{- with .Values.restapi.nodeSelector}}
       nodeSelector:
-        {{- range $label,$value := . }}
-        {{ $label }}: '{{ $value }}'
-        {{- end}}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
       - name: {{ .Values.restapi.name }}

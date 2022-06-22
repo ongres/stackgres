@@ -29,9 +29,7 @@ spec:
       {{- end}}
       {{- with .Values.jobs.nodeSelector}}
       nodeSelector:
-        {{- range $label,$value := . }}
-        {{ $label }}: '{{ $value }}'
-        {{- end}}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ .Release.Name }}-init
       {{- if .Values.serviceAccount.create }}

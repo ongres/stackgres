@@ -6,12 +6,12 @@ e2e_test_install() {
 }
 
 e2e_test() {
-  # run_test "Check that operator can be installed with toleration properties" check_operator_helm_tolerations
-  # run_test "Check that operator can be installed with serviceAcctount annotations properties" check_operator_helm_service_account_annotations
-  # run_test "Check that operator can be installed with service annotations properties" check_operator_helm_service_annotations
-  # run_test "Check that operator can be installed with affinity properties" check_operator_helm_affinity
-  # run_test "Check that operator can be installed with nodeSelector properties" check_operator_helm_nodeSelector
-  # run_test "Check that operator can be installed with annotations properties" check_operator_helm_annotations
+  run_test "Check that operator can be installed with toleration properties" check_operator_helm_tolerations
+  run_test "Check that operator can be installed with serviceAcctount annotations properties" check_operator_helm_service_account_annotations
+  run_test "Check that operator can be installed with service annotations properties" check_operator_helm_service_annotations
+  run_test "Check that operator can be installed with affinity properties" check_operator_helm_affinity
+  run_test "Check that operator can be installed with nodeSelector properties" check_operator_helm_nodeSelector
+  run_test "Check that operator can be installed with annotations properties" check_operator_helm_annotations
   run_test "Check that operator can be installed with job toleration properties" check_operator_helm_job_tolerations
   run_test "Check that operator can be installed with job affinity properties" check_operator_helm_job_affinity
   run_test "Check that operator can be installed with job nodeSelector properties" check_operator_helm_job_nodeSelector
@@ -38,7 +38,7 @@ check_operator_helm_job_affinity() {
   --set jobs.affinity.nodeSelector.values[1]=value2" "Job" "$OPERATOR_HELM_JOB_NAMES" "spec.template.spec.affinity"
 }
 
-check_operator_helm_job_nodeSelector() {
+check_operator_helm_job_node_selector() {
   KEY="$(random_string)"
   VALUE="$(random_string)"
   
@@ -84,7 +84,7 @@ check_operator_helm_affinity() {
   --set restapi.affinity.nodeSelector.values[1]=$VALUE-2" "Deployment" "stackgres-operator stackgres-restapi" "spec.template.spec.affinity"
 }
 
-check_operator_helm_nodeSelector() {
+check_operator_helm_node_selector() {
   KEY="$(random_string)"
   VALUE="$(random_string)"
   
