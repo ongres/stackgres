@@ -54,9 +54,9 @@ public class BackupHandlerDelegator implements HandlerDelegator<StackGresBackup>
     getHandler(resource).delete(context, resource);
   }
 
-  private ReconciliationHandler<StackGresBackup> getHandler(HasMetadata r1) {
+  private ReconciliationHandler<StackGresBackup> getHandler(HasMetadata resource) {
     Instance<ReconciliationHandler<StackGresBackup>> instance = handlers
-        .select(new ReconciliationScopeLiteral(StackGresBackup.class, r1.getKind()));
+        .select(new ReconciliationScopeLiteral(StackGresBackup.class, resource.getKind()));
     if (!instance.isResolvable()) {
       return defaultHandler;
     } else {
