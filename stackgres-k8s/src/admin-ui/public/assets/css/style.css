@@ -4869,6 +4869,11 @@ td.label .helpTooltip {
     margin-bottom: 3px;
 }
 
+#helpTooltip ul li:first-child:last-child {
+    list-style: none;
+    margin: -5px 0 -10px -10px;
+}
+
 #helpTooltip * + p {
     margin-top: 10px;
 }

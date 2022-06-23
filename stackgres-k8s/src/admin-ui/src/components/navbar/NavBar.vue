@@ -501,6 +501,12 @@
 					vc.cancelDelete();
 				}
 			})
+
+			$('#helpTooltip').on('mouseleave', function(){
+				store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.');
+      			$('#helpTooltip').removeClass('show').hide();
+				$('.helpTooltip.keepOpen.show').removeClass('show');
+			})
 		},
 
 		created() {

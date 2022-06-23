@@ -1249,7 +1249,27 @@ export const mixin = {
             }
           })
         }
-      }
+      },
+
+      getClusterAlerts(cluster) {
+				const vc = this;
+				let alerts = [];
+				
+				// Check if cluster needs restart
+				if(	
+          vc.hasProp(cluster, 'data.status.conditions') && 
+					typeof cluster.data.status.conditions.find(condition => (condition.type == 'PendingRestart') && (condition.status == 'True')) !== 'undefined'
+				) {
+					alerts.push('* A restart operation is pending for this cluster');
+				}
+
+				// Check if cluster is using PG 14.x with index issue
+				if( ['14.0', '14.1', '14.2', '14.3'].includes(cluster.data.spec.postgres.version) ) {
+					alerts.push('* This cluster is using Postgres ' + cluster.data.spec.postgres.version + ', which has issues with CREATE INDEX CONCURRENTLY and REINDEX CONCURRENTLY that could cause silent data corruption of indexes. Please upgrade your cluster to Postgres 14.4 to prevent any issues with indexes on your databases. For more info see https://www.postgresql.org/about/news/postgresql-144-released-2470/');
+				}
+
+				return alerts;
+			}
     },
   
     beforeCreate: function() {
