@@ -165,7 +165,7 @@
 								
 								<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
 									<template v-if="( pod.cpuRequested != ( (pod.cpuRequested.includes('m') && !profile.data.spec.cpu.includes('m')) ? ( (profile.data.spec.cpu * 1000) + 'm') : profile.data.spec.cpu ) )">
-										<span class="helpTooltip alert" data-tooltip="A CPU change request is pending to be applied"></span>
+										<span class="helpTooltip alert onHover" data-tooltip="A CPU change request is pending to be applied"></span>
 									</template>
 								</template>
 							</td>
@@ -174,7 +174,7 @@
 								
 								<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
 									<template v-if="( (pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested).replace('.00','') != profile.data.spec.memory) ">
-										<span class="helpTooltip alert" data-tooltip="A memory change request is pending to be applied"></span>
+										<span class="helpTooltip alert onHover" data-tooltip="A memory change request is pending to be applied"></span>
 									</template>
 								</template>
 							</td>
@@ -302,9 +302,8 @@
 	}
 
 	.podStatus .helpTooltip.alert {
-		position: absolute;
-		top: 13px;
-		transform: translateX(5px);
+		transform: translate(2px, 2px);
+		position: initial;
 	}
 
 	h2 .helpTooltip.alert {

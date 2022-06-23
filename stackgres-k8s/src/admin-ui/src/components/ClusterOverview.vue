@@ -52,12 +52,13 @@
 							<template v-for="(cluster, index) in clusters">
 								<template v-if="(index >= pagination.start) && (index < pagination.end)">
 									<tr class="base">
-										<td class="clusterName hasTooltip">											
-											<template v-if="hasProp(cluster, 'data.status.conditions')">
-												<template v-for="condition in cluster.data.status.conditions" v-if="( (condition.type == 'PendingRestart') && (condition.status == 'True') )">
-													<div class="helpTooltip alert onHover" data-tooltip="A restart operation is pending for this cluster"></div>
-												</template>
-											</template>
+										<td class="clusterName hasTooltip" :set="alerts = getClusterAlerts(cluster)">
+											<div 
+												v-if="alerts.length" 
+												class="helpTooltip alert onHover" 
+												:class="( (alerts.length > 1) && 'keepOpen')" 
+												:data-tooltip="alerts.join('\n')">
+											</div>
 											<span>
 												<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
 													{{ cluster.name }}
@@ -147,10 +148,8 @@
 			tooltips () {
 				return store.state.tooltips
 			}
-		},
-		methods: {
-			
 		}
+		
 	}
 </script>
 
