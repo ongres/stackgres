@@ -260,3 +260,5 @@ check_operator_upgrade_with_cluster_using_1_0_0_and_1_1_0_and_1_2_0() {
   remove_cluster "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
+
+

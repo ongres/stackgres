@@ -5,6 +5,14 @@ operator:
     name: "stackgres/operator"
     tag: "main-jvm"
     pullPolicy: "IfNotPresent"
+  annotations: {}
+  affinity: {}
+  nodeSelector: {}
+  serviceAccount:
+    annotations: {}
+  service:
+    annotations: {}
+  tolerations: {}
   resources: {}
 restapi:
   name: stackgres-restapi
@@ -13,6 +21,14 @@ restapi:
     tag: "main-jvm"
     pullPolicy: "IfNotPresent"
   resources: {}
+  affinity: {}
+  annotations: {}
+  nodeSelector: {}
+  serviceAccount:
+    annotations: {}
+  service:
+    annotations: {}
+  tolerations: {}
 jobs:
   name: stackgres-jobs
   image:
@@ -20,6 +36,10 @@ jobs:
     tag: "main-jvm"
     pullPolicy: "IfNotPresent"
   resources: {}
+  annotations: {}
+  tolerations: {}
+  nodeSelector: {}
+  affinity: {}
 adminui:
   name: stackgres-adminui
   image:
@@ -51,7 +71,6 @@ serviceAccount:
   create: true
   # repoCredentials:
   # - <secret name>
-
 initClusterRole: cluster-admin
 
 rbac:

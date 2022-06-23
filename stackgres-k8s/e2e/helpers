@@ -81,8 +81,8 @@ escape_quote() {
 
 export SHELL
 export SHELL_XTRACE
-SHELL="$(readlink /proc/$$/exe)"
-if [ "$(basename "$SHELL")" = busybox ]
+SHELL="${E2E_SHELL:-$(readlink /proc/$$/exe || true)}"
+if [ "$(basename "$SHELL")" = busybox ] || [ -z "$SHELL" ]
 then
   SHELL=sh
 fi
@@ -201,7 +201,7 @@ run_as_root_on_host() {
   "$@"
 }
 
-if [ "$(id -u)" != 0 ] || cat /proc/1/cgroup | grep -q ':/docker/'
+if [ "$K8S_FOR_DIND" = true ] || [ "$(id -u)" != 0 ] || cat /proc/1/cgroup | grep -q ':/docker/'
 then
   run_as_root_on_host() {
     docker run --privileged --pid=host -i --rm alpine nsenter -t 1 -m -u -n -i -- "$@"

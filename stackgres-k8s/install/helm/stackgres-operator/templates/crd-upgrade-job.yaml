@@ -12,6 +12,9 @@ metadata:
     "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "20"
+    {{- with .Values.jobs.annotations }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
 spec:
   template:
     metadata:
@@ -20,6 +23,14 @@ spec:
         scope: init
         job: upgrade-crd
     spec:
+      {{- with .Values.jobs.affinity}}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
+      {{- with .Values.jobs.nodeSelector}}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       serviceAccountName: {{ .Release.Name }}-init
       {{- if .Values.serviceAccount.create }}
       {{- if .Values.serviceAccount.repoCredentials }}
@@ -31,6 +42,10 @@ spec:
       {{- end }}
       restartPolicy: OnFailure
       terminationGracePeriodSeconds: 0
+      {{- with .Values.jobs.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: "crd-upgrade"
         image: "{{ .Values.jobs.image.name }}:{{ .Values.jobs.image.tag }}"
