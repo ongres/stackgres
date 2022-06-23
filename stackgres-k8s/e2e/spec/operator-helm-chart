@@ -10,11 +10,11 @@ e2e_test() {
   run_test "Check that operator can be installed with serviceAcctount annotations properties" check_operator_helm_service_account_annotations
   run_test "Check that operator can be installed with service annotations properties" check_operator_helm_service_annotations
   run_test "Check that operator can be installed with affinity properties" check_operator_helm_affinity
-  run_test "Check that operator can be installed with nodeSelector properties" check_operator_helm_nodeSelector
+  run_test "Check that operator can be installed with nodeSelector properties" check_operator_helm_node_selector
   run_test "Check that operator can be installed with annotations properties" check_operator_helm_annotations
   run_test "Check that operator can be installed with job toleration properties" check_operator_helm_job_tolerations
   run_test "Check that operator can be installed with job affinity properties" check_operator_helm_job_affinity
-  run_test "Check that operator can be installed with job nodeSelector properties" check_operator_helm_job_nodeSelector
+  run_test "Check that operator can be installed with job nodeSelector properties" check_operator_helm_job_node_selector
   run_test "Check that operator can be installed with job annotations properties" check_operator_helm_job_annotations
 }
 
