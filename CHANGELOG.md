@@ -1,3 +1,45 @@
+# :rocket: Release 1.2.1 (2022-06-23)
+
+## :notepad_spiral: NOTES
+
+Here comes StackGres 1.2.1 bringing some important hotfixes like Postgres 14 [index corruption bugfix](https://www.postgresql.org/about/news/postgresql-144-released-2470/) or [the backups retention causing deletion of WAL files](https://gitlab.com/ongresinc/stackgres/-/issues/1840).
+
+Please upgrade StackGres and your clusters (with a `securityUpgrade` `SGDbOps`) as soon as possible.
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Update Postgres images to to 12.11, 13.7 and 14.4 
+* Avoid delete Jobs automatically when SGBackup fails or complete and allow to delete Jobs without recreating them if the SGDbOps or SGBackup has failed or completed
+
+## :bug: FIXES
+
+* Forbid usage of PostgreSQL 14.0, 14.1, 14.2 and 14.3 due to [index corruption bugfix](https://www.postgresql.org/about/news/postgresql-144-released-2470/) on 14.4. A warning event will be created if a cluster is using one of the forbidden PostgreSQL version 14.0, 14.1, 14.2 or 14.3.
+* Backup retention removes all the WAL files
+
+### Web Console
+
+* A warning is shown if a cluster is using one of the forbidden PostgreSQL version 14.0, 14.1, 14.2 or 14.3.
+
+## :construction: KNOWN ISSUES
+
+* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368))
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.0 version or above) helm chart issue following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.2.1)
+
 # :rocket: Release 1.2.0 (2022-05-17)
 
 ## :notepad_spiral: NOTES
