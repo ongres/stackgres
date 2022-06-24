@@ -282,62 +282,6 @@
                 </table>
             </div>
 
-            <div class="card" v-if="iCan('any', 'sgbackupconfigs', $route.params.namespace)">
-                <table class="fullWidth">
-                    <thead>
-                        <th class="crdName">
-                            <template v-if="iCan('list', 'sgbackupconfigs', $route.params.namespace)">
-                                <router-link :to="'/' + $route.params.namespace + '/sgbackupconfigs'" title="Backup Configurations List">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="26.5" height="18.747" viewBox="0 0 26.5 18.747"><g transform="translate(-60 -212.633)"><path d="M60.955,217.4h10.5a.953.953,0,1,0,0-1.906h-10.5a.953.953,0,1,0,0,1.906Z" fill="#36A8FF"/><path d="M74.795,220.258a.953.953,0,0,0,.955-.953V217.4h4.295a.953.953,0,1,0,0-1.906H75.75v-1.907a.954.954,0,0,0-1.909,0V219.3A.953.953,0,0,0,74.795,220.258Z" fill="#36A8FF"/><path d="M60.955,223.6H65.25V225.5a.954.954,0,0,0,1.909,0v-5.719a.954.954,0,0,0-1.909,0v1.906H60.955a.954.954,0,1,0,0,1.907Z" fill="#36A8FF"/><path d="M67.636,227.884H60.955a.954.954,0,1,0,0,1.907h6.681a.954.954,0,1,0,0-1.907Z" fill="#36A8FF"/><path d="M78.073,222.114h0a.852.852,0,0,0-.668-.293.944.944,0,0,0-.86.667L74.2,227.5l-2.354-5.011a.959.959,0,0,0-.883-.669.834.834,0,0,0-.663.3,1.09,1.09,0,0,0-.238.726v7.568a1.037,1.037,0,0,0,.22.692.776.776,0,0,0,.624.278.787.787,0,0,0,.631-.284,1.038,1.038,0,0,0,.225-.686V226.1l1.568,3.248a1.318,1.318,0,0,0,.355.5.819.819,0,0,0,1.012-.01,1.458,1.458,0,0,0,.35-.486l1.557-3.3v4.361a1.037,1.037,0,0,0,.22.692.776.776,0,0,0,.623.278.823.823,0,0,0,.632-.272,1.009,1.009,0,0,0,.235-.7v-7.568A1.081,1.081,0,0,0,78.073,222.114Z" fill="#36A8FF"/><path d="M86.1,227.268a2.6,2.6,0,0,1,.4,1.469,2.388,2.388,0,0,1-.77,1.885,3.09,3.09,0,0,1-2.12.681H80.531a.7.7,0,0,1-.543-.214.849.849,0,0,1-.2-.6V222.7a.851.851,0,0,1,.2-.6.7.7,0,0,1,.543-.214h2.96a3.041,3.041,0,0,1,2.06.648,2.274,2.274,0,0,1,.746,1.811,2.354,2.354,0,0,1-.352,1.3,2.047,2.047,0,0,1-.973.8A2.038,2.038,0,0,1,86.1,227.268Zm-4.806-1.417h1.947q1.587,0,1.587-1.322a1.2,1.2,0,0,0-.393-.99,1.872,1.872,0,0,0-1.194-.32H81.294Zm3.367,3.782a1.311,1.311,0,0,0,.382-1.042,1.349,1.349,0,0,0-.387-1.056,1.782,1.782,0,0,0-1.213-.347H81.294v2.779h2.149A1.828,1.828,0,0,0,84.661,229.633Z" fill="#36A8FF"/></g></svg>
-                                    <span>SGBackupConfig <i class="length">{{ backupconfigs.length }}</i></span>
-                                </router-link>
-                            </template>
-                            <template v-else>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="26.5" height="18.747" viewBox="0 0 26.5 18.747"><g transform="translate(-60 -212.633)"><path d="M60.955,217.4h10.5a.953.953,0,1,0,0-1.906h-10.5a.953.953,0,1,0,0,1.906Z" fill="#36A8FF"/><path d="M74.795,220.258a.953.953,0,0,0,.955-.953V217.4h4.295a.953.953,0,1,0,0-1.906H75.75v-1.907a.954.954,0,0,0-1.909,0V219.3A.953.953,0,0,0,74.795,220.258Z" fill="#36A8FF"/><path d="M60.955,223.6H65.25V225.5a.954.954,0,0,0,1.909,0v-5.719a.954.954,0,0,0-1.909,0v1.906H60.955a.954.954,0,1,0,0,1.907Z" fill="#36A8FF"/><path d="M67.636,227.884H60.955a.954.954,0,1,0,0,1.907h6.681a.954.954,0,1,0,0-1.907Z" fill="#36A8FF"/><path d="M78.073,222.114h0a.852.852,0,0,0-.668-.293.944.944,0,0,0-.86.667L74.2,227.5l-2.354-5.011a.959.959,0,0,0-.883-.669.834.834,0,0,0-.663.3,1.09,1.09,0,0,0-.238.726v7.568a1.037,1.037,0,0,0,.22.692.776.776,0,0,0,.624.278.787.787,0,0,0,.631-.284,1.038,1.038,0,0,0,.225-.686V226.1l1.568,3.248a1.318,1.318,0,0,0,.355.5.819.819,0,0,0,1.012-.01,1.458,1.458,0,0,0,.35-.486l1.557-3.3v4.361a1.037,1.037,0,0,0,.22.692.776.776,0,0,0,.623.278.823.823,0,0,0,.632-.272,1.009,1.009,0,0,0,.235-.7v-7.568A1.081,1.081,0,0,0,78.073,222.114Z" fill="#36A8FF"/><path d="M86.1,227.268a2.6,2.6,0,0,1,.4,1.469,2.388,2.388,0,0,1-.77,1.885,3.09,3.09,0,0,1-2.12.681H80.531a.7.7,0,0,1-.543-.214.849.849,0,0,1-.2-.6V222.7a.851.851,0,0,1,.2-.6.7.7,0,0,1,.543-.214h2.96a3.041,3.041,0,0,1,2.06.648,2.274,2.274,0,0,1,.746,1.811,2.354,2.354,0,0,1-.352,1.3,2.047,2.047,0,0,1-.973.8A2.038,2.038,0,0,1,86.1,227.268Zm-4.806-1.417h1.947q1.587,0,1.587-1.322a1.2,1.2,0,0,0-.393-.99,1.872,1.872,0,0,0-1.194-.32H81.294Zm3.367,3.782a1.311,1.311,0,0,0,.382-1.042,1.349,1.349,0,0,0-.387-1.056,1.782,1.782,0,0,0-1.213-.347H81.294v2.779h2.149A1.828,1.828,0,0,0,84.661,229.633Z" fill="#36A8FF"/></g></svg>
-                                <span>SGBackupConfig <i class="length">{{ backupconfigs.length }}</i></span>
-                            </template>
-                        </th>
-                        <th class="icon invisible">
-                            <router-link 
-                                :to="'/' + $route.params.namespace + '/sgbackupconfigs/new'" 
-                                title="Create Backup Configuration"
-                                v-if="iCan('create', 'sgbackupconfigs', $route.params.namespace)"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
-                            </router-link>
-                        </th>
-                    </thead>
-                    <tbody>
-                        <template v-if="!backupconfigs.length || !iCan('list', 'sgbackupconfigs', $route.params.namespace)">
-                            <tr class="no-results">
-                                <td colspan="2" v-if="iCan('create','sgbackupconfigs',$route.params.namespace)">
-                                    No configurations have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgbackupconfigs/new'" title="Create Backup Configuration">create a new one?</router-link>
-                                </td>
-                                <td v-else colspan="2">
-                                    No configurations have been found. You don't have enough permissions to create a new one.
-                                </td>
-                            </tr>
-                        </template>
-                        <template v-else>
-                            <template v-for="backupconfig in backupconfigs">
-                                <tr>
-                                    <td class="hasTooltip">
-                                        <span>
-                                            <router-link :to="'/' + $route.params.namespace + '/sgbackupconfig/' + backupconfig.name" title="Backup Configuration Details">
-                                                {{ backupconfig.name }}
-                                            </router-link>
-                                        </span>
-                                    </td>
-                                    <td class="icon invisible">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgbackupconfig/' + backupconfig.name" title="Backup Configuration Details" target="_blank"></router-link>
-                                    </td>
-                                </tr>
-                            </template>
-                        </template>
-                    </tbody>
-                </table>
-            </div>
-
             <div class="card" v-if="iCan('any', 'sgdistributedlogs', $route.params.namespace)">
                 <table class="fullWidth">
                     <thead>
@@ -559,10 +503,6 @@ export default {
 
         objectstorages () {
             return store.state.sgobjectstorages.filter(config => (config.data.metadata.namespace == this.$route.params.namespace))
-        },
-
-        backupconfigs () {
-            return store.state.sgbackupconfigs.filter(backupconfig => (backupconfig.data.metadata.namespace == this.$route.params.namespace))
         },
 
         logsservers () {

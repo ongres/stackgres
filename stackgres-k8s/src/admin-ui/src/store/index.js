@@ -25,7 +25,6 @@ export default new Vuex.Store({
     sgbackups: [],
     sgpgconfigs: [],
     sgpoolconfigs: [],
-    sgbackupconfigs: [],
     sginstanceprofiles: [],
     sgobjectstorages: [],
     storageClasses: [],
@@ -202,17 +201,6 @@ export default new Vuex.Store({
         index.data = config.data;
       } else {
         state.sgobjectstorages.push( config );    
-      }
-
-    },
-    updateBackupConfig ( state, config ) {
-
-      let index = state.sgbackupconfigs.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
-
-      if ( typeof index !== "undefined" ) {
-        index.data = config.data;
-      } else {
-        state.sgbackupconfigs.push( config );    
       }
 
     },

@@ -118,10 +118,6 @@ describe('GET requests', () => {
         cy.getResources('sgobjectstorages');
     });
 
-    it('GET sgbackupconfigs', () => {
-        cy.getResources('sgbackupconfigs');
-    });
-
     it('GET storageclasses', () => {
         cy.getResources('storageclasses');
     });

@@ -1467,8 +1467,6 @@
                 restoreBackup: '',
                 pitr: '',
                 downloadDiskConcurrency: '',
-                backupConfig: '',
-                backupPath: '',
                 distributedLogs: '',
                 retention: '',
                 prometheusAutobind: false,
@@ -1587,9 +1585,6 @@
             },
             connPoolConf () {
                 return store.state.sgpoolconfigs
-            },
-            backupConf () {
-                return store.state.sgbackupconfigs
             },
             sgbackups () {
                 return store.state.sgbackups
