@@ -27,6 +27,9 @@ public class ClusterManagedScriptEntryStatus {
   @JsonProperty("startedAt")
   private String startedAt;
 
+  @JsonProperty("updatedAt")
+  private String updatedAt;
+
   @JsonProperty("failedAt")
   private String failedAt;
 
@@ -51,6 +54,14 @@ public class ClusterManagedScriptEntryStatus {
 
   public void setStartedAt(String startedAt) {
     this.startedAt = startedAt;
+  }
+
+  public String getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(String updatedAt) {
+    this.updatedAt = updatedAt;
   }
 
   public String getFailedAt() {
@@ -79,7 +90,7 @@ public class ClusterManagedScriptEntryStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hash(completedAt, failedAt, id, scripts, startedAt);
+    return Objects.hash(completedAt, failedAt, id, scripts, startedAt, updatedAt);
   }
 
   @Override
@@ -93,7 +104,8 @@ public class ClusterManagedScriptEntryStatus {
     ClusterManagedScriptEntryStatus other = (ClusterManagedScriptEntryStatus) obj;
     return Objects.equals(completedAt, other.completedAt)
         && Objects.equals(failedAt, other.failedAt) && Objects.equals(id, other.id)
-        && Objects.equals(scripts, other.scripts) && Objects.equals(startedAt, other.startedAt);
+        && Objects.equals(scripts, other.scripts) && Objects.equals(startedAt, other.startedAt)
+        && Objects.equals(updatedAt, other.updatedAt);
   }
 
   @Override

@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -21,6 +23,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.resource.CustomResourceScanner;
+import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,6 +110,8 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
           LOGGER.info("{} it's not up to date. Reconciling", customResourceId);
 
           result.getCreations()
+              .stream()
+              .sorted(ReconciliationOperations.RESOURCES_COMPARATOR)
               .forEach(resource -> {
                 LOGGER.info("Creating resource {}.{} of kind: {}",
                     resource.getMetadata().getNamespace(),
@@ -116,6 +121,9 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
               });
 
           result.getPatches()
+              .stream()
+              .sorted(Comparator.comparing(
+                  Tuple2::v1, ReconciliationOperations.RESOURCES_COMPARATOR))
               .forEach(resource -> {
                 LOGGER.info("Patching resource {}.{} of kind: {}",
                     resource.v2.getMetadata().getNamespace(),
@@ -125,6 +133,9 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
               });
 
           result.getDeletions()
+              .stream()
+              .sorted(Collections.reverseOrder(
+                  ReconciliationOperations.RESOURCES_COMPARATOR))
               .forEach(resource -> {
                 LOGGER.info("Deleting resource {}.{} of kind: {}",
                     resource.getMetadata().getNamespace(),

@@ -30,7 +30,7 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.cluster.common.ClusterControllerEventReason;
+import io.stackgres.cluster.common.ClusterManagedSqlEventReason;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
@@ -211,14 +211,27 @@ public class ManagedSqlReconciliatorTest {
 
     var actualUpdatedManagedSqlStatusIterator = actualUpdatedManagedSqlStatusList.iterator();
     var actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
-    var actualUpdatedManagedSqlEntryStatus0 =
+    var actualUpdatedManagedSqlEntryStatus0Intent =
         actualUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus.setStartedAt(
-        actualUpdatedManagedSqlEntryStatus0.getStartedAt());
+        actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getUpdatedAt());
     expectedUpdatedManagedSqlEntryStatus.getScripts()
         .add(new StackGresClusterManagedScriptEntryScriptStatus());
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setId(0);
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus0 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(null);
     assertNotNull(actualUpdatedManagedSqlEntryStatus0.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0.getFailedAt());
@@ -226,15 +239,44 @@ public class ManagedSqlReconciliatorTest {
         JsonUtil.toJson(actualUpdatedManagedSqlStatus));
 
     actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
-    var actualUpdatedManagedSqlEntryStatus1 =
+    var actualUpdatedManagedSqlEntryStatus1Intent =
         actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus1Intent.getUpdatedAt());
     expectedUpdatedManagedSqlEntryStatus.getScripts()
         .add(new StackGresClusterManagedScriptEntryScriptStatus());
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setId(1);
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus1Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus1 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(null);
     assertNotNull(actualUpdatedManagedSqlEntryStatus1.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus2Intent =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus2Intent.getUpdatedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setId(2);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus2Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus2Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus2Intent.getFailedAt());
     JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
         JsonUtil.toJson(actualUpdatedManagedSqlStatus));
 
@@ -243,24 +285,21 @@ public class ManagedSqlReconciliatorTest {
         actualUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus.setCompletedAt(
         actualUpdatedManagedSqlEntryStatus2.getCompletedAt());
-    expectedUpdatedManagedSqlEntryStatus.getScripts()
-        .add(new StackGresClusterManagedScriptEntryScriptStatus());
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setId(2);
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntents(null);
     assertNotNull(actualUpdatedManagedSqlEntryStatus2.getStartedAt());
     assertNotNull(actualUpdatedManagedSqlEntryStatus2.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus2.getFailedAt());
     JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
         JsonUtil.toJson(actualUpdatedManagedSqlStatus));
 
-    ArgumentCaptor<ClusterControllerEventReason> eventReasonArgumentCaptor =
-        ArgumentCaptor.forClass(ClusterControllerEventReason.class);
+    ArgumentCaptor<ClusterManagedSqlEventReason> eventReasonArgumentCaptor =
+        ArgumentCaptor.forClass(ClusterManagedSqlEventReason.class);
     verify(eventController, times(3)).sendEvent(
         eventReasonArgumentCaptor.capture(), any(), any(), any());
     assertEquals(List.of(
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL,
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL,
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL),
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL),
         eventReasonArgumentCaptor.getAllValues());
   }
 
@@ -305,11 +344,15 @@ public class ManagedSqlReconciliatorTest {
     var actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
     var actualUpdatedManagedSqlEntryStatus0Intent =
         actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setStartedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getUpdatedAt());
     expectedUpdatedManagedSqlEntryStatus.getScripts()
         .add(new StackGresClusterManagedScriptEntryScriptStatus());
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setId(1);
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setVersion(0);
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntent(true);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(1);
     assertNotNull(actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getFailedAt());
@@ -319,7 +362,7 @@ public class ManagedSqlReconciliatorTest {
     actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
     var actualUpdatedManagedSqlEntryStatus0 =
         actualUpdatedManagedSqlStatus.getScripts().get(0);
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntent(null);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(null);
     assertNotNull(actualUpdatedManagedSqlEntryStatus0.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0.getFailedAt());
@@ -329,11 +372,13 @@ public class ManagedSqlReconciliatorTest {
     actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
     var actualUpdatedManagedSqlEntryStatus1Intent =
         actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus1Intent.getUpdatedAt());
     expectedUpdatedManagedSqlEntryStatus.getScripts()
         .add(new StackGresClusterManagedScriptEntryScriptStatus());
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setId(2);
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setVersion(0);
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntent(true);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntents(1);
     assertNotNull(actualUpdatedManagedSqlEntryStatus1Intent.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getFailedAt());
@@ -345,20 +390,20 @@ public class ManagedSqlReconciliatorTest {
         actualUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus.setCompletedAt(
         actualUpdatedManagedSqlEntryStatus1.getCompletedAt());
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntent(null);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntents(null);
     assertNotNull(actualUpdatedManagedSqlEntryStatus1.getStartedAt());
     assertNotNull(actualUpdatedManagedSqlEntryStatus1.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1.getFailedAt());
     JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
         JsonUtil.toJson(actualUpdatedManagedSqlStatus));
 
-    ArgumentCaptor<ClusterControllerEventReason> eventReasonArgumentCaptor =
-        ArgumentCaptor.forClass(ClusterControllerEventReason.class);
+    ArgumentCaptor<ClusterManagedSqlEventReason> eventReasonArgumentCaptor =
+        ArgumentCaptor.forClass(ClusterManagedSqlEventReason.class);
     verify(eventController, times(2)).sendEvent(
         eventReasonArgumentCaptor.capture(), any(), any(), any());
     assertEquals(List.of(
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL,
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL),
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL),
         eventReasonArgumentCaptor.getAllValues());
   }
 
@@ -403,14 +448,27 @@ public class ManagedSqlReconciliatorTest {
 
     var actualUpdatedManagedSqlStatusIterator = actualUpdatedManagedSqlStatusList.iterator();
     var actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
-    var actualUpdatedManagedSqlEntryStatus0 =
+    var actualUpdatedManagedSqlEntryStatus0Intent =
         actualUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus.setStartedAt(
-        actualUpdatedManagedSqlEntryStatus0.getStartedAt());
+        actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getUpdatedAt());
     expectedUpdatedManagedSqlEntryStatus.getScripts()
         .add(new StackGresClusterManagedScriptEntryScriptStatus());
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setId(0);
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setVersion(1);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus0 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(null);
     assertNotNull(actualUpdatedManagedSqlEntryStatus0.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0.getFailedAt());
@@ -418,15 +476,44 @@ public class ManagedSqlReconciliatorTest {
         JsonUtil.toJson(actualUpdatedManagedSqlStatus));
 
     actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
-    var actualUpdatedManagedSqlEntryStatus1 =
+    var actualUpdatedManagedSqlEntryStatus1Intent =
         actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus1Intent.getUpdatedAt());
     expectedUpdatedManagedSqlEntryStatus.getScripts()
         .add(new StackGresClusterManagedScriptEntryScriptStatus());
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setId(1);
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus1Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus1 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(null);
     assertNotNull(actualUpdatedManagedSqlEntryStatus1.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus2Intent =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus2Intent.getUpdatedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setId(2);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus2Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus2Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus2Intent.getFailedAt());
     JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
         JsonUtil.toJson(actualUpdatedManagedSqlStatus));
 
@@ -435,24 +522,21 @@ public class ManagedSqlReconciliatorTest {
         actualUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus.setCompletedAt(
         actualUpdatedManagedSqlEntryStatus2.getCompletedAt());
-    expectedUpdatedManagedSqlEntryStatus.getScripts()
-        .add(new StackGresClusterManagedScriptEntryScriptStatus());
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setId(2);
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntents(null);
     assertNotNull(actualUpdatedManagedSqlEntryStatus2.getStartedAt());
     assertNotNull(actualUpdatedManagedSqlEntryStatus2.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus2.getFailedAt());
     JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
         JsonUtil.toJson(actualUpdatedManagedSqlStatus));
 
-    ArgumentCaptor<ClusterControllerEventReason> eventReasonArgumentCaptor =
-        ArgumentCaptor.forClass(ClusterControllerEventReason.class);
+    ArgumentCaptor<ClusterManagedSqlEventReason> eventReasonArgumentCaptor =
+        ArgumentCaptor.forClass(ClusterManagedSqlEventReason.class);
     verify(eventController, times(3)).sendEvent(
         eventReasonArgumentCaptor.capture(), any(), any(), any());
     assertEquals(List.of(
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL,
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL,
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL),
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL),
         eventReasonArgumentCaptor.getAllValues());
   }
 
@@ -496,11 +580,13 @@ public class ManagedSqlReconciliatorTest {
         actualUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus.setStartedAt(
         actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getUpdatedAt());
     expectedUpdatedManagedSqlEntryStatus.getScripts()
         .add(new StackGresClusterManagedScriptEntryScriptStatus());
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setId(0);
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setVersion(0);
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntent(true);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(1);
     assertNotNull(actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getFailedAt());
@@ -510,7 +596,7 @@ public class ManagedSqlReconciliatorTest {
     actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
     var actualUpdatedManagedSqlEntryStatus0 =
         actualUpdatedManagedSqlStatus.getScripts().get(0);
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntent(null);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(null);
     assertNotNull(actualUpdatedManagedSqlEntryStatus0.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0.getFailedAt());
@@ -520,11 +606,13 @@ public class ManagedSqlReconciliatorTest {
     actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
     var actualUpdatedManagedSqlEntryStatus1Intent =
         actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus1Intent.getUpdatedAt());
     expectedUpdatedManagedSqlEntryStatus.getScripts()
         .add(new StackGresClusterManagedScriptEntryScriptStatus());
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setId(1);
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setVersion(0);
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntent(true);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(1);
     assertNotNull(actualUpdatedManagedSqlEntryStatus1Intent.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getFailedAt());
@@ -536,23 +624,22 @@ public class ManagedSqlReconciliatorTest {
         actualUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus.setFailedAt(
         actualUpdatedManagedSqlEntryStatus1.getFailedAt());
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntent(null);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(1);
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setFailureCode("XX500");
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setFailure("test");
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setFailures(1);
     assertNotNull(actualUpdatedManagedSqlEntryStatus1.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1.getCompletedAt());
     assertNotNull(actualUpdatedManagedSqlEntryStatus1.getFailedAt());
     JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
         JsonUtil.toJson(actualUpdatedManagedSqlStatus));
 
-    ArgumentCaptor<ClusterControllerEventReason> eventReasonArgumentCaptor =
-        ArgumentCaptor.forClass(ClusterControllerEventReason.class);
+    ArgumentCaptor<ClusterManagedSqlEventReason> eventReasonArgumentCaptor =
+        ArgumentCaptor.forClass(ClusterManagedSqlEventReason.class);
     verify(eventController, times(2)).sendEvent(
         eventReasonArgumentCaptor.capture(), any(), any(), any());
     assertEquals(List.of(
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL,
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL_ERROR),
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL_ERROR),
         eventReasonArgumentCaptor.getAllValues());
   }
 
@@ -587,6 +674,8 @@ public class ManagedSqlReconciliatorTest {
     final StackGresCluster cluster = JsonUtil
         .readFromJson("stackgres_cluster/managed_sql.json",
             StackGresCluster.class);
+    script.getSpec().setContinueOnError(true);
+    script.getSpec().getScripts().get(0).setRetryOnError(true);
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
@@ -611,24 +700,53 @@ public class ManagedSqlReconciliatorTest {
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(managedSqlScriptEntryExecutor, times(3)).executeScriptEntry(any(), any());
-    verify(clusterScheduler, times(3)).update(any(), any());
+    verify(clusterScheduler, times(6)).update(any(), any());
     var expectedUpdatedManagedSqlStatus = originalCluster.getStatus().getManagedSql();
     var expectedUpdatedManagedSqlEntryStatus = expectedUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus.setScripts(new ArrayList<>());
 
     var actualUpdatedManagedSqlStatusIterator = actualUpdatedManagedSqlStatusList.iterator();
     var actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
-    var actualUpdatedManagedSqlEntryStatus0 =
+    var actualUpdatedManagedSqlEntryStatus0Intent =
         actualUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus.setStartedAt(
-        actualUpdatedManagedSqlEntryStatus0.getStartedAt());
+        actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getUpdatedAt());
     expectedUpdatedManagedSqlEntryStatus.getScripts()
         .add(new StackGresClusterManagedScriptEntryScriptStatus());
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setId(0);
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus0 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(null);
     assertNotNull(actualUpdatedManagedSqlEntryStatus0.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus1Intent =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus1Intent.getUpdatedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setId(1);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus1Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getFailedAt());
     JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
         JsonUtil.toJson(actualUpdatedManagedSqlStatus));
 
@@ -637,13 +755,9 @@ public class ManagedSqlReconciliatorTest {
         actualUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus.setFailedAt(
         actualUpdatedManagedSqlEntryStatus1.getFailedAt());
-    expectedUpdatedManagedSqlEntryStatus.getScripts()
-        .add(new StackGresClusterManagedScriptEntryScriptStatus());
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setId(1);
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(1);
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setFailureCode("XX500");
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setFailure("test");
-    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setFailures(1);
     assertNotNull(actualUpdatedManagedSqlEntryStatus1.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1.getCompletedAt());
     assertNotNull(actualUpdatedManagedSqlEntryStatus1.getFailedAt());
@@ -651,26 +765,487 @@ public class ManagedSqlReconciliatorTest {
         JsonUtil.toJson(actualUpdatedManagedSqlStatus));
 
     actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
-    var actualUpdatedManagedSqlEntryStatus2 =
+    var actualUpdatedManagedSqlEntryStatus2Intent =
         actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus2Intent.getUpdatedAt());
     expectedUpdatedManagedSqlEntryStatus.getScripts()
         .add(new StackGresClusterManagedScriptEntryScriptStatus());
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setId(2);
     expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus2Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus2Intent.getCompletedAt());
+    assertNotNull(actualUpdatedManagedSqlEntryStatus2Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus2 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntents(null);
     assertNotNull(actualUpdatedManagedSqlEntryStatus2.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus2.getCompletedAt());
     assertNotNull(actualUpdatedManagedSqlEntryStatus2.getFailedAt());
     JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
         JsonUtil.toJson(actualUpdatedManagedSqlStatus));
 
-    ArgumentCaptor<ClusterControllerEventReason> eventReasonArgumentCaptor =
-        ArgumentCaptor.forClass(ClusterControllerEventReason.class);
+    ArgumentCaptor<ClusterManagedSqlEventReason> eventReasonArgumentCaptor =
+        ArgumentCaptor.forClass(ClusterManagedSqlEventReason.class);
     verify(eventController, times(3)).sendEvent(
         eventReasonArgumentCaptor.capture(), any(), any(), any());
     assertEquals(List.of(
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL,
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL_ERROR,
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL),
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL_ERROR,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL),
+        eventReasonArgumentCaptor.getAllValues());
+  }
+
+  @Test
+  void testReconciliationOfFailedScriptWithoutRetryOnError_skipExecutionAfterAFailure()
+      throws Exception {
+    final StackGresCluster cluster = JsonUtil
+        .readFromJson("stackgres_cluster/managed_sql.json",
+            StackGresCluster.class);
+    script.getSpec().setContinueOnError(false);
+    script.getSpec().getScripts().get(0).setRetryOnError(false);
+    cluster.getStatus().getManagedSql().getScripts().get(0).setScripts(new ArrayList<>());
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setId(0);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setVersion(0);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setIntents(1);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setFailureCode("test");
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setFailure("test");
+    when(context.getCluster()).thenReturn(cluster);
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+        .thenReturn(Optional.of(patroniEndpoints));
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
+        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
+
+    reconciliator.reconcile(client, context);
+
+    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(managedSqlScriptEntryExecutor, times(0)).executeScriptEntry(any(), any());
+    verify(clusterScheduler, times(0)).update(any(), any());
+    verify(eventController, times(0)).sendEvent(any(), any(), any(), any());
+  }
+
+  @Test
+  void testReconciliationOfScriptWithIntentWithoutRetryOnError_skipExecutionAfterAFailure()
+      throws Exception {
+    final StackGresCluster cluster = JsonUtil
+        .readFromJson("stackgres_cluster/managed_sql.json",
+            StackGresCluster.class);
+    script.getSpec().setContinueOnError(false);
+    script.getSpec().getScripts().get(0).setRetryOnError(false);
+    cluster.getStatus().getManagedSql().getScripts().get(0).setScripts(new ArrayList<>());
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setId(0);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setVersion(0);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setIntents(1);
+    when(context.getCluster()).thenReturn(cluster);
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+        .thenReturn(Optional.of(patroniEndpoints));
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
+        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
+
+    reconciliator.reconcile(client, context);
+
+    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(managedSqlScriptEntryExecutor, times(0)).executeScriptEntry(any(), any());
+    verify(clusterScheduler, times(0)).update(any(), any());
+    verify(eventController, times(0)).sendEvent(any(), any(), any(), any());
+  }
+
+  @Test
+  void testReconciliationOfFailedScriptWithRetryOnError_executeAfterAFailure()
+      throws Exception {
+    final StackGresCluster cluster = JsonUtil
+        .readFromJson("stackgres_cluster/managed_sql.json",
+            StackGresCluster.class);
+    script.getSpec().setContinueOnError(false);
+    script.getSpec().getScripts().get(0).setRetryOnError(true);
+    cluster.getStatus().getManagedSql().getScripts().get(0).setScripts(new ArrayList<>());
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setId(0);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setVersion(0);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setIntents(1);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setFailureCode("test");
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setFailure("test");
+    final StackGresCluster originalCluster = JsonUtil.copy(cluster);
+    when(context.getCluster()).thenReturn(cluster);
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+        .thenReturn(Optional.of(patroniEndpoints));
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
+        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
+    when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
+    when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
+    var actualUpdatedManagedSqlStatusList = new ArrayList<StackGresClusterManagedSqlStatus>();
+    when(clusterScheduler.update(any(), any())).then(invocation -> {
+      addUpdatedManagedSqlStatus(invocation, cluster, actualUpdatedManagedSqlStatusList);
+      return null;
+    });
+
+    reconciliator.reconcile(client, context);
+
+    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(managedSqlScriptEntryExecutor, times(3)).executeScriptEntry(any(), any());
+    verify(clusterScheduler, times(6)).update(any(), any());
+    var expectedUpdatedManagedSqlStatus = originalCluster.getStatus().getManagedSql();
+    var expectedUpdatedManagedSqlEntryStatus = expectedUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setScripts(new ArrayList<>());
+
+    var actualUpdatedManagedSqlStatusIterator = actualUpdatedManagedSqlStatusList.iterator();
+    var actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus0Intent =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setStartedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getUpdatedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setId(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(2);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setFailureCode(null);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setFailure(null);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus0 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(null);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus0.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus1Intent =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus1Intent.getUpdatedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setId(1);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus1Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus1 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(null);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus1.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus2Intent =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus2Intent.getUpdatedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setId(2);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus2Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus2Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus2Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus2 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setCompletedAt(
+        actualUpdatedManagedSqlEntryStatus2.getCompletedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntents(null);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus2.getStartedAt());
+    assertNotNull(actualUpdatedManagedSqlEntryStatus2.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus2.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    ArgumentCaptor<ClusterManagedSqlEventReason> eventReasonArgumentCaptor =
+        ArgumentCaptor.forClass(ClusterManagedSqlEventReason.class);
+    verify(eventController, times(3)).sendEvent(
+        eventReasonArgumentCaptor.capture(), any(), any(), any());
+    assertEquals(List.of(
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL),
+        eventReasonArgumentCaptor.getAllValues());
+  }
+
+  @Test
+  void testReconciliationOfReFailedScriptWithRetryOnError_retryTheFailedScriptOnly()
+      throws Exception {
+    final StackGresCluster cluster = JsonUtil
+        .readFromJson("stackgres_cluster/managed_sql.json",
+            StackGresCluster.class);
+    script.getSpec().setContinueOnError(false);
+    script.getSpec().getScripts().get(0).setRetryOnError(true);
+    cluster.getStatus().getManagedSql().getScripts().get(0).setScripts(new ArrayList<>());
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setId(0);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setVersion(0);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setIntents(1);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setFailureCode("test");
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setFailure("test");
+    final StackGresCluster originalCluster = JsonUtil.copy(cluster);
+    when(context.getCluster()).thenReturn(cluster);
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+        .thenReturn(Optional.of(patroniEndpoints));
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
+        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
+    doThrow(new RuntimeException("test"))
+        .when(managedSqlScriptEntryExecutor).executeScriptEntry(any(), any());
+    var actualUpdatedManagedSqlStatusList = new ArrayList<StackGresClusterManagedSqlStatus>();
+    when(clusterScheduler.update(any(), any())).then(invocation -> {
+      addUpdatedManagedSqlStatus(invocation, cluster, actualUpdatedManagedSqlStatusList);
+      return null;
+    });
+
+    reconciliator.reconcile(client, context);
+
+    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(managedSqlScriptEntryExecutor, times(1)).executeScriptEntry(any(), any());
+    verify(clusterScheduler, times(2)).update(any(), any());
+    var expectedUpdatedManagedSqlStatus = originalCluster.getStatus().getManagedSql();
+    var expectedUpdatedManagedSqlEntryStatus = expectedUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setScripts(new ArrayList<>());
+
+    var actualUpdatedManagedSqlStatusIterator = actualUpdatedManagedSqlStatusList.iterator();
+    var actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus0Intent =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setStartedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getUpdatedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setId(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(2);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setFailureCode(null);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setFailure(null);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus0 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setFailedAt(
+        actualUpdatedManagedSqlEntryStatus0.getFailedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(2);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setFailureCode("XX500");
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setFailure("test");
+    assertNotNull(actualUpdatedManagedSqlEntryStatus0.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0.getCompletedAt());
+    assertNotNull(actualUpdatedManagedSqlEntryStatus0.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    ArgumentCaptor<ClusterManagedSqlEventReason> eventReasonArgumentCaptor =
+        ArgumentCaptor.forClass(ClusterManagedSqlEventReason.class);
+    verify(eventController, times(1)).sendEvent(
+        eventReasonArgumentCaptor.capture(), any(), any(), any());
+    assertEquals(List.of(
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL_ERROR),
+        eventReasonArgumentCaptor.getAllValues());
+  }
+
+  @Test
+  void testReconciliationOfScriptWithIntentWithRetryOnError_executeAfterAFailure()
+      throws Exception {
+    final StackGresCluster cluster = JsonUtil
+        .readFromJson("stackgres_cluster/managed_sql.json",
+            StackGresCluster.class);
+    script.getSpec().setContinueOnError(false);
+    script.getSpec().getScripts().get(0).setRetryOnError(true);
+    cluster.getStatus().getManagedSql().getScripts().get(0).setScripts(new ArrayList<>());
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setId(0);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setVersion(0);
+    cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
+        .setIntents(1);
+    final StackGresCluster originalCluster = JsonUtil.copy(cluster);
+    when(context.getCluster()).thenReturn(cluster);
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+        .thenReturn(Optional.of(patroniEndpoints));
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
+        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
+    when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
+    when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
+    var actualUpdatedManagedSqlStatusList = new ArrayList<StackGresClusterManagedSqlStatus>();
+    when(clusterScheduler.update(any(), any())).then(invocation -> {
+      addUpdatedManagedSqlStatus(invocation, cluster, actualUpdatedManagedSqlStatusList);
+      return null;
+    });
+
+    reconciliator.reconcile(client, context);
+
+    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(managedSqlScriptEntryExecutor, times(3)).executeScriptEntry(any(), any());
+    verify(clusterScheduler, times(6)).update(any(), any());
+    var expectedUpdatedManagedSqlStatus = originalCluster.getStatus().getManagedSql();
+    var expectedUpdatedManagedSqlEntryStatus = expectedUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setScripts(new ArrayList<>());
+
+    var actualUpdatedManagedSqlStatusIterator = actualUpdatedManagedSqlStatusList.iterator();
+    var actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus0Intent =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setStartedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getUpdatedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setId(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(2);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus0 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(0).setIntents(null);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus0.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus0.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus1Intent =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus1Intent.getUpdatedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setId(1);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus1Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus1 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(1).setIntents(null);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus1.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus1.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus2Intent =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus2Intent.getUpdatedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts()
+        .add(new StackGresClusterManagedScriptEntryScriptStatus());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setId(2);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setVersion(0);
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntents(1);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus2Intent.getStartedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus2Intent.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus2Intent.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
+    var actualUpdatedManagedSqlEntryStatus2 =
+        actualUpdatedManagedSqlStatus.getScripts().get(0);
+    expectedUpdatedManagedSqlEntryStatus.setCompletedAt(
+        actualUpdatedManagedSqlEntryStatus2.getCompletedAt());
+    expectedUpdatedManagedSqlEntryStatus.getScripts().get(2).setIntents(null);
+    assertNotNull(actualUpdatedManagedSqlEntryStatus2.getStartedAt());
+    assertNotNull(actualUpdatedManagedSqlEntryStatus2.getCompletedAt());
+    assertNull(actualUpdatedManagedSqlEntryStatus2.getFailedAt());
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
+        JsonUtil.toJson(actualUpdatedManagedSqlStatus));
+
+    ArgumentCaptor<ClusterManagedSqlEventReason> eventReasonArgumentCaptor =
+        ArgumentCaptor.forClass(ClusterManagedSqlEventReason.class);
+    verify(eventController, times(3)).sendEvent(
+        eventReasonArgumentCaptor.capture(), any(), any(), any());
+    assertEquals(List.of(
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL),
         eventReasonArgumentCaptor.getAllValues());
   }
 
@@ -722,11 +1297,13 @@ public class ManagedSqlReconciliatorTest {
         actualUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus0.setStartedAt(
         actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
+    expectedUpdatedManagedSqlEntryStatus0.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus0Intent.getUpdatedAt());
     expectedUpdatedManagedSqlEntryStatus0.getScripts()
         .add(new StackGresClusterManagedScriptEntryScriptStatus());
     expectedUpdatedManagedSqlEntryStatus0.getScripts().get(0).setId(0);
     expectedUpdatedManagedSqlEntryStatus0.getScripts().get(0).setVersion(0);
-    expectedUpdatedManagedSqlEntryStatus0.getScripts().get(0).setIntent(true);
+    expectedUpdatedManagedSqlEntryStatus0.getScripts().get(0).setIntents(1);
     assertNotNull(actualUpdatedManagedSqlEntryStatus0Intent.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0Intent.getFailedAt());
@@ -738,10 +1315,9 @@ public class ManagedSqlReconciliatorTest {
         actualUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus0.setFailedAt(
         actualUpdatedManagedSqlEntryStatus0.getFailedAt());
-    expectedUpdatedManagedSqlEntryStatus0.getScripts().get(0).setIntent(null);
+    expectedUpdatedManagedSqlEntryStatus0.getScripts().get(0).setIntents(1);
     expectedUpdatedManagedSqlEntryStatus0.getScripts().get(0).setFailureCode("XX500");
     expectedUpdatedManagedSqlEntryStatus0.getScripts().get(0).setFailure("test");
-    expectedUpdatedManagedSqlEntryStatus0.getScripts().get(0).setFailures(1);
     assertNotNull(actualUpdatedManagedSqlEntryStatus0.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus0.getCompletedAt());
     assertNotNull(actualUpdatedManagedSqlEntryStatus0.getFailedAt());
@@ -754,13 +1330,15 @@ public class ManagedSqlReconciliatorTest {
     actualUpdatedManagedSqlStatus = actualUpdatedManagedSqlStatusIterator.next();
     var actualUpdatedManagedSqlEntryStatus1Intent =
         actualUpdatedManagedSqlStatus.getScripts().get(1);
+    expectedUpdatedManagedSqlEntryStatus1.setUpdatedAt(
+        actualUpdatedManagedSqlEntryStatus1Intent.getUpdatedAt());
     expectedUpdatedManagedSqlEntryStatus1.setStartedAt(
         actualUpdatedManagedSqlEntryStatus1Intent.getStartedAt());
     expectedUpdatedManagedSqlEntryStatus1.getScripts()
         .add(new StackGresClusterManagedScriptEntryScriptStatus());
     expectedUpdatedManagedSqlEntryStatus1.getScripts().get(0).setId(0);
     expectedUpdatedManagedSqlEntryStatus1.getScripts().get(0).setVersion(0);
-    expectedUpdatedManagedSqlEntryStatus1.getScripts().get(0).setIntent(true);
+    expectedUpdatedManagedSqlEntryStatus1.getScripts().get(0).setIntents(1);
     assertNotNull(actualUpdatedManagedSqlEntryStatus1Intent.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getCompletedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1Intent.getFailedAt());
@@ -774,23 +1352,22 @@ public class ManagedSqlReconciliatorTest {
         actualUpdatedManagedSqlEntryStatus1.getStartedAt());
     expectedUpdatedManagedSqlEntryStatus1.setFailedAt(
         actualUpdatedManagedSqlEntryStatus1.getFailedAt());
-    expectedUpdatedManagedSqlEntryStatus1.getScripts().get(0).setIntent(null);
+    expectedUpdatedManagedSqlEntryStatus1.getScripts().get(0).setIntents(1);
     expectedUpdatedManagedSqlEntryStatus1.getScripts().get(0).setFailureCode("XX500");
     expectedUpdatedManagedSqlEntryStatus1.getScripts().get(0).setFailure("test");
-    expectedUpdatedManagedSqlEntryStatus1.getScripts().get(0).setFailures(1);
     assertNotNull(actualUpdatedManagedSqlEntryStatus1.getStartedAt());
     assertNull(actualUpdatedManagedSqlEntryStatus1.getCompletedAt());
     assertNotNull(actualUpdatedManagedSqlEntryStatus1.getFailedAt());
     JsonUtil.assertJsonEquals(JsonUtil.toJson(expectedUpdatedManagedSqlStatus),
         JsonUtil.toJson(actualUpdatedManagedSqlStatus));
 
-    ArgumentCaptor<ClusterControllerEventReason> eventReasonArgumentCaptor =
-        ArgumentCaptor.forClass(ClusterControllerEventReason.class);
+    ArgumentCaptor<ClusterManagedSqlEventReason> eventReasonArgumentCaptor =
+        ArgumentCaptor.forClass(ClusterManagedSqlEventReason.class);
     verify(eventController, times(2)).sendEvent(
         eventReasonArgumentCaptor.capture(), any(), any(), any());
     assertEquals(List.of(
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL_ERROR,
-        ClusterControllerEventReason.CLUSTER_MANAGED_SQL_ERROR),
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL_ERROR,
+        ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL_ERROR),
         eventReasonArgumentCaptor.getAllValues());
   }
 

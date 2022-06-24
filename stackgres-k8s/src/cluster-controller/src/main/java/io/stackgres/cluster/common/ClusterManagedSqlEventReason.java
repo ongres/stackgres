@@ -5,26 +5,28 @@
 
 package io.stackgres.cluster.common;
 
+import static io.stackgres.operatorframework.resource.EventReason.Type.NORMAL;
 import static io.stackgres.operatorframework.resource.EventReason.Type.WARNING;
 
-import io.stackgres.common.StackGresContainer;
+import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.operatorframework.resource.EventReason;
 
-public enum ClusterControllerEventReason implements EventReason {
+public enum ClusterManagedSqlEventReason implements EventReason {
 
-  CLUSTER_CONTROLLER_ERROR(WARNING, "ClusterControllerFailed");
+  CLUSTER_MANAGED_SQL(NORMAL, "ClusterManagedSql"),
+  CLUSTER_MANAGED_SQL_ERROR(WARNING, "ClusterManagedSqlFailed");
 
   private final Type type;
   private final String reason;
 
-  ClusterControllerEventReason(Type type, String reason) {
+  ClusterManagedSqlEventReason(Type type, String reason) {
     this.type = type;
     this.reason = reason;
   }
 
   @Override
   public String component() {
-    return StackGresContainer.CLUSTER_CONTROLLER.getName();
+    return StackgresClusterContainers.CLUSTER_CONTROLLER;
   }
 
   @Override

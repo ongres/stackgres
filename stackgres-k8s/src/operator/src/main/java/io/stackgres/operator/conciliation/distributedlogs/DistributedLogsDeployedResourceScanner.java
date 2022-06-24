@@ -11,7 +11,6 @@ import java.util.function.Function;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -45,26 +44,30 @@ public class DistributedLogsDeployedResourceScanner
     this.labelFactory = null;
   }
 
+  @Override
   protected Map<String, String> getGenericLabels(StackGresDistributedLogs config) {
     return labelFactory.genericLabels(config);
   }
 
+  @Override
   protected StackGresKubernetesClient getClient() {
     return (StackGresKubernetesClient) client;
   }
 
-  protected ImmutableMap<Class<? extends HasMetadata>,
+  @Override
+  protected Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations() {
     return IN_NAMESPACE_RESOURCE_OPERATIONS;
   }
 
-  protected ImmutableMap<Class<? extends HasMetadata>,
+  @Override
+  protected Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>> getAnyNamespaceResourceOperations() {
-    return ImmutableMap.of();
+    return Map.of();
   }
 
 }

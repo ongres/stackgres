@@ -40,12 +40,14 @@ public class Conciliator<T extends CustomResource<?, ?>> {
         .collect(Collectors.toUnmodifiableList());
 
     List<Tuple2<HasMetadata, HasMetadata>> patches = requiredResources.stream()
-        .map(requiredResource -> {
-          Optional<HasMetadata> deployedResource = deployedResources.stream()
+        .map(requiredResource -> deployedResources.stream()
               .filter(dr -> isTheSameResource(requiredResource, dr))
-              .findFirst();
-          return Tuple.tuple(requiredResource, deployedResource);
-        }).filter(resourceTuple -> resourceTuple.v2.isPresent())
+              .findFirst()
+              .map(deployedResource -> Tuple.tuple(
+                  requiredResource, Optional.of(deployedResource)))
+              .orElseGet(() -> Tuple.tuple(
+                  requiredResource, Optional.empty())))
+        .filter(resourceTuple -> resourceTuple.v2.isPresent())
         .map(rt -> rt.map2(Optional::get))
         .filter(tuple -> ReconciliationUtil.isResourceReconciliationNotPaused(tuple.v2))
         .filter(resourceTuple -> !isResourceContentEqual(resourceTuple.v1, resourceTuple.v2))

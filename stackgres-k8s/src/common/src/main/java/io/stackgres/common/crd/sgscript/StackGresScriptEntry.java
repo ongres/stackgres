@@ -23,8 +23,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationMode;
 import io.stackgres.common.validation.FieldReference;
-import io.stackgres.common.validation.ValidEnum;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
+import io.stackgres.common.validation.ValidEnum;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)

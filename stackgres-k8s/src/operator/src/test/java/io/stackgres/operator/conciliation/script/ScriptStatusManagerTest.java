@@ -5,11 +5,13 @@
 
 package io.stackgres.operator.conciliation.script;
 
+import static io.stackgres.common.ManagedSqlUtil.generateScriptEntryHash;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,8 +19,8 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;
@@ -32,7 +34,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ScriptStatusManagerTest {
 
   private StackGresScript expectedScript;
+  private List<StackGresScriptEntry> expectedScripts;
   private StackGresScript script;
+  private List<StackGresScriptEntry> scripts;
 
   private final Secret secret = new SecretBuilder()
       .withData(Map.of("test", ResourceUtil.encodeSecret("CREATE USER test;")))
@@ -53,10 +57,12 @@ class ScriptStatusManagerTest {
   @BeforeEach
   void setUp() {
     statusManager = new ScriptStatusManager(configMapFinder, secretFinder);
-    script = JsonUtil
-        .readFromJson("stackgres_script/default.json", StackGresScript.class);
     expectedScript = JsonUtil
         .readFromJson("stackgres_script/default.json", StackGresScript.class);
+    expectedScripts = expectedScript.getSpec().getScripts();
+    script = JsonUtil
+        .readFromJson("stackgres_script/default.json", StackGresScript.class);
+    scripts = expectedScript.getSpec().getScripts();
   }
 
   @Test
@@ -66,11 +72,11 @@ class ScriptStatusManagerTest {
     when(configMapFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(configMap));
     expectedScript.getStatus().getScripts().get(0).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE DATABASE test;"));
+        generateScriptEntryHash(expectedScripts.get(0), "CREATE DATABASE IF NOT EXISTS test;"));
     expectedScript.getStatus().getScripts().get(1).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE USER test;"));
+        generateScriptEntryHash(expectedScripts.get(1), "CREATE USER test;"));
     expectedScript.getStatus().getScripts().get(2).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE TABLE test();"));
+        generateScriptEntryHash(expectedScripts.get(2), "CREATE TABLE test();"));
 
     statusManager.refreshCondition(script);
 
@@ -88,17 +94,17 @@ class ScriptStatusManagerTest {
     when(configMapFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(configMap));
     script.getStatus().getScripts().get(0).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE DATABASE test;"));
+        generateScriptEntryHash(scripts.get(0), "CREATE DATABASE IF NOT EXISTS test;"));
     script.getStatus().getScripts().get(1).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE USER test;"));
+        generateScriptEntryHash(scripts.get(1), "CREATE USER test;"));
     script.getStatus().getScripts().get(2).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE TABLE test();"));
+        generateScriptEntryHash(scripts.get(2), "CREATE TABLE test();"));
     expectedScript.getStatus().getScripts().get(0).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE DATABASE test;"));
+        generateScriptEntryHash(expectedScripts.get(0), "CREATE DATABASE IF NOT EXISTS test;"));
     expectedScript.getStatus().getScripts().get(1).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE USER test;"));
+        generateScriptEntryHash(expectedScripts.get(1), "CREATE USER test;"));
     expectedScript.getStatus().getScripts().get(2).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE TABLE test();"));
+        generateScriptEntryHash(expectedScripts.get(2), "CREATE TABLE test();"));
 
     statusManager.refreshCondition(script);
 
@@ -121,21 +127,21 @@ class ScriptStatusManagerTest {
             .build()));
     script.getSpec().getScripts().get(0).setScript("CREATE DATABASE test2;");
     script.getStatus().getScripts().get(0).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE DATABASE test;"));
+        generateScriptEntryHash(scripts.get(0), "CREATE DATABASE IF NOT EXISTS test;"));
     script.getStatus().getScripts().get(1).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE USER test;"));
+        generateScriptEntryHash(scripts.get(1), "CREATE USER test;"));
     script.getStatus().getScripts().get(2).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE TABLE test();"));
+        generateScriptEntryHash(scripts.get(2), "CREATE TABLE test();"));
     expectedScript.getSpec().getScripts().get(0).setScript("CREATE DATABASE test2;");
     expectedScript.getSpec().getScripts().get(0).setVersion(1);
     expectedScript.getSpec().getScripts().get(1).setVersion(1);
     expectedScript.getSpec().getScripts().get(2).setVersion(1);
     expectedScript.getStatus().getScripts().get(0).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE DATABASE test2;"));
+        generateScriptEntryHash(expectedScripts.get(0), "CREATE DATABASE test2;"));
     expectedScript.getStatus().getScripts().get(1).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE USER test2;"));
+        generateScriptEntryHash(expectedScripts.get(1), "CREATE USER test2;"));
     expectedScript.getStatus().getScripts().get(2).setHash(
-        StackGresUtil.getMd5Sum(null, null, "CREATE TABLE test2();"));
+        generateScriptEntryHash(expectedScripts.get(2), "CREATE TABLE test2();"));
 
     statusManager.refreshCondition(script);
 

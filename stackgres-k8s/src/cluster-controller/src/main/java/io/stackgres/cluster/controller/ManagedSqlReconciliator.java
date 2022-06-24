@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
+import io.stackgres.cluster.common.ClusterManagedSqlEventReason;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
@@ -298,11 +299,11 @@ public class ManagedSqlReconciliator {
       final StackGresClusterManagedScriptEntryScriptStatus managedScriptEntryStatus,
       boolean isScriptEntryUpToDate) {
     if (isScriptEntryUpToDate) {
-      eventController.sendEvent(ClusterControllerEventReason.CLUSTER_MANAGED_SQL,
+      eventController.sendEvent(ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
           "Managed script " + getManagedScriptEntryDescription(managedScript, scriptEntry)
               + " has been executed successfully", context.getCluster(), client);
     } else {
-      eventController.sendEvent(ClusterControllerEventReason.CLUSTER_MANAGED_SQL_ERROR,
+      eventController.sendEvent(ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL_ERROR,
           "Managed script " + getManagedScriptEntryDescription(managedScript, scriptEntry)
               + " has failed (" + managedScriptEntryStatus.getFailureCode() + "): "
               + managedScriptEntryStatus.getFailure(), context.getCluster(), client);
@@ -321,18 +322,22 @@ public class ManagedSqlReconciliator {
 
   protected boolean isScriptEntryUpToDate(StackGresScriptEntry scriptEntry,
       StackGresClusterManagedScriptEntryScriptStatus mangedScriptEntryStatus) {
-    return mangedScriptEntryStatus.isIntent() == null
+    return mangedScriptEntryStatus.getIntents() == null
+        && Objects.equals(scriptEntry.getVersion(), mangedScriptEntryStatus.getVersion());
+  }
+
+  protected boolean isScriptEntryExecutionHang(StackGresScriptEntry scriptEntry,
+      StackGresClusterManagedScriptEntryScriptStatus mangedScriptEntryStatus) {
+    return mangedScriptEntryStatus.getIntents() != null
         && mangedScriptEntryStatus.getFailureCode() == null
-        && mangedScriptEntryStatus.getFailure() == null
         && Objects.equals(scriptEntry.getVersion(), mangedScriptEntryStatus.getVersion());
   }
 
   protected boolean isScriptEntryFailed(StackGresScriptEntry scriptEntry,
       StackGresClusterManagedScriptEntryScriptStatus mangedScriptEntryStatus) {
-    return Objects.equals(scriptEntry.getVersion(), mangedScriptEntryStatus.getVersion())
-        && (mangedScriptEntryStatus.isIntent() != null
-        || mangedScriptEntryStatus.getFailureCode() != null
-        || mangedScriptEntryStatus.getFailure() != null);
+    return mangedScriptEntryStatus.getIntents() != null
+        && mangedScriptEntryStatus.getFailureCode() != null
+        && Objects.equals(scriptEntry.getVersion(), mangedScriptEntryStatus.getVersion());
   }
 
   private String getManagedScriptEntryDescription(StackGresClusterManagedScriptEntry managedScript,
