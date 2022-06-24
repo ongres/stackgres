@@ -56,10 +56,10 @@ import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.VolumePair;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniDefaultScripts;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V_1_0, stopAt = StackGresVersion.V_1_2)
@@ -76,7 +76,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   private final VolumeMountsProvider<ContainerContext> backupMounts;
   private final VolumeMountsProvider<StackGresClusterContainerContext> hugePagesMounts;
   private final VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
-  private final PatroniDefaultScripts patroniDefaultScripts;
+  private final ClusterDefaultScripts patroniDefaultScripts;
 
   @Inject
   public Patroni(
@@ -95,7 +95,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
       @ProviderName(VolumeMountProviderName.HUGE_PAGES)
           VolumeMountsProvider<StackGresClusterContainerContext> hugePagesMounts,
       VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer,
-      PatroniDefaultScripts patroniDefaultScripts) {
+      ClusterDefaultScripts patroniDefaultScripts) {
     super();
     this.patroniEnvironmentVariables = patroniEnvironmentVariables;
     this.requirementsFactory = requirementsFactory;

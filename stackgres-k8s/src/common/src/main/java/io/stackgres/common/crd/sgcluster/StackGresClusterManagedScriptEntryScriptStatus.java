@@ -28,17 +28,14 @@ public class StackGresClusterManagedScriptEntryScriptStatus {
   @NotNull(message = "version can not be null")
   private Integer version;
 
-  @JsonProperty("intent")
-  private Boolean intent;
+  @JsonProperty("intents")
+  private Integer intents;
 
   @JsonProperty("failureCode")
   private String failureCode;
 
   @JsonProperty("failure")
   private String failure;
-
-  @JsonProperty("failures")
-  private Integer failures;
 
   public Integer getId() {
     return id;
@@ -56,12 +53,12 @@ public class StackGresClusterManagedScriptEntryScriptStatus {
     this.version = version;
   }
 
-  public Boolean isIntent() {
-    return intent;
+  public Integer getIntents() {
+    return intents;
   }
 
-  public void setIntent(Boolean intent) {
-    this.intent = intent;
+  public void setIntents(Integer intents) {
+    this.intents = intents;
   }
 
   public String getFailureCode() {
@@ -80,17 +77,9 @@ public class StackGresClusterManagedScriptEntryScriptStatus {
     this.failure = failure;
   }
 
-  public Integer getFailures() {
-    return failures;
-  }
-
-  public void setFailures(Integer failures) {
-    this.failures = failures;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(failure, failureCode, failures, id, intent, version);
+    return Objects.hash(failure, failureCode, id, intents, version);
   }
 
   @Override
@@ -104,8 +93,8 @@ public class StackGresClusterManagedScriptEntryScriptStatus {
     StackGresClusterManagedScriptEntryScriptStatus other =
         (StackGresClusterManagedScriptEntryScriptStatus) obj;
     return Objects.equals(failure, other.failure) && Objects.equals(failureCode, other.failureCode)
-        && Objects.equals(failures, other.failures) && Objects.equals(id, other.id)
-        && Objects.equals(intent, other.intent) && Objects.equals(version, other.version);
+        && Objects.equals(id, other.id) && Objects.equals(intents, other.intents)
+        && Objects.equals(version, other.version);
   }
 
   @Override

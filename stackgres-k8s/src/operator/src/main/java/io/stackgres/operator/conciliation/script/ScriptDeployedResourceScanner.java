@@ -11,7 +11,6 @@ import java.util.function.Function;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -40,14 +39,14 @@ public class ScriptDeployedResourceScanner extends DeployedResourcesScanner<Stac
   }
 
   @Override
-  protected ImmutableMap<Class<? extends HasMetadata>, Function<KubernetesClient,
+  protected Map<Class<? extends HasMetadata>, Function<KubernetesClient,
       MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
           ? extends Resource<? extends HasMetadata>>>> getAnyNamespaceResourceOperations() {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  protected ImmutableMap<Class<? extends HasMetadata>, Function<KubernetesClient,
+  protected Map<Class<? extends HasMetadata>, Function<KubernetesClient,
       MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
           ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations() {
     throw new UnsupportedOperationException();

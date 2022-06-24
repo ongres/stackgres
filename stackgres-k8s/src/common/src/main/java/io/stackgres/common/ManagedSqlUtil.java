@@ -62,8 +62,11 @@ public interface ManagedSqlUtil {
 
   static String generateScriptEntryHash(StackGresScriptEntry scriptEntry, String script) {
     return StackGresUtil.getMd5Sum(
-        scriptEntry.getDatabase(),
-        scriptEntry.getUser(),
+        scriptEntry.getDatabaseOrDefault(),
+        scriptEntry.getUserOrDefault(),
+        scriptEntry.getWrapInTransaction(),
+        String.valueOf(scriptEntry.getStoreStatusInDatabaseOrDefault()),
+        String.valueOf(scriptEntry.getRetryOnErrorOrDefault()),
         script);
   }
 

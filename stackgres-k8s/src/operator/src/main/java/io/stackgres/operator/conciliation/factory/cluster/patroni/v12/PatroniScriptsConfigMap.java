@@ -29,7 +29,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniDefaultScripts;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.tuple.Tuple4;
@@ -47,11 +47,11 @@ public class PatroniScriptsConfigMap implements
   public static final String SCRIPT_NAME_FOR_DATABASE = "%05d-%s.%s";
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
-  private final PatroniDefaultScripts patroniDefaultScripts;
+  private final ClusterDefaultScripts patroniDefaultScripts;
 
   @Inject
   public PatroniScriptsConfigMap(LabelFactoryForCluster<StackGresCluster> labelFactory,
-      PatroniDefaultScripts patroniDefaultScripts) {
+      ClusterDefaultScripts patroniDefaultScripts) {
     this.labelFactory = labelFactory;
     this.patroniDefaultScripts = patroniDefaultScripts;
   }

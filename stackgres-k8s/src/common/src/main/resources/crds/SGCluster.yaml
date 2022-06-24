@@ -1084,13 +1084,16 @@ spec:
                             description: Identify the associated `SGScript` entry with the same value in the `id` field.
                           startedAt:
                             type: string
-                            description: ISO-8601 datetime of when the script execution has been started. Will be reset each time the referenced `SGScripts` will be re-applied.
+                            description: ISO-8601 datetime of when the script execution has been started.
+                          updatedAt:
+                            type: string
+                            description: ISO-8601 datetime of when the last script execution occurred. Will be reset each time the referenced `SGScripts` entry will be applied.
                           failedAt:
                             type: string
-                            description: ISO-8601 datetime of when the script execution had failed (mutually exclusive with `completedAt`). Will be reset each time the referenced `SGScripts` will be re-applied.
+                            description: ISO-8601 datetime of when the script execution had failed (mutually exclusive with `completedAt`).
                           completedAt:
                             type: string
-                            description: ISO-8601 datetime of when the script execution had completed (mutually exclusive with `failedAt`). Will be reset each time the referenced `SGScripts` will be re-applied.
+                            description: ISO-8601 datetime of when the script execution had completed (mutually exclusive with `failedAt`).
                           scripts:
                             type: array
                             description: A list of statues for script entries of referenced script.
@@ -1104,16 +1107,13 @@ spec:
                                 version:
                                   type: integer
                                   description: The latest version applied
-                                intent:
-                                  type: boolean
-                                  description: Set  to `true` before the script entry is executed and set to `null` on its completion or failure.
+                                intents:
+                                  type: integer
+                                  description: Indicates the number of intents or failures occurred
                                 failureCode:
                                   type: string
                                   description: If failed, the error code of the failure. See also https://www.postgresql.org/docs/current/errcodes-appendix.html
                                 failure:
                                   type: string
                                   description: If failed, a message of the failure
-                                failures:
-                                  type: integer
-                                  description: If failed, indicates the number of failures occurred
 

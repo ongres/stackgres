@@ -49,13 +49,14 @@ public class ManagedSqlScriptEntryReconciliator {
       justification = "This is the feature not a bug")
   protected boolean reconcile() {
     final var managedScriptEntryStatus = getOrCreateScriptEntryStatus();
-    if (managedSqlReconciliator.isScriptEntryFailed(
+    if ((managedSqlReconciliator.isScriptEntryExecutionHang(
         managedSqlScriptEntry.getScriptEntry(), managedScriptEntryStatus)
+        || managedSqlReconciliator.isScriptEntryFailed(
+            managedSqlScriptEntry.getScriptEntry(), managedScriptEntryStatus))
         && !managedSqlScriptEntry.getScriptEntry().getRetryOnErrorOrDefault()) {
       return false;
     }
     managedScriptEntryStatus.setVersion(managedSqlScriptEntry.getScriptEntry().getVersion());
-    managedScriptEntryStatus.setIntent(true);
     if (isExecutionBackOff(managedScriptEntryStatus)) {
       LOGGER.warn("Back-off execution for managed script {}",
           managedSqlScriptEntry.getManagedScriptEntryDescription());
@@ -68,11 +69,6 @@ public class ManagedSqlScriptEntryReconciliator {
           managedSqlScriptEntry.getManagedScriptEntryDescription());
       return false;
     }
-    if (managedSqlScriptEntry.getManagedScriptStatus().getStartedAt() == null) {
-      managedSqlScriptEntry.getManagedScriptStatus().setStartedAt(Instant.now().toString());
-    }
-    managedSqlReconciliator.updateManagedSqlStatus(context,
-        managedSqlScriptEntry.getManagedSqlStatus());
     executeScriptEntry(managedScriptEntryStatus, sql);
     managedSqlReconciliator.updateManagedSqlStatus(context,
         managedSqlScriptEntry.getManagedSqlStatus());
@@ -107,13 +103,23 @@ public class ManagedSqlScriptEntryReconciliator {
 
   private boolean isExecutionBackOff(
       StackGresClusterManagedScriptEntryScriptStatus managedScriptEntryStatus) {
-    return managedSqlScriptEntry.getManagedScriptStatus().getFailedAt() != null
-        && managedSqlReconciliator.isScriptEntryFailed(
+    if (managedSqlReconciliator.isScriptEntryFailed(
             managedSqlScriptEntry.getScriptEntry(), managedScriptEntryStatus)
-        && Duration.between(Instant.parse(
-            managedSqlScriptEntry.getManagedScriptStatus().getFailedAt()),
-            Instant.now()).getSeconds() >= calculateExponentialBackoffDelay(
-                0, 600, 60, managedScriptEntryStatus.getFailures());
+        && managedSqlScriptEntry.getManagedScriptStatus().getFailedAt() != null) {
+      return Duration.between(Instant.parse(
+              managedSqlScriptEntry.getManagedScriptStatus().getFailedAt()),
+              Instant.now()).getSeconds() >= calculateExponentialBackoffDelay(
+                  0, 600, 60, managedScriptEntryStatus.getIntents());
+    }
+    if (managedSqlReconciliator.isScriptEntryExecutionHang(
+            managedSqlScriptEntry.getScriptEntry(), managedScriptEntryStatus)
+        && managedSqlScriptEntry.getManagedScriptStatus().getUpdatedAt() != null) {
+      return Duration.between(Instant.parse(
+              managedSqlScriptEntry.getManagedScriptStatus().getUpdatedAt()),
+              Instant.now()).getSeconds() >= calculateExponentialBackoffDelay(
+                  0, 600, 60, managedScriptEntryStatus.getIntents());
+    }
+    return false;
   }
 
   private boolean isSqlSameStatusHash(String sql) {
@@ -126,11 +132,16 @@ public class ManagedSqlScriptEntryReconciliator {
       StackGresClusterManagedScriptEntryScriptStatus managedScriptEntryStatus,
       String sql) {
     try {
+      setIntents(managedScriptEntryStatus);
+      if (managedSqlScriptEntry.getManagedScriptStatus().getStartedAt() == null) {
+        managedSqlScriptEntry.getManagedScriptStatus().setStartedAt(Instant.now().toString());
+      }
+      managedSqlScriptEntry.getManagedScriptStatus().setUpdatedAt(Instant.now().toString());
+      managedSqlReconciliator.updateManagedSqlStatus(context,
+          managedSqlScriptEntry.getManagedSqlStatus());
       managedSqlReconciliator.getManagedSqlScriptEntryExecutor()
           .executeScriptEntry(managedSqlScriptEntry, sql);
-      managedScriptEntryStatus.setIntent(null);
-      managedScriptEntryStatus.setFailureCode(null);
-      managedScriptEntryStatus.setFailure(null);
+      resetIntentsAndFailure(managedScriptEntryStatus);
       if (Seq.seq(managedSqlScriptEntry.getScript().getSpec().getScripts()).findLast()
           .orElseThrow() == managedSqlScriptEntry.getScriptEntry()
           && managedSqlScriptEntry.getManagedScriptStatus().getScripts().stream()
@@ -163,14 +174,26 @@ public class ManagedSqlScriptEntryReconciliator {
   private void setFailure(
       StackGresClusterManagedScriptEntryScriptStatus managedScriptEntryStatus, Exception ex,
       String code) {
-    managedScriptEntryStatus.setIntent(null);
     managedScriptEntryStatus.setFailureCode(code);
     managedScriptEntryStatus.setFailure(ex.getMessage());
-    managedScriptEntryStatus.setFailures(
-        Optional.ofNullable(managedScriptEntryStatus.getFailures())
-        .map(failures -> failures + 1)
-        .orElse(1));
     managedSqlScriptEntry.getManagedScriptStatus().setFailedAt(Instant.now().toString());
+  }
+
+  private void setIntents(
+      StackGresClusterManagedScriptEntryScriptStatus managedScriptEntryStatus) {
+    managedScriptEntryStatus.setIntents(
+        Optional.ofNullable(managedScriptEntryStatus.getIntents())
+        .map(intents -> intents + 1)
+        .orElse(1));
+    managedScriptEntryStatus.setFailureCode(null);
+    managedScriptEntryStatus.setFailure(null);
+  }
+
+  private void resetIntentsAndFailure(
+      StackGresClusterManagedScriptEntryScriptStatus managedScriptEntryStatus) {
+    managedScriptEntryStatus.setIntents(null);
+    managedScriptEntryStatus.setFailureCode(null);
+    managedScriptEntryStatus.setFailure(null);
   }
 
   protected ManagedSqlScriptEntry getManagedSqlScriptEntry() {

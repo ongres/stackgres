@@ -24,14 +24,14 @@ public class ClusterManagedScriptEntryScriptsStatus {
   @JsonProperty("version")
   private Integer version;
 
+  @JsonProperty("intents")
+  private Integer intents;
+
   @JsonProperty("failureCode")
   private String failureCode;
 
   @JsonProperty("failure")
   private String failure;
-
-  @JsonProperty("failures")
-  private Integer failures;
 
   public Integer getId() {
     return id;
@@ -47,6 +47,14 @@ public class ClusterManagedScriptEntryScriptsStatus {
 
   public void setVersion(Integer version) {
     this.version = version;
+  }
+
+  public Integer getIntents() {
+    return intents;
+  }
+
+  public void setIntents(Integer intents) {
+    this.intents = intents;
   }
 
   public String getFailureCode() {
@@ -65,17 +73,9 @@ public class ClusterManagedScriptEntryScriptsStatus {
     this.failure = failure;
   }
 
-  public Integer getFailures() {
-    return failures;
-  }
-
-  public void setFailures(Integer failures) {
-    this.failures = failures;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(failure, failureCode, failures, id, version);
+    return Objects.hash(failure, failureCode, id, intents, version);
   }
 
   @Override
@@ -88,7 +88,7 @@ public class ClusterManagedScriptEntryScriptsStatus {
     }
     ClusterManagedScriptEntryScriptsStatus other = (ClusterManagedScriptEntryScriptsStatus) obj;
     return Objects.equals(failure, other.failure) && Objects.equals(failureCode, other.failureCode)
-        && Objects.equals(failures, other.failures) && Objects.equals(id, other.id)
+        && Objects.equals(id, other.id) && Objects.equals(intents, other.intents)
         && Objects.equals(version, other.version);
   }
 

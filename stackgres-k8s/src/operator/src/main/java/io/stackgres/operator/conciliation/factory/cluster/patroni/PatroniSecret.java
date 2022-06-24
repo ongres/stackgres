@@ -80,6 +80,7 @@ public class PatroniSecret implements
       data.put(BABELFISH_CREATE_USER_SQL_KEY,
           ResourceUtil.encodeSecret(
               "SET log_statement TO 'none';\n"
+                  + "DROP ROLE IF EXISTS " + BABELFISH_USER_NAME + ";\n"
                   + "CREATE USER " + BABELFISH_USER_NAME + " SUPERUSER"
                   + " PASSWORD '" + ResourceUtil.dencodeSecret(
                   data.get(BABELFISH_PASSWORD_KEY)) + "';"));

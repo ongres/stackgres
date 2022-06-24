@@ -8,10 +8,8 @@ package io.stackgres.operator.conciliation;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -55,7 +53,7 @@ public abstract class DeployedResourcesScanner<T extends CustomResource<?, ?>> {
                 .equals(kind)
                 && ownerReference.getName().equals(config.getMetadata().getName())
                 && ownerReference.getUid().equals(config.getMetadata().getUid())))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     return deployedResources;
   }
@@ -64,12 +62,12 @@ public abstract class DeployedResourcesScanner<T extends CustomResource<?, ?>> {
 
   protected abstract StackGresKubernetesClient getClient();
 
-  protected abstract ImmutableMap<Class<? extends HasMetadata>,
+  protected abstract Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>> getAnyNamespaceResourceOperations();
 
-  protected abstract ImmutableMap<Class<? extends HasMetadata>,
+  protected abstract Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations();

@@ -22,17 +22,18 @@ import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V_1_3)
 public class PatroniDefaultScript implements ResourceGenerator<StackGresClusterContext> {
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
-  private final PatroniDefaultScripts patroniDefaultScripts;
+  private final ClusterDefaultScripts patroniDefaultScripts;
 
   @Inject
   public PatroniDefaultScript(LabelFactoryForCluster<StackGresCluster> labelFactory,
-      PatroniDefaultScripts patroniDefaultScripts) {
+      ClusterDefaultScripts patroniDefaultScripts) {
     this.labelFactory = labelFactory;
     this.patroniDefaultScripts = patroniDefaultScripts;
   }

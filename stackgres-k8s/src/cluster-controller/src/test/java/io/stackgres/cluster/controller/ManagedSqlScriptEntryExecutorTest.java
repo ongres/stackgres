@@ -68,8 +68,8 @@ class ManagedSqlScriptEntryExecutorTest {
         .managedScript(cluster.getSpec().getManagedSql().getScripts().get(0))
         .managedScriptStatus(cluster.getStatus().getManagedSql().getScripts().get(0))
         .script(script)
-        .scriptEntry(script.getSpec().getScripts().get(0))
-        .scriptEntryStatus(script.getStatus().getScripts().get(0))
+        .scriptEntry(script.getSpec().getScripts().get(1))
+        .scriptEntryStatus(script.getStatus().getScripts().get(1))
         .build();
     scriptEntry.getScriptEntryStatus().setHash("test");
 
@@ -77,7 +77,8 @@ class ManagedSqlScriptEntryExecutorTest {
   }
 
   @Test
-  void testExecutorWhenStatusTableIsMissing_createStatusTableAndApplyScript() throws Exception {
+  void testExecutorWithStatusWhenStatusTableIsMissing_createStatusTableAndApplyScript()
+      throws Exception {
     when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
         .thenReturn(connection);
     when(connection.createStatement()).thenReturn(statement);
@@ -102,8 +103,6 @@ class ManagedSqlScriptEntryExecutorTest {
             eq("postgres"),
             eq("postgres"),
             eq(""));
-    inOrder.verify(connection).setAutoCommit(false);
-    inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
     inOrder.verify(connection).prepareStatement(IS_MANAGED_SQL_STATUS_TABLE_MISSING_QUERY);
     inOrder.verify(statement).executeQuery();
@@ -128,7 +127,6 @@ class ManagedSqlScriptEntryExecutorTest {
     inOrder.verify(statement)
         .execute(GRANT_ON_MANAGED_SQL_STATUS_TABLE_STATEMENT);
 
-    inOrder.verify(connection).commit();
     inOrder.verify(connection).close();
 
     inOrder.verify(postgresConnectionManager)
@@ -142,7 +140,7 @@ class ManagedSqlScriptEntryExecutorTest {
     inOrder.verify(connection)
         .prepareStatement(FIND_APPLIED_TIMESTAMP_FOR_SCRIP_ENTRY_QUERY);
     inOrder.verify(statement).setInt(1, 0);
-    inOrder.verify(statement).setInt(2, 0);
+    inOrder.verify(statement).setInt(2, 1);
     inOrder.verify(statement).setInt(3, 0);
     inOrder.verify(statement).setString(4, "test");
     inOrder.verify(statement).executeQuery();
@@ -158,14 +156,14 @@ class ManagedSqlScriptEntryExecutorTest {
     inOrder.verify(connection)
         .prepareStatement(DELETE_SCRIPT_ENTRY_STATEMENT);
     inOrder.verify(statement).setInt(1, 0);
-    inOrder.verify(statement).setInt(2, 0);
+    inOrder.verify(statement).setInt(2, 1);
     inOrder.verify(statement).execute();
     inOrder.verify(statement).close();
 
     inOrder.verify(connection)
         .prepareStatement(INSERT_SCRIPT_ENTRY_STATEMENT);
     inOrder.verify(statement).setInt(1, 0);
-    inOrder.verify(statement).setInt(2, 0);
+    inOrder.verify(statement).setInt(2, 1);
     inOrder.verify(statement).setInt(3, 0);
     inOrder.verify(statement).setString(4, "test");
     inOrder.verify(statement).execute();
@@ -176,109 +174,7 @@ class ManagedSqlScriptEntryExecutorTest {
   }
 
   @Test
-  void testExecutorWhenScriptCanNotBeWrappedIntoTransaction_applyScriptWithoutTransaction()
-      throws Exception {
-    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
-        .thenReturn(connection);
-    when(connection.createStatement()).thenReturn(statement);
-    when(connection.prepareStatement(any())).thenReturn(statement);
-    when(statement.executeQuery()).thenReturn(resultSet);
-    when(resultSet.next()).thenReturn(true).thenReturn(false);
-    when(resultSet.getBoolean(anyInt())).thenReturn(false);
-    when(statement.execute(any()))
-        .thenThrow(new SQLException("test", "25001"))
-        .thenReturn(true);
-
-    scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test");
-
-    verify(postgresConnectionManager, times(3)).getUnixConnection(
-        any(), anyInt(), any(), any(), any());
-    verify(connection, times(2)).createStatement();
-    verify(connection, times(4)).prepareStatement(any());
-    verify(statement, times(2)).execute(any());
-    verify(statement, times(2)).execute();
-    verify(statement, times(2)).executeQuery();
-
-    InOrder inOrder = inOrder(postgresConnectionManager, connection, statement, resultSet);
-    inOrder.verify(postgresConnectionManager)
-        .getUnixConnection(any(), anyInt(),
-            eq("postgres"),
-            eq("postgres"),
-            eq(""));
-    inOrder.verify(connection).setAutoCommit(false);
-    inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-
-    inOrder.verify(connection).prepareStatement(IS_MANAGED_SQL_STATUS_TABLE_MISSING_QUERY);
-    inOrder.verify(statement).executeQuery();
-    inOrder.verify(resultSet).next();
-    inOrder.verify(resultSet).getBoolean(1);
-    inOrder.verify(resultSet).close();
-    inOrder.verify(statement).close();
-
-    inOrder.verify(connection).commit();
-    inOrder.verify(connection).close();
-
-    inOrder.verify(postgresConnectionManager)
-        .getUnixConnection(any(), anyInt(),
-            eq("postgres"),
-            eq("postgres"),
-            eq(""));
-    inOrder.verify(connection).setAutoCommit(false);
-    inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-
-    inOrder.verify(connection)
-        .prepareStatement(FIND_APPLIED_TIMESTAMP_FOR_SCRIP_ENTRY_QUERY);
-    inOrder.verify(statement).setInt(1, 0);
-    inOrder.verify(statement).setInt(2, 0);
-    inOrder.verify(statement).setInt(3, 0);
-    inOrder.verify(statement).setString(4, "test");
-    inOrder.verify(statement).executeQuery();
-    inOrder.verify(resultSet).next();
-    inOrder.verify(resultSet, times(0)).getTimestamp(1);
-    inOrder.verify(resultSet).close();
-    inOrder.verify(statement).close();
-
-    inOrder.verify(connection).createStatement();
-    inOrder.verify(statement).execute("CREATE TABLE test");
-    inOrder.verify(statement).close();
-
-    inOrder.verify(connection).rollback();
-    inOrder.verify(connection).close();
-    inOrder.verify(postgresConnectionManager)
-        .getUnixConnection(any(), anyInt(),
-            eq("postgres"),
-            eq("postgres"),
-            eq(""));
-
-    inOrder.verify(connection).createStatement();
-    inOrder.verify(statement).execute("CREATE TABLE test");
-    inOrder.verify(statement).close();
-
-    inOrder.verify(connection).setAutoCommit(false);
-    inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
-
-    inOrder.verify(connection)
-        .prepareStatement(DELETE_SCRIPT_ENTRY_STATEMENT);
-    inOrder.verify(statement).setInt(1, 0);
-    inOrder.verify(statement).setInt(2, 0);
-    inOrder.verify(statement).execute();
-    inOrder.verify(statement).close();
-
-    inOrder.verify(connection)
-        .prepareStatement(INSERT_SCRIPT_ENTRY_STATEMENT);
-    inOrder.verify(statement).setInt(1, 0);
-    inOrder.verify(statement).setInt(2, 0);
-    inOrder.verify(statement).setInt(3, 0);
-    inOrder.verify(statement).setString(4, "test");
-    inOrder.verify(statement).execute();
-    inOrder.verify(statement).close();
-
-    inOrder.verify(connection).commit();
-    inOrder.verify(connection).close();
-  }
-
-  @Test
-  void testExecutorWhenScriptAlreadyApplied_doNotApplyScript() throws Exception {
+  void testExecutorWithStatusWhenScriptAlreadyApplied_doNotApplyScript() throws Exception {
     when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
         .thenReturn(connection);
     when(connection.prepareStatement(any())).thenReturn(statement);
@@ -303,8 +199,6 @@ class ManagedSqlScriptEntryExecutorTest {
             eq("postgres"),
             eq("postgres"),
             eq(""));
-    inOrder.verify(connection).setAutoCommit(false);
-    inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
     inOrder.verify(connection).prepareStatement(IS_MANAGED_SQL_STATUS_TABLE_MISSING_QUERY);
     inOrder.verify(statement).executeQuery();
@@ -313,7 +207,6 @@ class ManagedSqlScriptEntryExecutorTest {
     inOrder.verify(resultSet).close();
     inOrder.verify(statement).close();
 
-    inOrder.verify(connection).commit();
     inOrder.verify(connection).close();
 
     inOrder.verify(postgresConnectionManager)
@@ -327,7 +220,7 @@ class ManagedSqlScriptEntryExecutorTest {
     inOrder.verify(connection)
         .prepareStatement(FIND_APPLIED_TIMESTAMP_FOR_SCRIP_ENTRY_QUERY);
     inOrder.verify(statement).setInt(1, 0);
-    inOrder.verify(statement).setInt(2, 0);
+    inOrder.verify(statement).setInt(2, 1);
     inOrder.verify(statement).setInt(3, 0);
     inOrder.verify(statement).setString(4, "test");
     inOrder.verify(statement).executeQuery();
@@ -340,7 +233,7 @@ class ManagedSqlScriptEntryExecutorTest {
   }
 
   @Test
-  void testExecutorWhenStatusTableCreationFail_rollbackItsCreation() throws Exception {
+  void testExecutorWithStatusWhenStatusTableCreationFail_rollbackItsCreation() throws Exception {
     when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
         .thenReturn(connection);
     when(connection.createStatement()).thenReturn(statement);
@@ -371,8 +264,6 @@ class ManagedSqlScriptEntryExecutorTest {
             eq("postgres"),
             eq("postgres"),
             eq(""));
-    inOrder.verify(connection).setAutoCommit(false);
-    inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
     inOrder.verify(connection).prepareStatement(IS_MANAGED_SQL_STATUS_TABLE_MISSING_QUERY);
     inOrder.verify(statement).executeQuery();
@@ -397,12 +288,11 @@ class ManagedSqlScriptEntryExecutorTest {
     inOrder.verify(statement)
         .execute(GRANT_ON_MANAGED_SQL_STATUS_TABLE_STATEMENT);
 
-    inOrder.verify(connection).rollback();
     inOrder.verify(connection).close();
   }
 
   @Test
-  void testExecutorWhenSqlFail_rollbackItsApplication() throws Exception {
+  void testExecutorWithStatusWhenSqlFail_rollbackItsApplication() throws Exception {
     when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
         .thenReturn(connection);
     when(connection.createStatement()).thenReturn(statement);
@@ -430,8 +320,6 @@ class ManagedSqlScriptEntryExecutorTest {
             eq("postgres"),
             eq("postgres"),
             eq(""));
-    inOrder.verify(connection).setAutoCommit(false);
-    inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
 
     inOrder.verify(connection).prepareStatement(IS_MANAGED_SQL_STATUS_TABLE_MISSING_QUERY);
     inOrder.verify(statement).executeQuery();
@@ -440,7 +328,6 @@ class ManagedSqlScriptEntryExecutorTest {
     inOrder.verify(resultSet).close();
     inOrder.verify(statement).close();
 
-    inOrder.verify(connection).commit();
     inOrder.verify(connection).close();
 
     inOrder.verify(postgresConnectionManager)
@@ -454,7 +341,7 @@ class ManagedSqlScriptEntryExecutorTest {
     inOrder.verify(connection)
         .prepareStatement(FIND_APPLIED_TIMESTAMP_FOR_SCRIP_ENTRY_QUERY);
     inOrder.verify(statement).setInt(1, 0);
-    inOrder.verify(statement).setInt(2, 0);
+    inOrder.verify(statement).setInt(2, 1);
     inOrder.verify(statement).setInt(3, 0);
     inOrder.verify(statement).setString(4, "test");
     inOrder.verify(statement).executeQuery();
@@ -468,6 +355,100 @@ class ManagedSqlScriptEntryExecutorTest {
     inOrder.verify(statement).close();
 
     inOrder.verify(connection).rollback();
+    inOrder.verify(connection).close();
+  }
+
+  @Test
+  void testExecutorWrappedInTransaction_executeScriptInTransaction() throws Exception {
+    scriptEntry.getScriptEntry().setStoreStatusInDatabase(false);
+    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
+        .thenReturn(connection);
+    when(connection.createStatement()).thenReturn(statement);
+
+    scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test");
+
+    verify(postgresConnectionManager, times(1)).getUnixConnection(
+        any(), anyInt(), any(), any(), any());
+    verify(connection, times(1)).createStatement();
+    verify(statement, times(1)).execute(any());
+
+    InOrder inOrder = inOrder(postgresConnectionManager, connection, statement, resultSet);
+    inOrder.verify(postgresConnectionManager)
+        .getUnixConnection(any(), anyInt(),
+            eq("postgres"),
+            eq("postgres"),
+            eq(""));
+    inOrder.verify(connection).setAutoCommit(false);
+    inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+
+    inOrder.verify(connection).createStatement();
+    inOrder.verify(statement).execute("CREATE TABLE test");
+    inOrder.verify(statement).close();
+
+    inOrder.verify(connection).commit();
+    inOrder.verify(connection).close();
+  }
+
+  @Test
+  void testExecutorWrappedInTransactionWithFailingScript_executeScriptInTransactionAndRollback()
+      throws Exception {
+    scriptEntry.getScriptEntry().setStoreStatusInDatabase(false);
+    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
+        .thenReturn(connection);
+    when(connection.createStatement()).thenReturn(statement);
+    when(statement.execute(any())).thenThrow(new SQLException("test"));
+
+    assertThrows(SQLException.class,
+        () -> scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test"));
+
+    verify(postgresConnectionManager, times(1)).getUnixConnection(
+        any(), anyInt(), any(), any(), any());
+    verify(connection, times(1)).createStatement();
+    verify(statement, times(1)).execute(any());
+
+    InOrder inOrder = inOrder(postgresConnectionManager, connection, statement, resultSet);
+    inOrder.verify(postgresConnectionManager)
+        .getUnixConnection(any(), anyInt(),
+            eq("postgres"),
+            eq("postgres"),
+            eq(""));
+    inOrder.verify(connection).setAutoCommit(false);
+    inOrder.verify(connection).setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
+
+    inOrder.verify(connection).createStatement();
+    inOrder.verify(statement).execute("CREATE TABLE test");
+    inOrder.verify(statement).close();
+
+    inOrder.verify(connection).rollback();
+    inOrder.verify(connection).close();
+  }
+
+  @Test
+  void testExecutor_executeScript() throws Exception {
+    scriptEntry.getScriptEntry().setWrapInTransaction(null);
+    scriptEntry.getScriptEntry().setStoreStatusInDatabase(false);
+    when(postgresConnectionManager.getUnixConnection(any(), anyInt(), any(), any(), any()))
+        .thenReturn(connection);
+    when(connection.createStatement()).thenReturn(statement);
+
+    scriptEntryExecutor.executeScriptEntry(scriptEntry, "CREATE TABLE test");
+
+    verify(postgresConnectionManager, times(1)).getUnixConnection(
+        any(), anyInt(), any(), any(), any());
+    verify(connection, times(1)).createStatement();
+    verify(statement, times(1)).execute(any());
+
+    InOrder inOrder = inOrder(postgresConnectionManager, connection, statement, resultSet);
+    inOrder.verify(postgresConnectionManager)
+        .getUnixConnection(any(), anyInt(),
+            eq("postgres"),
+            eq("postgres"),
+            eq(""));
+
+    inOrder.verify(connection).createStatement();
+    inOrder.verify(statement).execute("CREATE TABLE test");
+    inOrder.verify(statement).close();
+
     inOrder.verify(connection).close();
   }
 

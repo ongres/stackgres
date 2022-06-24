@@ -85,6 +85,9 @@ public class ScriptTransformer
     transformation.setVersion(source.getVersion());
     transformation.setDatabase(source.getDatabase());
     transformation.setUser(source.getUser());
+    transformation.setRetryOnError(source.getRetryOnError());
+    transformation.setStoreStatusInDatabase(source.getStoreStatusInDatabase());
+    transformation.setWrapInTransaction(source.getWrapInTransaction());
     transformation.setScript(source.getScript());
     transformation.setScriptFrom(getCustomResourceScriptFrom(source.getScriptFrom()));
     return transformation;
@@ -126,6 +129,9 @@ public class ScriptTransformer
     transformation.setVersion(source.getVersion());
     transformation.setDatabase(source.getDatabase());
     transformation.setUser(source.getUser());
+    transformation.setRetryOnError(source.getRetryOnError());
+    transformation.setStoreStatusInDatabase(source.getStoreStatusInDatabase());
+    transformation.setWrapInTransaction(source.getWrapInTransaction());
     transformation.setScript(source.getScript());
     transformation.setScriptFrom(getResourceScriptFrom(source.getScriptFrom()));
     return transformation;

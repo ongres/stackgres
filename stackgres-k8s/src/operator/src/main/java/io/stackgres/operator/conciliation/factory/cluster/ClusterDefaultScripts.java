@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.cluster;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
@@ -24,13 +24,14 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptFrom;
 import io.stackgres.common.patroni.StackGresRandomPasswordKeys;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.v12.PatroniScriptsConfigMap;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple4;
 
 @Singleton
-public class PatroniDefaultScripts {
+public class ClusterDefaultScripts {
 
   public List<StackGresScriptEntry> getDefaultScripts(StackGresCluster cluster) {
     return Seq.of(getPostgresExporterInitScript())
@@ -46,9 +47,9 @@ public class PatroniDefaultScripts {
   private StackGresScriptEntry getPostgresExporterInitScript() {
     final StackGresScriptEntry script = new StackGresScriptEntry();
     script.setName("prometheus-postgres-exporter-init");
-    script.setDatabase("postgres");
+    script.setRetryOnError(true);
     script.setScript(Unchecked.supplier(() -> Resources
-        .asCharSource(PatroniDefaultScripts.class.getResource(
+        .asCharSource(ClusterDefaultScripts.class.getResource(
             "/prometheus-postgres-exporter/init.sql"),
             StandardCharsets.UTF_8)
         .read()).get());
@@ -58,7 +59,7 @@ public class PatroniDefaultScripts {
   private StackGresScriptEntry getBabelfishUserScript(StackGresCluster cluster) {
     final StackGresScriptEntry script = new StackGresScriptEntry();
     script.setName("babelfish-user");
-    script.setDatabase("postgres");
+    script.setRetryOnError(true);
     script.setScriptFrom(new StackGresScriptFrom());
     script.getScriptFrom().setSecretKeyRef(new SecretKeySelector(
         StackGresRandomPasswordKeys.BABELFISH_CREATE_USER_SQL_KEY, PatroniSecret.name(cluster)));
@@ -68,8 +69,10 @@ public class PatroniDefaultScripts {
   private StackGresScriptEntry getBabelfishDatabaseScript() {
     final StackGresScriptEntry script = new StackGresScriptEntry();
     script.setName("babelfish-database");
-    script.setDatabase("postgres");
-    script.setScript("CREATE DATABASE babelfish OWNER babelfish");
+    script.setRetryOnError(true);
+    script.setScript(
+        "DROP DATABASE IF EXISTS babelfish;\n"
+            + " CREATE DATABASE babelfish OWNER babelfish;");
     return script;
   }
 
@@ -78,7 +81,7 @@ public class PatroniDefaultScripts {
     script.setName("babelfish-init");
     script.setDatabase("babelfish");
     script.setScript(Unchecked.supplier(() -> Resources
-        .asCharSource(PatroniDefaultScripts.class.getResource(
+        .asCharSource(ClusterDefaultScripts.class.getResource(
             "/babelfish/init.sql"),
             StandardCharsets.UTF_8)
         .read()).get());

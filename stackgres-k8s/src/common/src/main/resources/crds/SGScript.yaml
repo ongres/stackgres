@@ -94,12 +94,12 @@ spec:
                           When set to `true` the script entry execution will include storing the status of the execution of this
                            script entry in the table `managed_sql.status` that will be created in the specified `database`. This
                            will avoid an operation that fails partially to be unrecoverable requiring the intervention from the user
-                           if user in conjunction with `retryOnFailure`.
+                           if user in conjunction with `retryOnError`.
 
                           If set to `true` then `wrapInTransaction` field must be set.
 
                           This is `false` by default.
-                      retryOnFailure:
+                      retryOnError:
                         type: boolean
                         description: |
                           If not set or set to `false` the script entry will not be retried if it fails.
