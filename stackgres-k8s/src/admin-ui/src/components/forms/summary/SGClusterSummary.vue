@@ -730,11 +730,8 @@
 
 			backups () {
 				return store.state.sgbackups
-			},
-
-            backupConfig () {
-				return store.state.sgbackupconfigs
 			}
+            
 		},
 
         methods: {

@@ -93,29 +93,6 @@ describe('Delete StackGres Resources', () => {
             }
         })
 
-        cy.createCRD('sgbackupconfigs', {
-            metadata: {
-                name: resourceName,
-                namespace: namespace
-            },
-            spec: {
-                baseBackups: {
-                    cronSchedule: '0 5 * * *',
-                    retention: 5,
-                },
-                storage: {
-                    type: 's3',
-                    s3: {
-                        bucket: 'test',
-                        awsCredentials: {
-                            accessKeyId: 'test',
-                            secretAccessKey: 'test'
-                        }
-                    }
-                }
-            }
-        })
-
         cy.createCRD('sgdistributedlogs', {
             metadata: {
                 name: resourceName,
@@ -165,10 +142,6 @@ describe('Delete StackGres Resources', () => {
         cy.testDelete('sgpoolconfig', resourceName)
     });
 
-    it( 'Deleting an SGBackupConfig should be possible', () => {
-        cy.testDelete('sgbackupconfig', resourceName)
-    })
-    
     it( 'Deleting an SGDistributedLog should be possible', () => {
         cy.testDelete('sgdistributedlog', resourceName)
     })

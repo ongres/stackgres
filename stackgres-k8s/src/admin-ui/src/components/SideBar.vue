@@ -201,38 +201,7 @@
 						</template>
 					</ul></li>
 				</ul>
-			</div>
-
-			<div v-if="iCan('any','sgbackupconfigs', currentPath.namespace)" class="backup set subset" :class="currentPath.component.includes('BackupConfig') ? 'active' : ''" >
-				<ul>
-					<li class="crdName">
-						<template v-if="iCan('list', 'sgbackupconfigs', currentPath.namespace)">
-							<router-link :to="'/' + currentPath.namespace + '/sgbackupconfigs'" class="nav-item">
-								<span><svg xmlns="http://www.w3.org/2000/svg" width="26.5" height="18.747" viewBox="0 0 26.5 18.747"><g transform="translate(-60 -212.633)"><path d="M60.955,217.4h10.5a.953.953,0,1,0,0-1.906h-10.5a.953.953,0,1,0,0,1.906Z" fill="#00adb5"/><path d="M74.795,220.258a.953.953,0,0,0,.955-.953V217.4h4.295a.953.953,0,1,0,0-1.906H75.75v-1.907a.954.954,0,0,0-1.909,0V219.3A.953.953,0,0,0,74.795,220.258Z" fill="#00adb5"/><path d="M60.955,223.6H65.25V225.5a.954.954,0,0,0,1.909,0v-5.719a.954.954,0,0,0-1.909,0v1.906H60.955a.954.954,0,1,0,0,1.907Z" fill="#00adb5"/><path d="M67.636,227.884H60.955a.954.954,0,1,0,0,1.907h6.681a.954.954,0,1,0,0-1.907Z" fill="#00adb5"/><path d="M78.073,222.114h0a.852.852,0,0,0-.668-.293.944.944,0,0,0-.86.667L74.2,227.5l-2.354-5.011a.959.959,0,0,0-.883-.669.834.834,0,0,0-.663.3,1.09,1.09,0,0,0-.238.726v7.568a1.037,1.037,0,0,0,.22.692.776.776,0,0,0,.624.278.787.787,0,0,0,.631-.284,1.038,1.038,0,0,0,.225-.686V226.1l1.568,3.248a1.318,1.318,0,0,0,.355.5.819.819,0,0,0,1.012-.01,1.458,1.458,0,0,0,.35-.486l1.557-3.3v4.361a1.037,1.037,0,0,0,.22.692.776.776,0,0,0,.623.278.823.823,0,0,0,.632-.272,1.009,1.009,0,0,0,.235-.7v-7.568A1.081,1.081,0,0,0,78.073,222.114Z" fill="#00adb5"/><path d="M86.1,227.268a2.6,2.6,0,0,1,.4,1.469,2.388,2.388,0,0,1-.77,1.885,3.09,3.09,0,0,1-2.12.681H80.531a.7.7,0,0,1-.543-.214.849.849,0,0,1-.2-.6V222.7a.851.851,0,0,1,.2-.6.7.7,0,0,1,.543-.214h2.96a3.041,3.041,0,0,1,2.06.648,2.274,2.274,0,0,1,.746,1.811,2.354,2.354,0,0,1-.352,1.3,2.047,2.047,0,0,1-.973.8A2.038,2.038,0,0,1,86.1,227.268Zm-4.806-1.417h1.947q1.587,0,1.587-1.322a1.2,1.2,0,0,0-.393-.99,1.872,1.872,0,0,0-1.194-.32H81.294Zm3.367,3.782a1.311,1.311,0,0,0,.382-1.042,1.349,1.349,0,0,0-.387-1.056,1.782,1.782,0,0,0-1.213-.347H81.294v2.779h2.149A1.828,1.828,0,0,0,84.661,229.633Z" fill="#00adb5"/></g></svg></span>
-								<h4 :class="isCollapsed ? 'submenuTitle' : ''">Managed Backups</h4>
-							</router-link>
-						</template>
-						<template v-else>
-							<span class="nav-item noHoverPointer">
-								<span><svg xmlns="http://www.w3.org/2000/svg" width="26.5" height="18.747" viewBox="0 0 26.5 18.747"><g transform="translate(-60 -212.633)"><path d="M60.955,217.4h10.5a.953.953,0,1,0,0-1.906h-10.5a.953.953,0,1,0,0,1.906Z" fill="#00adb5"/><path d="M74.795,220.258a.953.953,0,0,0,.955-.953V217.4h4.295a.953.953,0,1,0,0-1.906H75.75v-1.907a.954.954,0,0,0-1.909,0V219.3A.953.953,0,0,0,74.795,220.258Z" fill="#00adb5"/><path d="M60.955,223.6H65.25V225.5a.954.954,0,0,0,1.909,0v-5.719a.954.954,0,0,0-1.909,0v1.906H60.955a.954.954,0,1,0,0,1.907Z" fill="#00adb5"/><path d="M67.636,227.884H60.955a.954.954,0,1,0,0,1.907h6.681a.954.954,0,1,0,0-1.907Z" fill="#00adb5"/><path d="M78.073,222.114h0a.852.852,0,0,0-.668-.293.944.944,0,0,0-.86.667L74.2,227.5l-2.354-5.011a.959.959,0,0,0-.883-.669.834.834,0,0,0-.663.3,1.09,1.09,0,0,0-.238.726v7.568a1.037,1.037,0,0,0,.22.692.776.776,0,0,0,.624.278.787.787,0,0,0,.631-.284,1.038,1.038,0,0,0,.225-.686V226.1l1.568,3.248a1.318,1.318,0,0,0,.355.5.819.819,0,0,0,1.012-.01,1.458,1.458,0,0,0,.35-.486l1.557-3.3v4.361a1.037,1.037,0,0,0,.22.692.776.776,0,0,0,.623.278.823.823,0,0,0,.632-.272,1.009,1.009,0,0,0,.235-.7v-7.568A1.081,1.081,0,0,0,78.073,222.114Z" fill="#00adb5"/><path d="M86.1,227.268a2.6,2.6,0,0,1,.4,1.469,2.388,2.388,0,0,1-.77,1.885,3.09,3.09,0,0,1-2.12.681H80.531a.7.7,0,0,1-.543-.214.849.849,0,0,1-.2-.6V222.7a.851.851,0,0,1,.2-.6.7.7,0,0,1,.543-.214h2.96a3.041,3.041,0,0,1,2.06.648,2.274,2.274,0,0,1,.746,1.811,2.354,2.354,0,0,1-.352,1.3,2.047,2.047,0,0,1-.973.8A2.038,2.038,0,0,1,86.1,227.268Zm-4.806-1.417h1.947q1.587,0,1.587-1.322a1.2,1.2,0,0,0-.393-.99,1.872,1.872,0,0,0-1.194-.32H81.294Zm3.367,3.782a1.311,1.311,0,0,0,.382-1.042,1.349,1.349,0,0,0-.387-1.056,1.782,1.782,0,0,0-1.213-.347H81.294v2.779h2.149A1.828,1.828,0,0,0,84.661,229.633Z" fill="#00adb5"/></g></svg></span>
-								<h4 :class="isCollapsed ? 'submenuTitle' : ''">Managed Backups</h4>
-							</span>
-						</template>
-
-						<router-link :to="'/' + currentPath.namespace + '/sgbackupconfigs/new'" class="addnew" v-if="iCan('create', 'sgbackupconfigs', currentPath.namespace)">
-							<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19"><g transform="translate(-573 -706)"><g transform="translate(573 706)" fill="none" stroke="#00adb5" stroke-width="2"><circle cx="9.5" cy="9.5" r="9.5" stroke="none"/><circle cx="9.5" cy="9.5" r="8.5" fill="none"/></g><g transform="translate(-30.5 28.8)"><g transform="translate(609 686)" fill="#00adb5" stroke="#00adb5" stroke-width="1"><rect width="8" height="1.4" rx="0.7" stroke="none"/><rect x="0.5" y="0.5" width="7" height="0.4" rx="0.2" fill="none"/></g><g transform="translate(613.7 682.7) rotate(90)" fill="#00adb5" stroke="#00adb5" stroke-width="1"><rect width="8" height="1.4" rx="0.7" stroke="none"/><rect x="0.5" y="0.5" width="7" height="0.4" rx="0.2" fill="none"/></g></g></g></svg>
-						</router-link>
-					</li>
-					
-					<li><ul v-if="iCan('list', 'sgbackupconfigs', currentPath.namespace)" class="crdSubmenu">
-						<template v-for="config in bkConfig">
-							<li v-if="config.data.metadata.namespace == currentPath.namespace" :class="'sgbackupconfig-'+config.data.metadata.namespace+'-'+config.name">
-								<router-link :to="'/' + config.data.metadata.namespace + '/sgbackupconfig/' + config.name" class="item" :title="config.name" :class="(currentPath.component.includes('BackupConfig') && (currentPath.name == config.name)) ? 'router-link-exact-active' : ''">{{ config.name }}</router-link>
-							</li>
-						</template>
-					</ul></li>
-				</ul>
-			</div>			
+			</div>	
 			
 			<div v-if="iCan('any', 'sgdistributedlogs', currentPath.namespace)" class="set logs" :class="currentPath.component.includes('LogsServer') ? 'active' : ''" >
 				<ul>
@@ -481,10 +450,6 @@
 
 			objectStorages () {
 				return store.state.sgobjectstorages;
-			},
-
-			bkConfig () {
-				return store.state.sgbackupconfigs;
 			},
 
 			profiles () {

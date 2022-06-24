@@ -732,18 +732,6 @@ form#login .warning {
     background: #1e1e1e;
 }
 
-.darkmode table.backupConfig tr.base:first-of-type {
-    border-top: 1px solid #333333;
-}
-
-.darkmode table.backupConfig  {
-    border-bottom: 1px solid #333333;
-}
-
-.darkmode table.backupConfig tr.base.open {
-    border-top: 1px solid #333333;
-}
-
 .darkmode #delete .tooltip  h3 {
     border-bottom: 1px solid #333333;
 }
@@ -4443,10 +4431,6 @@ table.pgConfig th.postgresVersion {
     width: 60px;
 }
 
-table.backupConfig th.name {
-    width: 290px;
-}
-
 #backup .retention {
     width: 100px;
 }
@@ -4459,15 +4443,15 @@ table.backupConfig th.name {
     width: 125px;
 } 
 
-table.profiles td.inlineList svg, table.backupConfig td.usedOn svg {
+table.profiles td.inlineList svg {
     width: 14px;
 }
 
-table.profiles td.inlineList svg path, table.backupConfig td.usedOn svg path {
+table.profiles td.inlineList svg path {
     fill: var(--blue);
 }
 
-table.profiles td.inlineList svg:hover path, table.backupConfig td.usedOn svg:hover path {
+table.profiles td.inlineList svg:hover path {
     fill: var(--lblue);
 }
 
@@ -4507,7 +4491,7 @@ table.pgConfig.profiles td.actions a:first-of-type {
     display: inline-block;
 }
 
-tr.details.pgConfig.open div, table.backupConfig .configurationDetails, table.backupConfig .storageDetails{
+tr.details.pgConfig.open div {
     width: 49%;
     float: left;
     display: block;
@@ -4546,7 +4530,7 @@ table.pgConfig tr.details a svg path, table.poolConfig tr.details a svg path {
     fill: var(--blue);
 }
 
-table.pgConfig tr.details .configurationDetails table td.label, table.poolConfig tr.details .configurationDetails table td.label, table.backupConfig tr.details .configurationDetails table td.label {
+table.pgConfig tr.details .configurationDetails table td.label, table.poolConfig tr.details .configurationDetails table td.label {
     padding-right: 10px;
     width: 140px;
 }
@@ -4667,32 +4651,9 @@ td.inlineList li:not(:last-child):after {
     content: ', ';
 }
 
-table.backupConfig td.fontZero.hasTooltip, table.backupConfig th.cronSchedule {
-    width: 135px;
-    padding-right: 5px;
-}
-
-table.backupConfig span.title {
-    font-weight: bold;
-}
-
-table.backupConfig tr.details.open .configurationDetails td:first-of-type:before {
-    display:none;
-}
-
-table.backupConfig tr.details.open td:first-of-type {
-    padding-top: 10px !important;
-}
-
 .configurationDetails span.title {
     font-weight: bold;
     display: inline-block;
-    padding: 10px 15px;
-}
-
-.backupConfig .storageDetails ul.yaml {
-    border: 1px solid #f0f0f1;
-    margin-top: 0;
     padding: 10px 15px;
 }
 

@@ -297,36 +297,6 @@ export const mixin = {
             });
           }
     
-          if ( vc.iCan('list', 'sgbackupconfigs') && ( !kind.length || (kind == 'sgbackupconfigs')) ) {
-    
-            /* Backup Config */
-            sgApi
-            .get('sgbackupconfigs')
-            .then( function(response) {
-  
-              vc.lookupCRDs('sgbackupconfigs', response.data);
-    
-              response.data.forEach( function(item, index) {
-                
-                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
-                  store.commit('updateNamespaces', item.metadata.namespace);
-                
-                if(!index)
-                  store.commit('flushResource', 'sgbackupconfigs')
-                  
-                store.commit('updateBackupConfig', { 
-                  name: item.metadata.name,
-                  data: item
-                });
-  
-              });
-        
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
-          }
-    
           if ( vc.iCan('list', 'sginstanceprofiles') && (!kind.length || (kind == 'sginstanceprofiles') ) ) {
     
             /* Profiles */
@@ -740,10 +710,6 @@ export const mixin = {
 
             break;
           
-          case 'SGBackupConfigs':
-            crd = JSON.parse(JSON.stringify(store.state.sgbackupconfigs.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
-            break;
-  
           case 'SGBackups':
             crd = JSON.parse(JSON.stringify(store.state.sgbackups.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
             break;
@@ -762,6 +728,10 @@ export const mixin = {
           
           case 'SGDistributedLogs':
             crd = JSON.parse(JSON.stringify(store.state.sgdistributedlogs.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+            break;
+
+          case 'SGObjectStorages':
+            crd = JSON.parse(JSON.stringify(store.state.sgobjectstorages.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
             break;
         }
         
