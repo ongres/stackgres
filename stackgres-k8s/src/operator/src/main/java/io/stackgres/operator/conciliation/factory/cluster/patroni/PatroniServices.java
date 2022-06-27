@@ -230,27 +230,10 @@ public class PatroniServices implements
         .endMetadata()
         .withNewSpec()
         .withType("ExternalName")
-        .withLoadBalancerIP(getPrimaryLoadBalancerIP(cluster))
         .withExternalName(name(context) + "." + cluster.getMetadata().getNamespace()
             + StackGresUtil.domainSearchPath())
         .endSpec()
         .build();
-  }
-
-  private String getPrimaryLoadBalancerIP(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getPrimary)
-        .map(StackGresPostgresService::getLoadBalancerIP)
-        .orElse(null);
-  }
-
-  private String getReplicaLoadBalancerIP(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getReplicas)
-        .map(StackGresPostgresService::getLoadBalancerIP)
-        .orElse(null);
   }
 
   private Service createReplicaService(StackGresClusterContext context) {
@@ -289,7 +272,6 @@ public class PatroniServices implements
                 servicePort -> getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH)
             .toList())
         .withType(getReplicasServiceType(cluster))
-        .withLoadBalancerIP(getReplicaLoadBalancerIP(cluster))
         .withExternalIPs(getReplicasExternalIPs(cluster))
         .endSpec()
         .build();

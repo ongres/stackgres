@@ -17,8 +17,8 @@ public class EnabledPostgresService extends PostgresService {
 
   public EnabledPostgresService() {}
 
-  public EnabledPostgresService(String type, List<String> externalIPs, String loadBalancerString) {
-    super(TRUE, type, externalIPs, loadBalancerString);
+  public EnabledPostgresService(String type, List<String> externalIPs) {
+    super(TRUE, type, externalIPs);
   }
 
   public EnabledPostgresService(String type) {

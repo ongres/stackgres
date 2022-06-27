@@ -10,13 +10,10 @@ import static io.stackgres.common.crd.postgres.service.StackGresPostgresServiceT
 import static io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType.NODE_PORT;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -158,16 +155,12 @@ class DefaultPostgresServicesMutatorTest {
   }
 
   private StackGresPostgresService withPgPrimaryService(Boolean enabled, String serviceType) {
-    return withPgPrimaryService(enabled, serviceType, Arrays.asList());
+    return new StackGresPostgresService(enabled, serviceType);
   }
 
-  private StackGresPostgresService withPgPrimaryService(Boolean enabled, String serviceType,
-      List<String> externalIPs) {
-    return new StackGresPostgresService(enabled, serviceType, externalIPs, EMPTY);
-  }
-
-  private StackGresPostgresService withPgReplicasService(Boolean enabled, String serviceType) {
-    return new StackGresPostgresService(enabled, serviceType, asList(), EMPTY);
+  private StackGresPostgresService withPgReplicasService(Boolean enabled,
+      String serviceType) {
+    return new StackGresPostgresService(enabled, serviceType);
   }
 
   private void setupDistributedLogsPgServices(StackGresPostgresService primary,

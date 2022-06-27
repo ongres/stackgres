@@ -329,9 +329,6 @@ spec:
                           description: Specify custom external IPs for Postgres primary service
                           items:
                             type: string
-                        loadBalancerIP:
-                          type: string
-                          description: Specify loadBalancer IP for Postgres primary service
                     replicas:
                       type: object
                       description: Configuration for the `-replicas` service. It provides a stable connection (regardless of replica node failures) to any read-only Postgres server of the cluster. Read-only servers are load-balanced via this service.
@@ -348,9 +345,6 @@ spec:
                           description: Specify the custom external IPs for Postgres replicas service
                           items:
                             type: string
-                        loadBalancerIP:
-                          type: string
-                          description: Specify loadBalancer IP for Postgres replica service
                 pods:
                   type: object
                   description: Cluster pod's configuration.
