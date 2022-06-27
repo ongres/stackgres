@@ -100,8 +100,8 @@ cluster:
       compression: lz4
       performance:
         uploadDiskConcurrency: 1
-        #maxNetworkBandwitdh:
-        #maxDiskBandwitdh:
+        #maxNetworkBandwidth:
+        #maxDiskBandwidth:
     # sgObjectStorage: objectstorage
     # path: "demo/mypath"
   distributedLogs:

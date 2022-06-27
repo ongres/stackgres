@@ -80,11 +80,11 @@ spec:
       compression: '{{ .Values.cluster.configurations.backups.compression }}'
       performance: 
         uploadDiskConcurrency: {{ .Values.cluster.configurations.backups.performance.uploadDiskConcurrency }}
-        {{- if .Values.cluster.configurations.backups.performance.maxNetworkBandwitdh }}
-        maxNetworkBandwitdh: {{ .Values.cluster.configurations.backups.performance.maxNetworkBandwitdh }}
+        {{- if .Values.cluster.configurations.backups.performance.maxNetworkBandwidth }}
+        maxNetworkBandwidth: {{ .Values.cluster.configurations.backups.performance.maxNetworkBandwidth }}
         {{- end }}
-        {{- if .Values.cluster.configurations.backups.performance.maxDiskBandwitdh }}
-        maxDiskBandwitdh: {{ .Values.cluster.configurations.backups.performance.maxDiskBandwitdh }}
+        {{- if .Values.cluster.configurations.backups.performance.maxDiskBandwidth }}
+        maxDiskBandwidth: {{ .Values.cluster.configurations.backups.performance.maxDiskBandwidth }}
         {{- end }}
       sgObjectStorage: '{{ .Values.cluster.configurations.backups.sgObjectStorage }}'
       {{- if .Values.cluster.configurations.backups.path }}
