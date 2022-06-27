@@ -27,17 +27,16 @@ public class StackGresPostgresService {
 
   private List<String> externalIPs;
 
+  private String loadBalancerIP;
+
   public StackGresPostgresService() {}
 
-  public StackGresPostgresService(Boolean enabled, String type, List<String> externalIPs) {
+  public StackGresPostgresService(Boolean enabled, String type, List<String> externalIPs,
+      String loadBalancerIP) {
     this.enabled = enabled;
     this.type = type;
     this.externalIPs = externalIPs;
-  }
-
-  public StackGresPostgresService(Boolean enabled, String type) {
-    this.enabled = enabled;
-    this.type = type;
+    this.loadBalancerIP = loadBalancerIP;
   }
 
   public Boolean getEnabled() {
@@ -64,9 +63,17 @@ public class StackGresPostgresService {
     this.externalIPs = externalIPs;
   }
 
+  public String getLoadBalancerIP() {
+    return loadBalancerIP;
+  }
+
+  public void setLoadBalancerIP(String loadBalancerIP) {
+    this.loadBalancerIP = loadBalancerIP;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(enabled, type);
+    return Objects.hash(enabled, type, externalIPs, loadBalancerIP);
   }
 
   @Override
@@ -80,7 +87,8 @@ public class StackGresPostgresService {
     StackGresPostgresService other = (StackGresPostgresService) obj;
     return Objects.equals(enabled, other.enabled)
         && Objects.equals(type, other.type)
-        && Objects.equals(externalIPs, other.externalIPs);
+        && Objects.equals(externalIPs, other.externalIPs)
+        && Objects.equals(loadBalancerIP, other.loadBalancerIP);
   }
 
   @Override

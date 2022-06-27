@@ -30,7 +30,8 @@ public class DistributedLogsPostgresServicesConverter implements
   private PostgresService convertToPostgreService(StackGresPostgresService replicas) {
     return Optional.ofNullable(replicas)
         .map(pgReplicas -> {
-          return new PostgresService(pgReplicas.getEnabled(), pgReplicas.getType());
+          return new PostgresService(pgReplicas.getEnabled(), pgReplicas.getType(),
+              pgReplicas.getExternalIPs(), pgReplicas.getLoadBalancerIP());
         }).orElse(null);
   }
 
@@ -38,7 +39,8 @@ public class DistributedLogsPostgresServicesConverter implements
       StackGresPostgresService sgPostgresService) {
     return Optional.ofNullable(sgPostgresService)
         .map(sgPgServices -> {
-          return new EnabledPostgresService(sgPgServices.getType());
+          return new EnabledPostgresService(sgPgServices.getType(), sgPgServices.getExternalIPs(),
+              sgPgServices.getLoadBalancerIP());
         }).orElse(null);
   }
 
@@ -56,7 +58,7 @@ public class DistributedLogsPostgresServicesConverter implements
     return Optional.ofNullable(postgresService)
         .map(pgServices -> {
           return new StackGresPostgresService(pgServices.getEnabled(),
-              pgServices.getType());
+              pgServices.getType(), pgServices.getExternalIPs(), pgServices.getLoadBalancerIP());
         }).orElse(null);
 
   }

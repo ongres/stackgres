@@ -44,53 +44,51 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
     final StackGresClusterPostgresServices postgresServices =
         review.getRequest().getObject().getSpec().getPostgresServices();
 
-    if (review.getRequest().getOperation() == Operation.CREATE
-        || review.getRequest().getOperation() == Operation.UPDATE) {
+    boolean isNotCreationOrUpdate = !(review.getRequest().getOperation() == Operation.CREATE
+        || review.getRequest().getOperation() == Operation.UPDATE);
 
-      if (postgresServices != null) {
-        if (postgresServices.getPrimary() != null) {
-          if (postgresServices.getPrimary().getEnabled() == null) {
-            postgresServices.getPrimary().setEnabled(Boolean.TRUE);
-          }
-          if (postgresServices.getPrimary().getType() == null) {
-            postgresServices.getPrimary()
-                .setType(StackGresPostgresServiceType.CLUSTER_IP.toString());
-          }
-        } else {
-          postgresServices.setPrimary(createNewPostgresService());
-        }
+    if (isNotCreationOrUpdate)
+      return List.of();
 
-        if (postgresServices.getReplicas() != null) {
-          if (postgresServices.getReplicas().getEnabled() == null) {
-            postgresServices.getReplicas().setEnabled(Boolean.TRUE);
-          }
-          if (postgresServices.getReplicas().getType() == null) {
-            postgresServices.getReplicas()
-                .setType(StackGresPostgresServiceType.CLUSTER_IP.toString());
-          }
-        } else {
-          postgresServices.setReplicas(createNewPostgresService());
-        }
+    if (postgresServices == null)
+      return createNewClusterPostgresServices();
 
-        JsonNode target = jsonMapper.valueToTree(postgresServices);
-        ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
-        operations.add(applyReplaceValue(postgresServicesPointer, target));
+    postgresServices.setPrimary(definePostgresPrimaryInfoFor(postgresServices.getPrimary()));
+    postgresServices.setReplicas(definePostgresPrimaryInfoFor(postgresServices.getReplicas()));
 
-        return operations.build();
-      } else {
-        StackGresClusterPostgresServices pgServices = new StackGresClusterPostgresServices();
-        pgServices.setPrimary(createNewPostgresService());
-        pgServices.setReplicas(createNewPostgresService());
+    JsonNode target = jsonMapper.valueToTree(postgresServices);
+    ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
+    operations.add(applyReplaceValue(postgresServicesPointer, target));
 
-        JsonNode target = jsonMapper.valueToTree(pgServices);
-        ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
-        operations.add(applyAddValue(postgresServicesPointer, target));
+    return operations.build();
+  }
 
-        return operations.build();
-      }
+  private StackGresPostgresService definePostgresPrimaryInfoFor(StackGresPostgresService pgPrimary) {
+
+    if (pgPrimary == null)
+      return createNewPostgresService();
+
+    if (pgPrimary.getEnabled() == null) {
+      pgPrimary.setEnabled(Boolean.TRUE);
+    }
+    
+    if (pgPrimary.getType() == null) {
+      pgPrimary.setType(StackGresPostgresServiceType.CLUSTER_IP.toString());
     }
 
-    return List.of();
+    return pgPrimary;
+  }
+
+  private List<JsonPatchOperation> createNewClusterPostgresServices() {
+    StackGresClusterPostgresServices pgServices = new StackGresClusterPostgresServices();
+    pgServices.setPrimary(createNewPostgresService());
+    pgServices.setReplicas(createNewPostgresService());
+
+    JsonNode target = jsonMapper.valueToTree(pgServices);
+    ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
+    operations.add(applyAddValue(postgresServicesPointer, target));
+
+    return operations.build();
   }
 
   private StackGresPostgresService createNewPostgresService() {
