@@ -28,12 +28,16 @@ public class PostgresService implements KubernetesResource {
 
   private List<String> externalIPs;
 
+  private String loadBalancerIP;
+
   public PostgresService() {}
 
-  public PostgresService(Boolean enabled, String type, List<String> externalIPs) {
+  public PostgresService(Boolean enabled, String type, List<String> externalIPs,
+      String loadBalancerIP) {
     this.enabled = enabled;
     this.type = type;
     this.externalIPs = externalIPs;
+    this.loadBalancerIP = loadBalancerIP;
   }
 
   public PostgresService(Boolean enabled, String type) {
@@ -68,6 +72,14 @@ public class PostgresService implements KubernetesResource {
     this.externalIPs = externalIPs;
   }
 
+  public String getLoadBalancerIP() {
+    return loadBalancerIP;
+  }
+
+  public void setLoadBalancerIP(String loadBalancerIP) {
+    this.loadBalancerIP = loadBalancerIP;
+  }
+
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
@@ -84,11 +96,12 @@ public class PostgresService implements KubernetesResource {
     PostgresService that = (PostgresService) o;
     return Objects.equals(enabled, that.enabled)
         && Objects.equals(type, that.type)
+        && Objects.equals(loadBalancerIP, that.loadBalancerIP)
         && Objects.equals(externalIPs, that.externalIPs);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(enabled, type, externalIPs);
+    return Objects.hash(enabled, type, externalIPs, loadBalancerIP);
   }
 }
