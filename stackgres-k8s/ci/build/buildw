@@ -2,7 +2,7 @@
 PROJECT_PATH="$(realpath "$(dirname "$0")/../../..")"
 CONTAINER_NAME="${CONTAINER_NAME:-buildw-$(printf '%x' "$(date +%s)")}"
 env > "/tmp/$CONTAINER_NAME.env"
-IMAGE="${IMAGE:-registry.gitlab.com/ongresinc/stackgres/ci:1.13-$(uname -m)}"
+IMAGE="${IMAGE:-registry.gitlab.com/ongresinc/stackgres/ci:1.14-$(uname -m)}"
 # shellcheck disable=SC2046
 docker run $(docker run -it "$IMAGE" true > /dev/null 2>&1 && printf '%s' -i || true) -t \
   --network bridge \
