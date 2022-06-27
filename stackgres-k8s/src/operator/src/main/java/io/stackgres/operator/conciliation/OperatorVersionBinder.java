@@ -20,7 +20,7 @@ import io.stackgres.common.StackGresVersion;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface OperatorVersionBinder {
 
-  @Nonbinding StackGresVersion startAt() default StackGresVersion.V_1_0;
+  @Nonbinding StackGresVersion startAt() default StackGresVersion.V_1_1;
 
   @Nonbinding StackGresVersion stopAt() default StackGresVersion.V_1_3;
 

@@ -26,6 +26,8 @@ import io.stackgres.common.ClusterLabelFactory;
 import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -209,6 +211,8 @@ class PatroniConfigEndpointsTest {
       throws JsonProcessingException {
     var cluster = JsonUtil
           .readFromJson("upgrade/sgcluster.json", StackGresCluster.class);
+    cluster.getMetadata().getAnnotations().put(
+        StackGresContext.VERSION_KEY, StackGresVersion.V_1_1.getVersion());
     var postgresConfig = JsonUtil.readFromJson("upgrade/sgpgconfig.json",
         StackGresPostgresConfig.class);
     var backupConfig = JsonUtil.readFromJson("upgrade/sgbackupconfig.json",
