@@ -5,9 +5,9 @@
 
 package io.stackgres.operator.validation;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import javax.enterprise.inject.Instance;
 
@@ -25,11 +25,10 @@ public class SimpleValidationPipeline<T extends AdmissionReview<?>, V extends Va
     init(validatorInstances);
   }
 
-  private void init(Instance<V> validatorInstances) {
-
-    this.validators = validatorInstances.stream().sorted((v1, v2) -> {
-      ValidationType v1ValidationType = v1.getClass().getAnnotation(ValidationType.class);
-      ValidationType v2ValidationType = v2.getClass().getAnnotation(ValidationType.class);
+  private Comparator<? super V> validationTypeComparator() {
+    return (v1, v2) -> {
+      final ValidationType v1ValidationType = v1.getClass().getAnnotation(ValidationType.class);
+      final ValidationType v2ValidationType = v2.getClass().getAnnotation(ValidationType.class);
 
       if (v1ValidationType == null && v2ValidationType == null) {
         return 0;
@@ -40,8 +39,12 @@ public class SimpleValidationPipeline<T extends AdmissionReview<?>, V extends Va
       } else {
         return v1ValidationType.value().compareTo(v2ValidationType.value());
       }
-    }).collect(Collectors.toUnmodifiableList());
+    };
+  }
 
+  private void init(Instance<V> validatorInstances) {
+    this.validators = validatorInstances.stream()
+        .sorted(validationTypeComparator()).toList();
   }
 
   @Override

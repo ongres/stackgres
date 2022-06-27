@@ -28,13 +28,13 @@ public class ObjectStorageTransformerTest {
     StackGresObjectStorage crd = new StackGresObjectStorage();
     ObjectStorageDto dto = new ObjectStorageDto();
 
-    crd.setMetadata(metadataTuple.getSource());
-    dto.setMetadata(metadataTuple.getTarget());
+    crd.setMetadata(metadataTuple.source());
+    dto.setMetadata(metadataTuple.target());
 
     var specTuple = BackupStorageTransformerTest.createS3BackupStorage();
 
-    crd.setSpec(specTuple.getSource());
-    dto.setSpec(specTuple.getTarget());
+    crd.setSpec(specTuple.source());
+    dto.setSpec(specTuple.target());
 
     dto.setStatus(new ObjectStorageStatus());
     dto.getStatus().setClusters(List.of(StringUtils.getRandomClusterName()));
@@ -46,7 +46,7 @@ public class ObjectStorageTransformerTest {
 
     var s3ObjectStorageTuple = createObjectStorage();
 
-    final List<String> clusters = Optional.of(s3ObjectStorageTuple.getTarget())
+    final List<String> clusters = Optional.of(s3ObjectStorageTuple.target())
         .map(ObjectStorageDto::getStatus)
         .map(ObjectStorageStatus::getClusters).orElse(List.of());
 

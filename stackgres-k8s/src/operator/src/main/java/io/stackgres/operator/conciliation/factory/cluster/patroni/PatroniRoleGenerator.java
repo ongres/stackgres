@@ -30,6 +30,7 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -153,6 +154,7 @@ public class PatroniRoleGenerator implements
                 HasMetadata.getPlural(StackGresBackupConfig.class),
                 HasMetadata.getPlural(StackGresCluster.class),
                 HasMetadata.getPlural(StackGresPostgresConfig.class),
+                HasMetadata.getPlural(StackGresObjectStorage.class),
                 HasMetadata.getPlural(StackGresPoolingConfig.class),
                 HasMetadata.getPlural(StackGresProfile.class),
                 HasMetadata.getPlural(StackGresDistributedLogs.class),

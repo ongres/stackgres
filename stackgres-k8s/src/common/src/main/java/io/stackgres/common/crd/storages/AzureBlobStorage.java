@@ -26,6 +26,7 @@ public class AzureBlobStorage implements PrefixedStorage {
   private String bucket;
 
   @JsonProperty("path")
+  @Deprecated(forRemoval = true)
   private String path;
 
   @JsonProperty("azureCredentials")
@@ -49,11 +50,13 @@ public class AzureBlobStorage implements PrefixedStorage {
   }
 
   @Override
+  @Deprecated(forRemoval = true)
   public String getPath() {
     return path;
   }
 
   @Override
+  @Deprecated(forRemoval = true)
   public void setPath(String path) {
     this.path = path;
   }

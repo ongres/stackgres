@@ -5,34 +5,84 @@
 
 package io.stackgres.operator.validation.objectstorage;
 
+import java.util.Map;
+
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import io.stackgres.common.ErrorType;
+import io.stackgres.common.crd.storages.AwsS3Storage;
+import io.stackgres.common.crd.storages.BackupStorage;
+import io.stackgres.common.resource.SecretWriter;
 import io.stackgres.operator.common.ObjectStorageReview;
-import io.stackgres.operator.validation.ValidationPipelineTest;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
+import io.stackgres.operator.utils.ValidationUtils;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.testutil.JsonUtil;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import io.stackgres.testutil.RandomObjectUtils;
+import io.stackgres.testutil.StringUtils;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-@EnabledIfEnvironmentVariable(named = "QUARKUS_PROFILE", matches = "test")
-public class ObjectStorageValidationPipelineTest
-    extends ValidationPipelineTest<StackGresObjectStorage, ObjectStorageReview> {
+@WithKubernetesTestServer
+class ObjectStorageValidationPipelineTest {
 
   @Inject
-  public ObjectStorageValidationPipeline pipeline;
+  ObjectStorageValidationPipeline pipeline;
 
-  @Override
-  public ObjectStorageReview getConstraintViolatingReview() {
-    final ObjectStorageReview review =
-        JsonUtil.readFromJson("objectstorage_allow_request/create.json",
-            ObjectStorageReview.class);
-    return review;
+  @Inject
+  SecretWriter writer;
+
+  @Test
+  @DisplayName("Valid reviews should pass")
+  void testValidReview() throws ValidationFailed {
+
+    ObjectStorageReview review = JsonUtil.readFromJson(
+        "objectstorage_allow_request/create.json", ObjectStorageReview.class);
+
+    var objectStorage = review.getRequest().getObject();
+    var backupStorage = objectStorage.getSpec();
+    backupStorage.setType("s3");
+    backupStorage.setGcs(null);
+    backupStorage.setAzureBlob(null);
+    backupStorage.setS3Compatible(null);
+    var s3Storage = RandomObjectUtils.generateRandomObject(AwsS3Storage.class);
+    backupStorage.setS3(s3Storage);
+
+    var accessKeyId = s3Storage.getAwsCredentials().getSecretKeySelectors()
+        .getAccessKeyId();
+    var secretAccessKey = s3Storage.getAwsCredentials().getSecretKeySelectors()
+        .getSecretAccessKey();
+    secretAccessKey.setName(accessKeyId.getName());
+
+    s3Storage.setStorageClass(null);
+
+    writer.create(new SecretBuilder()
+        .withNewMetadata()
+        .withNamespace(objectStorage.getMetadata().getNamespace())
+        .withName(accessKeyId.getName())
+        .endMetadata()
+        .withData(
+            Map.of(
+                accessKeyId.getKey(), StringUtils.getRandomString(),
+                secretAccessKey.getKey(), StringUtils.getRandomString()))
+        .build());
+
+    pipeline.validate(review);
   }
 
-  @Override
-  public ValidationPipeline<ObjectStorageReview> getPipeline() {
-    return pipeline;
+  @Test
+  @DisplayName("Given an invalid creation should fail")
+  void testConstraintValidations() {
+    ObjectStorageReview review = JsonUtil.readFromJson(
+        "objectstorage_allow_request/create.json", ObjectStorageReview.class);
+    var objectStorage = review.getRequest().getObject();
+    objectStorage.setSpec(
+        RandomObjectUtils.generateRandomObject(BackupStorage.class));
+
+    ValidationUtils.assertErrorType(
+        ErrorType.CONSTRAINT_VIOLATION, () -> pipeline.validate(review));
   }
 }

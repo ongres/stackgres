@@ -18,16 +18,11 @@ import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path(MutationUtil.DBOPS_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class DbOpsMutationResource implements MutationResource<DbOpsReview> {
-
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(DbOpsMutationResource.class);
 
   private JsonPatchMutationPipeline<DbOpsReview> pipeline;
 
@@ -37,7 +32,7 @@ public class DbOpsMutationResource implements MutationResource<DbOpsReview> {
   }
 
   void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("DbOps mutation resource started");
+    getLogger().info("DbOps mutation resource started");
   }
 
   @POST

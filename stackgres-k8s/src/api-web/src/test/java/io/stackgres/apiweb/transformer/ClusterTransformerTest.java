@@ -57,16 +57,16 @@ class ClusterTransformerTest {
     ClusterDto target = new ClusterDto();
 
     var metadata = TransformerTestUtil.createMetadataTuple();
-    source.setMetadata(metadata.getSource());
-    target.setMetadata(metadata.getTarget());
+    source.setMetadata(metadata.source());
+    target.setMetadata(metadata.target());
 
     var spec = createSpec();
-    source.setSpec(spec.getSource());
-    target.setSpec(spec.getTarget());
+    source.setSpec(spec.source());
+    target.setSpec(spec.target());
 
     var status = createStatus();
-    source.setStatus(status.getSource());
-    target.setStatus(status.getTarget());
+    source.setStatus(status.source());
+    target.setStatus(status.target());
 
     return new TransformerTuple<>(target, source);
   }
@@ -80,8 +80,8 @@ class ClusterTransformerTest {
         StackGresClusterCondition.class
     );
 
-    statusTuple.getSource().setConditions(conditions.getSource());
-    statusTuple.getTarget().setConditions(conditions.getTarget());
+    statusTuple.source().setConditions(conditions.source());
+    statusTuple.target().setConditions(conditions.target());
     return statusTuple;
   }
 
@@ -98,44 +98,44 @@ class ClusterTransformerTest {
     target.setSgInstanceProfile(instanceProfile);
 
     var postgres = createPostgres();
-    source.setPostgres(postgres.getSource());
-    target.setPostgres(postgres.getTarget());
+    source.setPostgres(postgres.source());
+    target.setPostgres(postgres.target());
 
     var replication = createReplication();
-    source.setReplication(replication.getSource());
-    target.setReplication(replication.getTarget());
+    source.setReplication(replication.source());
+    target.setReplication(replication.target());
 
     var configuration = createConfiguration();
-    source.setConfiguration(configuration.getSource());
-    target.setConfigurations(configuration.getTarget());
+    source.setConfiguration(configuration.source());
+    target.setConfigurations(configuration.target());
 
     var pods = createPodsConfiguration();
-    source.setPod(pods.getSource());
-    target.setPods(pods.getTarget());
+    source.setPod(pods.source());
+    target.setPods(pods.target());
 
     var initialData = createInitialData();
-    source.setInitData(initialData.getSource());
-    target.setInitData(initialData.getTarget());
+    source.setInitData(initialData.source());
+    target.setInitData(initialData.target());
 
     var distributedLogs = createDistributedLogs();
-    source.setDistributedLogs(distributedLogs.getSource());
-    target.setDistributedLogs(distributedLogs.getTarget());
+    source.setDistributedLogs(distributedLogs.source());
+    target.setDistributedLogs(distributedLogs.target());
 
     var prometheusAutobind = TransformerTestUtil.RANDOM.nextBoolean();
     source.setPrometheusAutobind(prometheusAutobind);
     target.setPrometheusAutobind(prometheusAutobind);
 
     var nonProductions = createNonProductionOptions();
-    source.setNonProductionOptions(nonProductions.getSource());
-    target.setNonProductionOptions(nonProductions.getTarget());
+    source.setNonProductionOptions(nonProductions.source());
+    target.setNonProductionOptions(nonProductions.target());
 
     var services = createPostgresServices();
-    source.setPostgresServices(services.getSource());
-    target.setPostgresServices(services.getTarget());
+    source.setPostgresServices(services.source());
+    target.setPostgresServices(services.target());
 
     var metadata = createClusterMetadata();
-    source.setMetadata(metadata.getSource());
-    target.setMetadata(metadata.getTarget());
+    source.setMetadata(metadata.source());
+    target.setMetadata(metadata.target());
 
     return new TransformerTuple<>(target, source);
   }
@@ -154,8 +154,8 @@ class ClusterTransformerTest {
             StackGresClusterExtension.class
         );
 
-    tuple.getTarget().setExtensions(extensionTuple.getTarget());
-    tuple.getSource().setExtensions(extensionTuple.getSource());
+    tuple.target().setExtensions(extensionTuple.target());
+    tuple.source().setExtensions(extensionTuple.source());
 
     return tuple;
   }
@@ -176,8 +176,8 @@ class ClusterTransformerTest {
             StackGresClusterReplicationGroup.class
         );
 
-    tuple.getTarget().setGroups(replicationGroupsTuple.getTarget());
-    tuple.getSource().setGroups(replicationGroupsTuple.getSource());
+    tuple.target().setGroups(replicationGroupsTuple.target());
+    tuple.source().setGroups(replicationGroupsTuple.source());
 
     return tuple;
   }
@@ -200,8 +200,8 @@ class ClusterTransformerTest {
     var scripts = TransformerTestUtil.generateRandomListTuple(
         ClusterScriptEntry.class, StackGresClusterScriptEntry.class
     );
-    initialData.getTarget().setScripts(scripts.getTarget());
-    initialData.getSource().setScripts(scripts.getSource());
+    initialData.target().setScripts(scripts.target());
+    initialData.source().setScripts(scripts.source());
     return initialData;
 
   }
@@ -221,8 +221,8 @@ class ClusterTransformerTest {
     );
 
     var featureGates = TransformerTestUtil.generateRandomListTuple();
-    nonProduction.getSource().setEnabledFeatureGates(featureGates.getSource());
-    nonProduction.getTarget().setEnabledFeatureGates(featureGates.getTarget());
+    nonProduction.source().setEnabledFeatureGates(featureGates.source());
+    nonProduction.target().setEnabledFeatureGates(featureGates.target());
 
     return nonProduction;
   }

@@ -5,22 +5,21 @@
 
 package io.stackgres.operator.mutation.backupconfig;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 
 @ApplicationScoped
 public class BackupPipeline implements JsonPatchMutationPipeline<BackupConfigReview> {
 
-  private Instance<BackupConfigMutator> mutators;
+  private final Instance<BackupConfigMutator> mutators;
 
   @Inject
   public BackupPipeline(Instance<BackupConfigMutator> mutators) {
@@ -29,14 +28,11 @@ public class BackupPipeline implements JsonPatchMutationPipeline<BackupConfigRev
 
   @Override
   public Optional<String> mutate(BackupConfigReview review) {
-    List<JsonPatchOperation> operations = new ArrayList<>();
-
-    mutators.forEach(mutator -> operations.addAll(mutator.mutate(review)));
-
-    if (operations.isEmpty()) {
-      return Optional.empty();
-    } else {
-      return Optional.of(join(operations));
-    }
+    return mutators.stream()
+        .sorted(JsonPatchMutationPipeline.weightComparator())
+        .map(m -> m.mutate(review))
+        .flatMap(Collection::stream)
+        .collect(Collectors.collectingAndThen(Collectors.toList(),
+            JsonPatchMutationPipeline::join));
   }
 }

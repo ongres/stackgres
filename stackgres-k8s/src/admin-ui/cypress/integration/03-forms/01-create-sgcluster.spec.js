@@ -7,6 +7,27 @@ describe('Create SGCluster', () => {
         cy.login()
 
         resourceName = Cypress._.random(0, 1e6)
+
+        // Create SGObjectStorage dependency
+        cy.createCRD('sgobjectstorages', {
+            metadata: {
+                namespace: namespace,
+                name: 'storage-' + resourceName,
+            },
+            spec: {
+                type: 's3Compatible',
+                s3Compatible:{
+                    forcePathStyle: true,
+                    bucket: 'bucket',
+                    awsCredentials: {
+                        accessKeyId: 'api-key',
+                        secretAccessKey: 'api-secret'
+                    },
+                    region: 'region',
+                    endpoint: 'https://endpoint'
+                }
+            }
+        });
     });
 
     beforeEach( () => {
@@ -20,6 +41,13 @@ describe('Create SGCluster', () => {
         cy.deleteCluster(namespace, 'babelfish-' + resourceName);
 
         cy.deleteCluster(namespace, 'advanced-' + resourceName);
+
+        cy.deleteCRD('sgobjectstorages', {
+            metadata: {
+                name: 'storage-' + resourceName,
+                namespace: namespace
+            }
+        });
     });
 
     it('Create SGCluster form should be visible', () => {
@@ -104,13 +132,54 @@ describe('Create SGCluster', () => {
         cy.get('form#createCluster li[data-step="backups"]')
             .click()
         
-        cy.get('select[data-field="spec.configurations.sgBackupConfig"]') 
-            .select('backupconf')
-        
-        cy.get('input[data-field="spec.configurations.backupPath"]')
+        // Backup Schedule
+        cy.get('#backupConfigFullScheduleMin')
             .clear()
-            .type('/test/backup/path')
+            .type('1')
         
+        cy.get('#backupConfigFullScheduleHour')
+            .clear()    
+            .type('1')
+
+        cy.get('#backupConfigFullScheduleDOM')
+            .clear()    
+            .type('1')
+        
+        cy.get('#backupConfigFullScheduleMonth')
+            .clear()    
+            .type('1')
+
+        cy.get('#backupConfigFullScheduleDOW')
+            .clear()    
+            .type('1')
+
+        // Base Backup Details
+        cy.get('[data-field="spec.configurations.backups.path"]')
+            .clear()    
+            .type('/path')
+
+        cy.get('[data-field="spec.configurations.backups.retention"]')
+            .clear()    
+            .type('3')
+        
+        cy.get('[data-field="spec.configurations.backups.compression"]')
+            .select('LZMA')
+
+        //Performance Details
+        cy.get('[data-field="spec.configurations.backups.performance.maxNetworkBandwidth"]')
+            .type('1024')
+
+        cy.get('[data-field="spec.configurations.backups.performance.maxDiskBandwidth"]')
+            .type('1024')
+        
+        cy.get('[data-field="spec.configurations.backups.performance.uploadDiskConcurrency"]')
+            .clear()    
+            .type('2')
+
+        // Storage Details
+        cy.get('[data-field="spec.configurations.backups.sgObjectStorage"]')
+            .select('storage-' + resourceName)
+
         // Test data initialization
         cy.get('form#createCluster li[data-step="initialization"]')
             .click()

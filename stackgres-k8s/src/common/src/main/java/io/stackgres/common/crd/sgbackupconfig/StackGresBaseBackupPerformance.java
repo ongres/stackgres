@@ -22,10 +22,12 @@ public class StackGresBaseBackupPerformance {
 
   @JsonProperty("maxNetworkBandwitdh")
   @Null
+  @Deprecated(forRemoval = true)
   private Long maxNetworkBandwitdh;
 
   @JsonProperty("maxDiskBandwitdh")
   @Null
+  @Deprecated(forRemoval = true)
   private Long maxDiskBandwitdh;
 
   @JsonProperty("maxNetworkBandwidth")
@@ -37,18 +39,22 @@ public class StackGresBaseBackupPerformance {
   @JsonProperty("uploadDiskConcurrency")
   private Integer uploadDiskConcurrency;
 
+  @Deprecated(forRemoval = true)
   public Long getMaxNetworkBandwitdh() {
     return maxNetworkBandwitdh;
   }
 
+  @Deprecated(forRemoval = true)
   public void setMaxNetworkBandwitdh(Long maxNetworkBandwitdh) {
     this.maxNetworkBandwitdh = maxNetworkBandwitdh;
   }
 
+  @Deprecated(forRemoval = true)
   public Long getMaxDiskBandwitdh() {
     return maxDiskBandwitdh;
   }
 
+  @Deprecated(forRemoval = true)
   public void setMaxDiskBandwitdh(Long maxDiskBandwitdh) {
     this.maxDiskBandwitdh = maxDiskBandwitdh;
   }
@@ -79,8 +85,7 @@ public class StackGresBaseBackupPerformance {
 
   @Override
   public int hashCode() {
-    return Objects.hash(maxDiskBandwidth, maxDiskBandwitdh, maxNetworkBandwidth,
-        maxNetworkBandwitdh, uploadDiskConcurrency);
+    return Objects.hash(maxDiskBandwidth, maxNetworkBandwidth, uploadDiskConcurrency);
   }
 
   @Override
@@ -93,9 +98,7 @@ public class StackGresBaseBackupPerformance {
     }
     StackGresBaseBackupPerformance other = (StackGresBaseBackupPerformance) obj;
     return Objects.equals(maxDiskBandwidth, other.maxDiskBandwidth)
-        && Objects.equals(maxDiskBandwitdh, other.maxDiskBandwitdh)
         && Objects.equals(maxNetworkBandwidth, other.maxNetworkBandwidth)
-        && Objects.equals(maxNetworkBandwitdh, other.maxNetworkBandwitdh)
         && Objects.equals(uploadDiskConcurrency, other.uploadDiskConcurrency);
   }
 

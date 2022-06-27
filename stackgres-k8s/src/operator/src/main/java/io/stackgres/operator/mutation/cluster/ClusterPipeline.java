@@ -6,7 +6,6 @@
 package io.stackgres.operator.mutation.cluster;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -14,14 +13,13 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 
 @ApplicationScoped
 public class ClusterPipeline implements JsonPatchMutationPipeline<StackGresClusterReview> {
 
-  private Instance<ClusterMutator> mutators;
+  private final Instance<ClusterMutator> mutators;
 
   @Inject
   public ClusterPipeline(Instance<ClusterMutator> mutators) {
@@ -30,17 +28,11 @@ public class ClusterPipeline implements JsonPatchMutationPipeline<StackGresClust
 
   @Override
   public Optional<String> mutate(StackGresClusterReview review) {
-
-    List<JsonPatchOperation> operations = mutators
-        .stream()
+    return mutators.stream()
+        .sorted(JsonPatchMutationPipeline.weightComparator())
         .map(m -> m.mutate(review))
         .flatMap(Collection::stream)
-        .collect(Collectors.toList());
-
-    if (operations.isEmpty()) {
-      return Optional.empty();
-    } else {
-      return Optional.of(join(operations));
-    }
+        .collect(Collectors.collectingAndThen(Collectors.toList(),
+            JsonPatchMutationPipeline::join));
   }
 }

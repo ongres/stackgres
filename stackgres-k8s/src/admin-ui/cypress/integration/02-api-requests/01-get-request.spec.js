@@ -114,8 +114,8 @@ describe('GET requests', () => {
         cy.getResources('sgpoolconfigs');
     });
 
-    it('GET sgbackupconfigs', () => {
-        cy.getResources('sgbackupconfigs');
+    it('GET sgobjectstorages', () => {
+        cy.getResources('sgobjectstorages');
     });
 
     it('GET storageclasses', () => {

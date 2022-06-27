@@ -6,9 +6,7 @@
 package io.stackgres.operator.conciliation.factory.cluster.backup;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -22,9 +20,6 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -69,25 +64,29 @@ public class BackupConfigMap extends AbstractBackupConfigMap
     final Map<String, String> data = new HashMap<>();
 
     final StackGresCluster cluster = context.getCluster();
-    context.getBackupConfig()
-        .ifPresent(backupConfig -> {
-          data.put("BACKUP_CONFIG_RESOURCE_VERSION",
-              backupConfig.getMetadata().getResourceVersion());
-          data.putAll(getBackupEnvVars(context,
-              Optional.of(context.getCluster())
-              .map(StackGresCluster::getSpec)
-              .map(StackGresClusterSpec::getConfiguration)
-              .map(StackGresClusterConfiguration::getBackupPath)
-              .or(() -> Optional.of(context.getCluster())
-                  .map(StackGresCluster::getSpec)
-                  .map(StackGresClusterSpec::getConfiguration)
-                  .map(StackGresClusterConfiguration::getBackups)
-                  .map(List::stream)
-                  .flatMap(Stream::findFirst)
-                  .map(StackGresClusterBackupConfiguration::getPath))
-              .orElseThrow(),
-              backupConfig.getSpec()));
-        });
+    context.getBackupConfigurationResourceVersion()
+        .ifPresent(resourceVersion -> data.put(
+                "BACKUP_CONFIG_RESOURCE_VERSION", resourceVersion
+            )
+        );
+
+    context.getBackupStorage()
+        .ifPresent(storage -> data.putAll(
+                getBackupEnvVars(
+                    context,
+                    context.getBackupPath().orElseThrow(),
+                    storage
+                )
+            )
+        );
+
+    context.getBackupConfiguration()
+        .ifPresent(config -> data.putAll(
+                getBackupEnvVars(
+                    config
+                )
+            )
+        );
     return new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())

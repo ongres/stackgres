@@ -2,6 +2,7 @@
 
 e2e_test_install() {
   init_expandable_storage_class
+  EXPANDABLE_STORAGE_CLASSNAME="$(get_expandable_storage_class_configured)"
   HIGH_PV_SIZE="256Mi"
   LOW_PV_SIZE="128Mi"  
   DISTRIBUTED_LOGS_NAME="$CLUSTER_NAME-dl"

@@ -34,9 +34,11 @@ public class StackGresClusterConfiguration {
   private String connectionPoolingConfig;
 
   @JsonProperty("sgBackupConfig")
+  @Deprecated(since = "1.3.0", forRemoval = true)
   private String backupConfig;
 
   @JsonProperty("backupPath")
+  @Deprecated(since = "1.3.0", forRemoval = true)
   private String backupPath;
 
   @JsonProperty("backups")
@@ -44,11 +46,12 @@ public class StackGresClusterConfiguration {
   private List<StackGresClusterBackupConfiguration> backups;
 
   @ReferencedField("backupPath")
-  interface BackupPath extends FieldReference { }
+  interface BackupPath extends FieldReference {
+  }
 
   @JsonIgnore
   @AssertTrue(message = "backupPath can not be null when sgBackupConfig is set.",
-      payload = { BackupPath.class })
+      payload = {BackupPath.class})
   public boolean isBackupPathSetWhenSgBackupConfigIsSet() {
     return backupConfig == null || backupPath != null;
   }
@@ -100,15 +103,10 @@ public class StackGresClusterConfiguration {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof StackGresClusterConfiguration)) {
-      return false;
-    }
-    StackGresClusterConfiguration other = (StackGresClusterConfiguration) obj;
-    return Objects.equals(backupConfig, other.backupConfig)
-        && Objects.equals(backupPath, other.backupPath) && Objects.equals(backups, other.backups)
+    return obj instanceof StackGresClusterConfiguration other
+        && Objects.equals(backupConfig, other.backupConfig)
+        && Objects.equals(backupPath, other.backupPath)
+        && Objects.equals(backups, other.backups)
         && Objects.equals(connectionPoolingConfig, other.connectionPoolingConfig)
         && Objects.equals(postgresConfig, other.postgresConfig);
   }

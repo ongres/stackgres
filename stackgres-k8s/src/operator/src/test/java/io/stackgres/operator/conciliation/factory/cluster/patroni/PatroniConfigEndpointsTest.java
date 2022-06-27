@@ -82,6 +82,7 @@ class PatroniConfigEndpointsTest {
   @Test
   void getPostgresConfigValues_shouldConfigureBackupParametersIfArePresent() {
     when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
+    when(context.getBackupStorage()).thenCallRealMethod();
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
     when(context.getSource()).thenReturn(cluster);
     when(context.getCluster()).thenReturn(cluster);
@@ -97,6 +98,7 @@ class PatroniConfigEndpointsTest {
   @Test
   void getPostgresRecoveryConfigValues_shouldConfigureBackupParametersIfArePresent() {
     when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
+    when(context.getBackupStorage()).thenCallRealMethod();
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
     when(context.getSource()).thenReturn(cluster);
 
@@ -110,7 +112,7 @@ class PatroniConfigEndpointsTest {
 
   @Test
   void getPostgresConfigValues_shouldNotConfigureBackupParametersIfAreNotPresent() {
-    when(context.getBackupConfig()).thenReturn(Optional.empty());
+    when(context.getBackupStorage()).thenReturn(Optional.empty());
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
     when(context.getSource()).thenReturn(cluster);
     when(context.getCluster()).thenReturn(cluster);
@@ -124,6 +126,7 @@ class PatroniConfigEndpointsTest {
   @Test
   void getPostgresConfigValues_shouldConfigurePgParameters() {
     when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
+    when(context.getBackupStorage()).thenCallRealMethod();
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
     when(context.getSource()).thenReturn(cluster);
     when(context.getCluster()).thenReturn(cluster);
@@ -138,7 +141,7 @@ class PatroniConfigEndpointsTest {
 
   @Test
   void getPostgresConfigValues_shouldNotModifyBlockedValuesIfArePresent() {
-    when(context.getBackupConfig()).thenReturn(Optional.empty());
+    when(context.getBackupStorage()).thenReturn(Optional.empty());
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
     when(context.getSource()).thenReturn(cluster);
     when(context.getCluster()).thenReturn(cluster);
@@ -193,6 +196,7 @@ class PatroniConfigEndpointsTest {
     when(context.getSource()).thenReturn(cluster);
     when(context.getCluster()).thenReturn(cluster);
     when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
+    when(context.getBackupStorage()).thenCallRealMethod();
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
 
     List<HasMetadata> endpoints = generator.generateResource(context)

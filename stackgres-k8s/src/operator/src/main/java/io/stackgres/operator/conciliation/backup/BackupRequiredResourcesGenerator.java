@@ -5,17 +5,19 @@
 
 package io.stackgres.operator.conciliation.backup;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.base.Predicates;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.StackGresUtil;
@@ -23,8 +25,10 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
@@ -44,6 +48,7 @@ public class BackupRequiredResourcesGenerator
   private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
   private final CustomResourceScanner<StackGresBackup> backupScanner;
+  private final CustomResourceFinder<StackGresObjectStorage> objectStorageFinder;
 
   private final RequiredResourceDecorator<StackGresBackupContext> decorator;
 
@@ -52,10 +57,12 @@ public class BackupRequiredResourcesGenerator
       CustomResourceFinder<StackGresCluster> clusterFinder,
       CustomResourceFinder<StackGresBackupConfig> backupConfigFinder,
       CustomResourceScanner<StackGresBackup> backupScanner,
+      CustomResourceFinder<StackGresObjectStorage> objectStorageFinder,
       RequiredResourceDecorator<StackGresBackupContext> decorator) {
     this.clusterFinder = clusterFinder;
     this.backupConfigFinder = backupConfigFinder;
     this.backupScanner = backupScanner;
+    this.objectStorageFinder = objectStorageFinder;
     this.decorator = decorator;
   }
 
@@ -74,45 +81,57 @@ public class BackupRequiredResourcesGenerator
         .orElseThrow(() -> new IllegalArgumentException(
             "SGBackup " + backupNamespace + "/" + backupName
                 + " target a non existent SGCluster " + clusterNamespace + "." + clusterName));
-    final Optional<StackGresBackupConfig> backupConfig =
-        findBackupConfig(config, backupName, backupNamespace, clusterNamespace, cluster);
 
     final Set<String> clusterBackupNamespaces = getClusterBackupNamespaces(backupNamespace);
 
-    StackGresBackupContext context = ImmutableStackGresBackupContext.builder()
+    var contextBuilder = ImmutableStackGresBackupContext.builder()
         .source(config)
         .cluster(cluster)
-        .backupConfig(backupConfig)
-        .clusterBackupNamespaces(clusterBackupNamespaces)
-        .build();
+        .clusterBackupNamespaces(clusterBackupNamespaces);
 
-    return decorator.decorateResources(context);
+    if (isBackupInTheSameSgClusterNamespace(config, clusterNamespace)) {
+      final var specConfiguration = Optional.of(cluster.getSpec())
+          .map(StackGresClusterSpec::getConfiguration);
+
+      final Optional<String> sgBackupConfigurationName = specConfiguration
+          .map(StackGresClusterConfiguration::getBackupConfig);
+
+      final Optional<String> sgObjectStorageName = specConfiguration
+          .map(StackGresClusterConfiguration::getBackups)
+          .map(Collection::stream)
+          .flatMap(Stream::findFirst)
+          .map(StackGresClusterBackupConfiguration::getObjectStorage);
+
+      if (sgObjectStorageName.isEmpty() && sgBackupConfigurationName.isEmpty()) {
+        throw new IllegalArgumentException(
+            "SGBackup " + backupNamespace + "/" + backupName
+                + " target SGCluster " + spec.getSgCluster()
+                + " without a SGObjectStorage or SGBackupConfig");
+      }
+
+      sgObjectStorageName.ifPresent(osName -> contextBuilder.objectStorage(
+          objectStorageFinder.findByNameAndNamespace(osName, backupNamespace)
+              .orElseThrow(
+                  () -> new IllegalArgumentException(
+                      "SGBackup " + backupNamespace + "/" + backupName
+                          + " target SGCluster " + spec.getSgCluster()
+                          + " with a non existent SGObjectStorage " + osName))));
+
+      sgBackupConfigurationName.ifPresent(bcName -> contextBuilder.backupConfig(
+          backupConfigFinder.findByNameAndNamespace(bcName, backupNamespace)
+              .orElseThrow(
+                  () -> new IllegalArgumentException(
+                      "SGBackup " + backupNamespace + "/" + backupName
+                          + " target SGCluster " + spec.getSgCluster()
+                          + " with a non existent SGBackupConfig " + bcName))));
+    }
+
+    return decorator.decorateResources(contextBuilder.build());
   }
 
-  private Optional<StackGresBackupConfig> findBackupConfig(StackGresBackup config,
-      final String backupName, final String backupNamespace, final String clusterNamespace,
-      final StackGresCluster cluster) {
-    if (!Objects.equals(clusterNamespace, backupNamespace)) {
-      return Optional.empty();
-    }
-
-    final Optional<StackGresBackupConfig> backupConfig = Optional.of(cluster)
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getBackupConfig)
-        .map(backupConfigName -> backupConfigFinder
-            .findByNameAndNamespace(backupConfigName, backupNamespace)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "SGBackup " + backupNamespace + "/" + backupName
-                + " target SGCluster " + config.getSpec().getSgCluster()
-                + " with a non existent SGBackupConfig " + backupConfigName)));
-    if (backupConfig.isEmpty()) {
-      throw new IllegalArgumentException(
-          "SGBackup " + backupNamespace + "/" + backupName
-          + " target SGCluster " + config.getSpec().getSgCluster()
-          + " without a SGBackupConfig");
-    }
-    return backupConfig;
+  private boolean isBackupInTheSameSgClusterNamespace(
+      StackGresBackup backup, String clusterNamespace) {
+    return Objects.equals(backup.getMetadata().getNamespace(), clusterNamespace);
   }
 
   private Set<String> getClusterBackupNamespaces(final String backupNamespace) {
@@ -124,7 +143,7 @@ public class BackupRequiredResourcesGenerator
             .map(ObjectMeta::getNamespace))
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .filter(Predicates.not(backupNamespace::equals))
+        .filter(Predicate.not(backupNamespace::equals))
         .collect(Collectors.groupingBy(Function.identity()))
         .keySet();
   }

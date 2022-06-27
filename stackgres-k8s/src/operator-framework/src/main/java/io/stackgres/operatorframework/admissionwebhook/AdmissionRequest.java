@@ -44,7 +44,7 @@ public class AdmissionRequest<T extends HasMetadata> {
 
   private GroupVersionKind options;
 
-  private boolean dryRun;
+  private Boolean dryRun;
 
   public UUID getUid() {
     return uid;
@@ -158,11 +158,12 @@ public class AdmissionRequest<T extends HasMetadata> {
     this.options = options;
   }
 
-  public boolean isDryRun() {
+  public Boolean getDryRun() {
     return dryRun;
   }
 
-  public void setDryRun(boolean dryRun) {
+  public void setDryRun(Boolean dryRun) {
     this.dryRun = dryRun;
   }
+
 }

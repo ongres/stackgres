@@ -73,6 +73,24 @@ spec:
     {{- if .Values.cluster.configurations.sgBackupConfig }}
     sgBackupConfig: '{{ .Values.cluster.configurations.sgBackupConfig }}'
     {{- end }}
+    {{- if .Values.cluster.configurations.backups.sgObjectStorage }}
+    backups:
+    - retention: {{ .Values.cluster.configurations.backups.retention }}
+      cronSchedule: '{{ .Values.cluster.configurations.backups.cronSchedule }}'
+      compression: '{{ .Values.cluster.configurations.backups.compression }}'
+      performance: 
+        uploadDiskConcurrency: {{ .Values.cluster.configurations.backups.performance.uploadDiskConcurrency }}
+        {{- if .Values.cluster.configurations.backups.performance.maxNetworkBandwidth }}
+        maxNetworkBandwidth: {{ .Values.cluster.configurations.backups.performance.maxNetworkBandwidth }}
+        {{- end }}
+        {{- if .Values.cluster.configurations.backups.performance.maxDiskBandwidth }}
+        maxDiskBandwidth: {{ .Values.cluster.configurations.backups.performance.maxDiskBandwidth }}
+        {{- end }}
+      sgObjectStorage: '{{ .Values.cluster.configurations.backups.sgObjectStorage }}'
+      {{- if .Values.cluster.configurations.backups.path }}
+      path: '{{ .Values.cluster.configurations.backups.path }}'
+      {{- end }}
+    {{- end }}
   sgInstanceProfile: '{{ .Values.cluster.sgInstanceProfile }}'
   {{- if .Values.cluster.initialData }}
   {{- if or .Values.cluster.initialData.restore .Values.cluster.initialData.scripts }}

@@ -18,6 +18,8 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
@@ -38,18 +40,17 @@ public class ClusterValidator implements BackupValidator {
   @Override
   public void validate(BackupReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
-      case CREATE: {
+      case CREATE -> {
         StackGresBackup backup = review.getRequest().getObject();
         String clusterName = backup.getSpec().getSgCluster();
-        if (Optional.ofNullable(backup)
+        if (Optional.of(backup)
             .map(StackGresBackup::getStatus)
             .map(StackGresBackupStatus::getBackupConfig)
             .isEmpty()) {
           checkIfClusterExists(review, "Cluster " + clusterName + " not found");
         }
-        break;
       }
-      case UPDATE: {
+      case UPDATE -> {
         StackGresBackup backup = review.getRequest().getObject();
         String cluster = backup != null ? backup.getSpec().getSgCluster() : null;
         if (!review.getRequest().getOldObject().getSpec().getSgCluster()
@@ -57,10 +58,9 @@ public class ClusterValidator implements BackupValidator {
           final String message = "Backup cluster can not be updated.";
           fail(message);
         }
-        break;
       }
-      default:
-        break;
+      default -> {
+      }
     }
 
   }
@@ -68,15 +68,25 @@ public class ClusterValidator implements BackupValidator {
   private void checkIfClusterExists(BackupReview review,
                                     String onError) throws ValidationFailed {
 
-    StackGresBackup backup = review.getRequest().getObject();
-    String cluster = backup.getSpec().getSgCluster();
-    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+    var location = getClusterLocation(review);
 
     Optional<StackGresCluster> clusterOpt = clusterFinder
-        .findByNameAndNamespace(cluster, namespace);
+        .findByNameAndNamespace(location.v2, location.v1);
 
-    if (!clusterOpt.isPresent()) {
+    if (clusterOpt.isEmpty()) {
       fail(onError);
+    }
+  }
+
+  private Tuple2<String, String> getClusterLocation(BackupReview review) {
+    StackGresBackup backup = review.getRequest().getObject();
+    String cluster = backup.getSpec().getSgCluster();
+    if (cluster.contains(".")) {
+      String[] clusterLocation = cluster.split("\\.");
+      return Tuple.tuple(clusterLocation[0], clusterLocation[1]);
+    } else {
+      String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+      return Tuple.tuple(namespace, cluster);
     }
   }
 

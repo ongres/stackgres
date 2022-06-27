@@ -5,9 +5,9 @@ metadata:
   name: {{ .Values.cluster.configurations.sgBackupConfig }}
   {{- if and .Release.IsInstall .Values.cluster.create }}
   annotations:
-    helm.sh/hook: "pre-install"
-    meta.helm.sh/release-name: {{ .Release.Name }}
-    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+    "helm.sh/hook": pre-install
+    "meta.helm.sh/release-name": {{ .Release.Name }}
+    "meta.helm.sh/release-namespace": {{ .Release.Namespace }}
   labels:
     app.kubernetes.io/managed-by: "Helm"
   {{- end }}

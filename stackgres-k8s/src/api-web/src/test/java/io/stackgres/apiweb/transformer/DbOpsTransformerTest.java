@@ -28,24 +28,24 @@ class DbOpsTransformerTest {
     DbOpsDto target = new DbOpsDto();
 
     var metadata = TransformerTestUtil.createMetadataTuple();
-    source.setMetadata(metadata.getSource());
-    target.setMetadata(metadata.getTarget());
+    source.setMetadata(metadata.source());
+    target.setMetadata(metadata.target());
 
     var spec = TransformerTestUtil
         .fillTupleWithRandomData(
             DbOpsSpec.class,
             StackGresDbOpsSpec.class
         );
-    source.setSpec(spec.getSource());
-    target.setSpec(spec.getTarget());
+    source.setSpec(spec.source());
+    target.setSpec(spec.target());
 
     var status = TransformerTestUtil
         .fillTupleWithRandomData(
             DbOpsStatus.class,
             StackGresDbOpsStatus.class
         );
-    source.setStatus(status.getSource());
-    target.setStatus(status.getTarget());
+    source.setStatus(status.source());
+    target.setStatus(status.target());
 
     return new TransformerTuple<>(target, source);
   }

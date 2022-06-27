@@ -39,8 +39,8 @@ public class TransformerTestUtil {
       Transformer<T, S> transformer,
       TransformerTuple<T, S> transformerTuple) {
 
-    var target = transformerTuple.getTarget();
-    var source = transformerTuple.getSource();
+    var target = transformerTuple.target();
+    var source = transformerTuple.source();
 
     var actualSource = transformer.toSource(target);
 
@@ -63,8 +63,8 @@ public class TransformerTestUtil {
       AbstractResourceTransformer<T, S> transformer,
       TransformerTuple<T, S> transformerTuple) {
 
-    var target = transformerTuple.getTarget();
-    var source = transformerTuple.getSource();
+    var target = transformerTuple.target();
+    var source = transformerTuple.source();
 
     var actualTarget = transformer.toDto(source);
 
@@ -93,8 +93,8 @@ public class TransformerTestUtil {
       TransformerTuple<T, S> transformerTuple,
       List<String> clusters) {
 
-    var target = transformerTuple.getTarget();
-    var source = transformerTuple.getSource();
+    var target = transformerTuple.target();
+    var source = transformerTuple.source();
 
     var actualTarget = transformer.toResource(source, clusters);
 
@@ -251,8 +251,8 @@ public class TransformerTestUtil {
 
     try {
 
-      Field sourceField = fieldTuple.getSource();
-      Field targetField = fieldTuple.getTarget();
+      Field sourceField = fieldTuple.source();
+      Field targetField = fieldTuple.target();
       sourceField.setAccessible(true);
       targetField.setAccessible(true);
 
@@ -264,8 +264,8 @@ public class TransformerTestUtil {
               targetParameterType,
               sourceParameterType
           );
-          sourceField.set(source, listTuple.getSource());
-          targetField.set(target, listTuple.getTarget());
+          sourceField.set(source, listTuple.source());
+          targetField.set(target, listTuple.target());
         } else if (Map.class.isAssignableFrom(sourceField.getType())) {
           var targetKeyType = getCollectionGenericType(targetField);
           var targetValueType = getMapValueType(targetField);
@@ -276,23 +276,23 @@ public class TransformerTestUtil {
               targetKeyType, targetValueType,
               sourceKeyType, sourceValueType
           );
-          sourceField.set(source, mapTuple.getSource());
-          targetField.set(target, mapTuple.getTarget());
+          sourceField.set(source, mapTuple.source());
+          targetField.set(target, mapTuple.target());
         } else {
           var valueTuple = fillTupleWithRandomData(
               targetField.getType(),
               sourceField.getType()
           );
-          sourceField.set(source, valueTuple.getSource());
-          targetField.set(target, valueTuple.getTarget());
+          sourceField.set(source, valueTuple.source());
+          targetField.set(target, valueTuple.target());
         }
       } else {
         var valueTuple = fillTupleWithRandomData(
             targetField.getType(),
             sourceField.getType()
         );
-        sourceField.set(source, valueTuple.getSource());
-        targetField.set(target, valueTuple.getTarget());
+        sourceField.set(source, valueTuple.source());
+        targetField.set(target, valueTuple.target());
       }
 
       sourceField.setAccessible(false);
@@ -329,8 +329,8 @@ public class TransformerTestUtil {
     for (int i = 0; i < desiredListSize; i++) {
       TransformerTuple<T, S> item = fillTupleWithRandomData(
           targetParameterizedType, sourceParameterizedType);
-      targetList.add(item.getTarget());
-      sourceList.add(item.getSource());
+      targetList.add(item.target());
+      sourceList.add(item.source());
     }
 
     return new TransformerTuple<>(targetList, sourceList);
@@ -352,8 +352,8 @@ public class TransformerTestUtil {
           targetKeyType, sourceKeyType);
       TransformerTuple<V1, V2> value = fillTupleWithRandomData(
           targetValueType, sourceValueType);
-      targetMap.put(key.getTarget(), value.getTarget());
-      sourceMap.put(key.getSource(), value.getSource());
+      targetMap.put(key.target(), value.target());
+      sourceMap.put(key.source(), value.source());
     }
 
     return new TransformerTuple<>(targetMap, sourceMap);

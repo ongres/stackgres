@@ -17,8 +17,7 @@ import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorageList;
 public class ObjectStorageFinder extends AbstractCustomResourceFinder<StackGresObjectStorage> {
 
   @Inject
-  public ObjectStorageFinder(
-      KubernetesClient client) {
+  public ObjectStorageFinder(KubernetesClient client) {
     super(client, StackGresObjectStorage.class, StackGresObjectStorageList.class);
   }
 

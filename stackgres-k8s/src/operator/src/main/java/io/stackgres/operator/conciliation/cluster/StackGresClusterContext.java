@@ -5,25 +5,39 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.GenerationContext;
+import io.stackgres.operator.conciliation.backup.BackupConfiguration;
+import io.stackgres.operator.conciliation.backup.BackupPerformance;
 import io.stackgres.operator.conciliation.factory.PatroniScriptsConfigMap;
 import org.immutables.value.Value;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple4;
 
@@ -45,6 +59,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   Optional<StackGresBackupConfig> getBackupConfig();
 
+  Optional<StackGresObjectStorage> getObjectStorageConfig();
+
   StackGresPostgresConfig getPostgresConfig();
 
   StackGresProfile getStackGresProfile();
@@ -63,7 +79,7 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   @Value.Derived
   default List<Tuple4<StackGresClusterScriptEntry, Long, String, Long>> getIndexedScripts() {
-    Seq<StackGresClusterScriptEntry> internalScripts =  Seq.seq(getInternalScripts());
+    Seq<StackGresClusterScriptEntry> internalScripts = Seq.seq(getInternalScripts());
     return internalScripts
         .zipWithIndex()
         .map(t -> t.concat(PatroniScriptsConfigMap.INTERNAL_SCRIPT))
@@ -72,12 +88,97 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
             .map(StackGresClusterInitData::getScripts))
             .filter(Optional::isPresent)
             .map(Optional::get)
-            .flatMap(List::stream)
+            .flatMap(Collection::stream)
             .zipWithIndex()
             .map(t -> t.concat(PatroniScriptsConfigMap.SCRIPT)))
         .zipWithIndex()
         .map(t -> t.v1.concat(t.v2))
         .toList();
+  }
+
+  default Optional<String> getBackupPath() {
+    Optional<@NotNull StackGresClusterConfiguration> config = Optional.of(getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getConfiguration);
+
+    return config
+        .map(StackGresClusterConfiguration::getBackupPath)
+        .or(() -> config
+            .map(StackGresClusterConfiguration::getBackups)
+            .map(Collection::stream)
+            .flatMap(Stream::findFirst)
+            .map(StackGresClusterBackupConfiguration::getPath));
+  }
+
+  default Optional<BackupConfiguration> getBackupConfiguration() {
+    if (getObjectStorageConfig().isPresent()) {
+      return Optional.of(getCluster())
+          .map(StackGresCluster::getSpec)
+          .map(StackGresClusterSpec::getConfiguration)
+          .map(StackGresClusterConfiguration::getBackups)
+          .map(Collection::stream)
+          .flatMap(Stream::findFirst)
+          .map(bc -> new BackupConfiguration(
+              bc.getRetention(),
+              bc.getCronSchedule(),
+              bc.getCompression(),
+              bc.getPath(),
+              Optional.ofNullable(bc.getPerformance())
+                  .map(bp -> new BackupPerformance(
+                      bp.getMaxNetworkBandwidth(),
+                      bp.getMaxDiskBandwidth(),
+                      bp.getUploadDiskConcurrency()))
+                  .orElse(null)));
+    } else {
+      return getBackupConfig()
+          .map(StackGresBackupConfig::getSpec)
+          .map(StackGresBackupConfigSpec::getBaseBackups)
+          .map(bc -> new BackupConfiguration(
+              bc.getRetention(),
+              bc.getCronSchedule(),
+              bc.getCompression(),
+              Optional.of(getCluster())
+                  .map(StackGresCluster::getSpec)
+                  .map(StackGresClusterSpec::getConfiguration)
+                  .map(StackGresClusterConfiguration::getBackupPath)
+                  .orElse(null),
+              Optional.ofNullable(bc.getPerformance())
+                  .map(bp -> new BackupPerformance(
+                      bp.getMaxNetworkBandwidth(),
+                      bp.getMaxDiskBandwidth(),
+                      bp.getUploadDiskConcurrency()))
+                  .orElse(null)));
+    }
+  }
+
+  default Optional<BackupStorage> getBackupStorage() {
+    return getObjectStorageConfig().map(CustomResource::getSpec)
+        .or(() -> getBackupConfig().map(StackGresBackupConfig::getSpec)
+            .map(StackGresBackupConfigSpec::getStorage));
+  }
+
+  default String getConfigCrdName() {
+    if (getObjectStorageConfig().isPresent()) {
+      return HasMetadata.getFullResourceName(StackGresObjectStorage.class);
+    } else {
+      return HasMetadata.getFullResourceName(StackGresBackupConfig.class);
+    }
+  }
+
+  default Optional<ObjectMeta> getBackupConfigurationMetadata() {
+    return getObjectStorageConfig()
+        .map(HasMetadata::getMetadata)
+        .or(() -> getBackupConfig().map(CustomResource::getMetadata));
+  }
+
+  default Optional<String> getBackupConfigurationCustomResourceName() {
+    return getBackupConfigurationMetadata()
+        .map(ObjectMeta::getName);
+  }
+
+  default Optional<String> getBackupConfigurationResourceVersion() {
+    return getBackupConfigurationMetadata()
+        .map(ObjectMeta::getResourceVersion);
   }
 
 }

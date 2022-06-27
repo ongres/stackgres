@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.backup;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableMap;
@@ -13,14 +15,14 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.storages.AwsS3CompatibleStorage;
 import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.crd.storages.AzureBlobStorage;
 import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.common.crd.storages.GoogleCloudCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
+import io.stackgres.operator.conciliation.backup.BackupConfiguration;
+import io.stackgres.operator.conciliation.backup.BackupPerformance;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterStatefulSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,9 +32,7 @@ public abstract class AbstractBackupConfigMap {
   private static final Logger WAL_G_LOGGER = LoggerFactory.getLogger("io.stackgres.wal-g");
 
   protected ImmutableMap<String, String> getBackupEnvVars(
-      ClusterContext context,
-      String path,
-      StackGresBackupConfigSpec backupConfigSpec) {
+      BackupConfiguration backupConfiguration) {
     ImmutableMap.Builder<String, String> backupEnvVars = ImmutableMap.builder();
 
     backupEnvVars.put("PGDATA", ClusterStatefulSetPath.PG_DATA_PATH.path());
@@ -41,56 +41,27 @@ public abstract class AbstractBackupConfigMap {
     backupEnvVars.put("PGDATABASE", "postgres");
     backupEnvVars.put("PGHOST", ClusterStatefulSetPath.PG_RUN_PATH.path());
 
-    Optional.ofNullable(backupConfigSpec.getBaseBackups())
-        .map(StackGresBaseBackupConfig::getCompression)
+    Optional.ofNullable(backupConfiguration)
+        .map(BackupConfiguration::compression)
         .ifPresent(compression -> backupEnvVars.put("WALG_COMPRESSION_METHOD", compression));
 
-    Optional.ofNullable(backupConfigSpec.getBaseBackups())
-        .map(StackGresBaseBackupConfig::getPerformance)
-        .ifPresent(performance -> {
-          Optional.ofNullable(performance.getMaxNetworkBandwidth())
-              .ifPresent(maxNetworkBandwidth -> backupEnvVars.put(
-                  "WALG_NETWORK_RATE_LIMIT",
-                  BackupStorageUtil.convertEnvValue(maxNetworkBandwidth)));
+    Optional<BackupPerformance> performance = Optional.ofNullable(backupConfiguration)
+        .map(BackupConfiguration::performance);
 
-          Optional.ofNullable(performance.getMaxDiskBandwidth())
-              .ifPresent(maxDiskBandwidth -> backupEnvVars.put(
-                  "WALG_DISK_RATE_LIMIT",
-                  BackupStorageUtil.convertEnvValue(maxDiskBandwidth)));
+    performance.map(BackupPerformance::maxNetworkBandwidth)
+        .ifPresent(maxNetworkBandwidth -> backupEnvVars.put(
+            "WALG_NETWORK_RATE_LIMIT",
+            BackupStorageUtil.convertEnvValue(maxNetworkBandwidth)));
 
-          Optional.ofNullable(performance.getUploadDiskConcurrency())
-              .ifPresent(uploadDiskConcurrency -> backupEnvVars.put(
-                  "WALG_UPLOAD_DISK_CONCURRENCY",
-                  BackupStorageUtil.convertEnvValue(uploadDiskConcurrency)));
-        });
+    performance.map(BackupPerformance::maxDiskBandwidth)
+        .ifPresent(maxDiskBandwidth -> backupEnvVars.put(
+            "WALG_DISK_RATE_LIMIT",
+            BackupStorageUtil.convertEnvValue(maxDiskBandwidth)));
 
-    Optional<AwsS3Storage> storageForS3 = BackupStorageUtil.getStorageFor(
-        backupConfigSpec, BackupStorage::getS3);
-    if (storageForS3.isPresent()) {
-      setS3StorageEnvVars(
-          path, backupEnvVars, storageForS3);
-    }
-
-    Optional<AwsS3CompatibleStorage> storageForS3Compatible = BackupStorageUtil.getStorageFor(
-        backupConfigSpec, BackupStorage::getS3Compatible);
-    if (storageForS3Compatible.isPresent()) {
-      setS3CompatibleStorageEnvVars(
-          path, backupEnvVars, storageForS3Compatible);
-    }
-
-    Optional<GoogleCloudStorage> storageForGcs = BackupStorageUtil.getStorageFor(
-        backupConfigSpec, BackupStorage::getGcs);
-    if (storageForGcs.isPresent()) {
-      setGcsStorageEnvVars(
-          context, path, backupEnvVars, storageForGcs);
-    }
-
-    Optional<AzureBlobStorage> storageForAzureBlob = BackupStorageUtil.getStorageFor(
-        backupConfigSpec, BackupStorage::getAzureBlob);
-    if (storageForAzureBlob.isPresent()) {
-      setAzureBlobStorageEnvVars(
-          path, backupEnvVars, storageForAzureBlob);
-    }
+    performance.map(BackupPerformance::uploadDiskConcurrency)
+        .ifPresent(uploadDiskConcurrency -> backupEnvVars.put(
+            "WALG_UPLOAD_DISK_CONCURRENCY",
+            BackupStorageUtil.convertEnvValue(uploadDiskConcurrency)));
 
     if (WAL_G_LOGGER.isTraceEnabled()) {
       backupEnvVars.put("WALG_LOG_LEVEL", "DEVEL");
@@ -99,53 +70,81 @@ public abstract class AbstractBackupConfigMap {
     return backupEnvVars.build();
   }
 
-  private void setS3StorageEnvVars(
+  protected Map<String, String> getBackupEnvVars(ClusterContext context,
       String path,
-      ImmutableMap.Builder<String, String> backupEnvVars,
-      Optional<AwsS3Storage> storageForS3) {
-    backupEnvVars.put("WALG_S3_PREFIX", BackupStorageUtil.getPrefixForS3(
-        path, storageForS3));
-    backupEnvVars.put("AWS_REGION", BackupStorageUtil.getFromS3(
-        storageForS3, AwsS3Storage::getRegion));
-    backupEnvVars.put("WALG_S3_STORAGE_CLASS", BackupStorageUtil.getFromS3(
-        storageForS3, AwsS3Storage::getStorageClass));
+      BackupStorage storage) {
+
+    Optional<AwsS3Storage> storageForS3 = storage.getS3Opt();
+    if (storageForS3.isPresent()) {
+      return getS3StorageEnvVars(path, storageForS3.get());
+    }
+
+    Optional<AwsS3CompatibleStorage> storageForS3Compatible = storage.getS3CompatibleOpt();
+    if (storageForS3Compatible.isPresent()) {
+      return getS3CompatibleStorageEnvVars(
+          path, storageForS3Compatible.get());
+    }
+
+    Optional<GoogleCloudStorage> storageForGcs = storage.getGcsOpt();
+    if (storageForGcs.isPresent()) {
+      return getGcsStorageEnvVars(context, path, storageForGcs.get());
+    }
+
+    Optional<AzureBlobStorage> storageForAzureBlob = storage.getAzureBlobOpt();
+    return storageForAzureBlob.map(
+        azureBlobStorage -> getAzureBlobStorageEnvVars(path, azureBlobStorage))
+        .orElseGet(Map::of);
+
   }
 
-  private void setS3CompatibleStorageEnvVars(
-      String path,
-      ImmutableMap.Builder<String, String> backupEnvVars,
-      Optional<AwsS3CompatibleStorage> storageForS3Compatible) {
-    backupEnvVars.put("WALG_S3_PREFIX", BackupStorageUtil.getPrefixForS3Compatible(
-        path, storageForS3Compatible));
-    backupEnvVars.put("AWS_REGION", BackupStorageUtil.getFromS3Compatible(
-        storageForS3Compatible, AwsS3CompatibleStorage::getRegion));
-    backupEnvVars.put("AWS_ENDPOINT", BackupStorageUtil.getFromS3Compatible(
-        storageForS3Compatible, AwsS3CompatibleStorage::getEndpoint));
-    backupEnvVars.put("ENDPOINT_HOSTNAME", BackupStorageUtil.getFromS3Compatible(
-        storageForS3Compatible, AwsS3CompatibleStorage::getEndpoint,
-        StackGresUtil::getHostFromUrl));
-    backupEnvVars.put("ENDPOINT_PORT", BackupStorageUtil.getFromS3Compatible(
-        storageForS3Compatible, AwsS3CompatibleStorage::getEndpoint,
-        StackGresUtil::getPortFromUrl));
-    backupEnvVars.put("AWS_S3_FORCE_PATH_STYLE", BackupStorageUtil.getFromS3Compatible(
-        storageForS3Compatible, AwsS3CompatibleStorage::isForcePathStyle));
-    backupEnvVars.put("WALG_S3_STORAGE_CLASS", BackupStorageUtil.getFromS3Compatible(
-        storageForS3Compatible, AwsS3CompatibleStorage::getStorageClass));
+  private Map<String, String> getS3StorageEnvVars(String path,
+      AwsS3Storage storageForS3) {
+
+    return Map.of(
+        "WALG_S3_PREFIX", BackupStorageUtil.getPrefixForS3(path, storageForS3),
+        "AWS_REGION", BackupStorageUtil.getFromS3(
+            storageForS3, AwsS3Storage::getRegion),
+        "WALG_S3_STORAGE_CLASS", BackupStorageUtil.getFromS3(
+            storageForS3, AwsS3Storage::getStorageClass));
   }
 
-  private void setGcsStorageEnvVars(
-      ClusterContext context,
+  private Map<String, String> getS3CompatibleStorageEnvVars(
       String path,
-      ImmutableMap.Builder<String, String> backupEnvVars,
-      Optional<GoogleCloudStorage> storageForGcs) {
+      AwsS3CompatibleStorage storageForS3Compatible) {
+
+    return Map.of(
+        "WALG_S3_PREFIX", BackupStorageUtil
+            .getPrefixForS3Compatible(path, storageForS3Compatible),
+        "AWS_REGION", BackupStorageUtil.getFromS3Compatible(
+            storageForS3Compatible, AwsS3CompatibleStorage::getRegion),
+        "AWS_ENDPOINT", BackupStorageUtil.getFromS3Compatible(
+            storageForS3Compatible, AwsS3CompatibleStorage::getEndpoint),
+        "ENDPOINT_HOSTNAME", BackupStorageUtil.getFromS3Compatible(
+            storageForS3Compatible, AwsS3CompatibleStorage::getEndpoint,
+            StackGresUtil::getHostFromUrl),
+        "ENDPOINT_PORT", BackupStorageUtil.getFromS3Compatible(
+            storageForS3Compatible, AwsS3CompatibleStorage::getEndpoint,
+            StackGresUtil::getPortFromUrl),
+        "AWS_S3_FORCE_PATH_STYLE", BackupStorageUtil.getFromS3Compatible(
+            storageForS3Compatible, AwsS3CompatibleStorage::isForcePathStyle),
+        "WALG_S3_STORAGE_CLASS", BackupStorageUtil.getFromS3Compatible(
+            storageForS3Compatible, AwsS3CompatibleStorage::getStorageClass));
+  }
+
+  private Map<String, String> getGcsStorageEnvVars(ClusterContext context,
+      String path,
+      GoogleCloudStorage storageForGcs) {
+
+    Map<String, String> backupEnvVars = new HashMap<>();
     backupEnvVars.put("WALG_GS_PREFIX", BackupStorageUtil.getPrefixForGcs(
         path, storageForGcs));
-    if (!storageForGcs
+    if (!Optional.of(storageForGcs)
         .map(GoogleCloudStorage::getCredentials)
         .map(GoogleCloudCredentials::isFetchCredentialsFromMetadataService)
         .orElse(false)) {
       backupEnvVars.put("GOOGLE_APPLICATION_CREDENTIALS", getGcsCredentialsFilePath(context));
     }
+    return backupEnvVars;
   }
 
   protected String getGcsCredentialsFilePath(ClusterContext context) {
@@ -153,11 +152,9 @@ public abstract class AbstractBackupConfigMap {
         + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
   }
 
-  private void setAzureBlobStorageEnvVars(
-      String path,
-      ImmutableMap.Builder<String, String> backupEnvVars,
-      Optional<AzureBlobStorage> storageForAzureBlob) {
-    backupEnvVars.put("WALG_AZ_PREFIX", BackupStorageUtil.getPrefixForAzureBlob(
+  private Map<String, String> getAzureBlobStorageEnvVars(String path,
+      AzureBlobStorage storageForAzureBlob) {
+    return Map.of("WALG_AZ_PREFIX", BackupStorageUtil.getPrefixForAzureBlob(
         path, storageForAzureBlob));
   }
 

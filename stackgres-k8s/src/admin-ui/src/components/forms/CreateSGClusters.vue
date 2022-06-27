@@ -279,23 +279,111 @@
                 </div>
 
                 <div class="fields">
-                    <div class="row-50">
+                   
+                    <h4 for="spec.configurations.backups.cronSchedule">
+                        Backup Schedule 
+                        <span class="req">*</span>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.cronSchedule')"></span>
+                    </h4><br/>
+
+                    <div class="flex-center cron" data-field="spec.configurations.backups.cronSchedule">
                         <div class="col">
-                            <label for="spec.configurations.sgBackupConfig">Backups Configuration</label>
-                            <select v-model="backupConfig" class="backupConfig" data-field="spec.configurations.sgBackupConfig" @change="(backupConfig == 'createNewResource') && createNewResource('sgbackupconfigs')" :set="( (backupConfig == 'createNewResource') && (backupConfig = '') )">
-                                <option disabled value="">Select Backup Configuration</option>
-                                <option v-for="conf in backupConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
-                                <template v-if="iCan('create', 'sgbackupconfigs', $route.params.namespace)">
-                                    <option value="" disabled>– OR –</option>
-                                    <option value="createNewResource">Create new configuration</option>
-                                </template>
-                            </select>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgBackupConfig')"></span>
+                            <label for="backupConfigFullScheduleMin" title="Minute *">Minute <span class="req">*</span></label>
+                            <input v-model="cronSchedule[0].min" required id="backupConfigFullScheduleMin" @change="updateCronSchedule(0)">
                         </div>
-                        <div class="col" v-if="backupConfig.length">
-                            <label for="spec.configurations.backupPath">Backups Path</label>
-                            <input v-model="backupPath" data-field="spec.configurations.backupPath" autocomplete="off">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backupPath')"></span>
+
+                        <div class="col">
+                            <label for="backupConfigFullScheduleHour" title="Hour *">Hour <span class="req">*</span></label>
+                            <input v-model="cronSchedule[0].hour" required id="backupConfigFullScheduleHour" @change="updateCronSchedule(0)">
+                        </div>
+
+                        <div class="col">
+                            <label for="backupConfigFullScheduleDOM" title="Day of Month *">Day of Month <span class="req">*</span></label>
+                            <input v-model="cronSchedule[0].dom" required id="backupConfigFullScheduleDOM" @change="updateCronSchedule(0)">
+                        </div>
+
+                        <div class="col">
+                            <label for="backupConfigFullScheduleMonth" title="Month *">Month <span class="req">*</span></label>
+                            <input v-model="cronSchedule[0].month" required id="backupConfigFullScheduleMonth" @change="updateCronSchedule(0)">
+                        </div>
+
+                        <div class="col">
+                            <label for="backupConfigFullScheduleDOW" title="Day of Week *">Day of Week <span class="req">*</span></label>
+                            <input v-model="cronSchedule[0].dow" required id="backupConfigFullScheduleDOW" @change="updateCronSchedule(0)">
+                        </div>
+                    </div>
+                    <br/>
+                    <div class="warning">
+                        <strong>That is: </strong>
+                        {{ backups[0].cronSchedule | prettyCRON(false) }}
+                    </div>                    
+
+                    <hr/>
+                    
+                    <div class="row-50">
+                        <h3>Base Backup Details</h3>
+
+                        <div class="col">
+                            <label for="spec.configurations.backups.path">Backups Path</label>
+                            <input v-model="backups[0].path" data-field="spec.configurations.backups.path" autocomplete="off">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.path')"></span>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.configurations.backups.retntion">Retention Window (max. number of base backups)</label>
+                            <input v-model="backups[0].retention" data-field="spec.configurations.backups.retention" type="number">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.retention')"></span>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.configurations.backups.compression">Compression Method</label>
+                            <select v-model="backups[0].compression" data-field="spec.configurations.backups.compression">
+                                <option disabled value="">Select a method</option>
+                                <option value="lz4">LZ4</option>
+                                <option value="lzma">LZMA</option>
+                                <option value="brotli">Brotli</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.compression')"></span>
+                        </div>
+                    </div>
+                    
+                    <hr/>
+                    
+                    <div class="row-50">
+                        <h3>Performance Details</h3>
+
+                        <div class="col">
+                            <label for="spec.configurations.backups.performance.maxNetworkBandwidth">Max Network Bandwidth</label>
+                            <input v-model="backups[0].performance.maxNetworkBandwidth" data-field="spec.configurations.backups.performance.maxNetworkBandwidth" type="number" min="0">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.performance.properties.maxNetworkBandwidth')"></span>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.configurations.backups.performance.maxDiskBandwidth">Max Disk Bandwidth</label>
+                            <input v-model="backups[0].performance.maxDiskBandwidth" data-field="spec.configurations.backups.performance.maxDiskBandwidth" type="number" min="0">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.performance.properties.maxDiskBandwidth')"></span>
+                        </div>
+
+                        <div class="col">                
+                            <label for="spec.configurations.backups.performance.uploadDiskConcurrency">Upload Disk Concurrency</label>
+                            <input v-model="backups[0].performance.uploadDiskConcurrency" data-field="spec.configurations.backups.performance.uploadDiskConcurrency" type="number">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.performance.properties.uploadDiskConcurrency')"></span>
+                        </div>                    
+                    </div>
+
+                    <hr/>
+                    
+                    <div class="row-50">
+                        <h3>Storage Details</h3>
+
+                        <div class="col">
+                            <label for="sgcluster.spec.configurations.backups.sgObjectStorage">Object Storage <span class="req">*</span></label>
+
+                            <select v-model="backups[0].sgObjectStorage" data-field="spec.configurations.backups.sgObjectStorage">
+                                <option disabled value="">Select a Storage</option>
+                                <option v-for="storage in sgobjectstorages">{{ storage.name }}</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.sgObjectStorage')"></span>
                         </div>
                     </div>
                 </div>
@@ -327,7 +415,7 @@
                                     <template v-else>
                                         <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : initDatepicker()" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
                                             <option value="">Select a Backup</option>
-                                            <template v-for="backup in backups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.process.status === 'Completed') && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
+                                            <template v-for="backup in sgbackups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.process.status === 'Completed') && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
                                                 <option :value="backup.name">
                                                     {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
                                                 </option>
@@ -1379,8 +1467,6 @@
                 restoreBackup: '',
                 pitr: '',
                 downloadDiskConcurrency: '',
-                backupConfig: '',
-                backupPath: '',
                 distributedLogs: '',
                 retention: '',
                 prometheusAutobind: false,
@@ -1462,7 +1548,26 @@
                         },
                         weight:  1
                     }
-                ]
+                ],
+                backups: [{
+                    path: '',
+                    compression: 'lz4',
+                    cronSchedule: '0 5 * * *',
+                    retention: 5,
+                    performance: {
+                        maxNetworkBandwidth: '',
+                        maxDiskBandwidth: '',
+                        uploadDiskConcurrency: 1
+                    },
+                    sgObjectStorage: ''
+                }],
+                cronSchedule: [{
+                    min: '0',
+                    hour: '5',
+                    dom: '*',
+                    month: '*',
+                    dow: '*'
+                }]
             }
 
         },
@@ -1481,11 +1586,11 @@
             connPoolConf () {
                 return store.state.sgpoolconfigs
             },
-            backupConf () {
-                return store.state.sgbackupconfigs
-            },
-            backups () {
+            sgbackups () {
                 return store.state.sgbackups
+            },
+            sgobjectstorages () {
+                return store.state.sgobjectstorages
             },
             shortPostgresVersion () {
                 if (this.postgresVersion == 'latest')
@@ -1547,8 +1652,7 @@
                             vm.volumeUnit = ''+volumeUnit;
                             vm.connPooling = !c.data.spec.pods.disableConnectionPooling,
                             vm.connectionPoolingConfig = (typeof c.data.spec.configurations.sgPoolingConfig !== 'undefined') ? c.data.spec.configurations.sgPoolingConfig : '';
-                            vm.backupConfig = (typeof c.data.spec.configurations.sgBackupConfig !== 'undefined') ? c.data.spec.configurations.sgBackupConfig : '';
-                            vm.backupPath = (typeof c.data.spec.configurations.backupPath !== 'undefined') ? c.data.spec.configurations.backupPath : '';
+                            vm.backups = (typeof c.data.spec.configurations.backups !== 'undefined') ? c.data.spec.configurations.backups : [];
                             vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
                             vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
                             vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
@@ -1776,14 +1880,11 @@
                                     }
                                 }) )                    
                             },
-                            ...( (this.pgConfig.length || this.backupConfig.length || this.connectionPoolingConfig.length) && ({
+                            ...( (this.pgConfig.length || this.backups[0].sgObjectStorage.length || this.connectionPoolingConfig.length) && ({
                                 "configurations": {
                                     ...(this.pgConfig.length && ( {"sgPostgresConfig": this.pgConfig }) ),
-                                    ...(this.backupConfig.length && ( {
-                                        "sgBackupConfig": this.backupConfig,
-                                        ...(this.backupPath.length && ( {
-                                            "backupPath": this.backupPath                                             
-                                        }) )
+                                    ...(this.backups[0].sgObjectStorage.length && ( {
+                                        "backups": this.backups
                                     }) ),
                                     ...(this.connectionPoolingConfig.length && ( {"sgPoolingConfig": this.connectionPoolingConfig }) ),
                                 }
@@ -1872,6 +1973,11 @@
                             }
 
                         }
+                    }
+
+                    // If there's a managed backup config set, convert cronSchedule from array to string
+                    if( vc.hasProp(cluster, 'spec.configurations.backups') ) {
+                        cluster.spec.configurations.backups[0].cronSchedule = vc.tzCrontab(vc.backups[0].cronSchedule, false);
                     }
 
                     if(preview) {                  
@@ -2390,6 +2496,10 @@
                 } else if(vc.prometheusAutobind && vc.metricsExporter) {
                     vc.enableMonitoring = true;
                 }
+            },
+
+            updateCronSchedule(index) {
+                this.backups[index].cronSchedule = this.cronSchedule[index].min + ' ' + this.cronSchedule[index].hour + ' ' + this.cronSchedule[index].dom + ' ' + this.cronSchedule[index].month + ' ' + this.cronSchedule[index].dow;
             }
 
         
@@ -2800,6 +2910,14 @@
 
     .noMarginTop {
         margin-top: -20px;
+    }
+
+    .cron {
+        gap: 15px;
+    }
+
+    .cron > * {
+        flex-grow: 1;
     }
 
 </style>

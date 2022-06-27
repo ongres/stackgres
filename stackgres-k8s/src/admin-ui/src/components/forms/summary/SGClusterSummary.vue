@@ -126,29 +126,60 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="hasProp(cluster, 'data.spec.configurations.sgBackupConfig')">
+                    <ul class="section" v-if="hasProp(cluster, 'data.spec.configurations.backups')">
                         <li>
-                            <strong class="sectionTitle">Backups</strong>
-                            <ul>
-                                <li>
-                                    <strong class="label">Backup Configuration:</strong>
-                                    <span class="value">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgbackupconfig/' + cluster.data.spec.configurations.sgBackupConfig" target="_blank"> 
-                                            {{ cluster.data.spec.configurations.sgBackupConfig }}
-                                        </router-link>
-                                    </span>
+                            <strong class="sectionTitle">Managed Backups Specs</strong>
+                            <ul v-for="backup in cluster.data.spec.configurations.backups">
+                                <li v-if="( showDefaults || ( backup.cronSchedule != '0 3 * * *' ) )">
+                                    <strong class="label">Cron Schedule:</strong>
+                                    <span class="value">{{ tzCrontab(backup.cronSchedule) }} ({{ tzCrontab(backup.cronSchedule) | prettyCRON(false) }})</span>
                                 </li>
-                                <li v-if="hasProp(cluster, 'data.spec.configurations.backupPath')">
+                                <li v-if="backup.path.length">
                                     <strong class="label">
-                                        Backup Path:
+                                        Path:
                                     </strong>
                                     <span class="value">
-                                        {{ cluster.data.spec.configurations.backupPath }}
+                                        {{ backup.path }}
+                                    </span>
+                                </li>
+                                <li v-if="( showDefaults || (backup.retention != 5) )">
+                                    <strong class="label">Retention Window:</strong>
+                                    <span class="value">{{ backup.retention }}</span>
+                                </li>
+                                <li v-if="( showDefaults || (backup.compression != 'lz4') )">
+                                    <strong class="label">Compression Method:</strong>
+                                    <span class="value">{{ backup.compression }}</span>
+                                </li>
+                                <li v-if="( showDefaults || ( backup.performance.maxNetworkBandwidth.length || backup.performance.maxDiskBandwidth.length || (backup.performance.uploadDiskConcurrency != 1) ) )">
+                                    <strong class="sectionTitle">Performance Specs</strong>
+                                    <ul>
+                                        <li v-if="( showDefaults || ( hasProp(backup, 'performance.maxNetworkBandwidth') && backup.performance.maxNetworkBandwidth.length) )">
+                                            <strong class="label">Maximum Network Bandwidth:</strong>
+                                            <span class="value">{{ ( hasProp(backup, 'performance.maxNetworkBandwidth') && backup.performance.maxNetworkBandwidth.length ) ? backup.performance.maxNetworkBandwidth : 'unlimited' }} </span>
+                                        </li>
+                                        <li v-if="( showDefaults || ( hasProp(backup, 'performance.maxDiskBandwidth') && backup.performance.maxDiskBandwidth.length) )">
+                                            <strong class="label">Maximum Disk Bandwidth:</strong>
+                                            <span class="value">{{ ( hasProp(backup, 'performance.maxDiskBandwidth') && backup.performance.maxDiskBandwidth.length ) ? backup.performance.maxDiskBandwidth : 'unlimited' }} </span>
+                                        </li>
+                                        <li v-if="( showDefaults || ( hasProp(backup, 'performance.uploadDiskConcurrency') && (backup.performance.uploadDiskConcurrency != 1) ) )">
+                                            <strong class="label">Upload Disk Concurrency:</strong>
+                                            <span class="value">{{ hasProp(backup, 'performance.uploadDiskConcurrency') ? backup.performance.uploadDiskConcurrency : 1 }} </span>
+                                        </li>
+                                        
+                                    </ul>
+                                </li>
+                                <li>
+                                    <strong class="label">Storage:</strong>
+                                    <span class="value">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgobjectstorage/' + backup.sgObjectStorage" target="_blank"> 
+                                            {{ backup.sgObjectStorage }}
+                                        </router-link>
                                     </span>
                                 </li>
                             </ul>
                         </li>
                     </ul>
+
 
                     <ul class="section" v-if="hasProp(cluster, 'data.spec.initialData')">
                         <li>
@@ -699,11 +730,8 @@
 
 			backups () {
 				return store.state.sgbackups
-			},
-
-            backupConfig () {
-				return store.state.sgbackupconfigs
 			}
+            
 		},
 
         methods: {

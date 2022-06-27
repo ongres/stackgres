@@ -94,6 +94,16 @@ cluster:
   configurations:
     sgPostgresConfig: postgresconf
     sgPoolingConfig: pgbouncerconf
+    backups:
+      retention: 5
+      cronSchedule: "*/2 * * * *"
+      compression: lz4
+      performance:
+        uploadDiskConcurrency: 1
+        #maxNetworkBandwidth:
+        #maxDiskBandwidth:
+    # sgObjectStorage: objectstorage
+    # path: "demo/mypath"
   distributedLogs:
     sgDistributedLogs: distributedlogs
     retention: 7 days
@@ -155,6 +165,52 @@ configurations:
         pool_mode: transaction
         max_client_conn: '200'
         default_pool_size: '50'
+  objectstorage:
+    create: false
+    s3: {}
+    #  bucket: stackgres
+    #  awsCredentials:
+    #    secretKeySelectors:
+    #      accessKeyId:
+    #        name: awscredentials
+    #        key: accesskey
+    #      secretAccessKey:
+    #        name: awscredentials
+    #        key: secretkey
+    #  region:
+    #  storageClass:
+    s3Compatible: {}
+    #  bucket: stackgres
+    #  awsCredentials:
+    #    secretKeySelectors:
+    #      accessKeyId:
+    #        name: minio
+    #        key: accesskey
+    #      secretAccessKey:
+    #        name: minio
+    #        key: secretkey
+    #  region: k8s
+    #  endpoint: minio.stackgres.svc
+    #  enablePathStyleAddressing: true
+    #  storageClass:
+    gcs: {}
+    #  bucket: stackgres
+    #  gcpCredentials:
+    #    fetchCredentialsFromMetadataService: false
+    #    secretKeySelectors:
+    #      serviceAccountJSON:
+    #        name: gcscredentials
+    #        key: key
+    azureBlob: {}
+    #  bucket: stackgres
+    #  azureCredentials:
+    #    secretKeySelectors:
+    #      storageAccount:
+    #        name: azureblobcredentials
+    #        key: storageaccount
+    #      accessKey:
+    #        name: azureblobcredentials
+    #        key: accesskey
   backupconfig:
     create: false
     baseBackups:
@@ -168,7 +224,6 @@ configurations:
     storage:
       s3: {}
       #  bucket: stackgres
-      #  path: /mypath
       #  awsCredentials:
       #    secretKeySelectors:
       #      accessKeyId:
@@ -181,7 +236,6 @@ configurations:
       #  storageClass:
       s3Compatible: {}
       #  bucket: stackgres
-      #  path: /mypath
       #  awsCredentials:
       #    secretKeySelectors:
       #      accessKeyId:
@@ -196,7 +250,6 @@ configurations:
       #  storageClass:
       gcs: {}
       #  bucket: stackgres
-      #  path: /mypath
       #  gcpCredentials:
       #    fetchCredentialsFromMetadataService: false
       #    secretKeySelectors:
@@ -205,7 +258,6 @@ configurations:
       #        key: key
       azureBlob: {}
       #  bucket: stackgres
-      #  path: /mypath
       #  azureCredentials:
       #    secretKeySelectors:
       #      storageAccount:

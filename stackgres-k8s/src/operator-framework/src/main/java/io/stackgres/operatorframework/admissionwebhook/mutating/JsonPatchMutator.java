@@ -8,9 +8,12 @@ package io.stackgres.operatorframework.admissionwebhook.mutating;
 import java.util.List;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import org.jetbrains.annotations.NotNull;
 
-public interface JsonPatchMutator<T> extends JsonPatchMutatorUtil {
+public interface JsonPatchMutator<T extends AdmissionReview<?>> extends JsonPatchMutatorUtil {
 
-  List<JsonPatchOperation> mutate(T review);
+  @NotNull
+  List<@NotNull JsonPatchOperation> mutate(@NotNull T review);
 
 }

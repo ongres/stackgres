@@ -53,20 +53,20 @@ class BackupConfigTransformerTest {
     BackupConfigDto target = new BackupConfigDto();
 
     var metadata = TransformerTestUtil.createMetadataTuple();
-    source.setMetadata(metadata.getSource());
-    target.setMetadata(metadata.getTarget());
+    source.setMetadata(metadata.source());
+    target.setMetadata(metadata.target());
 
     var spec = TransformerTestUtil
         .fillTupleWithRandomData(
             BackupConfigSpec.class,
             StackGresBackupConfigSpec.class
         );
-    source.setSpec(spec.getSource());
-    target.setSpec(spec.getTarget());
+    source.setSpec(spec.source());
+    target.setSpec(spec.target());
 
     var storage = createS3BackupStorage();
-    source.getSpec().setStorage(storage.getSource());
-    target.getSpec().setStorage(storage.getTarget());
+    source.getSpec().setStorage(storage.source());
+    target.getSpec().setStorage(storage.target());
 
     target.setStatus(new BackupConfigStatus());
     target.getStatus().setClusters(List.of(StringUtils.getRandomClusterName()));
@@ -80,20 +80,20 @@ class BackupConfigTransformerTest {
     BackupConfigDto target = new BackupConfigDto();
 
     var metadata = TransformerTestUtil.createMetadataTuple();
-    source.setMetadata(metadata.getSource());
-    target.setMetadata(metadata.getTarget());
+    source.setMetadata(metadata.source());
+    target.setMetadata(metadata.target());
 
     var spec = TransformerTestUtil
         .fillTupleWithRandomData(
             BackupConfigSpec.class,
             StackGresBackupConfigSpec.class
         );
-    source.setSpec(spec.getSource());
-    target.setSpec(spec.getTarget());
+    source.setSpec(spec.source());
+    target.setSpec(spec.target());
 
     var storage = createS3CompatibleBackupStorage();
-    source.getSpec().setStorage(storage.getSource());
-    target.getSpec().setStorage(storage.getTarget());
+    source.getSpec().setStorage(storage.source());
+    target.getSpec().setStorage(storage.target());
 
     target.setStatus(new BackupConfigStatus());
     target.getStatus().setClusters(List.of(StringUtils.getRandomClusterName()));
@@ -106,20 +106,20 @@ class BackupConfigTransformerTest {
     BackupConfigDto target = new BackupConfigDto();
 
     var metadata = TransformerTestUtil.createMetadataTuple();
-    source.setMetadata(metadata.getSource());
-    target.setMetadata(metadata.getTarget());
+    source.setMetadata(metadata.source());
+    target.setMetadata(metadata.target());
 
     var spec = TransformerTestUtil
         .fillTupleWithRandomData(
             BackupConfigSpec.class,
             StackGresBackupConfigSpec.class
         );
-    source.setSpec(spec.getSource());
-    target.setSpec(spec.getTarget());
+    source.setSpec(spec.source());
+    target.setSpec(spec.target());
 
     var storage = createGcsBackupStorage();
-    source.getSpec().setStorage(storage.getSource());
-    target.getSpec().setStorage(storage.getTarget());
+    source.getSpec().setStorage(storage.source());
+    target.getSpec().setStorage(storage.target());
 
     target.setStatus(new BackupConfigStatus());
     target.getStatus().setClusters(List.of(StringUtils.getRandomClusterName()));
@@ -132,20 +132,20 @@ class BackupConfigTransformerTest {
     BackupConfigDto target = new BackupConfigDto();
 
     var metadata = TransformerTestUtil.createMetadataTuple();
-    source.setMetadata(metadata.getSource());
-    target.setMetadata(metadata.getTarget());
+    source.setMetadata(metadata.source());
+    target.setMetadata(metadata.target());
 
     var spec = TransformerTestUtil
         .fillTupleWithRandomData(
             BackupConfigSpec.class,
             StackGresBackupConfigSpec.class
         );
-    source.setSpec(spec.getSource());
-    target.setSpec(spec.getTarget());
+    source.setSpec(spec.source());
+    target.setSpec(spec.target());
 
     var storage = createAzureBackupStorage();
-    source.getSpec().setStorage(storage.getSource());
-    target.getSpec().setStorage(storage.getTarget());
+    source.getSpec().setStorage(storage.source());
+    target.getSpec().setStorage(storage.target());
 
     target.setStatus(new BackupConfigStatus());
     target.getStatus().setClusters(List.of(StringUtils.getRandomClusterName()));
@@ -162,8 +162,8 @@ class BackupConfigTransformerTest {
     dtoBackupStorage.setType(type);
 
     var s3Storage = createS3Storage();
-    crdBackupStorage.setS3(s3Storage.getSource());
-    dtoBackupStorage.setS3(s3Storage.getTarget());
+    crdBackupStorage.setS3(s3Storage.source());
+    dtoBackupStorage.setS3(s3Storage.target());
 
     return new TransformerTuple<>(dtoBackupStorage, crdBackupStorage);
   }
@@ -178,8 +178,8 @@ class BackupConfigTransformerTest {
     dtoBackupStorage.setType(type);
 
     var s3Storage = createS3CompatibleStorage();
-    crdBackupStorage.setS3Compatible(s3Storage.getSource());
-    dtoBackupStorage.setS3Compatible(s3Storage.getTarget());
+    crdBackupStorage.setS3Compatible(s3Storage.source());
+    dtoBackupStorage.setS3Compatible(s3Storage.target());
 
     return new TransformerTuple<>(dtoBackupStorage, crdBackupStorage);
   }
@@ -193,8 +193,8 @@ class BackupConfigTransformerTest {
     dtoBackupStorage.setType(type);
 
     var s3Storage = createGcsStorage();
-    crdBackupStorage.setGcs(s3Storage.getSource());
-    dtoBackupStorage.setGcs(s3Storage.getTarget());
+    crdBackupStorage.setGcs(s3Storage.source());
+    dtoBackupStorage.setGcs(s3Storage.target());
 
     return new TransformerTuple<>(dtoBackupStorage, crdBackupStorage);
   }
@@ -208,8 +208,8 @@ class BackupConfigTransformerTest {
     dtoBackupStorage.setType(type);
 
     var s3Storage = createAzureBlobStorage();
-    crdBackupStorage.setAzureBlob(s3Storage.getSource());
-    dtoBackupStorage.setAzureBlob(s3Storage.getTarget());
+    crdBackupStorage.setAzureBlob(s3Storage.source());
+    dtoBackupStorage.setAzureBlob(s3Storage.target());
 
     return new TransformerTuple<>(dtoBackupStorage, crdBackupStorage);
   }
@@ -228,8 +228,8 @@ class BackupConfigTransformerTest {
     azureBlobStorage.setPath(path);
 
     final var azureCredentials = createAzureCredentials();
-    azureBlobStorageDto.setCredentials(azureCredentials.getTarget());
-    azureBlobStorage.setAzureCredentials(azureCredentials.getSource());
+    azureBlobStorageDto.setCredentials(azureCredentials.target());
+    azureBlobStorage.setAzureCredentials(azureCredentials.source());
 
     return new TransformerTuple<>(azureBlobStorageDto, azureBlobStorage);
   }
@@ -251,8 +251,8 @@ class BackupConfigTransformerTest {
     dtoS3Storage.setBucket(bucket);
 
     var credentialsTuple = generateAwsCredentials();
-    crdS3Storage.setAwsCredentials(credentialsTuple.getSource());
-    dtoS3Storage.setCredentials(credentialsTuple.getTarget());
+    crdS3Storage.setAwsCredentials(credentialsTuple.source());
+    dtoS3Storage.setCredentials(credentialsTuple.target());
 
     return new TransformerTuple<>(dtoS3Storage, crdS3Storage);
   }
@@ -288,8 +288,8 @@ class BackupConfigTransformerTest {
 
     final var credentialTuple = generateAwsCredentials();
 
-    target.setCredentials(credentialTuple.getTarget());
-    source.setAwsCredentials(credentialTuple.getSource());
+    target.setCredentials(credentialTuple.target());
+    source.setAwsCredentials(credentialTuple.source());
 
     return new TransformerTuple<>(target, source);
   }
@@ -307,8 +307,8 @@ class BackupConfigTransformerTest {
     dtoS3Storage.setBucket(bucket);
 
     var credentialsTuple = generateGcsCredentials();
-    crdS3Storage.setCredentials(credentialsTuple.getSource());
-    dtoS3Storage.setCredentials(credentialsTuple.getTarget());
+    crdS3Storage.setCredentials(credentialsTuple.source());
+    dtoS3Storage.setCredentials(credentialsTuple.target());
 
     return new TransformerTuple<>(dtoS3Storage, crdS3Storage);
   }
@@ -344,8 +344,8 @@ class BackupConfigTransformerTest {
     dtoCredentials.setFetchCredentialsFromMetadataService(fetchCredentialsFromMetadataService);
 
     var selector = createGoogleCloudSecretKeySelector();
-    crdCredentials.setSecretKeySelectors(selector.getSource());
-    dtoCredentials.setSecretKeySelectors(selector.getTarget());
+    crdCredentials.setSecretKeySelectors(selector.source());
+    dtoCredentials.setSecretKeySelectors(selector.target());
 
     return new TransformerTuple<>(dtoCredentials, crdCredentials);
   }
@@ -398,7 +398,7 @@ class BackupConfigTransformerTest {
   void testS3Transformation() {
     var tuple = createS3BackupConfig();
 
-    final List<String> clusters = Optional.of(tuple.getTarget())
+    final List<String> clusters = Optional.of(tuple.target())
         .map(BackupConfigDto::getStatus)
         .map(BackupConfigStatus::getClusters).orElse(List.of());
 
@@ -409,7 +409,7 @@ class BackupConfigTransformerTest {
   void testS3CompatibleTransformation() {
     var tuple = createS3CompatibleBackupConfig();
 
-    final List<String> clusters = Optional.of(tuple.getTarget())
+    final List<String> clusters = Optional.of(tuple.target())
         .map(BackupConfigDto::getStatus)
         .map(BackupConfigStatus::getClusters).orElse(List.of());
 
@@ -420,7 +420,7 @@ class BackupConfigTransformerTest {
   void testGcsTransformation() {
     var tuple = createGcsBackupConfig();
 
-    final List<String> clusters = Optional.of(tuple.getTarget())
+    final List<String> clusters = Optional.of(tuple.target())
         .map(BackupConfigDto::getStatus)
         .map(BackupConfigStatus::getClusters).orElse(List.of());
 
@@ -431,7 +431,7 @@ class BackupConfigTransformerTest {
   void testAzureTransformation() {
     var tuple = createAzureBackupConfig();
 
-    final List<String> clusters = Optional.of(tuple.getTarget())
+    final List<String> clusters = Optional.of(tuple.target())
         .map(BackupConfigDto::getStatus)
         .map(BackupConfigStatus::getClusters).orElse(List.of());
 

@@ -38,6 +38,7 @@ public abstract class ValidationPipelineTest<R extends CustomResource<?, ?>,
   @Test
   void constraintViolations_shouldBeDetected() {
     T review = getConstraintViolatingReview();
+
     ValidationUtils
         .assertErrorType(ErrorType.CONSTRAINT_VIOLATION, () -> getPipeline().validate(review));
   }

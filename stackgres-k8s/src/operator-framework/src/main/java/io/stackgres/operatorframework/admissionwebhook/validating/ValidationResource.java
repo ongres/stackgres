@@ -17,8 +17,9 @@ import org.slf4j.LoggerFactory;
 
 public interface ValidationResource<T extends AdmissionReview<?>> {
 
-  Logger logger = LoggerFactory
-      .getLogger(ValidationResource.class);
+  default Logger getLogger() {
+    return LoggerFactory.getLogger(getClass());
+  }
 
   AdmissionReviewResponse validate(T admissionReview);
 
@@ -26,35 +27,32 @@ public interface ValidationResource<T extends AdmissionReview<?>> {
    * Validate a review using a {@code ValidationPipeline}.
    */
   default AdmissionReviewResponse validate(T admissionReview, ValidationPipeline<T> pipeline) {
-
     AdmissionRequest<?> request = admissionReview.getRequest();
     UUID requestUid = request.getUid();
-    logger.info("Validating admission review " + requestUid.toString()
-        + " of kind " + request.getKind().toString());
+
+    getLogger().info("Validating admission review uid {} of kind {}", requestUid,
+        request.getKind().getKind());
 
     AdmissionResponse response = new AdmissionResponse();
     response.setUid(requestUid);
 
     AdmissionReviewResponse reviewResponse = new AdmissionReviewResponse();
     reviewResponse.setResponse(response);
-
-    reviewResponse.setGroup(admissionReview.getGroup());
     reviewResponse.setKind(admissionReview.getKind());
-    reviewResponse.setVersion(admissionReview.getVersion());
+    reviewResponse.setApiVersion(admissionReview.getApiVersion());
 
     try {
       pipeline.validate(admissionReview);
       response.setAllowed(true);
     } catch (ValidationFailed validationFailed) {
       Status result = validationFailed.getResult();
-      logger.error("cannot proceed with request "
-          + requestUid.toString() + " cause: " + result.getMessage());
       response.setAllowed(false);
       response.setStatus(result);
+
+      getLogger().error("cannot proceed with request {} cause: {}",
+          requestUid, validationFailed.getMessage(), validationFailed);
     }
-
     return reviewResponse;
-
   }
 
 }

@@ -51,17 +51,14 @@ generate_expandable_storage_class_from(){
      | jq '.allowVolumeExpansion = "true"'
 }
 
-get_default_storage_class_name(){
-  kubectl get storageclasses.storage.k8s.io \
-    -o custom-columns=NAME:.metadata.name,IS_DEFAULT:".metadata.annotations.storageclass\.kubernetes\.io/is-default-class" \
-    | awk '{ if ($2 == "true") { print } }' \
-    | awk '{print $1}' \
-    | head -n +1
+get_default_storage_class_name() {
+  kubectl get storageclasses.storage.k8s.io -o json \
+    | jq -r '.items | map(select(.metadata.annotations."storageclass.kubernetes.io/is-default-class" == "true"))
+      | map(.metadata.name) | first | select (.!=null)'
 }
 
 get_first_expandable_storage_class_name() {
-  kubectl get storageclasses.storage.k8s.io -o custom-columns=:.metadata.name,:.allowVolumeExpansion \
-    | awk '{ if ($2 == "true") { print } }' \
-    | awk '{print $1}' \
-    | head -n +1
+  kubectl get storageclasses.storage.k8s.io -o json \
+    | jq -r '.items | map(select(.allowVolumeExpansion == true))
+      | map(.metadata.name) | first | select (.!=null)'
 }

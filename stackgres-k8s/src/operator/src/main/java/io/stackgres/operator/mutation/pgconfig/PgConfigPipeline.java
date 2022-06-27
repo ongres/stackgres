@@ -5,22 +5,21 @@
 
 package io.stackgres.operator.mutation.pgconfig;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 
 @ApplicationScoped
 public class PgConfigPipeline implements JsonPatchMutationPipeline<PgConfigReview> {
 
-  private Instance<PgConfigMutator> mutators;
+  private final Instance<PgConfigMutator> mutators;
 
   @Inject
   public PgConfigPipeline(Instance<PgConfigMutator> mutators) {
@@ -29,12 +28,11 @@ public class PgConfigPipeline implements JsonPatchMutationPipeline<PgConfigRevie
 
   @Override
   public Optional<String> mutate(PgConfigReview review) {
-    List<JsonPatchOperation> operations = new ArrayList<>();
-
-    mutators.forEach(pgConfigMutator -> operations.addAll(pgConfigMutator.mutate(review)));
-
-    return operations.isEmpty()
-        ? Optional.empty()
-        : Optional.of(join(operations));
+    return mutators.stream()
+        .sorted(JsonPatchMutationPipeline.weightComparator())
+        .map(m -> m.mutate(review))
+        .flatMap(Collection::stream)
+        .collect(Collectors.collectingAndThen(Collectors.toList(),
+            JsonPatchMutationPipeline::join));
   }
 }

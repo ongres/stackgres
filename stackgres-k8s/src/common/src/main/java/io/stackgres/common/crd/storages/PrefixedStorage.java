@@ -15,8 +15,10 @@ public interface PrefixedStorage {
 
   void setBucket(String bucket);
 
+  @Deprecated(forRemoval = true)
   String getPath();
 
+  @Deprecated(forRemoval = true)
   void setPath(String path);
 
   @JsonIgnore

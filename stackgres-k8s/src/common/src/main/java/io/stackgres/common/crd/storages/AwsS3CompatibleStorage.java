@@ -28,6 +28,7 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
   private String bucket;
 
   @JsonProperty("path")
+  @Deprecated(forRemoval = true)
   private String path;
 
   @JsonProperty("awsCredentials")
@@ -39,7 +40,7 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
   private String region;
 
   @JsonProperty("endpoint")
-  @URL(message = "spec.storage.s3Compatible.endpoint must be a valid URL",
+  @URL(message = "s3Compatible.endpoint must be a valid URL",
       regexp = "^(http:|https:).*")
   private String endpoint;
 
@@ -67,11 +68,13 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
   }
 
   @Override
+  @Deprecated(forRemoval = true)
   public String getPath() {
     return path;
   }
 
   @Override
+  @Deprecated(forRemoval = true)
   public void setPath(String path) {
     this.path = path;
   }

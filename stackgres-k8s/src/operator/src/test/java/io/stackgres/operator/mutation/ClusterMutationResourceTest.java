@@ -8,7 +8,6 @@ package io.stackgres.operator.mutation;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -27,18 +26,5 @@ class ClusterMutationResourceTest extends MutationResourceTest<StackGresClusterR
     review = JsonUtil
         .readFromJson("cluster_allow_requests/valid_creation.json",
             StackGresClusterReview.class);
-
-  }
-
-  @Override
-  @Test
-  void givenAnValidAdmissionReview_itShouldReturnAnyPath() {
-    super.givenAnValidAdmissionReview_itShouldReturnAnyPath();
-  }
-
-  @Override
-  @Test
-  void givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath() {
-    super.givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath();
   }
 }

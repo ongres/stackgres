@@ -48,8 +48,8 @@ class BackupStorageTransformerTest {
     dtoBackupStorage.setType(type);
 
     var s3Storage = createS3Storage();
-    crdBackupStorage.setS3(s3Storage.getSource());
-    dtoBackupStorage.setS3(s3Storage.getTarget());
+    crdBackupStorage.setS3(s3Storage.source());
+    dtoBackupStorage.setS3(s3Storage.target());
 
     return new TransformerTuple<>(dtoBackupStorage, crdBackupStorage);
   }
@@ -64,8 +64,8 @@ class BackupStorageTransformerTest {
     dtoBackupStorage.setType(type);
 
     var s3Storage = createS3CompatibleStorage();
-    crdBackupStorage.setS3Compatible(s3Storage.getSource());
-    dtoBackupStorage.setS3Compatible(s3Storage.getTarget());
+    crdBackupStorage.setS3Compatible(s3Storage.source());
+    dtoBackupStorage.setS3Compatible(s3Storage.target());
 
     return new TransformerTuple<>(dtoBackupStorage, crdBackupStorage);
   }
@@ -79,8 +79,8 @@ class BackupStorageTransformerTest {
     dtoBackupStorage.setType(type);
 
     var s3Storage = createGcsStorage();
-    crdBackupStorage.setGcs(s3Storage.getSource());
-    dtoBackupStorage.setGcs(s3Storage.getTarget());
+    crdBackupStorage.setGcs(s3Storage.source());
+    dtoBackupStorage.setGcs(s3Storage.target());
 
     return new TransformerTuple<>(dtoBackupStorage, crdBackupStorage);
   }
@@ -94,8 +94,8 @@ class BackupStorageTransformerTest {
     dtoBackupStorage.setType(type);
 
     var s3Storage = createAzureBlobStorage();
-    crdBackupStorage.setAzureBlob(s3Storage.getSource());
-    dtoBackupStorage.setAzureBlob(s3Storage.getTarget());
+    crdBackupStorage.setAzureBlob(s3Storage.source());
+    dtoBackupStorage.setAzureBlob(s3Storage.target());
 
     return new TransformerTuple<>(dtoBackupStorage, crdBackupStorage);
   }
@@ -114,8 +114,8 @@ class BackupStorageTransformerTest {
     azureBlobStorage.setPath(path);
 
     final var azureCredentials = createAzureCredentials();
-    azureBlobStorageDto.setCredentials(azureCredentials.getTarget());
-    azureBlobStorage.setAzureCredentials(azureCredentials.getSource());
+    azureBlobStorageDto.setCredentials(azureCredentials.target());
+    azureBlobStorage.setAzureCredentials(azureCredentials.source());
 
     return new TransformerTuple<>(azureBlobStorageDto, azureBlobStorage);
   }
@@ -137,8 +137,8 @@ class BackupStorageTransformerTest {
     dtoS3Storage.setBucket(bucket);
 
     var credentialsTuple = generateAwsCredentials();
-    crdS3Storage.setAwsCredentials(credentialsTuple.getSource());
-    dtoS3Storage.setCredentials(credentialsTuple.getTarget());
+    crdS3Storage.setAwsCredentials(credentialsTuple.source());
+    dtoS3Storage.setCredentials(credentialsTuple.target());
 
     return new TransformerTuple<>(dtoS3Storage, crdS3Storage);
   }
@@ -174,8 +174,8 @@ class BackupStorageTransformerTest {
 
     final var credentialTuple = generateAwsCredentials();
 
-    target.setCredentials(credentialTuple.getTarget());
-    source.setAwsCredentials(credentialTuple.getSource());
+    target.setCredentials(credentialTuple.target());
+    source.setAwsCredentials(credentialTuple.source());
 
     return new TransformerTuple<>(target, source);
   }
@@ -193,8 +193,8 @@ class BackupStorageTransformerTest {
     dtoS3Storage.setBucket(bucket);
 
     var credentialsTuple = generateGcsCredentials();
-    crdS3Storage.setCredentials(credentialsTuple.getSource());
-    dtoS3Storage.setCredentials(credentialsTuple.getTarget());
+    crdS3Storage.setCredentials(credentialsTuple.source());
+    dtoS3Storage.setCredentials(credentialsTuple.target());
 
     return new TransformerTuple<>(dtoS3Storage, crdS3Storage);
   }
@@ -230,8 +230,8 @@ class BackupStorageTransformerTest {
     dtoCredentials.setFetchCredentialsFromMetadataService(fetchCredentialsFromMetadataService);
 
     var selector = createGoogleCloudSecretKeySelector();
-    crdCredentials.setSecretKeySelectors(selector.getSource());
-    dtoCredentials.setSecretKeySelectors(selector.getTarget());
+    crdCredentials.setSecretKeySelectors(selector.source());
+    dtoCredentials.setSecretKeySelectors(selector.target());
 
     return new TransformerTuple<>(dtoCredentials, crdCredentials);
   }

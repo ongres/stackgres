@@ -33,6 +33,7 @@ public class ClusterBackupsConfiguration {
   @JsonProperty("compression")
   private String compressionMethod;
 
+  @JsonProperty("performance")
   @Valid
   private BaseBackupPerformance performance;
 

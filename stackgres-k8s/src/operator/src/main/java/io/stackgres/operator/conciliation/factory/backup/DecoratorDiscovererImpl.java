@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.factory.backup;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
@@ -31,8 +30,7 @@ public class DecoratorDiscovererImpl
 
   @Override
   public List<Decorator<StackGresBackupContext>> discoverDecorator(StackGresBackupContext context) {
-    return resourceHub.get(context.getVersion()).stream()
-        .collect(Collectors.toUnmodifiableList());
+    return resourceHub.get(context.getVersion()).stream().toList();
 
   }
 }

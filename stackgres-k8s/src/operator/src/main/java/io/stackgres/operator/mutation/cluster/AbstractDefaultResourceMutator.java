@@ -62,7 +62,7 @@ public abstract class AbstractDefaultResourceMutator<T extends CustomResource<?,
       }
 
     }
-    return Collections.emptyList();
+    return List.of();
   }
 
   protected boolean applyDefault(StackGresCluster targetCluster) {

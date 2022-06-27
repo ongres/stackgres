@@ -10,6 +10,5 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
 public class StackGresObjectStorageList extends CustomResourceList<StackGresObjectStorage> {
-
   private static final long serialVersionUID = 1L;
 }

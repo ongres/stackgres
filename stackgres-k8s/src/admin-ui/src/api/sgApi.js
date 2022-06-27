@@ -11,7 +11,7 @@ const resources = {
   sgbackups: '/sgbackups',
   sgpgconfigs: '/sgpgconfigs',
   sgpoolconfigs: '/sgpoolconfigs',
-  sgbackupconfigs: '/sgbackupconfigs',
+  sgobjectstorages: '/sgobjectstorages',
   sgdistributedlogs: '/sgdistributedlogs',
   sgdbops: '/sgdbops',
   storageclasses: '/storageclasses',

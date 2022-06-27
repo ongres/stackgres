@@ -124,14 +124,14 @@ class StackGresUtilTest {
 
   @Test
   void getSearchPath_shouldReturnParsedSearchPath() {
-    ResolvConfResolverConfig resolver = new ResolvConfResolverConfig();
-
-    var defaultList = resolver.getSearchPath("src/test/resources/default-resolv.conf");
+    var defaultList =
+        ResolvConfResolverConfig.getSearchPath("src/test/resources/default-resolv.conf");
     assertThat(defaultList)
         .containsExactlyElementsIn(List.of("default.svc.cluster.local", "svc.cluster.local",
             "cluster.local"));
 
-    var domainList = resolver.getSearchPath("src/test/resources/domain-resolv.conf");
+    var domainList =
+        ResolvConfResolverConfig.getSearchPath("src/test/resources/domain-resolv.conf");
     assertThat(domainList)
         .containsExactlyElementsIn(List.of("default.svc.ongres.com", "svc.ongres.com",
             "ongres.com"));
@@ -139,15 +139,14 @@ class StackGresUtilTest {
 
   @Test
   void givenInvalid_searchPath_shouldReturnEmptyList() {
-    ResolvConfResolverConfig resolver = new ResolvConfResolverConfig();
-
-    var noSearch = resolver.getSearchPath("src/test/resources/nosearch-resolv.conf");
+    var noSearch =
+        ResolvConfResolverConfig.getSearchPath("src/test/resources/nosearch-resolv.conf");
     assertThat(noSearch).isEmpty();
 
-    var notFound = resolver.getSearchPath("test-resolv.cof");
+    var notFound = ResolvConfResolverConfig.getSearchPath("test-resolv.cof");
     assertThat(notFound).isEmpty();
 
-    var wrongFile = resolver.getSearchPath("src/test/resources/test.tgz");
+    var wrongFile = ResolvConfResolverConfig.getSearchPath("src/test/resources/test.tgz");
     assertThat(wrongFile).isEmpty();
   }
 

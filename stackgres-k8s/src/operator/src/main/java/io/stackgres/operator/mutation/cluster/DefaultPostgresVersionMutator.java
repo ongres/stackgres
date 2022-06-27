@@ -54,10 +54,8 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
     final StackGresCluster cluster = review.getRequest().getObject();
-    final String postgresVersion = cluster.getSpec()
-        .getPostgres().getVersion();
-    final String postgresFlavor = cluster.getSpec()
-        .getPostgres().getFlavor();
+    final String postgresVersion = cluster.getSpec().getPostgres().getVersion();
+    final String postgresFlavor = cluster.getSpec().getPostgres().getFlavor();
 
     if (review.getRequest().getOperation() == Operation.CREATE
         || review.getRequest().getOperation() == Operation.UPDATE) {
@@ -77,8 +75,8 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
         operations.add(applyAddValue(postgresVersionPointer, target));
       }
 
-      if (!Objects.equals(postgresFlavor, getPostgresFlavor(postgresFlavor))) {
-        JsonNode target = jsonMapper.valueToTree(getPostgresFlavor(postgresFlavor));
+      if (!Objects.equals(postgresFlavor, getPostgresFlavor(postgresFlavor).toString())) {
+        JsonNode target = jsonMapper.valueToTree(getPostgresFlavor(postgresFlavor).toString());
         operations.add(applyAddValue(postgresFlavorPointer, target));
       }
 

@@ -15,12 +15,34 @@ check_major_version_upgrade_is_working() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
 
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGObjectStorage
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: backupconf
+spec:
+  type: s3Compatible
+  s3Compatible:
+    bucket: stackgres
+    endpoint: http://$CLUSTER_NAME-minio:9000
+    enablePathStyleAddressing: true
+    region: k8s
+    awsCredentials:
+      secretKeySelectors:
+        accessKeyId:
+          name: dbops-major-version-upgrade-minio
+          key: accesskey
+        secretAccessKey:
+          name: dbops-major-version-upgrade-minio
+          key: secretkey
+EOF
+
   create_or_replace_cluster_without_defaults "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
-    --set configurations.backupconfig.create=true \
-    --set configurations.backupconfig.baseBackups.retention=2 \
-    --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *' \
-    --set-string cluster.configurations.sgBackupConfig=backupconf
+    --set cluster.configurations.backups.retention=2 \
+    --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
+    --set-string cluster.configurations.backups.sgObjectStorage=backupconf
 
   local BACKUP_NAME_PRE BACKUP_NAME_POST
   BACKUP_NAME_PRE="$(get_sgbackup_name "$CLUSTER_NAME-pre")"
@@ -77,7 +99,7 @@ EOF
 
   check_major_version_upgrade
 
-  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --template '{{ .spec.configurations.backupPath }}')" \
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }')" \
     = "sgbackups.stackgres.io/$CLUSTER_NAMESPACE/$CLUSTER_NAME/${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}" ]
   then
     echo "SUCCESS. Backup path was added to cluster backup configuration after major version upgrade"

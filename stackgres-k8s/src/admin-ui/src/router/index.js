@@ -8,7 +8,7 @@ import CreateCluster from '../components/forms/CreateSGClusters.vue'
 import CreateProfile from '../components/forms/CreateSGInstanceProfiles.vue'
 import CreatePgConfig from '../components/forms/CreateSGPgConfigs.vue'
 import CreatePoolConfig from '../components/forms/CreateSGPoolConfigs.vue'
-import CreateBackupConfig from '../components/forms/CreateSGBackupConfigs.vue'
+import CreateObjectStorage from '../components/forms/CreateSGObjectStorages.vue'
 import CreateBackup from '../components/forms/CreateSGBackups.vue'
 import CreateLogsServer from '../components/forms/CreateSGDistributedLogs.vue'
 import CreateDbOps from '../components/forms/CreateSGDbOps.vue'
@@ -24,7 +24,7 @@ import ClusterEvents from '../components/ClusterEvents.vue'
 import SGBackups from '../components/SGBackups.vue'
 import SGPgConfigs from '../components/SGPgConfigs.vue'
 import SGPoolConfigs from '../components/SGPoolConfigs.vue'
-import SGBackupConfigs from '../components/SGBackupConfigs.vue'
+import SGObjectStorages from '../components/SGObjectStorages'
 import SGInstanceProfiles from '../components/SGInstanceProfiles.vue'
 import SGDistributedLogs from '../components/SGDistributedLogs.vue'
 import SGDbOps from '../components/SGDbOps.vue'
@@ -115,21 +115,21 @@ const routes = [
     },
   },
   { 
-    path: '/:namespace/sgbackupconfigs/new', 
-    component: CreateBackupConfig,
-    name: 'CreateBackupConfig',
+    path: '/:namespace/sgobjectstorages/new', 
+    component: CreateObjectStorage,
+    name: 'CreateObjectStorage',
     meta: {
       conditionalRoute: false,
-      componentName: 'SGBackupConfig'
+      componentName: 'SGObjectStorage'
     },
   },
   { 
-    path: '/:namespace/sgbackupconfig/:name/edit', 
-    component: CreateBackupConfig,
-    name: 'EditBackupConfig',
+    path: '/:namespace/sgobjectstorage/:name/edit', 
+    component: CreateObjectStorage,
+    name: 'EditObjectStorage',
     meta: {
       conditionalRoute: false,
-      componentName: 'SGBackupConfig'
+      componentName: 'SGObjectStorage'
     },
   },
   { 
@@ -359,21 +359,21 @@ const routes = [
     },
   },
   { 
-    path: '/:namespace/sgbackupconfigs', 
-    component: SGBackupConfigs,
-    name: 'BackupConfig',
+    path: '/:namespace/sgobjectstorages', 
+    component: SGObjectStorages,
+    name: 'SGObjectStorages',
     meta: {
       conditionalRoute: false,
-      componentName: 'SGBackupConfig'
+      componentName: 'SGObjectStorage'
     },
   },
   { 
-    path: '/:namespace/sgbackupconfig/:name', 
-    component: SGBackupConfigs,
-    name: 'SingleBackupConfig',
+    path: '/:namespace/sgobjectstorage/:name', 
+    component: SGObjectStorages,
+    name: 'SingleObjectStorages',
     meta: {
       conditionalRoute: false,
-      componentName: 'SGBackupConfig'
+      componentName: 'SGObjectStorage'
     },
   },
   {  

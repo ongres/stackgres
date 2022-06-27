@@ -5,43 +5,33 @@
 
 package io.stackgres.operator.validation;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.stream.Stream;
-
-import javax.enterprise.inject.Instance;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.StringUtil;
-import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.stubbing.Answer;
 
 public abstract class DefaultKeeperTest
     <R extends CustomResource<?, ?>, T extends AdmissionReview<R>> {
 
   @Mock
-  private DefaultCustomResourceFactory<R> factory;
-
-  @Mock
-  private Instance<DefaultCustomResourceFactory<R>> factories;
+  private DefaultCustomResourceHolder<R> defaultCustomResourceHolder;
 
   private AbstractDefaultConfigKeeper<R, T> validator;
 
   @BeforeEach
   void setUp() {
     validator = getValidatorInstance();
-    when(factories.stream())
-        .thenAnswer((Answer<Stream<DefaultCustomResourceFactory<R>>>) invocationOnMock -> Stream
-            .of(factory));
-    validator.setFactories(factories);
-
+    validator.setDefaultCustomResourceHolder(defaultCustomResourceHolder);
   }
 
   protected abstract AbstractDefaultConfigKeeper<R, T> getValidatorInstance();
@@ -52,57 +42,30 @@ public abstract class DefaultKeeperTest
 
   protected abstract T getUpdateSample();
 
-  protected abstract R getDefault();
-
   @Test
   void givenACreationSample_ItShouldNotFail() throws ValidationFailed {
 
     T sample = getCreationSample();
-    R defaultResource = getDefault();
 
-    defaultResource.getMetadata()
-        .setNamespace(sample.getRequest().getObject().getMetadata().getNamespace());
-    defaultResource.getMetadata().setName(sample.getRequest().getObject().getMetadata().getName());
-
-    when(factory.buildResource()).thenReturn(defaultResource);
-
-    validator.init();
     validator.validate(sample);
+
+    verify(defaultCustomResourceHolder, never()).isDefaultCustomResource(any());
+    verify(defaultCustomResourceHolder, never()).isDefaultCustomResource(anyString(), anyString());
 
   }
 
   @Test
-  void givenAnUpdateSampleToAnotherResourceInTheSameNamespace_ItShouldNotFail()
+  void givenAnUpdateSampleToANonDefaultResource_ItShouldNotFail()
       throws ValidationFailed {
 
     T sample = getUpdateSample();
-    R defaultResource = getDefault();
 
-    defaultResource.getMetadata()
-        .setNamespace(sample.getRequest().getObject().getMetadata().getNamespace());
-    defaultResource.getMetadata().setName(StringUtil.generateRandom());
+    when(defaultCustomResourceHolder.isDefaultCustomResource(sample.getRequest().getObject()))
+        .thenReturn(false);
 
-    when(factory.buildResource()).thenReturn(defaultResource);
-
-    validator.init();
     validator.validate(sample);
 
-  }
-
-  @Test
-  void givenAnUpdateSampleToAnotherResourceWithTheSameNameInAnotherNamespace_ItShouldNotFail()
-      throws ValidationFailed {
-
-    T sample = getUpdateSample();
-    R defaultResource = getDefault();
-
-    defaultResource.getMetadata().setNamespace(StringUtil.generateRandom());
-    defaultResource.getMetadata().setName(sample.getRequest().getObject().getMetadata().getName());
-
-    when(factory.buildResource()).thenReturn(defaultResource);
-
-    validator.init();
-    validator.validate(sample);
+    verify(defaultCustomResourceHolder).isDefaultCustomResource(any());
 
   }
 
@@ -110,48 +73,29 @@ public abstract class DefaultKeeperTest
   void givenAnUpdateOnTheDefaultResource_ShouldFail() {
 
     T sample = getUpdateSample();
-    R defaultResource = getDefault();
 
-    defaultResource.getMetadata()
-        .setNamespace(sample.getRequest().getObject().getMetadata().getNamespace());
-    defaultResource.getMetadata().setName(sample.getRequest().getObject().getMetadata().getName());
-
-    when(factory.buildResource()).thenReturn(defaultResource);
-    validator.init();
+    when(defaultCustomResourceHolder.isDefaultCustomResource(sample.getRequest().getObject()))
+        .thenReturn(true);
 
     ValidationUtils.assertErrorType(ErrorType.DEFAULT_CONFIGURATION,
         () -> validator.validate(sample));
+
+    verify(defaultCustomResourceHolder).isDefaultCustomResource(any());
   }
 
   @Test
-  void givenAnDeleteSampleToAnotherResourceInTheSameNamespace_ItShouldNotFail()
+  void givenAnDeleteSampleToNonDefaultResource_ItShouldNotFail()
       throws ValidationFailed {
 
     T sample = getDeleteSample();
-    R defaultResource = getDefault();
 
-    defaultResource.getMetadata().setNamespace(sample.getRequest().getNamespace());
-    defaultResource.getMetadata().setName(StringUtil.generateRandom());
-
-    when(factory.buildResource()).thenReturn(defaultResource);
-    validator.init();
+    when(defaultCustomResourceHolder.isDefaultCustomResource(
+        sample.getRequest().getName(),
+        sample.getRequest().getNamespace()))
+        .thenReturn(false);
     validator.validate(sample);
 
-  }
-
-  @Test
-  void givenAnDeleteSampleToAnotherResourceWithTheSameNameInAnotherNamespace_ItShouldNotFail()
-      throws ValidationFailed {
-
-    T sample = getDeleteSample();
-    R defaultResource = getDefault();
-
-    defaultResource.getMetadata().setNamespace(StringUtil.generateRandom());
-    defaultResource.getMetadata().setName(sample.getRequest().getName());
-
-    when(factory.buildResource()).thenReturn(defaultResource);
-    validator.init();
-    validator.validate(sample);
+    verify(defaultCustomResourceHolder).isDefaultCustomResource(anyString(), anyString());
 
   }
 
@@ -159,13 +103,9 @@ public abstract class DefaultKeeperTest
   void givenAnDeleteOnTheDefaultResource_ShouldFail() {
 
     T sample = getDeleteSample();
-    R defaultResource = getDefault();
 
-    defaultResource.getMetadata().setNamespace(sample.getRequest().getNamespace());
-    defaultResource.getMetadata().setName(sample.getRequest().getName());
-
-    when(factory.buildResource()).thenReturn(defaultResource);
-    validator.init();
+    when(defaultCustomResourceHolder.isDefaultCustomResource(anyString(), anyString()))
+        .thenReturn(true);
 
     ValidationUtils.assertErrorType(ErrorType.DEFAULT_CONFIGURATION,
         () -> validator.validate(sample));

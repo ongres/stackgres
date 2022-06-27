@@ -26,6 +26,7 @@ public class GoogleCloudStorage implements PrefixedStorage {
   private String bucket;
 
   @JsonProperty("path")
+  @Deprecated(forRemoval = true)
   private String path;
 
   @JsonProperty("gcpCredentials")
@@ -43,14 +44,19 @@ public class GoogleCloudStorage implements PrefixedStorage {
     return bucket;
   }
 
+  @Override
   public void setBucket(String bucket) {
     this.bucket = bucket;
   }
 
+  @Override
+  @Deprecated(forRemoval = true)
   public String getPath() {
     return path;
   }
 
+  @Override
+  @Deprecated(forRemoval = true)
   public void setPath(String path) {
     this.path = path;
   }

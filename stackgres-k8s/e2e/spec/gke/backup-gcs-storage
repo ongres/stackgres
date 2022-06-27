@@ -27,7 +27,7 @@ e2e_test_install() {
     -n "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
-    --set-string cluster.configurations.sgBackupConfig=backupconf
+    --set-string cluster.configurations.backups.sgObjectStorage="backupconf"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"

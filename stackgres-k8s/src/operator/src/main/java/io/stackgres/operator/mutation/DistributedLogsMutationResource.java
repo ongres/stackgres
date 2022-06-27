@@ -18,8 +18,6 @@ import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path(MutationUtil.DISTRIBUTED_LOGS_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
@@ -27,13 +25,10 @@ import org.slf4j.LoggerFactory;
 public class DistributedLogsMutationResource
     implements MutationResource<StackGresDistributedLogsReview> {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(DistributedLogsMutationResource.class);
-
   private JsonPatchMutationPipeline<StackGresDistributedLogsReview> pipeline;
 
   void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("Distributed logs mutation resource started");
+    getLogger().info("Distributed logs mutation resource started");
   }
 
   @POST

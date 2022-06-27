@@ -256,10 +256,10 @@
 						if (typeof poolconfig == 'undefined')
 							missingCRDs.push({kind: 'SGPoolingConfig', name: cloneCRD.spec.configurations.sgPoolingConfig})
 
-						if (cloneCRD.spec.configurations.hasOwnProperty('sgBackupConfig')) {
-							let backupconfig = store.state.sgbackupconfigs.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.sgBackupConfig))
-							if (typeof backupconfig == 'undefined')
-								missingCRDs.push({kind: 'SGBackupConfig', name: cloneCRD.spec.configurations.sgBackupConfig})
+						if ( vc.hasProp(cloneCRD, 'spec.configurations.backups.sgObjectStorage') ) {
+							let objectStorage = store.state.sgobjectstorages.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.backups.sgObjectStorage))
+							if (typeof objectStorage == 'undefined')
+								missingCRDs.push({kind: 'SGObjectStorage', name: cloneCRD.spec.configurations.backup.sgObjectStorage})
 						}
 					}
 				}

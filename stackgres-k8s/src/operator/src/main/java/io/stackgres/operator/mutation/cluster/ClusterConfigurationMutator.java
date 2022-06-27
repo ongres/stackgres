@@ -10,7 +10,6 @@ import java.util.List;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
@@ -26,7 +25,6 @@ public interface ClusterConfigurationMutator extends JsonPatchMutatorUtil {
   }
 
   default JsonPointer getConfigurationTargetPointer() throws NoSuchFieldException {
-
     String jsonField =
         getJsonMappingField("configuration", StackGresClusterSpec.class);
 
@@ -34,27 +32,22 @@ public interface ClusterConfigurationMutator extends JsonPatchMutatorUtil {
   }
 
   default List<JsonPatchOperation> ensureConfigurationNode(StackGresClusterReview review) {
-
     final StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     StackGresClusterConfiguration configuration = spec.getConfiguration();
 
     if (configuration == null) {
-
       try {
-
         configuration = new StackGresClusterConfiguration();
         spec.setConfiguration(configuration);
         final JsonPointer confPointer = getConfigurationTargetPointer();
         final AddOperation configurationAdd = new AddOperation(confPointer,
             JsonPatchMutator.FACTORY.objectNode());
-        return ImmutableList.of(configurationAdd);
-
+        return List.of(configurationAdd);
       } catch (NoSuchFieldException e) {
-        return ImmutableList.of();
+        return List.of();
       }
     }
 
-    return ImmutableList.of();
-
+    return List.of();
   }
 }

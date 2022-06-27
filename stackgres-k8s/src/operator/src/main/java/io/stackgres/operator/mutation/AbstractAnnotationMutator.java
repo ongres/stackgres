@@ -8,7 +8,6 @@ package io.stackgres.operator.mutation;
 import java.util.List;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -24,7 +23,7 @@ public abstract class AbstractAnnotationMutator
     if (request.getOperation() == Operation.CREATE) {
       return getAnnotationsToAdd(request.getObject());
     } else {
-      return ImmutableList.of();
+      return List.of();
     }
   }
 
