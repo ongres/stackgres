@@ -31,7 +31,10 @@ spec:
       {{- if .Values.distributedLogs.postgresServices.primary.type }}
       type:  {{ .Values.distributedLogs.postgresServices.primary.type }}
       {{- end }}
-      {{- if .Values.distributedLogs.postgresServices.primary.annotations }}
+      {{- if .Values.distributedLogs.postgresServices.primary.loadBalancerIP }}
+      loadBalancerIP:  {{ .Values.distributedLogs.postgresServices.primary.type }}
+      {{- end }}
+      {{- if .Values.distributedLogs.postgresServices.primary.loadBalancerIP }}
       annotations:
         {{- range $annot, $value := .Values.distributedLogs.postgresServices.primary.annotations }}
         {{ $annot }}: {{ $value }}
@@ -43,6 +46,9 @@ spec:
       enabled: {{ .Values.distributedLogs.postgresServices.replicas.enabled }}
       {{- if .Values.distributedLogs.postgresServices.replicas.type }}
       type:  {{ .Values.distributedLogs.postgresServices.replicas.type }}
+      {{- end }}
+      {{- if .Values.distributedLogs.postgresServices.replicas.loadBalancerIP }}
+      loadBalancerIP:  {{ .Values.distributedLogs.postgresServices.replicas.loadBalancerIP }}
       {{- end }}
       {{- if .Values.distributedLogs.postgresServices.replicas.annotations }}
       annotations:

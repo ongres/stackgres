@@ -36,9 +36,11 @@ cluster:
     primary:
       enabled: true
       type: ClusterIP
+#      loadBalancerIP:
     replicas:
       enabled: true
       type: ClusterIP
+#      loadBalancerIP:
   # metadata:
   #   annotations:
   #     allResources:
@@ -281,9 +283,11 @@ distributedLogs:
   postgresServices:
     primary:
       type: ClusterIP
+#      loadBalancerIP:
     replicas:
       enabled: true
       type: ClusterIP
+#      loadBalancerIP:
   # scheduling:
   #   nodeSelector:
   #     key: value

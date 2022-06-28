@@ -221,6 +221,7 @@ Specifies the service configuration for the cluster:
 | enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGCluster.spec.postgresServices.primary.enabled >}}  |
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
 | externalIPs                     |          | ✓         | array    |           | {{< crd-field-description SGCluster.spec.postgresServices.primary.externalIPs >}}  |
+| loadBalancerIP                     |          | ✓         | string    |           | {{< crd-field-description SGCluster.spec.postgresServices.primary.loadBalancerIP >}}  |
 
 ### Replicas service type
 
@@ -229,6 +230,7 @@ Specifies the service configuration for the cluster:
 | enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGCluster.spec.postgresServices.replicas.enabled >}}  |
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.replicas.type >}}  |
 | externalIPs                     |          | ✓         | array    |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas.externalIPs >}}  |
+| loadBalancerIP                     |          | ✓         | string    |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas.loadBalancerIP >}}  |
 
 ## Pods
 

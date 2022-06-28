@@ -76,6 +76,9 @@ spec:
                           additionalProperties:
                             type: string
                           description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-primary` service.
+                        loadBalancerIP:
+                          type: string
+                          description: Specify loadBalancer IP of Postgres primary service for Distributed Log
                     replicas:
                       type: object
                       description: Configuration for the `-replicas` service. It provides a stable connection (regardless of replica node failures) to any read-only Postgres server of the cluster. Read-only servers are load-balanced via this service.
@@ -92,6 +95,9 @@ spec:
                           additionalProperties:
                             type: string
                           description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-replicas` service.                
+                        loadBalancerIP:
+                          type: string
+                          description: Specify loadBalancer IP of Postgres replica service for Distributed Log
                 scheduling:
                   type: object
                   description: Pod custom scheduling configuration.

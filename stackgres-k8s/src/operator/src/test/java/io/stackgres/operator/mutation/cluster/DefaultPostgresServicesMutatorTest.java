@@ -17,10 +17,12 @@ import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
+import io.smallrye.common.constraint.Assert;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +45,13 @@ class DefaultPostgresServicesMutatorTest {
     mutator = new DefaultPostgresServicesMutator();
     mutator.setObjectMapper(JSON_MAPPER);
     mutator.init();
+  }
+
+  @Test
+  void reviewWithNotMappedOperation_shouldReturnEmptyListOfServices() {
+    review.getRequest().setOperation(Operation.DELETE);
+    StackGresCluster actualCluster = mutate(review);
+    Assert.assertTrue(actualCluster.getSpec().getPostgresServices() == null);
   }
 
   @Test
