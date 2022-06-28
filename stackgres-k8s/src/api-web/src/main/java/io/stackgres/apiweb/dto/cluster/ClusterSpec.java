@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.Toleration;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -21,6 +22,9 @@ public class ClusterSpec {
 
   @JsonProperty("postgres")
   private ClusterPostgres postgres;
+
+  @JsonProperty("tolerations")
+  private List<Toleration> tolerations;
 
   @JsonProperty("instances")
   private int instances;
@@ -64,6 +68,14 @@ public class ClusterSpec {
 
   public void setPostgres(ClusterPostgres postgres) {
     this.postgres = postgres;
+  }
+
+  public List<Toleration> getTolerations() {
+    return tolerations;
+  }
+
+  public void setTolerations(List<Toleration> tolerations) {
+    this.tolerations = tolerations;
   }
 
   public int getInstances() {
@@ -187,13 +199,14 @@ public class ClusterSpec {
         && Objects.equals(prometheusAutobind, that.prometheusAutobind)
         && Objects.equals(nonProductionOptions, that.nonProductionOptions)
         && Objects.equals(postgresServices, that.postgresServices)
-        && Objects.equals(metadata, that.metadata);
+        && Objects.equals(metadata, that.metadata)
+        && Objects.equals(tolerations, that.tolerations);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(postgres, instances, configuration, sgInstanceProfile,
         initData, distributedLogs, toInstallPostgresExtensions, pods, prometheusAutobind,
-        nonProductionOptions, postgresServices, metadata);
+        nonProductionOptions, postgresServices, metadata, tolerations);
   }
 }

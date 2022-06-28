@@ -8,6 +8,7 @@ package io.stackgres.common.crd.sgdbops;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
@@ -23,6 +24,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.stackgres.common.validation.ValidEnum;
@@ -37,6 +39,9 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   @JsonProperty("sgCluster")
   @NotEmpty(message = "sgCluster must be provided")
   private String sgCluster;
+
+  @JsonProperty("tolerations")
+  private List<Toleration> tolerations;
 
   @JsonProperty("op")
   @ValidEnum(enumClass = DbOpsOperation.class, allowNulls = false,
@@ -237,6 +242,14 @@ public class StackGresDbOpsSpec implements KubernetesResource {
     this.sgCluster = sgCluster;
   }
 
+  public List<Toleration> getTolerations() {
+    return tolerations;
+  }
+
+  public void setTolerations(List<Toleration> tolerations) {
+    this.tolerations = tolerations;
+  }
+
   public String getOp() {
     return op;
   }
@@ -328,7 +341,7 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   @Override
   public int hashCode() {
     return Objects.hash(benchmark, majorVersionUpgrade, maxRetries, minorVersionUpgrade, op, repack,
-        restart, runAt, securityUpgrade, sgCluster, timeout, vacuum);
+        restart, runAt, securityUpgrade, sgCluster, timeout, vacuum, tolerations);
   }
 
   @Override
@@ -348,7 +361,8 @@ public class StackGresDbOpsSpec implements KubernetesResource {
         && Objects.equals(restart, other.restart) && Objects.equals(runAt, other.runAt)
         && Objects.equals(securityUpgrade, other.securityUpgrade)
         && Objects.equals(sgCluster, other.sgCluster) && Objects.equals(timeout, other.timeout)
-        && Objects.equals(vacuum, other.vacuum);
+        && Objects.equals(vacuum, other.vacuum)
+        && Objects.equals(tolerations, other.tolerations);
   }
 
   @Override

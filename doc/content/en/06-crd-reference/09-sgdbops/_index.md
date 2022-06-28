@@ -23,6 +23,7 @@ ___
 | Property                                              | Required | Updatable | Default | Type    | Description |
 |:------------------------------------------------------|----------|-----------|:--------|:--------|:------------|
 | sgCluster                                             | ✓        |           |         | string  | {{< crd-field-description SGDbOps.spec.sgCluster >}} |
+| [tolerations](#tolerations)                           |          |           |         | object  | {{< crd-field-description SGDbOps.spec.tolerations >}} |
 | op                                                    | ✓        |           |         | string  | {{< crd-field-description SGDbOps.spec.op >}} |
 | runAt                                                 |          |           |         | string  | {{< crd-field-description SGDbOps.spec.runAt >}} |
 | timeout                                               |          |           |         | string  | {{< crd-field-description SGDbOps.spec.timeout >}} |
@@ -47,6 +48,18 @@ ___
 | [restart](#restart-status)                             |          |           |         | object  | {{< crd-field-description SGDbOps.status.restart >}} |
 | [minorVersionUpgrade](#minor-version-upgrade-status)   |          |           |         | object  | {{< crd-field-description SGDbOps.status.minorVersionUpgrade >}} |
 | [securityUpgrade](#security-upgrade-status)            |          |           |         | object  | {{< crd-field-description SGDbOps.status.securityUpgrade >}} |
+
+#### Tolerations
+
+Holds scheduling configuration for StackGres pods to have.
+
+| Property          | Required | Updatable | Type     | Default                 | Description |
+|:------------------|----------|-----------|:---------|:------------------------|:------------|
+| key               |          | ✓         | string   |                         | {{< crd-field-description SGDbOps.spec.tolerations.items.key >}} |
+| operator          |          | ✓         | string   | Equal                   | {{< crd-field-description SGDbOps.spec.tolerations.items.operator >}} |
+| value             |          | ✓         | string   |                         | {{< crd-field-description SGDbOps.spec.tolerations.items.value >}} |
+| effect            |          | ✓         | string   | match all taint effects | {{< crd-field-description SGDbOps.spec.tolerations.items.effect >}} |
+| tolerationSeconds |          | ✓         | string   | 0                       | {{< crd-field-description SGDbOps.spec.tolerations.items.tolerationSeconds >}} |
 
 ## Benchmark
 
