@@ -172,15 +172,13 @@
                             Delete
                         </a>
                         <template v-if="$route.meta.componentName == 'SGCluster'">
-                            <a @click="setRestartCluster($route.params.namespace, $route.params.name)" class="restartCluster" title="Restart Cluster">
+                            <a @click="setRestartCluster($route.params.namespace, $route.params.name)" class="restartCluster lastItem" title="Restart Cluster">
                                 Restart
                             </a>
                         </template>
-                        <template v-if="$route.meta.componentName != 'SGCluster'">
-                            <router-link :to="'/' + $route.params.namespace + '/' + ($route.meta.componentName.toLowerCase() + 's')" :title="$route.meta.hasOwnProperty('customComponentName') ? 'Go to ' + $route.meta.customComponentName +'s List' : 'Go to ' + $route.meta.componentName + 's List'">
+                            <router-link :to="'/' + $route.params.namespace + '/' + ($route.meta.componentName.toLowerCase() + 's')" :title="$route.meta.hasOwnProperty('customComponentName') ? 'Go to ' + $route.meta.customComponentName +'s List' : 'Go to ' + $route.meta.componentName + 's List'" class="lastItem">
                                 Go to {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName : $route.meta.componentName }}s List
                             </router-link>
-                        </template>
                     </template>
                 </div>
             </div>
