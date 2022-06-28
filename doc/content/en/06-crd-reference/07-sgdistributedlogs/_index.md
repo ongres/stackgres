@@ -53,6 +53,7 @@ ___
 | Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
 |:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGDistributedLogs.spec.postgresServices.primary.type >}}  |
+| loadBalancerIP                            |          | ✓         | string   |  | {{< crd-field-description SGDistributedLogs.spec.postgresServices.primary.loadBalancerIP >}}  |
 | annotations                     |          | ✓         | object   |           | {{< crd-field-description SGDistributedLogs.spec.postgresServices.primary.annotations >}}  |
 
 ### Replicas service type
@@ -61,6 +62,7 @@ ___
 |:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
 | enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas.enabled >}}  |
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas.type >}}  |
+| loadBalancerIP                            |          | ✓         | string   |  | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas.loadBalancerIP >}}  |
 | annotations                     |          | ✓         | object   |           | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas.annotations >}}  |
 
 Example:
