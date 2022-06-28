@@ -160,20 +160,20 @@
                     <template v-if="($route.params.hasOwnProperty('name') || $route.params.hasOwnProperty('backupname'))">
                         <template v-if="!$route.name.includes('DbOp')">
                             <router-link v-if="iCan('patch', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/edit'" :title="'Edit ' + getSuffix($route.meta.componentName)">
-                                Edit {{ getSuffix($route.meta.componentName) }}
+                                Edit
                             </router-link>
                         </template>
                         <template v-if="!$route.name.includes('DbOp') && ($route.name != 'SingleBackups')">
                             <a v-if="iCan('create', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" @click="cloneCRD((($route.meta.hasOwnProperty('customComponentName')) ? ($route.meta.customComponentName + 's') : ($route.meta.componentName + 's') ), $route.params.namespace, $route.params.name)" class="cloneCRD" :title="(($route.meta.componentName == 'SGCluster') ? ('Clone ' + getSuffix($route.meta.componentName) + ' Configuration') : ('Clone ' + getSuffix($route.meta.componentName)))">
-                                {{ (($route.meta.componentName == 'SGCluster') ? ('Clone ' + getSuffix($route.meta.componentName) + ' Configuration') : ('Clone ' + getSuffix($route.meta.componentName))) }}
+                                Clone
                             </a>
                         </template>
                         <a v-if="iCan('delete', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" @click="deleteCRD(($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/' + ($route.meta.componentName.toLowerCase() + 's'))" class="deleteCRD" :title="'Delete ' + getSuffix($route.meta.componentName)" :class="!isDeletable ? 'disabled' : ''">
-                            Delete {{ getSuffix($route.meta.componentName) }}
+                            Delete
                         </a>
                         <template v-if="$route.meta.componentName == 'SGCluster'">
                             <a @click="setRestartCluster($route.params.namespace, $route.params.name)" class="restartCluster" title="Restart Cluster">
-                                Restart Cluster
+                                Restart
                             </a>
                         </template>
                         <template v-if="$route.meta.componentName != 'SGCluster'">
