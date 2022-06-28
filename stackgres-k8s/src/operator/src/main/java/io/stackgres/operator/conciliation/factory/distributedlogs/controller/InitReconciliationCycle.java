@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresController;
-import io.stackgres.common.StackGresInitContainers;
+import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
@@ -37,7 +37,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 
 @Singleton
 @OperatorVersionBinder
-@InitContainer(StackGresInitContainers.DISTRIBUTEDLOGS_RECONCILIATION_CYCLE)
+@InitContainer(StackGresInitContainer.DISTRIBUTEDLOGS_RECONCILIATION_CYCLE)
 public class InitReconciliationCycle implements ContainerFactory<DistributedLogsContainerContext> {
 
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
@@ -66,7 +66,7 @@ public class InitReconciliationCycle implements ContainerFactory<DistributedLogs
         .getSource()
         .getMetadata();
     return new ContainerBuilder()
-        .withName(StackGresInitContainers.DISTRIBUTEDLOGS_RECONCILIATION_CYCLE.getName())
+        .withName(StackGresInitContainer.DISTRIBUTEDLOGS_RECONCILIATION_CYCLE.getName())
         .withImage(StackGresController.DISTRIBUTEDLOGS_CONTROLLER.getImageName())
         .withEnv(
             new EnvVarBuilder()

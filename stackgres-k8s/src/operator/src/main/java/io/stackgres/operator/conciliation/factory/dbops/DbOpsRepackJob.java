@@ -22,7 +22,7 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepack;
@@ -78,7 +78,7 @@ public class DbOpsRepackJob extends DbOpsJob {
                 .build(),
             new EnvVarBuilder()
                 .withName("PATRONI_CONTAINER_NAME")
-                .withValue(StackGresContainers.PATRONI.getName())
+                .withValue(StackGresContainer.PATRONI.getName())
                 .build())
         .addAll(getRepackConfigEnvVar(repack))
         .add(new EnvVarBuilder()

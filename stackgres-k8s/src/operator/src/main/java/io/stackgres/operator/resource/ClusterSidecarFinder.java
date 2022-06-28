@@ -13,7 +13,7 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.SidecarLiteral;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
@@ -49,7 +49,7 @@ public class ClusterSidecarFinder implements SidecarFinder {
   public StackGresClusterSidecarResourceFactory<?> getSidecarTransformer(
       String name) {
     Instance<StackGresClusterSidecarResourceFactory<?>> transformer = transformers
-        .select(new SidecarLiteral(StackGresContainers.valueOf(name)));
+        .select(new SidecarLiteral(StackGresContainer.valueOf(name)));
     if (transformer.isResolvable()) {
       return transformer.get();
     }

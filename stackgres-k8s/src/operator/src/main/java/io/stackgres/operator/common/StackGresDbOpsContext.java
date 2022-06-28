@@ -6,11 +6,13 @@
 package io.stackgres.operator.common;
 
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import org.immutables.value.Value.Immutable;
 
 @Immutable
-public abstract class StackGresDbOpsContext
-    extends StackGresClusterContext {
+public abstract class StackGresDbOpsContext {
+
+  public abstract StackGresProfile getProfile();
 
   public abstract StackGresDbOps getCurrentDbOps();
 

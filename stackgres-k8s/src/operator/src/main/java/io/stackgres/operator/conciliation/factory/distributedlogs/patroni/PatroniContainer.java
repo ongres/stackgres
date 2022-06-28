@@ -33,7 +33,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
@@ -56,7 +56,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 
 @Singleton
 @OperatorVersionBinder
-@RunningContainer(StackGresContainers.PATRONI)
+@RunningContainer(StackGresContainer.PATRONI)
 public class PatroniContainer implements ContainerFactory<DistributedLogsContainerContext> {
 
   private final ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory;
@@ -87,7 +87,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
 
     final String startScript = "/start-patroni.sh";
     return new ContainerBuilder()
-        .withName(StackGresContainers.PATRONI.getName())
+        .withName(StackGresContainer.PATRONI.getName())
         .withImage(StackGresUtil.getPatroniImageName(cluster))
         .withCommand("/bin/sh", "-ex",
             PatroniEnvPaths.LOCAL_BIN_PATH.getPath() + startScript)

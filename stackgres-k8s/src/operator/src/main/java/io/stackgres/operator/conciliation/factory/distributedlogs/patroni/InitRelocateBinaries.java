@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresInitContainers;
+import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
@@ -35,7 +35,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLog
 
 @Singleton
 @OperatorVersionBinder
-@InitContainer(StackGresInitContainers.RELOCATE_BINARIES)
+@InitContainer(StackGresInitContainer.RELOCATE_BINARIES)
 public class InitRelocateBinaries implements ContainerFactory<DistributedLogsContainerContext> {
 
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
@@ -58,7 +58,7 @@ public class InitRelocateBinaries implements ContainerFactory<DistributedLogsCon
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
-        .withName(StackGresInitContainers.RELOCATE_BINARIES.getName())
+        .withName(StackGresInitContainer.RELOCATE_BINARIES.getName())
         .withImage(StackGresUtil.getPatroniImageName(
             context.getDistributedLogsContext().getSource()))
         .withImagePullPolicy("IfNotPresent")

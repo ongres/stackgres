@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
@@ -87,7 +87,7 @@ public class StackGresProfileSpec {
         .map(Map::keySet)
         .stream()
         .flatMap(Collection::stream)
-        .noneMatch(StackGresContainers.PATRONI.getName()::equals);
+        .noneMatch(StackGresContainer.PATRONI.getName()::equals);
   }
 
   public String getCpu() {

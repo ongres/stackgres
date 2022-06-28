@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 
 public class KubernetessMockResourceGenerationUtil {
 
@@ -60,7 +60,7 @@ public class KubernetessMockResourceGenerationUtil {
                 new PodTemplateSpecBuilder()
                     .withNewSpec()
                     .addNewContainer()
-                    .withName(StackGresContainers.PATRONI.getName())
+                    .withName(StackGresContainer.PATRONI.getName())
                     .withImage(generateRandom())
                     .endContainer()
                     .addNewContainer()
@@ -117,6 +117,7 @@ public class KubernetessMockResourceGenerationUtil {
             .withNewTemplate()
             .withNewSpec()
             .addNewContainer()
+            .withName(generateRandom())
             .withImage(generateRandom())
             .endContainer()
             .endSpec()
@@ -132,7 +133,9 @@ public class KubernetessMockResourceGenerationUtil {
             .endMetadata()
             .withNewSpec()
             .withNewTemplateLike(new PodTemplateSpecBuilder()
-                .withNewSpec().addNewContainer()
+                .withNewSpec()
+                .addNewContainer()
+                .withName(generateRandom())
                 .withImage(generateRandom())
                 .endContainer().endSpec()
                 .build())

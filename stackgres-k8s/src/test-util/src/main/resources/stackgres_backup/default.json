@@ -2,6 +2,9 @@
   "kind": "SGBackup",
   "apiVersion": "stackgres.io/v1",
   "metadata": {
+    "annotations": {
+      "stackgres.io/operatorVersion": "1.2.0"
+    },
     "name": "backup-with-default-storage-bded7e9a-3939-11ea-be74-0242ac110002",
     "namespace": "backup-with-default-storage",
     "ownerReferences": [

@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
@@ -37,10 +37,10 @@ import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
-@Sidecar(StackGresContainers.FLUENT_BIT)
+@Sidecar(StackGresContainer.FLUENT_BIT)
 @Singleton
 @OperatorVersionBinder
-@RunningContainer(StackGresContainers.FLUENT_BIT)
+@RunningContainer(StackGresContainer.FLUENT_BIT)
 public class FluentBit extends AbstractFluentBit {
 
   private final VolumeMountsProvider<ContainerContext> logMounts;

@@ -76,6 +76,18 @@
           "prometheus-postgres-exporter": {
             "cpu": "32m",
             "memory": "8Mi"
+          },
+          "dbops.run-dbops": {
+            "cpu": "32m",
+            "memory": "8Mi"
+          },
+          "dbops.set-dbops-result": {
+            "cpu": "32m",
+            "memory": "8Mi"
+          },
+          "backup.create-backup": {
+            "cpu": "32m",
+            "memory": "8Mi"
           }
         },
         "initContainers": {
@@ -114,6 +126,10 @@
           "setup-scripts": {
             "cpu": "500m",
             "memory": "1Mi"
+          },
+          "dbops.set-dbops-running": {
+            "cpu": "32m",
+            "memory": "8Mi"
           }
         }
       }

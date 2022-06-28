@@ -14,7 +14,7 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
-import io.stackgres.common.StackGresInitContainers;
+import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
@@ -24,7 +24,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 
 @Singleton
 @OperatorVersionBinder
-@InitContainer(StackGresInitContainers.SETUP_ARBITRARY_USER)
+@InitContainer(StackGresInitContainer.SETUP_ARBITRARY_USER)
 public class UserSetUp implements ContainerFactory<DistributedLogsContainerContext> {
 
   @Inject
@@ -33,7 +33,7 @@ public class UserSetUp implements ContainerFactory<DistributedLogsContainerConte
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
-        .withName(StackGresInitContainers.SETUP_ARBITRARY_USER.getName())
+        .withName(StackGresInitContainer.SETUP_ARBITRARY_USER.getName())
         .withImage(kubectl
             .getImageName(context.getDistributedLogsContext().getSource()))
         .withImagePullPolicy("IfNotPresent")

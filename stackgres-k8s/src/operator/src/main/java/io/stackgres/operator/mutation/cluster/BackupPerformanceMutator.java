@@ -22,6 +22,7 @@ import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import org.jooq.lambda.Seq;
 
+@SuppressWarnings("removal")
 @ApplicationScoped
 public class BackupPerformanceMutator implements ClusterMutator {
 

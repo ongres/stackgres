@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.ContainerStatusBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.stackgres.common.DistributedLogsControllerProperty;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
@@ -80,7 +80,7 @@ public class DistributedLogsClusterReconciliatorTest {
             .endMetadata()
             .withNewStatus()
             .withContainerStatuses(new ContainerStatusBuilder()
-                .withName(StackGresContainers.PATRONI.getName())
+                .withName(StackGresContainer.PATRONI.getName())
                 .withReady(true)
                 .build())
             .endStatus()

@@ -12,12 +12,14 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.fixture.StackGresBackupConfigFixture;
 import io.stackgres.operator.fixture.StackGresBackupFixture;
 import io.stackgres.operator.fixture.StackGresClusterFixture;
+import io.stackgres.operator.fixture.StackGresProfileFixture;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
@@ -31,12 +33,15 @@ public class BackupRequiredResourceDecoratorTest
 
   private StackGresCluster cluster;
 
+  private StackGresProfile profile;
+
   private StackGresBackupConfig backupConfig;
 
   @BeforeEach
   public void setup() {
     this.resource = new StackGresBackupFixture().build("default");
     this.cluster = new StackGresClusterFixture().build("default");
+    this.profile = new StackGresProfileFixture().build("size-xs");
     this.backupConfig = new StackGresBackupConfigFixture().build("default");
   }
 
@@ -65,6 +70,7 @@ public class BackupRequiredResourceDecoratorTest
     return ImmutableStackGresBackupContext.builder()
         .source(resource)
         .cluster(cluster)
+        .profile(profile)
         .backupConfig(backupConfig)
         .build();
   }

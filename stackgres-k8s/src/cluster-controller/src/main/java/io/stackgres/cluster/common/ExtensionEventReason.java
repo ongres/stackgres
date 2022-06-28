@@ -8,7 +8,7 @@ package io.stackgres.cluster.common;
 import static io.stackgres.operatorframework.resource.EventReason.Type.NORMAL;
 import static io.stackgres.operatorframework.resource.EventReason.Type.WARNING;
 
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.operatorframework.resource.EventReason;
 
 public enum ExtensionEventReason implements EventReason {
@@ -29,7 +29,7 @@ public enum ExtensionEventReason implements EventReason {
 
   @Override
   public String component() {
-    return StackGresContainers.CLUSTER_CONTROLLER.getName();
+    return StackGresContainer.CLUSTER_CONTROLLER.getName();
   }
 
   @Override

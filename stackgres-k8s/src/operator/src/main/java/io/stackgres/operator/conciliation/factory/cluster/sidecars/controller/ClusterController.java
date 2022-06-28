@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -42,9 +42,9 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
-@Sidecar(StackGresContainers.CLUSTER_CONTROLLER)
+@Sidecar(StackGresContainer.CLUSTER_CONTROLLER)
 @OperatorVersionBinder
-@RunningContainer(StackGresContainers.CLUSTER_CONTROLLER)
+@RunningContainer(StackGresContainer.CLUSTER_CONTROLLER)
 public class ClusterController implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final VolumeMountsProvider<ContainerContext> postgresDataMounts;
@@ -63,7 +63,7 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
   @Override
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
-        .withName(StackGresContainers.CLUSTER_CONTROLLER.getName())
+        .withName(StackGresContainer.CLUSTER_CONTROLLER.getName())
         .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
         .withImagePullPolicy(getDefaultPullPolicy())
         .withEnv(new EnvVarBuilder()

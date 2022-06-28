@@ -34,7 +34,7 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -61,7 +61,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 
 @Singleton
 @OperatorVersionBinder
-@RunningContainer(StackGresContainers.PATRONI)
+@RunningContainer(StackGresContainer.PATRONI)
 public class Patroni implements ContainerFactory<StackGresClusterContainerContext> {
 
   public static final String POST_INIT_SUFFIX = "-post-init";
@@ -177,7 +177,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
         );
 
     return new ContainerBuilder()
-        .withName(StackGresContainers.PATRONI.getName())
+        .withName(StackGresContainer.PATRONI.getName())
         .withImage(patroniImageName)
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.LOCAL_BIN_PATH.path() + startScript)

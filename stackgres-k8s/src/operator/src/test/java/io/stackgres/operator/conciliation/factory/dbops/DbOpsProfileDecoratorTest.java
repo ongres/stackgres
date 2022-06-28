@@ -3,11 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster;
+package io.stackgres.operator.conciliation.factory.dbops;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
@@ -23,18 +22,18 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.stackgres.common.StackGresContainer;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresKind;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.common.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
+import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,43 +43,44 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ClusterProfileDecoratorTest {
+class DbOpsProfileDecoratorTest {
 
-  private static final StackGresKind KIND = StackGresKind.CLUSTER;
+  private static final StackGresKind KIND = StackGresKind.DBOPS;
 
-  private final ClusterProfileDecorator profileDecorator = new ClusterProfileDecorator();
+  private final DbOpsProfileDecorator profileDecorator = new DbOpsProfileDecorator();
 
   @Mock
-  private StackGresClusterContext context;
+  private StackGresDbOpsContext context;
 
-  private StackGresCluster defaultCluster;
+  private StackGresDbOps defaultDbOps;
 
   private StackGresProfile defaultProfile;
 
-  private StatefulSet statefulSet;
+  private Job job;
 
   private List<HasMetadata> resources;
 
   @BeforeEach
   void setUp() {
-    defaultCluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    defaultDbOps = JsonUtil
+        .readFromJson("stackgres_dbops/dbops_restart.json", StackGresDbOps.class);
     defaultProfile = JsonUtil
         .readFromJson("stackgres_profiles/size-xs.json", StackGresProfile.class);
 
-    final ObjectMeta metadata = defaultCluster.getMetadata();
+    final ObjectMeta metadata = defaultDbOps.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,
         StackGresProperty.OPERATOR_VERSION.getString());
     resources = KubernetessMockResourceGenerationUtil
         .buildResources(metadata.getName(), metadata.getNamespace());
-    statefulSet = resources.stream()
-        .filter(StatefulSet.class::isInstance)
-        .map(StatefulSet.class::cast)
+    job = resources.stream()
+        .filter(Job.class::isInstance)
+        .map(Job.class::cast)
         .findFirst()
         .orElseThrow();
     defaultProfile.getSpec().setContainers(new HashMap<>());
     defaultProfile.getSpec().setInitContainers(new HashMap<>());
-    Seq.seq(statefulSet.getSpec().getTemplate().getSpec().getContainers())
+    Seq.seq(job.getSpec()
+            .getTemplate().getSpec().getContainers())
         .forEach(container -> {
           StackGresProfileContainer containerProfile = new StackGresProfileContainer();
           containerProfile.setCpu(new Random().nextInt(32000) + "m");
@@ -88,7 +88,8 @@ class ClusterProfileDecoratorTest {
           defaultProfile.getSpec().getContainers().put(
               KIND.getContainerPrefix() + container.getName(), containerProfile);
         });
-    Seq.seq(statefulSet.getSpec().getTemplate().getSpec().getInitContainers())
+    Seq.seq(job.getSpec()
+            .getTemplate().getSpec().getInitContainers())
         .forEach(container -> {
           StackGresProfileContainer containerProfile = new StackGresProfileContainer();
           containerProfile.setCpu(new Random().nextInt(32000) + "m");
@@ -104,26 +105,17 @@ class ClusterProfileDecoratorTest {
     defaultProfile.getSpec().getInitContainers().put(
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
 
-    when(context.getStackGresProfile()).thenReturn(defaultProfile);
+    when(context.getProfile()).thenReturn(defaultProfile);
   }
 
   @Test
   void withCpuAndMemoryForAllContainers_shouldBeAppliedToAllExceptPatroni() {
     profileDecorator.decorate(context, resources);
 
-    assertTrue(statefulSet.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
+    assertTrue(job.getSpec().getTemplate()
+        .getSpec().getVolumes().isEmpty());
 
-    statefulSet.getSpec().getTemplate().getSpec().getContainers().stream()
-        .filter(container -> Objects.equals(
-            container.getName(), StackGresContainer.PATRONI.getNameWithPrefix()))
-        .forEach(patroniContainer -> {
-          assertNull(patroniContainer.getResources());
-          assertTrue(patroniContainer.getVolumeMounts().isEmpty());
-        });
-
-    statefulSet.getSpec().getTemplate().getSpec().getContainers().stream()
-        .filter(container -> !Objects.equals(
-            container.getName(), StackGresContainer.PATRONI.getNameWithPrefix()))
+    job.getSpec().getTemplate().getSpec().getContainers().stream()
         .forEach(container -> {
           defaultProfile.getSpec().getContainers().entrySet().stream()
               .filter(entry -> Objects.equals(
@@ -150,22 +142,15 @@ class ClusterProfileDecoratorTest {
 
     assertEquals(
         2 * (
-            statefulSet.getSpec().getTemplate().getSpec().getContainers().size()
-            + statefulSet.getSpec().getTemplate().getSpec().getInitContainers().size()
-            - 1),
-        statefulSet.getSpec().getTemplate().getSpec().getVolumes().size());
+            job.getSpec().getTemplate()
+                .getSpec().getContainers().size()
+            + job.getSpec().getTemplate()
+                .getSpec().getInitContainers().size()
+            ),
+        job.getSpec().getTemplate()
+            .getSpec().getVolumes().size());
 
-    statefulSet.getSpec().getTemplate().getSpec().getContainers().stream()
-        .filter(container -> Objects.equals(
-            container.getName(), StackGresContainer.PATRONI.getName()))
-        .forEach(patroniContainer -> {
-          assertNull(patroniContainer.getResources());
-          assertTrue(patroniContainer.getVolumeMounts().isEmpty());
-        });
-
-    statefulSet.getSpec().getTemplate().getSpec().getContainers().stream()
-        .filter(container -> !Objects.equals(
-            container.getName(), StackGresContainer.PATRONI.getName()))
+    job.getSpec().getTemplate().getSpec().getContainers().stream()
         .forEach(container -> {
           defaultProfile.getSpec().getContainers().entrySet().stream()
               .filter(entry -> Objects.equals(

@@ -29,6 +29,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
@@ -45,6 +46,8 @@ public class BackupRequiredResourcesGenerator
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
+  private final CustomResourceFinder<StackGresProfile> profileFinder;
+
   private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
   private final CustomResourceScanner<StackGresBackup> backupScanner;
@@ -55,11 +58,13 @@ public class BackupRequiredResourcesGenerator
   @Inject
   public BackupRequiredResourcesGenerator(
       CustomResourceFinder<StackGresCluster> clusterFinder,
+      CustomResourceFinder<StackGresProfile> profileFinder,
       CustomResourceFinder<StackGresBackupConfig> backupConfigFinder,
       CustomResourceScanner<StackGresBackup> backupScanner,
       CustomResourceFinder<StackGresObjectStorage> objectStorageFinder,
       RequiredResourceDecorator<StackGresBackupContext> decorator) {
     this.clusterFinder = clusterFinder;
+    this.profileFinder = profileFinder;
     this.backupConfigFinder = backupConfigFinder;
     this.backupScanner = backupScanner;
     this.objectStorageFinder = objectStorageFinder;
@@ -79,14 +84,29 @@ public class BackupRequiredResourcesGenerator
     final StackGresCluster cluster = clusterFinder
         .findByNameAndNamespace(clusterName, clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
-            "SGBackup " + backupNamespace + "/" + backupName
+            "SGBackup " + backupNamespace + "." + backupName
                 + " target a non existent SGCluster " + clusterNamespace + "." + clusterName));
+    final StackGresProfile profile = Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getResourceProfile)
+        .map(profileName -> profileFinder
+            .findByNameAndNamespace(profileName, clusterNamespace)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "SGBackup " + backupNamespace + "." + backupName
+                    + " target SGCluster " + clusterNamespace + "." + clusterName
+                    + " with a non existent SGInstanceProfile "
+                    + clusterNamespace + "." + profileName)))
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGBackup " + backupNamespace + "." + backupName
+                + " target SGCluster " + clusterNamespace + "." + clusterName
+                + " is missing an SGInstanceProfile"));
 
     final Set<String> clusterBackupNamespaces = getClusterBackupNamespaces(backupNamespace);
 
     var contextBuilder = ImmutableStackGresBackupContext.builder()
         .source(config)
         .cluster(cluster)
+        .profile(profile)
         .clusterBackupNamespaces(clusterBackupNamespaces);
 
     if (isBackupInTheSameSgClusterNamespace(config, clusterNamespace)) {
@@ -104,7 +124,7 @@ public class BackupRequiredResourcesGenerator
 
       if (sgObjectStorageName.isEmpty() && sgBackupConfigurationName.isEmpty()) {
         throw new IllegalArgumentException(
-            "SGBackup " + backupNamespace + "/" + backupName
+            "SGBackup " + backupNamespace + "." + backupName
                 + " target SGCluster " + spec.getSgCluster()
                 + " without a SGObjectStorage or SGBackupConfig");
       }
@@ -113,7 +133,7 @@ public class BackupRequiredResourcesGenerator
           objectStorageFinder.findByNameAndNamespace(osName, backupNamespace)
               .orElseThrow(
                   () -> new IllegalArgumentException(
-                      "SGBackup " + backupNamespace + "/" + backupName
+                      "SGBackup " + backupNamespace + "." + backupName
                           + " target SGCluster " + spec.getSgCluster()
                           + " with a non existent SGObjectStorage " + osName))));
 
@@ -121,7 +141,7 @@ public class BackupRequiredResourcesGenerator
           backupConfigFinder.findByNameAndNamespace(bcName, backupNamespace)
               .orElseThrow(
                   () -> new IllegalArgumentException(
-                      "SGBackup " + backupNamespace + "/" + backupName
+                      "SGBackup " + backupNamespace + "." + backupName
                           + " target SGCluster " + spec.getSgCluster()
                           + " with a non existent SGBackupConfig " + bcName))));
     }

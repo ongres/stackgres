@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -107,7 +107,7 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
   protected Volume buildVolume(StackGresClusterContext context) {
     final String clusterName = context.getSource().getMetadata().getName();
     return new VolumeBuilder()
-        .withName(StackGresContainers.ENVOY.getName())
+        .withName(StackGresContainer.ENVOY.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withDefaultMode(420)
             .withName(StatefulSetDynamicVolumes.ENVOY.getResourceName(clusterName))

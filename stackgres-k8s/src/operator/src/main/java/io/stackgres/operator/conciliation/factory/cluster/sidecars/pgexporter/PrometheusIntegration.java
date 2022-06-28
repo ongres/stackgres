@@ -22,7 +22,7 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.prometheus.Endpoint;
@@ -73,13 +73,13 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(crossNamespaceLabels)
                 .put(StackGresContext.CONTAINER_KEY,
-                    StackGresContainers.POSTGRES_EXPORTER.getName())
+                    StackGresContainer.POSTGRES_EXPORTER.getName())
                 .build())
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(clusterSelectorLabels)
                 .withPorts(new ServicePortBuilder()
-                    .withName(StackGresContainers.POSTGRES_EXPORTER.getName())
+                    .withName(StackGresContainer.POSTGRES_EXPORTER.getName())
                     .withProtocol("TCP")
                     .withPort(9187)
                     .build())
@@ -109,7 +109,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
 
           selector.setMatchLabels(crossNamespaceLabels);
           Endpoint endpoint = new Endpoint();
-          endpoint.setPort(StackGresContainers.POSTGRES_EXPORTER.getName());
+          endpoint.setPort(StackGresContainer.POSTGRES_EXPORTER.getName());
           spec.setEndpoints(Collections.singletonList(endpoint));
           return serviceMonitor;
         }));

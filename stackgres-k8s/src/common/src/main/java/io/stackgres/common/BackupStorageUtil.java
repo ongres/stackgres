@@ -19,6 +19,7 @@ import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.fi.util.function.CheckedFunction;
 
+@SuppressWarnings("removal")
 public interface BackupStorageUtil {
 
   static String getPrefixForS3(

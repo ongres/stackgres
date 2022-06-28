@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresInitContainers;
+import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
@@ -44,7 +44,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 
 @Singleton
 @OperatorVersionBinder
-@InitContainer(StackGresInitContainers.MAJOR_VERSION_UPGRADE)
+@InitContainer(StackGresInitContainer.MAJOR_VERSION_UPGRADE)
 public class MajorVersionUpgradeInit implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final VolumeMountsProvider<PostgresContainerContext> majorVersionUpgradeMounts;
@@ -112,7 +112,7 @@ public class MajorVersionUpgradeInit implements ContainerFactory<StackGresCluste
             .build();
     return
         new ContainerBuilder()
-            .withName(StackGresInitContainers.MAJOR_VERSION_UPGRADE.getName())
+            .withName(StackGresInitContainer.MAJOR_VERSION_UPGRADE.getName())
             .withImage(targetPatroniImageName)
             .withImagePullPolicy("IfNotPresent")
             .withCommand("/bin/sh", "-ex",

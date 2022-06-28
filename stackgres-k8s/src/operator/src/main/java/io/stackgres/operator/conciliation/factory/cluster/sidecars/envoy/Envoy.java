@@ -34,7 +34,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -53,9 +53,9 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 import org.jooq.lambda.Seq;
 
 @Singleton
-@Sidecar(StackGresContainers.ENVOY)
+@Sidecar(StackGresContainer.ENVOY)
 @OperatorVersionBinder
-@RunningContainer(StackGresContainers.ENVOY)
+@RunningContainer(StackGresContainer.ENVOY)
 public class Envoy extends AbstractEnvoy {
 
   private final ObjectMapper objectMapper;
@@ -75,12 +75,12 @@ public class Envoy extends AbstractEnvoy {
   @Override
   public Container getContainer(StackGresClusterContainerContext context) {
     ContainerBuilder container = new ContainerBuilder();
-    container.withName(StackGresContainers.ENVOY.getName())
+    container.withName(StackGresContainer.ENVOY.getName())
         .withImage(StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
             .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(new VolumeMountBuilder()
-            .withName(StackGresContainers.ENVOY.getName())
+            .withName(StackGresContainer.ENVOY.getName())
             .withMountPath("/etc/envoy")
             .withReadOnly(true)
             .build()

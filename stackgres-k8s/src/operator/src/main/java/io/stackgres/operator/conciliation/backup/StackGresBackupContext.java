@@ -22,12 +22,15 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
 
 @Value.Immutable
 public interface StackGresBackupContext extends GenerationContext<StackGresBackup>, ClusterContext {
+
+  StackGresProfile getProfile();
 
   Optional<StackGresBackupConfig> getBackupConfig();
 

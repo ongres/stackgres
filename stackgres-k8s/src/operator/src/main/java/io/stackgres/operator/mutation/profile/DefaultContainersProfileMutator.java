@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
@@ -26,61 +25,19 @@ import com.github.fge.jsonpatch.ReplaceOperation;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.stackgres.common.StackGresContainers;
-import io.stackgres.common.StackGresInitContainers;
+import io.stackgres.common.StackGresContainer;
+import io.stackgres.common.StackGresContainerProfile;
+import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class DefaultContainersProfileMutator implements ProfileMutator {
-
-  private static final BigDecimal ONE_CPU_IN_MILLICPUS = BigDecimal.valueOf(1000);
-  private static final BigDecimal MI_IN_BYTES = Quantity.getAmountInBytes(new Quantity("1Mi"));
-  private static final BigDecimal GI_IN_BYTES = Quantity.getAmountInBytes(new Quantity("1Gi"));
-
-  private static final Map<String, Function<BigDecimal, BigDecimal>> CONTAINER_CPU_FORMULAS =
-      Map.ofEntries(
-          Map.entry(StackGresContainers.PGBOUNCER.getName(),
-              cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
-          Map.entry(StackGresContainers.ENVOY.getName(),
-              cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(4)))),
-          Map.entry(StackGresContainers.POSTGRES_EXPORTER.getName(),
-              cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
-          Map.entry(StackGresContainers.POSTGRES_UTIL.getName(),
-              cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
-          Map.entry(StackGresContainers.FLUENT_BIT.getName(),
-              cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
-          Map.entry(StackGresContainers.CLUSTER_CONTROLLER.getName(),
-              cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
-          Map.entry(StackGresContainers.FLUENTD.getName(),
-              cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(4)))),
-          Map.entry(StackGresContainers.DISTRIBUTEDLOGS_CONTROLLER.getName(),
-              cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))))
-          );
-
-  private static final Map<String, Function<BigDecimal, BigDecimal>> CONTAINER_MEMORY_FORMULAS =
-      Map.ofEntries(
-          Map.entry(StackGresContainers.PGBOUNCER.getName(),
-              memory -> BigDecimal.valueOf(64).multiply(MI_IN_BYTES)),
-          Map.entry(StackGresContainers.ENVOY.getName(),
-              memory -> BigDecimal.valueOf(64).multiply(MI_IN_BYTES)),
-          Map.entry(StackGresContainers.POSTGRES_EXPORTER.getName(),
-              memory -> BigDecimal.valueOf(8).multiply(MI_IN_BYTES)),
-          Map.entry(StackGresContainers.POSTGRES_UTIL.getName(),
-              memory -> BigDecimal.valueOf(8).multiply(MI_IN_BYTES)),
-          Map.entry(StackGresContainers.FLUENT_BIT.getName(),
-              memory -> BigDecimal.valueOf(8).multiply(MI_IN_BYTES)),
-          Map.entry(StackGresContainers.CLUSTER_CONTROLLER.getName(),
-              memory -> BigDecimal.valueOf(512).multiply(MI_IN_BYTES)),
-          Map.entry(StackGresContainers.FLUENTD.getName(),
-              memory -> BigDecimal.valueOf(2).multiply(GI_IN_BYTES)),
-          Map.entry(StackGresContainers.DISTRIBUTEDLOGS_CONTROLLER.getName(),
-              memory -> BigDecimal.valueOf(512).multiply(MI_IN_BYTES))
-          );
 
   private final DefaultCustomResourceFactory<StackGresProfile> factory;
 
@@ -108,23 +65,6 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
         .append(containersJson);
     initContainersPointer = SPEC_POINTER
         .append(initContainersJson);
-
-    Stream.of(StackGresContainers.values())
-        .filter(Predicates.not(StackGresContainers.PATRONI::equals))
-        .map(StackGresContainers::getName)
-        .filter(Predicates.not(CONTAINER_CPU_FORMULAS::containsKey))
-        .forEach(name -> {
-          throw new AssertionError("Container " + name
-              + " not defined in CONTAINER_CPU_FORMULAS map");
-        });
-    Stream.of(StackGresContainers.values())
-        .filter(Predicates.not(StackGresContainers.PATRONI::equals))
-        .map(StackGresContainers::getName)
-        .filter(Predicates.not(CONTAINER_MEMORY_FORMULAS::containsKey))
-        .forEach(name -> {
-          throw new AssertionError("Container " + name
-              + " not defined in CONTAINER_MEMORY_FORMULAS map");
-        });
   }
 
   @Override
@@ -189,34 +129,34 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
       BigDecimal cpu, BigDecimal memory,
       Map<String, StackGresProfileContainer> containers) {
     boolean result = false;
-    for (var name : Stream.of(StackGresContainers.values())
-        .filter(Predicates.not(StackGresContainers.PATRONI::equals))
-        .map(StackGresContainers::getName)
+    for (var container : Stream.of(StackGresContainer.values())
+        .filter(Predicates.not(StackGresContainer.PATRONI::equals))
         .toList()) {
       var containerProfile = Optional.of(containers
-          .computeIfAbsent(name, k -> new StackGresProfileContainer()));
-      boolean setContainerCpu = setContainerCpu(cpu, name, containerProfile);
-      boolean setContainerMemory = setContainerMemory(memory, name, containerProfile);
+          .computeIfAbsent(
+              container.getNameWithPrefix(), k -> new StackGresProfileContainer()));
+      boolean setContainerCpu = setContainerCpu(cpu, container, containerProfile);
+      boolean setContainerMemory = setContainerMemory(memory, container, containerProfile);
       result = result || setContainerCpu || setContainerMemory;
     }
     return result;
   }
 
-  private boolean setContainerCpu(BigDecimal cpu, String name,
+  private boolean setContainerCpu(BigDecimal cpu, StackGresContainerProfile container,
       Optional<StackGresProfileContainer> containerProfile) {
     var containerProfileWithCpu = containerProfile
         .filter(profile -> Objects.isNull(profile.getCpu()));
     containerProfileWithCpu.ifPresent(profile -> profile.setCpu(
-        toCpuValue(CONTAINER_CPU_FORMULAS.get(name).apply(cpu))));
+        toCpuValue(container.getCpuFormula().apply(cpu))));
     return containerProfileWithCpu.isPresent();
   }
 
-  private boolean setContainerMemory(BigDecimal memory, String name,
+  private boolean setContainerMemory(BigDecimal memory, StackGresContainerProfile container,
       Optional<StackGresProfileContainer> containerProfile) {
     var containerProfileWithMemory = containerProfile
         .filter(profile -> Objects.isNull(profile.getMemory()));
     containerProfileWithMemory.ifPresent(profile -> profile.setMemory(
-        toMemoryValue(CONTAINER_MEMORY_FORMULAS.get(name).apply(memory))));
+        toMemoryValue(container.getMemoryFormula().apply(memory))));
     return containerProfileWithMemory.isPresent();
   }
 
@@ -224,40 +164,21 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
       BigDecimal cpu, BigDecimal memory,
       Map<String, StackGresProfileContainer> initContainers) {
     boolean result = false;
-    for (var name : Stream.of(StackGresInitContainers.values())
-        .map(StackGresInitContainers::getName)
+    for (var container : Stream.of(StackGresInitContainer.values())
         .toList()) {
       var containerProfile = Optional.of(initContainers
-          .computeIfAbsent(name, k -> new StackGresProfileContainer()));
-      boolean setInitContainerCpu = setInitContainerCpu(cpu, containerProfile);
-      boolean setInitContainerMemory = setInitContainerMemory(memory, containerProfile);
+          .computeIfAbsent(container.getNameWithPrefix(), k -> new StackGresProfileContainer()));
+      boolean setInitContainerCpu = setContainerCpu(cpu, container, containerProfile);
+      boolean setInitContainerMemory = setContainerMemory(memory, container, containerProfile);
       result = result || setInitContainerCpu || setInitContainerMemory;
     }
     return result;
   }
 
-  private boolean setInitContainerCpu(BigDecimal cpu,
-      Optional<StackGresProfileContainer> containerProfile) {
-    var containerProfileWithCpu = containerProfile
-        .filter(profile -> Objects.isNull(profile.getCpu()));
-    containerProfileWithCpu.ifPresent(profile -> profile.setCpu(
-        toCpuValue(cpu)));
-    return containerProfileWithCpu.isPresent();
-  }
-
-  private boolean setInitContainerMemory(BigDecimal memory,
-      Optional<StackGresProfileContainer> containerProfile) {
-    var containerProfileWithMemory = containerProfile
-        .filter(profile -> Objects.isNull(profile.getMemory()));
-    containerProfileWithMemory.ifPresent(profile -> profile.setMemory(
-        toMemoryValue(memory)));
-    return containerProfileWithMemory.isPresent();
-  }
-
   private String toCpuValue(BigDecimal value) {
     if (value.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) > 0) {
       return value
-          .multiply(ONE_CPU_IN_MILLICPUS)
+          .multiply(ResourceUtil.MILLICPU_MULTIPLIER)
           .setScale(0, RoundingMode.CEILING).toString() + "m";
     }
     return value
@@ -265,11 +186,11 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
   }
 
   private String toMemoryValue(BigDecimal value) {
-    if (value.remainder(GI_IN_BYTES).compareTo(BigDecimal.ZERO) == 0) {
-      return value.divide(GI_IN_BYTES)
+    if (value.remainder(ResourceUtil.GIBIBYTES).compareTo(BigDecimal.ZERO) == 0) {
+      return value.divide(ResourceUtil.GIBIBYTES)
           .setScale(0, RoundingMode.CEILING).toString() + "Gi";
     }
-    return value.divide(MI_IN_BYTES)
+    return value.divide(ResourceUtil.MEBIBYTES)
         .setScale(0, RoundingMode.CEILING).toString() + "Mi";
   }
 

@@ -26,7 +26,7 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -41,7 +41,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 
 @Singleton
 @OperatorVersionBinder
-@RunningContainer(StackGresContainers.DISTRIBUTEDLOGS_CONTROLLER)
+@RunningContainer(StackGresContainer.DISTRIBUTEDLOGS_CONTROLLER)
 public class DistributedLogsController
     implements ContainerFactory<DistributedLogsContainerContext> {
 
@@ -67,7 +67,7 @@ public class DistributedLogsController
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
-        .withName(StackGresContainers.DISTRIBUTEDLOGS_CONTROLLER.getName())
+        .withName(StackGresContainer.DISTRIBUTEDLOGS_CONTROLLER.getName())
         .withImage(StackGresController.DISTRIBUTEDLOGS_CONTROLLER.getImageName())
         .withImagePullPolicy(getDefaultPullPolicy())
         .withLivenessProbe(new ProbeBuilder()

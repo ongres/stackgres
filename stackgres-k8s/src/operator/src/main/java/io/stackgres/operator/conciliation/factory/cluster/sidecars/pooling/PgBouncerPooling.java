@@ -30,7 +30,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -52,10 +52,10 @@ import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.param
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 import org.jetbrains.annotations.NotNull;
 
-@Sidecar(StackGresContainers.PGBOUNCER)
+@Sidecar(StackGresContainer.PGBOUNCER)
 @Singleton
 @OperatorVersionBinder
-@RunningContainer(StackGresContainers.PGBOUNCER)
+@RunningContainer(StackGresContainer.PGBOUNCER)
 public class PgBouncerPooling extends AbstractPgPooling {
 
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;

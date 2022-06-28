@@ -15,7 +15,7 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresInitContainers;
+import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -30,7 +30,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 
 @Singleton
 @OperatorVersionBinder
-@InitContainer(StackGresInitContainers.RELOCATE_BINARIES)
+@InitContainer(StackGresInitContainer.RELOCATE_BINARIES)
 public class InitRelocateBinaries implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final VolumeMountsProvider<PostgresContainerContext> postgresExtensionsMounts;
@@ -52,7 +52,7 @@ public class InitRelocateBinaries implements ContainerFactory<StackGresClusterCo
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final String patroniImageName = StackGresUtil.getPatroniImageName(clusterContext.getCluster());
     return new ContainerBuilder()
-        .withName(StackGresInitContainers.RELOCATE_BINARIES.getName())
+        .withName(StackGresInitContainer.RELOCATE_BINARIES.getName())
         .withImage(patroniImageName)
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",

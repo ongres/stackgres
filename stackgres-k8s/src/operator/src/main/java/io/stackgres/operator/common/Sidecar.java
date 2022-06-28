@@ -13,7 +13,7 @@ import java.lang.annotation.Target;
 
 import javax.inject.Qualifier;
 
-import io.stackgres.common.StackGresContainers;
+import io.stackgres.common.StackGresContainer;
 
 @Qualifier
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
@@ -24,6 +24,6 @@ public @interface Sidecar {
   /**
    * The sidecar name.
    */
-  StackGresContainers value();
+  StackGresContainer value();
 
 }

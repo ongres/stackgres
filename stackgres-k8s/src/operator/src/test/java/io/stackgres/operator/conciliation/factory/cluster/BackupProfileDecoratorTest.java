@@ -7,7 +7,6 @@ package io.stackgres.operator.conciliation.factory.cluster;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
@@ -23,8 +22,7 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.stackgres.common.StackGresContainer;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresKind;
 import io.stackgres.common.StackGresProperty;
@@ -44,11 +42,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ClusterProfileDecoratorTest {
+class BackupProfileDecoratorTest {
 
-  private static final StackGresKind KIND = StackGresKind.CLUSTER;
+  private static final StackGresKind KIND = StackGresKind.BACKUP;
 
-  private final ClusterProfileDecorator profileDecorator = new ClusterProfileDecorator();
+  private final BackupProfileDecorator profileDecorator = new BackupProfileDecorator();
 
   @Mock
   private StackGresClusterContext context;
@@ -57,7 +55,7 @@ class ClusterProfileDecoratorTest {
 
   private StackGresProfile defaultProfile;
 
-  private StatefulSet statefulSet;
+  private CronJob cronJob;
 
   private List<HasMetadata> resources;
 
@@ -73,14 +71,15 @@ class ClusterProfileDecoratorTest {
         StackGresProperty.OPERATOR_VERSION.getString());
     resources = KubernetessMockResourceGenerationUtil
         .buildResources(metadata.getName(), metadata.getNamespace());
-    statefulSet = resources.stream()
-        .filter(StatefulSet.class::isInstance)
-        .map(StatefulSet.class::cast)
+    cronJob = resources.stream()
+        .filter(CronJob.class::isInstance)
+        .map(CronJob.class::cast)
         .findFirst()
         .orElseThrow();
     defaultProfile.getSpec().setContainers(new HashMap<>());
     defaultProfile.getSpec().setInitContainers(new HashMap<>());
-    Seq.seq(statefulSet.getSpec().getTemplate().getSpec().getContainers())
+    Seq.seq(cronJob.getSpec().getJobTemplate().getSpec()
+            .getTemplate().getSpec().getContainers())
         .forEach(container -> {
           StackGresProfileContainer containerProfile = new StackGresProfileContainer();
           containerProfile.setCpu(new Random().nextInt(32000) + "m");
@@ -88,7 +87,8 @@ class ClusterProfileDecoratorTest {
           defaultProfile.getSpec().getContainers().put(
               KIND.getContainerPrefix() + container.getName(), containerProfile);
         });
-    Seq.seq(statefulSet.getSpec().getTemplate().getSpec().getInitContainers())
+    Seq.seq(cronJob.getSpec().getJobTemplate().getSpec()
+            .getTemplate().getSpec().getInitContainers())
         .forEach(container -> {
           StackGresProfileContainer containerProfile = new StackGresProfileContainer();
           containerProfile.setCpu(new Random().nextInt(32000) + "m");
@@ -111,19 +111,10 @@ class ClusterProfileDecoratorTest {
   void withCpuAndMemoryForAllContainers_shouldBeAppliedToAllExceptPatroni() {
     profileDecorator.decorate(context, resources);
 
-    assertTrue(statefulSet.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
+    assertTrue(cronJob.getSpec().getJobTemplate().getSpec().getTemplate()
+        .getSpec().getVolumes().isEmpty());
 
-    statefulSet.getSpec().getTemplate().getSpec().getContainers().stream()
-        .filter(container -> Objects.equals(
-            container.getName(), StackGresContainer.PATRONI.getNameWithPrefix()))
-        .forEach(patroniContainer -> {
-          assertNull(patroniContainer.getResources());
-          assertTrue(patroniContainer.getVolumeMounts().isEmpty());
-        });
-
-    statefulSet.getSpec().getTemplate().getSpec().getContainers().stream()
-        .filter(container -> !Objects.equals(
-            container.getName(), StackGresContainer.PATRONI.getNameWithPrefix()))
+    cronJob.getSpec().getJobTemplate().getSpec().getTemplate().getSpec().getContainers().stream()
         .forEach(container -> {
           defaultProfile.getSpec().getContainers().entrySet().stream()
               .filter(entry -> Objects.equals(
@@ -150,22 +141,15 @@ class ClusterProfileDecoratorTest {
 
     assertEquals(
         2 * (
-            statefulSet.getSpec().getTemplate().getSpec().getContainers().size()
-            + statefulSet.getSpec().getTemplate().getSpec().getInitContainers().size()
-            - 1),
-        statefulSet.getSpec().getTemplate().getSpec().getVolumes().size());
+            cronJob.getSpec().getJobTemplate().getSpec().getTemplate()
+                .getSpec().getContainers().size()
+            + cronJob.getSpec().getJobTemplate().getSpec().getTemplate()
+                .getSpec().getInitContainers().size()
+            ),
+        cronJob.getSpec().getJobTemplate().getSpec().getTemplate()
+            .getSpec().getVolumes().size());
 
-    statefulSet.getSpec().getTemplate().getSpec().getContainers().stream()
-        .filter(container -> Objects.equals(
-            container.getName(), StackGresContainer.PATRONI.getName()))
-        .forEach(patroniContainer -> {
-          assertNull(patroniContainer.getResources());
-          assertTrue(patroniContainer.getVolumeMounts().isEmpty());
-        });
-
-    statefulSet.getSpec().getTemplate().getSpec().getContainers().stream()
-        .filter(container -> !Objects.equals(
-            container.getName(), StackGresContainer.PATRONI.getName()))
+    cronJob.getSpec().getJobTemplate().getSpec().getTemplate().getSpec().getContainers().stream()
         .forEach(container -> {
           defaultProfile.getSpec().getContainers().entrySet().stream()
               .filter(entry -> Objects.equals(
