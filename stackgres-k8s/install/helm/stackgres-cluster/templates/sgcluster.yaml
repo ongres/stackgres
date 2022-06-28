@@ -152,6 +152,9 @@ spec:
           - {{ . }}
         {{- end }}
       {{- end }}
+      {{- if .Values.cluster.postgresServices.primary.loadBalancerIP }}
+      loadBalancerIP: {{ .Values.cluster.postgresServices.primary.loadBalancerIP }}
+      {{- end }}
     {{- end }}    
     {{- if .Values.cluster.postgresServices.replicas }}
     replicas:
@@ -170,6 +173,9 @@ spec:
         {{- range $annot, $value := .Values.cluster.postgresServices.replicas.annotations }}
         {{ $annot }}: {{ $value }}
         {{- end }}
+      {{- end }}
+      {{- if .Values.cluster.postgresServices.replicas.loadBalancerIP }}
+      loadBalancerIP: {{ .Values.cluster.postgresServices.replicas.loadBalancerIP }}
       {{- end }}
     {{- end }}    
   {{- end }}
