@@ -32,19 +32,30 @@
 										<li>
 											Local <code>psql</code> (runs within the same pod as Postgres):<br/>
 											<template v-for="pod in cluster.data.pods">
-												<pre v-if="pod.role == 'primary'">kubectl -n {{ $route.params.namespace }} exec -ti {{ pod.name }} -c postgres-util -- psql{{ cluster.data.info.superuserUsername !== 'postgres' ? ' -U '+cluster.data.info.superuserUsername : '' }}<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
+												<pre v-if="pod.role == 'primary'">kubectl -n {{ cluster.data.metadata.namespace }} exec -ti {{ pod.name }} -c postgres-util -- psql{{ cluster.data.info.superuserUsername !== 'postgres' ? ' -U '+cluster.data.info.superuserUsername : '' }}<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
 											</template>
 										</li>
 										<li>
 											Externally to StackGres pods, from a container image that contains <code>psql</code> (this option is the only one available if you have disabled the <code>postgres-util</code> sidecar):<br/>
-											<pre>kubectl -n {{ $route.params.namespace }} run psql --rm -it --image ongres/postgres-util --restart=Never -- psql -h {{ cluster.name }}-primary {{ cluster.data.info.superuserUsername }} {{ cluster.data.info.superuserUsername }}  <span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
+											<pre>kubectl -n {{ cluster.data.metadata.namespace }} run psql --rm -it --image ongres/postgres-util --restart=Never -- psql -h {{ cluster.name }}-primary {{ cluster.data.info.superuserUsername }} {{ cluster.data.info.superuserUsername }}  <span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
 										</li>
 									</ul>
 								</p>
 
 								<p>The command will ask for the admin user password (prompt may not be shown, just type or paste the password). Use the following command to retrieve it:<br/>
-									<pre>kubectl -n {{ $route.params.namespace }} get secret {{ cluster.data.info.superuserSecretName }} --template <template v-pre>'{{</template> printf "%s" (index .data "{{ cluster.data.info.superuserPasswordKey }}" | base64decode) }}'<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
+									<pre>kubectl -n {{ cluster.data.metadata.namespace }} get secret {{ cluster.data.info.superuserSecretName }} --template <template v-pre>'{{</template> printf "%s" (index .data "{{ cluster.data.info.superuserPasswordKey }}" | base64decode) }}'<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
 								</p>
+
+								<template v-if="cluster.data.spec.postgres.flavor == 'babelfish'">
+									<hr/>
+
+									<p>If you wish to connect via the SQL Server protocol, please use the following command:</p>
+									<pre>kubectl -n {{ cluster.data.metadata.namespace }} run usql --rm -it --image ongres/postgres-util --restart=Never -- usql --password ms://babelfish@{{ cluster.data.metadata.name }}:1433<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
+
+									<br/><br/>
+									<p>To retrieve the secrete, please use:</p>
+									<pre>kubectl -n {{ cluster.data.metadata.namespace }} get secret {{ cluster.data.metadata.name }} --template '<template v-pre>{{</template> printf "%s" (index .data "babelfish-password" | base64decode) }}'<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
+								</template>
 							</template>
 						</div>
 					</div>
