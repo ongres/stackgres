@@ -155,7 +155,7 @@ public class ApplicationsResource {
     if (header != null && !header.isEmpty()) {
       String[] contentDispositionTokens = header.split(";");
       for (String contentDispositionHeaderToken : contentDispositionTokens) {
-        if ((contentDispositionHeaderToken.trim().startsWith("filename"))) {
+        if (contentDispositionHeaderToken.trim().startsWith("filename")) {
           return contentDispositionHeaderToken.split("=")[1].strip()
               .replace("\"", "");
         }
