@@ -130,6 +130,14 @@
                         <li>
                             <strong class="sectionTitle">Managed Backups Specs</strong>
                             <ul v-for="backup in cluster.data.spec.configurations.backups">
+                                <li>
+                                    <strong class="label">Object Storage:</strong>
+                                    <span class="value">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgobjectstorage/' + backup.sgObjectStorage" target="_blank"> 
+                                            {{ backup.sgObjectStorage }}
+                                        </router-link>
+                                    </span>
+                                </li>
                                 <li v-if="( showDefaults || ( backup.cronSchedule != '0 3 * * *' ) )">
                                     <strong class="label">Cron Schedule:</strong>
                                     <span class="value">{{ tzCrontab(backup.cronSchedule) }} ({{ tzCrontab(backup.cronSchedule) | prettyCRON(false) }})</span>
@@ -167,14 +175,6 @@
                                         </li>
                                         
                                     </ul>
-                                </li>
-                                <li>
-                                    <strong class="label">Storage:</strong>
-                                    <span class="value">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgobjectstorage/' + backup.sgObjectStorage" target="_blank"> 
-                                            {{ backup.sgObjectStorage }}
-                                        </router-link>
-                                    </span>
                                 </li>
                             </ul>
                         </li>
