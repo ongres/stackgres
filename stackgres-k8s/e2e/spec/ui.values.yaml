@@ -2,18 +2,17 @@ configurations:
   postgresconfig:
     postgresql.conf:
       shared_buffers: '32MB'
-  backupconfig:
+  objectstorage:
     create: true
-    # Avoid automatic backups
-    baseBackups:
-      retention: 2
-      cronSchedule: '0 5 31 2 *'
 cluster:
   pods:
     persistentVolume:
       size: 128Mi
   configurations:
-    sgBackupConfig: backupconf
+    backups:
+      retention: 2
+      cronSchedule: '0 5 31 2 *'
+      sgObjectStorage: backupconf
   prometheusAutobind: true
 distributedLogs:
   enabled: true
