@@ -81,7 +81,7 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
           .map(Quantity::getAmountInBytes)
           .orElse(BigDecimal.ZERO);
       final BigDecimal memory = Optional.of(profile.getSpec())
-          .map(StackGresProfileSpec::getCpu)
+          .map(StackGresProfileSpec::getMemory)
           .or(() -> Optional.of(defaultProfile.getSpec().getMemory()))
           .map(Quantity::new)
           .map(Quantity::getAmountInBytes)
@@ -142,6 +142,21 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
     return result;
   }
 
+  private boolean setInitContainersCpuAndMemory(
+      BigDecimal cpu, BigDecimal memory,
+      Map<String, StackGresProfileContainer> initContainers) {
+    boolean result = false;
+    for (var container : Stream.of(StackGresInitContainer.values())
+        .toList()) {
+      var containerProfile = Optional.of(initContainers
+          .computeIfAbsent(container.getNameWithPrefix(), k -> new StackGresProfileContainer()));
+      boolean setInitContainerCpu = setContainerCpu(cpu, container, containerProfile);
+      boolean setInitContainerMemory = setContainerMemory(memory, container, containerProfile);
+      result = result || setInitContainerCpu || setInitContainerMemory;
+    }
+    return result;
+  }
+
   private boolean setContainerCpu(BigDecimal cpu, StackGresContainerProfile container,
       Optional<StackGresProfileContainer> containerProfile) {
     var containerProfileWithCpu = containerProfile
@@ -158,21 +173,6 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
     containerProfileWithMemory.ifPresent(profile -> profile.setMemory(
         toMemoryValue(container.getMemoryFormula().apply(memory))));
     return containerProfileWithMemory.isPresent();
-  }
-
-  private boolean setInitContainersCpuAndMemory(
-      BigDecimal cpu, BigDecimal memory,
-      Map<String, StackGresProfileContainer> initContainers) {
-    boolean result = false;
-    for (var container : Stream.of(StackGresInitContainer.values())
-        .toList()) {
-      var containerProfile = Optional.of(initContainers
-          .computeIfAbsent(container.getNameWithPrefix(), k -> new StackGresProfileContainer()));
-      boolean setInitContainerCpu = setContainerCpu(cpu, container, containerProfile);
-      boolean setInitContainerMemory = setContainerMemory(memory, container, containerProfile);
-      result = result || setInitContainerCpu || setInitContainerMemory;
-    }
-    return result;
   }
 
   private String toCpuValue(BigDecimal value) {

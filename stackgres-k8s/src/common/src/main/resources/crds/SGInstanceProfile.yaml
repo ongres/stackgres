@@ -94,83 +94,81 @@ spec:
                     This section, if left empty, will be filled automatically by the operator with
                      some defaults that can be proportional to the resources assigned to patroni
                      container (except for the huge pages that are always left empty).
-                  properties:
-                    additionalProperties:
-                      type: object
-                      properties:
-                        cpu:
-                          type: string
-                          pattern: '^[1-9][0-9]*[m]?$'
-                          description: |
-                            CPU(s) (cores) used for the specified Pod container. The suffix `m`
-                             specifies millicpus (where 1000m is euqals to 1).
-                        memory:
-                          type: string
-                          pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
-                          description: |
-                            RAM allocated to the specified Pod container. The suffix `Mi` or `Gi`
-                             specifies Mebibytes or Gibibytes, respectively.
-                        hugePages:
-                          type: object
-                          description: |
-                            RAM allocated for huge pages
-                          properties:
-                            hugepages-2Mi:
-                              type: string
-                              pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
-                              description: |
-                                RAM allocated for huge pages with a size of 2Mi. The suffix `Mi`
-                                 or `Gi` specifies Mebibytes or Gibibytes, respectively.
+                  additionalProperties:
+                    type: object
+                    properties:
+                      cpu:
+                        type: string
+                        pattern: '^[1-9][0-9]*[m]?$'
+                        description: |
+                          CPU(s) (cores) used for the specified Pod container. The suffix `m`
+                           specifies millicpus (where 1000m is euqals to 1).
+                      memory:
+                        type: string
+                        pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                        description: |
+                          RAM allocated to the specified Pod container. The suffix `Mi` or `Gi`
+                           specifies Mebibytes or Gibibytes, respectively.
+                      hugePages:
+                        type: object
+                        description: |
+                          RAM allocated for huge pages
+                        properties:
+                          hugepages-2Mi:
+                            type: string
+                            pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                            description: |
+                              RAM allocated for huge pages with a size of 2Mi. The suffix `Mi`
+                               or `Gi` specifies Mebibytes or Gibibytes, respectively.
 
-                                The amount of RAM is assigned to the specified container.
-                            hugepages-1Gi:
-                              type: string
-                              pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
-                              description: |
-                                RAM allocated for huge pages with a size of 1Gi. The suffix `Mi`
-                                 or `Gi` specifies Mebibytes or Gibibytes, respectively.
+                              The amount of RAM is assigned to the specified container.
+                          hugepages-1Gi:
+                            type: string
+                            pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                            description: |
+                              RAM allocated for huge pages with a size of 1Gi. The suffix `Mi`
+                               or `Gi` specifies Mebibytes or Gibibytes, respectively.
 
-                                The amount of RAM is assigned to the specified container.
-                      required: ["cpu", "memory"]
+                              The amount of RAM is assigned to the specified container.
+                    required: ["cpu", "memory"]
                 initContainers:
                   type: object
                   description: The CPU(s) (cores) and RAM assigned to init containers.
-                  properties:
-                    additionalProperties:
-                      type: object
-                      properties:
-                        cpu:
-                          type: string
-                          pattern: '^[1-9][0-9]*[m]?$'
-                          description: |
-                            CPU(s) (cores) used for the specified Pod init container. The suffix
-                             `m` specifies millicpus (where 1000m is euqals to 1).
-                        memory:
-                          type: string
-                          pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
-                          description: |
-                            RAM allocated to the specified Pod init container. The suffix `Mi`
-                             or `Gi` specifies Mebibytes or Gibibytes, respectively.
-                        hugePages:
-                          type: object
-                          description: |
-                            RAM allocated for huge pages
-                          properties:
-                            hugepages-2Mi:
-                              type: string
-                              pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
-                              description: |
-                                RAM allocated for huge pages with a size of 2Mi. The suffix `Mi`
-                                 or `Gi` specifies Mebibytes or Gibibytes, respectively.
+                  additionalProperties:
+                    type: object
+                    properties:
+                      cpu:
+                        type: string
+                        pattern: '^[1-9][0-9]*[m]?$'
+                        description: |
+                          CPU(s) (cores) used for the specified Pod init container. The suffix
+                           `m` specifies millicpus (where 1000m is euqals to 1).
+                      memory:
+                        type: string
+                        pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                        description: |
+                          RAM allocated to the specified Pod init container. The suffix `Mi`
+                           or `Gi` specifies Mebibytes or Gibibytes, respectively.
+                      hugePages:
+                        type: object
+                        description: |
+                          RAM allocated for huge pages
+                        properties:
+                          hugepages-2Mi:
+                            type: string
+                            pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                            description: |
+                              RAM allocated for huge pages with a size of 2Mi. The suffix `Mi`
+                               or `Gi` specifies Mebibytes or Gibibytes, respectively.
 
-                                The amount of RAM is assigned to the specified init container.
-                            hugepages-1Gi:
-                              type: string
-                              pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
-                              description: |
-                                RAM allocated for huge pages with a size of 1Gi. The suffix `Mi` or `Gi`
-                                 specifies Mebibytes or Gibibytes, respectively.
+                              The amount of RAM is assigned to the specified init container.
+                          hugepages-1Gi:
+                            type: string
+                            pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                            description: |
+                              RAM allocated for huge pages with a size of 1Gi. The suffix `Mi` or `Gi`
+                               specifies Mebibytes or Gibibytes, respectively.
 
-                                The amount of RAM is assigned to the specified init container.
-                      required: ["cpu", "memory"]
+                              The amount of RAM is assigned to the specified init container.
+                    required: ["cpu", "memory"]
               required: ["cpu", "memory"]

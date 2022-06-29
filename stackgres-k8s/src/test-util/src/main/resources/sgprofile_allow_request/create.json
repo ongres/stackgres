@@ -93,39 +93,39 @@
         "initContainers": {
           "cluster-reconciliation-cycle": {
             "cpu": "500m",
-            "memory": "1Mi"
+            "memory": "512Mi"
           },
           "distributedlogs-reconciliation-cycle": {
             "cpu": "500m",
-            "memory": "1Mi"
+            "memory": "512Mi"
           },
           "major-version-upgrade": {
             "cpu": "500m",
-            "memory": "1Mi"
+            "memory": "512Mi"
           },
           "pgbouncer-auth-file": {
             "cpu": "500m",
-            "memory": "1Mi"
+            "memory": "512Mi"
           },
           "relocate-binaries": {
             "cpu": "500m",
-            "memory": "1Mi"
+            "memory": "512Mi"
           },
           "reset-patroni": {
             "cpu": "500m",
-            "memory": "1Mi"
+            "memory": "512Mi"
           },
           "setup-arbitrary-user": {
             "cpu": "500m",
-            "memory": "1Mi"
+            "memory": "512Mi"
           },
           "setup-data-paths": {
             "cpu": "500m",
-            "memory": "1Mi"
+            "memory": "512Mi"
           },
           "setup-scripts": {
             "cpu": "500m",
-            "memory": "1Mi"
+            "memory": "512Mi"
           },
           "dbops.set-dbops-running": {
             "cpu": "32m",
