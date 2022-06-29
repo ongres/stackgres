@@ -19,6 +19,9 @@ public class DbOpsSpec {
   @JsonProperty("sgCluster")
   private String sgCluster;
 
+  @JsonProperty("scheduling")
+  private DbOpsSpecScheduling scheduling;
+
   @JsonProperty("op")
   private String op;
 
@@ -58,6 +61,14 @@ public class DbOpsSpec {
 
   public void setSgCluster(String sgCluster) {
     this.sgCluster = sgCluster;
+  }
+
+  public DbOpsSpecScheduling getScheduling() {
+    return scheduling;
+  }
+
+  public void setScheduling(DbOpsSpecScheduling scheduling) {
+    this.scheduling = scheduling;
   }
 
   public String getOp() {

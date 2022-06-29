@@ -135,6 +135,7 @@ public abstract class DbOpsJob implements JobFactory {
         .withLabels(labels)
         .endMetadata()
         .withNewSpec()
+        .withTolerations(dbOps.getSpec().getScheduling().getTolerations())
         .withSecurityContext(podSecurityFactory.createResource(context))
         .withRestartPolicy("Never")
         .withServiceAccountName(DbOpsRole.roleName(context))
