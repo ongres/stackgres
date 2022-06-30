@@ -131,7 +131,7 @@ spec:
         {{- with .Values.restapi.resources }}
         resources:
         {{- toYaml . | nindent 10 }}
-        {{- end }}          
+        {{- end }}
         volumeMounts:
           - name: web-certs
             mountPath: /etc/operator/certs
@@ -238,10 +238,10 @@ spec:
             secretName: {{ .Release.Name }}-web-certs
             optional: false
             items:
-              - key: root.key
+              - key: tls.key
                 path: root.key
-              - key: server.crt
-                path: server.crt
+              - key: tls.crt
+                path: service.crt
               - key: jwt-rsa.key
                 path: jwt-rsa.key
               - key: jwt-rsa.pub

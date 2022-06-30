@@ -82,6 +82,7 @@ deploy:
 
 cert:
   autoapprove: true
+  create: true
   reset: false
   # key:
   # crt:

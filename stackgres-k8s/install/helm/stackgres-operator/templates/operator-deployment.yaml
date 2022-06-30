@@ -193,9 +193,9 @@ spec:
             secretName: {{ .Release.Name }}-certs
             optional: false
             items:
-              - key: root.key
+              - key: tls.key
                 path: root.key
-              - key: server.crt
+              - key: tls.crt
                 path: server.crt
         {{- if and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
         - name: operator-nginx-conf
