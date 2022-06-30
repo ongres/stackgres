@@ -46,6 +46,8 @@ authentication:
     Username that will be required to access the UI.
   password: |
     Password that will be required to access the UI.
+  resetPassword: |
+    Forces the password reset, updating the existing secret.
 grafana:
   autoEmbed: |
     Embed an existing grafana by setting `grafana.autoEmbed` to true

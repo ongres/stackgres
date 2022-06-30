@@ -93,6 +93,7 @@ cert:
 # Custom credentials for the operator's admin user
 authentication:
   user: admin
+  resetPassword: false
 #  password: <operator admin password>
   secretRef:
     name: ""
