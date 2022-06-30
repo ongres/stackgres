@@ -204,7 +204,7 @@ spec:
         {{- with .Values.adminui.resources }}
         resources:
         {{- toYaml . | nindent 10 }}
-        {{- end }}             
+        {{- end }}
         volumeMounts:
           - name: web-certs
             mountPath: /etc/operator/certs
@@ -241,7 +241,7 @@ spec:
               - key: tls.key
                 path: root.key
               - key: tls.crt
-                path: service.crt
+                path: server.crt
               - key: jwt-rsa.key
                 path: jwt-rsa.key
               - key: jwt-rsa.pub

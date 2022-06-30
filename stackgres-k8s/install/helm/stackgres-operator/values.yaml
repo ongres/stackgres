@@ -82,7 +82,8 @@ deploy:
 
 cert:
   autoapprove: true
-  create: true
+  createForOperator: true
+  createForWebApi: true
   reset: false
   # key:
   # crt:
