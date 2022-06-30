@@ -23,7 +23,7 @@ ___
 | Property                                              | Required | Updatable | Default | Type    | Description |
 |:------------------------------------------------------|----------|-----------|:--------|:--------|:------------|
 | sgCluster                                             | ✓        |           |         | string  | {{< crd-field-description SGDbOps.spec.sgCluster >}} |
-| [tolerations](#tolerations)                           |          |           |         | object  | {{< crd-field-description SGDbOps.spec.tolerations >}} |
+| [scheduling](#scheduling)                           |          |           |         | object  | {{< crd-field-description SGDbOps.spec.scheduling >}} |
 | op                                                    | ✓        |           |         | string  | {{< crd-field-description SGDbOps.spec.op >}} |
 | runAt                                                 |          |           |         | string  | {{< crd-field-description SGDbOps.spec.runAt >}} |
 | timeout                                               |          |           |         | string  | {{< crd-field-description SGDbOps.spec.timeout >}} |
@@ -49,17 +49,25 @@ ___
 | [minorVersionUpgrade](#minor-version-upgrade-status)   |          |           |         | object  | {{< crd-field-description SGDbOps.status.minorVersionUpgrade >}} |
 | [securityUpgrade](#security-upgrade-status)            |          |           |         | object  | {{< crd-field-description SGDbOps.status.securityUpgrade >}} |
 
+#### Scheduling
+
+Holds scheduling configuration for StackGres pods to have.
+
+| Property          | Required | Updatable | Type     | Default                 | Description |
+|:------------------|----------|-----------|:---------|:------------------------|:------------|
+| [tolerations](#tolerations)                           |          |           |         | object  | {{< crd-field-description SGDbOps.spec.scheduling.tolerations >}} |
+
 #### Tolerations
 
 Holds scheduling configuration for StackGres pods to have.
 
 | Property          | Required | Updatable | Type     | Default                 | Description |
 |:------------------|----------|-----------|:---------|:------------------------|:------------|
-| key               |          | ✓         | string   |                         | {{< crd-field-description SGDbOps.spec.tolerations.items.key >}} |
-| operator          |          | ✓         | string   | Equal                   | {{< crd-field-description SGDbOps.spec.tolerations.items.operator >}} |
-| value             |          | ✓         | string   |                         | {{< crd-field-description SGDbOps.spec.tolerations.items.value >}} |
-| effect            |          | ✓         | string   | match all taint effects | {{< crd-field-description SGDbOps.spec.tolerations.items.effect >}} |
-| tolerationSeconds |          | ✓         | string   | 0                       | {{< crd-field-description SGDbOps.spec.tolerations.items.tolerationSeconds >}} |
+| key               |          | ✓         | string   |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations.items.key >}} |
+| operator          |          | ✓         | string   | Equal                   | {{< crd-field-description SGDbOps.spec.scheduling.tolerations.items.operator >}} |
+| value             |          | ✓         | string   |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations.items.value >}} |
+| effect            |          | ✓         | string   | match all taint effects | {{< crd-field-description SGDbOps.spec.scheduling.tolerations.items.effect >}} |
+| tolerationSeconds |          | ✓         | string   | 0                       | {{< crd-field-description SGDbOps.spec.scheduling.tolerations.items.tolerationSeconds >}} |
 
 ## Benchmark
 

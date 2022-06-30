@@ -135,7 +135,7 @@ public abstract class DbOpsJob implements JobFactory {
         .withLabels(labels)
         .endMetadata()
         .withNewSpec()
-        .withTolerations(dbOps.getSpec().getScheduling().getTolerations())
+        .withTolerations(getSchedulingTolerations(dbOps))
         .withSecurityContext(podSecurityFactory.createResource(context))
         .withRestartPolicy("Never")
         .withServiceAccountName(DbOpsRole.roleName(context))
@@ -375,5 +375,20 @@ public abstract class DbOpsJob implements JobFactory {
         .endTemplate()
         .endSpec()
         .build();
+  }
+
+  private List<io.fabric8.kubernetes.api.model.Toleration> getSchedulingTolerations(
+      final StackGresDbOps dbOps) {
+
+    if (dbOps.getSpec().getScheduling() == null
+        || dbOps.getSpec().getScheduling().getTolerations() == null) {
+      return List.of();
+    }
+
+    return dbOps.getSpec().getScheduling().getTolerations().stream()
+        .map(t -> new io.fabric8.kubernetes.api.model.Toleration(t.getEffect(), t.getKey(),
+            t.getOperator(), t.getTolerationSeconds(), t.getValue()))
+        .toList();
+
   }
 }
