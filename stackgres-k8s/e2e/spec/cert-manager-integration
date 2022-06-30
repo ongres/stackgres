@@ -10,12 +10,14 @@ e2e_test_install() {
 
   install_cert_manager
 
+  kubectl create namespace "$OPERATOR_NAMESPACE"
+
   cat << EOF | kubectl create -f -
 ---
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: stackgres-self-issuer
+  name: stackgres-issuer
   namespace: "$OPERATOR_NAMESPACE"
 spec:
   selfSigned: {}
@@ -33,7 +35,7 @@ spec:
     algorithm: ECDSA
     size: 256
   issuerRef:
-    name: stackgres-self-issuer
+    name: stackgres-issuer
     kind: Issuer
     group: cert-manager.io
 ---
@@ -77,7 +79,6 @@ spec:
     group: cert-manager.io
 EOF
 
-  kubectl create namespace "$OPERATOR_NAMESPACE"
   install_operator_only \
     --set cert.create=false
 
@@ -92,7 +93,7 @@ e2e_test() {
   run_test "Check that a cluster can e created" check_cluster_can_be_created
 }
 
-check_grafana_secret() {
+check_cluster_can_be_created() {
   local RESULT EXIT_CODE
   NODE_LABEL_KEY="$(random_string)"
   NODE_LABEL_VALUE="$(random_string)"
