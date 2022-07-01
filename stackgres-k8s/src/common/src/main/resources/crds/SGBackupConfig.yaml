@@ -65,14 +65,16 @@ spec:
 
                         Also ranges of values (`start-end`), the symbol `*` (meaning `first-last`) or even `*/N`, where `N` is a number, meaning ""every `N`, may be used. All times are UTC. It is recommended to avoid 00:00 as base backup time, to avoid overlapping with any other external operations happening at this time.
 
-                        If not set, full backups are performed each day at 05:00 UTC.
+                        If not set, full backups are performed everyday at 05:00 UTC.
                     retention:
                       type: integer
                       minimum: 1
                       description: |
-                        When an automatic retention policy is defined to delete old base backups, this parameter specifies the number of base backups to keep, in a sliding window.
+                        Define the number of backups with managed lifecycle to keep, in a sliding window.
 
                         Consequently, the time range covered by backups is `periodicity*retention`, where `periodicity` is the separation between backups as specified by the `cronSchedule` property.
+
+                        WAL files before the oldest backup with managed lifecycle will also be removed. So that, when retention is applied, the oldest WAL available will be `periodicity*retention` old.
 
                         Default is 5.
                     compression:

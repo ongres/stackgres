@@ -37,6 +37,18 @@ import org.jooq.lambda.tuple.Tuple2;
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
 public class PostgresConfigValidator implements ClusterValidator {
 
+  private static final String PG_14_CREATE_CONCURRENT_INDEX_BUG =
+      "Please, use PostgreSQL 14.4 since it fixes an issue"
+          + " with CREATE INDEX CONCURRENTLY and REINDEX CONCURRENTLY that"
+          + " could cause silent data corruption of indexes. For more info"
+          + " see https://www.postgresql.org/about/news/postgresql-144-released-2470/.";
+  public static final Map<String, String> BUGGY_PG_VERSIONS = Map.ofEntries(
+      Map.entry("14.0", PG_14_CREATE_CONCURRENT_INDEX_BUG),
+      Map.entry("14.1", PG_14_CREATE_CONCURRENT_INDEX_BUG),
+      Map.entry("14.2", PG_14_CREATE_CONCURRENT_INDEX_BUG),
+      Map.entry("14.3", PG_14_CREATE_CONCURRENT_INDEX_BUG)
+      );
+
   private final CustomResourceFinder<StackGresPostgresConfig> configFinder;
 
   private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
@@ -97,6 +109,10 @@ public class PostgresConfigValidator implements ClusterValidator {
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
+        if (BUGGY_PG_VERSIONS.keySet().contains(givenPgVersion)) {
+          fail(errorForbiddenUpdateUri, "Do not use PostgreSQL " + givenPgVersion + ". "
+              + BUGGY_PG_VERSIONS.get(givenPgVersion));
+        }
         validateAgainstConfiguration(givenMajorVersion, pgConfig, namespace);
         break;
       case UPDATE:

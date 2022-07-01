@@ -32,7 +32,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.stackgres.common.LabelFactory;
+import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.ResourceFinder;
@@ -59,7 +59,7 @@ class DbOpsJobReconciliationHandlerTest {
       DbOpsJobReconciliationHandlerTest.class);
 
   @Mock
-  private LabelFactory<StackGresDbOps> labelFactory;
+  private LabelFactoryForDbOps labelFactory;
 
   @Mock
   private ResourceWriter<Job> jobWriter;

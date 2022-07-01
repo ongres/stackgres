@@ -64,7 +64,7 @@ import org.slf4j.LoggerFactory;
 public class BackupJob
     implements ResourceGenerator<StackGresBackupContext> {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(BackupJob.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
   private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
       clusterEnvVarFactoryDiscoverer;
@@ -100,10 +100,8 @@ public class BackupJob
     if (isBackupCopy(context)) {
       return Stream.of();
     }
-    if (isBackupConfigNotConfigured(context)) {
-      return Stream.of();
-    }
-    if (isBackupJobCompleted(context)) {
+    if (isBackupConfigNotConfigured(context)
+        && !isBackupJobCompleted(context)) {
       return Stream.of();
     }
     if (isScheduledBackupJob(context)) {
@@ -123,12 +121,13 @@ public class BackupJob
         && context.getBackupConfig().isEmpty();
   }
 
-  private Boolean isBackupJobCompleted(StackGresBackupContext context) {
+  private boolean isBackupJobCompleted(StackGresBackupContext context) {
     return Optional.ofNullable(context.getSource().getStatus())
         .map(StackGresBackupStatus::getProcess)
         .map(StackGresBackupProcess::getStatus)
-        .map(status -> status.equals(BackupPhase.COMPLETED.label()))
-        .orElse(false);
+        .filter(status -> status.equals(BackupPhase.COMPLETED.label())
+            || status.equals(BackupPhase.FAILED.label()))
+        .isPresent();
   }
 
   private boolean isScheduledBackupJob(StackGresBackupContext context) {

@@ -27,6 +27,7 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDbOpsReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operator.validation.ValidationUtil;
+import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
@@ -87,6 +88,11 @@ public class DbOpsMajorVersionUpgradeValidator implements DbOpsValidator {
                   + Seq.seq(supportedPostgresVersions.get(
                       getPostgresFlavorComponent(cluster))).toString(", ");
               fail(errorPostgresMismatchUri, message);
+            }
+
+            if (PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet().contains(givenPgVersion)) {
+              fail(errorForbiddenUpdateUri, "Do not use PostgreSQL " + givenPgVersion + ". "
+                  + PostgresConfigValidator.BUGGY_PG_VERSIONS.get(givenPgVersion));
             }
 
             String givenMajorVersion = getPostgresFlavorComponent(cluster)
