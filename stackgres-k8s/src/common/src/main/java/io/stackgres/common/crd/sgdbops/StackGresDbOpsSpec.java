@@ -38,6 +38,9 @@ public class StackGresDbOpsSpec implements KubernetesResource {
   @NotEmpty(message = "sgCluster must be provided")
   private String sgCluster;
 
+  @JsonProperty("scheduling")
+  private StackGresDbOpsSpecScheduling scheduling;
+
   @JsonProperty("op")
   @ValidEnum(enumClass = DbOpsOperation.class, allowNulls = false,
       message = "op must be one of benchmark, vacuum, repack, restart, "
@@ -235,6 +238,14 @@ public class StackGresDbOpsSpec implements KubernetesResource {
 
   public void setSgCluster(String sgCluster) {
     this.sgCluster = sgCluster;
+  }
+
+  public StackGresDbOpsSpecScheduling getScheduling() {
+    return scheduling;
+  }
+
+  public void setScheduling(StackGresDbOpsSpecScheduling scheduling) {
+    this.scheduling = scheduling;
   }
 
   public String getOp() {
