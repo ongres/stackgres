@@ -13,7 +13,7 @@ metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: {{ if or (eq "true" (include "stackgres.operator.resetCert" .)) (eq "true" (include "stackgres.operator.upgradeCrds" .)) }}0{{ else }}1{{ end }}
+  replicas: {{ if or (eq "true" (include "stackgres.operator.resetCerts" .)) (eq "true" (include "stackgres.operator.upgradeCrds" .)) }}0{{ else }}1{{ end }}
   selector:
     matchLabels:
       app: {{ .Release.Name }}
@@ -190,7 +190,7 @@ spec:
       volumes:
         - name: operator-certs
           secret:
-            secretName: {{ .Release.Name }}-certs
+            secretName: {{ include "cert-name" . }}
             optional: false
             items:
               - key: tls.key

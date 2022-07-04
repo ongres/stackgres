@@ -1,4 +1,4 @@
-{{- if or (eq "true" (include "stackgres.operator.resetCert" .)) (eq "true" (include "stackgres.operator.upgradeCrds" .)) }}
+{{- if or (eq "true" (include "stackgres.operator.resetCerts" .)) (eq "true" (include "stackgres.operator.upgradeCrds" .)) }}
 apiVersion: batch/v1
 kind: Job
 metadata:

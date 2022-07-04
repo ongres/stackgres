@@ -8,10 +8,17 @@
 {{- else -}}
 {{- printf "ongres/kubectl:v1.23.5-build-6.13" -}}
 {{- end -}}
+
+{{- define "cert-name" }}
+{{- .Values.cert.secretName | default (printf "%s-%s" .Release.Name "certs") }}
 {{- end }}
 
-{{- define "stackgres.operator.resetCert" }}
-{{- if and .Release.IsUpgrade .Values.cert.reset }}true{{- end }}
+{{- define "web-cert-name" }}
+{{- .Values.cert.webSecretName | default (printf "%s-%s" .Release.Name "web-certs") }}
+{{- end }}
+
+{{- define "stackgres.operator.resetCerts" }}
+{{- if and .Release.IsUpgrade .Values.cert.resetCerts }}true{{- end }}
 {{- end }}
 
 {{- define "stackgres.operator.upgradeCrds" }}
@@ -39,3 +46,4 @@
 {{- end }}
 {{- if or $noStackGresCrdAvailable $upgradeCrds }}true{{- end }}
 {{- end }}
+
