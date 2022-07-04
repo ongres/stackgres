@@ -1057,6 +1057,7 @@
                         vc.repackDbs.push({
                             name: '',
                             noOrder: 'inherit',
+                            inheritTimeout: true,
                             waitTimeout: {
                                 d: 0,
                                 h: 0,
