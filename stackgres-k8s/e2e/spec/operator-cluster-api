@@ -150,6 +150,7 @@ test_cluster_stats_are_loaded() {
 test_cluster_stats_pods_ready() {
   create_or_replace_cluster "$CLUSTER_NAME-stats" "$CLUSTER_NAMESPACE-stats" 1 \
     --set configurations.objectstorage.create=false \
+    --set cluster.configurations.backups.sgObjectStorage=null \
     --set-string 'cluster.postgres.version=13' 
     
 
