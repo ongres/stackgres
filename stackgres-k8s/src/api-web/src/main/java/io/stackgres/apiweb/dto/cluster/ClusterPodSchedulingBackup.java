@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -14,28 +13,15 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.NodeAffinity;
-import io.stackgres.common.crd.Toleration;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterPodScheduling {
+public class ClusterPodSchedulingBackup {
 
   private Map<String, String> nodeSelector;
 
   private NodeAffinity nodeAffinity;
-
-  private List<Toleration> tolerations;
-
-  private ClusterPodSchedulingBackup backup;
-
-  public Map<String, String> getNodeSelector() {
-    return nodeSelector;
-  }
-
-  public void setNodeSelector(Map<String, String> nodeSelector) {
-    this.nodeSelector = nodeSelector;
-  }
 
   public NodeAffinity getNodeAffinity() {
     return nodeAffinity;
@@ -45,20 +31,12 @@ public class ClusterPodScheduling {
     this.nodeAffinity = nodeAffinity;
   }
 
-  public List<Toleration> getTolerations() {
-    return tolerations;
+  public Map<String, String> getNodeSelector() {
+    return nodeSelector;
   }
 
-  public void setTolerations(List<Toleration> tolerations) {
-    this.tolerations = tolerations;
-  }
-
-  public ClusterPodSchedulingBackup getBackup() {
-    return backup;
-  }
-
-  public void setBackup(ClusterPodSchedulingBackup backup) {
-    this.backup = backup;
+  public void setNodeSelector(Map<String, String> nodeSelector) {
+    this.nodeSelector = nodeSelector;
   }
 
   @Override
@@ -74,16 +52,14 @@ public class ClusterPodScheduling {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    ClusterPodScheduling that = (ClusterPodScheduling) o;
-    return Objects.equals(nodeSelector, that.nodeSelector)
-        && Objects.equals(nodeAffinity, that.nodeAffinity)
-        && Objects.equals(tolerations, that.tolerations)
-        && Objects.equals(backup, that.backup);
+    ClusterPodSchedulingBackup that = (ClusterPodSchedulingBackup) o;
+    return Objects.equals(nodeAffinity, that.nodeAffinity)
+        && Objects.equals(nodeSelector, that.nodeSelector);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(nodeSelector, nodeAffinity, tolerations, backup);
+    return Objects.hash(nodeSelector, nodeAffinity);
   }
 
 }
