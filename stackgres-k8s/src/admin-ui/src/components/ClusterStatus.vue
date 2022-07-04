@@ -53,6 +53,17 @@
 								<p>The command will ask for the admin user password (prompt may not be shown, just type or paste the password). Use the following command to retrieve it:<br/>
 									<pre>kubectl -n {{ $route.params.namespace }} get secret {{ cluster.data.info.superuserSecretName }} --template <template v-pre>'{{</template> printf "%s" (index .data "{{ cluster.data.info.superuserPasswordKey }}" | base64decode) }}'<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
 								</p>
+
+								<template v-if="cluster.data.spec.postgres.flavor == 'babelfish'">
+									<hr/>
+
+									<p>If you wish to connect via the SQL Server protocol, please use the following command:</p>
+									<pre>kubectl -n {{ cluster.data.metadata.namespace }} run usql --rm -it --image ongres/postgres-util --restart=Never -- usql --password ms://babelfish@{{ cluster.data.metadata.name }}:1433<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
+
+									<br/><br/>
+									<p>To retrieve the secrete, please use:</p>
+									<pre>kubectl -n {{ cluster.data.metadata.namespace }} get secret {{ cluster.data.metadata.name }} --template '<template v-pre>{{</template> printf "%s" (index .data "babelfish-password" | base64decode) }}'<span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
+								</template>
 							</template>
 						</div>
 					</div>
