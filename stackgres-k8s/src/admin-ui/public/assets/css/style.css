@@ -1580,7 +1580,7 @@ header .actions a {
     margin-left: 15px;
 }
 
-.crdActionLinks a:last-of-type:not(:first-of-type) {
+.crdActionLinks a:not(:first-of-type).lastItem {
     border-left: 1px solid var(--borderColor);
     padding-left: 15px;
 }
