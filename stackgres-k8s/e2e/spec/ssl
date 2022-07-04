@@ -10,9 +10,9 @@ e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set cluster.postgres.ssl.enabled=true \
     --set-string cluster.postgres.ssl.certificateSecretKeySelector.name=ssl-postgres \
-    --set-string cluster.postgres.ssl.certificateSecretKeySelector.key=server.crt \
+    --set-string cluster.postgres.ssl.certificateSecretKeySelector.key=tls.crt \
     --set-string cluster.postgres.ssl.privateKeySecretKeySelector.name=ssl-postgres \
-    --set-string cluster.postgres.ssl.privateKeySecretKeySelector.key=root.key
+    --set-string cluster.postgres.ssl.privateKeySecretKeySelector.key=tls.key
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 }

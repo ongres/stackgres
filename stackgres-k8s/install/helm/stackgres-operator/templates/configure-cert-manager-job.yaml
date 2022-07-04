@@ -1,0 +1,115 @@
+{{- if .Values.cert.certManager.autoConfigure }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: "{{ .Release.Name }}-configure-cert-manager"
+  labels:
+    app: stackgres-operator
+    scope: init
+    job: configure-cert-manager
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "5"
+    {{- with .Values.jobs.annotations }}
+    {{ toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: stackgres-operator
+        scope: init
+        job: configure-cert-manager
+    spec:
+      {{- with .Values.jobs.affinity}}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
+      {{- with .Values.jobs.nodeSelector}}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
+      {{- with .Values.jobs.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: "configure-cert-manager"
+        image: {{ template "kubectl.image" . }}
+        imagePullPolicy: "IfNotPresent"
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          - |
+            cat << EOF | kubectl apply -f -
+            ---
+            apiVersion: cert-manager.io/v1
+            kind: Issuer
+            metadata:
+              name: "{{ .Release.Name }}-self-signed-issuer"
+              namespace: "{{ .Release.Namespace }}"
+            spec:
+              selfSigned: {}
+            ---
+            apiVersion: cert-manager.io/v1
+            kind: Certificate
+            metadata:
+              name: "{{ .Release.Name }}-ca"
+              namespace: "{{ .Release.Namespace }}"
+            spec:
+              isCA: true
+              commonName: "{{ .Release.Name }}-ca"
+              secretName: "{{ .Release.Name }}-ca"
+              privateKey:
+                algorithm: ECDSA
+                size: 256
+              issuerRef:
+                name: "{{ .Release.Name }}-self-signed-issuer"
+                kind: Issuer
+                group: cert-manager.io
+            ---
+            apiVersion: cert-manager.io/v1
+            kind: Issuer
+            metadata:
+              name: "{{ .Release.Name }}-ca-issuer"
+              namespace: "{{ .Release.Namespace }}"
+            spec:
+              ca:
+                secretName: "{{ .Release.Name }}-ca"
+            ---
+            apiVersion: cert-manager.io/v1
+            kind: Certificate
+            metadata:
+              name: "{{ .Release.Name }}-cert"
+              namespace: "{{ .Release.Namespace }}"
+            spec:
+              secretName: "{{ include "cert-name" . }}"
+              duration: "{{ .Values.cert.certManager.duration }}"
+              renewBefore: "{{ .Values.cert.certManager.renewBefore }}"
+              subject:
+                organizations:
+                  - OnGres
+              isCA: false
+              privateKey:
+                algorithm: RSA
+                encoding: "{{ .Values.cert.certManager.encoding }}"
+                size: {{ .Values.cert.certManager.size }}
+              usages:
+                - server auth
+                - client auth
+              dnsNames:
+                - {{ .Release.Name }}
+                - {{ .Release.Name }}.{{ .Release.Namespace }}
+                - {{ .Release.Name }}.{{ .Release.Namespace }}.svc
+                - {{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
+              issuerRef:
+                name: "{{ .Release.Name }}-ca-issuer"
+                kind: Issuer
+                group: cert-manager.io
+            EOF
+{{ end }}

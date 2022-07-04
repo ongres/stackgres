@@ -12,75 +12,8 @@ e2e_test_install() {
 
   kubectl create namespace "$OPERATOR_NAMESPACE"
 
-  cat << EOF | kubectl create -f -
----
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  name: stackgres-issuer
-  namespace: "$OPERATOR_NAMESPACE"
-spec:
-  selfSigned: {}
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: stackgres-ca
-  namespace: "$OPERATOR_NAMESPACE"
-spec:
-  isCA: true
-  commonName: stackgres-ca
-  secretName: stackgres-operator-certs
-  privateKey:
-    algorithm: ECDSA
-    size: 256
-  issuerRef:
-    name: stackgres-issuer
-    kind: Issuer
-    group: cert-manager.io
----
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  name: stackgres-ca-issuer
-  namespace: "$OPERATOR_NAMESPACE"
-spec:
-  ca:
-    secretName: stackgres-operator-certs
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: stckgres-operator-cert
-  namespace: "$OPERATOR_NAMESPACE"
-spec:
-  secretName: stackgres-operator-tls
-  duration: 2160h
-  renewBefore: 360h
-  subject:
-    organizations:
-      - OnGres
-  isCA: false
-  privateKey:
-    algorithm: RSA
-    encoding: PKCS1
-    size: 2048
-  usages:
-    - server auth
-    - client auth
-  dnsNames:
-    - stackgres-operator
-    - stackgres-operator.stackgres
-    - stackgres-operator.stackgres.svc
-    - stackgres-operator.stackgres.svc.cluster.local
-  issuerRef:
-    name: stackgres-ca-issuer
-    kind: Issuer
-    group: cert-manager.io
-EOF
-
   install_operator_only \
-    --set cert.create=false
+    --set cert.certManager.autoConfigure=true
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 }
@@ -90,10 +23,10 @@ e2e_test_uninstall() {
 }
 
 e2e_test() {
-  run_test "Check that a cluster can e created" check_cluster_can_be_created
+  run_test "Check that a cluster can be created after integrating with cert manager" check_cluster_can_be_created_after_cert_manager_integration
 }
 
-check_cluster_can_be_created() {
+check_cluster_can_be_created_after_cert_manager_integration() {
   local RESULT EXIT_CODE
   NODE_LABEL_KEY="$(random_string)"
   NODE_LABEL_VALUE="$(random_string)"

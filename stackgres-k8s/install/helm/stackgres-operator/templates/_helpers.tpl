@@ -8,6 +8,7 @@
 {{- else -}}
 {{- printf "ongres/kubectl:v1.23.5-build-6.13" -}}
 {{- end -}}
+{{- end -}}
 
 {{- define "cert-name" }}
 {{- .Values.cert.secretName | default (printf "%s-%s" .Release.Name "certs") }}
@@ -18,7 +19,20 @@
 {{- end }}
 
 {{- define "stackgres.operator.resetCerts" }}
-{{- if and .Release.IsUpgrade .Values.cert.resetCerts }}true{{- end }}
+{{- $upgradeSecrets := false }}
+{{- $operatorSecret := lookup "v1" "Secret" .Release.Namespace (include "cert-name" .) }}
+{{- if $operatorSecret }}
+  {{- if or (not (index $operatorSecret "tls.key")) (not (index $operatorSecret "tls.crt")) }}
+    {{- $upgradeSecrets = true }}
+  {{- end }}
+{{- end }}
+{{- $webSecret := lookup "v1" "Secret" .Release.Namespace (include "web-cert-name" .) }}
+{{- if $webSecret }}
+  {{- if or (not (index $webSecret "tls.key")) (not (index $webSecret "tls.crt")) }}
+    {{- $upgradeSecrets = true }}
+  {{- end }}
+{{- end }}
+{{- if or $upgradeSecrets .Values.cert.resetCerts }}true{{- end }}
 {{- end }}
 
 {{- define "stackgres.operator.upgradeCrds" }}

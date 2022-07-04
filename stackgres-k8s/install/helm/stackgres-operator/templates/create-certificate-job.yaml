@@ -166,6 +166,7 @@ spec:
             {{- $_ := set .Values.cert "crt" nil }}
             {{- $_ := set .Values.cert "key" nil }}
             
+            kubectl delete -f /tmp/certificate-secret.yaml --ignore-not-found
             kubectl apply -f /tmp/certificate-secret.yaml
             kubectl apply -f /tmp/validating-webhook-configuration.yaml
             kubectl apply -f /tmp/mutating-webhook-configuration.yaml
@@ -237,6 +238,7 @@ spec:
             {{- $_ := set .Values.cert "jwtRsaKey" nil }}
             {{- $_ := set .Values.cert "jwtRsaPub" nil }}
             
+            kubectl delete -f /tmp/web-certificate-secret.yaml --ignore-not-found
             kubectl apply -f /tmp/web-certificate-secret.yaml
             {{- end }}
             {{- end }}

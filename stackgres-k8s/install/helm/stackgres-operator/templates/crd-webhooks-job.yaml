@@ -50,6 +50,8 @@ spec:
               fieldRef:
                 apiVersion: v1
                 fieldPath: metadata.namespace
+          - name: OPERATOR_CERTIFICATE_SECRET_NAME
+            value: "{{ include "cert-name" . }}"
           - name: CRD_UPGRADE
             value: "false"
           - name: CONVERSION_WEBHOOKS

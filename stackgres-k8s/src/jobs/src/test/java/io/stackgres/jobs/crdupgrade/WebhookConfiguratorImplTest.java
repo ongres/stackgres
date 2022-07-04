@@ -61,7 +61,7 @@ class WebhookConfiguratorImplTest {
     final String certificate = StringUtil.generateRandom();
     when(secretFinder.findByNameAndNamespace(OPERATOR_SECRET_NAME, OPERATOR_NAMESPACE))
         .thenReturn(Optional.of(new SecretBuilder()
-            .addToData("server.crt", certificate)
+            .addToData("tls.crt", certificate)
             .build()));
 
     Optional<String> certOpt = webhookConfigurator.getWebhookCaCert();
@@ -130,7 +130,7 @@ class WebhookConfiguratorImplTest {
     final String certificate = StringUtil.generateRandom();
     when(secretFinder.findByNameAndNamespace(OPERATOR_SECRET_NAME, OPERATOR_NAMESPACE))
         .thenReturn(Optional.of(new SecretBuilder()
-            .addToData("server.crt", certificate)
+            .addToData("tls.crt", certificate)
             .build()));
 
     webhookConfigurator.configureWebhooks();

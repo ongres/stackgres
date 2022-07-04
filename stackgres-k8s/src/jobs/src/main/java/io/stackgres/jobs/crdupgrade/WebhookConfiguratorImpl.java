@@ -25,7 +25,8 @@ public class WebhookConfiguratorImpl implements WebhookConfigurator {
   String operatorNamespace = JobsProperty.OPERATOR_NAMESPACE
       .getString();
 
-  String operatorSecretName = operatorName + "-certs";
+  String operatorSecretName = JobsProperty.OPERATOR_CERTIFICATE_SECRET_NAME
+      .getString();
 
   private final SecretFinder secretFinder;
 
@@ -83,6 +84,6 @@ public class WebhookConfiguratorImpl implements WebhookConfigurator {
   protected Optional<String> getWebhookCaCert() {
     return secretFinder.findByNameAndNamespace(operatorSecretName, operatorNamespace)
         .map(Secret::getData)
-        .map(data -> data.get("server.crt"));
+        .map(data -> data.get("tls.crt"));
   }
 }

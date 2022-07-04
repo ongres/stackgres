@@ -19,4 +19,5 @@ install_cert_manager() {
 uninstall_cert_manager() {
   helm_cleanup_chart cert-manager "$(cert_manager_namespace)"
   k8s_async_cleanup_namespace "$(cert_manager_namespace)"
+  kubectl delete apiservice v1beta1.webhook.cert-manager.io --ignore-not-found
 }

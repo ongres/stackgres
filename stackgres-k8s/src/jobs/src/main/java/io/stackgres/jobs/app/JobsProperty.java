@@ -13,6 +13,7 @@ public enum JobsProperty implements StackGresPropertyReader {
 
   OPERATOR_NAME("stackgres.operatorName"),
   OPERATOR_NAMESPACE("stackgres.operatorNamespace"),
+  OPERATOR_CERTIFICATE_SECRET_NAME("stackgres.operatorCertificateSecretName"),
   JOB_NAMESPACE("stackgres.jobNamespace"),
   OPERATOR_VERSION("stackgres.operatorVersion"),
   CRD_UPGRADE("stackgres.crdUpgrade"),
