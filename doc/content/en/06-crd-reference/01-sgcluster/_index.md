@@ -243,6 +243,7 @@ Cluster's pod configuration
 | disableMetricsExporter                 |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disableMetricsExporter >}} |
 | disablePostgresUtil                    |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} |
 | [scheduling](#scheduling)              |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods.scheduling >}} |
+| managementPolicy                       |          | ✓         | string   | OrderedReady                        | {{< crd-field-description SGCluster.spec.pods.managementPolicy >}} |
 
 ### Sidecar containers
 
