@@ -24,10 +24,12 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.http.ContentType;
+import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.backupconfig.BaseBackupPerformance;
 import io.stackgres.apiweb.dto.cluster.ClusterBackupsConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
+import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
@@ -193,11 +195,8 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
   @Test
   void givenACreationWithConfigMapsScripts_shouldNotFail() {
     ScriptSpec scriptSpec = getConfigMapScriptSpec();
-    clusterDto.getSpec().getInitData().setScripts(Collections.singletonList(entry));
-
-
-    cluster.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
-    final Metadata metadata = cluster.getMetadata();
+    clusterDto.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
+    final Metadata metadata = clusterDto.getMetadata();
     metadata.setNamespace("test");
 
     given()
@@ -223,11 +222,8 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
   @Test
   void givenACreationWithSecretScripts_shouldNotFail() {
     ScriptSpec scriptSpec = getSecretScriptSpec();
-    clusterDto.getSpec().getInitData().setScripts(Collections.singletonList(entry));
-
-
-    cluster.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
-    final Metadata metadata = cluster.getMetadata();
+    clusterDto.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
+    final Metadata metadata = clusterDto.getMetadata();
     metadata.setNamespace("test");
 
     given()
@@ -256,8 +252,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     ScriptEntry configMapScriptEntry = getConfigMapScriptSpec().getScripts().get(0);
     ScriptSpec scriptSpec = getSecretScriptSpec();
     scriptSpec.setScripts(List.of(secretScriptEntry, configMapScriptEntry));
-
-    cluster.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
+    clusterDto.getSpec().getManagedSql().getScripts().get(0).setScriptSpec(scriptSpec);
 
     given()
         .header(AUTHENTICATION_HEADER)

@@ -5,15 +5,14 @@
 
 package io.stackgres.operator.mutation.script;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.operator.common.StackGresScriptReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
 
@@ -29,14 +28,11 @@ public class ScriptPipeline implements JsonPatchMutationPipeline<StackGresScript
 
   @Override
   public Optional<String> mutate(StackGresScriptReview review) {
-    List<JsonPatchOperation> operations = new ArrayList<>();
-
-    mutators.forEach(mutator -> operations.addAll(mutator.mutate(review)));
-
-    if (operations.isEmpty()) {
-      return Optional.empty();
-    } else {
-      return Optional.of(join(operations));
-    }
+    return mutators.stream()
+        .sorted(JsonPatchMutationPipeline.weightComparator())
+        .map(m -> m.mutate(review))
+        .flatMap(Collection::stream)
+        .collect(Collectors.collectingAndThen(Collectors.toList(),
+            JsonPatchMutationPipeline::join));
   }
 }

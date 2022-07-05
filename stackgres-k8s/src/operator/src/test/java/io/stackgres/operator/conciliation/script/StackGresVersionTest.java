@@ -34,20 +34,20 @@ class StackGresVersionTest {
 
   @Test
   void givenAValidVersion_shouldReturnTheCorrectStackGresVersion() {
-    setStackGresScriptVersion("1.0.0");
+    setStackGresScriptVersion(StackGresVersion.LATEST.getVersion() + ".0");
 
     var version = StackGresVersion.getStackGresVersion(script);
 
-    assertEquals(StackGresVersion.V_1_0, version);
+    assertEquals(StackGresVersion.LATEST, version);
   }
 
   @Test
   void givenASnapshotVersion_shouldReturnTheCorrectStackGresVersion() {
-    setStackGresScriptVersion("1.0.0-SNAPSHOT");
+    setStackGresScriptVersion(StackGresVersion.LATEST.getVersion() + ".0-SNAPSHOT");
 
     var version = StackGresVersion.getStackGresVersion(script);
 
-    assertEquals(StackGresVersion.V_1_0, version);
+    assertEquals(StackGresVersion.LATEST, version);
   }
 
   @Test
