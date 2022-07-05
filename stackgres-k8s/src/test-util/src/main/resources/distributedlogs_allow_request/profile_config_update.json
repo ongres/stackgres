@@ -93,7 +93,7 @@
             "persistentVolume": {
                 "size": "256Mi"
             },
-            "sgInstanceProfile": "size-xs",
+            "sgInstanceProfile": "size-x",
             "configurations": {
                 "sgPostgresConfig": "postgresconf"
             }

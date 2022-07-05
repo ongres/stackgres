@@ -11,6 +11,7 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Resources;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -27,6 +28,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecMetadata;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
 
 public interface StackGresDistributedLogsUtil {
@@ -48,6 +50,11 @@ public interface StackGresDistributedLogsUtil {
         .findBuildMajorVersion(POSTGRESQL_VERSION);
   }
 
+  static @NotNull StackGresComponent getPostgresFlavorComponent(
+      StackGresDistributedLogs distribtuedLogs) {
+    return StackGresComponent.POSTGRESQL;
+  }
+
   static StackGresCluster getStackGresClusterForDistributedLogs(
       StackGresDistributedLogs distributedLogs) {
     final StackGresCluster distributedLogsCluster = new StackGresCluster();
@@ -62,6 +69,11 @@ public interface StackGresDistributedLogsUtil {
     distributedLogsCluster.getSpec().getPostgres().setVersion(
         getPostgresVersion(distributedLogs));
     distributedLogsCluster.getSpec().setInstances(1);
+    distributedLogsCluster.getSpec().setResourceProfile(
+        distributedLogs.getSpec().getResourceProfile());
+    distributedLogsCluster.getSpec().setConfiguration(new StackGresClusterConfiguration());
+    distributedLogsCluster.getSpec().getConfiguration().setPostgresConfig(
+        distributedLogs.getSpec().getConfiguration().getPostgresConfig());
     distributedLogsCluster.getSpec().setPod(new StackGresClusterPod());
     distributedLogsCluster.getSpec().getPod().setPersistentVolume(
         new StackGresPodPersistentVolume());

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster;
+package io.stackgres.operator.conciliation.factory.distributedlogs;
 
 import java.util.List;
 import java.util.Objects;
@@ -21,15 +21,15 @@ import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresKind;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.AbstractProfileDecorator;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
-public class ClusterProfileDecorator extends AbstractProfileDecorator
-    implements Decorator<StackGresClusterContext> {
+public class DistributedLogsProfileDecorator extends AbstractProfileDecorator
+    implements Decorator<StackGresDistributedLogsContext> {
 
   @Override
   protected StackGresKind getKind() {
@@ -37,7 +37,8 @@ public class ClusterProfileDecorator extends AbstractProfileDecorator
   }
 
   @Override
-  public void decorate(StackGresClusterContext context, Iterable<? extends HasMetadata> resources) {
+  public void decorate(StackGresDistributedLogsContext context,
+      Iterable<? extends HasMetadata> resources) {
     Seq.seq(resources)
         .filter(StatefulSet.class::isInstance)
         .map(StatefulSet.class::cast)

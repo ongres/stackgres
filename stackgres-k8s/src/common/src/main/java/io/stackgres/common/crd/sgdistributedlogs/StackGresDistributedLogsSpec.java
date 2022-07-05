@@ -43,6 +43,15 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
   @Valid
   private StackGresDistributedLogsPodScheduling scheduling;
 
+  @JsonProperty("sgInstanceProfile")
+  @NotNull(message = "resource profile is required")
+  private String resourceProfile;
+
+  @JsonProperty("configurations")
+  @NotNull(message = "configurations section is required")
+  @Valid
+  private StackGresDistributedLogsConfiguration configuration;
+
   @JsonProperty("metadata")
   @Valid
   private StackGresDistributedLogsSpecMetadata metadata;
@@ -76,6 +85,22 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
     this.scheduling = scheduling;
   }
 
+  public String getResourceProfile() {
+    return resourceProfile;
+  }
+
+  public void setResourceProfile(String resourceProfile) {
+    this.resourceProfile = resourceProfile;
+  }
+
+  public StackGresDistributedLogsConfiguration getConfiguration() {
+    return configuration;
+  }
+
+  public void setConfiguration(StackGresDistributedLogsConfiguration configuration) {
+    this.configuration = configuration;
+  }
+
   public StackGresDistributedLogsSpecMetadata getMetadata() {
     return metadata;
   }
@@ -103,8 +128,8 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
 
   @Override
   public int hashCode() {
-    return Objects.hash(metadata, nonProduction, persistentVolume, scheduling,
-        toInstallPostgresExtensions, postgresServices);
+    return Objects.hash(configuration, metadata, nonProduction, persistentVolume, postgresServices,
+        resourceProfile, scheduling, toInstallPostgresExtensions);
   }
 
   @Override
@@ -116,12 +141,14 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
       return false;
     }
     StackGresDistributedLogsSpec other = (StackGresDistributedLogsSpec) obj;
-    return Objects.equals(metadata, other.metadata)
+    return Objects.equals(configuration, other.configuration)
+        && Objects.equals(metadata, other.metadata)
         && Objects.equals(nonProduction, other.nonProduction)
         && Objects.equals(persistentVolume, other.persistentVolume)
+        && Objects.equals(postgresServices, other.postgresServices)
+        && Objects.equals(resourceProfile, other.resourceProfile)
         && Objects.equals(scheduling, other.scheduling)
-        && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions)
-        && Objects.equals(postgresServices, other.postgresServices);
+        && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }
 
   @Override

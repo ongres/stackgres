@@ -40,7 +40,7 @@ class PatroniRequirementsFactoryTest {
 
   @Test
   void givenAClusterWithAProfile_itShouldCreateTheResourceWithCpuAndMemory() {
-    when(clusterContext.getStackGresProfile()).thenReturn(profile);
+    when(clusterContext.getProfile()).thenReturn(profile);
 
     var requirements = patroniRequirementsFactory.createResource(clusterContext);
 
@@ -64,7 +64,7 @@ class PatroniRequirementsFactoryTest {
     profile.getSpec().setHugePages(new StackGresProfileHugePages());
     profile.getSpec().getHugePages().setHugepages2Mi("2Mi");
     profile.getSpec().getHugePages().setHugepages1Gi("1Gi");
-    when(clusterContext.getStackGresProfile()).thenReturn(profile);
+    when(clusterContext.getProfile()).thenReturn(profile);
 
     var requirements = patroniRequirementsFactory.createResource(clusterContext);
 

@@ -636,7 +636,7 @@ EOF
     echo "FAIL. Default profile fields were not created"
     return 1
   else
-    echo "SUCCESS. Defaults profile fields were created"    
+    echo "SUCCESS. Defaults profile fields were created"
   fi
 
   local DEFAULT_ANNOTATION
@@ -821,6 +821,50 @@ spec:
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
+
+  local CREATED_PGCONFIG
+  CREATED_PGCONFIG="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPostgresConfig}')"
+
+  if kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG"
+  then
+    echo "SUCCESS. Default pgconfig was created in the cluster namespace"
+  else
+    echo "FAIL. Default pgconfig was not created in the cluster namespace"
+    return 1
+  fi
+
+  local CREATED_PGCONFIG_FIELDS
+  CREATED_PGCONFIG_FIELDS="$(kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG" -o json | jq '.spec["postgresql.conf"] | length')"
+
+  if [ "$CREATED_PGCONFIG_FIELDS" = "$PGCONFIG_FIELDS" ]
+  then
+    echo "SUCCESS. Defaults pgconfig fields were created"
+  else
+    echo "FAIL. Default pgconfig fields not created"
+    return 1
+  fi
+
+  local CREATED_PROFILE
+  CREATED_PROFILE="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.sgInstanceProfile}')"
+
+  if kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE"
+  then
+    echo "SUCCESS. Default profile was created in the distributed logs namespace"
+  else
+    echo "FAIL. Default profile was not created in the distributed logs namespace"
+    return 1
+  fi
+
+  local CREATED_PROFILE_FIELDS
+  CREATED_PROFILE_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE" -o json | jq '.spec | length')"
+  
+  if [ -z "$CREATED_PROFILE_FIELDS" || "$CREATED_PROFILE_FIELDS" = "null" ]
+  then
+    echo "FAIL. Default profile fields were not created"
+    return 1
+  else
+    echo "SUCCESS. Defaults profile fields were created"
+  fi
 
   local DEFAULT_ANNOTATION
   DEFAULT_ANNOTATION="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"

@@ -138,16 +138,16 @@ public class ClusterRequiredResourcesGenerator
 
     final StackGresClusterSpec spec = config.getSpec();
     final StackGresClusterConfiguration clusterConfiguration = spec.getConfiguration();
-    final StackGresPostgresConfig clusterPgConfig = postgresConfigFinder
+    final StackGresPostgresConfig pgConfig = postgresConfigFinder
         .findByNameAndNamespace(clusterConfiguration.getPostgresConfig(), clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
-            "SGCluster " + clusterNamespace + "/" + clusterName
+            "SGCluster " + clusterNamespace + "." + clusterName
                 + " have a non existent SGPostgresConfig postgresconf"));
 
-    final StackGresProfile clusterProfile = profileFinder
+    final StackGresProfile profile = profileFinder
         .findByNameAndNamespace(spec.getResourceProfile(), clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
-            "SGCluster " + clusterNamespace + "/" + clusterName + " have a non existent "
+            "SGCluster " + clusterNamespace + "." + clusterName + " have a non existent "
                 + StackGresProfile.KIND + " " + spec.getResourceProfile()));
     final Optional<StackGresBackupConfig> backupConfig = Optional
         .ofNullable(clusterConfiguration.getBackupConfig())
@@ -162,7 +162,7 @@ public class ClusterRequiredResourcesGenerator
         .flatMap(objectStorageName -> objectStorageFinder
             .findByNameAndNamespace(objectStorageName, clusterNamespace));
 
-    final Optional<StackGresPoolingConfig> clusterPooling = Optional
+    final Optional<StackGresPoolingConfig> pooling = Optional
         .ofNullable(clusterConfiguration.getConnectionPoolingConfig())
         .flatMap(poolingConfigName -> poolingConfigFinder
             .findByNameAndNamespace(poolingConfigName, clusterNamespace));
@@ -173,11 +173,11 @@ public class ClusterRequiredResourcesGenerator
 
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .source(config)
-        .postgresConfig(clusterPgConfig)
-        .stackGresProfile(clusterProfile)
+        .postgresConfig(pgConfig)
+        .profile(profile)
         .backupConfig(backupConfig)
         .objectStorageConfig(objectStorage)
-        .poolingConfig(clusterPooling)
+        .poolingConfig(pooling)
         .restoreBackup(restoreBackup)
         .prometheus(getPrometheus(config))
         .internalScripts(Seq.of(getPostgresExporterInitScript())

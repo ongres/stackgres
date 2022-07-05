@@ -29,7 +29,7 @@ public class PatroniHugePages2Mi implements VolumeFactory<StackGresClusterContex
 
   @Override
   public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
-    final var profile = context.getStackGresProfile();
+    final var profile = context.getProfile();
 
     return Stream.<VolumePair>of(
         ImmutableVolumePair.builder()

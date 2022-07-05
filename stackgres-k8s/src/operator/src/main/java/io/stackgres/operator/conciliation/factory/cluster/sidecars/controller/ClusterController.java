@@ -53,7 +53,7 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
   @Inject
   public ClusterController(
       @ProviderName(POSTGRES_DATA)
-          VolumeMountsProvider<ContainerContext> postgresDataMounts,
+      VolumeMountsProvider<ContainerContext> postgresDataMounts,
       @ProviderName(CONTAINER_USER_OVERRIDE)
       VolumeMountsProvider<ContainerContext> userContainerMounts) {
     this.postgresDataMounts = postgresDataMounts;

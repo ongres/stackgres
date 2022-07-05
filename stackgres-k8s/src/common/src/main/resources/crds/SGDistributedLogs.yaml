@@ -143,6 +143,19 @@ spec:
                               effect NoExecute, otherwise this field is ignored) tolerates the taint. By default,
                               it is not set, which means tolerate the taint forever (do not evict). Zero and
                               negative values will be treated as 0 (evict immediately) by the system.
+                sgInstanceProfile:
+                  type: string
+                  description: |
+                    Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/). A SGInstanceProfile defines CPU and memory limits. Must exist before creating a distributed logs. When no profile is set, a default (currently: 1 core, 2 GiB RAM) one is used.
+                configurations:
+                  type: object
+                  description: |
+                    Cluster custom configurations.
+                  properties:
+                    sgPostgresConfig:
+                      type: string
+                      description: |
+                        Name of the [SGPostgresConfig](https://stackgres.io/doc/latest/reference/crd/sgpgconfig) used for the distributed logs. It must exist. When not set, a default Postgres config, for the major version selected, is used.
                 metadata:
                   type: object
                   description: Metadata information from cluster created resources.

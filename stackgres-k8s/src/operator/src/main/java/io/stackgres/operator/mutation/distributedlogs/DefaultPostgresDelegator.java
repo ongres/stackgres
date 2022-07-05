@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.mutation.cluster;
+package io.stackgres.operator.mutation.distributedlogs;
 
-import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+import static io.stackgres.common.StackGresDistributedLogsUtil.getPostgresFlavorComponent;
 
 import java.util.List;
 import java.util.Map;
@@ -17,19 +17,18 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.StackGresDistributedLogsUtil;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.initialization.PostgresConfigurationFactory;
 import io.stackgres.operator.initialization.PostgresDefaultFactoriesProvider;
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
-public class DefaultPostgresDelegator implements ClusterMutator {
+public class DefaultPostgresDelegator implements DistributedLogsMutator {
 
   @Inject
   PostgresDefaultFactoriesProvider resourceFactoryProducer;
@@ -41,24 +40,22 @@ public class DefaultPostgresDelegator implements ClusterMutator {
   CustomResourceScheduler<StackGresPostgresConfig> scheduler;
 
   @Override
-  public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
+  public List<JsonPatchOperation> mutate(StackGresDistributedLogsReview review) {
     return getMutator(review)
         .map(mutator -> mutator.mutate(review))
         .orElseThrow(IllegalStateException::new);
   }
 
-  private Optional<DefaultPostgresMutator> getMutator(StackGresClusterReview review) {
+  private Optional<DefaultPostgresMutator> getMutator(StackGresDistributedLogsReview review) {
     Map<String, PostgresConfigurationFactory> factoryMap = resourceFactoryProducer
         .getPostgresFactories()
         .stream()
         .collect(Collectors
             .toMap(PostgresConfigurationFactory::getPostgresVersion, Function.identity()));
-    StackGresCluster cluster = review.getRequest().getObject();
-    return Optional.of(cluster)
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPostgres)
-        .map(StackGresClusterPostgres::getVersion)
-        .map(getPostgresFlavorComponent(cluster).get(cluster)::findMajorVersion)
+    StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
+    return Optional.of(distributedLogs)
+        .map(StackGresDistributedLogsUtil::getPostgresVersion)
+        .map(getPostgresFlavorComponent(distributedLogs).get(distributedLogs)::findMajorVersion)
         .map(factoryMap::get)
         .map(Unchecked.function(this::getMutator));
   }

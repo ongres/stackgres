@@ -104,7 +104,7 @@ class ClusterProfileDecoratorTest {
     defaultProfile.getSpec().getInitContainers().put(
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
 
-    when(context.getStackGresProfile()).thenReturn(defaultProfile);
+    when(context.getProfile()).thenReturn(defaultProfile);
   }
 
   @Test

@@ -54,11 +54,11 @@ public class DistributedLogsController
   @Inject
   public DistributedLogsController(
       @ProviderName(POSTGRES_DATA)
-          VolumeMountsProvider<ContainerContext> postgresDataMounts,
+      VolumeMountsProvider<ContainerContext> postgresDataMounts,
       @ProviderName(CONTAINER_USER_OVERRIDE)
-          VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
+      VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
       @ProviderName(POSTGRES_SOCKET)
-          VolumeMountsProvider<ContainerContext> postgresSocket) {
+      VolumeMountsProvider<ContainerContext> postgresSocket) {
     this.containerUserOverrideMounts = containerUserOverrideMounts;
     this.postgresSocket = postgresSocket;
     this.postgresDataMounts = postgresDataMounts;

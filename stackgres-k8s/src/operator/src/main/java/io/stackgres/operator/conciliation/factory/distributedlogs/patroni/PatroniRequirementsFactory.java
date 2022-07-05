@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,15 +16,15 @@ import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 
 @Singleton
 public class PatroniRequirementsFactory
-    implements ResourceFactory<StackGresClusterContext, ResourceRequirements> {
+    implements ResourceFactory<StackGresDistributedLogsContext, ResourceRequirements> {
 
   @Override
-  public ResourceRequirements createResource(StackGresClusterContext source) {
+  public ResourceRequirements createResource(StackGresDistributedLogsContext source) {
     final var profile = source.getProfile();
 
     final ResourceRequirements podResources = new ResourceRequirements();

@@ -24,11 +24,15 @@
       "size": "128Mi"
     },
     "postgresServices":{
-         "primary":{
-            "enabled":true,
-            "type":"ClusterIP"
-         }
-      }
+       "primary":{
+          "enabled":true,
+          "type":"ClusterIP"
+       }
+    },
+    "sgInstanceProfile": "size-xs",
+    "configurations": {
+      "sgPostgresConfig": "postgresconf"
+    }
   },
   "status": {
     "conditions": [

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster;
+package io.stackgres.operator.conciliation.factory.distributedlogs;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,12 +24,12 @@ import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 
 @ApplicationScoped
 @ProviderName(VolumeMountProviderName.HUGE_PAGES)
-public class HugePagesMounts implements VolumeMountsProvider<StackGresClusterContainerContext> {
+public class HugePagesMounts implements VolumeMountsProvider<DistributedLogsContainerContext> {
 
   @Override
-  public List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context) {
+  public List<VolumeMount> getVolumeMounts(DistributedLogsContainerContext context) {
     return Stream.concat(
-        Optional.of(context.getClusterContext().getProfile().getSpec())
+        Optional.of(context.getDistributedLogsContext().getProfile().getSpec())
             .map(StackGresProfileSpec::getHugePages)
             .map(StackGresProfileHugePages::getHugepages2Mi)
             .map(quantity -> new VolumeMountBuilder()
@@ -37,7 +37,7 @@ public class HugePagesMounts implements VolumeMountsProvider<StackGresClusterCon
                 .withMountPath(ClusterStatefulSetPath.HUGEPAGES_2M_PATH.path())
                 .build())
             .stream(),
-        Optional.of(context.getClusterContext().getProfile().getSpec())
+        Optional.of(context.getDistributedLogsContext().getProfile().getSpec())
             .map(StackGresProfileSpec::getHugePages)
             .map(StackGresProfileHugePages::getHugepages1Gi)
             .map(quantity -> new VolumeMountBuilder()
@@ -49,7 +49,7 @@ public class HugePagesMounts implements VolumeMountsProvider<StackGresClusterCon
   }
 
   @Override
-  public List<EnvVar> getDerivedEnvVars(StackGresClusterContainerContext context) {
+  public List<EnvVar> getDerivedEnvVars(DistributedLogsContainerContext context) {
     return List.of(
         ClusterStatefulSetPath.HUGEPAGES_2M_PATH.envVar(),
         ClusterStatefulSetPath.HUGEPAGES_1G_PATH.envVar()

@@ -13,18 +13,19 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresDistributedLogsUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,15 +67,20 @@ public class PatroniConfigEndpoints
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(configName(context))
         .withLabels(labels)
-        .withAnnotations(ImmutableMap.of(PATRONI_CONFIG_KEY, patroniConfigJson))
+        .withAnnotations(Map.of(PATRONI_CONFIG_KEY, patroniConfigJson))
         .endMetadata()
         .build());
   }
 
   @NotNull
   public Map<String, String> getPostgresConfigValues(StackGresDistributedLogsContext context) {
-    final String pgVersion = StackGresDistributedLogsUtil.getPostgresVersion(context.getSource());
-    Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues(pgVersion));
+    final String version = StackGresDistributedLogsUtil.getPostgresVersion(context.getSource());
+    Map<String, String> params = new HashMap<>(
+        PostgresDefaultValues.getDefaultValues(
+            StackGresVersion.getStackGresVersion(context.getSource()), version));
+    Map<String, String> userParams = context.getPostgresConfig().getSpec().getPostgresqlConf();
+    PostgresBlocklist.getBlocklistParameters().forEach(userParams::remove);
+    params.putAll(userParams);
 
     params.put("archive_command", "/bin/true");
     params.put("dynamic_library_path", "$libdir:/opt/stackgres/lib");

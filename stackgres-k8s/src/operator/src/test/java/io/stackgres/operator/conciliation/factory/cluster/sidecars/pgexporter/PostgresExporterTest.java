@@ -54,7 +54,7 @@ class PostgresExporterTest {
         .clusterContext(ImmutableStackGresClusterContext.builder()
             .source(getDefaultCluster())
             .postgresConfig(new StackGresPostgresConfig())
-            .stackGresProfile(new StackGresProfile())
+            .profile(new StackGresProfile())
             .build())
         .dataVolumeName("test")
         .build();

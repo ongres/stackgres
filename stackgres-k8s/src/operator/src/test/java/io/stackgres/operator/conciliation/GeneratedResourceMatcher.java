@@ -82,7 +82,7 @@ public class GeneratedResourceMatcher {
         .read()).get());
     return ImmutableStackGresClusterContext.builder()
         .source(cluster)
-        .stackGresProfile(stackGresProfile)
+        .profile(stackGresProfile)
         .postgresConfig(stackGresPostgresConfig)
         .databaseCredentials(Optional.ofNullable(databaseCredentials))
         .prometheus(new Prometheus(false, null))

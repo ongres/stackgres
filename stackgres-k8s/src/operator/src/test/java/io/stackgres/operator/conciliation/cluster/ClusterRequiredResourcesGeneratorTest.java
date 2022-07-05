@@ -348,7 +348,7 @@ class ClusterRequiredResourcesGeneratorTest {
     when(postgresConfigFinder.findByNameAndNamespace(postgresConfigName, clusterNamespace))
         .thenReturn(Optional.empty());
 
-    assertException("SGCluster " + clusterNamespace + "/" + clusterName
+    assertException("SGCluster " + clusterNamespace + "." + clusterName
         + " have a non existent SGPostgresConfig " + postgresConfigName);
 
     verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
@@ -372,7 +372,7 @@ class ClusterRequiredResourcesGeneratorTest {
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.empty());
 
-    assertException("SGCluster " + clusterNamespace + "/"
+    assertException("SGCluster " + clusterNamespace + "."
         + clusterName + " have a non existent SGInstanceProfile " + resourceProfile);
 
     verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);

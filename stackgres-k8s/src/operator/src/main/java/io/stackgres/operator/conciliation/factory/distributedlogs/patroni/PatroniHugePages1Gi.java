@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -16,7 +16,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
@@ -25,10 +25,10 @@ import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
-public class PatroniHugePages1Gi implements VolumeFactory<StackGresClusterContext> {
+public class PatroniHugePages1Gi implements VolumeFactory<StackGresDistributedLogsContext> {
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+  public @NotNull Stream<VolumePair> buildVolumes(StackGresDistributedLogsContext context) {
     final var profile = context.getProfile();
 
     return Stream.<VolumePair>of(
@@ -41,7 +41,7 @@ public class PatroniHugePages1Gi implements VolumeFactory<StackGresClusterContex
             .isPresent());
   }
 
-  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+  public @NotNull Volume buildVolume(StackGresDistributedLogsContext context) {
     return new VolumeBuilder()
         .withName(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName())
         .withEmptyDir(new EmptyDirVolumeSourceBuilder()

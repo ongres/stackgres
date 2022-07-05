@@ -47,7 +47,7 @@ class HugePagesMountsTest {
     profile.getSpec().setHugePages(new StackGresProfileHugePages());
     profile.getSpec().getHugePages().setHugepages2Mi("2Mi");
     profile.getSpec().getHugePages().setHugepages1Gi("1Gi");
-    when(clusterContext.getStackGresProfile()).thenReturn(profile);
+    when(clusterContext.getProfile()).thenReturn(profile);
 
     var volumeMounts = hugePagesMounts.getVolumeMounts(clusterContainerContext);
 
@@ -82,7 +82,7 @@ class HugePagesMountsTest {
 
   @Test
   void givenAClusterWithoutAProfileWithHugePages_itShouldNotCreateTheMountsWithHugePages() {
-    when(clusterContext.getStackGresProfile()).thenReturn(profile);
+    when(clusterContext.getProfile()).thenReturn(profile);
 
     var volumeMounts = hugePagesMounts.getVolumeMounts(clusterContainerContext);
 
