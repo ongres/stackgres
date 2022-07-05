@@ -88,6 +88,12 @@ public class ClusterReconciliator
 
     clusterScheduler.update(config,
         (targetCluster, clusterWithStatus) -> {
+          var targetOs = Optional.ofNullable(targetCluster.getStatus())
+              .map(StackGresClusterStatus::getOs)
+              .orElse(null);
+          var targetArch = Optional.ofNullable(targetCluster.getStatus())
+              .map(StackGresClusterStatus::getArch)
+              .orElse(null);
           var targetPodStatuses = Optional.ofNullable(targetCluster.getStatus())
               .map(StackGresClusterStatus::getPodStatuses)
               .orElse(null);
@@ -98,6 +104,8 @@ public class ClusterReconciliator
               .map(StackGresClusterStatus::getManagedSql)
               .orElse(null);
           if (clusterWithStatus.getStatus() != null) {
+            clusterWithStatus.getStatus().setOs(targetOs);
+            clusterWithStatus.getStatus().setArch(targetArch);
             clusterWithStatus.getStatus().setPodStatuses(targetPodStatuses);
             clusterWithStatus.getStatus().setDbOps(targetDbOps);
             clusterWithStatus.getStatus().setManagedSql(targetManagedSql);
