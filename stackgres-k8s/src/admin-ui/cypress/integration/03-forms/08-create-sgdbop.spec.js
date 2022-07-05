@@ -428,6 +428,29 @@ describe('Create SGDbOp', () => {
         // Test user redirection
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgdbops')
     });
+
+    it('Creating a SGDbOps with a default name should be possible', () => {
+        // Test target SGCluster
+        cy.get('select[data-field="spec.sgCluster"]')
+            .select(clusterName)
+
+        // Test Restart input
+        cy.get('label[for="restart"]')
+            .click()
+
+        // Test Submit form
+        cy.get('form#createDbops button[type="submit"]')
+            .click()
+        
+        cy.get('#notifications .message.show .title')
+            .should(($notification) => {
+                expect($notification).contain('created successfully')
+            })
+        
+        // Test user redirection
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgdbops')
+
+    });
   
     /*it('Creating a Repack SGDbOps should be possible', () => {
         // Test Op Name
