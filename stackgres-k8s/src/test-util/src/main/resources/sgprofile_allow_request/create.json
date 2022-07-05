@@ -46,15 +46,15 @@
         "memory": "512Mi",
         "containers": {
           "cluster-controller": {
-            "cpu": "32m",
+            "cpu": "250m",
             "memory": "512Mi"
           },
           "distributedlogs-controller": {
-            "cpu": "32m",
+            "cpu": "250m",
             "memory": "512Mi"
           },
           "envoy": {
-            "cpu": "125m",
+            "cpu": "250m",
             "memory": "64Mi"
           },
           "fluent-bit": {
@@ -62,11 +62,11 @@
             "memory": "8Mi"
           },
           "fluentd": {
-            "cpu": "125m",
+            "cpu": "250m",
             "memory": "2Gi"
           },
           "pgbouncer": {
-            "cpu": "32m",
+            "cpu": "250m",
             "memory": "64Mi"
           },
           "postgres-util": {
@@ -78,15 +78,15 @@
             "memory": "8Mi"
           },
           "dbops.run-dbops": {
-            "cpu": "32m",
+            "cpu": "250m",
             "memory": "8Mi"
           },
           "dbops.set-dbops-result": {
-            "cpu": "32m",
+            "cpu": "250m",
             "memory": "8Mi"
           },
           "backup.create-backup": {
-            "cpu": "32m",
+            "cpu": "250m",
             "memory": "8Mi"
           }
         },
@@ -128,7 +128,7 @@
             "memory": "512Mi"
           },
           "dbops.set-dbops-running": {
-            "cpu": "32m",
+            "cpu": "250m",
             "memory": "8Mi"
           }
         }

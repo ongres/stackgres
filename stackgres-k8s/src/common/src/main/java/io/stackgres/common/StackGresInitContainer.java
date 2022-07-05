@@ -44,7 +44,8 @@ public enum StackGresInitContainer implements StackGresContainerProfile {
       cpu -> cpu,
       memory -> memory),
   DBOPS_SET_DBOPS_RUNNING(StackGresKind.DBOPS, "set-dbops-running",
-      cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
+      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
+          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
       memory -> BigDecimal.valueOf(8).multiply(MEBIBYTES));
 
   private final StackGresKind kind;

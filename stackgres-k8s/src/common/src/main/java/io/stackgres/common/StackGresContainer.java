@@ -20,11 +20,13 @@ public enum StackGresContainer implements StackGresContainerProfile {
       cpu -> cpu,
       memory -> memory),
   ENVOY(StackGresKind.CLUSTER, "envoy",
-      cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(4))),
+      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
+          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(4)))),
       memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
       ),
   PGBOUNCER(StackGresKind.CLUSTER, "pgbouncer",
-      cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
+      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
+          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
       memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
       ),
   POSTGRES_EXPORTER(StackGresKind.CLUSTER, "prometheus-postgres-exporter",
@@ -40,27 +42,33 @@ public enum StackGresContainer implements StackGresContainerProfile {
       memory -> BigDecimal.valueOf(8).multiply(MEBIBYTES)
       ),
   FLUENTD(StackGresKind.CLUSTER, "fluentd",
-      cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(4))),
+      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
+          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(4)))),
       memory -> BigDecimal.valueOf(2).multiply(GIBIBYTES)
       ),
   CLUSTER_CONTROLLER(StackGresKind.CLUSTER, "cluster-controller",
-      cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
+      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
+          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
       memory -> BigDecimal.valueOf(512).multiply(MEBIBYTES)
       ),
   DISTRIBUTEDLOGS_CONTROLLER(StackGresKind.CLUSTER, "distributedlogs-controller",
-      cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
+      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
+          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
       memory -> BigDecimal.valueOf(512).multiply(MEBIBYTES)
       ),
   DBOPS_RUN_DBOPS(StackGresKind.DBOPS, "run-dbops",
-      cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
+      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
+          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
       memory -> BigDecimal.valueOf(8).multiply(MEBIBYTES)
       ),
   DBOPS_SET_DBOPS_RESULT(StackGresKind.DBOPS, "set-dbops-result",
-      cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
+      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
+          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
       memory -> BigDecimal.valueOf(8).multiply(MEBIBYTES)
       ),
   BACKUP_CREATE_BACKUP(StackGresKind.BACKUP, "create-backup",
-      cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
+      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
+          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
       memory -> BigDecimal.valueOf(8).multiply(MEBIBYTES)
       );
 
