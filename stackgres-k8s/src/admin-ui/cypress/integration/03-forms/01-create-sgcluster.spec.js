@@ -131,6 +131,9 @@ describe('Create SGCluster', () => {
         // Test managed backups configuration
         cy.get('form#createCluster li[data-step="backups"]')
             .click()
+
+        cy.get('label[data-field="spec.configurations.backups"]')
+            .click()
         
         // Backup Schedule
         cy.get('#backupConfigFullScheduleMin')

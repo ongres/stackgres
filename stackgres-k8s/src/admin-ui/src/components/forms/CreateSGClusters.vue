@@ -283,12 +283,15 @@
                     <div class="row-50">
                         <div class="col">
                             <label>Managed Backups</label>  
-                            <label for="managedBackups" class="switch yes-no">Enable<input type="checkbox" id="managedBackups" v-model="managedBackups" data-switch="YES"></label>
+                            <label for="managedBackups" data-field="spec.configurations.backups" class="switch yes-no">
+                                Enable
+                                <input type="checkbox" id="managedBackups" v-model="managedBackups" data-switch="YES">
+                            </label>
                             <span class="helpTooltip" data-tooltip="If enabled, allows specifying backup configurations to automate periodical backups"></span>
                         </div>
 
                         <div class="col" v-if="managedBackups">
-                            <label for="sgcluster.spec.configurations.backups.sgObjectStorage">Object Storage <span class="req">*</span></label>
+                            <label for="spec.configurations.backups.sgObjectStorage">Object Storage <span class="req">*</span></label>
 
                             <select 
                                 v-model="backups[0].sgObjectStorage" 
@@ -299,7 +302,7 @@
                                 <option value="" disabled>{{ sgobjectstorages.length ? 'Select Storage' : 'No object storage available' }}</option>
                                 <option v-for="storage in sgobjectstorages">{{ storage.name }}</option>
                                 <template v-if="iCan('create', 'sgobjectstorages', $route.params.namespace)">
-                                    <option value="" disabled v-if="sgobjectstroages.length">– OR –</option>
+                                    <option value="" disabled v-if="sgobjectstorages.length">– OR –</option>
                                     <option value="createNewResource">Create new object storage</option>
                                 </template>
                             </select>
