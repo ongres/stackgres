@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.rest;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
@@ -15,6 +17,10 @@ import javax.ws.rs.Path;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.script.ScriptDto;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,7 +31,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RequestScoped
 @Authenticated
 public class NamespacedScriptResource
-    extends AbstractNamespacedRestService<ScriptDto, StackGresScript> {
+    extends AbstractNamespacedRestServiceDependency<ScriptDto, StackGresScript> {
 
   private final ScriptResource scriptResource;
 
@@ -37,6 +43,19 @@ public class NamespacedScriptResource
   public NamespacedScriptResource() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.scriptResource = null;
+  }
+
+  @Override
+  public boolean belongsToCluster(StackGresScript resource, StackGresCluster cluster) {
+    return cluster.getMetadata().getNamespace().equals(
+        resource.getMetadata().getNamespace())
+        && Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getManagedSql)
+        .map(StackGresClusterManagedSql::getScripts)
+        .stream()
+        .flatMap(List::stream)
+        .map(StackGresClusterManagedScriptEntry::getSgScript)
+        .anyMatch(sgScript -> Objects.equals(sgScript, resource.getMetadata().getName()));
   }
 
   @Operation(

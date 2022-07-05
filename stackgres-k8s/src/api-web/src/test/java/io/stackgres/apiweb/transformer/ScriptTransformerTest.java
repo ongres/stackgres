@@ -5,14 +5,19 @@
 
 package io.stackgres.apiweb.transformer;
 
+import java.util.List;
+import java.util.Optional;
+
 import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.apiweb.dto.script.ScriptDto;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
+import io.stackgres.apiweb.dto.script.ScriptStatus;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 import io.stackgres.common.crd.sgscript.StackGresScriptStatus;
+import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -37,6 +42,9 @@ class ScriptTransformerTest {
     var status = createStatus();
     source.setStatus(status.source());
 
+    target.setStatus(new ScriptStatus());
+    target.getStatus().setClusters(List.of(StringUtils.getRandomClusterName()));
+
     return new TransformerTuple<>(target, source);
   }
 
@@ -58,7 +66,11 @@ class ScriptTransformerTest {
   void testScriptTransformation() {
 
     var tuple = createScript();
-    TransformerTestUtil.assertTransformation(transformer, tuple);
 
+    final List<String> clusters = Optional.of(tuple.target())
+        .map(ScriptDto::getStatus)
+        .map(ScriptStatus::getClusters).orElse(List.of());
+
+    TransformerTestUtil.assertTransformation(transformer, tuple, clusters);
   }
 }

@@ -33,10 +33,10 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
-import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
@@ -44,7 +44,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContextUtil;
@@ -63,7 +62,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigM
 
 @Singleton
 @OperatorVersionBinder(startAt = StackGresVersion.V_1_1, stopAt = StackGresVersion.V_1_2)
-@RunningContainer(ClusterRunningContainer.PATRONI)
+@RunningContainer(StackGresContainer.PATRONI)
 public class Patroni implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;
@@ -171,7 +170,7 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
         );
 
     return new ContainerBuilder()
-        .withName(StackgresClusterContainers.PATRONI)
+        .withName(StackGresContainer.PATRONI.getName())
         .withImage(patroniImageName)
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.LOCAL_BIN_PATH.path() + startScript)

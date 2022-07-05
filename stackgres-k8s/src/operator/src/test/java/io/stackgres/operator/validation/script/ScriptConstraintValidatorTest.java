@@ -15,6 +15,7 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptFrom;
+import io.stackgres.common.crd.sgscript.StackGresScriptTransactionIsolationLevel;
 import io.stackgres.operator.common.StackGresScriptReview;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
@@ -392,6 +393,24 @@ class ScriptConstraintValidatorTest extends ConstraintValidationTest<StackGresSc
     checkErrorCause(StackGresScriptEntry.class,
         new String[] {"spec.scripts[0].storeStatusInDatabase"},
         "isWrapInTransactionSetWhenStoreStatusInDatabaseIsSet", review, AssertTrue.class);
+  }
+
+  @Test
+  void scriptWithStoreStatusInDatabaseAndNoWrapInTransaction_shouldPass() throws Exception {
+    StackGresScriptReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setScripts(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getScripts()
+        .add(new StackGresScriptEntry());
+    review.getRequest().getObject().getSpec().getScripts().get(0)
+        .setId(0);
+    review.getRequest().getObject().getSpec().getScripts().get(0)
+        .setVersion(0);
+    review.getRequest().getObject().getSpec().getScripts().get(0)
+        .setScript("SELECT 1");
+    review.getRequest().getObject().getSpec().getScripts().get(0)
+        .setWrapInTransaction(StackGresScriptTransactionIsolationLevel.READ_COMMITTED.toString());
+
+    validator.validate(review);
   }
 
 }

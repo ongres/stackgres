@@ -21,7 +21,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgcluster.StackGresReplicationMode;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.stackgres.common.validation.ValidEnum;
@@ -46,7 +45,7 @@ public class StackGresScriptEntry {
   private String database;
 
   @JsonProperty("wrapInTransaction")
-  @ValidEnum(enumClass = StackGresReplicationMode.class, allowNulls = true,
+  @ValidEnum(enumClass = StackGresScriptTransactionIsolationLevel.class, allowNulls = true,
       message = "wrapInTransaction must be read-committed, repeatable-read or serializable")
   private String wrapInTransaction;
 

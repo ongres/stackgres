@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterInfoDto;
@@ -190,7 +191,7 @@ public class ClusterResource
           var script = scriptFinder
               .findByNameAndNamespace(managedScriptEntry.getSgScript(), namespace);
           managedScriptEntry.setScriptSpec(script
-              .map(scriptTransformer::toDto)
+              .map(s -> scriptTransformer.toResource(s, List.of()))
               .map(ScriptDto::getSpec)
               .orElse(null));
         });
@@ -232,10 +233,10 @@ public class ClusterResource
   private void createOrUpdateScripts(ClusterDto resource) {
     var scriptsToCreate = getScriptsToCreate(resource)
         .stream()
-        .map(script -> Tuple.tuple(script,
+        .map(t -> t.concat(
             scriptFinder.findByNameAndNamespace(
-                script.getMetadata().getName(),
-                script.getMetadata().getNamespace())))
+                t.v2.getMetadata().getName(),
+                t.v2.getMetadata().getNamespace())))
         .toList();
     var secretsToCreate = getSecretsToCreate(resource)
         .stream()
@@ -269,16 +270,38 @@ public class ClusterResource
         .map(Tuple2::v1)
         .forEach(secretWriter::update);
     scriptsToCreate.stream()
-        .filter(t -> t.v2.isEmpty())
-        .map(Tuple2::v1)
-        .forEach(scriptScheduler::create);
+        .filter(t -> t.v3.isEmpty())
+        .forEach(t -> addFieldPrefixOnScriptValidationError(t.v1, t.v2, scriptScheduler::create));
     scriptsToCreate.stream()
-        .filter(t -> t.v2.isPresent())
-        .map(Tuple2::v1)
-        .forEach(scriptScheduler::update);
+        .filter(t -> t.v3.isPresent())
+        .forEach(t -> addFieldPrefixOnScriptValidationError(t.v1, t.v2, scriptScheduler::update));
   }
 
-  private List<StackGresScript> getScriptsToCreate(ClusterDto resource) {
+  private void addFieldPrefixOnScriptValidationError(Integer sgScriptIndex, StackGresScript script,
+      Consumer<StackGresScript> consumer) {
+    try {
+      consumer.accept(script);
+    } catch (KubernetesClientException ex) {
+      if (ex.getCode() == 422
+          && ex.getStatus() != null
+          && ex.getStatus().getDetails() != null
+          && ex.getStatus().getDetails().getName() != null
+          && ex.getStatus().getDetails().getName().startsWith("spec.")) {
+        final String fieldPrefix = "spec.managedSql.scripts[" + sgScriptIndex + "].scriptSpec.";
+        ex.getStatus().getDetails().setName(
+            fieldPrefix + ex.getStatus().getDetails().getName().substring("spec.".length()));
+        Optional.ofNullable(ex.getStatus().getDetails().getCauses())
+            .orElse(List.of())
+            .stream()
+            .filter(cause -> cause.getField().startsWith("spec."))
+            .forEach(cause -> cause.setField(
+                fieldPrefix + cause.getField().substring("spec.".length())));
+      }
+      throw ex;
+    }
+  }
+
+  private List<Tuple2<Integer, StackGresScript>> getScriptsToCreate(ClusterDto resource) {
     return Seq.seq(Optional.ofNullable(resource.getSpec())
         .map(ClusterSpec::getManagedSql)
         .map(ClusterManagedSql::getScripts)
@@ -303,7 +326,7 @@ public class ClusterResource
                 .map(scriptTransformer::getCustomResourceScriptEntry)
                 .collect(ImmutableList.toImmutableList()));
           }
-          return script;
+          return Tuple.tuple(t.v2.intValue(), script);
         })
         .toList();
   }

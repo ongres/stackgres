@@ -18,6 +18,9 @@ public class ScriptDto extends ResourceDto {
   @JsonProperty("spec")
   private ScriptSpec spec;
 
+  @JsonProperty("status")
+  private ScriptStatus status;
+
   public ScriptSpec getSpec() {
     return spec;
   }
@@ -26,9 +29,17 @@ public class ScriptDto extends ResourceDto {
     this.spec = spec;
   }
 
+  public ScriptStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(ScriptStatus status) {
+    this.status = status;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(spec);
+    return Objects.hash(spec, status);
   }
 
   @Override
@@ -40,7 +51,7 @@ public class ScriptDto extends ResourceDto {
       return false;
     }
     ScriptDto other = (ScriptDto) obj;
-    return Objects.equals(spec, other.spec);
+    return Objects.equals(spec, other.spec) && Objects.equals(status, other.status);
   }
 
   @Override

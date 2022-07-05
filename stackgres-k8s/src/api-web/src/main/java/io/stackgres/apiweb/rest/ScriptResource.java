@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -26,6 +27,10 @@ import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
@@ -44,7 +49,7 @@ import org.jooq.lambda.tuple.Tuple4;
 @RequestScoped
 @Authenticated
 public class ScriptResource
-    extends AbstractRestService<ScriptDto, StackGresScript> {
+    extends AbstractRestServiceDependency<ScriptDto, StackGresScript> {
 
   public static final String DEFAULT_SCRIPT_KEY = "script";
 
@@ -67,6 +72,19 @@ public class ScriptResource
     this.secretWriter = null;
     this.configMapWriter = null;
     this.configMapFinder = null;
+  }
+
+  @Override
+  public boolean belongsToCluster(StackGresScript resource, StackGresCluster cluster) {
+    return cluster.getMetadata().getNamespace().equals(
+        resource.getMetadata().getNamespace())
+        && Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getManagedSql)
+        .map(StackGresClusterManagedSql::getScripts)
+        .stream()
+        .flatMap(List::stream)
+        .map(StackGresClusterManagedScriptEntry::getSgScript)
+        .anyMatch(sgScript -> Objects.equals(sgScript, resource.getMetadata().getName()));
   }
 
   @Operation(

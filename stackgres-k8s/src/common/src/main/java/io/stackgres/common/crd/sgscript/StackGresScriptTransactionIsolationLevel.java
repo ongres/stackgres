@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public enum StackGresScriptTransactionIsolationLevel {
 
-  READ_COMMITTED(Connection.TRANSACTION_READ_COMMITTED, "READ COMMITTED", "read-commited"),
+  READ_COMMITTED(Connection.TRANSACTION_READ_COMMITTED, "READ COMMITTED", "read-committed"),
   REPEATABLE_READ(Connection.TRANSACTION_REPEATABLE_READ, "REPEATABLE READ", "repeatable-read"),
   SERIALIZABLE(Connection.TRANSACTION_SERIALIZABLE, "SERIALIZABLE", "serializable");
 

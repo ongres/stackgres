@@ -159,10 +159,4 @@ public class JsonUtil {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public static <T> T copy(T object) {
-    Class<T> objectClass = (Class<T>) object.getClass();
-    return JsonUtil.fromJson(JsonUtil.toJson(object), objectClass);
-  }
-
 }

@@ -12,11 +12,11 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ReconciliationScope;
-import io.stackgres.operator.conciliation.comparator.StackGresAbstractComparator;
+import io.stackgres.operator.conciliation.comparator.AbstractComparator;
 
 @ReconciliationScope(value = StackGresCluster.class, kind = "SGScript")
 @ApplicationScoped
-public class ClusterScriptComparator extends StackGresAbstractComparator {
+public class ClusterScriptComparator extends AbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATTERS = {
       new AnnotationsIgnorePatch(

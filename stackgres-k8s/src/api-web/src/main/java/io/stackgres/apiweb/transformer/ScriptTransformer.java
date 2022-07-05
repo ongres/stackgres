@@ -5,6 +5,7 @@
 
 package io.stackgres.apiweb.transformer;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -16,6 +17,7 @@ import io.stackgres.apiweb.dto.script.ScriptDto;
 import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
+import io.stackgres.apiweb.dto.script.ScriptStatus;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
@@ -24,7 +26,7 @@ import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 
 @ApplicationScoped
 public class ScriptTransformer
-    extends AbstractResourceTransformer<ScriptDto, StackGresScript> {
+    extends AbstractDependencyResourceTransformer<ScriptDto, StackGresScript> {
 
   private final ObjectMapper mapper;
 
@@ -51,10 +53,11 @@ public class ScriptTransformer
   }
 
   @Override
-  public ScriptDto toDto(StackGresScript source) {
+  public ScriptDto toResource(StackGresScript source, List<String> clusters) {
     ScriptDto transformation = new ScriptDto();
-    transformation.setMetadata(getDtoMetadata(source));
+    transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
+    transformation.setStatus(getResourceStatus(clusters));
     return transformation;
   }
 
@@ -146,6 +149,12 @@ public class ScriptTransformer
         new ScriptFrom();
     transformation.setConfigMapKeyRef(source.getConfigMapKeyRef());
     transformation.setSecretKeyRef(source.getSecretKeyRef());
+    return transformation;
+  }
+
+  private ScriptStatus getResourceStatus(List<String> clusters) {
+    ScriptStatus transformation = new ScriptStatus();
+    transformation.setClusters(clusters);
     return transformation;
   }
 
