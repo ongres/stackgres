@@ -1227,7 +1227,7 @@ export const mixin = {
           dayString = fullDate.toISOString().slice(0, fullDate.toISOString().indexOf('T'));
         }
           
-        return dayString + '-' + timeString.replaceAll('/:/g','-')
+        return dayString + '-' + timeString.replace(/:/g,'-')
       }, 
             
       checkValidSteps(data, source) {
