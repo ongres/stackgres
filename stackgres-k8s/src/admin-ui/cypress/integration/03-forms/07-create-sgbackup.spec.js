@@ -76,4 +76,23 @@ describe('Create SGBackup', () => {
         // Test user redirection
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgbackups')
     });
+
+    it('Creating a SGBackup with a default name should be possible', () => {
+        // Test source SGCluster
+        cy.get('select[data-field="spec.sgCluster"]', { timeout:10000 })
+            .select(clusterName)
+
+        // Test Submit form
+        cy.get('form#createBackup button[type="submit"]')
+            .click()
+        
+        cy.get('#notifications .message.show .title')
+            .should(($notification) => {
+                expect($notification).contain('started successfully')
+            })
+        
+        // Test user redirection
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgbackups')
+
+    });
   })
