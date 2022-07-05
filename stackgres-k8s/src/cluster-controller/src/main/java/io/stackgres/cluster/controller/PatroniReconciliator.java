@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -140,16 +141,15 @@ public class PatroniReconciliator {
   private boolean reconcilePatroni(KubernetesClient client, StackGresClusterContext context)
       throws IOException {
     final StackGresCluster cluster = context.getCluster();
-    final int podReplicationGroupIndex = getPodReplicationGroupIndex(podName);
-    final boolean statusUpdated =
-        setPodReplicatinGroupInClusterStatus(cluster, podReplicationGroupIndex);
-    final Optional<StackGresReplicationRole> podReplicationRole =
-        getPodAssignedReplicationRole(cluster, podReplicationGroupIndex);
+    final Optional<Tuple2<StackGresReplicationRole, Long>> podReplicationRole =
+        getPodAssignedReplicationRole(cluster);
     if (podReplicationRole.isEmpty()) {
-      return statusUpdated;
+      return false;
     }
-    final ImmutableMap<String, String> tagsMap =
-        getPatroniTagsForReplicationRole(podReplicationRole.get());
+    final boolean statusUpdated =
+        setPodReplicatinGroupInClusterStatus(cluster, podReplicationRole.get().v2.intValue());
+    final Map<String, String> tagsMap =
+        getPatroniTagsForReplicationRole(podReplicationRole.get().v1);
     final String tags = getTagsAsYamlString(tagsMap);
     boolean needsUpdate = Seq.seq(Files.readAllLines(PATRONI_CONF_PATH))
         .filter(line -> TAGS_LINE_PATTERN.matcher(line).matches())
@@ -170,7 +170,7 @@ public class PatroniReconciliator {
   }
 
   private boolean setPodReplicatinGroupInClusterStatus(final StackGresCluster cluster,
-      final int podReplicationGroupIndex) {
+      final Integer podReplicationRoleIndex) {
     if (cluster.getStatus() == null) {
       cluster.setStatus(new StackGresClusterStatus());
     }
@@ -186,49 +186,51 @@ public class PatroniReconciliator {
     final StackGresClusterPodStatus podStatus =
         cluster.getStatus().getPodStatuses().stream()
         .filter(status -> status.getName().equals(podName))
-        .findAny().get();
+        .findAny().orElseThrow();
     boolean statusUpdated =
-        !Objects.equals(podStatus.getReplicationGroup(), podReplicationGroupIndex);
-    podStatus.setReplicationGroup(podReplicationGroupIndex);
+        !Objects.equals(podStatus.getReplicationGroup(), podReplicationRoleIndex);
+    podStatus.setReplicationGroup(podReplicationRoleIndex);
     return statusUpdated;
   }
 
-  private int getPodReplicationGroupIndex(String podName) {
+  private Optional<Tuple2<StackGresReplicationRole, Long>> getPodAssignedReplicationRole(
+      final StackGresCluster cluster) {
+    final int podIndex = getPodIndex(podName);
+    return Seq.seq(cluster.getSpec().getReplicationGroups())
+        .zipWithIndex()
+        .flatMap(group -> Seq.range(0, group.v1.getInstances()).map(i -> group))
+        .zipWithIndex()
+        .filter(t -> t.v2.intValue() == podIndex)
+        .map(Tuple2::v1)
+        .map(t -> t.map1(StackGresClusterReplicationGroup::getRole))
+        .map(t -> t.map1(StackGresReplicationRole::fromString))
+        .findFirst();
+  }
+
+  private int getPodIndex(String podName) {
     return Integer.parseInt(ResourceUtil.getIndexPattern().matcher(podName)
         .results().findFirst().orElseThrow().group(1));
   }
 
-  private Optional<StackGresReplicationRole> getPodAssignedReplicationRole(
-      final StackGresCluster cluster, final int podReplicationGroupIndex) {
-    return Seq.seq(cluster.getSpec().getReplicationGroups())
-        .flatMap(group -> Seq.range(0, group.getInstances()).map(i -> group))
-        .zipWithIndex()
-        .filter(t -> t.v2.intValue() == podReplicationGroupIndex)
-        .map(Tuple2::v1)
-        .map(StackGresClusterReplicationGroup::getRole)
-        .map(StackGresReplicationRole::fromString)
-        .findFirst();
-  }
-
   @SuppressFBWarnings(value = "DB_DUPLICATE_SWITCH_CLAUSES",
       justification = "False positive")
-  private ImmutableMap<String, String> getPatroniTagsForReplicationRole(
+  private Map<String, String> getPatroniTagsForReplicationRole(
       final StackGresReplicationRole podReplicationRole) {
     switch (podReplicationRole) {
       case HA_READ:
-        return ImmutableMap.of(
+        return Map.of(
             NOFAILOVER_TAG, FALSE_TAG_VALUE,
             NOLOADBALANCE_TAG, FALSE_TAG_VALUE);
       case HA:
-        return ImmutableMap.of(
+        return Map.of(
             NOFAILOVER_TAG, FALSE_TAG_VALUE,
             NOLOADBALANCE_TAG, TRUE_TAG_VALUE);
       case READONLY:
-        return ImmutableMap.of(
+        return Map.of(
             NOFAILOVER_TAG, TRUE_TAG_VALUE,
             NOLOADBALANCE_TAG, FALSE_TAG_VALUE);
       case NONE:
-        return ImmutableMap.of(
+        return Map.of(
             NOFAILOVER_TAG, TRUE_TAG_VALUE,
             NOLOADBALANCE_TAG, TRUE_TAG_VALUE);
       default:
@@ -237,7 +239,7 @@ public class PatroniReconciliator {
     }
   }
 
-  private String getTagsAsYamlString(final ImmutableMap<String, String> tagsMap) {
+  private String getTagsAsYamlString(final Map<String, String> tagsMap) {
     return String.format("tags: { %s }",
         Seq.seq(tagsMap).map(t -> t.v1 + ": " + t.v2).toString(", "));
   }
@@ -276,7 +278,7 @@ public class PatroniReconciliator {
   }
 
   private void setPatroniTagsAsPodLabels(KubernetesClient client, final StackGresCluster cluster,
-      final ImmutableMap<String, String> tagsMap) {
+      final Map<String, String> tagsMap) {
     KubernetesClientUtil.retryOnConflict(() -> {
       Pod pod = client.pods()
           .inNamespace(cluster.getMetadata().getNamespace())
@@ -285,7 +287,7 @@ public class PatroniReconciliator {
       pod.getMetadata().setLabels(ImmutableMap.<String, String>builder()
           .putAll(Seq.seq(
               Optional.ofNullable(pod.getMetadata().getLabels())
-              .orElse(ImmutableMap.of())
+              .orElse(Map.of())
               .entrySet())
               .filter(entry -> tagsMap.keySet().stream().noneMatch(entry.getKey()::equals)))
           .putAll(tagsMap)
