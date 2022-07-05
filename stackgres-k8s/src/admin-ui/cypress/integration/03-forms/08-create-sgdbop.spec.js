@@ -123,7 +123,7 @@ describe('Create SGDbOp', () => {
     });  
 
     it('Creating a Benchmark SGDbOps should be possible', () => {
-        // Test Cluster Name
+        // Test Op Name
         cy.get('[data-field="metadata.name"]')
             .clear()
             .type('benchmark-' + resourceName)
@@ -204,7 +204,7 @@ describe('Create SGDbOp', () => {
     }); 
 
     it('Creating a Vacuum SGDbOps should be possible', () => {
-        // Test Cluster Name
+        // Test Op Name
         cy.get('[data-field="metadata.name"]')
             .clear()
             .type('vacuum-' + resourceName)
@@ -263,7 +263,7 @@ describe('Create SGDbOp', () => {
     });
 
     it('Creating a Security Upgrade SGDbOps should be possible', () => {
-        // Test Cluster Name
+        // Test Op Name
         cy.get('[data-field="metadata.name"]')
             .clear()
             .type('sec-upg-' + resourceName)
@@ -300,7 +300,7 @@ describe('Create SGDbOp', () => {
     });
 
     it('Creating a Minor Version Upgrade SGDbOps should be possible', () => {
-        // Test Cluster Name
+        // Test Op Name
         cy.get('[data-field="metadata.name"]')
             .clear()
             .type('minor-upg-' + resourceName)
@@ -340,7 +340,7 @@ describe('Create SGDbOp', () => {
     });
    
     it('Creating a Major Version Upgrade SGDbOps should be possible', () => {
-        // Test Cluster Name
+        // Test Op Name
         cy.get('[data-field="metadata.name"]')
             .clear()
             .type('major-upg-' + resourceName)
@@ -390,7 +390,7 @@ describe('Create SGDbOp', () => {
     });
 
     it('Creating a Restart SGDbOps should be possible', () => {
-        // Test Cluster Name
+        // Test Op Name
         cy.get('[data-field="metadata.name"]')
             .clear()
             .type('restart-' + resourceName)
@@ -430,7 +430,7 @@ describe('Create SGDbOp', () => {
     });
   
     /*it('Creating a Repack SGDbOps should be possible', () => {
-        // Test Cluster Name
+        // Test Op Name
         cy.get('[data-field="metadata.name"]')
             .clear()
             .type('repack-' + resourceName)
@@ -509,6 +509,11 @@ describe('Create SGDbOp', () => {
     });*/
 
     it('notValid class should be added if no op is selected and removed once op is selected', () => {
+        // Test Op Name
+        cy.get('[data-field="metadata.name"]')
+            .clear()
+            .type('not-valid-' + resourceName)
+        
         // Submit form without selecting an op
         cy.get('select[data-field="spec.sgCluster"]')
             .select(clusterName)
