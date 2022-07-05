@@ -27,15 +27,15 @@ class ScriptTransformerTest {
     ScriptDto target = new ScriptDto();
 
     var metadata = TransformerTestUtil.createMetadataTuple();
-    source.setMetadata(metadata.getSource());
-    target.setMetadata(metadata.getTarget());
+    source.setMetadata(metadata.source());
+    target.setMetadata(metadata.target());
 
     var spec = createSpec();
-    source.setSpec(spec.getSource());
-    target.setSpec(spec.getTarget());
+    source.setSpec(spec.source());
+    target.setSpec(spec.target());
 
     var status = createStatus();
-    source.setStatus(status.getSource());
+    source.setStatus(status.source());
 
     return new TransformerTuple<>(target, source);
   }

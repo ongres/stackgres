@@ -120,12 +120,8 @@ class ClusterTransformerTest {
     target.setInitData(initialData.target());
 
     var managedSql = createManagedSql();
-    source.setManagedSql(managedSql.getSource());
-    target.setManagedSql(managedSql.getTarget());
-
-    var managedSql = createManagedSql();
-    source.setManagedSql(managedSql.getSource());
-    target.setManagedSql(managedSql.getTarget());
+    source.setManagedSql(managedSql.source());
+    target.setManagedSql(managedSql.target());
 
     var distributedLogs = createDistributedLogs();
     source.setDistributedLogs(distributedLogs.source());
@@ -214,20 +210,8 @@ class ClusterTransformerTest {
     var scripts = TransformerTestUtil.generateRandomListTuple(
         ClusterManagedScriptEntry.class, StackGresClusterManagedScriptEntry.class
     );
-    managedSql.getTarget().setScripts(scripts.getTarget());
-    managedSql.getSource().setScripts(scripts.getSource());
-    return managedSql;
-  }
-
-  private static TransformerTuple<ClusterManagedSql,
-      StackGresClusterManagedSql> createManagedSql() {
-    var managedSql = TransformerTestUtil
-        .fillTupleWithRandomData(ClusterManagedSql.class, StackGresClusterManagedSql.class);
-    var scripts = TransformerTestUtil.generateRandomListTuple(
-        ClusterManagedScriptEntry.class, StackGresClusterManagedScriptEntry.class
-    );
-    managedSql.getTarget().setScripts(scripts.getTarget());
-    managedSql.getSource().setScripts(scripts.getSource());
+    managedSql.target().setScripts(scripts.target());
+    managedSql.source().setScripts(scripts.source());
     return managedSql;
   }
 

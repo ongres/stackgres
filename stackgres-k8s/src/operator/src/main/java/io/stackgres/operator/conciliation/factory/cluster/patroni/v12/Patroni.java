@@ -62,7 +62,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_0, stopAt = StackGresVersion.V_1_2)
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_1, stopAt = StackGresVersion.V_1_2)
 @RunningContainer(ClusterRunningContainer.PATRONI)
 public class Patroni implements ContainerFactory<StackGresClusterContainerContext> {
 
