@@ -6,10 +6,11 @@ pod_logs() {
   local POD
   local CONTAINER
   local NAMESPACE
-  local OWNER_KIND
+  local FILTERED_OWNER_KIND
   local PODS_FILE="$TARGET_PATH/pod-logs-$(shuf -i 0-65535 -n 1)"
   local LOG_IN_FILES=false
   local LOG_IN_PATH="$TARGET_PATH/pod-logs"
+  local FOLLOW=false
   while [ "$#" -gt 0 ]
   do
     case "$1" in
@@ -30,7 +31,7 @@ pod_logs() {
         ;;
       -o|--owner-kind)
         shift
-        OWNER_KIND="$1"
+        FILTERED_OWNER_KIND="$1"
         shift
         ;;
       -F|--log-in-files)
@@ -42,8 +43,12 @@ pod_logs() {
         LOG_IN_PATH="$1"
         shift
         ;;
+      -f|--follow)
+        shift
+        FOLLOW="true"
+        ;;
       *)
-        echo >&2 "Unknown parameter $1 (use: --namespace <namespace>; --owner-kind <owner kind>; --container <container>; --pod <pod name>)"
+        echo >&2 "Unknown parameter $1 (use: --namespace <namespace>; --owner-kind <owner kind>; --container <container>; --pod <pod name>; --follow)"
         return 1
         ;;
     esac
@@ -51,43 +56,49 @@ pod_logs() {
   rm -f "$PODS_FILE"
   while true
   do
-    trap_exec kubectl get pod $(if [ -z "$NAMESPACE" ]; then echo '--all-namespaces'; else echo '-n '"$NAMESPACE"; fi) -o json --watch \
-      | jq --unbuffered -r '.metadata as $metadata
+    trap_exec kubectl get pod \
+        $(if [ -z "$NAMESPACE" ]; then echo '--all-namespaces'; else echo '-n '"$NAMESPACE"; fi) \
+        -o json \
+        $(if [ "$FOLLOW" = true ]; then printf %s --watch; fi) \
+      | jq --unbuffered -r "$(if [ "$FOLLOW" != true ]; then printf '.items[]|'; fi)"'.metadata as $metadata
           | [.status.containerStatuses,.status.initContainerStatuses][]
           | select(. != null) | map(
-              $metadata.namespace + "/" + $metadata.name + "/" + .name + "/" + $metadata.uid + "/" + (.restartCount | tostring)
-                + "," + ($metadata.ownerReferences | select(. != null) | map(.kind) | .[] | tostring)
+              $metadata.namespace + " " + $metadata.name + " " + .name + " " + $metadata.uid
+                + " " + (.restartCount | tostring) + " " + $metadata.creationTimestamp
+                + " " + ($metadata.ownerReferences | select(. != null) | map(.kind) | .[] | tostring)
             )[]' \
-      | while read CONTAINER_DESC
+      | while read -r NAMESPACE POD CONTAINER UID RESTART_COUNT CREATION_TIMESTAMP OWNER_KIND
         do
-          CONTAINER_ID="${CONTAINER_DESC%,*}"
-          if ( [ -n "$FILTERED_POD" ] \
-              && ! echo_raw "$CONTAINER_ID" | grep -q '^[^/]\+/'"$FILTERED_POD"'/[^,]\+/[^,]\+/[^,]\+$' ) \
-            || ( [ -n "$FILTERED_CONTAINER" ] \
-              && ! echo_raw "$CONTAINER_ID" | grep -q '^[^/]\+/[^,]\+/'"$FILTERED_CONTAINER"'/[^,]\+/[^,]\+$' ) \
-            || ( [ -n "$OWNER_KIND" ] \
-              && ! echo_raw "$CONTAINER_DESC" | grep -q '^[^,]\+/[^,]\+/[^,]\+/[^,]\+/[^,]\+,'"$OWNER_KIND"'$' ) \
-            || ( [ -f "$PODS_FILE" ] && grep -q -F "$CONTAINER_ID" "$PODS_FILE" )
+          CONTAINER_ID="$NAMESPACE $POD $CONTAINER $UID $RESTART_COUNT"
+          if { [ -n "$FILTERED_POD" ] \
+              && ! printf %s "$CONTAINER_ID" | grep -q '^[^ ]\+ '"$FILTERED_POD"' [^,]\+ [^,]\+ [^,]\+$'; } \
+            || { [ -n "$FILTERED_CONTAINER" ] \
+              && ! printf %s "$CONTAINER_ID" | grep -q '^[^ ]\+ [^,]\+ '"$FILTERED_CONTAINER"' [^,]\+ [^,]\+$'; } \
+            || { [ -n "$FILTERED_OWNER_KIND" ] \
+              && ! printf %s "$OWNER_KIND" | grep -q '^'"$FILTERED_OWNER_KIND"'$'; } \
+            || { [ -f "$PODS_FILE" ] && grep -q -F "$CONTAINER_ID" "$PODS_FILE"; }
           then
             continue
           fi
-          NAMESPACE="${CONTAINER_ID%%/*}"
-          POD="${CONTAINER_ID#*/}"
-          CONTAINER="${POD#*/}"
-          POD="${POD%%/*}"
-          CONTAINER="${CONTAINER%%/*}"
           if ! kubectl logs -n "$NAMESPACE" "$POD" -c "$CONTAINER" --limit-bytes=1 >/dev/null 2>&1
           then
             continue
           fi
-          echo_raw "$CONTAINER_ID" >> "$PODS_FILE"
-          echo_raw "[$NAMESPACE/$POD/$CONTAINER] Start logging container $NAMESPACE/$POD/$CONTAINER"
+          printf '%s\n' "$CONTAINER_ID" >> "$PODS_FILE"
+          printf '%s\n' "[$NAMESPACE/$POD/$CONTAINER] Start logging container $NAMESPACE/$POD/$CONTAINER"
           if "$LOG_IN_FILES"
           then
-            mkdir -p "$LOG_IN_PATH/$NAMESPACE/$POD"
+            mkdir -p "$LOG_IN_PATH/$NAMESPACE/$POD/$CREATION_TIMESTAMP"
           fi
-          pod_logs_pod_container_in_trap $(if "$LOG_IN_FILES"; then printf '%s %s %s' '-F' '-P' "$LOG_IN_PATH"; fi) -n "$NAMESPACE" "$POD" -c "$CONTAINER"
+          pod_logs_pod_container_in_trap \
+            $(if "$LOG_IN_FILES"; then printf '%s %s %s' '-F' '-P' "$LOG_IN_PATH"; fi) \
+            $(if [ "$FOLLOW" = true ]; then printf %s -f; fi) \
+            -n "$NAMESPACE" "$POD" -c "$CONTAINER" -T "$CREATION_TIMESTAMP"
         done || true
+    if [ "$FOLLOW" != true ]
+    then
+      break
+    fi
   done
 }
 
@@ -95,8 +106,10 @@ pod_logs_pod_container_in_trap() {
   local NAMESPACE
   local POD
   local CONTAINER
+  local CREATION_TIMESTAMP
   local LOG_IN_FILES=false
   local LOG_IN_PATH="$TARGET_PATH/pod-logs"
+  local FOLLOW=false
   while [ "$#" -gt 0 ]
   do
     case "$1" in
@@ -110,6 +123,11 @@ pod_logs_pod_container_in_trap() {
         CONTAINER="$1"
         shift
         ;;
+      -T|--creation-timestamp)
+        shift
+        CREATION_TIMESTAMP="$1"
+        shift
+        ;;
       -F|--log-in-files)
         shift
         LOG_IN_FILES=true
@@ -119,23 +137,32 @@ pod_logs_pod_container_in_trap() {
         LOG_IN_PATH="$1"
         shift
         ;;
+      -f|--follow)
+        shift
+        FOLLOW="true"
+        ;;
       *)
         POD="$1"
         shift
         ;;
     esac
   done
-  trap_exec kubectl logs -n "$NAMESPACE" "$POD" -c "$CONTAINER" --timestamps -f \
-    | (
+  if [ -z "$CREATION_TIMESTAMP" ]
+  then
+    CREATION_TIMESTAMP="$(kubectl get -n "$NAMESPACE" "$POD" --template '{{ .metadata.creationTimestamp }}')"
+  fi
+  trap_exec kubectl logs -n "$NAMESPACE" "$POD" -c "$CONTAINER" --timestamps \
+      $(if [ "$FOLLOW" = true ]; then printf %s -f; fi) \
+    | {
       set +x
-      while IFS="$(printf '\n')" read LINE
+      while IFS="$NEWLINE_IFS" read -r LINE
       do
         if "$LOG_IN_FILES"
         then
-          printf '%s\n' "$LINE" >> "$LOG_IN_PATH/$NAMESPACE/$POD/$CONTAINER.log"
+          printf '%s\n' "$LINE" >> "$LOG_IN_PATH/$NAMESPACE/$POD/$CREATION_TIMESTAMP/$CONTAINER.log"
         else
-          printf '%s\n' "[$NAMESPACE/$POD/$CONTAINER] $LINE"
+          printf '%s\n' "[$NAMESPACE/$POD/$CONTAINER/$CREATION_TIMESTAMP] $LINE"
         fi
       done
-      ) &
+      } &
 }

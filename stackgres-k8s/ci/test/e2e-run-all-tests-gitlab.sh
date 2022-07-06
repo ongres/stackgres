@@ -42,9 +42,9 @@ export K8S_USE_INTERNAL_REPOSITORY=true
 export E2E_DISABLE_CACHE="${E2E_DISABLE_CACHE:-false}"
 export E2E_DISABLE_LOGS="${E2E_DISABLE_LOGS:-true}"
 export KIND_LOCK_PATH="/tmp/kind-lock$SUFFIX"
-export KIND_LOG=true
+export KIND_LOG="${KIND_LOG:-true}"
 export KIND_LOG_PATH="/tmp/kind-log$SUFFIX"
-export KIND_LOG_RESOURCES=true
+export KIND_LOG_RESOURCES="${KIND_LOG_RESOURCES:-false}"
 export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache$SUFFIX"
 export EXTENSIONS_CACHE_HOST_PATH="/containerd-cache/extensions"
 export TEMP_DIR="/tmp/$CI_PROJECT_ID"
@@ -285,20 +285,23 @@ run_all_e2e() {
     mkdir -p "/source/${KIND_LOG_PATH##*/}"
   "$E2E_SHELL" $([ "$E2E_DEBUG" != true ] || printf '%s' '-x') stackgres-k8s/e2e/run-all-tests.sh
   EXIT_CODE="$?"
-  mkdir -p stackgres-k8s/e2e/target/kind-logs
-  docker run --rm -u 0 -v "$KIND_LOG_PATH:/source/kind-logs" \
-    -v "$(pwd)/stackgres-k8s/e2e/target:/target" alpine \
-    cp -r "/source/kind-logs/." /target/kind-logs/.
-  docker run --rm -u 0 -v "${KIND_LOG_PATH%/*}:/source" alpine \
-    rm -rf "/source/${KIND_LOG_PATH##*/}"
-  docker run --rm -u 0 \
-    -v "$(pwd)/stackgres-k8s/e2e/target:/target" alpine \
-    chown -R "$(id -u):$(id -g)" '/target/kind-logs'
-  if [ -d stackgres-k8s/e2e/target/kind-logs/kubernetes ]
+  if [ "$KIND_LOG" = true ]
   then
-    tar c stackgres-k8s/e2e/target/kind-logs/kubernetes \
-      | xz -v -c > stackgres-k8s/e2e/target/kind-logs/kubernetes.tar.lzma
-    rm -rf stackgres-k8s/e2e/target/kind-logs/kubernetes
+    mkdir -p stackgres-k8s/e2e/target/kind-logs
+    docker run --rm -u 0 -v "$KIND_LOG_PATH:/source/kind-logs" \
+      -v "$(pwd)/stackgres-k8s/e2e/target:/target" alpine \
+      cp -r "/source/kind-logs/." /target/kind-logs/.
+    docker run --rm -u 0 -v "${KIND_LOG_PATH%/*}:/source" alpine \
+      rm -rf "/source/${KIND_LOG_PATH##*/}"
+    docker run --rm -u 0 \
+      -v "$(pwd)/stackgres-k8s/e2e/target:/target" alpine \
+      chown -R "$(id -u):$(id -g)" '/target/kind-logs'
+    if [ -d stackgres-k8s/e2e/target/kind-logs/kubernetes ]
+    then
+      tar c stackgres-k8s/e2e/target/kind-logs/kubernetes \
+        | xz -v -c > stackgres-k8s/e2e/target/kind-logs/kubernetes.tar.lzma
+      rm -rf stackgres-k8s/e2e/target/kind-logs/kubernetes
+    fi
   fi
   return "$EXIT_CODE"
 }

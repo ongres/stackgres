@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export NEWLINE_IFS="$(printf '\n')"
+
 try_function() {
   local E_UNSET=true
   if echo "$-" | grep -q e
