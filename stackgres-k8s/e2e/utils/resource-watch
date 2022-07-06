@@ -70,12 +70,15 @@ resource_watch() {
       KIND="${KIND_PID%:*}"
       if [ -z "${KIND_PID#*:}" ] || ! kill -0 "${KIND_PID#*:}" >/dev/null 2>&1
       then
-        echo "Start watching $KIND..."
+        if [ "$FOLLOW" = true ]
+        then
+          echo "Start watching $KIND..."
+        fi
         KIND_PID_PATH="$TARGET_PATH/resource-$KIND-watch.pid"
         resource_kind_watch_in_trap -k "$KIND" -p "$KIND_PID_PATH" \
-          $([ -z "$NAMESPACE" ] || printf '-n %s' "$NAMESPACE") \
-          $([ "$LOG_IN_FILES" != true ] || printf '-F') -P "$LOG_IN_PATH" \
-          $([ -z "$FILTERED_NAME" ] || printf '--name %s' "$FILTERED_NAME") \
+          $([ -z "$NAMESPACE" ] || printf '%s %s' -n "$NAMESPACE") \
+          $([ "$LOG_IN_FILES" != true ] || printf %s '-F') -P "$LOG_IN_PATH" \
+          $([ -z "$FILTERED_NAME" ] || printf '%s %s' --name "$FILTERED_NAME") \
           $(if [ "$FOLLOW" = true ]; then printf %s -f; fi)
         KIND_PID="$KIND:$(cat "$KIND_PID_PATH")"
       fi
@@ -159,7 +162,7 @@ resource_kind_watch_in_trap() {
         ;;
     esac
   done
-  local JQ_QUERY=.
+  local JQ_QUERY="$(if [ "$FOLLOW" != true ]; then printf '.items[]'; else printf '.'; fi)"
   if [ -n "$FILTERED_NAME" ]
   then
     JQ_QUERY="$JQ_QUERY|select(.metadata.name|test($FILTERED_NAME))"
@@ -173,16 +176,17 @@ resource_kind_watch_in_trap() {
       set +x
       while IFS="$(printf '\n')" read -r RESOURCE
       do
-        ID="$(echo "$RESOURCE" | jq -r '@base64d' | jq -r '.metadata.namespace + ":" + .metadata.name')"
-        NAMESPACE="${ID%:*}"
-        NAME="${ID#*:}"
-        if "$LOG_IN_FILES"
-        then
-          mkdir -p "$LOG_IN_PATH/$NAMESPACE/$KIND"
-          printf %s "$RESOURCE" | jq -r '@base64d' | jq . >> "$LOG_IN_PATH/$NAMESPACE/$KIND/$NAME.log" || true
-        else
-          printf %s "$RESOURCE" | jq -r '@base64d' | jq . || true
-        fi
+        echo "$RESOURCE" | jq -r '@base64d' | jq -r '.metadata.name + " " + .metadata.namespace' \
+          | while read -r NAME NAMESPACE
+            do
+              if "$LOG_IN_FILES"
+              then
+                mkdir -p "$LOG_IN_PATH/$NAMESPACE/$KIND"
+                printf %s "$RESOURCE" | jq -r '@base64d' | jq . >> "$LOG_IN_PATH/$NAMESPACE/$KIND/$NAME.log" || true
+              else
+                printf %s "$RESOURCE" | jq -r '@base64d' | jq . || true
+              fi
+            done
       done
       } &
   printf %s "$!" > "$KIND_PID_PATH"

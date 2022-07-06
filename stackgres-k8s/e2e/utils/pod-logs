@@ -9,6 +9,7 @@ pod_logs() {
   local FILTERED_OWNER_KIND
   local PODS_FILE="$TARGET_PATH/pod-logs-$(shuf -i 0-65535 -n 1)"
   local LOG_IN_FILES=false
+  local CLEANUP_LOG_FILES= false
   local LOG_IN_PATH="$TARGET_PATH/pod-logs"
   local FOLLOW=false
   while [ "$#" -gt 0 ]
@@ -38,6 +39,10 @@ pod_logs() {
         shift
         LOG_IN_FILES=true
         ;;
+      --cleanup-log-files)
+        shift
+        CLEANUP_LOG_FILES=true
+        ;;
       -P|--log-in-path)
         shift
         LOG_IN_PATH="$1"
@@ -53,7 +58,10 @@ pod_logs() {
         ;;
     esac
   done
-  rm -f "$PODS_FILE"
+  if [ "$CLEANUP_LOG_FILES" = true ]
+  then
+    rm -f "$PODS_FILE"
+  fi
   while true
   do
     trap_exec kubectl get pod \
@@ -159,9 +167,9 @@ pod_logs_pod_container_in_trap() {
       do
         if "$LOG_IN_FILES"
         then
-          printf '%s\n' "$LINE" >> "$LOG_IN_PATH/$NAMESPACE/$POD/$CREATION_TIMESTAMP/$CONTAINER.log"
+          printf '%s\n' "$LINE" > "$LOG_IN_PATH/$NAMESPACE/$POD/$CREATION_TIMESTAMP/$CONTAINER.log"
         else
-          printf '%s\n' "[$NAMESPACE/$POD/$CONTAINER/$CREATION_TIMESTAMP] $LINE"
+          printf '%s\n' "[$NAMESPACE/$POD/$CONTAINER] $LINE"
         fi
       done
       } &
