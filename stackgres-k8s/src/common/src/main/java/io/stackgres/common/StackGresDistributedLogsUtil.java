@@ -71,9 +71,11 @@ public interface StackGresDistributedLogsUtil {
     distributedLogsCluster.getSpec().setInstances(1);
     distributedLogsCluster.getSpec().setResourceProfile(
         distributedLogs.getSpec().getResourceProfile());
-    distributedLogsCluster.getSpec().setConfiguration(new StackGresClusterConfiguration());
-    distributedLogsCluster.getSpec().getConfiguration().setPostgresConfig(
-        distributedLogs.getSpec().getConfiguration().getPostgresConfig());
+    if (distributedLogs.getSpec().getConfiguration() != null) {
+      distributedLogsCluster.getSpec().setConfiguration(new StackGresClusterConfiguration());
+      distributedLogsCluster.getSpec().getConfiguration().setPostgresConfig(
+          distributedLogs.getSpec().getConfiguration().getPostgresConfig());
+    }
     distributedLogsCluster.getSpec().setPod(new StackGresClusterPod());
     distributedLogsCluster.getSpec().getPod().setPersistentVolume(
         new StackGresPodPersistentVolume());

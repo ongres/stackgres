@@ -104,6 +104,7 @@ class ClusterProfileDecoratorTest {
     defaultProfile.getSpec().getInitContainers().put(
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
 
+    when(context.getSource()).thenReturn(defaultCluster);
     when(context.getProfile()).thenReturn(defaultProfile);
   }
 

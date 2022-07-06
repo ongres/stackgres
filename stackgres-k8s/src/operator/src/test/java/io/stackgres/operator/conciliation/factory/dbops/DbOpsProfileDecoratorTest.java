@@ -27,11 +27,12 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresKind;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
-import io.stackgres.operator.common.StackGresDbOpsContext;
+import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import io.stackgres.testutil.JsonUtil;
@@ -54,6 +55,8 @@ class DbOpsProfileDecoratorTest {
 
   private StackGresDbOps defaultDbOps;
 
+  private StackGresCluster defaultCluster;
+
   private StackGresProfile defaultProfile;
 
   private Job job;
@@ -64,6 +67,8 @@ class DbOpsProfileDecoratorTest {
   void setUp() {
     defaultDbOps = JsonUtil
         .readFromJson("stackgres_dbops/dbops_restart.json", StackGresDbOps.class);
+    defaultCluster = JsonUtil
+        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
     defaultProfile = JsonUtil
         .readFromJson("stackgres_profiles/size-xs.json", StackGresProfile.class);
 
@@ -105,6 +110,7 @@ class DbOpsProfileDecoratorTest {
     defaultProfile.getSpec().getInitContainers().put(
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
 
+    when(context.getCluster()).thenReturn(defaultCluster);
     when(context.getProfile()).thenReturn(defaultProfile);
   }
 

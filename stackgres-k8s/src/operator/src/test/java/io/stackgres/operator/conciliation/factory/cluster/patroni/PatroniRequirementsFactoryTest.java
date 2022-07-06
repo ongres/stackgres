@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -30,16 +31,20 @@ class PatroniRequirementsFactoryTest {
   @Mock
   private StackGresClusterContext clusterContext;
 
+  private StackGresCluster cluster;
+
   private StackGresProfile profile;
 
   @BeforeEach
   void setUp() {
     patroniRequirementsFactory = new PatroniRequirementsFactory();
+    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
     profile = JsonUtil.readFromJson("stackgres_profiles/size-s.json", StackGresProfile.class);
   }
 
   @Test
   void givenAClusterWithAProfile_itShouldCreateTheResourceWithCpuAndMemory() {
+    when(clusterContext.getSource()).thenReturn(cluster);
     when(clusterContext.getProfile()).thenReturn(profile);
 
     var requirements = patroniRequirementsFactory.createResource(clusterContext);
@@ -64,6 +69,7 @@ class PatroniRequirementsFactoryTest {
     profile.getSpec().setHugePages(new StackGresProfileHugePages());
     profile.getSpec().getHugePages().setHugepages2Mi("2Mi");
     profile.getSpec().getHugePages().setHugepages1Gi("1Gi");
+    when(clusterContext.getSource()).thenReturn(cluster);
     when(clusterContext.getProfile()).thenReturn(profile);
 
     var requirements = patroniRequirementsFactory.createResource(clusterContext);

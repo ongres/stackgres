@@ -28,6 +28,7 @@ import io.stackgres.common.StackGresKind;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
@@ -54,6 +55,8 @@ class BackupProfileDecoratorTest {
 
   private StackGresBackup defaultBackup;
 
+  private StackGresCluster defaultCluster;
+
   private StackGresProfile defaultProfile;
 
   private Job job;
@@ -64,6 +67,8 @@ class BackupProfileDecoratorTest {
   void setUp() {
     defaultBackup = JsonUtil
         .readFromJson("stackgres_backup/default.json", StackGresBackup.class);
+    defaultCluster = JsonUtil
+        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
     defaultProfile = JsonUtil
         .readFromJson("stackgres_profiles/size-xs.json", StackGresProfile.class);
 
@@ -105,6 +110,7 @@ class BackupProfileDecoratorTest {
     defaultProfile.getSpec().getInitContainers().put(
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
 
+    when(context.getCluster()).thenReturn(defaultCluster);
     when(context.getProfile()).thenReturn(defaultProfile);
   }
 
