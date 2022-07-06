@@ -53,7 +53,7 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 @Singleton
 @OperatorVersionBinder
 @RunningContainer(StackGresContainer.PATRONI)
-public class PatroniContainer implements ContainerFactory<DistributedLogsContainerContext> {
+public class Patroni implements ContainerFactory<DistributedLogsContainerContext> {
 
   private final ResourceFactory<StackGresDistributedLogsContext, ResourceRequirements>
       requirementsFactory;
@@ -66,7 +66,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
   private final VolumeMountsProvider<DistributedLogsContainerContext> hugePagesMounts;
 
   @Inject
-  public PatroniContainer(
+  public Patroni(
       ResourceFactory<StackGresDistributedLogsContext, ResourceRequirements>
           requirementsFactory,
       @FactoryName(DistributedLogsEnvVarFactories.LATEST_PATRONI_ENV_VAR_FACTORY)

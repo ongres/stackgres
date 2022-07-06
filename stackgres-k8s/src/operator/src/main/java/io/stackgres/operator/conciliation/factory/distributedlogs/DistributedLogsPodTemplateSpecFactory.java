@@ -138,7 +138,7 @@ public class DistributedLogsPodTemplateSpecFactory
                 .build())
             .build())
             .filter(affinity -> Optional.ofNullable(
-                cluster.getSpec().getNonProduction())
+                cluster.getSpec().getNonProductionOptions())
                 .map(StackGresDistributedLogsNonProduction::getDisableClusterPodAntiAffinity)
                 .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
                 .orElse(true))

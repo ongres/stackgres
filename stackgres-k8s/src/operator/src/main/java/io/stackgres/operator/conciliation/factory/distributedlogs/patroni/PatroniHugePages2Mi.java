@@ -13,6 +13,8 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.EmptyDirVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -29,6 +31,13 @@ public class PatroniHugePages2Mi implements VolumeFactory<StackGresDistributedLo
 
   @Override
   public @NotNull Stream<VolumePair> buildVolumes(StackGresDistributedLogsContext context) {
+    if (Optional.of(context.getSource().getSpec())
+        .map(StackGresDistributedLogsSpec::getNonProductionOptions)
+        .map(StackGresDistributedLogsNonProduction::getDisablePatroniResourceRequirements)
+        .orElse(false)) {
+      return Stream.of();
+    }
+
     final var profile = context.getProfile();
 
     return Stream.<VolumePair>of(

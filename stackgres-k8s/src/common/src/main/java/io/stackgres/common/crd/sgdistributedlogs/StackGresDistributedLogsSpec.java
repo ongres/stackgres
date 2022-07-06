@@ -69,7 +69,7 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
     this.persistentVolume = persistentVolume;
   }
 
-  public StackGresDistributedLogsNonProduction getNonProduction() {
+  public StackGresDistributedLogsNonProduction getNonProductionOptions() {
     return nonProduction;
   }
 

@@ -23,6 +23,12 @@ public class StackGresClusterNonProduction {
   @JsonProperty("disableClusterPodAntiAffinity")
   public Boolean disableClusterPodAntiAffinity;
 
+  @JsonProperty("disablePatroniResourceRequirements")
+  public Boolean disablePatroniResourceRequirements;
+
+  @JsonProperty("disableClusterResourceRequirements")
+  public Boolean disableClusterResourceRequirements;
+
   @JsonProperty("enabledFeatureGates")
   @ValidEnumList(enumClass = StackGresFeatureGates.class, allowNulls = true,
       message = "enabledFeatureGates must contain only babelfish-flavor")
@@ -36,6 +42,22 @@ public class StackGresClusterNonProduction {
     this.disableClusterPodAntiAffinity = disableClusterPodAntiAffinity;
   }
 
+  public Boolean getDisablePatroniResourceRequirements() {
+    return disablePatroniResourceRequirements;
+  }
+
+  public void setDisablePatroniResourceRequirements(Boolean disablePatroniResourceRequirements) {
+    this.disablePatroniResourceRequirements = disablePatroniResourceRequirements;
+  }
+
+  public Boolean getDisableClusterResourceRequirements() {
+    return disableClusterResourceRequirements;
+  }
+
+  public void setDisableClusterResourceRequirements(Boolean disableClusterResourceRequirements) {
+    this.disableClusterResourceRequirements = disableClusterResourceRequirements;
+  }
+
   public List<String> getEnabledFeatureGates() {
     return enabledFeatureGates;
   }
@@ -46,7 +68,8 @@ public class StackGresClusterNonProduction {
 
   @Override
   public int hashCode() {
-    return Objects.hash(disableClusterPodAntiAffinity, enabledFeatureGates);
+    return Objects.hash(disableClusterPodAntiAffinity, disableClusterResourceRequirements,
+        disablePatroniResourceRequirements, enabledFeatureGates);
   }
 
   @Override
@@ -59,6 +82,10 @@ public class StackGresClusterNonProduction {
     }
     StackGresClusterNonProduction other = (StackGresClusterNonProduction) obj;
     return Objects.equals(disableClusterPodAntiAffinity, other.disableClusterPodAntiAffinity)
+        && Objects.equals(disableClusterResourceRequirements,
+            other.disableClusterResourceRequirements)
+        && Objects.equals(disablePatroniResourceRequirements,
+            other.disablePatroniResourceRequirements)
         && Objects.equals(enabledFeatureGates, other.enabledFeatureGates);
   }
 

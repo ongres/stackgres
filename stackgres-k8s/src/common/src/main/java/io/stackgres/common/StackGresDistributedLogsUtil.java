@@ -108,7 +108,7 @@ public interface StackGresDistributedLogsUtil {
             .read()).get());
     distributedLogsCluster.getSpec().setNonProductionOptions(new StackGresClusterNonProduction());
     distributedLogsCluster.getSpec().getNonProductionOptions().setDisableClusterPodAntiAffinity(
-        Optional.ofNullable(distributedLogs.getSpec().getNonProduction())
+        Optional.ofNullable(distributedLogs.getSpec().getNonProductionOptions())
             .map(StackGresDistributedLogsNonProduction::getDisableClusterPodAntiAffinity)
             .orElse(false));
     distributedLogsCluster.getSpec().setMetadata(new StackGresClusterSpecMetadata());

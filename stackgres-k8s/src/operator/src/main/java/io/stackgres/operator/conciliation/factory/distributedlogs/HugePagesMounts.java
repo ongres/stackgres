@@ -15,6 +15,8 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
@@ -28,6 +30,13 @@ public class HugePagesMounts implements VolumeMountsProvider<DistributedLogsCont
 
   @Override
   public List<VolumeMount> getVolumeMounts(DistributedLogsContainerContext context) {
+    if (Optional.of(context.getDistributedLogsContext().getSource().getSpec())
+        .map(StackGresDistributedLogsSpec::getNonProductionOptions)
+        .map(StackGresDistributedLogsNonProduction::getDisablePatroniResourceRequirements)
+        .orElse(false)) {
+      return List.of();
+    }
+
     return Stream.concat(
         Optional.of(context.getDistributedLogsContext().getProfile().getSpec())
             .map(StackGresProfileSpec::getHugePages)

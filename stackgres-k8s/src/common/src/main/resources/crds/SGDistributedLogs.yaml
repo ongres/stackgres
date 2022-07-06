@@ -219,6 +219,18 @@ spec:
                         It is a best practice, on non-containerized environments, when running production workloads, to run each database server on a different server (virtual or physical), i.e., not to co-locate more than one database server per host.
 
                         The same best practice applies to databases on containers. By default, StackGres will not allow to run more than one StackGres or Distributed Logs pod on a given Kubernetes node. If set to `true` it will allow more than one StackGres pod per node.
+                    disablePatroniResourceRequirements:
+                      type: boolean
+                      description: |
+                        It is a best practice, on containerized environments, when running production workloads, to enforce container's resources requirements.
+
+                        The same best practice applies to databases on containers. By default, StackGres will configure resource requirements for patroni container. Set this property to true to prevent StackGres from setting patroni container's resources requirement.
+                    disableClusterResourceRequirements:
+                      type: boolean
+                      description: |
+                        It is a best practice, on containerized environments, when running production workloads, to enforce container's resources requirements.
+
+                        By default, StackGres will configure resource requirements for all the containers. Set this property to true to prevent StackGres from setting container's resources requirements (except for patroni container, see `disablePatroniResourceRequirements`).
               required: ["persistentVolume"]
             status:
               type: object

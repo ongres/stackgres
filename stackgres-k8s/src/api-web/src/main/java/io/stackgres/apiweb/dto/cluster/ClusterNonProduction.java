@@ -22,6 +22,12 @@ public class ClusterNonProduction {
   @JsonProperty("disableClusterPodAntiAffinity")
   public Boolean disableClusterPodAntiAffinity;
 
+  @JsonProperty("disablePatroniResourceRequirements")
+  public Boolean disablePatroniResourceRequirements;
+
+  @JsonProperty("disableClusterResourceRequirements")
+  public Boolean disableClusterResourceRequirements;
+
   @JsonProperty("enabledFeatureGates")
   public List<String> enabledFeatureGates;
 
@@ -33,6 +39,22 @@ public class ClusterNonProduction {
     this.disableClusterPodAntiAffinity = disableClusterPodAntiAffinity;
   }
 
+  public Boolean getDisablePatroniResourceRequirements() {
+    return disablePatroniResourceRequirements;
+  }
+
+  public void setDisablePatroniResourceRequirements(Boolean disablePatroniResourceRequirements) {
+    this.disablePatroniResourceRequirements = disablePatroniResourceRequirements;
+  }
+
+  public Boolean getDisableClusterResourceRequirements() {
+    return disableClusterResourceRequirements;
+  }
+
+  public void setDisableClusterResourceRequirements(Boolean disableClusterResourceRequirements) {
+    this.disableClusterResourceRequirements = disableClusterResourceRequirements;
+  }
+
   public List<String> getEnabledFeatureGates() {
     return enabledFeatureGates;
   }
@@ -42,25 +64,31 @@ public class ClusterNonProduction {
   }
 
   @Override
+  public int hashCode() {
+    return Objects.hash(disableClusterPodAntiAffinity, disableClusterResourceRequirements,
+        disablePatroniResourceRequirements, enabledFeatureGates);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof ClusterNonProduction)) {
+      return false;
+    }
+    ClusterNonProduction other = (ClusterNonProduction) obj;
+    return Objects.equals(disableClusterPodAntiAffinity, other.disableClusterPodAntiAffinity)
+        && Objects.equals(disableClusterResourceRequirements,
+            other.disableClusterResourceRequirements)
+        && Objects.equals(disablePatroniResourceRequirements,
+            other.disablePatroniResourceRequirements)
+        && Objects.equals(enabledFeatureGates, other.enabledFeatureGates);
+  }
+
+  @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterNonProduction that = (ClusterNonProduction) o;
-    return Objects.equals(disableClusterPodAntiAffinity, that.disableClusterPodAntiAffinity)
-        && Objects.equals(enabledFeatureGates, that.enabledFeatureGates);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(disableClusterPodAntiAffinity, enabledFeatureGates);
-  }
 }

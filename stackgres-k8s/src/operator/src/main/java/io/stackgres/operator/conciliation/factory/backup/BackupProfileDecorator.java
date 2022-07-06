@@ -14,6 +14,8 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.stackgres.common.StackGresKind;
+import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
 import io.stackgres.operator.conciliation.factory.AbstractProfileDecorator;
@@ -32,6 +34,13 @@ public class BackupProfileDecorator extends AbstractProfileDecorator
 
   @Override
   public void decorate(StackGresBackupContext context, Iterable<? extends HasMetadata> resources) {
+    if (Optional.of(context.getCluster().getSpec())
+        .map(StackGresClusterSpec::getNonProductionOptions)
+        .map(StackGresClusterNonProduction::getDisablePatroniResourceRequirements)
+        .orElse(false)) {
+      return;
+    }
+
     Seq.seq(resources)
         .filter(Job.class::isInstance)
         .map(Job.class::cast)

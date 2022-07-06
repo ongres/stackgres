@@ -19,6 +19,8 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresKind;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
@@ -39,6 +41,13 @@ public class DistributedLogsProfileDecorator extends AbstractProfileDecorator
   @Override
   public void decorate(StackGresDistributedLogsContext context,
       Iterable<? extends HasMetadata> resources) {
+    if (Optional.of(context.getSource().getSpec())
+        .map(StackGresDistributedLogsSpec::getNonProductionOptions)
+        .map(StackGresDistributedLogsNonProduction::getDisablePatroniResourceRequirements)
+        .orElse(false)) {
+      return;
+    }
+
     Seq.seq(resources)
         .filter(StatefulSet.class::isInstance)
         .map(StatefulSet.class::cast)

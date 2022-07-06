@@ -16,6 +16,8 @@ import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpec;
 import io.stackgres.common.StackGresKind;
+import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractProfileDecorator;
@@ -34,6 +36,13 @@ public class BackupProfileDecorator extends AbstractProfileDecorator
 
   @Override
   public void decorate(StackGresClusterContext context, Iterable<? extends HasMetadata> resources) {
+    if (Optional.of(context.getSource().getSpec())
+        .map(StackGresClusterSpec::getNonProductionOptions)
+        .map(StackGresClusterNonProduction::getDisablePatroniResourceRequirements)
+        .orElse(false)) {
+      return;
+    }
+
     Seq.seq(resources)
         .filter(CronJob.class::isInstance)
         .map(CronJob.class::cast)
