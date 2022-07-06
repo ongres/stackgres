@@ -1,0 +1,34 @@
+configurations:
+  postgresconfig:
+    postgresql.conf:
+      shared_buffers: '32MB'
+  backupconfig:
+    create: true
+    # Avoid backups before waiting for pods (since backup pods could biase the wait)
+    baseBackups:
+      cronSchedule: '0 5 31 2 *'
+    storage:
+      s3Compatible:
+        bucket: restore-backup
+        awsCredentials:
+          secretKeySelectors:
+            accessKeyId:
+              name: restore-backup-minio
+              key: accesskey
+            secretAccessKey:
+              name: restore-backup-minio
+              key: secretkey
+        region: k8s
+        enablePathStyleAddressing: true
+        endpoint: http://restore-backup-minio.restore-backup:9000
+cluster:
+  postgres:
+    version: "13"
+  pods:
+    persistentVolume:
+      size: 128Mi
+  configurations:
+    sgBackupConfig: backupconf
+  prometheusAutobind: false
+nonProductionOptions:
+  disableClusterPodAntiAffinity: true
