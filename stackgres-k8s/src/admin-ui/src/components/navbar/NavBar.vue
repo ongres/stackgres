@@ -225,7 +225,14 @@
 
 			nameCollision() {
 				if(store.state.cloneCRD.hasOwnProperty('kind')) {
-					let kind = store.state.cloneCRD.kind.toLowerCase();
+					let kind = ( 
+						(store.state.cloneCRD.kind == 'SGPostgresConfigs') ? 
+							'sgpgconfigs' : 
+							(  (store.state.cloneCRD.kind == 'SGPoolingConfigs') ? 
+								'sgpoolconfigs' : 
+								store.state.cloneCRD.kind.toLowerCase() 
+							) 
+						);
 					let collision = store.state[kind].find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 					return (typeof collision != 'undefined')
 				} else {
@@ -234,6 +241,7 @@
 			},
 
 			missingCRDs() {
+				const vc = this;
 				let missingCRDs = [];
 
 				if(typeof store.state.cloneCRD.data != 'undefined') {
