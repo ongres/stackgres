@@ -9,8 +9,14 @@ showToc: true
 ## Authentication
 
 In Kubernetes, you must be authenticated (logged in) before your request can be authorized (granted permission to
-access). The same applies to the Web UI of StackGres, you can create users to authenticate against a Kubernetes using a
-special `Secret` designed for that purpose to log in in the Web UI.
+access). The same applies to the Web UI of StackGres, you can choose between two authentication mechanism,
+the first one uses a Kubernetes `Secret` to handle the username and password used by the Web UI, and
+the other mechanism, available since version 1.3.0 of StackGres, is using an OpenID Connect Provider.
+
+### Local `Secret` mechanism
+By default, StackGres is configured to use a local `Secret` containing the username and password to authenticate
+into the REST API, you can create users to authenticate against a Kubernetes using a special `Secret` designed
+for that purpose to log in on the Web UI.
 
 The data that contains the secret must be in base64 format, and the password should be the concatenation of the api
 username plus the password itself.
@@ -32,6 +38,29 @@ data:
 
 You might wonder why are two username fields in the secret, the `apiUsername` is optional and is used to "customize" the
 username used for the login Web UI, the `k8sUsername` is the username that is used to impersonate the API calls to K8s.
+
+### OpenID Connect Provider mechanism
+If StackGres is configured to use the OpenID Connect (OIDC) authentication type it will use OpenID Connect Authorization
+Code Flow supported by OpenID Connect compliant Authorization Servers such as Keycloak.
+
+StackGres allows to easily authenticate the users of the Web UI by redirecting them to the OpenID Connect Provider
+(e.g.: Keycloak) to login and, once the authentication is complete, return them back with the code confirming the successful
+authentication.
+
+You can enable the OIDC auth type when installing StackGres using Helm, eg.:
+
+```bash
+helm install --namespace stackgres stackgres-operator \
+  --set-string authentication.type=oidc \
+  --set-string authentication.oidc.authServerUrl=https://auth.example.com/realms/stackgres \
+  --set-string authentication.oidc.clientId=web-api \
+  --set-string authentication.oidc.credentialsSecret=kISXZuLum0z8304vQHzOfMNapYHPtLX4 \
+  stackgres-charts/stackgres-operator
+```
+
+The `authentication.type` should be set to `oidc`, `authentication.oidc.authServerUrl` should point to your OpenID Connect
+Provider, `authentication.oidc.clientId` and `authentication.oidc.credentialsSecret` should be your corresponding Client ID
+and Secret used for authentication of StackGres with agains the OIDC Provider.
 
 ## Using RBAC Authorization
 

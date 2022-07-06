@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.security;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.is;
 
 import java.util.Map;
 
@@ -94,9 +95,7 @@ class LocalTokenTest {
 
   @Test
   void try_login_success_apiuser() {
-    UserPassword up = new UserPassword();
-    up.setUserName("apiuser");
-    up.setPassword("demo123");
+    UserPassword up = new UserPassword("apiuser", "demo123");
 
     given()
         .accept(ContentType.JSON)
@@ -113,9 +112,7 @@ class LocalTokenTest {
 
   @Test
   void try_login_success_k8suser() {
-    UserPassword up = new UserPassword();
-    up.setUserName("k8suser");
-    up.setPassword("demo123");
+    UserPassword up = new UserPassword("k8suser", "demo123");
 
     given()
         .accept(ContentType.JSON)
@@ -132,9 +129,7 @@ class LocalTokenTest {
 
   @Test
   void try_login_failure_no_label() {
-    UserPassword up = new UserPassword();
-    up.setUserName("apiuser-nolabel");
-    up.setPassword("demo123");
+    UserPassword up = new UserPassword("apiuser-nolabel", "demo123");
 
     given()
         .accept(ContentType.JSON)
@@ -148,9 +143,7 @@ class LocalTokenTest {
 
   @Test
   void try_login_failure_bad_passwd() {
-    UserPassword up = new UserPassword();
-    up.setUserName("apiuser");
-    up.setPassword("123");
+    UserPassword up = new UserPassword("apiuser", "123");
 
     given()
         .accept(ContentType.JSON)
@@ -160,6 +153,18 @@ class LocalTokenTest {
         .post("/stackgres/auth/login")
         .then()
         .statusCode(403);
+  }
+
+  @Test
+  void get_local_jwt_type() {
+    given()
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .when()
+        .get("/stackgres/auth/type")
+        .then()
+        .statusCode(200)
+        .body("type", is("JWT"));
   }
 
 }

@@ -40,6 +40,10 @@ data:
         include /etc/nginx/conf.d/*.conf;
     }
   stackgres-operator.template: |
+    map $http_host $my_forwarded_port {
+      default $server_port;
+      "~^[^\:]+:(?<p>\d+)$" $p;
+    }
     server {
       set $grafana_embedded '${GRAFANA_EMBEDDED}';
 
@@ -77,6 +81,7 @@ data:
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $my_forwarded_port;
         proxy_set_header X-Forwarded-Server $host;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         {{ if and .Values.developer.externalRestApiIp .Values.developer.externalRestApiPort }}

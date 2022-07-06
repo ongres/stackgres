@@ -26,6 +26,8 @@ import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewBuild
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.app.KubernetesClientProvider;
+import io.quarkus.security.Authenticated;
+import io.quarkus.security.identity.SecurityIdentity;
 import io.stackgres.apiweb.dto.PermissionsListDto;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.crd.CommonDefinition;
@@ -44,19 +46,22 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.eclipse.microprofile.jwt.Claim;
-import org.eclipse.microprofile.jwt.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path("auth/rbac")
 @RequestScoped
+@Authenticated
 public class RbacResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RbacResource.class);
 
   @Inject
-  @Claim(standard = Claims.sub)
-  String user;
+  SecurityIdentity identity;
+
+  @Inject
+  @Claim("stackgres_k8s_username")
+  String k8sUsername;
 
   @Inject
   NamespaceResource namespaces;
@@ -76,12 +81,15 @@ public class RbacResource {
   @Path("can-i/{verb}/{resource}")
   public Response verb(@PathParam("verb") String verb, @PathParam("resource") String resource,
       @QueryParam("namespace") String namespace, @QueryParam("group") Optional<String> group) {
-    LOGGER.debug("User to review access {}", user);
+
+    String impersonated = k8sUsername != null ? k8sUsername : identity.getPrincipal().getName();
+    LOGGER.debug("User to review access {}", impersonated);
+    // Connect with the serviceaccount permissions
     try (KubernetesClient client = kubernetesClientProvider.createDefault()) {
 
       SubjectAccessReview review = new SubjectAccessReviewBuilder()
           .withNewSpec()
-          .withUser(user)
+          .withUser(impersonated)
           .withNewResourceAttributes()
           .withNamespace(namespace)
           .withGroup(group.orElse(CommonDefinition.GROUP))
@@ -116,15 +124,18 @@ public class RbacResource {
   @GET
   @Path("can-i")
   public Response caniList() {
-    PermissionsListDto permissionsList = new PermissionsListDto();
+    String impersonated = k8sUsername != null ? k8sUsername : identity.getPrincipal().getName();
+    LOGGER.debug("User to review access {}", impersonated);
     try (KubernetesClient client = kubernetesClientProvider.createDefault()) {
-      permissionsList.setNamespaced(buildNamespacedPermissionList(client));
-      permissionsList.setUnnamespaced(buildUnnamespacedPermissionList(client));
+      return Response.ok(new PermissionsListDto(
+          buildUnnamespacedPermissionList(client, impersonated),
+          buildNamespacedPermissionList(client, impersonated)))
+          .build();
     }
-    return Response.ok(permissionsList).build();
   }
 
-  private Map<String, List<String>> buildUnnamespacedPermissionList(KubernetesClient client) {
+  private Map<String, List<String>> buildUnnamespacedPermissionList(
+      KubernetesClient client, String user) {
     Map<String, List<String>> resourceUnamespace = new HashMap<>();
 
     for (String rsUnnamespaced : getResourcesUnnamespaced()) {
@@ -138,10 +149,10 @@ public class RbacResource {
   }
 
   private List<PermissionsListDto.Namespaced> buildNamespacedPermissionList(
-      KubernetesClient client) {
+      KubernetesClient client, String user) {
     List<PermissionsListDto.Namespaced> listNamespaced = new ArrayList<>();
+
     for (String ns : namespaces.get()) {
-      PermissionsListDto.Namespaced permisionsNamespaced = new PermissionsListDto.Namespaced();
       Map<String, List<String>> resourceNamespace = new HashMap<>();
       for (String rsNamespaced : getResourcesNamespaced()) {
         String[] resource = rsNamespaced.split("\\.", 2);
@@ -149,33 +160,28 @@ public class RbacResource {
             resource.length == 2 ? resource[1] : "", getVerbs());
         resourceNamespace.put(resource[0], allowed);
       }
-      permisionsNamespaced.setNamespace(ns);
-      permisionsNamespaced.setResources(resourceNamespace);
-      listNamespaced.add(permisionsNamespaced);
+
+      listNamespaced.add(new PermissionsListDto.Namespaced(ns, resourceNamespace));
     }
     return listNamespaced;
   }
 
   protected List<String> getResourcesUnnamespaced() {
-    List<String> resourcesUnnamespaced =
-        List.of("namespaces", "storageclasses.storage.k8s.io");
-    return resourcesUnnamespaced;
+    return List.of("namespaces", "storageclasses.storage.k8s.io");
   }
 
   protected List<String> getResourcesNamespaced() {
-    List<String> resourcesNamespaced =
-        List.of("pods", "secrets", "configmaps", "events", "pods/exec",
-            HasMetadata.getFullResourceName(StackGresScript.class),
-            HasMetadata.getFullResourceName(StackGresObjectStorage.class),
-            HasMetadata.getFullResourceName(StackGresBackupConfig.class),
-            HasMetadata.getFullResourceName(StackGresBackup.class),
-            HasMetadata.getFullResourceName(StackGresCluster.class),
-            HasMetadata.getFullResourceName(StackGresDistributedLogs.class),
-            HasMetadata.getFullResourceName(StackGresProfile.class),
-            HasMetadata.getFullResourceName(StackGresDbOps.class),
-            HasMetadata.getFullResourceName(StackGresPostgresConfig.class),
-            HasMetadata.getFullResourceName(StackGresPoolingConfig.class));
-    return resourcesNamespaced;
+    return List.of("pods", "secrets", "configmaps", "events", "pods/exec",
+        HasMetadata.getFullResourceName(StackGresScript.class),
+        HasMetadata.getFullResourceName(StackGresObjectStorage.class),
+        HasMetadata.getFullResourceName(StackGresBackupConfig.class),
+        HasMetadata.getFullResourceName(StackGresBackup.class),
+        HasMetadata.getFullResourceName(StackGresCluster.class),
+        HasMetadata.getFullResourceName(StackGresDistributedLogs.class),
+        HasMetadata.getFullResourceName(StackGresProfile.class),
+        HasMetadata.getFullResourceName(StackGresDbOps.class),
+        HasMetadata.getFullResourceName(StackGresPostgresConfig.class),
+        HasMetadata.getFullResourceName(StackGresPoolingConfig.class));
   }
 
   private List<String> getVerbs() {

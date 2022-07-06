@@ -115,6 +115,28 @@ spec:
           - name: EXTENSIONS_REPOSITORY_URLS
             value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
           {{- end }}
+          {{- if .Values.authentication.type }}
+          - name: STACKGRES_AUTH_TYPE
+            value: "{{ .Values.authentication.type }}"
+          {{- end }}
+          {{- if eq .Values.authentication.type "oidc" }}
+          - name: QUARKUS_OIDC_APPLICATION_TYPE
+            value: "web-app"
+          - name: QUARKUS_OIDC_PUBLIC_KEY
+            value: ""
+          {{- if .Values.authentication.oidc.authServerUrl }}
+          - name: QUARKUS_OIDC_AUTH_SERVER_URL
+            value: "{{ .Values.authentication.oidc.authServerUrl }}"
+          {{- end }}
+          {{- if .Values.authentication.oidc.clientId }}
+          - name: QUARKUS_OIDC_CLIENT_ID
+            value: "{{ .Values.authentication.oidc.clientId }}"
+          {{- end }}
+          {{- if .Values.authentication.oidc.credentialsSecret }}
+          - name: QUARKUS_OIDC_CREDENTIALS_SECRET
+            value: "{{ .Values.authentication.oidc.credentialsSecret }}"
+          {{- end }}
+          {{- end }}
         ports:
         - containerPort: 8080
           name: "resthttp"

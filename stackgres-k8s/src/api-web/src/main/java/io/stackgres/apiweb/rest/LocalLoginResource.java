@@ -5,9 +5,12 @@
 
 package io.stackgres.apiweb.rest;
 
+import java.util.Map;
+
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.CacheControl;
@@ -16,6 +19,7 @@ import javax.ws.rs.core.Response.Status;
 
 import io.quarkus.security.AuthenticationFailedException;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
+import io.stackgres.apiweb.security.AuthConfig;
 import io.stackgres.apiweb.security.SecretVerification;
 import io.stackgres.apiweb.security.TokenResponse;
 import io.stackgres.apiweb.security.TokenUtils;
@@ -40,6 +44,9 @@ public class LocalLoginResource {
   @ConfigProperty(name = "smallrye.jwt.new-token.lifespan", defaultValue = "28800")
   long duration;
 
+  @Inject
+  AuthConfig config;
+
   @Operation(
       responses = {
           @ApiResponse(responseCode = "200", description = "OK",
@@ -53,9 +60,9 @@ public class LocalLoginResource {
   public Response login(@Valid UserPassword credentials) {
     try {
       String k8sUsername =
-          verify.verifyCredentials(credentials.getUserName(), credentials.getPassword());
+          verify.verifyCredentials(credentials.username(), credentials.password());
       LOGGER.info("Kubernetes user: {}", k8sUsername);
-      String accessToken = TokenUtils.generateTokenString(k8sUsername, credentials.getUserName());
+      String accessToken = TokenUtils.generateTokenString(k8sUsername, credentials.username());
 
       TokenResponse tokenResponse = new TokenResponse();
       tokenResponse.setAccessToken(accessToken);
@@ -70,6 +77,20 @@ public class LocalLoginResource {
           .cacheControl(noCache())
           .build();
     }
+  }
+
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK")
+      })
+  @CommonApiResponses
+  @GET
+  @Path("type")
+  public Response type() {
+    return Response.ok(Map.of("type", config.type()))
+        .cacheControl(noCache())
+        .header("WWW-Authenticate", config.type())
+        .build();
   }
 
   private CacheControl noCache() {

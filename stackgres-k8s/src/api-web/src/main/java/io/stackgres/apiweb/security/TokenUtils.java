@@ -28,6 +28,7 @@ public class TokenUtils {
     return Jwt.claims()
         .claim(Claims.jti.name(), UUID.randomUUID())
         .subject(k8sUsername)
+        .claim("stackgres_k8s_username", k8sUsername)
         .preferredUserName(preferredUsername)
         .jws()
         .sign();
@@ -36,8 +37,8 @@ public class TokenUtils {
   /**
    * Return SHA256 of a password.
    *
-   * @param password the password
-   * @return SHA256 of password
+   * @param  password the password
+   * @return          SHA256 of password
    */
   public static String sha256(String password) {
     return Hashing.sha256()
