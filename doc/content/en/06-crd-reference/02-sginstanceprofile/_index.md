@@ -19,10 +19,13 @@ ___
 
 **Spec**
 
-| Property | Required | Updatable | Default | Type   | Description |
-|:---------|----------|-----------|:--------|:-------|:------------|
-| cpu      |          | ✓         | 1       | string | {{< crd-field-description SGInstanceProfile.spec.cpu >}} |
-| memory   |          | ✓         | 2Gi     | string | {{< crd-field-description SGInstanceProfile.spec.memory >}} |
+| Property                           | Required | Updatable | Default | Type   | Description |
+|:-----------------------------------|----------|-----------|:--------|:-------|:------------|
+| cpu                                | ✓        | ✓         | 1       | string | {{< crd-field-description SGInstanceProfile.spec.cpu >}} |
+| memory                             | ✓        | ✓         | 2Gi     | string | {{< crd-field-description SGInstanceProfile.spec.memory >}} |
+| [hugePages](#huge-pages)           |          | ✓         |         | object | {{< crd-field-description SGInstanceProfile.spec.hugePages >}} |
+| [containers](#containers)          |          | ✓         | generated | object | {{< crd-field-description SGInstanceProfile.spec.containers >}} |
+| [initContainers](#init-containers) |          | ✓         | generated | object | {{< crd-field-description SGInstanceProfile.spec.initContainers >}} |
 
 Example:
 
@@ -35,3 +38,41 @@ apiVersion: stackgres.io/v1
     cpu: "4"
     memory: 8Gi
 ```
+
+## Huge Pages
+
+| Property                           | Required | Updatable | Default | Type   | Description |
+|:-----------------------------------|----------|-----------|:--------|:-------|:------------|
+| hugepages-2Mi                      |          | ✓         |         | string | {{< crd-field-description SGInstanceProfile.spec.hugePages.hugepages-2Mi >}} |
+| hugepages-1Gi                      |          | ✓         |         | string | {{< crd-field-description SGInstanceProfile.spec.hugePages.hugepages-1Gi >}} |
+
+## Containers
+
+| Property                                | Required | Updatable | Default | Type   | Description |
+|:----------------------------------------|----------|-----------|:--------|:-------|:------------|
+| memory                                  |          | ✓         |         | string | {{< crd-field-description SGInstanceProfile.spec.containers.cpu >}} |
+| cpu                                     |          | ✓         |         | string | {{< crd-field-description SGInstanceProfile.spec.containers.memory >}} |
+| [hugePages](#huge-pages-for-containers) |          | ✓         |         | string | {{< crd-field-description SGInstanceProfile.spec.containers.hugePages >}} |
+
+### Huge Pages for Containers
+
+| Property                           | Required | Updatable | Default | Type   | Description |
+|:-----------------------------------|----------|-----------|:--------|:-------|:------------|
+| hugepages-2Mi                      |          | ✓         |         | string | {{< crd-field-description SGInstanceProfile.spec.containers.hugePages.hugepages-2Mi >}} |
+| hugepages-1Gi                      |          | ✓         |         | string | {{< crd-field-description SGInstanceProfile.spec.containers.hugePages.hugepages-1Gi >}} |
+
+## Init Containers
+
+| Property                                     | Required | Updatable | Default | Type   | Description |
+|:---------------------------------------------|----------|-----------|:--------|:-------|:------------|
+| memory                                          |          | ✓         |         | string | {{< crd-field-description SGInstanceProfile.spec.initContainers.cpu >}} |
+| cpu                                          |          | ✓         |         | string | {{< crd-field-description SGInstanceProfile.spec.initContainers.memory >}} |
+| [hugePages](#huge-pages-for-init-containers) |          | ✓         |         | string | {{< crd-field-description SGInstanceProfile.spec.initContainers.hugePages >}} |
+
+### Huge Pages for Init Containers
+
+| Property                           | Required | Updatable | Default | Type   | Description |
+|:-----------------------------------|----------|-----------|:--------|:-------|:------------|
+| hugepages-2Mi                      |          | ✓         |         | string | {{< crd-field-description SGInstanceProfile.spec.initContainers.hugePages.hugepages-2Mi >}} |
+| hugepages-1Gi                      |          | ✓         |         | string | {{< crd-field-description SGInstanceProfile.spec.initContainers.hugePages.hugepages-1Gi >}} |
+
