@@ -823,7 +823,7 @@ spec:
 EOF
 
   local CREATED_PGCONFIG
-  CREATED_PGCONFIG="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.configurations.sgPostgresConfig}')"
+  CREATED_PGCONFIG="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o='jsonpath={.spec.configurations.sgPostgresConfig}')"
 
   if kubectl get sgpgconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PGCONFIG"
   then
@@ -845,7 +845,7 @@ EOF
   fi
 
   local CREATED_PROFILE
-  CREATED_PROFILE="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o='jsonpath={.spec.sgInstanceProfile}')"
+  CREATED_PROFILE="$(kubectl get sgdistributedlogs.stackgres.io -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o='jsonpath={.spec.sgInstanceProfile}')"
 
   if kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$CREATED_PROFILE"
   then

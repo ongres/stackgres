@@ -8,10 +8,7 @@ package io.stackgres.common;
 import static io.stackgres.common.resource.ResourceUtil.MEBIBYTES;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 import java.util.function.Function;
-
-import io.fabric8.kubernetes.client.CustomResource;
 
 public enum StackGresInitContainer implements StackGresContainerProfile {
 
@@ -44,9 +41,8 @@ public enum StackGresInitContainer implements StackGresContainerProfile {
       cpu -> cpu,
       memory -> memory),
   DBOPS_SET_DBOPS_RUNNING(StackGresKind.DBOPS, "set-dbops-running",
-      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
-          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
-      memory -> BigDecimal.valueOf(8).multiply(MEBIBYTES));
+      cpu -> BigDecimal.ONE,
+      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES));
 
   private final StackGresKind kind;
   private final String name;
@@ -85,16 +81,6 @@ public enum StackGresInitContainer implements StackGresContainerProfile {
   @Override
   public String toString() {
     return getName();
-  }
-
-  public static StackGresInitContainer getFromNameWithPrefixFor(
-      Class<? extends CustomResource<?, ?>> kind, String nameWithPrefix) {
-    for (StackGresInitContainer container : values()) {
-      if (Objects.equals(container.getNameWithPrefix(), nameWithPrefix)) {
-        return container;
-      }
-    }
-    return null;
   }
 
 }

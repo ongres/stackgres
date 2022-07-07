@@ -78,16 +78,16 @@
             "memory": "8Mi"
           },
           "dbops.run-dbops": {
-            "cpu": "250m",
-            "memory": "8Mi"
+            "cpu": "1",
+            "memory": "64Mi"
           },
           "dbops.set-dbops-result": {
-            "cpu": "250m",
-            "memory": "8Mi"
+            "cpu": "1",
+            "memory": "64Mi"
           },
           "backup.create-backup": {
-            "cpu": "250m",
-            "memory": "8Mi"
+            "cpu": "1",
+            "memory": "64Mi"
           }
         },
         "initContainers": {
@@ -128,8 +128,8 @@
             "memory": "512Mi"
           },
           "dbops.set-dbops-running": {
-            "cpu": "250m",
-            "memory": "8Mi"
+            "cpu": "1",
+            "memory": "64Mi"
           }
         }
       }

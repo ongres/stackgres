@@ -9,10 +9,7 @@ import static io.stackgres.common.resource.ResourceUtil.GIBIBYTES;
 import static io.stackgres.common.resource.ResourceUtil.MEBIBYTES;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 import java.util.function.Function;
-
-import io.fabric8.kubernetes.client.CustomResource;
 
 public enum StackGresContainer implements StackGresContainerProfile {
 
@@ -57,19 +54,16 @@ public enum StackGresContainer implements StackGresContainerProfile {
       memory -> BigDecimal.valueOf(512).multiply(MEBIBYTES)
       ),
   DBOPS_RUN_DBOPS(StackGresKind.DBOPS, "run-dbops",
-      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
-          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
-      memory -> BigDecimal.valueOf(8).multiply(MEBIBYTES)
+      cpu -> BigDecimal.ONE,
+      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
       ),
   DBOPS_SET_DBOPS_RESULT(StackGresKind.DBOPS, "set-dbops-result",
-      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
-          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
-      memory -> BigDecimal.valueOf(8).multiply(MEBIBYTES)
+      cpu -> BigDecimal.ONE,
+      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
       ),
   BACKUP_CREATE_BACKUP(StackGresKind.BACKUP, "create-backup",
-      cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
-          .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
-      memory -> BigDecimal.valueOf(8).multiply(MEBIBYTES)
+      cpu -> BigDecimal.ONE,
+      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
       );
 
   private final StackGresKind kind;
@@ -109,16 +103,6 @@ public enum StackGresContainer implements StackGresContainerProfile {
   @Override
   public String toString() {
     return getName();
-  }
-
-  public static StackGresContainer getFromNameWithPrefixFor(
-      Class<? extends CustomResource<?, ?>> kind, String nameWithPrefix) {
-    for (StackGresContainer container : values()) {
-      if (Objects.equals(container.getNameWithPrefix(), nameWithPrefix)) {
-        return container;
-      }
-    }
-    return null;
   }
 
 }
