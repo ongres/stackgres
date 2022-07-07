@@ -22,14 +22,14 @@ traceable_setup_repository_cache() {
 set_up_private_repository() {
   export PRIVATE_REPO_URI="$(get_private_repository_uri)"
   export PRIVATE_REPO_USER="$(get_private_repository_user)"
-  export PRIVATE_OPERATOR_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH}operator:$IMAGE_TAG"
-  export PRIVATE_RESTAPI_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH}restapi:$IMAGE_TAG"
-  export PRIVATE_ADMINUI_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH}admin-ui:$ADMINUI_IMAGE_TAG"
-  export PRIVATE_JOBS_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH}jobs:$IMAGE_TAG"
-  export PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH}cluster-controller:$IMAGE_TAG"
-  export PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH}distributedlogs-controller:$IMAGE_TAG"
+  export PRIVATE_OPERATOR_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH%/}/operator:$IMAGE_TAG"
+  export PRIVATE_RESTAPI_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH%/}/restapi:$IMAGE_TAG"
+  export PRIVATE_ADMINUI_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH%/}/admin-ui:$ADMINUI_IMAGE_TAG"
+  export PRIVATE_JOBS_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH%/}/jobs:$IMAGE_TAG"
+  export PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH%/}/cluster-controller:$IMAGE_TAG"
+  export PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${PRIVATE_REPO_URI}${OPERATOR_PUBLIC_REGISTRY_PATH%/}/distributedlogs-controller:$IMAGE_TAG"
 
-  if [ "$E2E_FORCE_IMAGE_PULL" != "true" ]
+  if ! use_alternative_registry
   then
     get_private_repository_password | docker login --username AWS --password-stdin "$PRIVATE_REPO_URI"
 
@@ -44,7 +44,7 @@ set_up_private_repository() {
     for NAME in operator restapi admin-ui jobs \
       cluster-controller distributedlogs-controller
     do
-      if ! aws ecr describe-repositories --repository-name "stackgres/$NAME" > /dev/null
+      if ! aws ecr describe-repositories --repository-name "stackgres/$NAME" > /dev/null 2>&1
       then
         aws ecr create-repository --repository-name "stackgres/$NAME"
       fi
@@ -58,7 +58,7 @@ set_up_private_repository() {
     docker push "$PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
   fi
 
-  if kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null
+  if kubectl get namespace "$OPERATOR_NAMESPACE" > /dev/null 2>&1
   then  
     kubectl get secret -n "$OPERATOR_NAMESPACE" regcred > /dev/null && kubectl delete secret -n "$OPERATOR_NAMESPACE" regcred
     kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" regcred \
@@ -73,7 +73,7 @@ set_up_private_repository() {
     --docker-password="$(get_private_repository_password)"
   fi
 
-  if kubectl get serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-operator > /dev/null
+  if kubectl get serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-operator > /dev/null 2>&1
   then
     kubectl delete serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-operator
     cat <<EOF | kubectl apply -f -
@@ -87,7 +87,7 @@ imagePullSecrets:
 EOF
   fi
 
-  if kubectl get serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-restapi > /dev/null
+  if kubectl get serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-restapi > /dev/null 2>&1
   then
     kubectl delete serviceaccount -n "$OPERATOR_NAMESPACE" stackgres-restapi
     cat <<EOF | kubectl apply -f -
@@ -100,24 +100,23 @@ imagePullSecrets:
 - name: regcred
 EOF
   fi
-
 }
 
 get_private_repository_uri() {
-  if [ "$E2E_FORCE_IMAGE_PULL" != "true" ]
+  if use_alternative_registry
   then
+    echo "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+  else
     local AWS_ACCOUNT_ID AWS_REGION
     AWS_ACCOUNT_ID="$(aws --output=text sts get-caller-identity | awk '{print $1}')"
     AWS_REGION="$(aws configure get region)"
 
     echo "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
-  else
-    echo "$E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
   fi
 }
 
 get_private_repository_user() {
-  if [ "$E2E_FORCE_IMAGE_PULL" != "true" ]
+  if use_alternative_registry
   then
     echo AWS
   else
@@ -128,14 +127,18 @@ get_private_repository_user() {
 }
 
 get_private_repository_password() {
-  if [ "$E2E_FORCE_IMAGE_PULL" != "true" ]
+  if use_alternative_registry
   then
-    echo "$(aws ecr get-login-password)"
-  else
     jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json" \
       | grep -F 'registry.gitlab.com' | head -n 1 | cut -d '|' -f 2 \
       | base64 -d | cut -d : -f 2
+  else
+    echo "$(aws ecr get-login-password)"
   fi
+}
+
+use_alternative_registry() {
+  [ "$E2E_BUILD_IMAGES" = true ] || [ "$E2E_USE_ALTERNATIVE_REGISTRY" = true ]
 }
 
 load_cached_images_from_local_repository() {
@@ -148,12 +151,12 @@ load_cached_images_from_local_repository() {
     | grep -v ":$OPERATOR_PUBLIC_REGISTRY$OPERATOR_PUBLIC_REGISTRY_PATH" \
     | if [ "$OPERATOR_PUBLIC_REGISTRY" = docker.io ]
       then
-        grep -v ":${OPERATOR_PUBLIC_REGISTRY_PATH#/}"
+        grep -v ":${OPERATOR_PUBLIC_REGISTRY_PATH%/}/"
       fi \
     | grep -v ":$COMPONENT_PUBLIC_REGISTRY$COMPONENT_PUBLIC_REGISTRY_PATH" \
     | if [ "$COMPONENT_PUBLIC_REGISTRY" = docker.io ]
       then
-        grep -v ":${COMPONENT_PUBLIC_REGISTRY_PATH#/}"
+        grep -v ":${COMPONENT_PUBLIC_REGISTRY_PATH%/}/"
       fi \
     | cut -d : -f 2-3 | sort | uniq \
     | xargs_parallel_shell % "$E2E_PATH/e2e" load_cached_image_from_local_repository '%'

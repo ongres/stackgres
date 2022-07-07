@@ -29,12 +29,6 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end}}
       serviceAccountName: {{ .Release.Name }}
-      securityContext:
-        {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
-        runAsUser: 999
-        runAsGroup: 999
-        fsGroup: 999
-        {{- end }}
       {{- if .Values.serviceAccount.create }}
       {{- if .Values.serviceAccount.repoCredentials }}
       imagePullSecrets:
@@ -47,17 +41,24 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end}}
+      securityContext:
+        {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
+        runAsNonRoot: true
+        {{- if .Values.operator.image.tag | hasSuffix "-jvm" }}
+        runAsUser: 185
+        runAsGroup: 185
+        fsGroup: 185
+        {{- else }}
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        {{- end }}
+        {{- end }}
       containers:
       {{- if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}
       - name: {{ .Release.Name }}
         image: "{{ .Values.operator.image.name }}:{{ .Values.operator.image.tag }}"
         imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
-        securityContext:
-          {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
-          runAsNonRoot: true
-          runAsUser: 185
-          runAsGroup: 185
-          {{- end }}
         env:
           - name: OPERATOR_NAME
             value: "{{ .Release.Name }}"

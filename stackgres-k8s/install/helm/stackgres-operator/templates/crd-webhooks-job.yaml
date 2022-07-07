@@ -38,6 +38,20 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      securityContext:
+        {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
+        {{- if .Values.jobs.image.tag | hasSuffix "-jvm" }}
+        runAsNonRoot: true
+        runAsUser: 185
+        runAsGroup: 185
+        fsGroup: 185
+        {{- else }}
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        {{- end }}
+        {{- end }}
       containers:
       - name: "conversion-webhooks"
         image: "{{ .Values.jobs.image.name }}:{{ .Values.jobs.image.tag }}"
