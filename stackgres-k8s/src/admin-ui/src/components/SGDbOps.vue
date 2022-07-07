@@ -521,6 +521,31 @@
                         </tbody>
                     </table>
 
+                    <table v-if="hasProp(op, 'data.spec.scheduling.tolerations')" class="crdDetails">
+                            <thead>
+                                <th colspan="3" class="label">
+                                    Tolerations
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.scheduling.tolerations')"></span>
+                                </th>
+                            </thead>
+                            <tbody>
+                                <template v-for="(item, index) in op.data.spec.scheduling.tolerations">
+                                    <tr v-for="(value, prop, i) in item">
+                                        <td class="label" :rowspan="Object.keys(item).length" v-if="!i">
+                                            Toleration #{{ index+1 }}
+                                        </td>
+                                        <td class="label capitalize">
+                                            {{ prop == 'tolerationSeconds' ? 'Toleration Seconds' : prop }}
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.scheduling.tolerations.'+prop)"></span>
+                                        </td>
+                                        <td colspan="2" :class="prop">
+                                            {{ value }}
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+
                     <h2 class="capitalize">
                         {{ op.data.spec.op }} Specs
                     </h2>
