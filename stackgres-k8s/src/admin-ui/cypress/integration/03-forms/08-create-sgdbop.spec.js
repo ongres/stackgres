@@ -561,5 +561,37 @@ describe('Create SGDbOp', () => {
         cy.get('.optionBoxes label')
             .should('not.have.class', 'notValid')
     });
+
+    it('Creating a SGDbOps with tolerations should be pssible', () => {
+        // Test target SGCluster
+        cy.get('select[data-field="spec.sgCluster"]')
+            .select(clusterName)
+
+        // Test Restart input
+        cy.get('label[for="restart"]')
+            .click()
+        
+        // Tests Node Tolerations
+        cy.get('input[data-field="spec.scheduling.tolerations[0].key"]')
+            .type('key')
+        
+        cy.get('input[data-field="spec.scheduling.tolerations[0].value"]')
+            .type('value')
+    
+        cy.get('select[data-field="spec.scheduling.tolerations[0].effect"]')
+            .select('NoSchedule')
+        
+        // Test Submit form
+        cy.get('form#createDbops button[type="submit"]')
+            .click()
+        
+        cy.get('#notifications .message.show .title')
+            .should(($notification) => {
+                expect($notification).contain('created successfully')
+            })
+        
+        // Test user redirection
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgdbops')
+    });
     
   })
