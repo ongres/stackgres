@@ -86,7 +86,7 @@
                                         <strong class="label">Effect:</strong>
                                         <span class="value">{{ toleration.effect ? toleration.effect : 'MatchAll' }}</span>
                                     </li>
-                                    <li v-if="(toleration.hasOwnProperty('tolerationSeconds')) && (toleration.tolerationSeconds != null)">
+                                    <li v-if="( toleration.hasOwnProperty('tolerationSeconds') && (toleration.tolerationSeconds != null) )">
                                         <strong class="label">Toleration Seconds:</strong>
                                         <span class="value">{{ toleration.tolerationSeconds }}</span>
                                     </li>
