@@ -82,13 +82,23 @@ deploy:
 
 cert:
   autoapprove: true
-  reset: false
+  createForOperator: true
+  createForWebApi: true
+  resetCerts: false
+  # secretName:
+  # webSecretName:
   # key:
   # crt:
   # jwtRsaKey:
   # jwtRsaPub:
   # webKey:
   # webCrt:
+  certManager:
+    autoConfigure: false
+    duration: "2160h"
+    renewBefore: "360h"
+    encoding: PKCS1
+    size: 2048
 
 # Custom credentials for the operator's admin user
 authentication:

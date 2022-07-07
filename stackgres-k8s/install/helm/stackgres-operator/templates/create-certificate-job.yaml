@@ -1,5 +1,5 @@
-{{- if or .Release.IsInstall (eq "true" (include "stackgres.operator.resetCert" .)) }}
-{{- if and (or (not .Values.cert.key) (not .Values.cert.crt) (not .Values.cert.webKey) (not .Values.cert.webCrt)) ( or .Values.deploy.operator .Values.deploy.restapi ) }}
+{{- if or .Release.IsInstall (eq "true" (include "stackgres.operator.resetCerts" .)) }}
+{{- if and (or (not .Values.cert.key) (not .Values.cert.crt) (not .Values.cert.webKey) (not .Values.cert.webCrt)) (or .Values.deploy.operator .Values.deploy.restapi) (or (and .Values.cert.createForOperator (not .Values.cert.certManager.autoConfigure)) .Values.cert.createForWebApi) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -47,6 +47,7 @@ spec:
           - "/bin/bash"
           - "-ecx"
           - |
+            {{- if and .Values.cert.createForOperator (not .Values.cert.certManager.autoConfigure) }}
             {{- if or (not .Values.cert.key) (not .Values.cert.crt) }}
             kubectl delete csr --ignore-not-found '{{ .Release.Name }}'
             cat << EOF > /tmp/csr.conf
@@ -127,7 +128,7 @@ spec:
               until kubectl get csr '{{ .Release.Name }}' -o yaml|grep -q '^    type: Approved$'
               do
                 echo -n .
-                sleep 5
+                sleep 2
               done
               echo "approved"
             fi
@@ -137,13 +138,13 @@ spec:
               | grep -q '^true$'
             do
               echo -n .
-              sleep 5
+              sleep 2
             done
             echo "certificate generated"
             
             KEY="$(cat /tmp/root.key | base64 | tr -d '\n')"
             PUB="$(cat /tmp/root.pem | base64 | tr -d '\n')"
-            CRT="$(kubectl get csr '{{ .Release.Name }}' --template '{{ "{{ .status.certificate }}" }}')"
+            CRT="$(kubectl get csr '{{ .Release.Name }}' --template '{{ "{{ .status.certificate }}" }}' | tr -d '\n')"
             
             if [ -z "$CRT" ]
             then
@@ -153,22 +154,50 @@ spec:
             
             {{- $_ := set .Values.cert "crt" "${CRT}" }}
             {{- $_ := set .Values.cert "key" "${KEY}" }}
+            cat << EOF > /tmp/certificate-secret.yaml
+            {{- include (print $.Template.BasePath "/certificate-secret.yaml") . | indent 12 }}
+            EOF
             cat << EOF > /tmp/validating-webhook-configuration.yaml
             {{- include (print $.Template.BasePath "/validating-webhook-configuration.yaml") . | indent 12 }}
             EOF
             cat << EOF > /tmp/mutating-webhook-configuration.yaml
             {{- include (print $.Template.BasePath "/mutating-webhook-configuration.yaml") . | indent 12 }}
             EOF
-            cat << EOF > /tmp/certificate-secret.yaml
-            {{- include (print $.Template.BasePath "/certificate-secret.yaml") . | indent 12 }}
+            {{- $_ := set .Values.cert "crt" nil }}
+            {{- $_ := set .Values.cert "key" nil }}
+            
+            kubectl delete -f /tmp/certificate-secret.yaml --ignore-not-found
+            kubectl apply -f /tmp/certificate-secret.yaml
+            kubectl apply -f /tmp/validating-webhook-configuration.yaml
+            kubectl apply -f /tmp/mutating-webhook-configuration.yaml
+            {{- end }}
+            {{- else }}
+            echo -n "Waiting for secret {{ include "cert-name" . }} to be available..."
+            until kubectl get secret -n '{{ .Release.Namespace }}' '{{ include "cert-name" . }}' \
+              --template '{{ "{{ if .data }}{{ if and (index .data \"tls.key\") (index .data \"tls.crt\") }}true{{ end }}{{ end }}" }}' \
+              | grep -q '^true$'
+            do
+              echo -n .
+              sleep 2
+            done
+            echo "secret available"
+            KEY="$(kubectl get secret -n '{{ .Release.Namespace }}' '{{ include "cert-name" . }}' --template '{{ "{{ (index .data \"tls.key\") }}" }}' | tr -d '\n')"
+            CRT="$(kubectl get secret -n '{{ .Release.Namespace }}' '{{ include "cert-name" . }}' --template '{{ "{{ (index .data \"tls.crt\") }}" }}' | tr -d '\n')"
+            {{- $_ := set .Values.cert "crt" "${CRT}" }}
+            {{- $_ := set .Values.cert "key" "${KEY}" }}
+            cat << EOF > /tmp/validating-webhook-configuration.yaml
+            {{- include (print $.Template.BasePath "/validating-webhook-configuration.yaml") . | indent 12 }}
+            EOF
+            cat << EOF > /tmp/mutating-webhook-configuration.yaml
+            {{- include (print $.Template.BasePath "/mutating-webhook-configuration.yaml") . | indent 12 }}
             EOF
             {{- $_ := set .Values.cert "crt" nil }}
             {{- $_ := set .Values.cert "key" nil }}
             
             kubectl apply -f /tmp/validating-webhook-configuration.yaml
             kubectl apply -f /tmp/mutating-webhook-configuration.yaml
-            kubectl apply -f /tmp/certificate-secret.yaml
             {{- end }}
+            {{- if .Values.cert.createForWebApi }}
             {{- if or (not .Values.cert.webKey) (not .Values.cert.webCrt) }}
             cat << EOF > /tmp/csr-web.conf
             [req]
@@ -209,7 +238,9 @@ spec:
             {{- $_ := set .Values.cert "jwtRsaKey" nil }}
             {{- $_ := set .Values.cert "jwtRsaPub" nil }}
             
+            kubectl delete -f /tmp/web-certificate-secret.yaml --ignore-not-found
             kubectl apply -f /tmp/web-certificate-secret.yaml
+            {{- end }}
             {{- end }}
 {{- end }}
 {{- end }}

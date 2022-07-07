@@ -1,0 +1,23 @@
+#!/bin/sh
+
+cert_manager_namespace() {
+  echo "$CLUSTER_NAMESPACE-cert-manager"
+}
+
+install_cert_manager() {
+  helm install cert-manager "$E2E_PATH/helm/cert-manager-v1.8.2.tgz" \
+    --create-namespace \
+    --namespace "$(cert_manager_namespace)" \
+    --create-namespace \
+    --set installCRDs=true \
+    --set prometheus.enabled=false \
+    "$@"
+
+  wait_pods_running "$(cert_manager_namespace)" 3
+}
+
+uninstall_cert_manager() {
+  helm_cleanup_chart cert-manager "$(cert_manager_namespace)"
+  k8s_async_cleanup_namespace "$(cert_manager_namespace)"
+  kubectl delete apiservice v1beta1.webhook.cert-manager.io --ignore-not-found
+}

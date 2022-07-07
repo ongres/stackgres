@@ -121,7 +121,9 @@ public class AbstractClusterAnnotationDecorator
     return ImmutableMap.<String, String>builder()
         .putAll(getAllResourcesAnnotations(context))
         .putAll(podSpecificAnnotations)
-        .put(StackGresContext.VERSION_KEY, clusterAnnotations.get(StackGresContext.VERSION_KEY))
+        .put(StackGresContext.VERSION_KEY,
+            Optional.ofNullable(clusterAnnotations.get(StackGresContext.VERSION_KEY))
+            .orElse(StackGresProperty.OPERATOR_VERSION.getString()))
         .build();
   }
 

@@ -16,7 +16,7 @@ metadata:
   name: {{ .Values.restapi.name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: {{ if or (eq "true" (include "stackgres.operator.resetCert" .)) (eq "true" (include "stackgres.operator.upgradeCrds" .)) }}0{{ else }}1{{ end }}
+  replicas: {{ if or (eq "true" (include "stackgres.operator.resetCerts" .)) (eq "true" (include "stackgres.operator.upgradeCrds" .)) }}0{{ else }}1{{ end }}
   selector:
     matchLabels:
       app: {{ .Values.restapi.name }}
@@ -131,7 +131,7 @@ spec:
         {{- with .Values.restapi.resources }}
         resources:
         {{- toYaml . | nindent 10 }}
-        {{- end }}          
+        {{- end }}
         volumeMounts:
           - name: web-certs
             mountPath: /etc/operator/certs
@@ -204,7 +204,7 @@ spec:
         {{- with .Values.adminui.resources }}
         resources:
         {{- toYaml . | nindent 10 }}
-        {{- end }}             
+        {{- end }}
         volumeMounts:
           - name: web-certs
             mountPath: /etc/operator/certs
@@ -235,12 +235,12 @@ spec:
       volumes:
         - name: web-certs
           secret:
-            secretName: {{ .Release.Name }}-web-certs
+            secretName: {{ include "web-cert-name" . }}
             optional: false
             items:
-              - key: root.key
+              - key: tls.key
                 path: root.key
-              - key: server.crt
+              - key: tls.crt
                 path: server.crt
               - key: jwt-rsa.key
                 path: jwt-rsa.key
