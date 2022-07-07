@@ -3,6 +3,7 @@
 event_watch() {
   local NAMESPACE="--all-namespaces"
   local OUTPUT=wide
+  local FOLLOW=false
   while [ "$#" -gt 0 ]
   do
     case "$1" in
@@ -16,20 +17,31 @@ event_watch() {
         OUTPUT="$1"
         shift
         ;;
+      -f|--follow)
+        shift
+        FOLLOW="true"
+        ;;
       *)
-        echo >&2 "Unknown parameter $1 (use: --namespace <namespace>;)"
+        echo >&2 "Unknown parameter $1 (use: --namespace <namespace>; -o <output>; -f|--follow)"
         return 1
         ;;
     esac
   done
-  trap_exec kubectl get event "$NAMESPACE" --watch-only --no-headers -o json \
-    | jq --unbuffered -r '.metadata.namespace + "/" + .metadata.name' \
-    | xargs_shell % -ec "kubectl get event -o '$OUTPUT' --no-headers -n \"\$(echo '%' | cut -d '/' -f 1)\" \"\$(echo '%' | cut -d '/' -f 2)\" 2>/dev/null || true" \
-    | (
+  trap_exec kubectl get event "$NAMESPACE" -o json \
+      $(if [ "$FOLLOW" = true ]; then printf %s --watch; fi) \
+    | jq --unbuffered -r "$(if [ "$FOLLOW" != true ]; then printf '.items[]|'; fi)"'.metadata.namespace + " " + .metadata.name' \
+    | {
       set +x
-      while IFS="$(printf '\n')" read EVENT
+      while read -r NAMESPACE NAME
       do
-        echo_raw "$(date --iso-8601=seconds) $EVENT"
+        echo "$NAMESPACE $(kubectl get event -o "$OUTPUT" --no-headers -n "$NAMESPACE" "$NAME" 2>/dev/null || true)"
       done
-      )
+      } \
+    | {
+      set +x
+      while IFS="$NEWLINE_IFS" read -r EVENT
+      do
+        printf '%s\n' "$(date --iso-8601=seconds) $EVENT"
+      done
+      }
 }

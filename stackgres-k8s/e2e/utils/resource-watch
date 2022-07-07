@@ -16,6 +16,7 @@ resource_watch() {
   local KIND_PID_PATH
   local RUNNING_KIND_PIDS
   local EXCLUDED_FILTERED_KIND
+  local FOLLOW=false
   EXCLUDED_FILTERED_KIND="^\(bindings\|componentstatuses"
   EXCLUDED_FILTERED_KIND="$EXCLUDED_FILTERED_KIND\|localsubjectaccessreviews\.authorization\.k8s\.io"
   EXCLUDED_FILTERED_KIND="$EXCLUDED_FILTERED_KIND\|selfsubjectaccessreviews\.authorization\.k8s\.io"
@@ -50,6 +51,10 @@ resource_watch() {
         LOG_IN_PATH="$1"
         shift
         ;;
+      -f|--follow)
+        shift
+        FOLLOW="true"
+        ;;
       *)
         echo >&2 "Unknown parameter $1 (use: --namespace <namespace>; --kind <kind>; --name <name>)"
         return 1
@@ -65,17 +70,28 @@ resource_watch() {
       KIND="${KIND_PID%:*}"
       if [ -z "${KIND_PID#*:}" ] || ! kill -0 "${KIND_PID#*:}" >/dev/null 2>&1
       then
-        echo "Start watching $KIND..."
+        if [ "$FOLLOW" = true ]
+        then
+          echo "Start watching $KIND..."
+        fi
         KIND_PID_PATH="$TARGET_PATH/resource-$KIND-watch.pid"
         resource_kind_watch_in_trap -k "$KIND" -p "$KIND_PID_PATH" \
-          $([ -z "$NAMESPACE" ] || printf '-n %s' "$NAMESPACE") \
-          $([ "$LOG_IN_FILES" != true ] || printf '-F') -P "$LOG_IN_PATH" \
-          $([ -z "$FILTERED_NAME" ] || printf '--name %s' "$FILTERED_NAME")
+          $([ -z "$NAMESPACE" ] || printf '%s %s' -n "$NAMESPACE") \
+          $([ "$LOG_IN_FILES" != true ] || printf %s '-F') -P "$LOG_IN_PATH" \
+          $([ -z "$FILTERED_NAME" ] || printf '%s %s' --name "$FILTERED_NAME") \
+          $(if [ "$FOLLOW" = true ]; then printf %s -f; fi)
         KIND_PID="$KIND:$(cat "$KIND_PID_PATH")"
       fi
       RUNNING_KIND_PIDS="$RUNNING_KIND_PIDS $KIND_PID"
     done
-    [ -z "$RUNNING_KIND_PIDS" ] || sleep 10
+    if [ -n "$RUNNING_KIND_PIDS" ]
+    then
+      if [ "$FOLLOW" != true ]
+      then
+        break
+      fi
+      sleep 10
+    fi
     KIND_PIDS="$RUNNING_KIND_PIDS"
     ALL_KIND_PIDS="$(kubectl api-resources -o name \
       | grep -v "$EXCLUDED_FILTERED_KIND" \
@@ -102,6 +118,7 @@ resource_kind_watch_in_trap() {
   local KIND_PID
   local KIND_PIDS
   local KIND_PID_PATH
+  local FOLLOW=false
   while [ "$#" -gt 0 ]
   do
     case "$1" in
@@ -135,36 +152,42 @@ resource_kind_watch_in_trap() {
         LOG_IN_PATH="$1"
         shift
         ;;
+      -f|--follow)
+        shift
+        FOLLOW="true"
+        ;;
       *)
         echo >&2 "Unknown parameter $1 (use: --namespace <namespace>; --kind <kind>; --name <name>)"
         return 1
         ;;
     esac
   done
-  local JQ_QUERY=.
+  local JQ_QUERY="$(if [ "$FOLLOW" != true ]; then printf '.items[]'; else printf '.'; fi)"
   if [ -n "$FILTERED_NAME" ]
   then
     JQ_QUERY="$JQ_QUERY|select(.metadata.name|test($FILTERED_NAME))"
   fi
   trap_exec kubectl get "$KIND" \
-    $(if [ -z "$NAMESPACE" ]; then echo '--all-namespaces'; else echo '-n '"$NAMESPACE"; fi) \
-    -o json --watch-only \
+      $(if [ -z "$NAMESPACE" ]; then echo '--all-namespaces'; else echo '-n '"$NAMESPACE"; fi) \
+      -o json \
+      $(if [ "$FOLLOW" = true ]; then printf %s --watch-only; fi) \
     | jq --unbuffered -c "$JQ_QUERY|@base64" \
-    | (
+    | {
       set +x
       while IFS="$(printf '\n')" read -r RESOURCE
       do
-        ID="$(echo "$RESOURCE" | jq -r '@base64d' | jq -r '.metadata.namespace + ":" + .metadata.name')"
-        NAMESPACE="${ID%:*}"
-        NAME="${ID#*:}"
-        if "$LOG_IN_FILES"
-        then
-          mkdir -p "$LOG_IN_PATH/$NAMESPACE/$KIND"
-          echo "$RESOURCE" | jq -r '@base64d' | jq . >> "$LOG_IN_PATH/$NAMESPACE/$KIND/$NAME.log" || true
-        else
-          echo "$RESOURCE" | jq -r '@base64d' | jq . || true
-        fi
+        echo "$RESOURCE" | jq -r '@base64d' | jq -r '.metadata.name + " " + .metadata.namespace' \
+          | while read -r NAME NAMESPACE
+            do
+              if "$LOG_IN_FILES"
+              then
+                mkdir -p "$LOG_IN_PATH/$NAMESPACE/$KIND"
+                printf %s "$RESOURCE" | jq -r '@base64d' | jq . >> "$LOG_IN_PATH/$NAMESPACE/$KIND/$NAME.log" || true
+              else
+                printf %s "$RESOURCE" | jq -r '@base64d' | jq . || true
+              fi
+            done
       done
-      ) &
-  printf '%s' "$!" > "$KIND_PID_PATH"
+      } &
+  printf %s "$!" > "$KIND_PID_PATH"
 }

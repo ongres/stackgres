@@ -251,6 +251,21 @@ do
     fi
     if "$BATCH_FAILED"
     then
+      if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_RESOURCE_LOGS" = "true" ]
+      then
+        echo "Snapshotting resources"
+        resource_watch --log-in-files > "$LOG_PATH/all_resources.log" 2>/dev/null || true
+      fi
+      if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_POD_LOGS" = "true" ]
+      then
+        echo "Snapshotting pods logs"
+        pod_logs --log-in-files > "$LOG_PATH/all_pods.log" 2>/dev/null || true
+      fi
+      if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_EVENT_LOGS" = "true" ]
+      then
+        echo "Snapshotting events"
+        event_watch -o wide >> "$TARGET_PATH/events.log" 2>/dev/null || true
+      fi
       if [ "$((COUNT%E2E_PARALLELISM))" -ne 0 ]
       then
         PAD_COUNT="$((E2E_PARALLELISM - COUNT%E2E_PARALLELISM))"
@@ -319,6 +334,7 @@ EOF
     done
     SPECS_TO_RUN=""
   fi
+  k8s_cleanup_but_operator
 done
 
 cat << EOF > "$TARGET_PATH/e2e-tests-junit-report.xml"
