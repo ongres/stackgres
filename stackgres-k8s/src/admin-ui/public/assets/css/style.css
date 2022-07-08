@@ -3441,11 +3441,11 @@ table.clusterConfig a:hover {
     color: var(--blue);
 }
 
-table.clusterConfig a:hover svg, td.usedOn a:hover svg path{
+table.clusterConfig a:hover svg, td.usedOn a:hover svg path, td.hasLink a:hover svg{
     fill: var(--lblue) !important;
 }
 
-table.clusterConfig svg, td.usedOn svg, tr.controlData svg, .connectionInfo svg, .card .actions svg {
+table.clusterConfig svg, td.usedOn svg, tr.controlData svg, .connectionInfo svg, .card .actions svg, td.hasLink svg {
     fill: var(--blue);
     width: 15px;
     display: inline-block;

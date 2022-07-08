@@ -18,7 +18,7 @@
                         </ul>
                     </li>
                     <li v-if="showDefaults || (crd.data.spec.persistentVolume.size != '1Gi') || hasProp(crd, 'data.spec.persistentVolume.storageClass')">
-                        <strong class="sectionTitle">Storage</strong>
+                        <strong class="sectionTitle">Persistent Volume</strong>
                         <ul>
                             <li v-if="showDefaults || (crd.data.spec.persistentVolume.size != '1Gi')">
                                 <strong class="label">Volume Size:</strong>
@@ -27,6 +27,37 @@
                             <li v-if="hasProp(crd, 'data.spec.persistentVolume.storageClass')">
                                 <strong class="label">Storage Class:</strong>
                                 <span class="value">{{ crd.data.spec.persistentVolume.storageClass }}</span>
+                            </li>
+                        </ul>
+                    </li>
+                    <li v-if="showDefaults || hasProp(crd, 'data.spec.sgInstanceProfile') || hasProp(crd, 'data.spec.configurations.sgPostgresConfig')">
+                        <strong class="sectionTitle">Pods Resources</strong>
+                        <ul>
+                            <li v-if="showDefaults || hasProp(crd, 'data.spec.sgInstanceProfile')">
+                                <strong class="label">Instance Profile:</strong>
+                                <span class="value">
+                                    <template v-if="hasProp(crd, 'data.spec.sgInstanceProfile')">
+                                        <router-link :to="'/' + $route.params.namespace + '/sginstanceprofile/' + profile.name" target="_blank" v-for="profile in profiles" v-if="( (profile.name == crd.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == crd.data.metadata.namespace) )"> 
+                                            {{ profile.data.metadata.name }} (Cores: {{ profile.data.spec.cpu }}, RAM: {{ profile.data.spec.memory }})
+                                        </router-link>
+                                    </template>
+                                    <template v-else>
+                                        Default (Cores: 1, RAM: 2GiB)
+                                    </template>
+                                </span>
+                            </li>
+                            <li v-if="showDefaults || hasProp(crd, 'data.spec.configurations.sgPostgresConfig')">
+                                <strong class="label">Postgres Configuration:</strong>
+                                <span class="value">
+                                    <template v-if="hasProp(crd, 'data.spec.configurations.sgPostgresConfig')">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgpgconfig/' + crd.data.spec.configurations.sgPostgresConfig" target="_blank"> 
+                                            {{ crd.data.spec.configurations.sgPostgresConfig }}
+                                        </router-link>
+                                    </template>
+                                    <template v-else>
+                                        Default
+                                    </template>
+                                </span>
                             </li>
                         </ul>
                     </li>
@@ -195,6 +226,7 @@
 </template>
 
 <script>
+import store from '../../../store'
 import {mixin} from '../../mixins/mixin'
 
     export default {
@@ -202,6 +234,14 @@ import {mixin} from '../../mixins/mixin'
 
         mixins: [mixin],
 
-        props: ['crd', 'showDefaults']
+        props: ['crd', 'showDefaults'],
+
+        computed: {
+
+            profiles () {
+				return store.state.sginstanceprofiles
+			}
+            
+		}
 	}
 </script>
