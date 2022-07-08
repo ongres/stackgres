@@ -32,10 +32,6 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end}}
       serviceAccountName: {{ .Values.restapi.name }}
-      securityContext:
-        {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
-        runAsNonRoot: true
-        {{- end }}
       {{- if .Values.serviceAccount.create }}
       {{- if .Values.serviceAccount.repoCredentials }}
       imagePullSecrets:
@@ -48,6 +44,15 @@ spec:
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      securityContext:
+        {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
+        runAsNonRoot: true
+        {{- if .Values.restapi.image.tag | hasSuffix "-jvm" }}
+        fsGroup: 185
+        {{- else }}
+        fsGroup: 1000
+        {{- end }}
+        {{- end }}
       containers:
       - name: {{ .Values.restapi.name }}
         image: "{{ .Values.restapi.image.name }}:{{ .Values.restapi.image.tag }}"
@@ -55,8 +60,13 @@ spec:
         securityContext:
           {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
           runAsNonRoot: true
+          {{- if .Values.restapi.image.tag | hasSuffix "-jvm" }}
           runAsUser: 185
           runAsGroup: 185
+          {{- else }}
+          runAsUser: 1000
+          runAsGroup: 1000
+          {{- end }}
           {{- end }}
         env:
           - name: RESTAPI_NAMESPACE
@@ -143,7 +153,7 @@ spec:
           {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
           runAsNonRoot: true
           runAsUser: 998
-          runAsGroup: 998
+          runAsGroup: 996
           {{- end }}
         env:
           {{- if and .Values.grafana.url .Values.grafana.token .Values.grafana.webHost }}

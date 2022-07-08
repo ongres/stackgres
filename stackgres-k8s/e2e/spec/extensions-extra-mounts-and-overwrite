@@ -31,6 +31,7 @@ check_extension_with_extra_mount_installed_when_booting() {
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
   wait_pods_running "$CLUSTER_NAMESPACE" "2"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq "select(.status != null and .status.podStatuses != null) | .status.podStatuses[]

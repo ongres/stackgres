@@ -301,7 +301,7 @@ check_operator_upgrade() {
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/operator:')"
-  if [ "$POD_OPERATOR_IMAGE" = "$STACKGRES_PREVIOUS_OPERATOR_IMAGE" ]
+  if [ "${POD_OPERATOR_IMAGE#docker.io/}" = "${STACKGRES_PREVIOUS_OPERATOR_IMAGE#docker.io/}" ]
   then
     echo "SUCCESS. Operator pod is using the previous operator image"
   else
@@ -316,7 +316,7 @@ check_operator_upgrade() {
   POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/restapi:')"
-  if [ "$POD_RESTAPI_IMAGE" = "$STACKGRES_PREVIOUS_RESTAPI_IMAGE" ]
+  if [ "${POD_RESTAPI_IMAGE#docker.io/}" = "${STACKGRES_PREVIOUS_RESTAPI_IMAGE#docker.io/}" ]
   then
     echo "SUCCESS. Operator pod is using the previous restapi image"
   else
@@ -334,8 +334,8 @@ check_operator_upgrade() {
 
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | grep '/operator:' | sed 's#^[^/]\+/\([^/]\+/[^:]\+\)#\1#')"
-  if [ "$POD_OPERATOR_IMAGE" = "$STACKGRES_OPERATOR_IMAGE" ]
+    | grep '/operator:')"
+  if [ "${POD_OPERATOR_IMAGE#docker.io/}" = "${STACKGRES_OPERATOR_IMAGE#docker.io/}" ]
   then
     echo "SUCCESS. Operator pod is using the new operator image"
   else
@@ -348,8 +348,8 @@ check_operator_upgrade() {
   fi
   POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | grep '/restapi:' | sed 's#^[^/]\+/\([^/]\+/[^:]\+\)#\1#')"
-  if [ "$POD_RESTAPI_IMAGE" = "$STACKGRES_RESTAPI_IMAGE" ]
+    | grep '/restapi:')"
+  if [ "${POD_RESTAPI_IMAGE#docker.io/}" = "${STACKGRES_RESTAPI_IMAGE#docker.io/}" ]
   then
     echo "SUCCESS. Operator pod is using the new restapi image"
   else

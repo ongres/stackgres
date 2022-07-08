@@ -38,6 +38,13 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      securityContext:
+        {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        {{- end }}
       containers:
       - name: "{{ .Release.Name }}-wait"
         image: {{ template "kubectl.image" . }}

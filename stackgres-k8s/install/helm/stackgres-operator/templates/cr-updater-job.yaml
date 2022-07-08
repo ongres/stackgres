@@ -38,10 +38,30 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      securityContext:
+        {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
+        runAsNonRoot: true
+        {{- if .Values.jobs.image.tag | hasSuffix "-jvm" }}
+        fsGroup: 185
+        {{- else }}
+        fsGroup: 1000
+        {{- end }}
+        {{- end }}
       containers:
       - name: "{{ .Values.jobs.name }}"
         image: "{{ .Values.jobs.image.name }}:{{ .Values.jobs.image.tag }}"
         imagePullPolicy: "{{ .Values.jobs.image.pullPolicy }}"
+        securityContext:
+          {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
+          runAsNonRoot: true
+          {{- if .Values.jobs.image.tag | hasSuffix "-jvm" }}
+          runAsUser: 185
+          runAsGroup: 185
+          {{- else }}
+          runAsUser: 1000
+          runAsGroup: 1000
+          {{- end }}
+          {{- end }}
         env:
           - name: OPERATOR_NAME
             value: "{{ .Release.Name }}"

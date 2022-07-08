@@ -16,6 +16,7 @@ e2e_test_install() {
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=timescaledb
 
   wait_pods_running "$CLUSTER_NAMESPACE" "2"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
@@ -134,6 +135,7 @@ check_extension_without_shared_library_installed_when_added() {
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
   wait_pods_running "$CLUSTER_NAMESPACE" "2"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
@@ -232,6 +234,7 @@ check_extension_with_shared_library_installed_when_added() {
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
   wait_pods_running "$CLUSTER_NAMESPACE" "2"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \
@@ -350,6 +353,7 @@ check_extension_with_executable_installed_when_added() {
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
   wait_pods_running "$CLUSTER_NAMESPACE" "2"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --reset-values \

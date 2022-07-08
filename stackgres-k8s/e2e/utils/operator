@@ -6,15 +6,15 @@
 export IMAGE_TAG="${IMAGE_TAG:-main-jvm}"
 export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
 export OPERATOR_PUBLIC_REGISTRY="${OPERATOR_PUBLIC_REGISTRY:-docker.io}"
-export OPERATOR_PUBLIC_REGISTRY_PATH="${OPERATOR_PUBLIC_REGISTRY_PATH:-/stackgres/}"
+export OPERATOR_PUBLIC_REGISTRY_PATH="${OPERATOR_PUBLIC_REGISTRY_PATH:-/stackgres}"
 export COMPONENT_PUBLIC_REGISTRY="${COMPONENT_PUBLIC_REGISTRY:-docker.io}"
-export COMPONENT_PUBLIC_REGISTRY_PATH="${COMPONENT_PUBLIC_REGISTRY_PATH:-/ongres/}"
-export OPERATOR_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}operator:$IMAGE_TAG"
-export RESTAPI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}restapi:$IMAGE_TAG"
-export JOBS_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}jobs:$IMAGE_TAG"
-export CLUSTER_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}cluster-controller:$IMAGE_TAG"
-export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}distributedlogs-controller:$IMAGE_TAG"
-export ADMINUI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}admin-ui:$ADMINUI_IMAGE_TAG"
+export COMPONENT_PUBLIC_REGISTRY_PATH="${COMPONENT_PUBLIC_REGISTRY_PATH:-/ongres}"
+export OPERATOR_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/operator:$IMAGE_TAG"
+export RESTAPI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/restapi:$IMAGE_TAG"
+export JOBS_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/jobs:$IMAGE_TAG"
+export CLUSTER_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/cluster-controller:$IMAGE_TAG"
+export DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/distributedlogs-controller:$IMAGE_TAG"
+export ADMINUI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/admin-ui:$ADMINUI_IMAGE_TAG"
 
 export STACKGRES_PATH="${STACKGRES_PATH:-$E2E_PATH/..}"
 export STACKGRES_IMAGE_BUILDER="${STACKGRES_IMAGE_BUILDER:-docker}"
@@ -323,7 +323,7 @@ pull_image_from() {
   local REPOSITORY="$1"
   local IMAGE_PATH="$2"
   local IMAGE="$3"
-  local FROM_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE##*/}"
+  local FROM_IMAGE="$REPOSITORY${IMAGE_PATH%/}/${IMAGE##*/}"
   echo "Pulling $IMAGE from $FROM_IMAGE..."
   docker_pull "$FROM_IMAGE"
   docker_tag "$FROM_IMAGE" "$IMAGE"
@@ -351,7 +351,7 @@ push_image_to() {
   local REPOSITORY="$1"
   local IMAGE_PATH="$2"
   local IMAGE="$3"
-  local TO_IMAGE="$REPOSITORY$IMAGE_PATH${IMAGE#*/}"
+  local TO_IMAGE="$REPOSITORY${IMAGE_PATH%/}${IMAGE#*/}"
   echo "Pushing $IMAGE to $TO_IMAGE..."
   docker_local_tag "$IMAGE" "$TO_IMAGE"
   docker_push "$TO_IMAGE"
@@ -592,6 +592,8 @@ upgrade_operator_from_private_repository() {
   export PRIVATE_RESTAPI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/restapi"
   export PRIVATE_JOBS_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/jobs"
   export PRIVATE_ADMINUI_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/admin-ui"
+  export PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/cluster-controller"
+  export PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/distributedlogs-controller"
   upgrade_operator_vanilla \
       --set-string operator.image.name="$PRIVATE_OPERATOR_IMAGE_NAME" --set-string operator.image.tag="$IMAGE_TAG" \
       --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
@@ -604,8 +606,8 @@ upgrade_operator_from_private_repository() {
       --set serviceAccount.create=true \
       --set serviceAccount.repoCredentials[0]=regcred \
       --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
-      --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER="${CLUSTER_CONTROLLER_IMAGE_NAME}" \
-      --set-string developer.extraEnv.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}" \
+      --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER="${PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME}:$IMAGE_TAG" \
+      --set-string developer.extraEnv.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER="${PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}:$IMAGE_TAG" \
       --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
       --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
       --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
@@ -719,7 +721,7 @@ load_operator_images_from() {
   IMAGES="$(get_operator_images "$VERSION")"
   printf '%s' "$IMAGES" \
     | xargs_parallel_shell % "$E2E_PATH/e2e" \
-      pull_image_from "$REPOSITORY" "${IMAGE_PATH}stackgres/" "%"
+      pull_image_from "$REPOSITORY" "${IMAGE_PATH%/}/stackgres" "%"
 }
 
 get_operator_images() {
@@ -1136,6 +1138,20 @@ get_component_versions_pre_0_9_5() {
   "$X_UNSET" || set -x
 }
 
+get_operator_image_repository() {
+  [ -n "$1" ]
+  local VERSION="$1"
+
+  if [ "$VERSION" = "$STACKGRES_VERSION" ] \
+    &&[ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" = true ]
+  then
+    echo "$(get_private_repository_uri)/stackgres"
+    return
+  fi
+
+  echo "stackgres"
+}
+
 get_operator_image_tag() {
   [ -n "$1" ]
   local VERSION="$1"
@@ -1164,20 +1180,26 @@ get_operator_image_tag() {
 
 get_operator_image() {
   local TAG
+  local REPO
   TAG="$(get_operator_image_tag "$1")"
-  echo "stackgres/operator:$TAG"
+  REPO="$(get_operator_image_repository "$1")"
+  echo "$REPO/operator:$TAG"
 }
 
 get_restapi_image() {
   local TAG
+  local REPO
   TAG="$(get_operator_image_tag "$1")"
-  echo "stackgres/restapi:$TAG"
+  REPO="$(get_operator_image_repository "$1")"
+  echo "$REPO/restapi:$TAG"
 }
 
 get_adminui_image() {
   local TAG
+  local REPO
   TAG="$(get_operator_image_tag "$1")"
-  echo "stackgres/admin-ui:${TAG%-jvm}"
+  REPO="$(get_operator_image_repository "$1")"
+  echo "$REPO/admin-ui:${TAG%-jvm}"
 }
 
 get_operator_helm_url() {
