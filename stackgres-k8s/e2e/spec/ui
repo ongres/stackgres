@@ -70,6 +70,7 @@ e2e_test_install() {
 EOF
 
   wait_pods_running "$CLUSTER_NAMESPACE" 5
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
   kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress.json" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
