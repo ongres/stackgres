@@ -199,6 +199,8 @@ spec:
         CREATE DATABASE pgbench OWNER pguser;
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
+    disablePatroniResourceRequirements: true
+    disableClusterResourceRequirements: true
 EOF
 
 }

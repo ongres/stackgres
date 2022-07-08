@@ -60,6 +60,8 @@ spec:
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
+    disablePatroniResourceRequirements: true
+    disableClusterResourceRequirements: true
 EOF
 
   wait_until check_sts_annotation "$POD_RANDOM_VALUE"
@@ -94,6 +96,8 @@ spec:
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
+    disablePatroniResourceRequirements: true
+    disableClusterResourceRequirements: true
 EOF
 
   POD_ANNOTATION=other-test-annotation \
@@ -212,6 +216,8 @@ spec:
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
+    disablePatroniResourceRequirements: true
+    disableClusterResourceRequirements: true
 EOF
 
   local POD_RANDOM_VALUE="$(random_string)"
@@ -263,6 +269,8 @@ spec:
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
+    disablePatroniResourceRequirements: true
+    disableClusterResourceRequirements: true
 EOF
   local POD_ANNOTATION_VALUE
   POD_ANNOTATION_VALUE="$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" | jq '.spec.metadata.annotations.clusterPods["test-annotation"]' -r)"

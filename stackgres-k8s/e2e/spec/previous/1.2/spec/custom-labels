@@ -65,6 +65,8 @@ spec:
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
+    disablePatroniResourceRequirements: true
+    disableClusterResourceRequirements: true
   metadata:
     labels:
       clusterPods:
@@ -135,6 +137,8 @@ spec:
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
+    disablePatroniResourceRequirements: true
+    disableClusterResourceRequirements: true
 EOF
 
   RANDOM_VALUE="$(random_string)"
@@ -173,6 +177,8 @@ spec:
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
+    disablePatroniResourceRequirements: true
+    disableClusterResourceRequirements: true
   metadata:
     labels:
       clusterPods:

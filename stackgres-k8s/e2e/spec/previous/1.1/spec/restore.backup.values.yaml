@@ -32,3 +32,5 @@ cluster:
   prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true
+  disablePatroniResourceRequirements: true
+  disableClusterResourceRequirements: true

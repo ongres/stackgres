@@ -58,7 +58,9 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
-    disableClusterPodAntiAffinity: true  
+    disableClusterPodAntiAffinity: true
+    disablePatroniResourceRequirements: true
+    disableClusterResourceRequirements: true
 EOF
 
   if wait_until -t "15" has_cluster_generated_resources
@@ -116,6 +118,8 @@ spec:
     size: '128Mi'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
+    disablePatroniResourceRequirements: true
+    disableClusterResourceRequirements: true
 EOF
 
   if wait_until -t "15" has_logs_generated_resources

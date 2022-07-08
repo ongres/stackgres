@@ -234,7 +234,9 @@ test_packages() {
     --set cluster.sgInstanceProfile=size-xs \
     --set cluster.instances=2 \
     --set nonProductionOptions.createMinio=false \
-    --set nonProductionOptions.disableClusterPodAntiAffinity=true
+    --set nonProductionOptions.disableClusterPodAntiAffinity=true \
+    --set nonProductionOptions.disablePatroniResourceRequirements=true \
+    --set nonProductionOptions.disableClusterResourceRequirements=true
 
   if wait_pods_running "${CLUSTER_NAMESPACE}" 2
   then

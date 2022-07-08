@@ -35,7 +35,14 @@ create_or_replace_cluster_without_defaults() {
   local INSTANCES="$3"
   shift 3
 
-  create_or_replace_cluster_only "$RELEASE" "$NAMESPACE" "$INSTANCES" "$@"
+  create_or_replace_cluster_only "$RELEASE" "$NAMESPACE" "$INSTANCES" \
+    $(
+      RESOURCE_REQUIREMENTS_DISABLED="$([ "$E2E_ENABLE_RESOURCE_REQUIREMENTS" = true ] && printf false || printf true)"
+      printf '%s %s %s %s' \
+        --set nonProductionOptions.disablePatroniResourceRequirements="$RESOURCE_REQUIREMENTS_DISABLED" \
+        --set nonProductionOptions.disableClusterResourceRequirements="$RESOURCE_REQUIREMENTS_DISABLED"
+    ) \
+    "$@"
 }
 
 create_or_replace_cluster() {
@@ -44,7 +51,14 @@ create_or_replace_cluster() {
   local INSTANCES="$3"
   shift 3
 
-  create_or_replace_cluster_only "$RELEASE" "$NAMESPACE" "$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
+  create_or_replace_cluster_only "$RELEASE" "$NAMESPACE" "$INSTANCES" -f "$SPEC_VALUES_FILE" \
+    $(
+      RESOURCE_REQUIREMENTS_DISABLED="$([ "$E2E_ENABLE_RESOURCE_REQUIREMENTS" = true ] && printf false || printf true)"
+      printf '%s %s %s %s' \
+        --set nonProductionOptions.disablePatroniResourceRequirements="$RESOURCE_REQUIREMENTS_DISABLED" \
+        --set nonProductionOptions.disableClusterResourceRequirements="$RESOURCE_REQUIREMENTS_DISABLED"
+    ) \
+    "$@"
 }
 
 create_or_replace_cluster_only() {
@@ -112,7 +126,14 @@ create_or_replace_cluster_for_version() {
   local INSTANCES="$4"
   shift 4
 
-  create_or_replace_cluster_for_version_only "$VERSION" "$RELEASE" "$NAMESPACE" "$INSTANCES" -f "$SPEC_VALUES_FILE" "$@"
+  create_or_replace_cluster_for_version_only "$VERSION" "$RELEASE" "$NAMESPACE" "$INSTANCES" -f "$SPEC_VALUES_FILE" \
+    $(
+      RESOURCE_REQUIREMENTS_DISABLED="$([ "$E2E_ENABLE_RESOURCE_REQUIREMENTS" = true ] && printf false || printf true)"
+      printf '%s %s %s %s' \
+        --set nonProductionOptions.disablePatroniResourceRequirements="$RESOURCE_REQUIREMENTS_DISABLED" \
+        --set nonProductionOptions.disableClusterResourceRequirements="$RESOURCE_REQUIREMENTS_DISABLED"
+    ) \
+    "$@"
 }
 
 create_or_replace_cluster_for_version_only() {
