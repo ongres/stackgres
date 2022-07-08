@@ -12,9 +12,17 @@
                         </th>
                         <th class="desc volumeSize hasTooltip textRight">
                             <span @click="sort('data.spec.persistentVolume.size', 'memory')" title="Volume Size">
-                                Volume Size
+                                Disk
                             </span>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume.size')"></span>
+                        </th>
+                        <th class="hasTooltip textRight">
+                            <span>CPU</span>
+                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span>
+                        </th>
+                        <th class="hasTooltip textRight">
+                            <span>RAM</span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span>
                         </th>
                         <th class="actions"></th>
                     </thead>
@@ -44,6 +52,18 @@
                                             {{ cluster.data.spec.persistentVolume.size }}
                                         </router-link>
                                     </td>
+                                    <template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
+                                        <td class="cpu textRight">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
+                                                {{ profile.data.spec.cpu }}
+                                            </router-link>
+                                        </td>
+                                        <td class="ram textRight">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
+                                                {{ profile.data.spec.memory }}
+                                            </router-link>
+                                        </td>
+                                    </template>
                                     <td class="actions">
                                         <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" target="_blank" class="newTab"></router-link>
                                         <router-link v-if="iCan('patch','sgdistributedlogs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.data.metadata.name + '/edit'" title="Edit Configuration" class="editCRD"></router-link>
