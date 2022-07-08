@@ -58,6 +58,7 @@ class ObjectStorageValidationResourceTest {
 
     given()
         .body(review)
+        .contentType(ContentType.JSON)
         .post(ValidationUtil.OBJECT_STORAGE_VALIDATION_PATH)
         .then()
         .statusCode(200)

@@ -7,6 +7,7 @@ package io.stackgres.operator.validation.distributedlogs;
 
 import static io.stackgres.common.StackGresDistributedLogsUtil.getPostgresFlavorComponent;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -15,6 +16,7 @@ import javax.inject.Singleton;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConfiguration;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
@@ -62,8 +64,9 @@ public class PostgresConfigValidator implements DistributedLogsValidator {
       case UPDATE:
         StackGresDistributedLogs oldDistributedLogs = review.getRequest().getOldObject();
 
-        String oldPgConfig = oldDistributedLogs.getSpec().getConfiguration().getPostgresConfig();
-        if (!oldPgConfig.equals(pgConfig)) {
+        String oldPgConfig = Optional.ofNullable(oldDistributedLogs.getSpec().getConfiguration())
+            .map(StackGresDistributedLogsConfiguration::getPostgresConfig).orElse(null);
+        if (!Objects.equals(oldPgConfig, pgConfig)) {
           validateAgainstConfiguration(givenMajorVersion, pgConfig, namespace);
         }
         break;
