@@ -75,7 +75,7 @@ public class WebhookConfiguratorImpl implements WebhookConfigurator {
                     .withPath(conversionPath)
                     .build())
                 .build())
-            .withConversionReviewVersions("v1", "v1beta1")
+            .withConversionReviewVersions("v1")
             .build())
         .build());
     crdWriter.update(customResourceDefinition);
