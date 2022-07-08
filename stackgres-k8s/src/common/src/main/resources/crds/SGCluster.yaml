@@ -585,7 +585,7 @@ spec:
                                    negative values will be treated as 0 (evict immediately) by the system.
                         backup:
                           type: object
-                          description: Pod custom node toleration
+                          description: Backup Pod custom scheduling configuration.
                           properties:
                             nodeSelector:
                               type: object

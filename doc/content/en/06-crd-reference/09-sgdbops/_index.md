@@ -55,7 +55,22 @@ Holds scheduling configuration for StackGres pods to have.
 
 | Property          | Required | Updatable | Type     | Default                 | Description |
 |:------------------|----------|-----------|:---------|:------------------------|:------------|
-| [tolerations](#tolerations)                           |          |           |         | object  | {{< crd-field-description SGDbOps.spec.scheduling.tolerations >}} |
+| nodeSelector      |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeSelector >}} |
+| [nodeAffinity](#nodeAffinity)|           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity >}} |
+| [tolerations](#tolerations)  |           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations >}}  |
+
+#### Node Affinity
+
+Sets the SGDBOps pod's affinity to restrict it to run only on a certain set of node(s)
+
+| Property          | Required | Updatable | Type     | Default                 | Description |
+|:------------------|----------|-----------|:---------|:------------------------|:------------|
+| requiredDuringSchedulingIgnoredDuringExecution  |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution >}} |
+| preferredDuringSchedulingIgnoredDuringExecution |          | ✓         | array   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution >}} |
+
+See Kubernetes pod node affinity [definition](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity{}) for more details.
+<br>
+<br>
 
 #### Tolerations
 

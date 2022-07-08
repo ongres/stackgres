@@ -304,6 +304,7 @@ Holds scheduling configuration for StackGres pods to have.
 | nodeSelector                |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} |
 | [nodeAffinity](#node-affinity) |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity >}} |
 | [tolerations](#tolerations) |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
+| [backup](#backup)           |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup >}} |
 
 #### Node Affinity
 
@@ -329,6 +330,15 @@ Holds scheduling configuration for StackGres pods to have.
 | value             |          | ✓         | string   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.value >}} |
 | effect            |          | ✓         | string   | match all taint effects | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.effect >}} |
 | tolerationSeconds |          | ✓         | string   | 0                       | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.tolerationSeconds >}} |
+
+#### Backup
+
+Holds scheduling configuration for StackGres Backups pods to have.
+
+| Property                    | Required | Updatable | Type     | Default        | Description |
+|:----------------------------|----------|-----------|:---------|:---------------|:------------|
+| nodeSelector                |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.nodeSelector >}} |
+| [nodeAffinity](#node-affinity) |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.nodeAffinity >}} |
 
 ## Configurations
 
