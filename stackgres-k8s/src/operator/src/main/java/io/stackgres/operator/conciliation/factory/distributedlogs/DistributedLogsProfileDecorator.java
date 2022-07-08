@@ -43,7 +43,7 @@ public class DistributedLogsProfileDecorator extends AbstractProfileDecorator
       Iterable<? extends HasMetadata> resources) {
     if (Optional.of(context.getSource().getSpec())
         .map(StackGresDistributedLogsSpec::getNonProductionOptions)
-        .map(StackGresDistributedLogsNonProduction::getDisablePatroniResourceRequirements)
+        .map(StackGresDistributedLogsNonProduction::getDisableClusterResourceRequirements)
         .orElse(false)) {
       return;
     }

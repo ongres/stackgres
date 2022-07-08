@@ -36,7 +36,7 @@ public class BackupProfileDecorator extends AbstractProfileDecorator
   public void decorate(StackGresBackupContext context, Iterable<? extends HasMetadata> resources) {
     if (Optional.of(context.getCluster().getSpec())
         .map(StackGresClusterSpec::getNonProductionOptions)
-        .map(StackGresClusterNonProduction::getDisablePatroniResourceRequirements)
+        .map(StackGresClusterNonProduction::getDisableClusterResourceRequirements)
         .orElse(false)) {
       return;
     }
