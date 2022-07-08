@@ -64,6 +64,36 @@
                         <strong class="label">Maximum Retries:</strong>
                         <span class="value">{{ crd.data.spec.maxRetries }}</span>
                     </li>
+                    <li v-if="hasProp(crd, 'data.spec.scheduling.tolerations')">
+                        <strong class="label">Node Tolerations</strong>
+                        <ul>
+                            <li v-for="(toleration, index) in crd.data.spec.scheduling.tolerations">
+                                <strong class="label">Toleration #{{ index+1 }}</strong>
+                                <ul>
+                                    <li>
+                                        <strong class="label">Key:</strong>
+                                        <span class="value">{{ toleration.key }}</span>
+                                    </li>
+                                    <li>
+                                        <strong class="label">Operator:</strong>
+                                        <span class="value">{{ toleration.operator }}</span>
+                                    </li>
+                                    <li v-if="toleration.hasOwnProperty('value')">
+                                        <strong class="label">Value:</strong>
+                                        <span class="value">{{ toleration.value }}</span>
+                                    </li>
+                                    <li>
+                                        <strong class="label">Effect:</strong>
+                                        <span class="value">{{ toleration.effect ? toleration.effect : 'MatchAll' }}</span>
+                                    </li>
+                                    <li v-if="( toleration.hasOwnProperty('tolerationSeconds') && (toleration.tolerationSeconds != null) )">
+                                        <strong class="label">Toleration Seconds:</strong>
+                                        <span class="value">{{ toleration.tolerationSeconds }}</span>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
                 </ul>
             </li>
         </ul>

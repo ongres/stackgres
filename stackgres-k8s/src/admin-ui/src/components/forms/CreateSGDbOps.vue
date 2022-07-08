@@ -103,6 +103,71 @@
 
             <hr/>
 
+            <div class="row-50">
+                <h3 for="spec.scheduling.tolerations" class="sectionTitle">
+                    Node Tolerations
+                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.scheduling.tolerations')"></span>
+                </h3>
+
+                <div class="scheduling repeater">
+                    <fieldset v-if="tolerations.length" data-field="spec.scheduling.tolerations">
+                        <div class="section" v-for="(field, index) in tolerations">
+                            <div class="header">
+                                <h4 for="spec.scheduling.tolerations">Toleration #{{ index+1 }}</h4>
+                                <a class="addRow del" @click="spliceArray('tolerations', index)">Delete</a>
+                            </div>
+
+                            <div class="row-50">
+                                <div class="col">
+                                    <label :for="'spec.scheduling.tolerations[' + index + '].key'">Key</label>
+                                    <input v-model="field.key" autocomplete="off" :data-field="'spec.scheduling.tolerations[' + index + '].key'">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.scheduling.tolerations.key')"></span>
+                                </div>
+                                
+                                <div class="col">
+                                    <label :for="'spec.scheduling.tolerations[' + index + '].operator'">Operator</label>
+                                    <select v-model="field.operator" @change="( (field.operator == 'Exists') ? (delete field.value) : (field.value = '') )" :data-field="'spec.scheduling.tolerations[' + index + '].operator'">
+                                        <option>Equal</option>
+                                        <option>Exists</option>
+                                    </select>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.scheduling.tolerations.operator')"></span>
+                                </div>
+
+                                <div class="col" v-if="field.operator == 'Equal'">
+                                    <label :for="'spec.scheduling.tolerations[' + index + '].value'">Value</label>
+                                    <input v-model="field.value" :disabled="(field.operator == 'Exists')" autocomplete="off" :data-field="'spec.scheduling.tolerations[' + index + '].value'">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.scheduling.tolerations.value')"></span>
+                                </div>
+
+                                <div class="col">
+                                    <label :for="'spec.scheduling.tolerations[' + index + '].effect'">Effect</label>
+                                    <select v-model="field.effect" :data-field="'spec.scheduling.tolerations[' + index + '].effect'">
+                                        <option :value="nullVal">MatchAll</option>
+                                        <option>NoSchedule</option>
+                                        <option>PreferNoSchedule</option>
+                                        <option>NoExecute</option>
+                                    </select>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.scheduling.tolerations.effect')"></span>
+                                </div>
+
+                               <div class="col" v-if="field.effect == 'NoExecute'">
+                                    <label :for="'spec.scheduling.tolerations[' + index + '].seconds'">Toleration Seconds</label>
+                                    <input type="number" min="0" v-model="field.tolerationSeconds" :data-field="'spec.scheduling.tolerations[' + index + '].seconds'">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.scheduling.tolerations.tolerationSeconds')"></span>
+                                </div>
+                            </div>
+                    
+                        </div>
+                    </fieldset>
+
+                    <div class="fieldsetFooter" :class="!tolerations.length && 'topBorder'">
+                        <a class="addRow" @click="pushToleration()">Add Toleration</a>
+                    </div>
+                </div>
+            </div>
+
+            <hr/>
+
             <fieldset v-if="op == 'vacuum'">
                 <div class="header open">
                     <h3>Vacuum Details</h3>
@@ -769,7 +834,9 @@
                     noKillBackend: 'inherit',
                     noAnalyze: 'inherit',
                     excludeExtension: 'inherit'
-                }]
+                }],
+                tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
+                nullVal: null
             }
 
         },
@@ -870,7 +937,12 @@
                             op: vc.op,
                             ...(vc.runAt.length && ( { runAt: vc.runAt }) ), 
                             ...(vc.getIsoDuration(vc.timeout) && ( { timeout: vc.getIsoDuration(vc.timeout) }) ),
-                            maxRetries: vc.maxRetries
+                            maxRetries: vc.maxRetries,
+                            ...(this.hasTolerations() && ({
+                                "scheduling": {
+                                    ...(this.hasTolerations() && ({"tolerations": this.tolerations}))
+                                }
+                            })) 
                         }
                     }
 
@@ -1008,7 +1080,24 @@
                 } else {
                     this.runAt = ''
                 }
-            }
+            },
+
+            hasTolerations () {
+                const vc = this
+                let t = [...vc.tolerations]
+
+                t.forEach(function(item, index) {
+                    if(JSON.stringify(item) == '{"key":"","operator":"Equal","value":null,"effect":null,"tolerationSeconds":null}') {
+                        vc.tolerations.splice( index, 1 )
+                    }
+                })
+                
+                return vc.tolerations.length
+            },
+
+            pushToleration () {
+                this.tolerations.push({ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null })
+            },
 
         },
 
@@ -1127,4 +1216,12 @@
         margin-bottom: 20px;
     }
 
+    .scheduling fieldset .section {
+        width: calc(100% + 50px);
+        margin-left: -25px;
+    }
+
+    .scheduling.repeater > fieldset:last-of-type {
+        padding-bottom: 0;
+    }
 </style>

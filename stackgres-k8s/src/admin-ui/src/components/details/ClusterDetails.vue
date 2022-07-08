@@ -487,8 +487,8 @@
                                 <td class="label" :rowspan="Object.keys(item).length" v-if="!i">
                                     Toleration #{{ index+1 }}
                                 </td>
-                                <td class="label">
-                                    {{ prop }}
+                                <td class="label capitalize">
+                                    {{ prop == 'tolerationSeconds' ? 'Toleration Seconds' : prop }}
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations.' + prop)"></span>
                                 </td>
                                 <td colspan="2" :class="prop">
