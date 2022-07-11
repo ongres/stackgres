@@ -4,6 +4,10 @@
 . "$SPEC_PATH/abstract/dbops-restart"
 
 e2e_test_install() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "1"
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
     --set cluster.replication.mode=sync \
     --set cluster.replication.role=ha-read \
