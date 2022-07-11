@@ -2,6 +2,8 @@ describe('Create SGDistributedLog', () => {
 
     const namespace = Cypress.env('k8s_namespace')
     let resourceName;
+    let profileName;
+    let pgConfigName;
 
     before( () => {
         cy.login()
