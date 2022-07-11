@@ -27,7 +27,7 @@ e2e_test_install() {
   PREVIOUS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_PATRONI_IMAGE" | tail -n 1)"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
-  PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%.*}"
+  PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
   PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-")"
   PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | tail -n 1)"
 
@@ -62,8 +62,8 @@ e2e_test_install() {
 
   local VERSION_AS_NUMBER VERSIONAS_NUMBER_0_9_5
   VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
-  VERSION_0_9_5="$(get_version_as_number 0.9.5)"
-  if [ "$VERSION_AS_NUMBER" -gt "$VERSION_0_9_5" ]
+  VERSION_AS_NUMBER_0_9_5="$(get_version_as_number 0.9.5)"
+  if [ "$VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_0_9_5" ]
   then
     install_prometheus_operator
   else
@@ -756,8 +756,19 @@ check_backup_performance_mutation() {
 }
 
 check_backups_path_mutation() {
+  local PREVIOUS_BACKUP_PATH
+  local VERSION_AS_NUMBER VERSIONAS_NUMBER_1_2_0
+  VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_VERSION")"
+  VERSION_AS_NUMBER_1_2_0="$(get_version_as_number 1.2.0)"
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_2_0" ]
+  then
+    PREVIOUS_BACKUP_PATH="$CLUSTER_NAMESPACE/$CLUSTER_1_NAME"
+  else
+    PREVIOUS_BACKUP_PATH="sgbackups.stackgres.io/$CLUSTER_NAMESPACE/$CLUSTER_1_NAME/$PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION"
+  fi
+
   if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }')" \
-    = "$CLUSTER_NAMESPACE/$CLUSTER_1_NAME" ]
+    = "$PREVIOUS_BACKUP_PATH" ]
   then
     echo "SUCCESS. Backup path was added to cluster backup configuration after operator upgrade"
   else
@@ -765,7 +776,7 @@ check_backups_path_mutation() {
     return 1
   fi
   if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template '{{ .status.backupPath }}')" \
-    = "$CLUSTER_NAMESPACE/$CLUSTER_1_NAME" ]
+    = "$PREVIOUS_BACKUP_PATH" ]
   then
     echo "SUCCESS. Backup path was added to backup status after operator upgrade"
   else
@@ -775,7 +786,7 @@ check_backups_path_mutation() {
 }
 
 check_profile_mutation() {
-  if [ "$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "size-xs" -o=jsonpath='{ .spec.containers | keys | len }')" \
+  if [ "$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "size-xs" --template '{{ .spec.containers | len }}')" \
     = "11" ]
   then
     echo "SUCCESS. Containers section was added to instance profiles after operator upgrade"
@@ -783,7 +794,7 @@ check_profile_mutation() {
     echo "FAIL. Containers section was NOT added to instance profiles after operator upgrade"
     return 1
   fi
-  if [ "$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "size-xs" -o=jsonpath='{ .spec.initContainers | keys | len }')" \
+  if [ "$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "size-xs" --template '{{ .spec.initContainers | len }}')" \
     = "10" ]
   then
     echo "SUCCESS. Init containers section was added to instance profiles after operator upgrade"

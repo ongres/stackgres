@@ -32,7 +32,7 @@ public class DefaultDisableClusterProfileMigratorMutator implements DistributedL
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
-    String nonProductionOptionsJson = getJsonMappingField("nonProductionOptions",
+    String nonProductionOptionsJson = getJsonMappingField("nonProduction",
         StackGresDistributedLogsSpec.class);
 
     nonProductionOptionsPointer = SPEC_POINTER.append(nonProductionOptionsJson);
