@@ -77,13 +77,13 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
       final BigDecimal cpu = Optional.of(profile.getSpec())
           .map(StackGresProfileSpec::getCpu)
           .or(() -> Optional.of(defaultProfile.getSpec().getCpu()))
-          .map(Quantity::new)
+          .flatMap(this::tryParseQuantity)
           .map(Quantity::getAmountInBytes)
           .orElse(BigDecimal.ZERO);
       final BigDecimal memory = Optional.of(profile.getSpec())
           .map(StackGresProfileSpec::getMemory)
           .or(() -> Optional.of(defaultProfile.getSpec().getMemory()))
-          .map(Quantity::new)
+          .flatMap(this::tryParseQuantity)
           .map(Quantity::getAmountInBytes)
           .orElse(BigDecimal.ZERO);
 
@@ -192,6 +192,14 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
     }
     return value.divide(ResourceUtil.MEBIBYTES)
         .setScale(0, RoundingMode.CEILING).toString() + "Mi";
+  }
+
+  private Optional<Quantity> tryParseQuantity(String quantity) {
+    try {
+      return Optional.of(new Quantity(quantity));
+    } catch (Exception ex) {
+      return Optional.empty();
+    }
   }
 
 }
