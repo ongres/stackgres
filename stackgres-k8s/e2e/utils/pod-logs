@@ -9,7 +9,7 @@ pod_logs() {
   local FILTERED_OWNER_KIND
   local PODS_FILE="$TARGET_PATH/pod-logs-$(shuf -i 0-65535 -n 1)"
   local LOG_IN_FILES=false
-  local CLEANUP_LOG_FILES= false
+  local CLEANUP_LOG_FILES=false
   local LOG_IN_PATH="$TARGET_PATH/pod-logs"
   local FOLLOW=false
   while [ "$#" -gt 0 ]
