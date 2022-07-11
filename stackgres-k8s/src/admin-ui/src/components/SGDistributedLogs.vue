@@ -104,7 +104,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="cluster.data.status.clusters.length">
-									<td class="label">Used on  <span class="helpTooltip" :data-tooltip="getTooltip('sgpoosgdistributedlogslingconfig.status.clusters')"></span></td>
+									<td class="label">Used on  <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.status.clusters')"></span></td>
 									<td class="usedOn" colspan="2">
 										<ul>
 											<li v-for="cluster in cluster.data.status.clusters">
