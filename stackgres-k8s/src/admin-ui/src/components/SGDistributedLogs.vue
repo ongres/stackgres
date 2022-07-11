@@ -11,17 +11,17 @@
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.metadata.name')"></span>
                         </th>
                         <th class="desc volumeSize hasTooltip textRight">
-                            <span @click="sort('data.spec.persistentVolume.size', 'memory')" title="Volume Size">
+                            <span @click="sort('data.spec.persistentVolume.size', 'memory')" title="Disk">
                                 Disk
                             </span>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume.size')"></span>
                         </th>
-                        <th class="hasTooltip textRight">
+                        <th class="hasTooltip textRight notSortable">
                             <span>CPU</span>
                             <span class="helpTooltip"  :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span>
                         </th>
-                        <th class="hasTooltip textRight">
-                            <span>RAM</span>
+                        <th class="hasTooltip textRight notSortable">
+                            <span>Memory</span>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span>
                         </th>
                         <th class="actions"></th>
