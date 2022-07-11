@@ -207,8 +207,8 @@ cache_pulled_images_to_local_repository() {
 load_failed_images_pull_from_local_repository() {
   echo "Looking for failed images pull to load from local repository"
   event_watch \
-    | stdbuf -o0 grep '\sFailed to pull image "[^"]\+"' \
-    | stdbuf -o0 sed 's/^.*\sFailed to pull image "\([^"]\+\)".*$/\1/' \
+    | stdbuf -o0 grep '\s[Ff]ailed to pull\( and unpack\)\? image "[^"]\+"' \
+    | stdbuf -o0 sed 's/^.*\s[Ff]ailed to pull\( and unpack\)\? image "\([^"]\+\)".*$/\2/' \
     | (
       while read IMAGE_NAME
       do
