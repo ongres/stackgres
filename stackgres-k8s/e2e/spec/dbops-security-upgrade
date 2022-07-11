@@ -757,10 +757,10 @@ check_backup_performance_mutation() {
 
 check_backups_path_mutation() {
   local PREVIOUS_BACKUP_PATH
-  local VERSION_AS_NUMBER VERSIONAS_NUMBER_1_2_0
-  VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_VERSION")"
+  local PREVIOUS_VERSION_AS_NUMBER VERSIONAS_NUMBER_1_2_0
+  PREVIOUS_VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
   VERSION_AS_NUMBER_1_2_0="$(get_version_as_number 1.2.0)"
-  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_2_0" ]
+  if [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_2_0" ]
   then
     PREVIOUS_BACKUP_PATH="$CLUSTER_NAMESPACE/$CLUSTER_1_NAME"
   else

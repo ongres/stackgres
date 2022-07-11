@@ -36,6 +36,18 @@ ___
 | [metadata](#metadata)                           |          | ✓         | object   |         | {{< crd-field-description SGDistributedLogs.spec.metadata >}} |
 | [nonProductionOptions](#non-production-options) |          | ✓         | array    |         | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions >}} |
 
+Example:
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGDistributedLogs
+metadata:
+  name: distributedlogs
+spec:
+  persistentVolume:
+    size: 10Gi
+```
+
 ## Persistent volume
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
@@ -144,18 +156,8 @@ spec:
 
 The following options should NOT be enabled in a production environment.
 
-| Property                      | Required | Updatable | Type     | Default | Description |
-|:------------------------------|----------|-----------|:---------|:--------|:------------|
-| disableClusterPodAntiAffinity |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} |
-
-Example:
-
-```yaml
-apiVersion: stackgres.io/v1
-kind: SGDistributedLogs
-metadata:
-  name: distributedlogs
-spec:
-  persistentVolume:
-    size: 10Gi
-```
+| Property                           | Required | Updatable | Type     | Default | Description |
+|:-----------------------------------|----------|-----------|:---------|:--------|:------------|
+| disableClusterPodAntiAffinity      |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} |
+| disablePatroniResourceRequirements |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disablePatroniResourceRequirements >}} |
+| disableClusterResourceRequirements |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disableClusterResourceRequirements >}} |
