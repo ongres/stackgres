@@ -181,7 +181,7 @@ cache_pulled_images_to_local_repository() {
   then
     touch "$E2E_PULLED_IMAGES_PATH"
   fi
-  event_watch \
+  event_watch --follow \
     | stdbuf -o0 grep '\sSuccessfully pulled image "[^"]\+"' \
     | stdbuf -o0 sed 's/^.*\sSuccessfully pulled image "\([^"]\+\)".*$/\1/' \
     | (
@@ -206,9 +206,9 @@ cache_pulled_images_to_local_repository() {
 
 load_failed_images_pull_from_local_repository() {
   echo "Looking for failed images pull to load from local repository"
-  event_watch \
-    | stdbuf -o0 grep '\s[Ff]ailed to pull\( and unpack\)\? image "[^"]\+"' \
-    | stdbuf -o0 sed 's/^.*\s[Ff]ailed to pull\( and unpack\)\? image "\([^"]\+\)".*$/\2/' \
+  event_watch  --follow \
+    | stdbuf -o0 grep '\s\(Failed to pull image\|Back-off pulling image\) "[^"]\+"' \
+    | stdbuf -o0 sed 's/^.*\s\(Failed to pull image\|Back-off pulling image\) "\([^"]\+\)".*$/\2/' \
     | (
       while read IMAGE_NAME
       do
