@@ -108,5 +108,15 @@ spec:
   {{- else }}
     disableClusterPodAntiAffinity: {{ .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
   {{- end }}
+  {{- if not .Values.nonProductionOptions.disablePatroniResourceRequirements }}
+    disablePatroniResourceRequirements: false
+  {{- else }}
+    disablePatroniResourceRequirements: {{ .Values.nonProductionOptions.disablePatroniResourceRequirements }}
+  {{- end }}
+  {{- if not .Values.nonProductionOptions.disableClusterResourceRequirements }}
+    disableClusterResourceRequirements: false
+  {{- else }}
+    disableClusterResourceRequirements: {{ .Values.nonProductionOptions.disableClusterResourceRequirements }}
+  {{- end }}
   {{- end }}
 {{ end }}
