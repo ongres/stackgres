@@ -3441,7 +3441,7 @@ table.clusterConfig a:hover {
     color: var(--blue);
 }
 
-table.clusterConfig a:hover svg, td.usedOn a:hover svg path{
+table.clusterConfig a:hover svg, td.usedOn a:hover svg path {
     fill: var(--lblue) !important;
 }
 

@@ -2,11 +2,38 @@ describe('Create SGDistributedLog', () => {
 
     const namespace = Cypress.env('k8s_namespace')
     let resourceName;
+    let profileName;
+    let pgConfigName;
 
     before( () => {
         cy.login()
 
         resourceName = Cypress._.random(0, 1e6)
+        profileName = 'profile-' + resourceName;
+        pgConfigName = 'pgconfig-' + resourceName;
+
+        // Create dependencies
+        cy.createCRD('sginstanceprofiles', {
+            metadata: {
+                namespace: namespace,
+                name: profileName,
+            },
+            spec: {
+                cpu: "500m",
+                memory: "512Mi"
+            }
+        });
+
+        cy.createCRD('sgpgconfigs', {
+            metadata: {
+                name: pgConfigName,
+                namespace: namespace
+            },
+            spec: {
+                postgresVersion: "12",
+                'postgresql.conf':""
+            }
+        })
     });
 
     beforeEach( () => {
@@ -28,6 +55,21 @@ describe('Create SGDistributedLog', () => {
                 namespace: namespace
             }
         });
+
+        cy.deleteCRD('sgpgconfigs', {
+            metadata: {
+                name: pgConfigName,
+                namespace: namespace
+            }
+        });
+
+        cy.deleteCRD('sgpgconfigs', {
+            metadata: {
+                name: profileName,
+                namespace: namespace
+            }
+        });
+
     });
 
     it('Create SGDistributedLog form should be visible', () => {
@@ -133,4 +175,30 @@ describe('Create SGDistributedLog', () => {
         // Test user redirection
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgdistributedlogs')
     }); 
+
+    it('Creating a SGDistributedLog with a SGInstanceProfile and a SGPostgresConfig should be possible', () => {
+        // Test SGDistributedLog Name
+        cy.get('[data-field="metadata.name"]')
+            .type('resources-' + resourceName)
+        
+        // Test SGInstanceProfile
+        cy.get('select[data-field="spec.sgInstanceProfile"]') 
+            .select(profileName) 
+
+        // Test SGPostgresConfig
+        cy.get('select[data-field="spec.configurations.sgPostgresConfig"]') 
+            .select(pgConfigName) 
+
+        // Test Submit form
+        cy.get('form#createLogsServer button[type="submit"]')
+            .click()
+        
+        cy.get('#notifications .message.show .title')
+            .should(($notification) => {
+                expect($notification).contain('Logs server "resources-' + resourceName + '" created successfully')
+            })
+        
+        // Test user redirection
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgdistributedlogs')
+    });
   })

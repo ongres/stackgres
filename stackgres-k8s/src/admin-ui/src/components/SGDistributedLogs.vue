@@ -11,10 +11,18 @@
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.metadata.name')"></span>
                         </th>
                         <th class="desc volumeSize hasTooltip textRight">
-                            <span @click="sort('data.spec.persistentVolume.size', 'memory')" title="Volume Size">
-                                Volume Size
+                            <span @click="sort('data.spec.persistentVolume.size', 'memory')" title="Disk">
+                                Disk
                             </span>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume.size')"></span>
+                        </th>
+                        <th class="hasTooltip textRight notSortable">
+                            <span>CPU</span>
+                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span>
+                        </th>
+                        <th class="hasTooltip textRight notSortable">
+                            <span>Memory</span>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span>
                         </th>
                         <th class="actions"></th>
                     </thead>
@@ -44,6 +52,18 @@
                                             {{ cluster.data.spec.persistentVolume.size }}
                                         </router-link>
                                     </td>
+                                    <template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
+                                        <td class="cpu textRight">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
+                                                {{ profile.data.spec.cpu }}
+                                            </router-link>
+                                        </td>
+                                        <td class="ram textRight">
+                                            <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
+                                                {{ profile.data.spec.memory }}
+                                            </router-link>
+                                        </td>
+                                    </template>
                                     <td class="actions">
                                         <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" target="_blank" class="newTab"></router-link>
                                         <router-link v-if="iCan('patch','sgdistributedlogs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.data.metadata.name + '/edit'" title="Edit Configuration" class="editCRD"></router-link>
@@ -87,6 +107,33 @@
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume.storageClass')"></span>
                                     </td>
                                     <td>{{ cluster.data.spec.persistentVolume.storageClass }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label" rowspan="2">
+                                        Pods Resources
+                                    </td>
+                                    <td class="label">
+                                        Instance Profile
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.sgInstanceProfile')"></span>
+                                    </td>
+                                    <td v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
+                                         <router-link :to="'/' + $route.params.namespace + '/sginstanceprofile/' + cluster.data.spec.sgInstanceProfile">
+                                            {{ cluster.data.spec.sgInstanceProfile }} (Cores: {{ profile.data.spec.cpu }}, RAM: {{ profile.data.spec.memory }}) 
+                                            <span class="eyeIcon"></span>
+                                        </router-link>
+                                    </td>
+                                </tr>
+                                 <tr>
+                                    <td class="label">
+                                        Postgres Configuration
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.configurations.sgPostgresConfig')"></span>
+                                    </td>
+                                    <td>
+                                        <router-link :to="'/' + $route.params.namespace + '/sgpgconfig/' + cluster.data.spec.configurations.sgPostgresConfig">
+                                            {{ cluster.data.spec.configurations.sgPostgresConfig }}
+                                            <span class="eyeIcon"></span>
+                                        </router-link>	
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td class="label">
@@ -294,7 +341,11 @@
             
             tooltips() {
                 return store.state.tooltips
-            }
+            },
+
+            profiles () {
+				return store.state.sginstanceprofiles
+			}
         }
     }
 </script>

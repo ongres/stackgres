@@ -49,7 +49,14 @@
                         </div>
                     </div>
 
+                    <hr/>
+
                     <div class="row-50">
+                        <h3>
+                            Persistent Volume
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume')"></span>
+                        </h3>
+
                         <div class="col">
                             <div class="unit-select">
                                 <label for="spec.persistentVolume.size">Volume Size <span class="req">*</span></label>  
@@ -71,6 +78,39 @@
                                 <option v-for="sClass in storageClasses">{{ sClass }}</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.spec.persistentVolume.storageClass')"></span>
+                        </div>
+                    </div>
+
+                    <hr/>
+
+                    <div class="row-50">
+                        <h3>Pods Resources</h3>
+                        <p>Please keep in mind that at the moment Postgres 12 is the only Postgres version supported by SGDistributedLogs.</p>
+
+                        <div class="col">
+                            <label for="spec.sgInstanceProfile">Instance Profile</label>  
+                            <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
+                                <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
+                                <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
+                                <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
+                                    <option value="" disabled>– OR –</option>
+                                    <option value="createNewResource">Create new profile</option>
+                                </template>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.sgInstanceProfile')"></span>
+                        </div>
+                        
+                        <div class="col">
+                            <label for="spec.configurations.sgPostgresConfig">Postgres Configuration</label>
+                            <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (pgConfig == 'createNewResource') && (pgConfig = '') )">
+                                <option value="" selected>Default</option>
+                                <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == '12') )">{{ conf.name }}</option>
+                                <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
+                                    <option value="" disabled>– OR –</option>
+                                    <option value="createNewResource">Create new configuration</option>
+                                </template>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.configurations.sgPostgresConfig')"></span>
                         </div>
                     </div>
                 </div>
@@ -460,6 +500,8 @@
                 storageClass: '',
                 volumeSize: '1',
                 volumeUnit: 'Gi',
+                resourceProfile: '',
+                pgConfig: '',
                 enableClusterPodAntiAffinity: true,
                 hasStorageClass: true,
                 nodeSelector: [ { label: '', value: ''} ],
@@ -491,6 +533,15 @@
             storageClasses() {
                 return store.state.storageClasses
             },
+
+            profiles () {
+                return store.state.sginstanceprofiles
+            },
+
+            pgConf () {
+                return store.state.sgpgconfigs
+            },
+
             
             nameColission() {
 
@@ -529,6 +580,8 @@
 
                             vm.volumeSize = volumeSize;
                             vm.volumeUnit = ''+volumeUnit;
+                            vm.resourceProfile = c.data.spec.sgInstanceProfile;
+                            vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
                             vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
                             vm.nodeSelector = vm.hasProp(c, 'data.spec.scheduling.nodeSelector') ? vm.unparseProps(c.data.spec.scheduling.nodeSelector, 'label') : [];
                             vm.tolerations = vm.hasProp(c, 'data.spec.scheduling.tolerations') ? c.data.spec.scheduling.tolerations : [];
@@ -582,6 +635,12 @@
                                 "size": this.volumeSize+this.volumeUnit,
                                 ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) )
                             },
+                            ...(this.resourceProfile.length && ( {"sgInstanceProfile": this.resourceProfile }) ),
+                            ...(this.pgConfig.length && ({
+                                "configurations": {
+                                    "sgPostgresConfig": this.pgConfig
+                                }
+                            }) ),
                             ...((!this.enableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
                                 "nonProductionOptions": { 
                                     ...(!this.enableClusterPodAntiAffinity && ({"disableClusterPodAntiAffinity": !this.enableClusterPodAntiAffinity}) ),
@@ -761,6 +820,17 @@
                         break;
                     }
                 }
+            },
+
+            createNewResource(kind) {
+                const vc = this;
+                window.open(window.location.protocol + '//' + window.location.hostname + (window.location.port.length && (':' + window.location.port) ) + '/admin/' + vc.$route.params.namespace + '/' + kind + '/new?newtab=1', '_blank').focus();
+
+                $('select').each(function(){
+                    if($(this).val() == 'new') {
+                        $(this).val('');
+                    }
+                })
             }
         }, 
 
