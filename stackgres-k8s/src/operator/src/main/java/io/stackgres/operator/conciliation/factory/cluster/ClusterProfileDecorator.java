@@ -50,8 +50,7 @@ public class ClusterProfileDecorator extends AbstractProfileDecorator
     Seq.seq(resources)
         .filter(StatefulSet.class::isInstance)
         .map(StatefulSet.class::cast)
-        .findFirst()
-        .ifPresent(statefulSet -> setProfileContainers(context.getProfile(),
+        .forEach(statefulSet -> setProfileContainers(context.getProfile(),
             () -> Optional.of(statefulSet)
             .map(StatefulSet::getSpec)
             .map(StatefulSetSpec::getTemplate)

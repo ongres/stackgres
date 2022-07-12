@@ -208,8 +208,6 @@ spec:
     - sgScript: $CLUSTER_NAME-scripts
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
-    disablePatroniResourceRequirements: true
-    disableClusterResourceRequirements: true
 EOF
 
 }

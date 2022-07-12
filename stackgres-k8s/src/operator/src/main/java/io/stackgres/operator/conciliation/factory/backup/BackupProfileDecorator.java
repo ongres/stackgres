@@ -44,8 +44,7 @@ public class BackupProfileDecorator extends AbstractProfileDecorator
     Seq.seq(resources)
         .filter(Job.class::isInstance)
         .map(Job.class::cast)
-        .findFirst()
-        .ifPresent(job -> setProfileContainers(context.getProfile(),
+        .forEach(job -> setProfileContainers(context.getProfile(),
             () -> Optional.of(job)
             .map(Job::getSpec)
             .map(JobSpec::getTemplate)

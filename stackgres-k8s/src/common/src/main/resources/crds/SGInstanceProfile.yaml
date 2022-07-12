@@ -48,7 +48,7 @@ spec:
                   pattern: '^[1-9][0-9]*[m]?$'
                   description: |
                     CPU(s) (cores) used for every instance of a SGCluster. The suffix `m`
-                     specifies millicpus (where 1000m is euqals to 1).
+                     specifies millicpus (where 1000m is equals to 1).
 
                     The number of cores set is assigned to the patroni container (that runs both Patroni and PostgreSQL).
 
@@ -102,7 +102,7 @@ spec:
                         pattern: '^[1-9][0-9]*[m]?$'
                         description: |
                           CPU(s) (cores) used for the specified Pod container. The suffix `m`
-                           specifies millicpus (where 1000m is euqals to 1).
+                           specifies millicpus (where 1000m is equals to 1).
                       memory:
                         type: string
                         pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
@@ -142,7 +142,7 @@ spec:
                         pattern: '^[1-9][0-9]*[m]?$'
                         description: |
                           CPU(s) (cores) used for the specified Pod init container. The suffix
-                           `m` specifies millicpus (where 1000m is euqals to 1).
+                           `m` specifies millicpus (where 1000m is equals to 1).
                       memory:
                         type: string
                         pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'

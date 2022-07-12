@@ -19,5 +19,3 @@ distributedLogs:
   enabled: true
 nonProductionOptions:
   disableClusterPodAntiAffinity: true
-  disablePatroniResourceRequirements: true
-  disableClusterResourceRequirements: true

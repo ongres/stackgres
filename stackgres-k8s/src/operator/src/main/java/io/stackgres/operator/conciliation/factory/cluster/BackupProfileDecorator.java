@@ -46,8 +46,7 @@ public class BackupProfileDecorator extends AbstractProfileDecorator
     Seq.seq(resources)
         .filter(CronJob.class::isInstance)
         .map(CronJob.class::cast)
-        .findFirst()
-        .ifPresent(cronJob -> setProfileContainers(context.getProfile(),
+        .forEach(cronJob -> setProfileContainers(context.getProfile(),
             () -> Optional.of(cronJob)
             .map(CronJob::getSpec)
             .map(CronJobSpec::getJobTemplate)

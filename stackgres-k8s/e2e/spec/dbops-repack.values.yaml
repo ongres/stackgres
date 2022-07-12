@@ -20,5 +20,3 @@ cluster:
       - name: pg_repack
 nonProductionOptions:
   disableClusterPodAntiAffinity: true
-  disablePatroniResourceRequirements: true
-  disableClusterResourceRequirements: true

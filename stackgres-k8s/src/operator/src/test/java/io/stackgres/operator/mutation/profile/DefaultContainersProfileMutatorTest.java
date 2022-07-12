@@ -103,7 +103,7 @@ class DefaultContainersProfileMutatorTest {
   }
 
   @Test
-  void missingContainersMemoties_shouldSetThem() throws Exception {
+  void missingContainersMemories_shouldSetThem() throws Exception {
     StackGresProfile expectedProfile = JsonUtil.copy(review.getRequest().getObject());
     review.getRequest().getObject().getSpec().getContainers().values()
         .forEach(container -> container.setMemory(null));

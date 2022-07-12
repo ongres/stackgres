@@ -67,8 +67,6 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
-    disablePatroniResourceRequirements: true
-    disableClusterResourceRequirements: true
 EOF
 
   wait_until has_cluster_generated_resources

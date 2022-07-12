@@ -441,8 +441,6 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
-    disablePatroniResourceRequirements: true
-    disableClusterResourceRequirements: true
 EOF
 
   local CREATED_PGBOUNCER
@@ -479,8 +477,6 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
-    disablePatroniResourceRequirements: true
-    disableClusterResourceRequirements: true
 EOF
 
   if kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$REUSED_CLUSTER_NAME"
@@ -516,8 +512,6 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
-    disablePatroniResourceRequirements: true
-    disableClusterResourceRequirements: true
 EOF
 
   if kubectl get sgclusters -n "$CLUSTER_NAMESPACE" "$NOSIDECARS_CLUSTER_NAME"
@@ -565,8 +559,6 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
-    disablePatroniResourceRequirements: true
-    disableClusterResourceRequirements: true
 EOF
 
   local CREATED_PGCONFIG
@@ -690,8 +682,6 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
-    disablePatroniResourceRequirements: true
-    disableClusterResourceRequirements: true
 EOF
   local PATCH
   PATCH="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
@@ -758,8 +748,6 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
-    disablePatroniResourceRequirements: true
-    disableClusterResourceRequirements: true
 EOF
 
   if kubectl get sgclusters.stackgres.io -n "$OPERATOR_NAMESPACE" "$CLUSTER_NAME"
@@ -795,8 +783,6 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
-    disablePatroniResourceRequirements: true
-    disableClusterResourceRequirements: true
 EOF
 
   if kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
@@ -822,8 +808,6 @@ spec:
     size: 128Mi
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
-    disablePatroniResourceRequirements: true
-    disableClusterResourceRequirements: true
 EOF
 
   local DEFAULT_ANNOTATION
@@ -872,8 +856,6 @@ spec:
     size: 128Mi
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
-    disablePatroniResourceRequirements: true
-    disableClusterResourceRequirements: true
 EOF
 
   if kubectl get sgdistributedlogs.stackgres.io -n "$OPERATOR_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"

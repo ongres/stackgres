@@ -23,7 +23,6 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresKind;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
@@ -41,8 +40,6 @@ public abstract class AbstractProfileDecorator {
         .map(PodSpec::getContainers)
         .stream()
         .flatMap(List::stream)
-        .filter(container -> !Objects.equals(
-            container.getName(), StackGresContainer.PATRONI.getName()))
         .forEach(container -> setProfileForContainer(profile, podSpecSupplier, container));
     podSpecSupplier.get()
         .map(PodSpec::getInitContainers)
