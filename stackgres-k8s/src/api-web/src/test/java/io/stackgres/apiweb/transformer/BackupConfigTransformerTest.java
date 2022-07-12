@@ -42,7 +42,6 @@ import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings("removal")
 @QuarkusTest
 class BackupConfigTransformerTest {
 

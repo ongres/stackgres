@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@SuppressWarnings("removal")
 @ExtendWith(MockitoExtension.class)
 class ObjectStorageDefaultValuesMutatorTest
     extends DefaultValuesMutatorTest<StackGresObjectStorage, ObjectStorageReview> {

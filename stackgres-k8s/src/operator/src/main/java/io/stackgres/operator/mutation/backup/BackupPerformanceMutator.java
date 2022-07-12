@@ -21,7 +21,6 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupPerformance;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
-@SuppressWarnings("removal")
 @ApplicationScoped
 public class BackupPerformanceMutator implements BackupMutator {
 

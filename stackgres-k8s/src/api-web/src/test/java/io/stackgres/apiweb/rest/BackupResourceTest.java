@@ -23,7 +23,6 @@ import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@SuppressWarnings("removal")
 @ExtendWith(MockitoExtension.class)
 class BackupResourceTest extends AbstractCustomResourceTest
       <BackupDto, StackGresBackup, BackupResource, NamespacedBackupResource> {

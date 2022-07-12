@@ -28,7 +28,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@SuppressWarnings("removal")
 @ExtendWith(MockitoExtension.class)
 class BackupConfigResourceTest extends AbstractDependencyCustomResourceTest
       <BackupConfigDto, StackGresBackupConfig,
