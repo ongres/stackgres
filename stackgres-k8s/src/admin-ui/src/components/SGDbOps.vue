@@ -711,11 +711,11 @@
                             <tbody>
                                     <tr>
                                         <td class="label">
-                                            No Order
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noOrder')"></span>
+                                            Order
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noOrder').replace('If true','Disable to').replace('Defaults to: `false`','Enabled by default')"></span>
                                         </td>
                                         <td>
-                                            {{ isEnabled(op.data.spec.repack.noOrder) }}
+                                            {{ isEnabled(op.data.spec.repack.noOrder, true) }}
                                         </td>
                                     </tr>
                                     <tr v-if="op.data.spec.repack.hasOwnProperty('waitTimeout')">
@@ -729,20 +729,20 @@
                                     </tr>
                                     <tr>
                                         <td class="label">
-                                            No Kill Backend
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noKillBackend')"></span> 
+                                            Kill Backend
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noKillBackend').replace('If true don\'t','Disable to not').replace('Defaults to: `false`','Enabled by default')"></span> 
                                         </td>
                                         <td>
-                                            {{ isEnabled(op.data.spec.repack.noKillBackend) }}
+                                            {{ isEnabled(op.data.spec.repack.noKillBackend, true) }}
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="label">
-                                            No Analyze
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noAnalyze')"></span> 
+                                            Analyze
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noAnalyze').replace('If true don\'t','Disable to not').replace('Defaults to: `false`','Enabled by default')"></span> 
                                         </td>
                                         <td>
-                                            {{ isEnabled(op.data.spec.repack.noAnalyze) }}
+                                            {{ isEnabled(op.data.spec.repack.noAnalyze, true) }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -861,11 +861,11 @@
                                     </tr>
                                     <tr>
                                         <td class="label">
-                                            No Order
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noOrder')"></span>
+                                            Order
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noOrder').replace('If true','Disable to').replace('Defaults to: `false`','Enabled by default')"></span>
                                         </td>
                                         <td>
-                                            {{ isEnabled(db.noOrder) }}
+                                            {{ isEnabled(db.noOrder, true) }}
                                         </td>
                                     </tr>
                                     <tr v-if="db.hasOwnProperty('waitTimeout')">
@@ -879,20 +879,20 @@
                                     </tr>
                                     <tr>
                                         <td class="label">
-                                            No Kill Backend
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noKillBackend')"></span>
+                                            Kill Backend
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noKillBackend').replace('If true don\'t','Disable to not').replace('Defaults to: `false`','Enabled by default')"></span>
                                         </td>
                                         <td>
-                                            {{ isEnabled(db.noKillBackend) }}
+                                            {{ isEnabled(db.noKillBackend, true) }}
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="label">
-                                            No Analyze
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noAnalyze')"></span>
+                                            Analyze
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noAnalyze').replace('If true don\'t','Disable to not').replace('Defaults to: `false`','Enabled by default')"></span>
                                         </td>
                                         <td>
-                                            {{ isEnabled(db.noAnalyze) }}
+                                            {{ isEnabled(db.noAnalyze, true) }}
                                         </td>
                                     </tr>
                                     <tr>

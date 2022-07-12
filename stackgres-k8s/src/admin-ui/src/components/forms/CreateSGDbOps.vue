@@ -544,30 +544,30 @@
 
                 <div class="row-50">
                     <div class="col">
-                        <label for="spec.repack.noOrder">No Order</label>
-                        <label for="repackNoOrder" class="switch yes-no" data-field="spec.repack.noOrder">
+                        <label for="spec.repack.noOrder">Order</label>
+                        <label for="repackNoOrder" class="switch yes-no reverse" data-field="spec.repack.noOrder">
                             Enable
                             <input type="checkbox" id="repackNoOrder" v-model="repack.noOrder" data-switch="YES">
                         </label>
-                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noOrder')"></span>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noOrder').replace('If true','Disable to').replace('Defaults to: `false`','Enabled by default')"></span>
                     </div>
 
                     <div class="col">
-                        <label for="spec.repack.noKillBackend">No Kill Backend</label>
-                        <label for="repackNoKillBackend" class="switch yes-no" data-field="spec.repack.noKillBackend">
+                        <label for="spec.repack.noKillBackend">Kill Backend</label>
+                        <label for="repackNoKillBackend" class="switch yes-no reverse" data-field="spec.repack.noKillBackend">
                             Enable
                             <input type="checkbox" id="repackNoKillBackend" v-model="repack.noKillBackend" data-switch="YES">
                         </label>
-                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noKillBackend')"></span>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noKillBackend').replace('If true don\'t','Disable to not').replace('Defaults to: `false`','Enabled by default')"></span>
                     </div>
 
                     <div class="col">
-                        <label for="spec.repack.noAnalyze">No Analyze</label>
-                        <label for="repackNoAnalyze" class="switch yes-no" data-field="spec.repack.noAnalyze">
+                        <label for="spec.repack.noAnalyze">Analyze</label>
+                        <label for="repackNoAnalyze" class="switch yes-no reverse" data-field="spec.repack.noAnalyze">
                             Enable
                             <input type="checkbox" id="repackNoAnalyze" v-model="repack.noAnalyze" data-switch="YES">
                         </label>
-                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noAnalyze')"></span>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.noAnalyze').replace('If true don\'t','Disable to not').replace('Defaults to: `false`','Enabled by default')"></span>
                     </div>
 
                     <div class="col">
@@ -633,33 +633,33 @@
                                     </div>
 
                                     <div class="col">
-                                        <label :for="'spec.repack.databases[' + index + '].noOrder'">No Order</label>
+                                        <label :for="'spec.repack.databases[' + index + '].noOrder'">Order</label>
                                         <select v-model="db.noOrder" :data-field="'spec.repack.databases[' + index + '].noOrder'">
                                             <option value="inherit" selected>Inherit from global settings</option>
-                                            <option :value="true">YES</option>
-                                            <option :value="false">NO</option>
+                                            <option :value="false">YES</option>
+                                            <option :value="true">NO</option>
                                         </select>
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.noOrder')"></span>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.noOrder').replace('If true','Disable to').replace('Defaults to: `false`','Enabled by default')"></span>
                                     </div>
 
                                     <div class="col">                                
-                                        <label :for="'spec.repack.databases[' + index + '].noKillBackend'">No Kill Backend</label>
+                                        <label :for="'spec.repack.databases[' + index + '].noKillBackend'">Kill Backend</label>
                                         <select v-model="db.noKillBackend" :data-field="'spec.repack.databases[' + index + '].noKillBackend'">
                                             <option value="inherit" selected>Inherit from global settings</option>
-                                            <option :value="true">YES</option>
-                                            <option :value="false">NO</option>
+                                            <option :value="false">YES</option>
+                                            <option :value="true">NO</option>
                                         </select>
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.noKillBackend')"></span>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.noKillBackend').replace('If true don\'t','Disable to not').replace('Defaults to: `false`','Enabled by default')"></span>
                                     </div>
 
                                     <div class="col">
-                                        <label :for="'spec.repack.databases[' + index + '].noAnalyze'">No Analyze</label>
+                                        <label :for="'spec.repack.databases[' + index + '].noAnalyze'">Analyze</label>
                                         <select v-model="db.noAnalyze" :data-field="'spec.repack.databases[' + index + '].noAnalyze'">
                                             <option value="inherit" selected>Inherit from global settings</option>
-                                            <option :value="true">YES</option>
-                                            <option :value="false">NO</option>
+                                            <option :value="false">YES</option>
+                                            <option :value="true">NO</option>
                                         </select>
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.noAnalyze')"></span>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.noAnalyze').replace('If true don\'t','Disable to not').replace('Defaults to: `false`','Enabled by default')"></span>
                                     </div>
 
                                     <div class="col">
