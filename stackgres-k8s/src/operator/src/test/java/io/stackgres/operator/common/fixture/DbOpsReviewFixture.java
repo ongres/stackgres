@@ -6,6 +6,7 @@
 package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.DbOpsReviewBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class DbOpsReviewFixture extends Fixture<DbOpsReview> {
@@ -53,6 +54,10 @@ public class DbOpsReviewFixture extends Fixture<DbOpsReview> {
     fixture = readFromJson(
         STACKGRES_DB_OPS_ADMISSION_REVIEW_VACUUM_CREATE_JSON);
     return this;
+  }
+
+  public DbOpsReviewBuilder getBuilder() {
+    return new DbOpsReviewBuilder(fixture);
   }
 
 }

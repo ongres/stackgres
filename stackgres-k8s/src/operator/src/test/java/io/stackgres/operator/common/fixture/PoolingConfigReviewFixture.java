@@ -6,6 +6,7 @@
 package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.PoolingReviewBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class PoolingConfigReviewFixture extends Fixture<PoolingReview> {
@@ -30,6 +31,10 @@ public class PoolingConfigReviewFixture extends Fixture<PoolingReview> {
     fixture = readFromJson(
         STACKGRES_POOLING_CONFIG_ADMISSION_REVIEW_DELETE_JSON);
     return this;
+  }
+
+  public PoolingReviewBuilder getBuilder() {
+    return new PoolingReviewBuilder(fixture);
   }
 
 }

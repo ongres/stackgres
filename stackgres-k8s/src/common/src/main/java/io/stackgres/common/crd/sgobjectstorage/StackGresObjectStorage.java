@@ -21,12 +21,14 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.storages.BackupStorage;
+import io.sundr.builder.annotations.Buildable;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
 @Group(CommonDefinition.GROUP)
 @Version(StackGresObjectStorage.VERSION)
 @Kind(StackGresObjectStorage.KIND)
+@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public class StackGresObjectStorage extends CustomResource<BackupStorage, Void>
     implements Namespaced {
   private static final long serialVersionUID = 1L;

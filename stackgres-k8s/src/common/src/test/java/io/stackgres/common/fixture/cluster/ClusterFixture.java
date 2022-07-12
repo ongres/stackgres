@@ -8,6 +8,7 @@ package io.stackgres.common.fixture.cluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -88,6 +89,10 @@ public class ClusterFixture extends Fixture<StackGresCluster> {
   public ClusterFixture withLatestPostgresVersion() {
     fixture.getSpec().getPostgres().setVersion(POSTGRES_LATEST_VERSION);
     return this;
+  }
+
+  public StackGresClusterBuilder getBuilder() {
+    return new StackGresClusterBuilder(fixture);
   }
 
 }

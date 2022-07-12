@@ -6,6 +6,7 @@
 package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.StackGresClusterReviewBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class ClusterReviewFixture extends Fixture<StackGresClusterReview> {
@@ -133,6 +134,10 @@ public class ClusterReviewFixture extends Fixture<StackGresClusterReview> {
   public ClusterReviewFixture loadUpdateWithManagedSql() {
     fixture = readFromJson(STACKGRES_CLUSTER_ADMISSION_REVIEW_UPDATE_WITH_MANAGED_SQL_JSON);
     return this;
+  }
+
+  public StackGresClusterReviewBuilder getBuilder() {
+    return new StackGresClusterReviewBuilder(fixture);
   }
 
 }

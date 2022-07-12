@@ -7,6 +7,7 @@ package io.stackgres.common.fixture;
 
 import io.fabric8.kubernetes.api.model.NodeAffinityBuilder;
 import io.fabric8.kubernetes.api.model.NodeSelector;
+import io.fabric8.kubernetes.api.model.NodeSelectorBuilder;
 import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
 
 public class NodeSelectorFixture {
@@ -25,4 +26,9 @@ public class NodeSelectorFixture {
       .endRequiredDuringSchedulingIgnoredDuringExecution()
       .buildRequiredDuringSchedulingIgnoredDuringExecution();
   }
+
+  public NodeSelectorBuilder getBuilder() {
+    return new NodeSelectorBuilder(buildAsRequirements());
+  }
+
 }

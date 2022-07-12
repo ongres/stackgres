@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture;
 
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 
 public class StackGresClusterPodFixture {
@@ -21,6 +22,10 @@ public class StackGresClusterPodFixture {
     StackGresClusterPod pod = new StackGresClusterPod();
     pod.setScheduling(scheduling);
     return pod;
+  }
+
+  public StackGresClusterPodBuilder getBuilder() {
+    return new StackGresClusterPodBuilder(build());
   }
 
 }

@@ -6,6 +6,7 @@
 package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
+import io.stackgres.operator.common.StackGresDistributedLogsReviewBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class DistributedLogsReviewFixture extends Fixture<StackGresDistributedLogsReview> {
@@ -36,6 +37,10 @@ public class DistributedLogsReviewFixture extends Fixture<StackGresDistributedLo
     fixture = readFromJson(
         STACKGRES_DISTRIBUTED_LOGS_ADMISSION_REVIEW_DELETE_JSON);
     return this;
+  }
+
+  public StackGresDistributedLogsReviewBuilder getBuilder() {
+    return new StackGresDistributedLogsReviewBuilder(fixture);
   }
 
 }

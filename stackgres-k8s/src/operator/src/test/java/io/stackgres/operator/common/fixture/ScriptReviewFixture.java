@@ -6,6 +6,7 @@
 package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.StackGresScriptReview;
+import io.stackgres.operator.common.StackGresScriptReviewBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class ScriptReviewFixture extends Fixture<StackGresScriptReview> {
@@ -32,6 +33,10 @@ public class ScriptReviewFixture extends Fixture<StackGresScriptReview> {
   public ScriptReviewFixture loadScriptsConfigUpdate() {
     fixture = readFromJson(STACKGRES_SCRIPT_ADMISSION_REVIEW_SCRIPTS_CONFIG_UPDATE_JSON);
     return this;
+  }
+
+  public StackGresScriptReviewBuilder getBuilder() {
+    return new StackGresScriptReviewBuilder(fixture);
   }
 
 }

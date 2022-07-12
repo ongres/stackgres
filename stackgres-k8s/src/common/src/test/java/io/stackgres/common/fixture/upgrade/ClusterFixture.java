@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture.upgrade;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class ClusterFixture extends Fixture<StackGresCluster> {
@@ -13,6 +14,10 @@ public class ClusterFixture extends Fixture<StackGresCluster> {
   public ClusterFixture loadDefault() {
     fixture = readFromJson(UPGRADE_SGCLUSTER_JSON);
     return this;
+  }
+
+  public StackGresClusterBuilder getBuilder() {
+    return new StackGresClusterBuilder(fixture);
   }
 
 }

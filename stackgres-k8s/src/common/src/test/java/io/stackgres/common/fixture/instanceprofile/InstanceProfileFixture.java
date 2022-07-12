@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture.instanceprofile;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgprofile.StackGresProfileBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class InstanceProfileFixture extends Fixture<StackGresProfile> {
@@ -18,6 +19,10 @@ public class InstanceProfileFixture extends Fixture<StackGresProfile> {
   public InstanceProfileFixture loadSizeS() {
     fixture = readFromJson(STACKGRES_INSTANCE_PROFILE_SIZE_S_JSON);
     return this;
+  }
+
+  public StackGresProfileBuilder getBuilder() {
+    return new StackGresProfileBuilder(fixture);
   }
 
 }

@@ -35,4 +35,9 @@ public class PreferredSchedulingTermFixture {
         .endPreference()
      .build();
   }
+
+  public PreferredSchedulingTermBuilder getBuilder() {
+    return new PreferredSchedulingTermBuilder(build());
+  }
+
 }

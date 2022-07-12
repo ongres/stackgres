@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture;
 
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class StatefulSetFixture extends Fixture<StatefulSet> {
@@ -38,6 +39,10 @@ public class StatefulSetFixture extends Fixture<StatefulSet> {
   public StatefulSetFixture loadWithoutManagedFields() {
     fixture = readFromJson(STATEFULSET_STATEFULSET_WITHOUT_MANAGED_FIELDS_JSON);
     return this;
+  }
+
+  public StatefulSetBuilder getBuilder() {
+    return new StatefulSetBuilder(fixture);
   }
 
 }

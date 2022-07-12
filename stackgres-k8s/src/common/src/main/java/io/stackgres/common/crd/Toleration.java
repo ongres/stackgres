@@ -17,10 +17,12 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
+import io.sundr.builder.annotations.Buildable;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 @SuppressFBWarnings(value = "NM_SAME_SIMPLE_NAME_AS_SUPERCLASS",
     justification = "Intentional name shadowing")
 public class Toleration extends io.fabric8.kubernetes.api.model.Toleration {

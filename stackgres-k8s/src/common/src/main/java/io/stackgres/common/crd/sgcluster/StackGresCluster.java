@@ -20,12 +20,14 @@ import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CommonDefinition;
+import io.sundr.builder.annotations.Buildable;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
 @Group(CommonDefinition.GROUP)
 @Version(StackGresCluster.VERSION)
 @Kind(StackGresCluster.KIND)
+@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public final class StackGresCluster
     extends CustomResource<StackGresClusterSpec, StackGresClusterStatus>
     implements Namespaced {

@@ -6,6 +6,7 @@
 package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.BackupConfigReview;
+import io.stackgres.operator.common.BackupConfigReviewBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class BackupConfigReviewFixture extends Fixture<BackupConfigReview> {
@@ -39,6 +40,10 @@ public class BackupConfigReviewFixture extends Fixture<BackupConfigReview> {
     fixture = readFromJson(
         STACKGRES_BACKUP_CONFIG_ADMISSION_REVIEW_INVALID_CREATION_NO_S3_JSON);
     return this;
+  }
+
+  public BackupConfigReviewBuilder getBuilder() {
+    return new BackupConfigReviewBuilder(fixture);
   }
 
 }
