@@ -13,6 +13,7 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.SidecarLiteral;
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
@@ -34,10 +35,10 @@ public class ClusterSidecarFinder implements SidecarFinder {
 
     allSidecars = transformers.stream()
         .filter(t -> t.getClass().isAnnotationPresent(Sidecar.class))
-        .map(t -> t.getClass().getAnnotation(Sidecar.class).value())
+        .map(t -> t.getClass().getAnnotation(Sidecar.class).value().getName())
         .collect(ImmutableList.toImmutableList());
 
-    String envoySidecarName = Envoy.class.getAnnotation(Sidecar.class).value();
+    String envoySidecarName = Envoy.class.getAnnotation(Sidecar.class).value().getName();
 
     optionalSidecars = allSidecars.stream().filter(s -> !s.equals(envoySidecarName))
         .collect(ImmutableList.toImmutableList());
@@ -48,7 +49,7 @@ public class ClusterSidecarFinder implements SidecarFinder {
   public StackGresClusterSidecarResourceFactory<?> getSidecarTransformer(
       String name) {
     Instance<StackGresClusterSidecarResourceFactory<?>> transformer = transformers
-        .select(new SidecarLiteral(name));
+        .select(new SidecarLiteral(StackGresContainer.valueOf(name)));
     if (transformer.isResolvable()) {
       return transformer.get();
     }

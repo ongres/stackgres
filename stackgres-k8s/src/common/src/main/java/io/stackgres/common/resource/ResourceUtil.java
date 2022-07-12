@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.client.internal.SerializationUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.tuple.Tuple;
@@ -46,7 +47,9 @@ public class ResourceUtil {
 
   public static final BigDecimal MILLICPU_MULTIPLIER = new BigDecimal(1000);
   public static final BigDecimal LOAD_MULTIPLIER = new BigDecimal(1000);
-  public static final BigDecimal KILOBYTE = new BigDecimal(1024);
+  public static final BigDecimal KILOBYTE = Quantity.getAmountInBytes(new Quantity("1Ki"));
+  public static final BigDecimal MEBIBYTES = Quantity.getAmountInBytes(new Quantity("1Mi"));
+  public static final BigDecimal GIBIBYTES = Quantity.getAmountInBytes(new Quantity("1Gi"));
 
   public static final Pattern DNS_LABEL_NAME = Pattern.compile("^[a-z]([-a-z0-9]*[a-z0-9])?$");
   private static final Pattern VALID_VALUE =

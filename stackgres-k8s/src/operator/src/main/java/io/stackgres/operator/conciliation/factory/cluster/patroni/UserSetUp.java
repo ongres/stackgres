@@ -18,9 +18,9 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
+import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.VolumeMountProviderName;
-import io.stackgres.operator.conciliation.factory.ClusterInitContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
@@ -31,7 +31,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 
 @Singleton
 @OperatorVersionBinder
-@InitContainer(ClusterInitContainer.USER_SET_UP)
+@InitContainer(StackGresInitContainer.SETUP_ARBITRARY_USER)
 public class UserSetUp implements ContainerFactory<StackGresClusterContainerContext> {
 
   private final VolumeMountsProvider<ContainerContext> scriptTemplateMounts;
@@ -54,7 +54,7 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContainerCont
   @Override
   public Container getContainer(StackGresClusterContainerContext context) {
     return new ContainerBuilder()
-        .withName("setup-arbitrary-user")
+        .withName(StackGresInitContainer.SETUP_ARBITRARY_USER.getName())
         .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",

@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.distributedlogs;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -19,12 +21,56 @@ public class DistributedLogsNonProduction {
   @JsonProperty("disableClusterPodAntiAffinity")
   public Boolean disableClusterPodAntiAffinity;
 
+  @JsonProperty("disablePatroniResourceRequirements")
+  public Boolean disablePatroniResourceRequirements;
+
+  @JsonProperty("disableClusterResourceRequirements")
+  public Boolean disableClusterResourceRequirements;
+
   public Boolean getDisableClusterPodAntiAffinity() {
     return disableClusterPodAntiAffinity;
   }
 
   public void setDisableClusterPodAntiAffinity(Boolean disableClusterPodAntiAffinity) {
     this.disableClusterPodAntiAffinity = disableClusterPodAntiAffinity;
+  }
+
+  public Boolean getDisablePatroniResourceRequirements() {
+    return disablePatroniResourceRequirements;
+  }
+
+  public void setDisablePatroniResourceRequirements(Boolean disablePatroniResourceRequirements) {
+    this.disablePatroniResourceRequirements = disablePatroniResourceRequirements;
+  }
+
+  public Boolean getDisableClusterResourceRequirements() {
+    return disableClusterResourceRequirements;
+  }
+
+  public void setDisableClusterResourceRequirements(Boolean disableClusterResourceRequirements) {
+    this.disableClusterResourceRequirements = disableClusterResourceRequirements;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(disableClusterPodAntiAffinity, disableClusterResourceRequirements,
+        disablePatroniResourceRequirements);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof DistributedLogsNonProduction)) {
+      return false;
+    }
+    DistributedLogsNonProduction other = (DistributedLogsNonProduction) obj;
+    return Objects.equals(disableClusterPodAntiAffinity, other.disableClusterPodAntiAffinity)
+        && Objects.equals(disableClusterResourceRequirements,
+            other.disableClusterResourceRequirements)
+        && Objects.equals(disablePatroniResourceRequirements,
+            other.disablePatroniResourceRequirements);
   }
 
   @Override

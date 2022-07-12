@@ -7,7 +7,7 @@ package io.stackgres.operator.conciliation.comparator;
 
 import java.util.regex.Pattern;
 
-public class ServiceComparator extends StackGresAbstractComparator {
+public class ServiceComparator extends AbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
       new PatchPattern(Pattern

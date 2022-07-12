@@ -38,15 +38,14 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.distributedlogs.PatroniTableFields;
 import io.stackgres.common.distributedlogs.PostgresTableFields;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -66,7 +65,7 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 @OperatorVersionBinder
-@RunningContainer(ClusterRunningContainer.FLUENTD)
+@RunningContainer(StackGresContainer.FLUENTD)
 public class Fluentd implements ContainerFactory<DistributedLogsContainerContext>,
     ResourceGenerator<StackGresDistributedLogsContext>,
     VolumeFactory<StackGresDistributedLogsContext> {
@@ -94,7 +93,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
     return new ContainerBuilder()
-        .withName(StackgresClusterContainers.FLUENTD)
+        .withName(StackGresContainer.FLUENTD.getName())
         .withImage(StackGresComponent.FLUENTD.get(context.getDistributedLogsContext().getSource())
             .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")

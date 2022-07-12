@@ -5,6 +5,7 @@
 
 package io.stackgres.distributedlogs.controller;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -175,7 +176,7 @@ public class DistributedLogsControllerReconciliationCycle
         .cluster(cluster)
         .extensions(Optional.ofNullable(distributedLogs.getSpec())
             .map(StackGresDistributedLogsSpec::getToInstallPostgresExtensions)
-            .orElse(ImmutableList.of()))
+            .orElse(List.of()))
         .labels(labelFactory.genericLabels(distributedLogs))
         .build();
   }

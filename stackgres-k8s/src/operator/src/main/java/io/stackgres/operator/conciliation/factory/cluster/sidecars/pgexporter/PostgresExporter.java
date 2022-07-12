@@ -33,16 +33,15 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
-import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -59,13 +58,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-@Sidecar(PostgresExporter.NAME)
+@Sidecar(StackGresContainer.POSTGRES_EXPORTER)
 @OperatorVersionBinder(startAt = StackGresVersion.V_1_1)
-@RunningContainer(ClusterRunningContainer.POSTGRES_EXPORTER)
+@RunningContainer(StackGresContainer.POSTGRES_EXPORTER)
 public class PostgresExporter implements ContainerFactory<StackGresClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
-
-  public static final String NAME = StackgresClusterContainers.POSTGRES_EXPORTER;
 
   private static final Logger POSTGRES_EXPORTER_LOGGER = LoggerFactory.getLogger(
       "io.stackgres.prometheus-postgres-exporter");
@@ -95,7 +92,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
   public Container getContainer(StackGresClusterContainerContext context) {
     StackGresCluster cluster = context.getClusterContext().getSource();
     ContainerBuilder container = new ContainerBuilder();
-    container.withName(NAME)
+    container.withName(StackGresContainer.POSTGRES_EXPORTER.getName())
         .withImage(StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.get(cluster)
             .findLatestImageName())
         .withImagePullPolicy("IfNotPresent")
@@ -128,7 +125,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
         .withEnv(
             new EnvVarBuilder()
                 .withName("PGAPPNAME")
-                .withValue(NAME)
+                .withValue(StackGresContainer.POSTGRES_EXPORTER.getName())
                 .build(),
             new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")

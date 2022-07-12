@@ -27,7 +27,9 @@ import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ClusterFinder;
+import io.stackgres.common.resource.ProfileConfigFinder;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,11 +40,15 @@ class DbOpsRequiredResourcesGeneratorTest {
   @InjectMock
   ClusterFinder clusterFinder;
 
+  @InjectMock
+  ProfileConfigFinder profileFinder;
+
   @Inject
   DbOpsRequiredResourcesGenerator generator;
 
   private StackGresDbOps dbOps;
   private StackGresCluster cluster;
+  private StackGresProfile profile;
 
   @BeforeEach
   void setUp() {
@@ -54,29 +60,41 @@ class DbOpsRequiredResourcesGeneratorTest {
         .getLatest().findLatestVersion());
     cluster.getMetadata().setNamespace(dbOps.getMetadata().getNamespace());
     cluster.getMetadata().setName(dbOps.getSpec().getSgCluster());
+    profile = JsonUtil
+        .readFromJson("stackgres_profiles/size-xs.json", StackGresProfile.class);
   }
 
   @Test
   void givenValidCluster_getRequiredResourcesShouldNotFail() {
     final String dbOpsNamespace = dbOps.getMetadata().getNamespace();
     final String clusterName = dbOps.getSpec().getSgCluster();
+    final String profileName = cluster.getSpec().getResourceProfile();
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
+
+    when(profileFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(profile));
 
     generator.getRequiredResources(dbOps);
 
     verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(dbOpsNamespace));
+    verify(profileFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder).findByNameAndNamespace(eq(profileName), eq(dbOpsNamespace));
   }
 
   @Test
   void givenValidCluster_getRequiredResourcesAllReturnedResourcesShouldHaveTheOwnerReference() {
     final String dbOpsNamespace = dbOps.getMetadata().getNamespace();
     final String clusterName = dbOps.getSpec().getSgCluster();
+    final String profileName = cluster.getSpec().getResourceProfile();
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
+
+    when(profileFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(profile));
 
     List<HasMetadata> resources = generator.getRequiredResources(dbOps);
 
@@ -97,6 +115,8 @@ class DbOpsRequiredResourcesGeneratorTest {
 
     verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(dbOpsNamespace));
+    verify(profileFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder).findByNameAndNamespace(eq(profileName), eq(dbOpsNamespace));
   }
 
   @Test
@@ -108,11 +128,32 @@ class DbOpsRequiredResourcesGeneratorTest {
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
 
-    assertException("SGDbOps " + dbOpsNamespace + "/" + dbOpsName
+    assertException("SGDbOps " + dbOpsNamespace + "." + dbOpsName
         + " have a non existent SGCluster " + clusterName);
 
     verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(dbOpsNamespace));
+    verify(profileFinder, times(0)).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithoutProfile_getRequiredResourcesShouldFail() {
+    final String dbOpsNamespace = dbOps.getMetadata().getNamespace();
+    final String dbOpsName = dbOps.getMetadata().getName();
+    final String clusterName = dbOps.getSpec().getSgCluster();
+    final String profileName = cluster.getSpec().getResourceProfile();
+
+    when(clusterFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(cluster));
+
+    assertException("SGDbOps " + dbOpsNamespace + "." + dbOpsName
+        + " target SGCluster " + clusterName
+        + " with a non existent SGInstanceProfile " + profileName);
+
+    verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(dbOpsNamespace));
+    verify(profileFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(profileFinder).findByNameAndNamespace(eq(profileName), eq(dbOpsNamespace));
   }
 
   private void assertException(String message) {

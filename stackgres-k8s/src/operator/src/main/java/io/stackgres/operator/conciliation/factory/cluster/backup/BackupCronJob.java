@@ -34,9 +34,9 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -217,7 +217,7 @@ public class BackupCronJob
                             .build(),
                         new EnvVarBuilder()
                             .withName("PATRONI_CONTAINER_NAME")
-                            .withValue(StackgresClusterContainers.PATRONI)
+                            .withValue(StackGresContainer.PATRONI.getName())
                             .build(),
                         new EnvVarBuilder()
                             .withName("SERVICE_ACCOUNT")

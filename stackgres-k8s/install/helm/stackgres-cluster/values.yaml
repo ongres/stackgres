@@ -309,5 +309,7 @@ distributedLogs:
 #You should only set following options for non production environment
 nonProductionOptions:
   disableClusterPodAntiAffinity: false
+  disablePatroniResourceRequirements: false
+  disableClusterResourceRequirements: false
   # enabledFeatureGates:
   # - babelfish-flavor

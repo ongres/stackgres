@@ -30,8 +30,8 @@ public interface MutationResource<T extends AdmissionReview<?>> {
     AdmissionRequest<?> request = admissionReview.getRequest();
     UUID requestUid = request.getUid();
 
-    getLogger().info("Mutating admission review uid {} of kind {}", requestUid,
-        request.getKind().getKind());
+    getLogger().info("Mutating admission review uid {} of kind {} for resource {}.{}",
+        requestUid, request.getKind().getKind(), request.getNamespace(), request.getName());
 
     AdmissionResponse response = new AdmissionResponse();
     response.setUid(requestUid);

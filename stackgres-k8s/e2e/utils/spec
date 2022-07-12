@@ -25,6 +25,7 @@ export E2E_HASH_VARIABLES='
     E2E_ENV
     E2E_COMPONENTS_REGISTRY
     E2E_COMPONENTS_REGISTRY_PATH
+    E2E_ENABLE_RESOURCE_REQUIREMENTS
     E2E_EXTENSIONS_REGISTRY_PATH
     E2E_IMAGE_MAP
     E2E_MAJOR_SOURCE_POSTGRES_VERSION
@@ -384,7 +385,7 @@ calculate_spec_hashes() {
             "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
               "$(realpath --relative-to "$PROJECT_PATH" "$FILE")"
           done)"
-   GLOBAL_SPEC_HASH="$(printf '%s' "$GLOBAL_SPEC_HASH" | md5sum | cut -d ' ' -f 1)"
+  GLOBAL_SPEC_HASH="$(printf '%s' "$GLOBAL_SPEC_HASH" | md5sum | cut -d ' ' -f 1)"
   local VARIABLES_HASH
   VARIABLES_HASH="$(get_variables_for_hash)"
   VARIABLES_HASH="$(printf '%s' "$VARIABLES_HASH" | md5sum | cut -d ' ' -f 1)"

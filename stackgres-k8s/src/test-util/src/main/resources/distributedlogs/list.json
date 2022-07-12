@@ -22,6 +22,10 @@
         "spec": {
             "persistentVolume": {
                 "size": "128Mi"
+            },
+            "sgInstanceProfile": "size-xs",
+            "configurations": {
+                "sgPostgresConfig": "postgresconf"
             }
         },
         "status": {

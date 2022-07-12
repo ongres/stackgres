@@ -5,11 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.LOCAL_BIN;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_EXTENSIONS;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
-import static io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
-
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +12,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
@@ -28,19 +22,20 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.ClusterRunningContainer;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContextUtil;
@@ -57,41 +52,55 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 
 @Singleton
 @OperatorVersionBinder
-@RunningContainer(ClusterRunningContainer.PATRONI)
-public class PatroniContainer implements ContainerFactory<DistributedLogsContainerContext> {
+@RunningContainer(StackGresContainer.PATRONI)
+public class Patroni implements ContainerFactory<DistributedLogsContainerContext> {
+
+  private final ResourceFactory<StackGresDistributedLogsContext, ResourceRequirements>
+      requirementsFactory;
 
   private final ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory;
 
   private final VolumeMountsProvider<ContainerContext> postgresSocket;
   private final VolumeMountsProvider<PostgresContainerContext> postgresExtensions;
   private final VolumeMountsProvider<ContainerContext> localBinMounts;
+  private final VolumeMountsProvider<DistributedLogsContainerContext> hugePagesMounts;
 
   @Inject
-  public PatroniContainer(
+  public Patroni(
+      ResourceFactory<StackGresDistributedLogsContext, ResourceRequirements>
+          requirementsFactory,
       @FactoryName(DistributedLogsEnvVarFactories.LATEST_PATRONI_ENV_VAR_FACTORY)
-          ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory,
-      @ProviderName(POSTGRES_SOCKET)
-          VolumeMountsProvider<ContainerContext> postgresSocket,
-      @ProviderName(POSTGRES_EXTENSIONS)
-          VolumeMountsProvider<PostgresContainerContext> postgresExtensions,
-      @ProviderName(LOCAL_BIN)
-          VolumeMountsProvider<ContainerContext> localBinMounts) {
+      ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory,
+      @ProviderName(VolumeMountProviderName.POSTGRES_SOCKET)
+      VolumeMountsProvider<ContainerContext> postgresSocket,
+      @ProviderName(VolumeMountProviderName.POSTGRES_EXTENSIONS)
+      VolumeMountsProvider<PostgresContainerContext> postgresExtensions,
+      @ProviderName(VolumeMountProviderName.LOCAL_BIN)
+      VolumeMountsProvider<ContainerContext> localBinMounts,
+      @ProviderName(VolumeMountProviderName.HUGE_PAGES)
+      VolumeMountsProvider<DistributedLogsContainerContext> hugePagesMounts) {
+    this.requirementsFactory = requirementsFactory;
     this.envVarFactory = envVarFactory;
     this.postgresSocket = postgresSocket;
     this.postgresExtensions = postgresExtensions;
     this.localBinMounts = localBinMounts;
+    this.hugePagesMounts = hugePagesMounts;
   }
 
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
     final StackGresDistributedLogs cluster = context.getDistributedLogsContext().getSource();
 
+    ResourceRequirements podResources = requirementsFactory
+        .createResource(context.getDistributedLogsContext());
+
     final String startScript = "/start-patroni.sh";
     return new ContainerBuilder()
-        .withName(StackgresClusterContainers.PATRONI)
+        .withName(StackGresContainer.PATRONI.getName())
         .withImage(StackGresUtil.getPatroniImageName(cluster))
         .withCommand("/bin/sh", "-ex",
             PatroniEnvPaths.LOCAL_BIN_PATH.getPath() + startScript)
+        .withResources(podResources)
         .withImagePullPolicy("IfNotPresent")
         .withPorts(
             new ContainerPortBuilder()
@@ -103,7 +112,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
                 .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build(),
             new ContainerPortBuilder()
-                .withName(PATRONI_RESTAPI_PORT_NAME)
+                .withName(PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME)
                 .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PATRONI_ENTRY_PORT)
                 .build())
@@ -137,7 +146,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
 
   @Override
   public Map<String, String> getComponentVersions(DistributedLogsContainerContext context) {
-    return ImmutableMap.of(
+    return Map.of(
         StackGresContext.POSTGRES_VERSION_KEY,
         StackGresDistributedLogsUtil
         .getPostgresVersion(context.getDistributedLogsContext().getSource()),
@@ -174,6 +183,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
                 .withReadOnly(true)
                 .build())
         .addAll(postgresExtensions.getVolumeMounts(ContextUtil.toPostgresContext(context)))
+        .addAll(hugePagesMounts.getVolumeMounts(context))
         .build();
   }
 
@@ -196,6 +206,7 @@ public class PatroniContainer implements ContainerFactory<DistributedLogsContain
                 .withName("PATRONI_ENV_PATH")
                 .withValue("/etc/env/patroni")
                 .build())
+        .addAll(hugePagesMounts.getDerivedEnvVars(context))
         .build();
   }
 

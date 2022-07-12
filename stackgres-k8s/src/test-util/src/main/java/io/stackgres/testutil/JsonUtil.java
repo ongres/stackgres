@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -112,7 +111,7 @@ public class JsonUtil {
     return JSON_MAPPER.valueToTree(object);
   }
 
-  public static <T> T toJson(String content, Class<T> clazz) {
+  public static <T> T fromJson(String content, Class<T> clazz) {
     try {
       return JSON_MAPPER.readValue(content, clazz);
     } catch (JsonProcessingException e) {
@@ -121,12 +120,17 @@ public class JsonUtil {
 
   }
 
-  public static <T> T fromJson(TreeNode json, Class<T> clazz) {
+  public static <T> T fromJson(JsonNode json, Class<T> clazz) {
     try {
-      return JSON_MAPPER.treeToValue(json, clazz);
+      return JSON_MAPPER.readValue(json.toString(), clazz);
     } catch (IOException e) {
       throw new IllegalArgumentException("could not convert JSON to " + clazz + "\n\n" + json, e);
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <T> T copy(T object) {
+    return (T) fromJson(toJson(object), object.getClass());
   }
 
   public static void assertJsonEquals(JsonNode expected, JsonNode actual) {

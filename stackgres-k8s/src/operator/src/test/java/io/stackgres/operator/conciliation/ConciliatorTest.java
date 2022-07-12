@@ -25,7 +25,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StringUtil;
-import io.stackgres.operator.conciliation.comparator.StackGresAbstractComparator;
+import io.stackgres.operator.conciliation.comparator.AbstractComparator;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
@@ -35,7 +35,7 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
   private static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
 
   protected ComparisonDelegator<T> resourceComparator = new ComparisonDelegator<>() {
-    private final StackGresAbstractComparator comparator = new StackGresAbstractComparator() {
+    private final AbstractComparator comparator = new AbstractComparator() {
       @Override
       protected IgnorePatch[] getPatchPattersToIgnore() {
         return new IgnorePatch[0];

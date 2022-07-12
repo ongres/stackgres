@@ -58,7 +58,7 @@ spec:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE"
   sgInstanceProfile: 'size-xs'
   nonProductionOptions:
-    disableClusterPodAntiAffinity: true  
+    disableClusterPodAntiAffinity: true
 EOF
 
   if wait_until -t "15" has_cluster_generated_resources

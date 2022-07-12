@@ -13,6 +13,8 @@ import java.lang.annotation.Target;
 
 import javax.inject.Qualifier;
 
+import io.stackgres.common.StackGresContainer;
+
 @Qualifier
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -22,6 +24,6 @@ public @interface Sidecar {
   /**
    * The sidecar name.
    */
-  String value();
+  StackGresContainer value();
 
 }

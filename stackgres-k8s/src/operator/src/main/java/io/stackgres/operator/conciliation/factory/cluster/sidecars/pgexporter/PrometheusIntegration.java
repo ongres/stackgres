@@ -22,8 +22,8 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.prometheus.Endpoint;
 import io.stackgres.common.prometheus.NamespaceSelector;
@@ -40,8 +40,6 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
 
   public static final String SERVICE = "-pgexp";
   public static final String SERVICE_MONITOR = "-stackgres-postgres-exporter";
-  private static final String POSTGRES_EXPORTER_CONTAINER_NAME = StackgresClusterContainers
-      .POSTGRES_EXPORTER;
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
@@ -74,13 +72,14 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
             .withName(serviceName(context))
             .withLabels(ImmutableMap.<String, String>builder()
                 .putAll(crossNamespaceLabels)
-                .put(StackGresContext.CONTAINER_KEY, POSTGRES_EXPORTER_CONTAINER_NAME)
+                .put(StackGresContext.CONTAINER_KEY,
+                    StackGresContainer.POSTGRES_EXPORTER.getName())
                 .build())
             .endMetadata()
             .withSpec(new ServiceSpecBuilder()
                 .withSelector(clusterSelectorLabels)
                 .withPorts(new ServicePortBuilder()
-                    .withName(POSTGRES_EXPORTER_CONTAINER_NAME)
+                    .withName(StackGresContainer.POSTGRES_EXPORTER.getName())
                     .withProtocol("TCP")
                     .withPort(9187)
                     .build())
@@ -110,7 +109,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
 
           selector.setMatchLabels(crossNamespaceLabels);
           Endpoint endpoint = new Endpoint();
-          endpoint.setPort(POSTGRES_EXPORTER_CONTAINER_NAME);
+          endpoint.setPort(StackGresContainer.POSTGRES_EXPORTER.getName());
           spec.setEndpoints(Collections.singletonList(endpoint));
           return serviceMonitor;
         }));

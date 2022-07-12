@@ -21,6 +21,12 @@ public class StackGresDistributedLogsNonProduction {
   @JsonProperty("disableClusterPodAntiAffinity")
   public Boolean disableClusterPodAntiAffinity;
 
+  @JsonProperty("disablePatroniResourceRequirements")
+  public Boolean disablePatroniResourceRequirements;
+
+  @JsonProperty("disableClusterResourceRequirements")
+  public Boolean disableClusterResourceRequirements;
+
   public Boolean getDisableClusterPodAntiAffinity() {
     return disableClusterPodAntiAffinity;
   }
@@ -29,9 +35,26 @@ public class StackGresDistributedLogsNonProduction {
     this.disableClusterPodAntiAffinity = disableClusterPodAntiAffinity;
   }
 
+  public Boolean getDisablePatroniResourceRequirements() {
+    return disablePatroniResourceRequirements;
+  }
+
+  public void setDisablePatroniResourceRequirements(Boolean disablePatroniResourceRequirements) {
+    this.disablePatroniResourceRequirements = disablePatroniResourceRequirements;
+  }
+
+  public Boolean getDisableClusterResourceRequirements() {
+    return disableClusterResourceRequirements;
+  }
+
+  public void setDisableClusterResourceRequirements(Boolean disableClusterResourceRequirements) {
+    this.disableClusterResourceRequirements = disableClusterResourceRequirements;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(disableClusterPodAntiAffinity);
+    return Objects.hash(disableClusterPodAntiAffinity, disableClusterResourceRequirements,
+        disablePatroniResourceRequirements);
   }
 
   @Override
@@ -43,7 +66,11 @@ public class StackGresDistributedLogsNonProduction {
       return false;
     }
     StackGresDistributedLogsNonProduction other = (StackGresDistributedLogsNonProduction) obj;
-    return Objects.equals(disableClusterPodAntiAffinity, other.disableClusterPodAntiAffinity);
+    return Objects.equals(disableClusterPodAntiAffinity, other.disableClusterPodAntiAffinity)
+        && Objects.equals(disableClusterResourceRequirements,
+            other.disableClusterResourceRequirements)
+        && Objects.equals(disablePatroniResourceRequirements,
+            other.disablePatroniResourceRequirements);
   }
 
   @Override

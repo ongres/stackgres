@@ -29,8 +29,8 @@
       "username": "system:serviceaccount:kube-system:tiller"
     },
     "object": {
-      "kind": "SGInstanceProfile",
       "apiVersion": "stackgres.io/v1",
+      "kind": "SGInstanceProfile",
       "metadata": {
         "annotations": {
           "helm.sh/hook": "pre-install"
@@ -43,7 +43,95 @@
       },
       "spec": {
         "cpu": "500m",
-        "memory": "512Mi"
+        "memory": "512Mi",
+        "containers": {
+          "cluster-controller": {
+            "cpu": "250m",
+            "memory": "512Mi"
+          },
+          "distributedlogs-controller": {
+            "cpu": "250m",
+            "memory": "512Mi"
+          },
+          "envoy": {
+            "cpu": "250m",
+            "memory": "64Mi"
+          },
+          "fluent-bit": {
+            "cpu": "32m",
+            "memory": "8Mi"
+          },
+          "fluentd": {
+            "cpu": "250m",
+            "memory": "2Gi"
+          },
+          "pgbouncer": {
+            "cpu": "250m",
+            "memory": "64Mi"
+          },
+          "postgres-util": {
+            "cpu": "32m",
+            "memory": "8Mi"
+          },
+          "prometheus-postgres-exporter": {
+            "cpu": "32m",
+            "memory": "8Mi"
+          },
+          "dbops.run-dbops": {
+            "cpu": "1",
+            "memory": "64Mi"
+          },
+          "dbops.set-dbops-result": {
+            "cpu": "1",
+            "memory": "64Mi"
+          },
+          "backup.create-backup": {
+            "cpu": "1",
+            "memory": "64Mi"
+          }
+        },
+        "initContainers": {
+          "cluster-reconciliation-cycle": {
+            "cpu": "500m",
+            "memory": "512Mi"
+          },
+          "distributedlogs-reconciliation-cycle": {
+            "cpu": "500m",
+            "memory": "512Mi"
+          },
+          "major-version-upgrade": {
+            "cpu": "500m",
+            "memory": "512Mi"
+          },
+          "pgbouncer-auth-file": {
+            "cpu": "500m",
+            "memory": "512Mi"
+          },
+          "relocate-binaries": {
+            "cpu": "500m",
+            "memory": "512Mi"
+          },
+          "reset-patroni": {
+            "cpu": "500m",
+            "memory": "512Mi"
+          },
+          "setup-arbitrary-user": {
+            "cpu": "500m",
+            "memory": "512Mi"
+          },
+          "setup-data-paths": {
+            "cpu": "500m",
+            "memory": "512Mi"
+          },
+          "setup-scripts": {
+            "cpu": "500m",
+            "memory": "512Mi"
+          },
+          "dbops.set-dbops-running": {
+            "cpu": "1",
+            "memory": "64Mi"
+          }
+        }
       }
     },
     "oldObject": null,

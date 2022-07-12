@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.StackGresContext;
 import org.jooq.lambda.Seq;
 
-public abstract class StackGresAbstractComparator
+public abstract class AbstractComparator
     extends DefaultComparator {
 
   static final SimpleIgnorePatch MANAGED_FIELDS_IGNORE_PATCH =

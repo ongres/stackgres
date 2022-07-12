@@ -14,7 +14,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 
-public class SecretComparator extends StackGresAbstractComparator {
+public class SecretComparator extends AbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
   };

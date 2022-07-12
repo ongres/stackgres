@@ -5,6 +5,7 @@
 
 package io.stackgres.apiweb.dto.profile;
 
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -26,6 +27,12 @@ public class ProfileSpec {
 
   @JsonProperty("hugePages")
   private ProfileHugePages hugePages;
+
+  @JsonProperty("containers")
+  private Map<String, ProfileContainer> containers;
+
+  @JsonProperty("initContainers")
+  private Map<String, ProfileContainer> initContainers;
 
   public String getCpu() {
     return cpu;
@@ -51,9 +58,25 @@ public class ProfileSpec {
     this.hugePages = hugePages;
   }
 
+  public Map<String, ProfileContainer> getContainers() {
+    return containers;
+  }
+
+  public void setContainers(Map<String, ProfileContainer> containers) {
+    this.containers = containers;
+  }
+
+  public Map<String, ProfileContainer> getInitContainers() {
+    return initContainers;
+  }
+
+  public void setInitContainers(Map<String, ProfileContainer> initContainers) {
+    this.initContainers = initContainers;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(cpu, hugePages, memory);
+    return Objects.hash(containers, cpu, hugePages, initContainers, memory);
   }
 
   @Override
@@ -65,7 +88,9 @@ public class ProfileSpec {
       return false;
     }
     ProfileSpec other = (ProfileSpec) obj;
-    return Objects.equals(cpu, other.cpu) && Objects.equals(hugePages, other.hugePages)
+    return Objects.equals(containers, other.containers) && Objects.equals(cpu, other.cpu)
+        && Objects.equals(hugePages, other.hugePages)
+        && Objects.equals(initContainers, other.initContainers)
         && Objects.equals(memory, other.memory);
   }
 

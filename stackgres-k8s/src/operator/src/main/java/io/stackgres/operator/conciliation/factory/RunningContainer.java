@@ -13,9 +13,11 @@ import java.lang.annotation.Target;
 import javax.enterprise.util.Nonbinding;
 import javax.inject.Qualifier;
 
+import io.stackgres.common.StackGresContainer;
+
 @Qualifier
 @Target({ElementType.TYPE, ElementType.METHOD, ElementType.PARAMETER, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RunningContainer {
-  @Nonbinding ClusterRunningContainer value() default ClusterRunningContainer.NONE;
+  @Nonbinding StackGresContainer value();
 }

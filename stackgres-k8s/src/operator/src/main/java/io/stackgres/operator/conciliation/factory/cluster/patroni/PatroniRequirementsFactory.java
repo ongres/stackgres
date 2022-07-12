@@ -13,6 +13,8 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
@@ -25,7 +27,14 @@ public class PatroniRequirementsFactory
 
   @Override
   public ResourceRequirements createResource(StackGresClusterContext source) {
-    final var profile = source.getStackGresProfile();
+    if (Optional.of(source.getSource().getSpec())
+        .map(StackGresClusterSpec::getNonProductionOptions)
+        .map(StackGresClusterNonProduction::getDisablePatroniResourceRequirements)
+        .orElse(false)) {
+      return null;
+    }
+
+    final var profile = source.getProfile();
 
     final ResourceRequirements podResources = new ResourceRequirements();
     final var requests = new HashMap<String, Quantity>();

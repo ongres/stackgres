@@ -14,14 +14,8 @@ import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.ExceptionMapper;
 
 import com.google.common.base.Throwables;
-import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.quarkus.resteasy.runtime.UnauthorizedExceptionMapper;
 import io.quarkus.security.UnauthorizedException;
-import io.stackgres.operator.mutation.MutationUtil;
-import io.stackgres.operator.validation.ValidationUtil;
-import io.stackgres.operatorframework.admissionwebhook.AdmissionResponse;
-import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,28 +43,6 @@ public class AbstractGenericExceptionMapper<T extends Throwable> implements Exce
     }
 
     String message = cause.getMessage();
-
-    if (uriInfo != null && (uriInfo.getPath().startsWith(ValidationUtil.VALIDATION_PATH + "/")
-        || uriInfo.getPath().startsWith(MutationUtil.MUTATION_PATH + "/"))) {
-
-      io.fabric8.kubernetes.api.model.Status status;
-      if (cause instanceof ValidationFailed) {
-        status = ValidationFailed.class.cast(cause).getResult();
-      } else {
-        status = new StatusBuilder()
-            .withMessage(message)
-            .withCode(statusCode)
-            .build();
-      }
-
-      AdmissionResponse admissionResponse = new AdmissionResponse();
-      admissionResponse.setAllowed(false);
-      admissionResponse.setStatus(status);
-      AdmissionReviewResponse admissionReviewResponse = new AdmissionReviewResponse();
-      admissionReviewResponse.setResponse(admissionResponse);
-      return Response.ok().type(MediaType.APPLICATION_JSON)
-          .entity(admissionReviewResponse).build();
-    }
 
     return Response.status(statusCode).type(MediaType.APPLICATION_JSON)
         .entity(message)

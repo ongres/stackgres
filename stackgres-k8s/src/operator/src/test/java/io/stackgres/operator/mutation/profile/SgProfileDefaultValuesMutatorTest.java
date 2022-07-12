@@ -34,17 +34,25 @@ class SgProfileDefaultValuesMutatorTest
 
   @Override
   protected SgProfileReview getDefaultReview() {
-    return JsonUtil
+    SgProfileReview review = JsonUtil
         .readFromJson("sgprofile_allow_request/create.json", SgProfileReview.class);
+    review.getRequest().getObject().getSpec().setContainers(null);
+    review.getRequest().getObject().getSpec().setInitContainers(null);
+    return review;
   }
 
   @Override
   protected StackGresProfile getDefaultResource() {
-    return JsonUtil.readFromJson("stackgres_profiles/size-xs.json", StackGresProfile.class);
+    StackGresProfile profile = JsonUtil.readFromJson("stackgres_profiles/size-xs.json",
+        StackGresProfile.class);
+    profile.getSpec().setContainers(null);
+    profile.getSpec().setInitContainers(null);
+    return profile;
   }
 
   @Override
   protected JsonNode getConfJson(JsonNode crJson) {
     return crJson.get("spec");
   }
+
 }

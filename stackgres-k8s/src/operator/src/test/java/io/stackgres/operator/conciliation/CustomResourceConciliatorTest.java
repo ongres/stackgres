@@ -28,7 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class StackGresConciliatorTest {
+class CustomResourceConciliatorTest {
 
   @Mock
   private CustomResourceScanner<CustomResource<Object, Object>> scanner;

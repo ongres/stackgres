@@ -41,19 +41,19 @@ class ClusterRequiredResourceDecoratorTest
   ClusterRequiredResourceDecorator resourceDecorator;
 
   private StackGresCluster resource;
-  private StackGresPostgresConfig clusterPgConfig;
-  private StackGresProfile clusterProfile;
+  private StackGresPostgresConfig pgConfig;
+  private StackGresProfile profile;
   private Optional<StackGresBackupConfig> backupConfig;
-  private Optional<StackGresPoolingConfig> clusterPooling;
+  private Optional<StackGresPoolingConfig> pooling;
   private Optional<Secret> secret;
 
   @BeforeEach
   public void setup() {
     this.resource = new StackGresClusterFixture().build("default");
-    this.clusterPgConfig = new StackGresPostgresConfigFixture().build("default_postgres");
-    this.clusterProfile = new StackGresProfileFixture().build("size-s");
+    this.pgConfig = new StackGresPostgresConfigFixture().build("default_postgres");
+    this.profile = new StackGresProfileFixture().build("size-s");
     this.backupConfig = ofNullable(null);
-    this.clusterPooling = ofNullable(new StackGresPoolingConfigFixture().build("default"));
+    this.pooling = ofNullable(new StackGresPoolingConfigFixture().build("default"));
     this.secret = ofNullable(new SecretFixture().build("minio"));
   }
 
@@ -66,10 +66,10 @@ class ClusterRequiredResourceDecoratorTest
   protected StackGresClusterContext getResourceContext() throws IOException {
     return ImmutableStackGresClusterContext.builder()
         .source(resource)
-        .postgresConfig(clusterPgConfig)
-        .stackGresProfile(clusterProfile)
+        .postgresConfig(pgConfig)
+        .profile(profile)
         .backupConfig(backupConfig)
-        .poolingConfig(clusterPooling)
+        .poolingConfig(pooling)
         .prometheus(new Prometheus(false, null))
         .internalScripts(List.of(getTestInitScripts()))
         .databaseCredentials(secret)

@@ -26,12 +26,13 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.PostgresConfigurationFactory;
 import io.stackgres.operator.initialization.PostgresDefaultFactoriesProvider;
+import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
 public class DefaultPostgresDelegator implements ClusterMutator {
 
   @Inject
-  PostgresDefaultFactoriesProvider resorceFactoryProducer;
+  PostgresDefaultFactoriesProvider resourceFactoryProducer;
 
   @Inject
   CustomResourceFinder<StackGresPostgresConfig> finder;
@@ -47,7 +48,7 @@ public class DefaultPostgresDelegator implements ClusterMutator {
   }
 
   private Optional<DefaultPostgresMutator> getMutator(StackGresClusterReview review) {
-    Map<String, PostgresConfigurationFactory> factoryMap = resorceFactoryProducer
+    Map<String, PostgresConfigurationFactory> factoryMap = resourceFactoryProducer
         .getPostgresFactories()
         .stream()
         .collect(Collectors
@@ -59,18 +60,17 @@ public class DefaultPostgresDelegator implements ClusterMutator {
         .map(StackGresClusterPostgres::getVersion)
         .map(getPostgresFlavorComponent(cluster).get(cluster)::findMajorVersion)
         .map(factoryMap::get)
-        .map(factory -> {
-          try {
-            final DefaultPostgresMutator mutator = new DefaultPostgresMutator();
-            mutator.setFinder(finder);
-            mutator.setScheduler(scheduler);
-            mutator.setResourceFactory(factory);
-            mutator.init();
-            return mutator;
-          } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-          }
-        });
+        .map(Unchecked.function(this::getMutator));
+  }
+
+  private DefaultPostgresMutator getMutator(PostgresConfigurationFactory factory)
+      throws NoSuchFieldException {
+    final DefaultPostgresMutator mutator = new DefaultPostgresMutator();
+    mutator.setFinder(finder);
+    mutator.setScheduler(scheduler);
+    mutator.setResourceFactory(factory);
+    mutator.init();
+    return mutator;
   }
 
 }

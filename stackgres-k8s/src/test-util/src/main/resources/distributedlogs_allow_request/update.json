@@ -47,12 +47,16 @@
             "uid": "008af052-7fcd-4665-b3b9-6d7dedbc543c"
         },
         "spec": {
-            "nonProductionOptions": {
-                "disableClusterPodAntiAffinity": true
-            },
-            "persistentVolume": {
-                "size": "128Mi"
-            }
+          "nonProductionOptions": {
+            "disableClusterPodAntiAffinity": true
+          },
+          "persistentVolume": {
+            "size": "128Mi"
+          },
+          "sgInstanceProfile": "size-xs",
+          "configurations": {
+            "sgPostgresConfig": "postgresconf"
+          }
         },
         "status": {
             "conditions": [
@@ -88,6 +92,10 @@
             },
             "persistentVolume": {
                 "size": "256Mi"
+            },
+            "sgInstanceProfile": "size-xs",
+            "configurations": {
+                "sgPostgresConfig": "postgresconf"
             }
         },
         "status": {

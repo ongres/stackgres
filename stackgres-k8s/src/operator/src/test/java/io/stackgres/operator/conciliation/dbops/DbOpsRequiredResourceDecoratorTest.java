@@ -14,11 +14,13 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.fixture.StackGresClusterFixture;
 import io.stackgres.operator.fixture.StackGresDbOpsFixture;
+import io.stackgres.operator.fixture.StackGresProfileFixture;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
@@ -32,9 +34,12 @@ class DbOpsRequiredResourceDecoratorTest
 
   private StackGresCluster cluster;
 
+  private StackGresProfile profile;
+
   @BeforeEach
   public void setup() {
     this.resource = new StackGresDbOpsFixture().build("minor_version_upgrade");
+    this.profile = new StackGresProfileFixture().build("size-xs");
     this.cluster = new StackGresClusterFixture().build("default");
   }
 
@@ -67,6 +72,7 @@ class DbOpsRequiredResourceDecoratorTest
     return ImmutableStackGresDbOpsContext.builder()
         .source(resource)
         .cluster(cluster)
+        .profile(profile)
         .build();
   }
 

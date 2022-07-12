@@ -1,0 +1,115 @@
+{
+  "kind": "AdmissionReview",
+  "request": {
+    "uid": "af38063c-f66f-11e9-8982-0242ac110002",
+    "kind": {
+      "kind": "SGDistributedLogs",
+      "group": "stackgres.io",
+      "version": "v1"
+    },
+    "resource": {
+      "group": "stackgres.io",
+      "resource": "sgdistributedlogs",
+      "version": "v1"
+    },
+    "subResource": null,
+    "requestKind": null,
+    "requestResource": null,
+    "requestSubResource": null,
+    "name": null,
+    "namespace": "postgresql",
+    "operation": "UPDATE",
+    "userInfo": {
+      "groups": [
+        "system:serviceaccounts",
+        "system:serviceaccounts:kube-system",
+        "system:authenticated"
+      ],
+      "uid": "7b49efcb-f66f-11e9-8982-0242ac110002",
+      "username": "system:serviceaccount:kube-system:tiller"
+    },
+    "object": {
+        "apiVersion": "stackgres.io/v1",
+        "kind": "SGDistributedLogs",
+        "metadata": {
+            "creationTimestamp": "2020-04-23T11:06:26Z",
+            "generation": 2,
+            "labels": {
+                "app": "distributed-logs-for-distributedlogs",
+                "chart": "stackgres-cluster-0.9-SNAPSHOT",
+                "heritage": "Helm",
+                "release": "distributed-logs-for-distributedlogs"
+            },
+            "name": "distributedlogs",
+            "namespace": "distributed-logs",
+            "resourceVersion": "2780",
+            "selfLink": "/apis/stackgres.io/v1/namespaces/distributed-logs/sgdistributedlogs/distributedlogs",
+            "uid": "008af052-7fcd-4665-b3b9-6d7dedbc543c"
+        },
+        "spec": {
+          "nonProductionOptions": {
+            "disableClusterPodAntiAffinity": true
+          },
+          "persistentVolume": {
+            "size": "128Mi"
+          },
+          "sgInstanceProfile": "size-xs",
+          "configurations": {
+            "sgPostgresConfig": "postgresconf"
+          }
+        },
+        "status": {
+            "conditions": [
+                {
+                    "lastTransitionTime": "2020-04-23T11:06:37.236147Z",
+                    "status": "False",
+                    "type": "Failed"
+                }
+            ]
+        }
+    },
+    "oldObject": {
+        "apiVersion": "stackgres.io/v1",
+        "kind": "SGDistributedLogs",
+        "metadata": {
+            "creationTimestamp": "2020-04-23T11:06:26Z",
+            "generation": 2,
+            "labels": {
+                "app": "distributed-logs-for-distributedlogs",
+                "chart": "stackgres-cluster-0.9-SNAPSHOT",
+                "heritage": "Helm",
+                "release": "distributed-logs-for-distributedlogs"
+            },
+            "name": "distributedlogs",
+            "namespace": "distributed-logs",
+            "resourceVersion": "2780",
+            "selfLink": "/apis/stackgres.io/v1/namespaces/distributed-logs/sgdistributedlogs/distributedlogs",
+            "uid": "008af052-7fcd-4665-b3b9-6d7dedbc543c"
+        },
+        "spec": {
+            "nonProductionOptions": {
+                "disableClusterPodAntiAffinity": true
+            },
+            "persistentVolume": {
+                "size": "256Mi"
+            },
+            "sgInstanceProfile": "size-x",
+            "configurations": {
+                "sgPostgresConfig": "postgresconf"
+            }
+        },
+        "status": {
+            "conditions": [
+                {
+                    "lastTransitionTime": "2020-04-23T11:06:37.236147Z",
+                    "status": "False",
+                    "type": "Failed"
+                }
+            ]
+        }
+    },
+    "options": null,
+    "dryRun": false
+  },
+  "apiVersion": "admission.k8s.io/v1"
+}

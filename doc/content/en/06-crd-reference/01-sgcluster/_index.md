@@ -485,7 +485,9 @@ spec:
 
 The following options should NOT be enabled in a production environment.
 
-| Property                      | Required | Updatable | Type     | Default | Description |
-|:------------------------------|----------|-----------|:---------|:--------|:------------|
-| disableClusterPodAntiAffinity |          | ✓         | boolean  | false   | {{< crd-field-description SGCluster.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} |
-| enabledFeatureGates           |          | ✓         | boolean  | false   | {{< crd-field-description SGCluster.spec.nonProductionOptions.enabledFeatureGates >}} |
+| Property                           | Required | Updatable | Type     | Default | Description |
+|:-----------------------------------|----------|-----------|:---------|:--------|:------------|
+| disableClusterPodAntiAffinity      |          | ✓         | boolean  | false   | {{< crd-field-description SGCluster.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} |
+| disablePatroniResourceRequirements |          | ✓         | boolean  | false   | {{< crd-field-description SGCluster.spec.nonProductionOptions.disablePatroniResourceRequirements >}} |
+| disableClusterResourceRequirements |          | ✓         | boolean  | false   | {{< crd-field-description SGCluster.spec.nonProductionOptions.disableClusterResourceRequirements >}} |
+| enabledFeatureGates                |          | ✓         | boolean  | false   | {{< crd-field-description SGCluster.spec.nonProductionOptions.enabledFeatureGates >}} |

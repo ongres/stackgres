@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackgresClusterContainers;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -42,8 +42,6 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
 
   public static final String SERVICE_MONITOR = "-stackgres-envoy";
   public static final String SERVICE = "-envoyexp";
-
-  public static final String NAME = StackgresClusterContainers.ENVOY;
 
   private static final String CONFIG_SUFFIX = "-envoy-config";
   protected static final Logger ENVOY_LOGGER = LoggerFactory.getLogger("io.stackgres.envoy");
@@ -109,7 +107,7 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
   protected Volume buildVolume(StackGresClusterContext context) {
     final String clusterName = context.getSource().getMetadata().getName();
     return new VolumeBuilder()
-        .withName(AbstractEnvoy.NAME)
+        .withName(StackGresContainer.ENVOY.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withDefaultMode(420)
             .withName(StatefulSetDynamicVolumes.ENVOY.getResourceName(clusterName))

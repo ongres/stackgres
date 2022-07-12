@@ -25,6 +25,7 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
@@ -74,7 +75,7 @@ class ClusterMutatorPipelineTest {
     cluster.getSpec().getConfiguration().setBackupConfig(backupName);
     review.getRequest().getObject().getMetadata().setAnnotations(new HashMap<>());
     review.getRequest().getObject().getMetadata().getAnnotations()
-        .put(StackGresContext.VERSION_KEY, "1.1");
+        .put(StackGresContext.VERSION_KEY, StackGresVersion.V_1_1.getVersion());
 
     StackGresCluster mutateCluster = mutate(review);
 

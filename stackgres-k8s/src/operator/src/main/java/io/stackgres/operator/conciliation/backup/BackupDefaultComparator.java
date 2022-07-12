@@ -9,11 +9,11 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.conciliation.ReconciliationScope;
-import io.stackgres.operator.conciliation.comparator.StackGresAbstractComparator;
+import io.stackgres.operator.conciliation.comparator.AbstractComparator;
 
 @ApplicationScoped
 @ReconciliationScope(value = StackGresBackup.class, kind = "HasMetadata")
-public class BackupDefaultComparator extends StackGresAbstractComparator {
+public class BackupDefaultComparator extends AbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
   };

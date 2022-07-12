@@ -59,6 +59,7 @@ class DbOpsJobsGeneratorTest {
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
         .source(dbOps)
         .cluster(cluster)
+        .profile(clusterProfile)
         .build();
 
     dbOps.getSpec().setRunAt(null);
@@ -74,6 +75,7 @@ class DbOpsJobsGeneratorTest {
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
         .source(dbOps)
         .cluster(cluster)
+        .profile(clusterProfile)
         .build();
 
     dbOps.getSpec().setRunAt(Instant.now().minusMillis(1000).toString());
@@ -89,6 +91,7 @@ class DbOpsJobsGeneratorTest {
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
         .source(dbOps)
         .cluster(cluster)
+        .profile(clusterProfile)
         .build();
 
     dbOps.getSpec().setRunAt(Instant.now().plusMillis(1000).toString());

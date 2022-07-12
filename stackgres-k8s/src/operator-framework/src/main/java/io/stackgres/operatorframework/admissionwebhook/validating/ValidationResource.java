@@ -8,6 +8,7 @@ package io.stackgres.operatorframework.admissionwebhook.validating;
 import java.util.UUID;
 
 import io.fabric8.kubernetes.api.model.Status;
+import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionResponse;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -30,8 +31,8 @@ public interface ValidationResource<T extends AdmissionReview<?>> {
     AdmissionRequest<?> request = admissionReview.getRequest();
     UUID requestUid = request.getUid();
 
-    getLogger().info("Validating admission review uid {} of kind {}", requestUid,
-        request.getKind().getKind());
+    getLogger().info("Validating admission review uid {} of kind {} for resource {}.{}",
+        requestUid, request.getKind().getKind(), request.getNamespace(), request.getName());
 
     AdmissionResponse response = new AdmissionResponse();
     response.setUid(requestUid);
@@ -51,6 +52,16 @@ public interface ValidationResource<T extends AdmissionReview<?>> {
 
       getLogger().error("cannot proceed with request {} cause: {}",
           requestUid, validationFailed.getMessage(), validationFailed);
+    } catch (Exception ex) {
+      Status status = new StatusBuilder()
+          .withMessage(ex.getMessage() != null ? ex.getMessage() : "Unknown reason")
+          .withCode(500)
+          .build();
+      response.setAllowed(false);
+      response.setStatus(status);
+
+      getLogger().error("cannot proceed with request {} cause: {}",
+          requestUid, status.getMessage(), ex);
     }
     return reviewResponse;
   }

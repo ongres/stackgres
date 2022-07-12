@@ -81,7 +81,7 @@ public abstract class GeneratorTest {
   private StackGresClusterContext buildContext() {
     return ImmutableStackGresClusterContext.builder()
         .source(cluster)
-        .stackGresProfile(stackGresProfile)
+        .profile(stackGresProfile)
         .postgresConfig(stackGresPostgresConfig)
         .build();
   }

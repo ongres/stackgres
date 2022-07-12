@@ -34,9 +34,12 @@ spec:
                 name:
                   type: string
                   description: |
-                    Name of the Instance Profile. An instance profile represents a ""kind"" of server (CPU and RAM) where you may run StackGres, classified by a given name. The profile may be referenced by zero or more SGClusters, and if so it would be referenced by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
+                    Name of the Instance Profile. An instance profile represents a "kind" of
+                     server (CPU and RAM) where you may run StackGres Pods, classified by a given name.
+                     The profile may be referenced by zero or more SGClusters, and if so it would
+                     be referenced by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
 
-                    The name must be unique across all instance profiles in the same namespace."
+                    The name must be unique across all instance profiles in the same namespace.
             spec:
               type: object
               properties:
@@ -44,18 +47,20 @@ spec:
                   type: string
                   pattern: '^[1-9][0-9]*[m]?$'
                   description: |
-                    CPU(s) (cores) used for every instance of a SGCluster. Please note that every StackGres pod contains not only the Patroni+Postgres container, but several other sidecar containers. While the majority of the resources are devoted to the main Postgres container, some CPU is needed for the sidecars.
+                    CPU(s) (cores) used for every instance of a SGCluster. The suffix `m`
+                     specifies millicpus (where 1000m is equals to 1).
 
-                    The number of cores set is split between all the containers.
+                    The number of cores set is assigned to the patroni container (that runs both Patroni and PostgreSQL).
 
                     A minimum of 2 cores is recommended.
                 memory:
                   type: string
                   pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
                   description: |
-                    RAM allocated to every instance of a SGCluster. The suffix `Mi` or `Gi` specifies Mebibytes or Gibibytes, respectively. Please note that every StackGres pod contains not only the Patroni+Postgres container, but several other sidecar containers. While the majority of the resources are devoted to the main Postgres container, some RAM is needed for the sidecars.
+                    RAM allocated to every instance of a SGCluster. The suffix `Mi` or `Gi`
+                     specifies Mebibytes or Gibibytes, respectively.
 
-                    The amount of RAM set is split between all the containers.
+                    The amount of RAM set is assigned to the patroni container (that runs both Patroni and PostgreSQL).
 
                     A minimum of 2-4Gi is recommended.
                 hugePages:
@@ -67,14 +72,103 @@ spec:
                       type: string
                       pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
                       description: |
-                        RAM allocated for huge pages with a size of 2Mi. The suffix `Mi` or `Gi` specifies Mebibytes or Gibibytes, respectively.
+                        RAM allocated for huge pages with a size of 2Mi. The suffix `Mi` or `Gi`
+                         specifies Mebibytes or Gibibytes, respectively.
 
-                        The amount of RAM set is split between all the containers.
+                        By default the amount of RAM set is assigned to patroni container
+                         (that runs both Patroni and PostgreSQL).
                     hugepages-1Gi:
                       type: string
                       pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
                       description: |
-                        RAM allocated for huge pages with a size of 1Gi. The suffix `Mi` or `Gi` specifies Mebibytes or Gibibytes, respectively.
+                        RAM allocated for huge pages with a size of 1Gi. The suffix `Mi` or `Gi`
+                         specifies Mebibytes or Gibibytes, respectively.
 
-                        The amount of RAM set is split between all the containers.
+                        By default the amount of RAM set is assigned to patroni container
+                         (that runs both Patroni and PostgreSQL).
+                containers:
+                  type: object
+                  description: |
+                    The CPU(s) (cores) and RAM assigned to containers other than patroni container.
+
+                    This section, if left empty, will be filled automatically by the operator with
+                     some defaults that can be proportional to the resources assigned to patroni
+                     container (except for the huge pages that are always left empty).
+                  additionalProperties:
+                    type: object
+                    properties:
+                      cpu:
+                        type: string
+                        pattern: '^[1-9][0-9]*[m]?$'
+                        description: |
+                          CPU(s) (cores) used for the specified Pod container. The suffix `m`
+                           specifies millicpus (where 1000m is equals to 1).
+                      memory:
+                        type: string
+                        pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                        description: |
+                          RAM allocated to the specified Pod container. The suffix `Mi` or `Gi`
+                           specifies Mebibytes or Gibibytes, respectively.
+                      hugePages:
+                        type: object
+                        description: |
+                          RAM allocated for huge pages
+                        properties:
+                          hugepages-2Mi:
+                            type: string
+                            pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                            description: |
+                              RAM allocated for huge pages with a size of 2Mi. The suffix `Mi`
+                               or `Gi` specifies Mebibytes or Gibibytes, respectively.
+
+                              The amount of RAM is assigned to the specified container.
+                          hugepages-1Gi:
+                            type: string
+                            pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                            description: |
+                              RAM allocated for huge pages with a size of 1Gi. The suffix `Mi`
+                               or `Gi` specifies Mebibytes or Gibibytes, respectively.
+
+                              The amount of RAM is assigned to the specified container.
+                    required: ["cpu", "memory"]
+                initContainers:
+                  type: object
+                  description: The CPU(s) (cores) and RAM assigned to init containers.
+                  additionalProperties:
+                    type: object
+                    properties:
+                      cpu:
+                        type: string
+                        pattern: '^[1-9][0-9]*[m]?$'
+                        description: |
+                          CPU(s) (cores) used for the specified Pod init container. The suffix
+                           `m` specifies millicpus (where 1000m is equals to 1).
+                      memory:
+                        type: string
+                        pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                        description: |
+                          RAM allocated to the specified Pod init container. The suffix `Mi`
+                           or `Gi` specifies Mebibytes or Gibibytes, respectively.
+                      hugePages:
+                        type: object
+                        description: |
+                          RAM allocated for huge pages
+                        properties:
+                          hugepages-2Mi:
+                            type: string
+                            pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                            description: |
+                              RAM allocated for huge pages with a size of 2Mi. The suffix `Mi`
+                               or `Gi` specifies Mebibytes or Gibibytes, respectively.
+
+                              The amount of RAM is assigned to the specified init container.
+                          hugepages-1Gi:
+                            type: string
+                            pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                            description: |
+                              RAM allocated for huge pages with a size of 1Gi. The suffix `Mi` or `Gi`
+                               specifies Mebibytes or Gibibytes, respectively.
+
+                              The amount of RAM is assigned to the specified init container.
+                    required: ["cpu", "memory"]
               required: ["cpu", "memory"]

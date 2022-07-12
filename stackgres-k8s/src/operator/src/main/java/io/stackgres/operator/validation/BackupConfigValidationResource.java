@@ -43,7 +43,6 @@ public class BackupConfigValidationResource implements ValidationResource<Backup
   @Override
   public AdmissionReviewResponse validate(BackupConfigReview admissionReview) {
     return validate(admissionReview, validationPipeline);
-
   }
 
   @Inject

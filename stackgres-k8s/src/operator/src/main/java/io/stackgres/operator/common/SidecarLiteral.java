@@ -9,18 +9,20 @@ import java.util.Objects;
 
 import javax.enterprise.util.AnnotationLiteral;
 
+import io.stackgres.common.StackGresContainer;
+
 public class SidecarLiteral extends AnnotationLiteral<Sidecar> implements Sidecar {
 
   private static final long serialVersionUID = 1L;
 
-  private final String value;
+  private final StackGresContainer value;
 
-  public SidecarLiteral(String value) {
+  public SidecarLiteral(StackGresContainer value) {
     this.value = value;
   }
 
   @Override
-  public String value() {
+  public StackGresContainer value() {
     return value;
   }
 

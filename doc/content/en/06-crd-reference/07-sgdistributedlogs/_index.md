@@ -31,8 +31,22 @@ ___
 | [persistentVolume](#persistent-volume)          | ✓        |           | string   |         | {{< crd-field-description SGDistributedLogs.spec.persistentVolume >}} |
 | [postgresServices](#postgres-services)          |          | ✓         | object   |         | {{< crd-field-description SGDistributedLogs.spec.postgresServices >}} |
 | [scheduling](#scheduling)                       |          | ✓         | object   |         | {{< crd-field-description SGDistributedLogs.spec.scheduling >}} |
+| sgInstanceProfile                               | ✓        | ✓         | string   | generated | {{< crd-field-description SGDistributedLogs.spec.sgInstanceProfile >}} |
+| [configurations](#configurations)               | ✓        | ✓         | object   | generated | {{< crd-field-description SGDistributedLogs.spec.configurations >}} |
 | [metadata](#metadata)                           |          | ✓         | object   |         | {{< crd-field-description SGDistributedLogs.spec.metadata >}} |
 | [nonProductionOptions](#non-production-options) |          | ✓         | array    |         | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions >}} |
+
+Example:
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGDistributedLogs
+metadata:
+  name: distributedlogs
+spec:
+  persistentVolume:
+    size: 10Gi
+```
 
 ## Persistent volume
 
@@ -101,13 +115,19 @@ Holds scheduling configuration for StackGres pods to have.
 | value     |          | ✓         | string   |                         | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
 | effect    |          | ✓         | string   | match all taint effects | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
 
+### Configurations
+
+| Property                      | Required | Updatable | Type     | Default        | Description |
+|:------------------------------|----------|-----------|:---------|:---------------|:------------|
+| sgPostgresConfig              | ✓        | ✓         | string   |                | {{< crd-field-description SGDistributedLogs.spec.configurations.sgPostgresConfig >}} |
+
 ### Metadata
 
 Holds custom metadata information for StackGres generated resources to have.
 
 | Property                      | Required | Updatable | Type     | Default        | Description |
 |:------------------------------|----------|-----------|:---------|:---------------|:------------|
-| [annotations](#annotations)   |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.annotations >}} |
+| [annotations](#annotations)   |          | ✓         | object   |                | {{< crd-field-description SGDistributedLogs.spec.metadata.annotations >}} |
 
 ### Annotations
 
@@ -136,18 +156,8 @@ spec:
 
 The following options should NOT be enabled in a production environment.
 
-| Property                      | Required | Updatable | Type     | Default | Description |
-|:------------------------------|----------|-----------|:---------|:--------|:------------|
-| disableClusterPodAntiAffinity |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} |
-
-Example:
-
-```yaml
-apiVersion: stackgres.io/v1
-kind: SGDistributedLogs
-metadata:
-  name: distributedlogs
-spec:
-  persistentVolume:
-    size: 10Gi
-```
+| Property                           | Required | Updatable | Type     | Default | Description |
+|:-----------------------------------|----------|-----------|:---------|:--------|:------------|
+| disableClusterPodAntiAffinity      |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} |
+| disablePatroniResourceRequirements |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disablePatroniResourceRequirements >}} |
+| disableClusterResourceRequirements |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disableClusterResourceRequirements >}} |
