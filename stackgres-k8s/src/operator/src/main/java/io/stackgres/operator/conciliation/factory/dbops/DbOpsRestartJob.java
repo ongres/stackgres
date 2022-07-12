@@ -8,10 +8,13 @@ package io.stackgres.operator.conciliation.factory.dbops;
 import static io.stackgres.common.DbOpsUtil.jobName;
 
 import java.util.Map;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.fabric8.kubernetes.api.model.Affinity;
+import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
@@ -21,6 +24,8 @@ import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpecScheduling;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
@@ -65,6 +70,8 @@ public class DbOpsRestartJob implements JobFactory {
         .withNewSpec()
         .withSecurityContext(podSecurityFactory.createResource(context))
         .withRestartPolicy("Never")
+        .withNodeSelector(getNodeSelectors(dbOps))
+        .withAffinity(getAffinity(dbOps))
         .withServiceAccountName(DbOpsRole.roleName(context))
         .withContainers(new ContainerBuilder()
             .withName("restart")
@@ -148,6 +155,26 @@ public class DbOpsRestartJob implements JobFactory {
         .endTemplate()
         .endSpec()
         .build();
+  }
+
+  private Affinity getAffinity(StackGresDbOps dbOps) {
+    return Optional.of(new AffinityBuilder())
+        .map(builder -> builder.withNodeAffinity(
+            Optional.of(dbOps)
+                .map(StackGresDbOps::getSpec)
+                .map(StackGresDbOpsSpec::getScheduling)
+                .map(StackGresDbOpsSpecScheduling::getNodeAffinity)
+                .orElse(null)))
+        .map(builder -> builder.build())
+        .orElse(null);
+  }
+
+  private Map<String, String> getNodeSelectors(StackGresDbOps dbOps) {
+    return Optional.ofNullable(dbOps)
+        .map(StackGresDbOps::getSpec)
+        .map(StackGresDbOpsSpec::getScheduling)
+        .map(StackGresDbOpsSpecScheduling::getNodeSelector)
+        .orElse(null);
   }
 
 }

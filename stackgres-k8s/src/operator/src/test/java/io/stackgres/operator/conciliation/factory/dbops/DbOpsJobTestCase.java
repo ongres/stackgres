@@ -12,10 +12,10 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
-import io.quarkus.test.junit.QuarkusTest;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpecScheduling;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.ImmutableStackGresDbOpsContext;
@@ -24,8 +24,7 @@ import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-@QuarkusTest
-class DbOpsJobsGeneratorTest {
+abstract class DbOpsJobTestCase {
 
   @Inject
   @OperatorVersionBinder
@@ -33,25 +32,25 @@ class DbOpsJobsGeneratorTest {
 
   StackGresCluster cluster;
 
-  StackGresPostgresConfig clusterPgConfig;
+  StackGresDbOps dbOps;
 
   StackGresProfile clusterProfile;
-
-  StackGresDbOps dbOps;
 
   @BeforeEach
   void setUp() {
     cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
         StackGresCluster.class);
-
-    clusterPgConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
-        StackGresPostgresConfig.class);
-
+    dbOps = JsonUtil.readFromJson(fixturePath(), StackGresDbOps.class);
     clusterProfile = JsonUtil.readFromJson("stackgres_profiles/size-xs.json",
         StackGresProfile.class);
+  }
 
-    dbOps = JsonUtil.readFromJson("stackgres_dbops/dbops_securityupgrade.json",
-        StackGresDbOps.class);
+  abstract String fixturePath();
+
+  void setSgDbOpsScheduling() {
+    var dbopsScheduling = JsonUtil.readFromJson("stackgres_dbops/dbops_scheduling.json",
+        StackGresDbOpsSpecScheduling.class);
+    dbOps.getSpec().setScheduling(dbopsScheduling);
   }
 
   @Test
@@ -101,4 +100,44 @@ class DbOpsJobsGeneratorTest {
 
     assertEquals(0, generatedResources.size());
   }
+
+  @Test
+  void shouldGenerateJobWithNodeSelector_onceSgDbOpsSchedulingHasNodeSelector() {
+    dbOps.getSpec().setRunAt(null);
+    setSgDbOpsScheduling();
+
+    StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+        .source(dbOps)
+        .cluster(cluster)
+        .profile(clusterProfile)
+        .build();
+
+    var generatedResources = dbOpsJobsGenerator.generateResource(context)
+        .collect(Collectors.toUnmodifiableList());
+    var job = (Job) generatedResources.iterator().next();
+    assertEquals(2, job.getSpec().getTemplate().getSpec().getNodeSelector().size());
+
+  }
+
+  @Test
+  void shouldGenerateJobWithNodeAffinity_onceSgDbOpsSchedulingHasAffinity() {
+    dbOps.getSpec().setRunAt(null);
+    setSgDbOpsScheduling();
+
+    StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+        .source(dbOps)
+        .cluster(cluster)
+        .profile(clusterProfile)
+        .build();
+
+    var generatedResources = dbOpsJobsGenerator.generateResource(context)
+        .collect(Collectors.toUnmodifiableList());
+
+    var job = (Job) generatedResources.iterator().next();
+    var nodeAffinity = job.getSpec().getTemplate().getSpec().getAffinity().getNodeAffinity();
+    assertEquals(1, nodeAffinity.getPreferredDuringSchedulingIgnoredDuringExecution().size());
+    assertEquals(1, nodeAffinity.getRequiredDuringSchedulingIgnoredDuringExecution()
+        .getNodeSelectorTerms().size());
+  }
+
 }

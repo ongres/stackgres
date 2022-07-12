@@ -17,6 +17,8 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.fabric8.kubernetes.api.model.Affinity;
+import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -34,6 +36,8 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpecScheduling;
 import io.stackgres.operator.cluster.factory.DbOpsEnvironmentVariables;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
@@ -138,6 +142,8 @@ public abstract class DbOpsJob implements JobFactory {
         .withTolerations(getSchedulingTolerations(dbOps))
         .withSecurityContext(podSecurityFactory.createResource(context))
         .withRestartPolicy("Never")
+        .withNodeSelector(getNodeSelectors(dbOps))
+        .withAffinity(getAffinity(dbOps))
         .withServiceAccountName(DbOpsRole.roleName(context))
         .withInitContainers(new ContainerBuilder()
             .withName("set-dbops-running")
@@ -390,5 +396,25 @@ public abstract class DbOpsJob implements JobFactory {
             t.getOperator(), t.getTolerationSeconds(), t.getValue()))
         .toList();
 
+  }
+
+  private Affinity getAffinity(StackGresDbOps dbOps) {
+    return Optional.of(new AffinityBuilder())
+        .map(builder -> builder.withNodeAffinity(
+            Optional.of(dbOps)
+                .map(StackGresDbOps::getSpec)
+                .map(StackGresDbOpsSpec::getScheduling)
+                .map(StackGresDbOpsSpecScheduling::getNodeAffinity)
+                .orElse(null)))
+        .map(builder -> builder.build())
+        .orElse(null);
+  }
+
+  private Map<String, String> getNodeSelectors(StackGresDbOps dbOps) {
+    return Optional.ofNullable(dbOps)
+        .map(StackGresDbOps::getSpec)
+        .map(StackGresDbOpsSpec::getScheduling)
+        .map(StackGresDbOpsSpecScheduling::getNodeSelector)
+        .orElse(null);
   }
 }

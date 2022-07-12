@@ -72,18 +72,19 @@ public class BackupCronJob
 
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory;
 
-  @Inject
-  KubectlUtil kubectl;
+  private final KubectlUtil kubectl;
 
   @Inject
   public BackupCronJob(
       ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> clusterEnvVarFactoryDiscoverer,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory) {
+      ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory,
+      KubectlUtil kubectl) {
     super();
     this.clusterEnvVarFactoryDiscoverer = clusterEnvVarFactoryDiscoverer;
     this.labelFactory = labelFactory;
     this.podSecurityFactory = podSecurityFactory;
+    this.kubectl = kubectl;
   }
 
   public static String backupName(StackGresClusterContext clusterContext) {
