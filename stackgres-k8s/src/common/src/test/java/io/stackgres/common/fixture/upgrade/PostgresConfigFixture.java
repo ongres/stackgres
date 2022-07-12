@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture.upgrade;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class PostgresConfigFixture extends Fixture<StackGresPostgresConfig> {
@@ -13,6 +14,10 @@ public class PostgresConfigFixture extends Fixture<StackGresPostgresConfig> {
   public PostgresConfigFixture loadDefault() {
     fixture = readFromJson(UPGRADE_SGPGCONFIG_JSON);
     return this;
+  }
+
+  public StackGresPostgresConfigBuilder getBuilder() {
+    return new StackGresPostgresConfigBuilder(fixture);
   }
 
 }

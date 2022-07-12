@@ -13,10 +13,12 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
+import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
 @JsonIgnoreProperties(ignoreUnknown = true,
     value = {"optional"})
+@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 @SuppressFBWarnings(value = "NM_SAME_SIMPLE_NAME_AS_SUPERCLASS",
     justification = "Intentional name shadowing")
 public class ConfigMapKeySelector extends io.fabric8.kubernetes.api.model.ConfigMapKeySelector {

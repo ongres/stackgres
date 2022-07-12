@@ -10,16 +10,10 @@ import java.time.format.DateTimeParseException;
 import javax.validation.constraints.AssertTrue;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
-@RegisterForReflection
 public abstract class StackGresDbOpsRepackConfig {
 
   @JsonProperty("noOrder")

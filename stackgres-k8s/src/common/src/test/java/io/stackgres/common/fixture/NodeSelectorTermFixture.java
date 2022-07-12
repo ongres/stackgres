@@ -25,4 +25,9 @@ public class NodeSelectorTermFixture {
       .addAllToMatchExpressions(Arrays.asList(requirement))
       .build();
   }
+
+  public NodeSelectorTermBuilder getBuilder() {
+    return new NodeSelectorTermBuilder(build());
+  }
+
 }

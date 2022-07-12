@@ -49,6 +49,7 @@ class DistributedLogsRequireResourceDecoratorTest
     this.connectecCluster = Fixtures.cluster().loadDefault()
         .withLatestPostgresVersion().get();
     this.profile = Fixtures.instanceProfile().loadSizeS().get();
+    this.postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     this.secret = ofNullable(Fixtures.secret().loadMinio().get());
   }
 

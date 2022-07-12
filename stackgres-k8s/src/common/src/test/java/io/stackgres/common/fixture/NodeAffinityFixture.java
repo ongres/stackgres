@@ -82,4 +82,9 @@ public class NodeAffinityFixture {
         .build());
     return this;
   }
+
+  public NodeAffinityBuilder getBuilder() {
+    return new NodeAffinityBuilder(build());
+  }
+
 }

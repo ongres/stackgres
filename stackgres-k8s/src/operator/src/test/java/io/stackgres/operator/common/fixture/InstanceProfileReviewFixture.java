@@ -6,6 +6,7 @@
 package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.SgProfileReviewBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class InstanceProfileReviewFixture extends Fixture<SgProfileReview> {
@@ -30,6 +31,10 @@ public class InstanceProfileReviewFixture extends Fixture<SgProfileReview> {
     fixture = readFromJson(
         STACKGRES_INSTANCE_PROFILE_ADMISSION_REVIEW_DELETE_JSON);
     return this;
+  }
+
+  public SgProfileReviewBuilder getBuilder() {
+    return new SgProfileReviewBuilder(fixture);
   }
 
 }

@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture;
 
 import io.fabric8.kubernetes.api.model.Event;
+import io.fabric8.kubernetes.api.model.EventBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class EventFixture extends Fixture<Event> {
@@ -13,6 +14,10 @@ public class EventFixture extends Fixture<Event> {
   public EventFixture loadDefault() {
     this.fixture = readFromJson(EVENT_EVENT_VALID_JSON);
     return this;
+  }
+
+  public EventBuilder getBuilder() {
+    return new EventBuilder(fixture);
   }
 
 }

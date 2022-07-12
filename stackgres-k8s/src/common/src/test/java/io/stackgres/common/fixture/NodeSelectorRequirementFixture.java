@@ -35,4 +35,9 @@ public class NodeSelectorRequirementFixture {
       .withValues(requirementValues)
       .build();
   }
+
+  public NodeSelectorRequirementBuilder getBuilder() {
+    return new NodeSelectorRequirementBuilder(build());
+  }
+
 }

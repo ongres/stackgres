@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture.distributedlogs;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class DistributedLogsFixture extends Fixture<StackGresDistributedLogs> {
@@ -17,6 +18,10 @@ public class DistributedLogsFixture extends Fixture<StackGresDistributedLogs> {
   public DistributedLogsFixture loadDefault() {
     fixture = readFromJson(STACKGRES_DISTRIBUTED_LOGS_DEFAULT_JSON);
     return this;
+  }
+
+  public StackGresDistributedLogsBuilder getBuilder() {
+    return new StackGresDistributedLogsBuilder(fixture);
   }
 
 }

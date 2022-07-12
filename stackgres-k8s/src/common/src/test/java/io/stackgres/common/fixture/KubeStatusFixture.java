@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture;
 
 import io.fabric8.kubernetes.api.model.Status;
+import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class KubeStatusFixture extends Fixture<Status> {
@@ -33,6 +34,10 @@ public class KubeStatusFixture extends Fixture<Status> {
   public KubeStatusFixture loadAlreadyExists() {
     fixture = readFromJson(KUBE_STATUS_ALREADY_EXISTS_JSON);
     return this;
+  }
+
+  public StatusBuilder getBuilder() {
+    return new StatusBuilder(fixture);
   }
 
 }

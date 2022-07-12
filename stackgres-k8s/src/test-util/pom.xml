@@ -45,6 +45,11 @@
       <artifactId>xz</artifactId>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>io.sundr</groupId>
+      <artifactId>builder-annotations</artifactId>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
 </project>

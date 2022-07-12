@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture.backup;
 
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class BackupFixture extends Fixture<StackGresBackup> {
@@ -13,6 +14,10 @@ public class BackupFixture extends Fixture<StackGresBackup> {
   public BackupFixture loadDefault() {
     fixture = readFromJson(STACKGRES_BACKUP_DEFAULT_JSON);
     return this;
+  }
+
+  public StackGresBackupBuilder getBuilder() {
+    return new StackGresBackupBuilder(fixture);
   }
 
 }

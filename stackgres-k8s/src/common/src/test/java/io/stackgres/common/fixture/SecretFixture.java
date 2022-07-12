@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture;
 
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class SecretFixture extends Fixture<Secret> {
@@ -38,6 +39,10 @@ public class SecretFixture extends Fixture<Secret> {
   public SecretFixture loadAuthentication() {
     fixture = readFromJson(SECRET_PATRONI_JSON);
     return this;
+  }
+
+  public SecretBuilder getBuilder() {
+    return new SecretBuilder(fixture);
   }
 
 }

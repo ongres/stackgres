@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture.dbops;
 
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.crd.sgdbops.StackGresDbOpsBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class DbOpsFixture extends Fixture<StackGresDbOps> {
@@ -52,6 +53,10 @@ public class DbOpsFixture extends Fixture<StackGresDbOps> {
 
   public DbOpsSchedulingFixture scheduling() {
     return new DbOpsSchedulingFixture();
+  }
+
+  public StackGresDbOpsBuilder getBuilder() {
+    return new StackGresDbOpsBuilder(fixture);
   }
 
 }

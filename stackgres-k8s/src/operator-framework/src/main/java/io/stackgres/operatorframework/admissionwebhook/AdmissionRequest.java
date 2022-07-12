@@ -12,8 +12,10 @@ import io.fabric8.kubernetes.api.model.GroupVersionResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.authentication.UserInfo;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
+@Buildable
 public class AdmissionRequest<T extends HasMetadata> {
 
   private UUID uid;

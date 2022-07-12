@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class EndpointsFixture extends Fixture<Endpoints> {
@@ -28,6 +29,10 @@ public class EndpointsFixture extends Fixture<Endpoints> {
   public EndpointsFixture loadRequired() {
     fixture = readFromJson(ENDPOINTS_REQUIRED_JSON);
     return this;
+  }
+
+  public EndpointsBuilder getBuilder() {
+    return new EndpointsBuilder(fixture);
   }
 
 }

@@ -6,6 +6,7 @@
 package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.ObjectStorageReviewBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class ObjectStorageReviewFixture extends Fixture<ObjectStorageReview> {
@@ -27,6 +28,10 @@ public class ObjectStorageReviewFixture extends Fixture<ObjectStorageReview> {
   public ObjectStorageReviewFixture loadDelete() {
     fixture = readFromJson(STACKGRES_OBJECT_STORAGE_ADMISSION_REVIEW_DELETE_JSON);
     return this;
+  }
+
+  public ObjectStorageReviewBuilder getBuilder() {
+    return new ObjectStorageReviewBuilder(fixture);
   }
 
 }

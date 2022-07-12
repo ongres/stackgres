@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture;
 
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class JobFixture extends Fixture<Job> {
@@ -18,6 +19,10 @@ public class JobFixture extends Fixture<Job> {
   public JobFixture loadRequired() {
     fixture = readFromJson(JOB_REQUIRED_JSON);
     return this;
+  }
+
+  public JobBuilder getBuilder() {
+    return new JobBuilder(fixture);
   }
 
 }
