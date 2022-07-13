@@ -25,9 +25,6 @@ public class ClusterManagedScriptEntry {
   @JsonProperty("sgScript")
   private String sgScript;
 
-  @JsonProperty("continueOnError")
-  private Boolean continueOnError;
-
   @JsonProperty("scriptSpec")
   private ScriptSpec scriptSpec;
 
@@ -47,14 +44,6 @@ public class ClusterManagedScriptEntry {
     this.sgScript = sgScript;
   }
 
-  public Boolean getContinueOnError() {
-    return continueOnError;
-  }
-
-  public void setContinueOnError(Boolean continueOnError) {
-    this.continueOnError = continueOnError;
-  }
-
   public ScriptSpec getScriptSpec() {
     return scriptSpec;
   }
@@ -65,7 +54,7 @@ public class ClusterManagedScriptEntry {
 
   @Override
   public int hashCode() {
-    return Objects.hash(continueOnError, id, scriptSpec, sgScript);
+    return Objects.hash(id, scriptSpec, sgScript);
   }
 
   @Override
@@ -77,7 +66,7 @@ public class ClusterManagedScriptEntry {
       return false;
     }
     ClusterManagedScriptEntry other = (ClusterManagedScriptEntry) obj;
-    return Objects.equals(continueOnError, other.continueOnError) && Objects.equals(id, other.id)
+    return Objects.equals(id, other.id)
         && Objects.equals(scriptSpec, other.scriptSpec) && Objects.equals(sgScript, other.sgScript);
   }
 

@@ -56,10 +56,12 @@ public class LockValidator implements ClusterValidator {
                 || !Objects.equals(
                     StackGresUtil.getLockServiceAccount(cluster),
                     getServiceAccountFromUsername(username))
-                )) {
+                )
+            ) {
           fail("Cluster update is forbidden. It is locked by some SGBackup or SGDbOps"
               + " that is currently running. Please, wait for the operation to finish,"
-              + " stop the operation by deleting it or wait for the lock timeout to expire.");
+              + " stop the operation by deleting it or wait for the lock timeout of "
+              + timeout + " milliseconds to expire.");
         }
         break;
       }

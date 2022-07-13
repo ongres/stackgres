@@ -20,28 +20,31 @@ import io.stackgres.common.StackGresVersion;
 
 public abstract class ResourceDiscoverer<T> {
 
-  protected Map<StackGresVersion, List<T>> resourceHub;
+  protected final Map<StackGresVersion, List<T>> resourceHub =
+      Arrays.stream(StackGresVersion.values())
+      .collect(Collectors.toMap(Function.identity(), v -> new ArrayList<>()));
 
-  public void init(Instance<T> instance) {
-    resourceHub = Arrays.stream(StackGresVersion.values())
-        .collect(Collectors.toMap(Function.identity(), v -> new ArrayList<>()));
+  protected void init(Instance<T> instance) {
+    instance.select(new OperatorVersionBinderLiteral())
+        .stream()
+        .forEach(this::appendResourceFactory);
+  }
 
-    instance.select(new OperatorVersionBinderLiteral()).stream().forEach(f -> {
-      OperatorVersionBinder operatorVersionTarget = f.getClass()
-          .getAnnotation(OperatorVersionBinder.class);
-      final StackGresVersion startAt = Optional.of(operatorVersionTarget.startAt())
-          .filter(Predicates.not(StackGresVersion.UNDEFINED::equals))
-          .orElse(StackGresVersion.OLDEST);
-      final StackGresVersion stopAt = Optional.of(operatorVersionTarget.stopAt())
-          .filter(Predicates.not(StackGresVersion.UNDEFINED::equals))
-          .orElse(StackGresVersion.LATEST);
+  protected void appendResourceFactory(T resourceFactory) {
+    OperatorVersionBinder operatorVersionTarget = resourceFactory.getClass()
+        .getAnnotation(OperatorVersionBinder.class);
+    final StackGresVersion startAt = Optional.of(operatorVersionTarget.startAt())
+        .filter(Predicates.not(StackGresVersion.UNDEFINED::equals))
+        .orElse(StackGresVersion.OLDEST);
+    final StackGresVersion stopAt = Optional.of(operatorVersionTarget.stopAt())
+        .filter(Predicates.not(StackGresVersion.UNDEFINED::equals))
+        .orElse(StackGresVersion.LATEST);
 
-      for (int ordinal = startAt.ordinal();
-           ordinal <= stopAt.ordinal(); ordinal++) {
-        StackGresVersion version = StackGresVersion.values()[ordinal];
-        resourceHub.get(version).add(f);
-      }
-    });
+    for (int ordinal = startAt.ordinal();
+         ordinal <= stopAt.ordinal(); ordinal++) {
+      StackGresVersion version = StackGresVersion.values()[ordinal];
+      resourceHub.get(version).add(resourceFactory);
+    }
   }
 
 }

@@ -14,6 +14,7 @@ import org.jooq.lambda.tuple.Tuple3;
 
 public interface ManagedSqlUtil {
 
+  String DEFAULT_SCRIPT_NAME_SUFFIX = "-default";
   String MANAGED_SCRIPT_PATH = "/etc/managed-script.d/";
   String SCRIPT_BASIC_NAME = "%05d-%05d";
   String SCRIPT_BASIC_NAME_FOR_DATABASE = "%05d-%05d.%s";
@@ -71,7 +72,7 @@ public interface ManagedSqlUtil {
   }
 
   static String defaultName(StackGresCluster cluster) {
-    return cluster.getMetadata().getName() + "-default";
+    return cluster.getMetadata().getName() + DEFAULT_SCRIPT_NAME_SUFFIX;
   }
 
   static String initialDataName(StackGresCluster object) {
