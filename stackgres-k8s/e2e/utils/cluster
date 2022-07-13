@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export E2E_ENABLE_RESOURCE_REQUIREMENTS="${E2E_ENABLE_RESOURCE_REQUIREMENTS:-false}"
+export E2E_DISABLE_RESOURCE_REQUIREMENTS="${E2E_DISABLE_RESOURCE_REQUIREMENTS:-true}"
 
 remove_cluster() {
   local RELEASE="$1"
@@ -70,8 +70,8 @@ create_or_replace_cluster_only() {
     helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_CHART_PATH" \
       --reuse-values \
       $E2E_CLUSTER_OPTS \
-      --set nonProductionOptions.disablePatroniResourceRequirements="$E2E_ENABLE_RESOURCE_REQUIREMENTS" \
-      --set nonProductionOptions.disableClusterResourceRequirements="$E2E_ENABLE_RESOURCE_REQUIREMENTS" \
+      --set nonProductionOptions.disablePatroniResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
+      --set nonProductionOptions.disableClusterResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
       $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
       --set cluster.instances="$INSTANCES" "$@"
   else
@@ -79,8 +79,8 @@ create_or_replace_cluster_only() {
     helm install "$RELEASE" "$CLUSTER_CHART_PATH" \
       --namespace "$NAMESPACE" \
       $E2E_CLUSTER_OPTS \
-      --set nonProductionOptions.disablePatroniResourceRequirements="$E2E_ENABLE_RESOURCE_REQUIREMENTS" \
-      --set nonProductionOptions.disableClusterResourceRequirements="$E2E_ENABLE_RESOURCE_REQUIREMENTS" \
+      --set nonProductionOptions.disablePatroniResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
+      --set nonProductionOptions.disableClusterResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
       $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
       --set cluster.instances="$INSTANCES" "$@"
   fi
@@ -186,8 +186,8 @@ create_or_replace_cluster_for_version_only() {
     eval "$(transform_params "$TRANSFORMER" helm install "$RELEASE" "$CLUSTER_HELM_PATH" \
         --namespace "$NAMESPACE" \
         $E2E_CLUSTER_OPTS \
-        --set nonProductionOptions.disablePatroniResourceRequirements="$E2E_ENABLE_RESOURCE_REQUIREMENTS" \
-        --set nonProductionOptions.disableClusterResourceRequirements="$E2E_ENABLE_RESOURCE_REQUIREMENTS" \
+        --set nonProductionOptions.disablePatroniResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
+        --set nonProductionOptions.disableClusterResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
         --set cluster.instances="$INSTANCES" "$@")"
   fi
 }
