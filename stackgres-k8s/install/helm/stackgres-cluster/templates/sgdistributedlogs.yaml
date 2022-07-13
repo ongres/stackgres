@@ -60,6 +60,10 @@ spec:
   {{- end }}
   {{- if .Values.distributedLogs.scheduling }}
   scheduling:
+    {{- if .Values.distributedLogs.scheduling.nodeAffinity }}
+    nodeAffinity:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- if .Values.distributedLogs.scheduling.nodeSelector }}
     nodeSelector:
       {{- range $label, $value := .Values.distributedLogs.scheduling.nodeSelector }}

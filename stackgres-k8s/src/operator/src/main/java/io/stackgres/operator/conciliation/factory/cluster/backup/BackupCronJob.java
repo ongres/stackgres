@@ -17,6 +17,8 @@ import javax.inject.Singleton;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import io.fabric8.kubernetes.api.model.Affinity;
+import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -40,6 +42,10 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodSchedulingBackup;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
@@ -59,25 +65,26 @@ public class BackupCronJob
 
   private static final Logger BACKUP_LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
 
-  private final ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext>
-      clusterEnvVarFactoryDiscoverer;
+  private final
+      ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> clusterEnvVarFactoryDiscoverer;
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory;
 
-  @Inject
-  KubectlUtil kubectl;
+  private final KubectlUtil kubectl;
 
   @Inject
   public BackupCronJob(
       ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> clusterEnvVarFactoryDiscoverer,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory) {
+      ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory,
+      KubectlUtil kubectl) {
     super();
     this.clusterEnvVarFactoryDiscoverer = clusterEnvVarFactoryDiscoverer;
     this.labelFactory = labelFactory;
     this.podSecurityFactory = podSecurityFactory;
+    this.kubectl = kubectl;
   }
 
   public static String backupName(StackGresClusterContext clusterContext) {
@@ -132,6 +139,8 @@ public class BackupCronJob
             .withSecurityContext(podSecurityFactory.createResource(context))
             .withRestartPolicy("OnFailure")
             .withServiceAccountName(BackupCronRole.roleName(context))
+            .withNodeSelector(getNodeSelectors(context))
+            .withAffinity(getAffinity(context))
             .withContainers(new ContainerBuilder()
                 .withName("create-backup")
                 .withImage(kubectl.getImageName(cluster))
@@ -139,9 +148,9 @@ public class BackupCronJob
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(getClusterEnvVars(context))
                     .add(new EnvVarBuilder()
-                            .withName("CLUSTER_NAMESPACE")
-                            .withValue(namespace)
-                            .build(),
+                        .withName("CLUSTER_NAMESPACE")
+                        .withValue(namespace)
+                        .build(),
                         new EnvVarBuilder()
                             .withName("CLUSTER_NAME")
                             .withValue(name)
@@ -257,12 +266,12 @@ public class BackupCronJob
                             .withValue(
                                 Optional.of(backupConfig)
                                     .map(BackupConfiguration::compression)
-                                    .orElse("lz4")).build(),
+                                    .orElse("lz4"))
+                            .build(),
                         new EnvVarBuilder()
                             .withName("STORAGE_TEMPLATE_PATH")
                             .withValue(
-                                getStorageTemplatePath(context)
-                            )
+                                getStorageTemplatePath(context))
                             .build(),
                         new EnvVarBuilder()
                             .withName("WINDOW")
@@ -276,14 +285,14 @@ public class BackupCronJob
                 .withCommand("/bin/bash", "-e" + (BACKUP_LOGGER.isTraceEnabled() ? "x" : ""),
                     ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
                 .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES
-                        .volumeMount(context,
-                            volumeMountBuilder -> volumeMountBuilder
-                                .withSubPath(
-                                    ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH
-                                        .filename())
-                                .withMountPath(
-                                    ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
-                                .withReadOnly(true)),
+                    .volumeMount(context,
+                        volumeMountBuilder -> volumeMountBuilder
+                            .withSubPath(
+                                ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH
+                                    .filename())
+                            .withMountPath(
+                                ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
+                            .withReadOnly(true)),
                     ClusterStatefulSetVolumeConfig.TEMPLATES
                         .volumeMount(context,
                             volumeMountBuilder -> volumeMountBuilder
@@ -295,16 +304,39 @@ public class BackupCronJob
                 .build())
             .withVolumes(new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES
                 .volume(context))
-                .editConfigMap()
-                .withDefaultMode(0555) // NOPMD
-                .endConfigMap()
-                .build())
+                    .editConfigMap()
+                    .withDefaultMode(0555) // NOPMD
+                    .endConfigMap()
+                    .build())
             .endSpec()
             .endTemplate()
             .endSpec()
             .build())
         .endSpec()
         .build();
+  }
+
+  private Affinity getAffinity(StackGresClusterContext context) {
+    return Optional.of(new AffinityBuilder())
+        .map(builder -> builder.withNodeAffinity(
+            Optional.of(context.getSource())
+                .map(StackGresCluster::getSpec)
+                .map(StackGresClusterSpec::getPod)
+                .map(StackGresClusterPod::getScheduling)
+                .map(StackGresClusterPodScheduling::getBackup)
+                .map(StackGresClusterPodSchedulingBackup::getNodeAffinity)
+                .orElse(null)))
+        .map(builder -> builder.build())
+        .orElse(null);
+  }
+
+  private Map<String, String> getNodeSelectors(StackGresClusterContext context) {
+    return Optional.ofNullable(context.getSource().getSpec())
+        .map(StackGresClusterSpec::getPod)
+        .map(StackGresClusterPod::getScheduling)
+        .map(StackGresClusterPodScheduling::getBackup)
+        .map(StackGresClusterPodSchedulingBackup::getNodeSelector)
+        .orElse(null);
   }
 
   @NotNull
@@ -318,8 +350,8 @@ public class BackupCronJob
     List<ClusterEnvironmentVariablesFactory<ClusterContext>> clusterEnvVarFactories =
         clusterEnvVarFactoryDiscoverer.discoverFactories(context);
 
-    clusterEnvVarFactories.forEach(envVarFactory ->
-        clusterEnvVars.addAll(envVarFactory.buildEnvironmentVariables(context)));
+    clusterEnvVarFactories.forEach(
+        envVarFactory -> clusterEnvVars.addAll(envVarFactory.buildEnvironmentVariables(context)));
     return clusterEnvVars;
   }
 

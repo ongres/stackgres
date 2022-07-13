@@ -61,6 +61,171 @@ spec:
                   type: object
                   description: Pod custom node tolerations
                   properties:
+                    nodeAffinity:
+                      type: object
+                      description: Node affinity is a group of node affinity scheduling rules.
+                      properties:
+                        preferredDuringSchedulingIgnoredDuringExecution:
+                          type: array
+                          description: |
+                            The scheduler will prefer to schedule pods to nodes that satisfy
+                            the affinity expressions specified by this field, but it may choose a node
+                            that violates one or more of the expressions. The node that is most preferred
+                            is the one with the greatest sum of weights, i.e. for each node that meets
+                            all of the scheduling requirements (resource request, requiredDuringScheduling
+                            affinity expressions, etc.), compute a sum by iterating through the elements
+                            of this field and adding "weight" to the sum if the node matches the corresponding
+                            matchExpressions; the node(s) with the highest sum are the most preferred.
+                          items:
+                            type: object
+                            description: | 
+                              An empty preferred scheduling term matches all objects with
+                              implicit weight 0 (i.e. it's a no-op). A null preferred scheduling term
+                              matches no objects (i.e. is also a no-op).
+                            properties:
+                              weight:
+                                type: integer
+                                description: Weight associated with matching the corresponding nodeSelectorTerm,
+                                  in the range 1-100.
+                              preference:
+                                type: object
+                                description: |
+                                  A null or empty node selector term matches no objects.
+                                  The requirements of them are ANDed. The TopologySelectorTerm type
+                                  implements a subset of the NodeSelectorTerm.
+                                properties:
+                                  matchExpressions:
+                                    type: array
+                                    description: A list of node selector requirements by node's labels.
+                                    items:
+                                      type: object
+                                      description: A node selector requirement is a selector that contains
+                                        values, a key, and an operator that relates the key and values.
+                                      properties:
+                                        key:
+                                          type: string
+                                          description: The label key that the selector applies to.
+                                        operator: 
+                                          type: string
+                                          description: |
+                                            Represents a key's relationship to a set of values.
+                                            Valid operators are In, NotIn, Exists, DoesNotExist. Gt,
+                                            and Lt.
+                                        values:
+                                          type: array
+                                          description: An array of string values. If the operator is
+                                            In or NotIn, the values array must be non-empty. If the
+                                            operator is Exists or DoesNotExist, the values array must
+                                            be empty. If the operator is Gt or Lt, the values array
+                                            must have a single element, which will be interpreted as
+                                            an integer. This array is replaced during a strategic merge
+                                            patch.
+                                          items:
+                                            type: string
+                                  matchFields:
+                                    type: array
+                                    description: A list of node selector requirements by node's labels.
+                                    items:
+                                      type: object
+                                      description: A node selector requirement is a selector that contains
+                                        values, a key, and an operator that relates the key and values.
+                                      properties:
+                                        key:
+                                          type: string
+                                          description: The label key that the selector applies to.
+                                        operator: 
+                                          type: string
+                                          description: |
+                                            Represents a key's relationship to a set of values.
+                                            Valid operators are In, NotIn, Exists, DoesNotExist. Gt,
+                                            and Lt.
+                                        values:
+                                          type: array
+                                          description: An array of string values. If the operator is
+                                            In or NotIn, the values array must be non-empty. If the
+                                            operator is Exists or DoesNotExist, the values array must
+                                            be empty. If the operator is Gt or Lt, the values array
+                                            must have a single element, which will be interpreted as
+                                            an integer. This array is replaced during a strategic merge
+                                            patch.
+                                          items:
+                                            type: string
+                        requiredDuringSchedulingIgnoredDuringExecution:
+                          type: object
+                          description: |
+                            If the affinity requirements specified by this field are not met at
+                            scheduling time, the pod will not be scheduled onto the node.
+                            This type of affinity can restrict to only run the pod on specifically
+                            nodes like "Intel CPUs".
+                          properties:
+                            nodeSelectorTerms:
+                              type: array
+                              description: Pod custom node tolerations
+                              items:
+                                type: object
+                                description: Pod custom node toleration
+                                properties:
+                                  matchExpressions:
+                                    type: array
+                                    description: A list of node selector requirements by node's labels.
+                                    items:
+                                      type: object
+                                      description: A node selector requirement is a selector that contains
+                                        values, a key, and an operator that relates the key and values.
+                                      properties:
+                                        key:
+                                          type: string
+                                          description: The label key that the selector applies to.
+                                        operator: 
+                                          type: string
+                                          description: |
+                                            Represents a key's relationship to a set of values.
+                                            Valid operators are In, NotIn, Exists, DoesNotExist. Gt,
+                                            and Lt.
+                                        values:
+                                          type: array
+                                          description: An array of string values. If the operator is
+                                            In or NotIn, the values array must be non-empty. If the
+                                            operator is Exists or DoesNotExist, the values array must
+                                            be empty. If the operator is Gt or Lt, the values array
+                                            must have a single element, which will be interpreted as
+                                            an integer. This array is replaced during a strategic merge
+                                            patch.
+                                          items:
+                                            type: string
+                                  matchFields:
+                                    type: array
+                                    description: A list of node selector requirements by node's labels.
+                                    items:
+                                      type: object
+                                      description: A node selector requirement is a selector that contains
+                                        values, a key, and an operator that relates the key and values.
+                                      properties:
+                                        key:
+                                          type: string
+                                          description: The label key that the selector applies to.
+                                        operator: 
+                                          type: string
+                                          description: |
+                                            Represents a key's relationship to a set of values.
+                                            Valid operators are In, NotIn, Exists, DoesNotExist. Gt,
+                                            and Lt.
+                                        values:
+                                          type: array
+                                          description: An array of string values. If the operator is
+                                            In or NotIn, the values array must be non-empty. If the
+                                            operator is Exists or DoesNotExist, the values array must
+                                            be empty. If the operator is Gt or Lt, the values array
+                                            must have a single element, which will be interpreted as
+                                            an integer. This array is replaced during a strategic merge
+                                            patch.
+                                          items:
+                                            type: string
+                    nodeSelector:
+                      type: object
+                      additionalProperties:
+                        type: string
+                      description: Pod custom node selector.                    
                     tolerations:
                         type: array
                         description: Pod custom node tolerations

@@ -50,16 +50,13 @@ import org.jooq.lambda.Seq;
 public class DistributedLogsPodTemplateSpecFactory
     implements PodTemplateFactory<DistributedLogsContainerContext> {
 
-  private final ResourceFactory<StackGresDistributedLogsContext, PodSecurityContext>
-      podSecurityContext;
+  private final ResourceFactory<StackGresDistributedLogsContext, PodSecurityContext> podSecContext;
 
   private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
-  private final ContainerFactoryDiscoverer<DistributedLogsContainerContext>
-      containerFactoryDiscoverer;
+  private final ContainerFactoryDiscoverer<DistributedLogsContainerContext> containerDiscoverer;
 
-  private final InitContainerFactoryDiscover<DistributedLogsContainerContext>
-      initContainerFactoryDiscoverer;
+  private final InitContainerFactoryDiscover<DistributedLogsContainerContext> initContDiscoverer;
 
   @Inject
   public DistributedLogsPodTemplateSpecFactory(
@@ -67,10 +64,10 @@ public class DistributedLogsPodTemplateSpecFactory
       LabelFactoryForCluster<StackGresDistributedLogs> labelFactory,
       ContainerFactoryDiscoverer<DistributedLogsContainerContext> containerFactoryDiscoverer,
       InitContainerFactoryDiscover<DistributedLogsContainerContext> iniContainerFactoryDiscoverer) {
-    this.podSecurityContext = podSecurityContext;
+    this.podSecContext = podSecurityContext;
     this.labelFactory = labelFactory;
-    this.containerFactoryDiscoverer = containerFactoryDiscoverer;
-    this.initContainerFactoryDiscoverer = iniContainerFactoryDiscoverer;
+    this.containerDiscoverer = containerFactoryDiscoverer;
+    this.initContDiscoverer = iniContainerFactoryDiscoverer;
   }
 
   @Override
@@ -80,13 +77,13 @@ public class DistributedLogsPodTemplateSpecFactory
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
 
     List<ContainerFactory<DistributedLogsContainerContext>> containerFactories =
-        containerFactoryDiscoverer.discoverContainers(context);
+        containerDiscoverer.discoverContainers(context);
 
     List<Container> containers = containerFactories.stream()
         .map(f -> f.getContainer(context)).collect(Collectors.toUnmodifiableList());
 
-    final List<ContainerFactory<DistributedLogsContainerContext>> initContainerFactories
-        = initContainerFactoryDiscoverer.discoverContainers(context);
+    final List<ContainerFactory<DistributedLogsContainerContext>> initContainerFactories =
+        initContDiscoverer.discoverContainers(context);
 
     List<Container> initContainers = initContainerFactories
         .stream().map(f -> f.getContainer(context))
@@ -123,10 +120,10 @@ public class DistributedLogsPodTemplateSpecFactory
                     new PodAffinityTermBuilder()
                         .withLabelSelector(new LabelSelectorBuilder()
                             .withMatchExpressions(new LabelSelectorRequirementBuilder()
-                                    .withKey(StackGresContext.APP_KEY)
-                                    .withOperator("In")
-                                    .withValues(labelFactory.labelMapper().appName())
-                                    .build(),
+                                .withKey(StackGresContext.APP_KEY)
+                                .withOperator("In")
+                                .withValues(labelFactory.labelMapper().appName())
+                                .build(),
                                 new LabelSelectorRequirementBuilder()
                                     .withKey("cluster")
                                     .withOperator("In")
@@ -136,6 +133,10 @@ public class DistributedLogsPodTemplateSpecFactory
                         .withTopologyKey("kubernetes.io/hostname")
                         .build()))
                 .build())
+            .withNodeAffinity(Optional.ofNullable(cluster.getSpec())
+                .map(StackGresDistributedLogsSpec::getScheduling)
+                .map(StackGresDistributedLogsPodScheduling::getNodeAffinity)
+                .orElse(null))
             .build())
             .filter(affinity -> Optional.ofNullable(
                 cluster.getSpec().getNonProductionOptions())
@@ -145,7 +146,8 @@ public class DistributedLogsPodTemplateSpecFactory
             .orElse(null))
         .withNodeSelector(Optional.ofNullable(cluster.getSpec())
             .map(StackGresDistributedLogsSpec::getScheduling)
-            .map(StackGresDistributedLogsPodScheduling::getNodeSelector)
+            .map(
+                StackGresDistributedLogsPodScheduling::getNodeSelector)
             .orElse(null))
         .withTolerations(Optional.ofNullable(cluster.getSpec())
             .map(StackGresDistributedLogsSpec::getScheduling)
@@ -157,7 +159,7 @@ public class DistributedLogsPodTemplateSpecFactory
             .orElse(null))
         .withShareProcessNamespace(Boolean.TRUE)
         .withServiceAccountName(PatroniRole.roleName(context.getDistributedLogsContext()))
-        .withSecurityContext(podSecurityContext.createResource(context.getDistributedLogsContext()))
+        .withSecurityContext(podSecContext.createResource(context.getDistributedLogsContext()))
         .withVolumes(volumes)
         .withContainers(containers)
         .withInitContainers(initContainers)

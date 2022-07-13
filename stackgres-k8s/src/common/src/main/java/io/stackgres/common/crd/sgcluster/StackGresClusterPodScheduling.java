@@ -39,14 +39,21 @@ public class StackGresClusterPodScheduling {
   @Valid
   private List<Toleration> tolerations;
 
-  @ReferencedField("nodeSelector")
-  interface NodeSelector extends FieldReference { }
+  @JsonProperty("backup")
+  @Valid
+  private StackGresClusterPodSchedulingBackup backup;
 
   @ReferencedField("nodeSelector")
-  interface NodeAffinityField extends FieldReference { }
+  interface NodeSelector extends FieldReference {
+  }
+
+  @ReferencedField("nodeSelector")
+  interface NodeAffinityField extends FieldReference {
+  }
 
   @ReferencedField("tolerations")
-  interface TolerationField extends FieldReference { }
+  interface TolerationField extends FieldReference {
+  }
 
   @JsonIgnore
   @AssertTrue(message = "nodeSelector can not be empty.",
@@ -79,6 +86,14 @@ public class StackGresClusterPodScheduling {
     this.tolerations = tolerations;
   }
 
+  public StackGresClusterPodSchedulingBackup getBackup() {
+    return backup;
+  }
+
+  public void setBackup(StackGresClusterPodSchedulingBackup backup) {
+    this.backup = backup;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
@@ -90,12 +105,13 @@ public class StackGresClusterPodScheduling {
     StackGresClusterPodScheduling other = (StackGresClusterPodScheduling) obj;
     return Objects.equals(nodeSelector, other.nodeSelector)
         && Objects.equals(tolerations, other.tolerations)
+        && Objects.equals(backup, other.backup)
         && Objects.equals(nodeAffinity, other.nodeAffinity);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(nodeSelector, tolerations, nodeAffinity);
+    return Objects.hash(nodeSelector, tolerations, nodeAffinity, backup);
   }
 
   @Override

@@ -1,0 +1,24 @@
+{
+  "kind": "SGDbOps",
+  "apiVersion": "stackgres.io/v1",
+  "metadata": {
+    "annotations": {
+      "stackgres.io/operatorVersion": "1.1.0"
+    },
+    "creationTimestamp": "2019-09-27T09:09:34Z",
+    "generation": 1,
+    "name": "stackgres",
+    "namespace": "default",
+    "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+  },
+  "spec": {
+    "sgCluster": "test",
+    "op": "majorVersionUpgrade",
+    "maxRetries": 3,
+    "majorVersionUpgrade": {
+      "postgresVersion": "11.7",
+      "sgPostgresConfig": "pg12"
+    }
+  },
+  "status": null
+}

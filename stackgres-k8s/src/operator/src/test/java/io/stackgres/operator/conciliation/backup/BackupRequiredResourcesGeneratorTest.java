@@ -183,7 +183,7 @@ class BackupRequiredResourcesGeneratorTest {
               && ownerReference.getName().equals(backup.getMetadata().getName())
               && ownerReference.getUid().equals(backup.getMetadata().getUid())
               && Optional.ofNullable(ownerReference.getBlockOwnerDeletion()).orElse(Boolean.FALSE)
-              .equals(Boolean.FALSE)));
+                  .equals(Boolean.FALSE)));
     });
 
     verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
@@ -201,19 +201,17 @@ class BackupRequiredResourcesGeneratorTest {
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
     final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
     clusterConfiguration.setBackupConfig(null);
-    var backupConfiguration
-        = new StackGresClusterBackupConfiguration();
+    var backupConfiguration = new StackGresClusterBackupConfiguration();
     clusterConfiguration.setBackups(
-        List.of(backupConfiguration)
-    );
+        List.of(backupConfiguration));
     backupConfiguration.setObjectStorage(objectStorage.getMetadata().getName());
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
 
     when(objectStorageFinder.findByNameAndNamespace(
-        objectStorage.getMetadata().getName(), backupNamespace)
-    ).thenReturn(Optional.of(objectStorage));
+        objectStorage.getMetadata().getName(), backupNamespace))
+            .thenReturn(Optional.of(objectStorage));
     generator.getRequiredResources(backup);
 
     verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
@@ -284,19 +282,16 @@ class BackupRequiredResourcesGeneratorTest {
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
     final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
     clusterConfiguration.setBackupConfig(null);
-    var backupConfiguration
-        = new StackGresClusterBackupConfiguration();
+    var backupConfiguration = new StackGresClusterBackupConfiguration();
     clusterConfiguration.setBackups(
-        List.of(backupConfiguration)
-    );
+        List.of(backupConfiguration));
     backupConfiguration.setObjectStorage(objectStorage.getMetadata().getName());
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
 
     when(objectStorageFinder.findByNameAndNamespace(
-        objectStorage.getMetadata().getName(), backupNamespace)
-    ).thenReturn(Optional.empty());
+        objectStorage.getMetadata().getName(), backupNamespace)).thenReturn(Optional.empty());
 
     when(profileFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(profile));
