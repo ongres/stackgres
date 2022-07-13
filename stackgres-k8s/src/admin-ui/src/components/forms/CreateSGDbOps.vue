@@ -681,7 +681,7 @@
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.waitTimeout')"></span>
                                     </div>
 
-                                    <div class="col" v-if="!db.inheritTimeout">
+                                    <div class="col" v-if="!db.inheritTimeout && db.hasOwnProperty('waitTimeout')">
                                         <label :for="'spec.repack.databases[' + index + '].waitTimeout'">Custom Wait Timeout</label>
                                         <div class="timeSelect">
                                             <select v-model="db.waitTimeout.d" class="round dayselect" :data-field="'spec.repack.databases[' + index + '].waitTimeout.days'">
@@ -971,20 +971,18 @@
                             }
 
                             if(vc.repackPerDbs) {
-                                vc.repackDbs.forEach(function(db){
-                                    Object.keys(db).forEach(function(key){
-                                        if(db[key] == 'inherit')
-                                            db[key] = vc.repack[key]
-                                        
-                                        if (key == 'waitTimeout') {
-                                            let wT = db.inheritTimeout ? vc.getIsoDuration(vc.repack.waitTimeout) : vc.getIsoDuration(db.waitTimeout)
-                                            delete db.waitTimeout
-                                            delete db.inheritTimeout
-                                            db['waitTimeout'] = wT
-                                        }
-                                    })
+                                let repackDbs = []
+
+                                vc.repackDbs.forEach(function(db, index){
+                                    repackDbs.push({
+                                        noOrder: ((db.noOrder == 'inherit') ? vc.repack.noOrder : db.noOrder),
+                                        waitTimeout: (db.inheritTimeout ? vc.getIsoDuration(vc.repack.waitTimeout) : vc.getIsoDuration(db.waitTimeout)),
+                                        noKillBackend: ((db.noKillBackend == 'inherit') ? vc.repack.noKillBackend : db.noKillBackend),
+                                        noAnalyze: ((db.noAnalyze == 'inherit') ? vc.repack.noAnalyze : db.noAnalyze),
+                                        excludeExtension: ((db.excludeExtension == 'inherit') ? vc.repack.excludeExtension : db.excludeExtension),
+                                    }) 
                                 })
-                                repack['databases'] = [...vc.repackDbs]
+                                repack['databases'] = repackDbs
                             }
 
                             dbOps.spec['repack'] = repack
