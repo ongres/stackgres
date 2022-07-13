@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export E2E_ENABLE_RESOURCE_REQUIREMENTS="${E2E_ENABLE_RESOURCE_REQUIREMENTS:-false}"
+
 remove_cluster() {
   local RELEASE="$1"
   local NAMESPACE="$2"
@@ -36,12 +38,6 @@ create_or_replace_cluster_without_defaults() {
   shift 3
 
   create_or_replace_cluster_only "$RELEASE" "$NAMESPACE" "$INSTANCES" \
-    $(
-      RESOURCE_REQUIREMENTS_DISABLED="$([ "$E2E_ENABLE_RESOURCE_REQUIREMENTS" = true ] && printf false || printf true)"
-      printf '%s %s %s %s' \
-        --set nonProductionOptions.disablePatroniResourceRequirements="$RESOURCE_REQUIREMENTS_DISABLED" \
-        --set nonProductionOptions.disableClusterResourceRequirements="$RESOURCE_REQUIREMENTS_DISABLED"
-    ) \
     "$@"
 }
 
@@ -52,12 +48,6 @@ create_or_replace_cluster() {
   shift 3
 
   create_or_replace_cluster_only "$RELEASE" "$NAMESPACE" "$INSTANCES" -f "$SPEC_VALUES_FILE" \
-    $(
-      RESOURCE_REQUIREMENTS_DISABLED="$([ "$E2E_ENABLE_RESOURCE_REQUIREMENTS" = true ] && printf false || printf true)"
-      printf '%s %s %s %s' \
-        --set nonProductionOptions.disablePatroniResourceRequirements="$RESOURCE_REQUIREMENTS_DISABLED" \
-        --set nonProductionOptions.disableClusterResourceRequirements="$RESOURCE_REQUIREMENTS_DISABLED"
-    ) \
     "$@"
 }
 
@@ -78,15 +68,19 @@ create_or_replace_cluster_only() {
   if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
   then
     helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_CHART_PATH" \
-        --reuse-values \
-        $E2E_CLUSTER_OPTS \
-        $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
-        --set cluster.instances="$INSTANCES" "$@"
+      --reuse-values \
+      $E2E_CLUSTER_OPTS \
+      --set nonProductionOptions.disablePatroniResourceRequirements="$E2E_ENABLE_RESOURCE_REQUIREMENTS" \
+      --set nonProductionOptions.disableClusterResourceRequirements="$E2E_ENABLE_RESOURCE_REQUIREMENTS" \
+      $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
+      --set cluster.instances="$INSTANCES" "$@"
   else
     create_namespace_if_not_exists "$NAMESPACE"
     helm install "$RELEASE" "$CLUSTER_CHART_PATH" \
       --namespace "$NAMESPACE" \
       $E2E_CLUSTER_OPTS \
+      --set nonProductionOptions.disablePatroniResourceRequirements="$E2E_ENABLE_RESOURCE_REQUIREMENTS" \
+      --set nonProductionOptions.disableClusterResourceRequirements="$E2E_ENABLE_RESOURCE_REQUIREMENTS" \
       $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
       --set cluster.instances="$INSTANCES" "$@"
   fi
@@ -127,12 +121,6 @@ create_or_replace_cluster_for_version() {
   shift 4
 
   create_or_replace_cluster_for_version_only "$VERSION" "$RELEASE" "$NAMESPACE" "$INSTANCES" -f "$SPEC_VALUES_FILE" \
-    $(
-      RESOURCE_REQUIREMENTS_DISABLED="$([ "$E2E_ENABLE_RESOURCE_REQUIREMENTS" = true ] && printf false || printf true)"
-      printf '%s %s %s %s' \
-        --set nonProductionOptions.disablePatroniResourceRequirements="$RESOURCE_REQUIREMENTS_DISABLED" \
-        --set nonProductionOptions.disableClusterResourceRequirements="$RESOURCE_REQUIREMENTS_DISABLED"
-    ) \
     "$@"
 }
 
@@ -198,6 +186,8 @@ create_or_replace_cluster_for_version_only() {
     eval "$(transform_params "$TRANSFORMER" helm install "$RELEASE" "$CLUSTER_HELM_PATH" \
         --namespace "$NAMESPACE" \
         $E2E_CLUSTER_OPTS \
+        --set nonProductionOptions.disablePatroniResourceRequirements="$E2E_ENABLE_RESOURCE_REQUIREMENTS" \
+        --set nonProductionOptions.disableClusterResourceRequirements="$E2E_ENABLE_RESOURCE_REQUIREMENTS" \
         --set cluster.instances="$INSTANCES" "$@")"
   fi
 }
