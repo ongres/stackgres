@@ -207,6 +207,8 @@ echo "Setup logs"
 setup_logs
 echo "Setup operator"
 setup_operator
+echo "Setup spec"
+setup_spec
 
 echo "Calculating spec hashes"
 SPEC_HASHES="$(calculate_spec_hashes)"

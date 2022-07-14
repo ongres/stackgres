@@ -24,6 +24,8 @@ echo "Setup logs"
 setup_logs
 echo "Setup operator"
 setup_operator
+echo "Setup spec"
+setup_spec
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 

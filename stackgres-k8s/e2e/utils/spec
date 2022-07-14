@@ -8,16 +8,7 @@ export E2E_AFTER_RUN_TEST_FUNCTION="${E2E_AFTER_RUN_TEST_FUNCTION:-e2e_after_run
 export E2E_TEST_UNINSTALL_FUNCTION="${E2E_TEST_UNINSTALL_FUNCTION:-e2e_test_uninstall}"
 export E2E_TEST_AFTER_ALL_FUNCTION="${E2E_TEST_AFTER_ALL_FUNCTION:-e2e_test_after_all}"
 export E2E_BEFORE_RUN_TEST_COUNT=0
-export SPEC_PATH="$E2E_PATH/spec"
-if [ -n "$STACKGRES_TARGET_VERSION" ] && [ "${STACKGRES_VERSION%.*}" != "${STACKGRES_TARGET_VERSION%.*}" ]
-then
-  SPEC_PATH="$E2E_PATH/spec/previous/${STACKGRES_TARGET_VERSION%.*}/spec"
-  if [ ! -d "$SPEC_PATH" ]
-  then
-    echo "Specs for StackGres $STACKGRES_TARGET_VERSION not found"
-    exit 1
-  fi
-fi
+export SPEC_PATH="${SPEC_PATH:-$E2E_PATH/spec}"
 export E2E_LOCK
 export E2E_TEST_REGISTRY
 export E2E_TEST_REGISTRY_PATH
@@ -43,6 +34,21 @@ export E2E_HASH_VARIABLES='
     STACKGRES_PREVIOUS_VERSION
     STACKGRES_TARGET_VERSION
     '
+
+setup_spec() {
+  if [ -n "$STACKGRES_TARGET_VERSION" ] && [ "${STACKGRES_VERSION%.*}" != "${STACKGRES_TARGET_VERSION%.*}" ]
+  then
+    SPEC_PATH="$E2E_PATH/spec/previous/${STACKGRES_TARGET_VERSION%.*}/spec"
+    if [ ! -d "$SPEC_PATH" ]
+    then
+      echo "Specs for StackGres $STACKGRES_TARGET_VERSION not found"
+      exit 1
+    fi
+    echo "Using spec from $SPEC_PATH for target version $STACKGRES_TARGET_VERSION"
+  else
+    echo "Using spec from $SPEC_PATH for target version $STACKGRES_TARGET_VERSION"
+  fi
+}
 
 e2e_test_before_all() {
   true
@@ -194,8 +200,8 @@ spec() {
   local EXIT_CODE
   local SPEC_FILE="$1"
   local SPEC_VALUES_FILE="$1.values.yaml"
-  local SPEC_PATH="${SPEC_FILE%/*}"
   local SPEC_NAME="${SPEC_FILE##*/}"
+  SPEC_FILE="$SPEC_PATH/$SPEC_NAME"
   local CLUSTER_NAMESPACE="$SPEC_NAME-$(printf '%x' "$(date +%s)")"
   local CLUSTER_NAME
   CLUSTER_NAME="$(get_sgcluster_name "$SPEC_NAME")"
@@ -205,6 +211,12 @@ spec() {
   local LOG_PATH="$TARGET_PATH/logs/$SPEC_NAME/$CLUSTER_NAMESPACE"
   local SPEC_TIME="0"
   export SPEC_FILE SPEC_NAME CLUSTER_NAMESPACE CLUSTER_NAME LOG_PATH
+
+  if [ ! -f "$SPEC_FILE" ]
+  then
+    echo "Spec file $SPEC_FILE was not found"
+    return 1
+  fi
 
   mkdir -p "$LOG_PATH"
 
