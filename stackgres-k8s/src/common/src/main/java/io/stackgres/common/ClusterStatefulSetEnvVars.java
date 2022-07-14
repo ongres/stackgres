@@ -16,12 +16,12 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 public enum ClusterStatefulSetEnvVars {
   POSTGRES_VERSION(context -> context.getSpec().getPostgres().getVersion()),
   POSTGRES_MAJOR_VERSION(context -> getPostgresFlavorComponent(context).get(context)
-      .findMajorVersion(context.getSpec().getPostgres().getVersion())),
+      .getMajorVersion(context.getSpec().getPostgres().getVersion())),
   POSTGRES_FLAVOR(context -> getPostgresFlavorComponent(context).get(context).getName()),
   BUILD_VERSION(context -> getPostgresFlavorComponent(context).get(context)
-      .findBuildVersion(context.getSpec().getPostgres().getVersion())),
+      .getBuildVersion(context.getSpec().getPostgres().getVersion())),
   BUILD_MAJOR_VERSION(context -> getPostgresFlavorComponent(context).get(context)
-      .findBuildMajorVersion(context.getSpec().getPostgres().getVersion())),
+      .getBuildMajorVersion(context.getSpec().getPostgres().getVersion())),
   PATRONI_ENV("patroni"),
   BACKUP_ENV("backup"),
   RESTORE_ENV("restore"),

@@ -41,7 +41,7 @@ class RestoreConfigValidatorTest {
           .get(1).get();
 
   private static final String firstPgMajorVersionNumber =
-      Seq.of(StackGresComponent.POSTGRESQL.getLatest().findVersion(firstPgMajorVersion)
+      Seq.of(StackGresComponent.POSTGRESQL.getLatest().getVersion(firstPgMajorVersion)
           .split("\\.")).map(Integer::valueOf).append(1)
           .map(number -> String.format("%02d", number)).toString();
 

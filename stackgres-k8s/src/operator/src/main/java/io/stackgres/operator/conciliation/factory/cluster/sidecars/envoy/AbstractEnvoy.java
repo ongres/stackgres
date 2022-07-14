@@ -89,7 +89,7 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
     return ImmutableMap.of(
         StackGresContext.ENVOY_VERSION_KEY,
         StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
-        .findLatestVersion());
+        .getLatestVersion());
   }
 
   @Override

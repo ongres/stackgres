@@ -100,7 +100,7 @@ public class RestoreConfigValidator implements ClusterValidator {
             .getPostgres().getVersion();
         String givenMajorVersion = getPostgresFlavorComponent(cluster)
             .get(cluster)
-            .findMajorVersion(givenPgVersion);
+            .getMajorVersion(givenPgVersion);
 
         if (!backupMajorVersion.equals(givenMajorVersion)) {
           final String message = "Cannot restore from backup " + backupName

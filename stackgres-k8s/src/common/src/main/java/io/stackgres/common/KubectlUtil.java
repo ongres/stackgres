@@ -52,8 +52,8 @@ public class KubectlUtil {
             int minor = Integer.parseInt(ver.split("\\.")[1]);
             return (k8sMinorVersion >= minor - 1 && k8sMinorVersion <= minor + 1);
           })
-          .map(kubectl::findImageName)
-          .orElseGet(kubectl::findLatestImageName);
+          .map(kubectl::getImageName)
+          .orElseGet(kubectl::getLatestImageName);
       LOG.debug("Using kubectl image: {}", imageName);
       return imageName;
     });

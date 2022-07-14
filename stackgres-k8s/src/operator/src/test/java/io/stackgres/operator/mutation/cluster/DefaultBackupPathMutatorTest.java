@@ -77,7 +77,7 @@ class DefaultBackupPathMutatorTest {
     final String postgresFlavor = cluster.getSpec().getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
-        .findMajorVersion(postgresVersion);
+        .getMajorVersion(postgresVersion);
     assertEquals(
         BackupStorageUtil.getPath(
             cluster.getMetadata().getNamespace(),

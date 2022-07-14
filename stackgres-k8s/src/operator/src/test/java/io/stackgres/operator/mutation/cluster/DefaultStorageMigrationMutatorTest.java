@@ -129,7 +129,7 @@ class DefaultStorageMigrationMutatorTest {
     final String postgresVersion = cluster.getSpec().getPostgres().getVersion();
     final String postgresFlavor = cluster.getSpec().getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
-        .get(cluster).findMajorVersion(postgresVersion);
+        .get(cluster).getMajorVersion(postgresVersion);
     assertEquals(
         BackupStorageUtil.getPath(
             cluster.getMetadata().getNamespace(),

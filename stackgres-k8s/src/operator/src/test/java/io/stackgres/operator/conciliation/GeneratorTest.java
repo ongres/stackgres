@@ -55,7 +55,7 @@ public abstract class GeneratorTest {
         version.getVersion());
     cluster.getSpec().setPostgres(new StackGresClusterPostgres());
     String defaultPostgreVersion = StackGresComponent.POSTGRESQL
-        .getOrThrow(version).findLatestVersion();
+        .getOrThrow(version).getLatestVersion();
     cluster.getSpec().getPostgres().setVersion(defaultPostgreVersion);
     cluster.getSpec().setReplication(new StackGresClusterReplication());
     cluster.getSpec().getReplication().setMode(StackGresReplicationMode.ASYNC.toString());

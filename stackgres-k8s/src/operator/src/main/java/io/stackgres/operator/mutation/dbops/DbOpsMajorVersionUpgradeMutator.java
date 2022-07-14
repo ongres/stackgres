@@ -92,7 +92,7 @@ public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
         .getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
-        .findMajorVersion(postgresVersion);
+        .getMajorVersion(postgresVersion);
     return BackupStorageUtil.getPath(
         cluster.getMetadata().getNamespace(),
         cluster.getMetadata().getName(),

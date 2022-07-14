@@ -31,16 +31,16 @@ public class StackGresExtensionIndexAnyVersion {
     this.flavor = ExtensionUtil.getFlavorPrefix(extensionRequest.getStackGresComponent());
     this.postgresVersion = extensionRequest.getStackGresComponent()
         .getOrThrow(extensionRequest.stackGresVersion())
-        .findMajorVersion(
+        .getMajorVersion(
             extensionRequest.getPostgresVersion()
         );
     this.postgresExactVersion = extensionRequest.getStackGresComponent()
         .getOrThrow(extensionRequest.stackGresVersion())
-        .findVersion(extensionRequest.getPostgresVersion());
+        .getVersion(extensionRequest.getPostgresVersion());
     this.fromIndex = false;
     this.build = extensionRequest.getStackGresComponent()
         .getOrThrow(extensionRequest.stackGresVersion())
-        .findBuildMajorVersion(
+        .getBuildMajorVersion(
             extensionRequest.getPostgresVersion());
     this.arch = ExtensionUtil.getClusterArch(extensionRequest, osDetector);
     this.os = ExtensionUtil.getClusterOs(extensionRequest, osDetector);
@@ -53,12 +53,12 @@ public class StackGresExtensionIndexAnyVersion {
     this.publisher = extension.getPublisherOrDefault();
     this.flavor = ExtensionUtil.getFlavorPrefix(cluster);
     this.postgresVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .findMajorVersion(cluster.getSpec().getPostgres().getVersion());
+        .getMajorVersion(cluster.getSpec().getPostgres().getVersion());
     this.postgresExactVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .findVersion(cluster.getSpec().getPostgres().getVersion());
+        .getVersion(cluster.getSpec().getPostgres().getVersion());
     this.fromIndex = false;
     this.build = getPostgresFlavorComponent(cluster).get(cluster)
-        .findBuildMajorVersion(cluster.getSpec().getPostgres().getVersion());
+        .getBuildMajorVersion(cluster.getSpec().getPostgres().getVersion());
     this.arch = ExtensionUtil.getClusterArch(cluster, osDetector);
     this.os = ExtensionUtil.getClusterOs(cluster, osDetector);
   }

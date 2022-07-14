@@ -83,7 +83,7 @@ public class MajorVersionUpgradeInit implements ContainerFactory<StackGresCluste
     String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
     String sourceMajorVersion = getPostgresFlavorComponent(clusterContext.getCluster())
         .get(clusterContext.getCluster())
-        .findMajorVersion(sourceVersion);
+        .getMajorVersion(sourceVersion);
     String locale = majorVersionUpgradeStatus.getLocale();
     String encoding = majorVersionUpgradeStatus.getEncoding();
     String dataChecksum = majorVersionUpgradeStatus.getDataChecksum().toString();
@@ -99,14 +99,14 @@ public class MajorVersionUpgradeInit implements ContainerFactory<StackGresCluste
             .from(context)
             .postgresMajorVersion(getPostgresFlavorComponent(clusterContext.getCluster())
                 .get(clusterContext.getCluster())
-                .findMajorVersion(targetVersion))
+                .getMajorVersion(targetVersion))
             .oldMajorVersion(sourceMajorVersion)
             .imageBuildMajorVersion(getPostgresFlavorComponent(clusterContext.getCluster())
                 .get(clusterContext.getCluster())
-                .findBuildMajorVersion(targetVersion))
+                .getBuildMajorVersion(targetVersion))
             .oldImageBuildMajorVersion(getPostgresFlavorComponent(clusterContext.getCluster())
                 .get(clusterContext.getCluster())
-                .findBuildMajorVersion(sourceVersion))
+                .getBuildMajorVersion(sourceVersion))
             .postgresVersion(targetVersion)
             .oldPostgresVersion(sourceVersion)
             .build();

@@ -152,7 +152,7 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
         .getPostgresVersion(context.getDistributedLogsContext().getSource()),
         StackGresContext.PATRONI_VERSION_KEY,
         StackGresComponent.PATRONI.get(context.getDistributedLogsContext().getSource())
-        .findLatestVersion());
+        .getLatestVersion());
   }
 
   public List<VolumeMount> getVolumeMounts(DistributedLogsContainerContext context) {

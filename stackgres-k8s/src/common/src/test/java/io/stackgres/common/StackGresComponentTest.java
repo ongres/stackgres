@@ -68,7 +68,7 @@ class StackGresComponentTest {
     component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
         .filter(Component::hasImage)
         .forEach(c -> {
-          assertThat(c.findLatestImageName()).isNotEmpty();
+          assertThat(c.getLatestImageName()).isNotEmpty();
         });
   }
 
@@ -91,7 +91,7 @@ class StackGresComponentTest {
                             .get(subComponentIndex.v2.intValue())
                             .get(subComponentIndex.v1),
                         subComponentIndex -> StackGresComponent.LATEST));
-                return c.findImageName(StackGresComponent.LATEST,
+                return c.getImageName(StackGresComponent.LATEST,
                     subComponentVersions);
               })
               .toList();

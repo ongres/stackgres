@@ -39,11 +39,11 @@ public class ExtensionUtilTest {
       StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions()
       .get(1).get();
   static final String SECOND_PG_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().findVersion(SECOND_PG_MAJOR_VERSION);
+      StackGresComponent.POSTGRESQL.getLatest().getVersion(SECOND_PG_MAJOR_VERSION);
   static final String BUILD_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().findBuildVersion(PG_VERSION);
+      StackGresComponent.POSTGRESQL.getLatest().getBuildVersion(PG_VERSION);
   static final String BUILD_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().findBuildMajorVersion(PG_VERSION);
+      StackGresComponent.POSTGRESQL.getLatest().getBuildMajorVersion(PG_VERSION);
 
   StackGresExtensions extensionsMetadata;
 

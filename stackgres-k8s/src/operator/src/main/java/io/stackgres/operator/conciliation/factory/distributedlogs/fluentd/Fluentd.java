@@ -86,7 +86,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
     return ImmutableMap.of(
         StackGresContext.FLUENTD_VERSION_KEY,
         StackGresComponent.FLUENTD.get(context.getDistributedLogsContext().getSource())
-        .findLatestVersion());
+        .getLatestVersion());
   }
 
   // list of log_patroni table fields
@@ -95,7 +95,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
     return new ContainerBuilder()
         .withName(StackGresContainer.FLUENTD.getName())
         .withImage(StackGresComponent.FLUENTD.get(context.getDistributedLogsContext().getSource())
-            .findLatestImageName())
+            .getLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-exc")
         .withArgs(""

@@ -99,7 +99,7 @@ class DbOpsMajorVersionUpgradeMutatorTest {
         .getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
-        .findMajorVersion(postgresVersion);
+        .getMajorVersion(postgresVersion);
     assertEquals(
         BackupStorageUtil.getPath(
             dbOps.getMetadata().getNamespace(),
@@ -132,7 +132,7 @@ class DbOpsMajorVersionUpgradeMutatorTest {
         .getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
-        .findMajorVersion(postgresVersion);
+        .getMajorVersion(postgresVersion);
     assertEquals(
         BackupStorageUtil.getPath(
             dbOps.getMetadata().getNamespace(),

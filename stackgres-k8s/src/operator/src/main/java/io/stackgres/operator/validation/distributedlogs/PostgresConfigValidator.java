@@ -54,7 +54,7 @@ public class PostgresConfigValidator implements DistributedLogsValidator {
     checkIfProvided(pgConfig, "sgPostgresConfig");
 
     String givenMajorVersion = getPostgresFlavorComponent(distributedLogs).get(distributedLogs)
-        .findMajorVersion(givenPgVersion);
+        .getMajorVersion(givenPgVersion);
     String namespace = distributedLogs.getMetadata().getNamespace();
 
     switch (review.getRequest().getOperation()) {

@@ -31,7 +31,7 @@ public abstract class AbstractPostgresUtil
         StackGresContext.POSTGRES_VERSION_KEY,
         getPostgresFlavorComponent(context.getClusterContext().getCluster())
         .get(context.getClusterContext().getCluster())
-        .findVersion(
+        .getVersion(
             context.getClusterContext().getCluster().getSpec().getPostgres().getVersion()));
   }
 

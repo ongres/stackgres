@@ -25,7 +25,7 @@ class KubectlUtilTest {
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
-        .map(c -> c.findImageName("1.17"))
+        .map(c -> c.getImageName("1.17"))
         .orElseThrow();
     String imageName = new KubectlUtil(mockClient)
         .getImageName(StackGresVersion.LATEST);
@@ -43,7 +43,7 @@ class KubectlUtilTest {
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
-        .map(c -> c.findImageName("1.20"))
+        .map(c -> c.getImageName("1.20"))
         .orElseThrow();
     String imageName = new KubectlUtil(mockClient)
         .getImageName(StackGresVersion.LATEST);
@@ -61,7 +61,7 @@ class KubectlUtilTest {
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
-        .map(c -> c.findImageName("1.23"))
+        .map(c -> c.getImageName("1.23"))
         .orElseThrow();
     String imageName = new KubectlUtil(mockClient)
         .getImageName(StackGresVersion.LATEST);
@@ -81,7 +81,7 @@ class KubectlUtilTest {
     // Always return the latest image name since older versions
     // are unsupported anyway. So expect "newer" versions of K8s instead.
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
-        .map(c -> c.findLatestImageName())
+        .map(c -> c.getLatestImageName())
         .orElseThrow();
     String imageName = new KubectlUtil(mockClient)
         .getImageName(StackGresVersion.LATEST);
