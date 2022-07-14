@@ -132,6 +132,7 @@ EOF
    "  > "stackgres-k8s/ci/build/target/$MODULE-build-env"
   # shellcheck disable=SC2046
   docker_run -i $(! test -t 1 || printf '%s' '-t') --rm \
+    --volume "/var/run/docker.sock:/var/run/docker.sock" \
     --volume "$(pwd):/project" \
     --workdir /project \
     --user "$BUILD_UID" \
@@ -394,7 +395,7 @@ generate_image_hashes() {
   local SOURCE_IMAGE_NAME
   local IMAGE_NAME
 
-  BUILD_UID="$(id -u)"
+  BUILD_UID="${BUILD_ID:-$(id -u)}"
 
   mkdir -p stackgres-k8s/ci/build/target
 
