@@ -40,7 +40,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PatroniTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
 
   @Mock
   ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;

@@ -31,7 +31,7 @@ public class PostgresDefaultFactoriesProvider
   }
 
   public List<PostgresConfigurationFactory> buildFactories() {
-    return Seq.seq(StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions())
+    return Seq.seq(StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions())
         .map(majorVersion -> {
           DefaultPostgresFactory factory = resourceFactories.get();
           factory.setPostgresVersion(majorVersion);

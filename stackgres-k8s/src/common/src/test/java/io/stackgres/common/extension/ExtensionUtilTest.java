@@ -30,13 +30,13 @@ public class ExtensionUtilTest {
   static final URI REPOSITORY =
       URI.create("https://extensions.stackgres.io/postgres/repository");
   static final String PG_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
       .findAny().get();
   static final String FIRST_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
       .get(0).get();
   static final String SECOND_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
       .get(1).get();
   static final String SECOND_PG_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().getVersion(SECOND_PG_MAJOR_VERSION);

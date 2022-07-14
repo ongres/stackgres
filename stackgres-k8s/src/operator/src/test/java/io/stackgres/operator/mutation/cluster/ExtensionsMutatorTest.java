@@ -43,34 +43,34 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ExtensionsMutatorTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
 
   private static final String POSTGRES_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions().findFirst().get();
 
   private static final String BUILD_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedBuildVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedBuildVersions().findFirst().get();
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
           .toList();
   private static final List<String> SUPPORTED_BABELFISH_VERSIONS =
-      StackGresComponent.BABELFISH.getLatest().getOrderedVersions().toList();
+      StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().toList();
   private static final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
-    ALL_SUPPORTED_POSTGRES_VERSIONS =
-    ImmutableMap.of(
-        StackGresComponent.POSTGRESQL, ImmutableMap.of(
-            StackGresVersion.LATEST,
-            Seq.of(StackGresComponent.LATEST)
-            .append(StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions())
-            .append(SUPPORTED_POSTGRES_VERSIONS)
-            .collect(ImmutableList.toImmutableList())),
-        StackGresComponent.BABELFISH, ImmutableMap.of(
-            StackGresVersion.LATEST,
-            Seq.of(StackGresComponent.LATEST)
-            .append(StackGresComponent.BABELFISH.getLatest().getOrderedMajorVersions())
-            .append(SUPPORTED_BABELFISH_VERSIONS)
-            .collect(ImmutableList.toImmutableList())));
+      ALL_SUPPORTED_POSTGRES_VERSIONS =
+      ImmutableMap.of(
+          StackGresComponent.POSTGRESQL, ImmutableMap.of(
+              StackGresVersion.LATEST,
+              Seq.of(StackGresComponent.LATEST)
+              .append(StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions())
+              .append(SUPPORTED_POSTGRES_VERSIONS)
+              .collect(ImmutableList.toImmutableList())),
+          StackGresComponent.BABELFISH, ImmutableMap.of(
+              StackGresVersion.LATEST,
+              Seq.of(StackGresComponent.LATEST)
+              .append(StackGresComponent.BABELFISH.getLatest().streamOrderedMajorVersions())
+              .append(SUPPORTED_BABELFISH_VERSIONS)
+              .collect(ImmutableList.toImmutableList())));
 
   private StackGresClusterReview review;
 
@@ -129,7 +129,7 @@ class ExtensionsMutatorTest {
   }
 
   @Test
-  void clusterWithoutExtensions_shouldNotDoAnything() {
+  void clusterWithoutUserExtensions_shouldNotDoNothing() {
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(extensions);
     review.getRequest().getObject().getSpec().setToInstallPostgresExtensions(new ArrayList<>());
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
@@ -141,7 +141,7 @@ class ExtensionsMutatorTest {
   }
 
   @Test
-  void clusterWithIncorrectVersion_shouldNotDoAnything() {
+  void clusterWithIncorrectVersion_shouldNotDoNothing() {
     review.getRequest().getObject().getSpec().getPostgres().setVersion("test");
 
     final List<JsonPatchOperation> operations = mutator.mutate(review);

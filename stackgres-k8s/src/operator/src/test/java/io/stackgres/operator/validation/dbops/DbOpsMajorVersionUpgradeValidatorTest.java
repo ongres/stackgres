@@ -44,30 +44,30 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DbOpsMajorVersionUpgradeValidatorTest {
 
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().toList();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().toList();
   private static final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       ALL_SUPPORTED_POSTGRES_VERSIONS =
       ImmutableMap.of(
           StackGresComponent.POSTGRESQL, ImmutableMap.of(
               StackGresVersion.LATEST,
               Seq.of(StackGresComponent.LATEST)
-              .append(StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions())
+              .append(StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions())
               .append(SUPPORTED_POSTGRES_VERSIONS)
               .collect(ImmutableList.toImmutableList())));
   private static final String FIRST_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
           .skipWhile(p -> p.startsWith("14"))
           .get(0).get();
   private static final String SECOND_PG_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
           .skipWhile(p -> p.startsWith("14"))
           .get(1).get();
   private static final String FIRST_PG_MINOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
           .skipWhile(p -> p.startsWith("14"))
           .get(0).get();
   private static final String SECOND_PG_MINOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
           .skipWhile(p -> p.startsWith("14"))
           .get(1).get();
 

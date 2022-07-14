@@ -24,7 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class BabelfishFlavorValidatorTest {
 
   private static final String BABELFISH_VERSION =
-      StackGresComponent.BABELFISH.getLatest().getOrderedVersions().findFirst().get();
+      StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().findFirst().get();
 
   private BabelfishFlavorValidator validator;
 

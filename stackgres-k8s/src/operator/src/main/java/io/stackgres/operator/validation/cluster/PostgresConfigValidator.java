@@ -139,7 +139,7 @@ public class PostgresConfigValidator implements ClusterValidator {
         }
 
         long givenMajorVersionIndex = getPostgresFlavorComponent(cluster)
-            .get(cluster).getOrderedMajorVersions()
+            .get(cluster).streamOrderedMajorVersions()
             .zipWithIndex()
             .filter(t -> t.v1.equals(givenMajorVersion))
             .map(Tuple2::v2)
@@ -151,7 +151,7 @@ public class PostgresConfigValidator implements ClusterValidator {
             .getMajorVersion(oldPgVersion);
         long oldMajorVersionIndex = getPostgresFlavorComponent(oldCluster)
             .get(cluster)
-            .getOrderedMajorVersions()
+            .streamOrderedMajorVersions()
             .zipWithIndex()
             .filter(t -> t.v1.equals(oldMajorVersion))
             .map(Tuple2::v2)

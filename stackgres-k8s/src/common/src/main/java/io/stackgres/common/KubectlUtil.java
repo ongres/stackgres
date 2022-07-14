@@ -46,7 +46,7 @@ public class KubectlUtil {
   public String getImageName(@NotNull StackGresVersion sgversion) {
     return cache.computeIfAbsent(sgversion, value -> {
       Component kubectl = StackGresComponent.KUBECTL.getOrThrow(sgversion);
-      final String imageName = kubectl.getOrderedVersions()
+      final String imageName = kubectl.streamOrderedVersions()
           .filter(ver -> k8sMinorVersion != -1)
           .findFirst(ver -> {
             int minor = Integer.parseInt(ver.split("\\.")[1]);

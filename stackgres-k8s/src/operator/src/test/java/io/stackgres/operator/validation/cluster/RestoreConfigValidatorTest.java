@@ -33,11 +33,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class RestoreConfigValidatorTest {
 
   private static final String firstPgMajorVersion =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
           .get(0).get();
 
   private static final String secondPgMajorVersion =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions()
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
           .get(1).get();
 
   private static final String firstPgMajorVersionNumber =

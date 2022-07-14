@@ -76,6 +76,7 @@ public class ExtensionsMutator
       String postgresVersion = Optional.of(cluster.getSpec())
           .map(StackGresClusterSpec::getPostgres)
           .map(StackGresClusterPostgres::getVersion)
+          .flatMap(getPostgresFlavorComponent(cluster).get(cluster)::findVersion)
           .orElse(null);
       if (postgresVersion != null && supportedPostgresVersions
           .get(getPostgresFlavorComponent(cluster))

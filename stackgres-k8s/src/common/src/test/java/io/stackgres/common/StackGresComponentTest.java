@@ -25,8 +25,8 @@ class StackGresComponentTest {
   void getAllVersions_shouldNotFail(StackGresComponent component) {
     component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
         .forEach(c -> {
-          assertThat(c.getOrderedVersions().stream()).isNotEmpty();
-          assertThat(c.getOrderedVersions().stream()).containsNoDuplicates();
+          assertThat(c.streamOrderedVersions().stream()).isNotEmpty();
+          assertThat(c.streamOrderedVersions().stream()).containsNoDuplicates();
         });
   }
 
@@ -35,8 +35,8 @@ class StackGresComponentTest {
   void getAllMajorVersions_shouldNotFail(StackGresComponent component) {
     component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
         .forEach(c -> {
-          assertThat(c.getOrderedMajorVersions().stream()).isNotEmpty();
-          assertThat(c.getOrderedMajorVersions().stream()).containsNoDuplicates();
+          assertThat(c.streamOrderedMajorVersions().stream()).isNotEmpty();
+          assertThat(c.streamOrderedMajorVersions().stream()).containsNoDuplicates();
         });
   }
 
@@ -46,8 +46,8 @@ class StackGresComponentTest {
     Comparator<String> order = Component::compareBuildVersions;
     component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
         .forEach(c -> {
-          assertThat(c.getOrderedBuildVersions().stream()).isNotEmpty();
-          assertThat(c.getOrderedBuildVersions().stream()).isInOrder(order.reversed());
+          assertThat(c.streamOrderedBuildVersions().stream()).isNotEmpty();
+          assertThat(c.streamOrderedBuildVersions().stream()).isInOrder(order.reversed());
         });
   }
 
@@ -57,8 +57,8 @@ class StackGresComponentTest {
     component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
         .filter(Component::hasImage)
         .forEach(c -> {
-          assertThat(c.getOrderedImageNames().stream()).isNotEmpty();
-          assertThat(c.getOrderedImageNames().stream()).containsNoDuplicates();
+          assertThat(c.streamOrderedImageNames().stream()).isNotEmpty();
+          assertThat(c.streamOrderedImageNames().stream()).containsNoDuplicates();
         });
   }
 
@@ -108,7 +108,7 @@ class StackGresComponentTest {
   void getAllComposedVersions_shouldNotFail(StackGresComponent component) {
     component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
         .forEach(c -> {
-          assertThat(c.orderedComposedVersions().toList()).isNotEmpty();
+          assertThat(c.streamOrderedComposedVersions().toList()).isNotEmpty();
         });
   }
 
@@ -117,7 +117,7 @@ class StackGresComponentTest {
   void getAllTagVersions_shouldNotFail(StackGresComponent component) {
     component.getComponentVersions().entrySet().stream().map(Map.Entry::getValue)
         .forEach(c -> {
-          assertThat(c.orderedTagVersions().toList()).isNotEmpty();
+          assertThat(c.streamOrderedTagVersions().toList()).isNotEmpty();
         });
   }
 

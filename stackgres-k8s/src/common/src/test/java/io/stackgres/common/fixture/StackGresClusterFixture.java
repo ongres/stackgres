@@ -14,7 +14,7 @@ import io.stackgres.testutil.JsonUtil;
 
 public class StackGresClusterFixture {
   public static final String POSTGRES_LATEST_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().get(0).get();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().get(0).get();
   private NodeAffinity nodeAffinity;
 
   public StackGresClusterFixture withNodeAffinity(NodeAffinity nodeAffinity) {

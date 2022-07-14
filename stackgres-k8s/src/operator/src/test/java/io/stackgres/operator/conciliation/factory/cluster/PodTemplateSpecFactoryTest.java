@@ -37,7 +37,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PodTemplateSpecFactoryTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
 
   @Mock
   private ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext;

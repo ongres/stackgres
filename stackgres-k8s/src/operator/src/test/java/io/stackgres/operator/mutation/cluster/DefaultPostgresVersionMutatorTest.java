@@ -30,7 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DefaultPostgresVersionMutatorTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
 
   protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
 
@@ -71,7 +71,7 @@ class DefaultPostgresVersionMutatorTest {
     JsonNode newConfig = jp.apply(crJson);
 
     String actualPostgresVersion = newConfig.get("spec").get("postgres").get("version").asText();
-    assertEquals(StackGresComponent.POSTGRESQL.getLatest().findLatestVersion(),
+    assertEquals(StackGresComponent.POSTGRESQL.getLatest().getLatestVersion(),
         actualPostgresVersion);
   }
 
@@ -103,7 +103,7 @@ class DefaultPostgresVersionMutatorTest {
     JsonNode newConfig = jp.apply(crJson);
 
     String actualPostgresVersion = newConfig.get("spec").get("postgres").get("version").asText();
-    assertEquals(StackGresComponent.POSTGRESQL.getLatest().findLatestVersion(),
+    assertEquals(StackGresComponent.POSTGRESQL.getLatest().getLatestVersion(),
         actualPostgresVersion);
   }
 
@@ -119,7 +119,7 @@ class DefaultPostgresVersionMutatorTest {
     JsonNode newConfig = jp.apply(crJson);
 
     String actualPostgresVersion = newConfig.get("spec").get("postgres").get("version").asText();
-    assertEquals(StackGresComponent.POSTGRESQL.getLatest().findVersion("12"),
+    assertEquals(StackGresComponent.POSTGRESQL.getLatest().getVersion("12"),
         actualPostgresVersion);
   }
 }

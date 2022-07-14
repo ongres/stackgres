@@ -55,7 +55,7 @@ public class DefaultPostgresDelegator implements DistributedLogsMutator {
     StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
     return Optional.of(distributedLogs)
         .map(StackGresDistributedLogsUtil::getPostgresVersion)
-        .map(getPostgresFlavorComponent(distributedLogs).get(distributedLogs)::findMajorVersion)
+        .map(getPostgresFlavorComponent(distributedLogs).get(distributedLogs)::getMajorVersion)
         .map(factoryMap::get)
         .map(Unchecked.function(this::getMutator));
   }

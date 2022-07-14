@@ -37,7 +37,7 @@ import org.opentest4j.AssertionFailedError;
 class DefaultBackupPathMutatorTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
 
   protected static final JsonMapper JSON_MAPPER = new JsonMapper();
 
