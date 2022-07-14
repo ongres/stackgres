@@ -38,9 +38,9 @@ e2e_test() {
 
   run_test "Updating an empty sgpoolconfig should be filled with default configurations" update_empty_sgpoolconfig
 
-  run_test "Creating an empty sgbackupconfig should be filled with default configurations" create_empty_sgbackupconfig
+  run_test "Creating an empty sgobjectstorage should be filled with default configurations" create_empty_sgobjectstorage
 
-  run_test "Updating an empty sgbackupconfig should be filled with default configurations" update_empty_sgbackupconfig
+  run_test "Updating an empty sgobjectstorage should be filled with default configurations" update_empty_sgobjectstorage
 
   run_test "Creating an empty sginstanceprofile should be filled with default configurations" create_empty_sginstanceprofile
 
@@ -266,32 +266,44 @@ EOF
   fi
 }
 
-create_empty_sgbackupconfig() {
-  kubectl delete sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
+create_empty_sgobjectstorage() {
+  kubectl create secret generic -n "$CLUSTER_NAMESPACE" "minio" \
+     --from-literal=accesskey=test --from-literal=secretkey=test
+     
+  kubectl delete sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
-apiVersion: stackgres.io/v1
-kind: SGBackupConfig
+apiVersion: stackgres.io/v1beta1
+kind: SGObjectStorage
 metadata:
   name: $BACKUP_CONFIG
   namespace: $CLUSTER_NAMESPACE
 spec:
-  baseBackups:
-    compression: brotli
+  type: s3Compatible
+  s3Compatible:
+    bucket: stackgres
+    awsCredentials:
+      secretKeySelectors:
+        accessKeyId:
+          name: minio
+          key: accesskey
+        secretAccessKey:
+          name: minio
+          key: secretkey
 EOF
 
   local CREATED_FIELDS
-  CREATED_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
+  CREATED_FIELDS="$(kubectl get sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
 
   if [ -z "$CREATED_FIELDS" ] || [ "$CREATED_FIELDS" = "null" ]
   then
-    echo "FAIL. Default fields not filled"
+    echo "FAIL. Spec fields not filled"
     return 1
   else
-    echo "SUCCESS. Defaults fields filled"
+    echo "SUCCESS. Spec fields filled"
   fi
   
   local DEFAULT_ANNOTATION
-  DEFAULT_ANNOTATION="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  DEFAULT_ANNOTATION="$(kubectl get sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -302,11 +314,11 @@ EOF
   fi
 }
 
-update_empty_sgbackupconfig() {
-  kubectl delete sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
+update_empty_sgobjectstorage() {
+  kubectl delete sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
-apiVersion: stackgres.io/v1
-kind: SGBackupConfig
+apiVersion: stackgres.io/v1beta1
+kind: SGObjectStorage
 metadata:
   name: $BACKUP_CONFIG
   namespace: $CLUSTER_NAMESPACE
@@ -314,16 +326,16 @@ spec: {}
 EOF
   
   local PREVIOUS_FIELDS
-  PREVIOUS_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec' | jq '.baseBackups.compression = "brotli"' )"
+  PREVIOUS_FIELDS="$(kubectl get sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec' )"
   local PATCH
-  PATCH="$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json \
+  PATCH="$(kubectl get sgobjectstorages -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
-    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.baseBackups.compression = "brotli"' \
+    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])' \
     | kubectl create -f - --dry-run=client -o yaml)"
-  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --type merge -p "$PATCH"
+  kubectl patch sgobjectstorages -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --type merge -p "$PATCH"
 
   local UPDATED_FIELDS
-  UPDATED_FIELDS="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
+  UPDATED_FIELDS="$(kubectl get sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.spec')"
 
   if [ "$UPDATED_FIELDS" = "$PREVIOUS_FIELDS" ]
   then
@@ -334,7 +346,7 @@ EOF
   fi
 
   local DEFAULT_ANNOTATION
-  DEFAULT_ANNOTATION="$(kubectl get sgbackupconfigs.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
+  DEFAULT_ANNOTATION="$(kubectl get sgobjectstorages.stackgres.io -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
 
   if [ -z "$DEFAULT_ANNOTATION" ] || [ "$DEFAULT_ANNOTATION" = "null" ]
   then
@@ -624,7 +636,7 @@ EOF
     echo "FAIL. Default profile fields were not created"
     return 1
   else
-    echo "SUCCESS. Defaults profile fields were created"    
+    echo "SUCCESS. Defaults profile fields were created"
   fi
 
   local DEFAULT_ANNOTATION
