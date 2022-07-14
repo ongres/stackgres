@@ -442,7 +442,7 @@ check_cluster_before_security_upgrade() {
   local POD
   local PODS
   PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o name \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o name \
     | cut -d / -f 2)"
   for POD in $PODS
   do
@@ -477,7 +477,7 @@ check_cluster_after_security_upgrade() {
   local POD_CONTROLLER_REVISION_HASH
   local POD_CONTROLLER_REVISION_HASHES
   POD_CONTROLLER_REVISION_HASHES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
-      -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o json \
+      -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o json \
     | jq ".items[]|select(.metadata.name | startswith(\"$CLUSTER_NAME\"))" \
     | jq -r '.metadata.labels."controller-revision-hash"')"
 
@@ -491,7 +491,7 @@ check_cluster_after_security_upgrade() {
   done
 
   PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o name \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o name \
     | cut -d / -f 2)"
   for POD in $PODS
   do

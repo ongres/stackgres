@@ -66,7 +66,7 @@ check_restart() {
 
   if [ -z "$RESTARTED_PODS" ]
   then
-     RESTARTED_PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" \
+     RESTARTED_PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
       --template '{{ range .items }}{{ printf "%s " .metadata.name }}{{ end }}')"
   fi
   printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w | grep -q '^2$'

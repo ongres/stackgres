@@ -64,7 +64,7 @@ check_restart() {
 
   local DBOPS_JOB_NAME
   DBOPS_JOB_NAME="$(kubectl get job -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" -o name)"
+    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" -o name)"
 
   check_restart_prevent_updates_to_cluster
 
@@ -72,7 +72,7 @@ check_restart() {
 
   if [ -z "$RESTARTED_PODS" ]
   then
-     RESTARTED_PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" \
+     RESTARTED_PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
       --template '{{ range .items }}{{ printf "%s " .metadata.name }}{{ end }}')"
   fi
   local INITIAL_INSTANCES
@@ -111,7 +111,7 @@ check_restart() {
   done
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" \
+    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. restart job was not removed after completion."
@@ -122,7 +122,7 @@ check_restart() {
 
   local FINAL_DBOPS_JOB_NAME
   FINAL_DBOPS_JOB_NAME="$(kubectl get job -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" -o name)"
+    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" -o name)"
   if [ "$DBOPS_JOB_NAME" = "$FINAL_DBOPS_JOB_NAME" ]
   then
     echo "SUCCESS. restart Job was not re-created."
