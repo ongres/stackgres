@@ -102,7 +102,7 @@ check_restart() {
   done
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "dbops-name=$DBOPS_NAME,db-ops=true" \
+    -l "stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. minor version upgrade job was not removed after completion."
