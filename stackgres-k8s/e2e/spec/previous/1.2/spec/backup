@@ -13,8 +13,7 @@ e2e_test_install() {
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   # Avoid backups before waiting for pods (since backup pods could biase the wait)
-  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
-    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
+  enable_cronSchedule
 }
 
 e2e_test() {
@@ -46,7 +45,7 @@ check_backup_retention_is_working() {
 
 check_backup_after_kill_storage_provider_service() {
   kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep "^pod/$CLUSTER_NAME-minio-" \
-    | xargs -r -n 1 -I % kubectl delete -n "$CLUSTER_NAMESPACE" %
+    | xargs -r -I % kubectl delete -n "$CLUSTER_NAMESPACE" %
 
   kubectl wait --timeout="$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" \
     deployment/"$CLUSTER_NAME-minio" --for=condition=Available

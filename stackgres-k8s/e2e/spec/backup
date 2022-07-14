@@ -45,7 +45,7 @@ check_backup_retention_is_working() {
 
 check_backup_after_kill_storage_provider_service() {
   kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep "^pod/$CLUSTER_NAME-minio-" \
-    | xargs -r -n 1 -I % kubectl delete -n "$CLUSTER_NAMESPACE" %
+    | xargs -r -I % kubectl delete -n "$CLUSTER_NAMESPACE" %
 
   kubectl wait --timeout="$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" \
     deployment/"$CLUSTER_NAME-minio" --for=condition=Available
