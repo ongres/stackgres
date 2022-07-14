@@ -474,7 +474,7 @@ spec:
 | name      |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef.name >}} |
 | key       |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef.key >}} |
 
-## Manged SQL
+## Managed SQL
 
 By default, stackgres creates as an empty database. To execute some scripts, we have the managed SQL
  options where you can reference an SGScript contains the script to execute. When this configuration is
@@ -485,7 +485,7 @@ By default, stackgres creates as an empty database. To execute some scripts, we 
 | continueOnSGScriptError        |          | ✓         | boolean  |          | {{< crd-field-description SGCluster.spec.managedSql.continueOnSGScriptError >}} |
 | [scripts](managed-sql-scripts) |          | ✓         | boolean  |          | {{< crd-field-description SGCluster.spec.managedSql.scripts >}} |
 
-## Manged SQL Scripts
+## Managed SQL Scripts
 
 | Property  | Required | Updatable | Type     | Default     | Description |
 |:----------|----------|-----------|:---------|:------------|:------------|

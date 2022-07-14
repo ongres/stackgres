@@ -57,7 +57,6 @@ public enum PatroniEnvPaths {
   PATRONI_CONFIG_PATH("/etc/patroni"),
   TEMPLATES_PATH("/templates");
 
-
   private final String path;
   private final EnvVar envVar;
 

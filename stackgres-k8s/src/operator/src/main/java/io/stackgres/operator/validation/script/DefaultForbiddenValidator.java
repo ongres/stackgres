@@ -22,10 +22,11 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operator.common.StackGresScriptReview;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.validation.ValidationType;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @Singleton
-@ValidationType(ErrorType.FORBIDDEN_CLUSTER_UPDATE)
+@ValidationType(ErrorType.FORBIDDEN_CR_UPDATE)
 public class DefaultForbiddenValidator implements ScriptValidator {
 
   final String operatorServiceAccountName;
@@ -56,7 +57,12 @@ public class DefaultForbiddenValidator implements ScriptValidator {
                     operatorServiceAccountName)
                 )
             ) {
-          fail("Creation or update of default scripts is forbidden."
+          var errorType = ErrorType.FORBIDDEN_CR_UPDATE;
+          if (review.getRequest().getOperation() == Operation.CREATE) {
+            errorType = ErrorType.FORBIDDEN_CR_CREATION;
+          }
+          fail(ErrorType.getErrorTypeUri(errorType),
+              "Creation or update of default scripts is forbidden."
               + " Only SGScript which name do not end with \"" + DEFAULT_SCRIPT_NAME_SUFFIX + "\""
               + " may be created or updated");
         }

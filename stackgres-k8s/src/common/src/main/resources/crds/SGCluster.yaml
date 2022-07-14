@@ -63,7 +63,7 @@ spec:
                 postgres:
                   type: object
                   description: |
-                    This section allow to configure Postgres features
+                    This section allows to configure Postgres features
                   properties:
                     version:
                       type: string
@@ -110,7 +110,7 @@ spec:
                     ssl:
                       type: object
                       description: |
-                        This section allow to use SSL when connecting to Postgres
+                        This section allows to use SSL when connecting to Postgres
                       properties:
                         enabled:
                           type: boolean
@@ -157,7 +157,7 @@ spec:
                 replication:
                   type: object
                   description: |
-                    This section allow to configure Postgres replication mode and HA roles groups.
+                    This section allows to configure Postgres replication mode and HA roles groups.
 
                     The main replication group is implicit and contains the total number of instances less the sum of all
                      instances in other replication groups.
@@ -859,7 +859,7 @@ spec:
                 managedSql:
                   type: object
                   description: |
-                    This section allow to reference SQL scripts that will be applied to the cluster live.
+                    This section allows to reference SQL scripts that will be applied to the cluster live.
                   properties:
                     continueOnSGScriptError:
                       type: boolean
@@ -1034,7 +1034,7 @@ spec:
                          apply after UTC timestamp calculated with: `SELECT date_trunc('days', now() at time zone 'UTC') - INTERVAL '7 days'`.
                 toInstallPostgresExtensions:
                   type: array
-                  description: The list of Postgres extensions to install. This section is fille by the operator.
+                  description: The list of Postgres extensions to install. This section is filled by the operator.
                   items:
                     type: object
                     properties:
@@ -1251,11 +1251,11 @@ spec:
                 managedSql:
                   type: object
                   description: |
-                    This section store the state of referenced SQL scripts that are applied to the cluster live.
+                    This section stores the state of referenced SQL scripts that are applied to the cluster live.
                   properties:
                     scripts:
                       type: array
-                      description: A list of statues for script references.
+                      description: A list of statuses for script references.
                       items:
                         type: object
                         description: The status of a script reference.
@@ -1277,7 +1277,7 @@ spec:
                             description: ISO-8601 datetime of when the script execution had completed (mutually exclusive with `failedAt`).
                           scripts:
                             type: array
-                            description: A list of statues for script entries of referenced script.
+                            description: A list of statuses for script entries of referenced script.
                             items:
                               type: object
                               description: The status of a script entry of a referenced script.
