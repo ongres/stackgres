@@ -8,6 +8,8 @@ configurations:
     baseBackups:
       cronSchedule: '0 5 31 2 *'
 cluster:
+  postgres:
+    version: "13"
   pods:
     persistentVolume:
       size: 128Mi
