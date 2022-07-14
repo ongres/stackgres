@@ -24,15 +24,11 @@ import io.restassured.http.Cookie;
 import io.stackgres.apiweb.testprofile.EnableOidcAuth;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 
 @QuarkusTest
 @TestProfile(EnableOidcAuth.class)
-@DisabledIfEnvironmentVariable(named = "GITLAB_CI", matches = "true")
-@Disabled
 class OidcAuthResourceTest {
 
   private static WebClient webClient;
