@@ -109,9 +109,15 @@ authentication:
   secretRef:
     name: ""
   oidc: {}
-  #  authServerUrl:
-  #  clientId:
-  #  credentialsSecret:
+  #  authServerUrl: <string>
+  #  clientId: <string>
+  #  credentialsSecret: <string>
+  #  clientIdSecretRef:
+  #    name: <string>
+  #    key: <string>
+  #  credentialsSecretSecretRef:
+  #    name: <string>
+  #    Key: <string>
 
 prometheus:
   allowAutobind: true

@@ -62,6 +62,11 @@ The `authentication.type` should be set to `oidc`, `authentication.oidc.authServ
 Provider, `authentication.oidc.clientId` and `authentication.oidc.credentialsSecret` should be your corresponding Client ID
 and Secret used for authentication of StackGres with agains the OIDC Provider.
 
+If you need to map a OIDC username to a different username in Kubernetes (like the `k8sUsername` in local `Secret`), your OIDC
+provider should return an additional Claim named `stackgres_k8s_username`, this way you can map an user attribute with the
+username that Kubernetes should use to validate the RBAC permisions, this can be different from one provider to another so
+please check the documentation of the OIDC Privider you are using.
+
 ## Using RBAC Authorization
 
 Role-based access control (RBAC) is a method of regulating access to computer or network resources based on the roles of

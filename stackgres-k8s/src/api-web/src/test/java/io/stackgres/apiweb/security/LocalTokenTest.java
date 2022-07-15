@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.security;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.is;
 
 import java.util.Map;
 
@@ -156,15 +155,30 @@ class LocalTokenTest {
   }
 
   @Test
-  void get_local_jwt_type() {
+  void get_local_jwt_redirect() {
+    String generateTokenString = TokenUtils.generateTokenString("admin", "stackgres");
     given()
         .accept(ContentType.JSON)
         .contentType(ContentType.JSON)
+        .auth().oauth2(generateTokenString)
+        .queryParam("redirectTo", "http://localhost:8081/stackgres/version/postgresql")
         .when()
-        .get("/stackgres/auth/type")
+        .get("/stackgres/auth/external")
         .then()
-        .statusCode(200)
-        .body("type", is("JWT"));
+        .statusCode(200);
+  }
+
+  @Test
+  void get_local_jwt_redirect_no_auth() {
+    given()
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .queryParam("redirectTo", "http://localhost:8081/stackgres/version/postgresql")
+        .when()
+        .get("/stackgres/auth/external")
+        .then()
+        .statusCode(401)
+        .header("WWW-Authenticate", "Bearer");
   }
 
 }

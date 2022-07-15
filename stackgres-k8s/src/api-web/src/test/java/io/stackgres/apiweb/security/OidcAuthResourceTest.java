@@ -20,8 +20,10 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
+import io.restassured.http.ContentType;
 import io.restassured.http.Cookie;
 import io.stackgres.apiweb.testprofile.EnableOidcAuth;
+import io.stackgres.common.StackGresComponent;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -87,14 +89,33 @@ class OidcAuthResourceTest {
   }
 
   @Test
-  @DisplayName("Enpoint type should be OIDC")
-  void givenEndpoint_shouldReturnOidc() {
+  void get_oidc_redirect() {
+    String[] pgvers = StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
+        .toArray(String[]::new);
     given()
-        .get("/stackgres/auth/type")
+        .cookie(getRestAssuredSessionCookie(webClient))
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .queryParam("redirectTo", "http://localhost:8081/stackgres/version/postgresql")
+        .when()
+        .get("/stackgres/auth/external")
         .then()
-        .header("WWW-Authenticate", "OIDC")
-        .body("type", is("OIDC"))
-        .statusCode(200);
+        .statusCode(200)
+        .body("postgresql", hasItems(pgvers));
+  }
+
+  @Test
+  void get_oidc_redirect_no_auth() {
+    given()
+        .auth().none()
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .queryParam("redirectTo", "http://localhost:8081/stackgres/version/postgresql")
+        .when()
+        .get("/stackgres/auth/external")
+        .then()
+        .statusCode(200)
+        .body("html.head.title", is("Sign in to quarkus"));
   }
 
   /**

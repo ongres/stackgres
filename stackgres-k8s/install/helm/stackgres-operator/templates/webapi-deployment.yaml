@@ -128,13 +128,29 @@ spec:
           - name: QUARKUS_OIDC_AUTH_SERVER_URL
             value: "{{ .Values.authentication.oidc.authServerUrl }}"
           {{- end }}
-          {{- if .Values.authentication.oidc.clientId }}
+          {{- if or (.Values.authentication.oidc.clientId) (.Values.authentication.oidc.clientIdSecretRef) }}
           - name: QUARKUS_OIDC_CLIENT_ID
+            {{- if and (.Values.authentication.oidc.clientId) (not .Values.authentication.oidc.clientIdSecretRef) }}
             value: "{{ .Values.authentication.oidc.clientId }}"
+            {{- end }}
+            {{- if .Values.authentication.oidc.clientIdSecretRef }}
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Values.authentication.oidc.clientIdSecretRef.name }}"
+                key: "{{ .Values.authentication.oidc.clientIdSecretRef.key }}"
+            {{- end }}
           {{- end }}
-          {{- if .Values.authentication.oidc.credentialsSecret }}
+          {{- if or (.Values.authentication.oidc.credentialsSecret) (.Values.authentication.oidc.credentialsSecretSecretRef) }}
           - name: QUARKUS_OIDC_CREDENTIALS_SECRET
+            {{- if and (.Values.authentication.oidc.credentialsSecret) (not .Values.authentication.oidc.credentialsSecretSecretRef) }}
             value: "{{ .Values.authentication.oidc.credentialsSecret }}"
+            {{- end }}
+            {{- if .Values.authentication.oidc.credentialsSecretSecretRef }}
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Values.authentication.oidc.credentialsSecretSecretRef.name }}"
+                key: "{{ .Values.authentication.oidc.credentialsSecretSecretRef.key }}"
+            {{- end }}
           {{- end }}
           {{- end }}
         ports:

@@ -5,7 +5,7 @@
 
 package io.stackgres.apiweb.rest;
 
-import java.util.Map;
+import java.net.URI;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -13,10 +13,12 @@ import javax.validation.Valid;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import io.quarkus.security.Authenticated;
 import io.quarkus.security.AuthenticationFailedException;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.apiweb.security.AuthConfig;
@@ -81,15 +83,16 @@ public class LocalLoginResource {
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK"),
+          @ApiResponse(responseCode = "307", description = "Redirect")
       })
   @CommonApiResponses
   @GET
-  @Path("type")
-  public Response type() {
-    return Response.ok(Map.of("type", config.type()))
+  @Path("external")
+  @Authenticated
+  public Response type(@QueryParam("redirectTo") URI redirectTo) {
+    return Response.temporaryRedirect(redirectTo)
         .cacheControl(noCache())
-        .header("WWW-Authenticate", config.type())
         .build();
   }
 
