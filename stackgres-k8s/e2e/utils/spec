@@ -590,6 +590,8 @@ show_test_result_summary() {
     echo
   fi
 
+  sort "$TARGET_PATH/runned-tests" 2>/dev/null | uniq > "$TARGET_PATH/uniq-runned-tests"
+
   if [ -s "$TARGET_PATH/passed-tests" ]
   then
     echo "Passed tests:"
@@ -599,7 +601,7 @@ show_test_result_summary() {
       printf ' - %s\n' "$TEST_NAME"
     done < "$TARGET_PATH/passed-tests"
     echo
-  elif [ "$({ wc -l "$TARGET_PATH/runned-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
+  elif [ "$({ wc -l "$TARGET_PATH/uniq-runned-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
     "$({ wc -l "$TARGET_PATH/passed-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
   then
     echo "Passed tests:"
@@ -608,7 +610,7 @@ show_test_result_summary() {
     echo
   fi
 
-  if [ "$({ wc -l "$TARGET_PATH/runned-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
+  if [ "$({ wc -l "$TARGET_PATH/uniq-runned-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
     "$({ wc -l "$TARGET_PATH/passed-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
   then
     echo "Failed tests:"
@@ -619,7 +621,7 @@ show_test_result_summary() {
       then
         printf ' - %s\n' "$TEST_NAME"
       fi
-    done < "$TARGET_PATH/runned-tests"
+    done < "$TARGET_PATH/uniq-runned-tests"
     echo
   else
     if [ "$EXIT_CODE" != 0 ]
