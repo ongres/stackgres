@@ -37,7 +37,7 @@
 										</li>
 										<li>
 											Externally to StackGres pods, from a container image that contains <code>psql</code> (this option is the only one available if you have disabled the <code>postgres-util</code> sidecar):<br/>
-											<pre>kubectl -n {{ cluster.data.metadata.namespace }} run psql --rm -it --image ongres/postgres-util --restart=Never -- psql -h {{ cluster.name }}-primary {{ cluster.data.info.superuserUsername }} {{ cluster.data.info.superuserUsername }}  <span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
+											<pre>kubectl -n {{ cluster.data.metadata.namespace }} run psql --rm -it --image ongres/postgres-util --restart=Never -- psql -h {{ cluster.data.info.primaryDns }} {{ cluster.data.info.superuserUsername }} {{ cluster.data.info.superuserUsername }}  <span class="copyClipboard" data-tooltip="Copied!" title="Copy to clipboard"></span></pre>
 										</li>
 									</ul>
 								</p>
