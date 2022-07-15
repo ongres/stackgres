@@ -9,6 +9,11 @@ e2e_list_utils | while read -r UTIL_PATH
   done
 echo
 
+echo "Setup versions"
+setup_versions
+echo "Setup spec"
+setup_spec
+
 E2E_RETRY="${E2E_RETRY:-2}"
 if [ -z "$E2E_ONLY_INCLUDES" ]
 then
@@ -193,8 +198,6 @@ fi
 
 echo "Preparing environment"
 
-echo "Setup versions"
-setup_versions
 echo "Setup k8s"
 setup_k8s
 echo "Setup images"
@@ -207,8 +210,6 @@ echo "Setup logs"
 setup_logs
 echo "Setup operator"
 setup_operator
-echo "Setup spec"
-setup_spec
 
 echo "Calculating spec hashes"
 SPEC_HASHES="$(calculate_spec_hashes)"
