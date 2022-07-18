@@ -5,8 +5,6 @@ configurations:
   backupconfig:
     create: false
 cluster:
-  postgres:
-    version: "13"
   pods:
     persistentVolume:
       size: 128Mi
@@ -17,6 +15,7 @@ cluster:
     scripts:
       - script: 'CREATE EXTENSION pg_repack'
   postgres:
+    version: "13"
     extensions:
       - name: pg_repack
 nonProductionOptions:
