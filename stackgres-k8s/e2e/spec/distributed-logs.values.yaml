@@ -22,4 +22,3 @@ cluster:
   prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true
-
