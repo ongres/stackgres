@@ -817,7 +817,7 @@
 
 			// Detect if URL contains filters
 			if(location.search.length) {
-				var urlFilters = JSON.parse('{"' + decodeURI(location.search.substring(1)).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"').replaceAll('%3A',':').replaceAll('%2F','/') + '"}')
+				var urlFilters = JSON.parse('{"' + decodeURI(location.search.substring(1)).replace(/"/g, '\\"').replace(/&/g, '","').replace(/=/g,'":"').replace(/%3A/g,':').replace(/%2F/g,'/') + '"}')
 				
 				Object.keys(urlFilters).forEach(function(filter) {
 

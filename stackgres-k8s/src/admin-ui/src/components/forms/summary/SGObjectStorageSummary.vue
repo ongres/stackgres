@@ -129,7 +129,7 @@
                         </li>
                         <li v-if="(showDefaults || hasProp(crd, 'data.spec.s3Compatible.enablePathStyleAddressing'))">
                             <strong class="label">Path Style Addresing:</strong>
-                            <span class="value">{{ hasProp(crd, 'data.spec.s3Compatible.enablePathStyleAddressing') ? (crd.data.spec.s3Compatible.enablePathStyleAddressing ? 'ENABLED' : 'DISABLED') : 'DISABLED' }}</span>
+                            <span class="value">{{ hasProp(crd, 'data.spec.s3Compatible.enablePathStyleAddressing') ? (crd.data.spec.s3Compatible.enablePathStyleAddressing ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
                         </li>
                         <li v-if="hasProp(crd, 'data.spec.s3Compatible.storageClass')">
                             <strong class="label">Storage Class:</strong>
@@ -144,7 +144,7 @@
                         </li>
                         <li v-if="(showDefaults || hasProp(crd, 'data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService'))">
                             <strong class="label">Fetch Credentials from Metadata Service:</strong>
-                            <span class="value">{{ hasProp(crd, 'data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService') ? (crd.data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService ? 'ENABLED' : 'DISABLED') : 'DISABLED' }}</span>
+                            <span class="value">{{ hasProp(crd, 'data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService') ? (crd.data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
                         </li>
                     </template>
 
