@@ -62,8 +62,8 @@ e2e_test_install() {
 
   local VERSION_AS_NUMBER VERSIONAS_NUMBER_0_9_5
   VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
-  VERSION_0_9_5="$(get_version_as_number 0.9.5)"
-  if [ "$VERSION_AS_NUMBER" -gt "$VERSION_0_9_5" ]
+  VERSION_AS_NUMBER_0_9_5="$(get_version_as_number 0.9.5)"
+  if [ "$VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_0_9_5" ]
   then
     install_prometheus_operator
   else
@@ -101,8 +101,8 @@ e2e_test_install() {
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
-    --set backupconfig.create=true \
-    --set backupconfig.retention=2 \
+    --set configurations.backupconfig.create=true \
+    --set configurations.backupconfig.retention=2 \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
@@ -163,7 +163,6 @@ EOF
     --set backupconfig.create=true \
     --set backupconfig.retention=2 \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
-    --set-string cluster.managedSql.scripts[0].script="CREATE DATABASE managed_sql;" \
     --set-string cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
     --set-string cluster.metadata.labels.clusterPods.pod-label="$RANDOM_VALUE" \
     --set-string cluster.metadata.annotations.clusterPods.pod-annotation="$RANDOM_VALUE" \
@@ -302,7 +301,7 @@ check_operator_upgrade() {
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/operator:')"
-  if [ "$POD_OPERATOR_IMAGE" = "$STACKGRES_PREVIOUS_OPERATOR_IMAGE" ]
+  if [ "${POD_OPERATOR_IMAGE#docker.io/}" = "${STACKGRES_PREVIOUS_OPERATOR_IMAGE#docker.io/}" ]
   then
     echo "SUCCESS. Operator pod is using the previous operator image"
   else
@@ -317,7 +316,7 @@ check_operator_upgrade() {
   POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/restapi:')"
-  if [ "$POD_RESTAPI_IMAGE" = "$STACKGRES_PREVIOUS_RESTAPI_IMAGE" ]
+  if [ "${POD_RESTAPI_IMAGE#docker.io/}" = "${STACKGRES_PREVIOUS_RESTAPI_IMAGE#docker.io/}" ]
   then
     echo "SUCCESS. Operator pod is using the previous restapi image"
   else
@@ -335,8 +334,8 @@ check_operator_upgrade() {
 
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | grep '/operator:' | sed 's#^[^/]\+/\([^/]\+/[^:]\+\)#\1#')"
-  if [ "$POD_OPERATOR_IMAGE" = "$STACKGRES_OPERATOR_IMAGE" ]
+    | grep '/operator:')"
+  if [ "${POD_OPERATOR_IMAGE#docker.io/}" = "${STACKGRES_OPERATOR_IMAGE#docker.io/}" ]
   then
     echo "SUCCESS. Operator pod is using the new operator image"
   else
@@ -349,8 +348,8 @@ check_operator_upgrade() {
   fi
   POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | grep '/restapi:' | sed 's#^[^/]\+/\([^/]\+/[^:]\+\)#\1#')"
-  if [ "$POD_RESTAPI_IMAGE" = "$STACKGRES_RESTAPI_IMAGE" ]
+    | grep '/restapi:')"
+  if [ "${POD_RESTAPI_IMAGE#docker.io/}" = "${STACKGRES_RESTAPI_IMAGE#docker.io/}" ]
   then
     echo "SUCCESS. Operator pod is using the new restapi image"
   else
@@ -708,28 +707,16 @@ check_backup_performance_using_deprecated_fields_in_previous_versions() {
     return 1
   fi
 
-  if [ "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "backupconf" \
-    --template '{{ .spec.baseBackups.performance.maxDiskBandwitdh }}')" = '10485760' ]
-  then
-    echo "SUCCESS. The maxDiskBandwitdh has been set to 10485760 for sgbackupconfig"
-  else
-    echo "FAIL. The maxDiskBandwitdh has not been set to 10485760 for sgbackupconfig"
-    return 1
-  fi
-  if [ "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "backupconf" \
-    --template '{{ .spec.baseBackups.performance.maxNetworkBandwitdh }}')" = '5242880' ]
-  then
-    echo "SUCCESS. The maxNetworkBandwitdh has been set to 5242880 for sgbackupconfig"
-  else
-    echo "FAIL. The maxNetworkBandwitdh has not been set to 5242880 for sgbackupconfig"
-    return 1
-  fi
 }
 
 check_mutations() {
   check_backup_performance_mutation
 
-  check_backup_path_mutation
+  check_backups_path_mutation
+
+  check_profile_mutation
+
+  check_disable_cluster_resource_requirements_mutation
 }
 
 check_backup_performance_mutation() {
@@ -765,44 +752,22 @@ check_backup_performance_mutation() {
     echo "FAIL. The maxNetworkBandwidth has not been set to null for sgbackup"
     return 1
   fi
-
-  if [ "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "backupconf" \
-    --template '{{ .spec.baseBackups.performance.maxDiskBandwitdh }}')" = '<no value>' ]
-  then
-    echo "SUCCESS. The maxDiskBandwitdh has been set to null for sgbackupconfig"
-  else
-    echo "FAIL. The maxDiskBandwitdh has not been set to null for sgbackupconfig"
-    return 1
-  fi
-  if [ "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "backupconf" \
-    --template '{{ .spec.baseBackups.performance.maxNetworkBandwitdh }}')" = '<no value>' ]
-  then
-    echo "SUCCESS. The maxNetworkBandwitdh has been set to null for sgbackupconfig"
-  else
-    echo "FAIL. The maxNetworkBandwitdh has not been set to null for sgbackupconfig"
-    return 1
-  fi
-  if [ "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "backupconf" \
-    --template '{{ .spec.baseBackups.performance.maxDiskBandwidth }}')" = '10485760' ]
-  then
-    echo "SUCCESS. The maxDiskBandwidth has been set to 10485760 for sgbackupconfig"
-  else
-    echo "FAIL. The maxDiskBandwidth has not been set to 10485760 for sgbackupconfig"
-    return 1
-  fi
-  if [ "$(kubectl get sgbackupconfig -n "$CLUSTER_NAMESPACE" "backupconf" \
-    --template '{{ .spec.baseBackups.performance.maxNetworkBandwidth }}')" = '5242880' ]
-  then
-    echo "SUCCESS. The maxNetworkBandwidth has been set to 5242880 for sgbackupconfig"
-  else
-    echo "FAIL. The maxNetworkBandwidth has not been set to 5242880 for sgbackupconfig"
-    return 1
-  fi
 }
 
-check_backup_path_mutation() {
-  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" --template '{{ .spec.configurations.backupPath }}')" \
-    = "$CLUSTER_NAMESPACE/$CLUSTER_1_NAME" ]
+check_backups_path_mutation() {
+  local PREVIOUS_BACKUP_PATH
+  local PREVIOUS_VERSION_AS_NUMBER VERSIONAS_NUMBER_1_2_0
+  PREVIOUS_VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
+  VERSION_AS_NUMBER_1_2_0="$(get_version_as_number 1.2.0)"
+  if [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_2_0" ]
+  then
+    PREVIOUS_BACKUP_PATH="$CLUSTER_NAMESPACE/$CLUSTER_1_NAME"
+  else
+    PREVIOUS_BACKUP_PATH="sgbackups.stackgres.io/$CLUSTER_NAMESPACE/$CLUSTER_1_NAME/$PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION"
+  fi
+
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }')" \
+    = "$PREVIOUS_BACKUP_PATH" ]
   then
     echo "SUCCESS. Backup path was added to cluster backup configuration after operator upgrade"
   else
@@ -810,11 +775,68 @@ check_backup_path_mutation() {
     return 1
   fi
   if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template '{{ .status.backupPath }}')" \
-    = "$CLUSTER_NAMESPACE/$CLUSTER_1_NAME" ]
+    = "$PREVIOUS_BACKUP_PATH" ]
   then
     echo "SUCCESS. Backup path was added to backup status after operator upgrade"
   else
     echo "FAIL. Backup path was not added to backup status after operator upgrade"
+    return 1
+  fi
+}
+
+check_profile_mutation() {
+  if [ "$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "size-xs" --template '{{ .spec.containers | len }}')" \
+    = "11" ]
+  then
+    echo "SUCCESS. Containers section was added to instance profiles after operator upgrade"
+  else
+    echo "FAIL. Containers section was NOT added to instance profiles after operator upgrade"
+    return 1
+  fi
+  if [ "$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "size-xs" --template '{{ .spec.initContainers | len }}')" \
+    = "10" ]
+  then
+    echo "SUCCESS. Init containers section was added to instance profiles after operator upgrade"
+  else
+    echo "FAIL. Init containers section was NOT added to instance profiles after operator upgrade"
+    return 1
+  fi
+}
+
+check_disable_cluster_resource_requirements_mutation() {
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" -o=jsonpath='{ .spec.nonProductionOptions.disableClusterResourceRequirements }')" \
+    = "true" ]
+  then
+    echo "SUCCESS. Non production option disableClusterResourceRequirements was set to true in cluster configuration after operator upgrade"
+  else
+    echo "FAIL. Non production option disableClusterResourceRequirements was NOT set to true in cluster configuration after operator upgrade"
+    return 1
+  fi
+}
+
+check_distributedlogs_mutations() {
+  if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o=jsonpath='{ .spec.sgInstanceProfile }')" \
+    != "<no value>" ]
+  then
+    echo "SUCCESS. SGInstanceProfile was added to distributed logs configuration after operator upgrade"
+  else
+    echo "FAIL. SGInstanceProfile was not added to distributed logs configuration after operator upgrade"
+    return 1
+  fi
+  if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o=jsonpath='{ .spec.configurations.sgPostgresConfig }')" \
+    = "<no value>" ]
+  then
+    echo "SUCCESS. SGPostgresConfig was added to distributed logs configuration after operator upgrade"
+  else
+    echo "FAIL. SGPostgresConfig was not added to distributed logs configuration after operator upgrade"
+    return 1
+  fi
+  if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o=jsonpath='{ .spec.nonProductionOptions.disableClusterResourceRequirements }')" \
+    = "true" ]
+  then
+    echo "SUCCESS. Non production option disableClusterResourceRequirements was set to true in distributed logs configuration after operator upgrade"
+  else
+    echo "FAIL. Non production option disableClusterResourceRequirements was NOT set to true in distributed logs configuration after operator upgrade"
     return 1
   fi
 }

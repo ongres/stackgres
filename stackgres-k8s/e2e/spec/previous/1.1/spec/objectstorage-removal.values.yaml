@@ -1,16 +1,17 @@
 configurations:
   postgresconfig:
     postgresql.conf:
-      shared_buffers: '32MB'
-  backupconfig:
-    create: false
+      shared_buffers: '24MB'
+  objectstorage:
+    create: true
 cluster:
   pods:
     persistentVolume:
       size: 128Mi
-    managementPolicy: Parallel
   configurations:
-    sgBackupConfig: null
-  prometheusAutobind: true
+    backups:
+      cronSchedule: '0 5 31 2 *'
+      sgObjectStorage: backupconf
+  prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

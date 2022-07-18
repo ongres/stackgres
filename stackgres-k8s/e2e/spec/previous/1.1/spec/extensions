@@ -115,6 +115,7 @@ check_extension_not_uninstalled_when_removed() {
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" --all
   wait_pods_running "$CLUSTER_NAMESPACE" "2"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   try_function run_query -i 0 -q 'CREATE EXTENSION timescaledb;' > /dev/null 2>&1
   if "$RESULT"

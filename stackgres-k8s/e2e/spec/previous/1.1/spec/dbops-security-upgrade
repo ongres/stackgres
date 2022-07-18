@@ -12,6 +12,8 @@ e2e_test_install() {
     return
   fi
 
+  CLUSTER_CRD="sgclusters.stackgres.io"
+
   RANDOM_VALUE="$(random_string)"
   CLUSTER_1_NAME="$(get_sgcluster_name "$CLUSTER_NAME-1")"
   CLUSTER_2_NAME="$(get_sgcluster_name "$CLUSTER_NAME-2")"
@@ -26,10 +28,11 @@ e2e_test_install() {
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION="${PREVIOUS_PATRONI_IMAGE##*-pg}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%-build-*}"
   PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION="${PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION_WITH_BUILD_VERSION%%.*}"
-  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:' | grep "[-]pg$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-" | tail -n 1)"
+  PATRONI_IMAGE="$(get_component_images "$STACKGRES_VERSION" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg'"$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION-")"
+  PATRONI_IMAGE="$(printf '%s' "$PATRONI_IMAGE" | tail -n 1)"
 
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(get_component_images "$STACKGRES_PREVIOUS_VERSION")"
-  PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12[0-9.]\+-build-')"
+  PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12\.[0-9]\+-build-')"
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | tail -n 1)"
 
   k8s_unnamespaced_cleanup
@@ -59,8 +62,8 @@ e2e_test_install() {
 
   local VERSION_AS_NUMBER VERSIONAS_NUMBER_0_9_5
   VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
-  VERSION_0_9_5="$(get_version_as_number 0.9.5)"
-  if [ "$VERSION_AS_NUMBER" -gt "$VERSION_0_9_5" ]
+  VERSION_AS_NUMBER_0_9_5="$(get_version_as_number 0.9.5)"
+  if [ "$VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_0_9_5" ]
   then
     install_prometheus_operator
   else
@@ -79,12 +82,15 @@ e2e_test_install() {
     --set cluster.create=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set instanceProfiles[0].name=size-xs \
-    --set instanceProfiles[0].cpu=250m \
+    --set instanceProfiles[0].cpu=125m \
     --set instanceProfiles[0].memory=512Mi \
     --set-string configurations.backupconfig.baseBackups.cronSchedule='0 5 31 2 *' \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
+    --set configurations.backupconfig.baseBackups.performance.maxDiskBandwidth=10485760 \
+    --set configurations.backupconfig.baseBackups.performance.maxNetworkBandwidth=5242880 \
     --set configurations.backupconfig.create=true \
     --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100 \
+    --set-string configurations.postgresconfig.postgresql\.conf.invalid_param=true \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=true \
     --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \
@@ -95,36 +101,39 @@ e2e_test_install() {
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
-    --set backupconfig.create=true \
-    --set backupconfig.retention=2 \
+    --set configurations.backupconfig.create=true \
+    --set configurations.backupconfig.retention=2 \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
 
-  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
-    "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
-    --set prometheusAutobind=true \
-    --set backupconfig.create=true \
-    --set backupconfig.retention=2 \
-    --set-string cluster.configurations.sgBackupConfig=backupconf \
-    --set distributedLogs.enabled=true \
-    --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
-
-  create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
-    "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE" 3 \
-    --set configurations.create=false --set instanceProfiles=false \
-    --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
-    --set prometheusAutobind=true \
-    --set backupconfig.create=true \
-    --set backupconfig.retention=2 \
-    --set-string cluster.configurations.sgBackupConfig=backupconf \
-    --set distributedLogs.enabled=true \
-    --set distributedLogs.create=false \
-    --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+  if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
+  then
+    create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+      "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE" 2 \
+      --set configurations.create=false --set instanceProfiles=false \
+      --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
+      --set prometheusAutobind=true \
+      --set backupconfig.create=true \
+      --set backupconfig.retention=2 \
+      --set-string cluster.configurations.sgBackupConfig=backupconf \
+      --set distributedLogs.enabled=true \
+      --set distributedLogs.create=false \
+      --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+  
+    create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
+      "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE" 3 \
+      --set configurations.create=false --set instanceProfiles=false \
+      --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
+      --set prometheusAutobind=true \
+      --set backupconfig.create=true \
+      --set backupconfig.retention=2 \
+      --set-string cluster.configurations.sgBackupConfig=backupconf \
+      --set distributedLogs.enabled=true \
+      --set distributedLogs.create=false \
+      --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
+  fi
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
@@ -145,8 +154,6 @@ EOF
   
   wait_until is_backup_phase "Completed"
 
-  BACKUP_UID="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template='{{ .metadata.uid }}')"
-
   remove_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
@@ -156,7 +163,7 @@ EOF
     --set backupconfig.create=true \
     --set backupconfig.retention=2 \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
-    --set-string cluster.initialData.restore.fromBackup.uid="$BACKUP_UID" \
+    --set-string cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
     --set-string cluster.metadata.labels.clusterPods.pod-label="$RANDOM_VALUE" \
     --set-string cluster.metadata.annotations.clusterPods.pod-annotation="$RANDOM_VALUE" \
     --set-string cluster.metadata.annotations.primaryService.primary-service-label="$RANDOM_VALUE" \
@@ -165,20 +172,50 @@ EOF
     --set distributedLogs.create=false \
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 9
+  if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
+  then
+    wait_pods_running "$CLUSTER_NAMESPACE" 9
+  else
+    wait_pods_running "$CLUSTER_NAMESPACE" 4
+  fi
 
   wait_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
-  wait_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"
-  wait_cluster "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
+  if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
+  then
+    wait_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE"
+    wait_cluster "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE"
+  fi
   wait_cluster "$DISTRIBUTED_LOGS_NAME" "$CLUSTER_NAMESPACE"
 
   generate_mock_data "$CLUSTER_1_NAME"
-  generate_mock_data "$CLUSTER_2_NAME"
-  generate_mock_data "$CLUSTER_3_NAME"
+  if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
+  then
+    generate_mock_data "$CLUSTER_2_NAME"
+    generate_mock_data "$CLUSTER_3_NAME"
+  fi
 
-  CLUSTER_CRD="sgclusters.stackgres.io"
+  PREVIOUS_PATRONI_1_CONFIG_PATH="$LOG_PATH/previous-patroni-1-config.json"
+  kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-config" \
+    --template '{{ .metadata.annotations.config }}' > "$PREVIOUS_PATRONI_1_CONFIG_PATH"
+  PREVIOUS_PGBOUNCER_1_CONFIG_PATH="$LOG_PATH/previous-pgbouncer-1-config.json"
+  kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-connection-pooling-config" \
+    --template '{{ index .data "pgbouncer.ini" }}' > "$PREVIOUS_PGBOUNCER_1_CONFIG_PATH"
+  if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
+  then
+    PREVIOUS_PATRONI_2_CONFIG_PATH="$LOG_PATH/previous-patroni-2-config.json"
+    kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_2_NAME-config" \
+      --template '{{ .metadata.annotations.config }}' > "$PREVIOUS_PATRONI_2_CONFIG_PATH"
+    PREVIOUS_PGBOUNCER_2_CONFIG_PATH="$LOG_PATH/previous-pgbouncer-2-config.json"
+    kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_2_NAME-connection-pooling-config" \
+      --template '{{ index .data "pgbouncer.ini" }}' > "$PREVIOUS_PGBOUNCER_2_CONFIG_PATH"
+    PREVIOUS_PATRONI_3_CONFIG_PATH="$LOG_PATH/previous-patroni-3-config.json"
+    kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_3_NAME-config" \
+      --template '{{ .metadata.annotations.config }}' > "$PREVIOUS_PATRONI_3_CONFIG_PATH"
+    PREVIOUS_PGBOUNCER_3_CONFIG_PATH="$LOG_PATH/previous-pgbouncer-3-config.json"
+    kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_3_NAME-connection-pooling-config" \
+      --template '{{ index .data "pgbouncer.ini" }}' > "$PREVIOUS_PGBOUNCER_3_CONFIG_PATH"
+  fi
 }
-
 
 is_backup_phase() {
   [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
@@ -207,30 +244,47 @@ e2e_test() {
   run_test "Check that previous CRDs be converted to previous versions" check_previous_versions_conversion_webhooks
   run_test "Check that distributedlogs node can be security upgrade after operator upgrade" check_distributedlogs_security_upgrade
   run_test "Check that cluster with 1 node can start security upgrade after operator upgrade with reduced impact" check_cluster_1_security_upgrade_start
-  run_test "Check that cluster with 2 node can start security upgrade after operator upgrade with reduced impact" check_cluster_2_security_upgrade_start
-  run_test "Check that cluster with 3 node can start security upgrade after operator upgrade with in-place" check_cluster_3_security_upgrade_start
+  if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
+  then
+    run_test "Check that cluster with 2 node can start security upgrade after operator upgrade with reduced impact" check_cluster_2_security_upgrade_start
+    run_test "Check that cluster with 3 node can start security upgrade after operator upgrade with in-place" check_cluster_3_security_upgrade_start
+  fi
   run_test "Check that cluster with 1 node can complete security upgrade after operator upgrade with reduced impact" check_cluster_1_security_upgrade
-  run_test "Check that cluster with 2 node can complete security upgrade after operator upgrade with reduced impact" check_cluster_2_security_upgrade
-  run_test "Check that cluster with 3 node can complete security upgrade after operator upgrade with in-place" check_cluster_3_security_upgrade
+  if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
+  then
+    run_test "Check that cluster with 2 node can complete security upgrade after operator upgrade with reduced impact" check_cluster_2_security_upgrade
+    run_test "Check that cluster with 3 node can complete security upgrade after operator upgrade with in-place" check_cluster_3_security_upgrade
+  fi
   run_test "Checking that metrics are exported for cluster with 1 node" check_metrics "$CLUSTER_1_NAME"
-  run_test "Checking that metrics are exported for cluster with 2 node" check_metrics "$CLUSTER_2_NAME"
-  run_test "Checking that metrics are exported for cluster with 3 node" check_metrics "$CLUSTER_3_NAME"
+  if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
+  then
+    run_test "Checking that metrics are exported for cluster with 2 node" check_metrics "$CLUSTER_2_NAME"
+    run_test "Checking that metrics are exported for cluster with 3 node" check_metrics "$CLUSTER_3_NAME"
+  fi
   run_test "Check that the conversion webhooks are configured" check_conversion_webhooks_configured
 }
 
 check_before_operator_upgrade() {
   check_mock_data_samehost "$CLUSTER_1_NAME"
-  check_mock_data "$CLUSTER_2_NAME"
-  check_mock_data "$CLUSTER_3_NAME"
+  if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
+  then
+    check_mock_data "$CLUSTER_2_NAME"
+    check_mock_data "$CLUSTER_3_NAME"
+  fi
 
   local RESOURCE
-  for RESOURCE in \
-    "sgcluster/$CLUSTER_1_NAME" \
-    "sgcluster/$CLUSTER_2_NAME" \
-    "sgcluster/$CLUSTER_3_NAME" \
-    "sgdistributedlogs/$DISTRIBUTED_LOGS_NAME"
+  for RESOURCE in $(
+    echo "sgcluster/$CLUSTER_1_NAME"
+    if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
+    then
+      echo "sgcluster/$CLUSTER_2_NAME"
+      echo "sgcluster/$CLUSTER_3_NAME"
+    fi
+    echo "sgdistributedlogs/$DISTRIBUTED_LOGS_NAME"
+    )
   do
-    if ! kubectl wait -n "$CLUSTER_NAMESPACE" "$RESOURCE" --for condition=PendingRestart --timeout 0
+    if wait_until eval 'kubectl wait -n "$CLUSTER_NAMESPACE" "$RESOURCE" \
+      --for condition=PendingRestart=false --timeout 0'
     then
       echo "SUCCESS. $RESOURCE is not pending restart after creation"
     else
@@ -238,6 +292,8 @@ check_before_operator_upgrade() {
       return 1
     fi
   done
+
+  check_backup_performance_using_deprecated_fields_in_previous_versions
 }
 
 check_operator_upgrade() {
@@ -245,7 +301,7 @@ check_operator_upgrade() {
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/operator:')"
-  if [ "$POD_OPERATOR_IMAGE" = "$STACKGRES_PREVIOUS_OPERATOR_IMAGE" ]
+  if [ "${POD_OPERATOR_IMAGE#docker.io/}" = "${STACKGRES_PREVIOUS_OPERATOR_IMAGE#docker.io/}" ]
   then
     echo "SUCCESS. Operator pod is using the previous operator image"
   else
@@ -260,7 +316,7 @@ check_operator_upgrade() {
   POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/restapi:')"
-  if [ "$POD_RESTAPI_IMAGE" = "$STACKGRES_PREVIOUS_RESTAPI_IMAGE" ]
+  if [ "${POD_RESTAPI_IMAGE#docker.io/}" = "${STACKGRES_PREVIOUS_RESTAPI_IMAGE#docker.io/}" ]
   then
     echo "SUCCESS. Operator pod is using the previous restapi image"
   else
@@ -278,8 +334,8 @@ check_operator_upgrade() {
 
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | grep '/operator:' | sed 's#^[^/]\+/\([^/]\+/[^:]\+\)#\1#')"
-  if [ "$POD_OPERATOR_IMAGE" = "$STACKGRES_OPERATOR_IMAGE" ]
+    | grep '/operator:')"
+  if [ "${POD_OPERATOR_IMAGE#docker.io/}" = "${STACKGRES_OPERATOR_IMAGE#docker.io/}" ]
   then
     echo "SUCCESS. Operator pod is using the new operator image"
   else
@@ -292,8 +348,8 @@ check_operator_upgrade() {
   fi
   POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | grep '/restapi:' | sed 's#^[^/]\+/\([^/]\+/[^:]\+\)#\1#')"
-  if [ "$POD_RESTAPI_IMAGE" = "$STACKGRES_RESTAPI_IMAGE" ]
+    | grep '/restapi:')"
+  if [ "${POD_RESTAPI_IMAGE#docker.io/}" = "${STACKGRES_RESTAPI_IMAGE#docker.io/}" ]
   then
     echo "SUCCESS. Operator pod is using the new restapi image"
   else
@@ -353,35 +409,48 @@ check_distributedlogs_security_upgrade() {
 }
 
 check_cluster_1_security_upgrade_start() {
+  check_mutations
+
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
-  check_cluster_security_upgrade_start "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
+  check_cluster_security_upgrade_start \
+    "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact" \
+    "$PREVIOUS_PATRONI_1_CONFIG_PATH" "$PREVIOUS_PGBOUNCER_1_CONFIG_PATH"
 }
 
 check_cluster_2_security_upgrade_start() {
-  check_cluster_security_upgrade_start "$CLUSTER_2_NAME" "$DBOPS_2_NAME" "ReducedImpact"
+  check_cluster_security_upgrade_start \
+    "$CLUSTER_2_NAME" "$DBOPS_2_NAME" "ReducedImpact" \
+    "$PREVIOUS_PATRONI_2_CONFIG_PATH" "$PREVIOUS_PGBOUNCER_2_CONFIG_PATH"
 }
 
 check_cluster_3_security_upgrade_start() {
-  check_cluster_security_upgrade_start "$CLUSTER_3_NAME" "$DBOPS_3_NAME" "InPlace"
+  check_cluster_security_upgrade_start \
+    "$CLUSTER_3_NAME" "$DBOPS_3_NAME" "InPlace" \
+    "$PREVIOUS_PATRONI_3_CONFIG_PATH" "$PREVIOUS_PGBOUNCER_3_CONFIG_PATH"
 }
 
 check_cluster_1_security_upgrade() {
-  check_cluster_security_upgrade "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
+  check_cluster_security_upgrade \
+    "$CLUSTER_1_NAME" "$DBOPS_1_NAME" "ReducedImpact"
 }
 
 check_cluster_2_security_upgrade() {
-  check_cluster_security_upgrade "$CLUSTER_2_NAME" "$DBOPS_2_NAME" "ReducedImpact"
+  check_cluster_security_upgrade \
+    "$CLUSTER_2_NAME" "$DBOPS_2_NAME" "ReducedImpact"
 }
 
 check_cluster_3_security_upgrade() {
-  check_cluster_security_upgrade "$CLUSTER_3_NAME" "$DBOPS_3_NAME" "InPlace"
+  check_cluster_security_upgrade \
+    "$CLUSTER_3_NAME" "$DBOPS_3_NAME" "InPlace"
 }
 
 check_cluster_security_upgrade_start() {
   local CLUSTER_NAME="$1"
   local DBOPS_NAME="$2"
   local METHOD="$3"
-  shift 3
+  local PREVIOUS_PATRONI_CONFIG_PATH="$4"
+  local PREVIOUS_PGBOUNCER_CONFIG_PATH="$5"
+  shift 5
 
   check_cluster_before_security_upgrade
 
@@ -396,6 +465,7 @@ metadata:
 spec:
   sgCluster: $CLUSTER_NAME
   op: securityUpgrade
+  maxRetries: 3
   securityUpgrade:
     method: $METHOD
 EOF
@@ -415,25 +485,13 @@ EOF
   fi
 }
 
-check_cluster_security_upgrade() {
-  local CLUSTER_NAME="$1"
-  local DBOPS_NAME="$2"
-  local METHOD="$3"
-  shift 3
-
-  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
-
-  check_cluster_after_security_upgrade
-
-  check_mock_data_samehost "$CLUSTER_NAME"
-}
-
 check_cluster_before_security_upgrade() {
-  if wait_until eval 'kubectl wait "$CLUSTER_CRD" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
+  if wait_until eval 'kubectl wait "$CLUSTER_CRD" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --for condition=PendingUpgrade --timeout 0'
   then
-    echo "SUCCESS. Cluster $CLUSTER_NAME is pending restart after operator upgrade"
+    echo "SUCCESS. Cluster $CLUSTER_NAME is pending upgrade after operator upgrade"
   else
-    echo "FAIL. Cluster $CLUSTER_NAME is not pending restart after operator upgrade"
+    echo "FAIL. Cluster $CLUSTER_NAME is not pending upgrade after operator upgrade"
     return 1
   fi
 
@@ -461,14 +519,87 @@ check_cluster_before_security_upgrade() {
       return 1
     fi
   done
+
+  if [ -n "$PREVIOUS_PATRONI_CONFIG_PATH" ]
+  then
+    PATRONI_CONFIG="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-config" --template '{{ .metadata.annotations.config }}')"
+    PATRONI_CONFIG="$(printf '%s' "$PATRONI_CONFIG" | jq -c .)"
+    jq -c '.
+      | .postgresql.parameters = (.postgresql.parameters
+        | if .autovacuum_vacuum_cost_delay == "2" then .autovacuum_vacuum_cost_delay = "2ms" else . end
+        | if .checkpoint_timeout == "30" then .checkpoint_timeout = "30s" else . end
+        | if .log_autovacuum_min_duration == "0" then .log_autovacuum_min_duration = "0ms" else . end
+        | if .log_min_duration_statement == "1000" then .log_min_duration_statement = "1s" else . end
+        | if .log_rotation_age == "30" then .log_rotation_age = "30min" else . end
+        | if .log_rotation_size == "0" then .log_rotation_size = "0kB" else . end
+        | if .log_temp_files == "0" then .log_temp_files = "0kB" else . end
+        | if .track_activity_query_size == "4096" then .track_activity_query_size = "4kB" else . end
+        | if .restore_command != null then .restore_command = null else . end)
+      | .postgresql.recovery_conf = (if .postgresql.recovery_conf == null
+        then { restore_command: "exec-with-env '"'backup'"' -- wal-g wal-fetch %f %p" }
+        else .postgresql.recovery_conf end)
+      ' "$PREVIOUS_PATRONI_CONFIG_PATH" > "$LOG_PATH/previous-patroni-config.json"
+    PREVIOUS_PATRONI_CONFIG="$(cat "$LOG_PATH/previous-patroni-config.json")"
+
+    if [ "$PATRONI_CONFIG" = "$PREVIOUS_PATRONI_CONFIG" ]
+    then
+      echo "SUCCESS. Cluster $CLUSTER_NAME patroni config did not changed after operator upgrade"
+    else
+      printf '%s' "$PATRONI_CONFIG" > "$LOG_PATH/patroni-config.json"
+      yq -y . "$LOG_PATH/patroni-config.json" > "$LOG_PATH/patroni-config.yaml"
+      yq -y . "$LOG_PATH/previous-patroni-config.json" > "$LOG_PATH/previous-patroni-config.yaml"
+      echo "FAIL. Cluster $CLUSTER_NAME patroni config changed after operator upgrade"
+      echo
+      diff "$LOG_PATH/previous-patroni-config.yaml" "$LOG_PATH/patroni-config.yaml"
+      return 1
+    fi
+  fi
+
+  if [ -n "$PREVIOUS_PGBOUNCER_CONFIG_PATH" ]
+  then
+    PGBOUNCER_CONFIG="$(kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-connection-pooling-config" --template '{{ index .data "pgbouncer.ini" }}')"
+    PREVIOUS_PGBOUNCER_CONFIG="$(cat "$PREVIOUS_PGBOUNCER_CONFIG_PATH")"
+
+    if [ "$PGBOUNCER_CONFIG" = "$PREVIOUS_PGBOUNCER_CONFIG" ]
+    then
+      echo "SUCCESS. Cluster $CLUSTER_NAME pgbouncer config did not changed after operator upgrade"
+    else
+      printf '%s' "$PGBOUNCER_CONFIG" > "$LOG_PATH/pgbouncer-config.json"
+      yq -y . "$LOG_PATH/pgbouncer-config.json" > "$LOG_PATH/pgbouncer-config.yaml"
+      yq -y . "$PREVIOUS_PATRONI_CONFIG" > "$LOG_PATH/previous-pgbouncer-config.yaml"
+      echo "FAIL. Cluster $CLUSTER_NAME pgbouncer config changed after operator upgrade"
+      echo
+      diff "$LOG_PATH/previous-pgbouncer-config.yaml" "$LOG_PATH/pgbouncer-config.yaml"
+      return 1
+    fi
+  fi
+}
+
+check_cluster_security_upgrade() {
+  local CLUSTER_NAME="$1"
+  local DBOPS_NAME="$2"
+  local METHOD="$3"
+  local PRIMARY_INSTANCE
+  shift 3
+
+  assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
+
+  check_cluster_after_security_upgrade
+
+  PRIMARY_INSTANCE="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template '{{ .metadata.annotations.leader }}')"
+  PRIMARY_INSTANCE="${PRIMARY_INSTANCE#$CLUSTER_NAME-}"
+
+  check_mock_data_samehost "$CLUSTER_NAME" "$PRIMARY_INSTANCE"
 }
 
 check_cluster_after_security_upgrade() {
-  if wait_until eval '! kubectl wait "$CLUSTER_CRD" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
+  if wait_until eval 'kubectl wait "$CLUSTER_CRD" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --for condition=PendingUpgrade=false --timeout 0'
   then
-    echo "SUCCESS. Cluster $CLUSTER_NAME is not pending restart after security upgrade"
+    echo "SUCCESS. Cluster $CLUSTER_NAME is not pending upgrade after security upgrade"
   else
-    echo "FAIL. Cluster $CLUSTER_NAME is pending restart after security upgrade"
+    echo "FAIL. Cluster $CLUSTER_NAME is pending upgrade after security upgrade"
     return 1
   fi
 
@@ -537,13 +668,175 @@ check_sts_is_not_altered() {
   local TARGET_CLUSTER="$1"
 
   local STS_PATRONI_IMAGE
-  STS_PATRONI_IMAGE="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o jsonpath='{.spec.template.spec.containers[0].image}')"
+  STS_PATRONI_IMAGE="$(wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$TARGET_CLUSTER" -o json \
+    | jq -r '.spec.template.spec.containers[] | select(.name == "patroni") | .image')"
 
   if assert_string_equal "$PREVIOUS_PATRONI_IMAGE" "$STS_PATRONI_IMAGE"
   then
     echo "SUCCESS. StatefulSet $TARGET_CLUSTER is not being altered on operator upgrade"
   else 
     echo "FAIL. StatefulSet $TARGET_CLUSTER is being altered on operator upgrade"
+    return 1
+  fi
+}
+
+check_backup_performance_using_deprecated_fields_in_previous_versions() {
+  local PREVIOUS_VERSION_AS_NUMBER VERSION_1_2_0_RC1_AS_NUMBER
+  PREVIOUS_VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
+  VERSION_1_2_0_RC1_AS_NUMBER="$(get_version_as_number 1.2.0-RC1)"
+  if [ "$PREVIOUS_VERSION_AS_NUMBER" -ge "$VERSION_1_2_0_RC1_AS_NUMBER" ]
+  then
+    echo "Previous version used is newer than 1.2.0-RC1, skipping check"
+    return
+  fi
+
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.sgBackupConfig.baseBackups.performance.maxDiskBandwitdh }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxDiskBandwitdh has been set to null for sgbackup"
+  else
+    echo "FAIL. The maxDiskBandwitdh has not been set to null for sgbackup"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.sgBackupConfig.baseBackups.performance.maxNetworkBandwitdh }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxNetworkBandwitdh has been set to null for sgbackup"
+  else
+    echo "FAIL. The maxNetworkBandwitdh has not been set to null for sgbackup"
+    return 1
+  fi
+
+}
+
+check_mutations() {
+  check_backup_performance_mutation
+
+  check_backups_path_mutation
+
+  check_profile_mutation
+
+  check_disable_cluster_resource_requirements_mutation
+}
+
+check_backup_performance_mutation() {
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.sgBackupConfig.baseBackups.performance.maxDiskBandwitdh }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxDiskBandwitdh has been set to null for sgbackup"
+  else
+    echo "FAIL. The maxDiskBandwitdh has not been set to null for sgbackup"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.sgBackupConfig.baseBackups.performance.maxNetworkBandwitdh }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxNetworkBandwitdh has been set to null for sgbackup"
+  else
+    echo "FAIL. The maxNetworkBandwitdh has not been set to null for sgbackup"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.sgBackupConfig.baseBackups.performance.maxDiskBandwidth }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxDiskBandwidth has been set to null for sgbackup"
+  else
+    echo "FAIL. The maxDiskBandwidth has not been set to null for sgbackup"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.sgBackupConfig.baseBackups.performance.maxNetworkBandwidth }}')" = '<no value>' ]
+  then
+    echo "SUCCESS. The maxNetworkBandwidth has been set to null for sgbackup"
+  else
+    echo "FAIL. The maxNetworkBandwidth has not been set to null for sgbackup"
+    return 1
+  fi
+}
+
+check_backups_path_mutation() {
+  local PREVIOUS_BACKUP_PATH
+  local PREVIOUS_VERSION_AS_NUMBER VERSIONAS_NUMBER_1_2_0
+  PREVIOUS_VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
+  VERSION_AS_NUMBER_1_2_0="$(get_version_as_number 1.2.0)"
+  if [ "$PREVIOUS_VERSION_AS_NUMBER" -lt "$VERSION_AS_NUMBER_1_2_0" ]
+  then
+    PREVIOUS_BACKUP_PATH="$CLUSTER_NAMESPACE/$CLUSTER_1_NAME"
+  else
+    PREVIOUS_BACKUP_PATH="sgbackups.stackgres.io/$CLUSTER_NAMESPACE/$CLUSTER_1_NAME/$PREVIOUS_PATRONI_IMAGE_POSTGRES_MAJOR_VERSION"
+  fi
+
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }')" \
+    = "$PREVIOUS_BACKUP_PATH" ]
+  then
+    echo "SUCCESS. Backup path was added to cluster backup configuration after operator upgrade"
+  else
+    echo "FAIL. Backup path was not added to cluster backup configuration after operator upgrade"
+    return 1
+  fi
+  if [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template '{{ .status.backupPath }}')" \
+    = "$PREVIOUS_BACKUP_PATH" ]
+  then
+    echo "SUCCESS. Backup path was added to backup status after operator upgrade"
+  else
+    echo "FAIL. Backup path was not added to backup status after operator upgrade"
+    return 1
+  fi
+}
+
+check_profile_mutation() {
+  if [ "$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "size-xs" --template '{{ .spec.containers | len }}')" \
+    = "11" ]
+  then
+    echo "SUCCESS. Containers section was added to instance profiles after operator upgrade"
+  else
+    echo "FAIL. Containers section was NOT added to instance profiles after operator upgrade"
+    return 1
+  fi
+  if [ "$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "size-xs" --template '{{ .spec.initContainers | len }}')" \
+    = "10" ]
+  then
+    echo "SUCCESS. Init containers section was added to instance profiles after operator upgrade"
+  else
+    echo "FAIL. Init containers section was NOT added to instance profiles after operator upgrade"
+    return 1
+  fi
+}
+
+check_disable_cluster_resource_requirements_mutation() {
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" -o=jsonpath='{ .spec.nonProductionOptions.disableClusterResourceRequirements }')" \
+    = "true" ]
+  then
+    echo "SUCCESS. Non production option disableClusterResourceRequirements was set to true in cluster configuration after operator upgrade"
+  else
+    echo "FAIL. Non production option disableClusterResourceRequirements was NOT set to true in cluster configuration after operator upgrade"
+    return 1
+  fi
+}
+
+check_distributedlogs_mutations() {
+  if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o=jsonpath='{ .spec.sgInstanceProfile }')" \
+    != "<no value>" ]
+  then
+    echo "SUCCESS. SGInstanceProfile was added to distributed logs configuration after operator upgrade"
+  else
+    echo "FAIL. SGInstanceProfile was not added to distributed logs configuration after operator upgrade"
+    return 1
+  fi
+  if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o=jsonpath='{ .spec.configurations.sgPostgresConfig }')" \
+    = "<no value>" ]
+  then
+    echo "SUCCESS. SGPostgresConfig was added to distributed logs configuration after operator upgrade"
+  else
+    echo "FAIL. SGPostgresConfig was not added to distributed logs configuration after operator upgrade"
+    return 1
+  fi
+  if [ "$(kubectl get sgdistributedlogs -n "$CLUSTER_NAMESPACE" "$DISTRIBUTED_LOGS_NAME" -o=jsonpath='{ .spec.nonProductionOptions.disableClusterResourceRequirements }')" \
+    = "true" ]
+  then
+    echo "SUCCESS. Non production option disableClusterResourceRequirements was set to true in distributed logs configuration after operator upgrade"
+  else
+    echo "FAIL. Non production option disableClusterResourceRequirements was NOT set to true in distributed logs configuration after operator upgrade"
     return 1
   fi
 }

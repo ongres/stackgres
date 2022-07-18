@@ -11,6 +11,7 @@ cluster:
   pods:
     persistentVolume:
       size: 128Mi
+    managementPolicy: Parallel
   configurations:
     sgBackupConfig: null
   sgInstanceProfile: 'size-xs'

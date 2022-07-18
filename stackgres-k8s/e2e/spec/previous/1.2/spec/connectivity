@@ -117,6 +117,7 @@ pgbouncer_users_check() {
   wait_until eval '! kubectl wait -n "$CLUSTER_NAMESPACE" "sgcluster/$CLUSTER_NAME" --for condition=PendingRestart --timeout 0'
   kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true"
   wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-primary -i 1 -p 5432 -u user1:test)"
   if [ "$RESPONSE_REPLICA" = "1" ]

@@ -36,6 +36,7 @@ reset_cluster() {
     && [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
   then
     create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+      --set-string cluster.pods.persistentVolume.size=2Gi \
       --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
       --set-string cluster.postgres.extensions[0].name=postgis \
       --set-string cluster.postgres.extensions[0].version="$SOURCE_POSTGIS_VERSION" \
@@ -46,6 +47,7 @@ reset_cluster() {
   elif [ -n "$SOURCE_POSTGIS_VERSION" ] && [ "$SOURCE_POSTGIS_VERSION" = "$TARGET_POSTGIS_VERSION" ]
   then
     create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+      --set-string cluster.pods.persistentVolume.size=2Gi \
       --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
       --set-string cluster.postgres.extensions[0].name=postgis \
       --set-string cluster.postgres.extensions[0].version="$SOURCE_POSTGIS_VERSION" \
@@ -53,6 +55,7 @@ reset_cluster() {
   elif [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
   then
     create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+      --set-string cluster.pods.persistentVolume.size=2Gi \
       --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
       --set-string cluster.postgres.extensions[0].name=timescaledb \
       --set-string cluster.postgres.extensions[0].version="$SOURCE_TIMESCALE_VERSION" \
@@ -61,6 +64,7 @@ reset_cluster() {
   else
     echo "Extension postgis not found for $(uname -m)"
     create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+      --set-string cluster.pods.persistentVolume.size=2Gi \
       --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
       "$@"
   fi

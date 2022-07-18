@@ -97,10 +97,13 @@ check_backup_can_be_copied_from_another_namespace() {
   kubectl get secret -n "$BACKUP_CLUSTER_NAMESPACE" "$MINIO_NAME" -o json \
     | jq ".metadata.namespace = \"$CLUSTER_NAMESPACE\"" \
     | kubectl create -f -
-  kubectl get sgbackups.stackgres.io -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME" -o json \
+  TMP_BACKUP=$(kubectl get sgbackups.stackgres.io -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME" -o json \
     | jq ".metadata.namespace = \"$CLUSTER_NAMESPACE\" | .metadata.name = \"$BACKUP_NAME\"" \
-    | jq ".spec.sgCluster = \"$BACKUP_CLUSTER_NAMESPACE.\" + .spec.sgCluster" \
-    | kubectl create -f -
+    | jq ".spec.sgCluster = \"$BACKUP_CLUSTER_NAMESPACE.\" + .spec.sgCluster")
+
+  echo "$TMP_BACKUP" > tmp-backup.yaml
+
+  echo "$TMP_BACKUP" | kubectl create -f -
 }
 
 check_backup_can_be_restored() {
@@ -112,7 +115,7 @@ check_backup_can_be_restored() {
     --set cluster.initialData.restore.fromBackup.name="$BACKUP_NAME"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
 }
 
 check_init_data_after_restore() {
