@@ -91,6 +91,14 @@ EOF
   wait_until is_backup_phase "$CLUSTER_NAMESPACE" "$BACKUP_NAME" "Completed"
 }
 
+e2e_test_uninstall() {
+  kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots"
+
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
 is_backup_phase() {
   local NAMESPACE="$1"
   local NAME="$2"

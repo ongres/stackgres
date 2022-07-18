@@ -4,6 +4,11 @@ e2e_exclusive_lock() {
   true
 }
 
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$PROJECT_PATH/stackgres-k8s/src/admin-ui/cypress")"
+}
+
 e2e_test_install() {
   if [ "$(uname -m)" != x86_64 ]
   then
@@ -56,6 +61,10 @@ e2e_test_install() {
         value: "$PASSWORD"
       - name: CYPRESS_VIDEO
         value: "false" 
+      - name: CYPRESS_k8s_namespace
+        value: $CLUSTER_NAMESPACE
+      - name: CYPRESS_BASE_URL
+        value: "https://$SERVICE.$OPERATOR_NAMESPACE/admin"
     restartPolicy: Always
     terminationGracePeriodSeconds: 0
 EOF
@@ -65,7 +74,38 @@ EOF
 
   kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
   kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress.json" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
+
+  BACKUP_NAME=ui-0
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGBackup
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$BACKUP_NAME"
+spec:
+  sgCluster: "$CLUSTER_NAME"
+  managedLifecycle: false
+EOF
+
+  wait_until is_backup_phase "$CLUSTER_NAMESPACE" "$BACKUP_NAME" "Completed"
 }
+
+e2e_test_uninstall() {
+  kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots"
+
+  helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
+is_backup_phase() {
+  local NAMESPACE="$1"
+  local NAME="$2"
+  local STATUS="$3"
+  [ "$(kubectl get sgbackup -n "$NAMESPACE" "$NAME" -o=jsonpath='{.status.process.status}')" = "$STATUS" ]
+}
+
 
 e2e_test() {  
   if [ "$(uname -m)" != x86_64 ]
@@ -84,13 +124,11 @@ e2e_test() {
 }
 
 cypress_chrome_tests(){
-  RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser chrome --env resourcename="$RANDOM_RESOURCE"
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser chrome
 }
 
 cypress_firefox_tests(){
-  RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser firefox --env resourcename="$RANDOM_RESOURCE"
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser firefox
 }
 
 check_index_on_not_found_resource(){
