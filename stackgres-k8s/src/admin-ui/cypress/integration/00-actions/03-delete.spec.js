@@ -93,6 +93,24 @@ describe('Delete StackGres Resources', () => {
             }
         })
 
+        cy.createCRD('sgscripts', {
+            metadata: {
+                name: resourceName, 
+                namespace: namespace
+            },
+            spec: {
+                continueOnError: false,
+                managedVersions: true,
+                scripts: [
+                    {
+                        storeStatusInDatabase: false, 
+                        retryOnError: false, 
+                        script: resourceName
+                    }
+                ]
+            } 
+        })
+
         cy.createCRD('sgdistributedlogs', {
             metadata: {
                 name: resourceName,
@@ -140,6 +158,10 @@ describe('Delete StackGres Resources', () => {
 
     it( 'Deleting an SGPoolingConfig should be possible', () => {
         cy.testDelete('sgpoolconfig', resourceName)
+    });
+
+    it( 'Deleting a SGScript should be possible', () => {
+        cy.testDelete('sgscript', resourceName)
     });
 
     it( 'Deleting an SGDistributedLog should be possible', () => {

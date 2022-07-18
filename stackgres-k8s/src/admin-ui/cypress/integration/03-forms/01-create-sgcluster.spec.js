@@ -28,6 +28,25 @@ describe('Create SGCluster', () => {
                 }
             }
         });
+
+        // Create SGScript
+        cy.createCRD('sgscripts', {
+            metadata: {
+                name: 'script-' + resourceName, 
+                namespace: namespace
+            },
+            spec: {
+                continueOnError: false,
+                managedVersions: true,
+                scripts: [
+                    {
+                        storeStatusInDatabase: false, 
+                        retryOnError: false, 
+                        script: resourceName
+                    }
+                ]
+            } 
+        })
     });
 
     beforeEach( () => {
@@ -131,6 +150,9 @@ describe('Create SGCluster', () => {
         // Test managed backups configuration
         cy.get('form#createCluster li[data-step="backups"]')
             .click()
+
+        cy.get('label[data-field="spec.configurations.backups"]')
+            .click()
         
         // Backup Schedule
         cy.get('#backupConfigFullScheduleMin')
@@ -179,6 +201,26 @@ describe('Create SGCluster', () => {
         // Storage Details
         cy.get('[data-field="spec.configurations.backups.sgObjectStorage"]')
             .select('storage-' + resourceName)
+
+        // Test scripts
+        cy.get('form#createCluster li[data-step="scripts"]')
+            .click()
+        
+        // Test create new script
+        cy.get('label[for="spec.managedSql.scripts.scriptSource"] + select')
+            .select('createNewScript')
+
+        // Test Entry script textarea
+        cy.get('[data-field="spec.managedSql.scripts[0].scriptSpec.scripts[0].script"]')
+            .type(resourceName)        
+        
+        // Test Add Script button
+        cy.get('div.scriptFieldset > div.fieldsetFooter > a.addRow')
+            .click()
+
+        // Test select script
+        cy.get('div.scriptFieldset.repeater fieldset:nth-of-type(2n) label[for="spec.managedSql.scripts.scriptSource"] + select')
+            .select('script-' + resourceName)
 
         // Test data initialization
         cy.get('form#createCluster li[data-step="initialization"]')

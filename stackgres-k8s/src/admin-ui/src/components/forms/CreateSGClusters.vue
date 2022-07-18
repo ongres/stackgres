@@ -283,7 +283,7 @@
                     <div class="row-50">
                         <div class="col">
                             <label>Managed Backups</label>  
-                            <label for="managedBackups" class="switch yes-no">Enable<input type="checkbox" id="managedBackups" v-model="managedBackups" data-switch="YES"></label>
+                            <label for="managedBackups" class="switch yes-no" data-field="spec.configurations.backups">Enable<input type="checkbox" id="managedBackups" v-model="managedBackups" data-switch="YES"></label>
                             <span class="helpTooltip" data-tooltip="If enabled, allows specifying backup configurations to automate periodical backups"></span>
                         </div>
 
