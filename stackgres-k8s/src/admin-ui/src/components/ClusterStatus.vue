@@ -313,8 +313,9 @@
 	}
 
 	.podStatus .helpTooltip.alert {
-		position: absolute;
-		top: 13px;
+		position: relative;
+		top: 2px;
+		left: 0px;
 		transform: translateX(5px);
 	}
 
