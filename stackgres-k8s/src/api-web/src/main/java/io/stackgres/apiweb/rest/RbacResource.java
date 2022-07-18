@@ -24,8 +24,8 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewBuilder;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatus;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.apiweb.app.KubernetesClientProvider;
 import io.stackgres.apiweb.dto.PermissionsListDto;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.crd.CommonDefinition;
@@ -61,9 +61,7 @@ public class RbacResource {
   NamespaceResource namespaces;
 
   @Inject
-  public RbacResource() {
-    super();
-  }
+  KubernetesClientProvider kubernetesClientProvider;
 
   @Operation(
       responses = {
@@ -78,7 +76,7 @@ public class RbacResource {
   public Response verb(@PathParam("verb") String verb, @PathParam("resource") String resource,
       @QueryParam("namespace") String namespace, @QueryParam("group") Optional<String> group) {
     LOGGER.debug("User to review access {}", user);
-    try (KubernetesClient client = new DefaultKubernetesClient()) {
+    try (KubernetesClient client = kubernetesClientProvider.createDefault()) {
 
       SubjectAccessReview review = new SubjectAccessReviewBuilder()
           .withNewSpec()
@@ -118,7 +116,7 @@ public class RbacResource {
   @Path("can-i")
   public Response caniList() {
     PermissionsListDto permissionsList = new PermissionsListDto();
-    try (KubernetesClient client = new DefaultKubernetesClient()) {
+    try (KubernetesClient client = kubernetesClientProvider.createDefault()) {
       permissionsList.setNamespaced(buildNamespacedPermissionList(client));
       permissionsList.setUnnamespaced(buildUnnamespacedPermissionList(client));
     }
@@ -127,12 +125,14 @@ public class RbacResource {
 
   private Map<String, List<String>> buildUnnamespacedPermissionList(KubernetesClient client) {
     Map<String, List<String>> resourceUnamespace = new HashMap<>();
+
     for (String rsUnnamespaced : getResourcesUnnamespaced()) {
       String[] resource = rsUnnamespaced.split("\\.", 2);
       List<String> allowed = accessReview(client, user, null, resource[0],
           resource.length == 2 ? resource[1] : "", getVerbs());
       resourceUnamespace.put(resource[0], allowed);
     }
+
     return resourceUnamespace;
   }
 
@@ -155,15 +155,15 @@ public class RbacResource {
     return listNamespaced;
   }
 
-  private List<String> getResourcesUnnamespaced() {
+  protected List<String> getResourcesUnnamespaced() {
     List<String> resourcesUnnamespaced =
         List.of("namespaces", "storageclasses.storage.k8s.io");
     return resourcesUnnamespaced;
   }
 
-  private List<String> getResourcesNamespaced() {
+  protected List<String> getResourcesNamespaced() {
     List<String> resourcesNamespaced =
-        List.of("pods", "secrets", "configmaps", "stats", "events", "logs", "pod/exec",
+        List.of("pods", "secrets", "configmaps", "events", "pods/status", "pods/logs", "pods/exec",
             HasMetadata.getFullResourceName(StackGresObjectStorage.class),
             HasMetadata.getFullResourceName(StackGresBackupConfig.class),
             HasMetadata.getFullResourceName(StackGresBackup.class),

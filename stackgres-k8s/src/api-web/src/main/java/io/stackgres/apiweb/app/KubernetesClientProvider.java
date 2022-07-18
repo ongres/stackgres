@@ -48,4 +48,8 @@ public class KubernetesClientProvider {
     return new DefaultKubernetesClient(config);
   }
 
+  public KubernetesClient createDefault() {
+    return new DefaultKubernetesClient();
+  }
+
 }
