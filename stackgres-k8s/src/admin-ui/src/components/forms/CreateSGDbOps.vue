@@ -975,6 +975,7 @@
 
                                 vc.repackDbs.forEach(function(db, index){
                                     repackDbs.push({
+                                        name: db.name,
                                         noOrder: ((db.noOrder == 'inherit') ? vc.repack.noOrder : db.noOrder),
                                         waitTimeout: (db.inheritTimeout ? vc.getIsoDuration(vc.repack.waitTimeout) : vc.getIsoDuration(db.waitTimeout)),
                                         noKillBackend: ((db.noKillBackend == 'inherit') ? vc.repack.noKillBackend : db.noKillBackend),
