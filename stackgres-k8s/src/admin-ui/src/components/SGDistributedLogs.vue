@@ -222,10 +222,19 @@
                             <table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="clusterConfig">
                                 <tbody>
                                     <tr>
-                                        <td class="label capitalize" rowspan="2">
+                                        <td class="label capitalize" rowspan="3">
                                             {{ serviceName }}
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName)"></span>
                                         </td>
+                                        <td class="label">
+                                            Status
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.'+serviceName+'.enabled')"></span>
+                                        </td>
+                                        <td colspan="2">
+                                            {{ service.enabled ? 'Enabled' : 'Disabled' }}
+                                        </td>
+                                    </tr>
+                                    <tr>
                                         <td class="label">
                                             Name
                                         </td>
