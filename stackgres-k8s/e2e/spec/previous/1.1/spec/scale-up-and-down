@@ -233,7 +233,7 @@ check_delete_primary_when_beyond_last_pod() {
   fi
 
   wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o name \
+    -l "app=StackGresCluster,cluster-name=$CLUSTER_NAME,cluster=true" -o name \
     | wc -l | grep -q "^1$"'
 
   check_cluster_pod_count 1
