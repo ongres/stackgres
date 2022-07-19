@@ -226,6 +226,10 @@
                                             {{ serviceName }}
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName)"></span>
                                         </td>
+                                        <td class="label">
+                                            Status
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.'+serviceName+'.enabled')"></span>
+                                        </td>
                                         <td colspan="2">
                                             {{ service.enabled ? 'Enabled' : 'Disabled' }}
                                         </td>
