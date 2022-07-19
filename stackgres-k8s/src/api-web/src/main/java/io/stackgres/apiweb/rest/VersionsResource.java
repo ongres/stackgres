@@ -16,6 +16,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -24,6 +25,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @Path("version")
 @RequestScoped
+@Authenticated
 public class VersionsResource {
 
   @Operation(responses = {

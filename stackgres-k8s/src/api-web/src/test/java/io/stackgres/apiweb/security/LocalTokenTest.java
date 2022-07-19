@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.security;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.is;
 
 import java.util.Map;
 
@@ -179,6 +180,19 @@ class LocalTokenTest {
         .then()
         .statusCode(401)
         .header("WWW-Authenticate", "Bearer");
+  }
+
+  @Test
+  void getType() {
+    given()
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .when()
+        .get("/stackgres/auth/type")
+        .then()
+        .statusCode(200)
+        .header("WWW-Authenticate", "JWT")
+        .body("type", is("JWT"));
   }
 
 }

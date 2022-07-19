@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.rest;
 
 import java.net.URI;
+import java.util.Map;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -36,9 +37,9 @@ import org.slf4j.LoggerFactory;
 
 @Path("auth")
 @RequestScoped
-public class LocalLoginResource {
+public class AuthResource {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(LocalLoginResource.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AuthResource.class);
 
   @Inject
   SecretVerification verify;
@@ -90,9 +91,23 @@ public class LocalLoginResource {
   @GET
   @Path("external")
   @Authenticated
-  public Response type(@QueryParam("redirectTo") URI redirectTo) {
+  public Response externalRedirect(@QueryParam("redirectTo") URI redirectTo) {
     return Response.temporaryRedirect(redirectTo)
         .cacheControl(noCache())
+        .build();
+  }
+
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK"),
+      })
+  @CommonApiResponses
+  @GET
+  @Path("type")
+  public Response type(@QueryParam("redirectTo") URI redirectTo) {
+    return Response.ok(Map.of("type", config.type()))
+        .cacheControl(noCache())
+        .header("WWW-Authenticate", config.type())
         .build();
   }
 

@@ -22,7 +22,7 @@ public record PermissionsListDto(
   }
 
   @RegisterForReflection
-  public static record Namespaced(
+  public record Namespaced(
       String namespace,
       Map<String, List<String>> resources) {
 

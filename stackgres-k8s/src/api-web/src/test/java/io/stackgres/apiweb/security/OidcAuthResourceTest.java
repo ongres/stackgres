@@ -118,6 +118,19 @@ class OidcAuthResourceTest {
         .body("html.head.title", is("Sign in to quarkus"));
   }
 
+  @Test
+  void getType() {
+    given()
+        .accept(ContentType.JSON)
+        .contentType(ContentType.JSON)
+        .when()
+        .get("/stackgres/auth/type")
+        .then()
+        .statusCode(200)
+        .header("WWW-Authenticate", "OIDC")
+        .body("type", is("OIDC"));
+  }
+
   /**
    * Transform htmlunit Cookie to restassured Cookie.
    */
