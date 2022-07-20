@@ -283,10 +283,7 @@
                     <div class="row-50">
                         <div class="col">
                             <label>Managed Backups</label>  
-                            <label for="managedBackups" data-field="spec.configurations.backups" class="switch yes-no">
-                                Enable
-                                <input type="checkbox" id="managedBackups" v-model="managedBackups" data-switch="YES">
-                            </label>
+                            <label for="managedBackups" class="switch yes-no" data-field="spec.configurations.backups">Enable<input type="checkbox" id="managedBackups" v-model="managedBackups" data-switch="YES"></label>
                             <span class="helpTooltip" data-tooltip="If enabled, allows specifying backup configurations to automate periodical backups"></span>
                         </div>
 
@@ -517,7 +514,7 @@
                              <div class="row-50 noMargin">
                                 <div class="col">
                                     <label for="spec.managedSql.scripts.scriptSource">Source</label>
-                                    <select v-model="scriptSource[baseIndex].base" :disabled="editMode && isDefaultScript(baseScript.sgScript)" @change="setBaseScriptSource(baseIndex)">
+                                    <select v-model="scriptSource[baseIndex].base" :disabled="editMode && isDefaultScript(baseScript.sgScript)" @change="setBaseScriptSource(baseIndex)" :data-field="'spec.managedSql.scripts.scriptSource[' + baseIndex + ']'">
                                         <option value="" selected>Select source script...</option>
                                         <option v-for="script in sgscripts" v-if="( (script.data.metadata.namespace == $route.params.namespace) && ( (!editMode && !isDefaultScript(baseScript.sgScript) || (editMode) ) ) )">
                                             {{ script.name }}
@@ -632,7 +629,7 @@
                                                         Source
                                                         <span class="req">*</span>
                                                     </label>
-                                                    <select v-model="scriptSource[baseIndex].entries[index]" @change="setScriptSource(baseIndex, index)" :disabled="isDefaultScript(baseScript.sgScript)" required>
+                                                    <select v-model="scriptSource[baseIndex].entries[index]" @change="setScriptSource(baseIndex, index)" :disabled="isDefaultScript(baseScript.sgScript)" :data-field="'spec.managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].source'" required>
                                                         <option value="raw">Raw script</option>
                                                         <option value="secretKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.secretScript')">From Secret</option>
                                                         <option value="configMapKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.configMapScript')">From ConfigMap</option>
