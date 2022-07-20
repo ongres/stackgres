@@ -3,8 +3,10 @@ import axios from 'axios';
 const baseURL = '/stackgres';
 
 const resources = {
+  auth_type: '/auth/type',
   can_i: '/auth/rbac/can-i',
   login: '/auth/login',
+  logout: '/auth/logout',
   namespaces: '/namespaces',
   sgclusters: '/sgclusters',
   sginstanceprofiles: '/sginstanceprofiles',

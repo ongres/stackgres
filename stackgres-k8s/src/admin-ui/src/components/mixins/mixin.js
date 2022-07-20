@@ -3,6 +3,7 @@ import sgApi from '../../api/sgApi'
 import router from '../../router'
 import VueMarkdown from 'vue-markdown'
 import moment from 'moment'
+import axios from 'axios'
 
 export const mixin = {
 
@@ -90,452 +91,490 @@ export const mixin = {
             store.commit('setNoPermissions', kind);
           }
         }
-      },      
+      },
+
+      auth() {
+        const vc = this;
+        let loginToken = '';
+
+        sgApi
+        .get('auth_type')
+        .then(function(response) {
+          store.commit('setAuthType', response.data.type);
+          
+          if(response.data.type == 'OIDC') {
+            console.log('Using OIDC Auth');
+            
+            axios
+            .get(window.location.origin + '/stackgres/auth/external?redirectTo=' +  window.location.origin, {
+            headers: {
+              'X-Requested-With': 'JavaScript'
+            }
+            })
+            .then(function(response) {
+              vc.fetchAPI();
+              $('#signup').fadeOut();
+              store.commit('setLoginToken', 'OIDC');						  
+            })
+            .catch(function(err) {
+              $('#signup').addClass('login').fadeIn();
+            })
+            
+          } else {
+            console.log('Using JWT Auth');
+            loginToken = ("; "+document.cookie).split("; sgToken=").pop().split(";").shift();
+
+            if(store.state.loginToken.search('Authentication Error') !== -1) {
+              clearInterval(this.pooling);
+            } else if (!loginToken.length) {
+              if(!store.state.loginToken.length) {
+                $('#signup').addClass('login').fadeIn();
+                return false;
+              }
+            } else if ( !store.state.loginToken.length && (loginToken.length > 0) ) {
+              $('#signup').hide();
+              store.commit('setLoginToken', loginToken);
+            }
+          }
+        })
+
+      },
 
       fetchAPI  (kind = '') {
 
         const vc = this
 
-        let loginToken = ("; "+document.cookie).split("; sgToken=").pop().split(";").shift();
+        if(!store.state.loginToken.length) {
+          vc.auth()
+        } else {
   
-        if(store.state.loginToken.search('Authentication Error') !== -1) {
-          clearInterval(this.pooling);
-        } else if (!loginToken.length) {
-          if(!store.state.loginToken.length) {
-            $('#signup').addClass('login').fadeIn();
-            return false;
-          }
-        } else if ( !store.state.loginToken.length && (loginToken.length > 0) ) {
-          $('#signup').hide();
-          store.commit('setLoginToken', loginToken);
-        }
-  
-        $('#reload').addClass('active');
-  
-        // Read and set user permissions first
-        sgApi
-        .get('can_i')
-        .then( function(response) {
-          store.commit('setPermissions', response.data);
-        })
-        .then( function() {
+          $('#reload').addClass('active');
+    
+          // Read and set user permissions first
+          sgApi
+          .get('can_i')
+          .then( function(response) {
+            store.commit('setPermissions', response.data);
+          })
+          .then( function() {
 
-          if ( vc.iCan('list', 'namespaces') && ( !kind.length || (kind == 'namespaces') ) ) {
-            /* Namespaces Data */
-            sgApi
-            .get('namespaces')
-            .then( function(response){
+            if ( vc.iCan('list', 'namespaces') && ( !kind.length || (kind == 'namespaces') ) ) {
+              /* Namespaces Data */
+              sgApi
+              .get('namespaces')
+              .then( function(response){
+      
+                if(vc.$route.params.hasOwnProperty('namespace') && !response.data.includes(vc.$route.params.namespace)) {
+                  router.push('/')
+                  vc.notify('The namespace you were browsing has been deleted from the server')
+                }
+                store.commit('addNamespaces', response.data);
     
-              if(vc.$route.params.hasOwnProperty('namespace') && !response.data.includes(vc.$route.params.namespace)) {
-                router.push('/')
-                vc.notify('The namespace you were browsing has been deleted from the server')
-              }
-              store.commit('addNamespaces', response.data);
-  
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
-          }
-    
-          if ( vc.iCan('list', 'sgclusters') && ( !kind.length || (kind == 'sgclusters') ) ){
-            /* Clusters Data */
-            sgApi
-            .get('sgclusters')
-            .then( function(response){
-  
-              vc.lookupCRDs('sgclusters', response.data);
-    
-              response.data.forEach( function(item, index) {
-  
-                var cluster = {
-                  name: item.metadata.name,
-                  data: item,
-                  hasBackups: false,
-                  status: {}
-                };
-                
-                if(!store.state.namespaces.includes(item.metadata.namespace))
-                  store.commit('updateNamespaces', item.metadata.namespace);
-  
-                store.commit('updateClusters', cluster);
-  
-                sgApi
-                .getResourceDetails('sgclusters', cluster.data.metadata.namespace, cluster.data.metadata.name, 'stats')
-                .then( function(resp) {
-                  store.commit('updateClusterStats', {
-                    name: cluster.data.metadata.name,
-                    namespace: cluster.data.metadata.namespace,
-                    stats: resp.data
-                  })
-                }).catch(function(err) {
-                  console.log(err);
-                });
-  
-                // Set as current cluster if no other cluster has already been set
-                if(!store.state.currentCluster)              
-                  store.commit('setCurrentCluster', cluster);
-  
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
               });
-              
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
+            }
+      
+            if ( vc.iCan('list', 'sgclusters') && ( !kind.length || (kind == 'sgclusters') ) ){
+              /* Clusters Data */
+              sgApi
+              .get('sgclusters')
+              .then( function(response){
     
-          }
-    
-          if ( vc.iCan('list', 'sgbackups') && ( !kind.length || (kind == 'sgbackups') )) {
-            
-            /* Backups */
-            sgApi
-            .get('sgbackups')
-            .then( function(response) {
-  
-              vc.lookupCRDs('sgbackups', response.data);
-    
-                var start, finish, duration;
-    
+                vc.lookupCRDs('sgclusters', response.data);
+      
                 response.data.forEach( function(item, index) {
-                  
-                  if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
-                    store.commit('updateNamespaces', item.metadata.namespace);
     
-                  if( (item.status !== null) && item.status.hasOwnProperty('process')) {
-                    if( item.status.process.status === 'Completed' ) {
-                      start = moment(item.status.process.timing.start);
-                      finish = moment(item.status.process.timing.stored);
-                      duration = new Date(moment.duration(finish.diff(start))).toISOString();
-                    } else {
-                      duration = '';
-                    }
-                    
-                  }
-  
-                  if(!index)
-                    store.commit('flushResource', 'sgbackups')
-                    
-                  store.commit('updateBackups', { 
+                  var cluster = {
                     name: item.metadata.name,
                     data: item,
-                    duration: duration,
-                    show: true
+                    hasBackups: false,
+                    status: {}
+                  };
+                  
+                  if(!store.state.namespaces.includes(item.metadata.namespace))
+                    store.commit('updateNamespaces', item.metadata.namespace);
+    
+                  store.commit('updateClusters', cluster);
+    
+                  sgApi
+                  .getResourceDetails('sgclusters', cluster.data.metadata.namespace, cluster.data.metadata.name, 'stats')
+                  .then( function(resp) {
+                    store.commit('updateClusterStats', {
+                      name: cluster.data.metadata.name,
+                      namespace: cluster.data.metadata.namespace,
+                      stats: resp.data
+                    })
+                  }).catch(function(err) {
+                    console.log(err);
                   });
     
-                });
-    
-                store.state.sgclusters.forEach(function(cluster, index){
-                  let backups = store.state.sgbackups.find(b => ( (cluster.name == b.data.spec.sgCluster) && (cluster.data.metadata.namespace == b.data.metadata.namespace) ) );
-          
-                  if ( typeof backups !== "undefined" )
-                    cluster.hasBackups = true; // Enable/Disable Backups button
+                  // Set as current cluster if no other cluster has already been set
+                  if(!store.state.currentCluster)              
+                    store.commit('setCurrentCluster', cluster);
     
                 });
-    
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
-          }
-    
-          if ( vc.iCan('list', 'sgpgconfigs') && (!kind.length || (kind == 'sgpgconfigs') ) ){
-    
-            /* PostgreSQL Config */
-            sgApi
-            .get('sgpgconfigs')
-            .then( function(response) {
-  
-              vc.lookupCRDs('sgpgconfigs', response.data);
-    
-              response.data.forEach( function(item, index) {
-                  
-                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
-                  store.commit('updateNamespaces', item.metadata.namespace);
                 
-                if(!index)
-                  store.commit('flushResource', 'sgpgconfigs')
-                  
-                store.commit('updatePGConfig', { 
-                  name: item.metadata.name,
-                  data: item
-                });
-  
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
               });
-  
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
-          }
+      
+            }
+      
+            if ( vc.iCan('list', 'sgbackups') && ( !kind.length || (kind == 'sgbackups') )) {
+              
+              /* Backups */
+              sgApi
+              .get('sgbackups')
+              .then( function(response) {
     
-          if ( vc.iCan('get', 'sgpoolconfigs') && ( !kind.length || (kind == 'sgpoolconfig') ) ){
+                vc.lookupCRDs('sgbackups', response.data);
+      
+                  var start, finish, duration;
+      
+                  response.data.forEach( function(item, index) {
+                    
+                    if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                      store.commit('updateNamespaces', item.metadata.namespace);
+      
+                    if( (item.status !== null) && item.status.hasOwnProperty('process')) {
+                      if( item.status.process.status === 'Completed' ) {
+                        start = moment(item.status.process.timing.start);
+                        finish = moment(item.status.process.timing.stored);
+                        duration = new Date(moment.duration(finish.diff(start))).toISOString();
+                      } else {
+                        duration = '';
+                      }
+                      
+                    }
     
-            /* Connection Pooling Config */
-            sgApi
-            .get('sgpoolconfigs')
-            .then( function(response) {
-  
-              vc.lookupCRDs('sgpoolconfigs', response.data);
+                    if(!index)
+                      store.commit('flushResource', 'sgbackups')
+                      
+                    store.commit('updateBackups', { 
+                      name: item.metadata.name,
+                      data: item,
+                      duration: duration,
+                      show: true
+                    });
+      
+                  });
+      
+                  store.state.sgclusters.forEach(function(cluster, index){
+                    let backups = store.state.sgbackups.find(b => ( (cluster.name == b.data.spec.sgCluster) && (cluster.data.metadata.namespace == b.data.metadata.namespace) ) );
+            
+                    if ( typeof backups !== "undefined" )
+                      cluster.hasBackups = true; // Enable/Disable Backups button
+      
+                  });
+      
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
+              });
+            }
+      
+            if ( vc.iCan('list', 'sgpgconfigs') && (!kind.length || (kind == 'sgpgconfigs') ) ){
+      
+              /* PostgreSQL Config */
+              sgApi
+              .get('sgpgconfigs')
+              .then( function(response) {
     
-              response.data.forEach( function(item, index) {
-                  
+                vc.lookupCRDs('sgpgconfigs', response.data);
+      
+                response.data.forEach( function(item, index) {
+                    
                   if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
                     store.commit('updateNamespaces', item.metadata.namespace);
                   
                   if(!index)
-                    store.commit('flushResource', 'sgpoolconfigs')
+                    store.commit('flushResource', 'sgpgconfigs')
                     
-                  store.commit('updatePoolConfig', { 
+                  store.commit('updatePGConfig', { 
                     name: item.metadata.name,
                     data: item
                   });
     
                 });
     
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
-          }
-    
-          if ( vc.iCan('list', 'sginstanceprofiles') && (!kind.length || (kind == 'sginstanceprofiles') ) ) {
-    
-            /* Profiles */
-            sgApi
-            .get('sginstanceprofiles')
-            .then( function(response) {
-  
-              vc.lookupCRDs('sginstanceprofiles', response.data);
-    
-              response.data.forEach( function(item, index) {
-                  
-                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
-                  store.commit('updateNamespaces', item.metadata.namespace);
-                
-                if(!index)
-                  store.commit('flushResource', 'sginstanceprofiles')
-  
-                store.commit('updateProfiles', { 
-                  name: item.metadata.name,
-                  data: item
-                });
-    
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
               });
+            }
+      
+            if ( vc.iCan('get', 'sgpoolconfigs') && ( !kind.length || (kind == 'sgpoolconfig') ) ){
+      
+              /* Connection Pooling Config */
+              sgApi
+              .get('sgpoolconfigs')
+              .then( function(response) {
     
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
-          }
+                vc.lookupCRDs('sgpoolconfigs', response.data);
+      
+                response.data.forEach( function(item, index) {
+                    
+                    if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                      store.commit('updateNamespaces', item.metadata.namespace);
+                    
+                    if(!index)
+                      store.commit('flushResource', 'sgpoolconfigs')
+                      
+                    store.commit('updatePoolConfig', { 
+                      name: item.metadata.name,
+                      data: item
+                    });
+      
+                  });
+      
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
+              });
+            }
+      
+            if ( vc.iCan('list', 'sginstanceprofiles') && (!kind.length || (kind == 'sginstanceprofiles') ) ) {
+      
+              /* Profiles */
+              sgApi
+              .get('sginstanceprofiles')
+              .then( function(response) {
     
-          if ( vc.iCan('list', 'storageclasses') && ( !kind.length || (kind == 'storageclasses') )) {
-            /* Storage Classes Data */
-            sgApi
-            .get('storageclasses')
-            .then( function(response){
+                vc.lookupCRDs('sginstanceprofiles', response.data);
+      
+                response.data.forEach( function(item, index) {
+                    
+                  if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                    store.commit('updateNamespaces', item.metadata.namespace);
+                  
+                  if(!index)
+                    store.commit('flushResource', 'sginstanceprofiles')
     
-              store.commit('addStorageClasses', response.data);
-    
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
-          }
-    
-          if ( vc.iCan('list', 'sgdistributedlogs') && ( !kind.length || (kind == 'sgdistributedlogs') ) ){
-            /* Distributed Logs Data */
-            sgApi
-            .get('sgdistributedlogs')
-            .then( function(response){
-  
-              vc.lookupCRDs('sgdistributedlogs', response.data);
-    
-              var logs = [];
-    
-              response.data.forEach(function(item, index){
-                logs.push({
-                  name: item.metadata.name,
-                  data: item
-                })
-              })
-  
-              store.commit('addLogsClusters', logs);
-    
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
-          }
-  
-          if ( vc.iCan('list', 'sgdbops') && ( !kind.length || (kind == 'sgdbops') ) ){
-            /* DbOps Data */
-            sgApi
-            .get('sgdbops')
-            .then( function(response){
-  
-              vc.lookupCRDs('sgdbops', response.data);
-    
-              var dbOps = [];
-    
-              response.data.forEach(function(item, index){
-                dbOps.push({
-                  name: item.metadata.name,
-                  data: item
-                })
-              })
-  
-              store.commit('addDbOps', dbOps);
-    
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
-          }
-
-          if ( vc.iCan('list', 'sgobjectstorages') && ( !kind.length || (kind == 'sgobjectstorages') ) ){
-            /* Distributed Logs Data */
-            sgApi
-            .get('sgobjectstorages')
-            .then( function(response){
-  
-              vc.lookupCRDs('sgobjectstorages', response.data);
-    
-              var sgobjectstorages = [];
-    
-              response.data.forEach(function(item, index){
-                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
-                  store.commit('updateNamespaces', item.metadata.namespace);
-                
-                if(!index)
-                  store.commit('flushResource', 'sgobjectstorages')
-  
-                store.commit('updateObjectStorages', { 
-                  name: item.metadata.name,
-                  data: item
+                  store.commit('updateProfiles', { 
+                    name: item.metadata.name,
+                    data: item
+                  });
+      
                 });
-              })
-  
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
-          }
-
-          if ( vc.iCan('list', 'sgscripts') && ( !kind.length || (kind == 'sgscripts') ) ){
-            /* Scripts Data */
-            sgApi
-            .get('sgscripts')
-            .then( function(response){
-  
-              vc.lookupCRDs('sgscripts', response.data);
+      
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
+              });
+            }
+      
+            if ( vc.iCan('list', 'storageclasses') && ( !kind.length || (kind == 'storageclasses') )) {
+              /* Storage Classes Data */
+              sgApi
+              .get('storageclasses')
+              .then( function(response){
+      
+                store.commit('addStorageClasses', response.data);
+      
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
+              });
+            }
+      
+            if ( vc.iCan('list', 'sgdistributedlogs') && ( !kind.length || (kind == 'sgdistributedlogs') ) ){
+              /* Distributed Logs Data */
+              sgApi
+              .get('sgdistributedlogs')
+              .then( function(response){
     
-              var sgscripts = [];
+                vc.lookupCRDs('sgdistributedlogs', response.data);
+      
+                var logs = [];
+      
+                response.data.forEach(function(item, index){
+                  logs.push({
+                    name: item.metadata.name,
+                    data: item
+                  })
+                })
     
-              response.data.forEach(function(item, index){
-                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
-                  store.commit('updateNamespaces', item.metadata.namespace);
-                
-                if(!index)
-                  store.commit('flushResource', 'sgscripts')
-  
-                store.commit('updateScripts', { 
-                  name: item.metadata.name,
-                  data: item
-                });
-              })
-  
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
-          }
+                store.commit('addLogsClusters', logs);
+      
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
+              });
+            }
+    
+            if ( vc.iCan('list', 'sgdbops') && ( !kind.length || (kind == 'sgdbops') ) ){
+              /* DbOps Data */
+              sgApi
+              .get('sgdbops')
+              .then( function(response){
+    
+                vc.lookupCRDs('sgdbops', response.data);
+      
+                var dbOps = [];
+      
+                response.data.forEach(function(item, index){
+                  dbOps.push({
+                    name: item.metadata.name,
+                    data: item
+                  })
+                })
+    
+                store.commit('addDbOps', dbOps);
+      
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
+              });
+            }
 
-        })
-        .catch(function(err) {
-          console.log(err);
-          vc.checkAuthError(err);
-        });
+            if ( vc.iCan('list', 'sgobjectstorages') && ( !kind.length || (kind == 'sgobjectstorages') ) ){
+              /* Distributed Logs Data */
+              sgApi
+              .get('sgobjectstorages')
+              .then( function(response){
+    
+                vc.lookupCRDs('sgobjectstorages', response.data);
+      
+                var sgobjectstorages = [];
+      
+                response.data.forEach(function(item, index){
+                  if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                    store.commit('updateNamespaces', item.metadata.namespace);
+                  
+                  if(!index)
+                    store.commit('flushResource', 'sgobjectstorages')
+    
+                  store.commit('updateObjectStorages', { 
+                    name: item.metadata.name,
+                    data: item
+                  });
+                })
+    
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
+              });
+            }
 
-        if(!Object.keys(store.state.tooltips).length && !store.state.tooltips.hasOwnProperty('error')) {
-          fetch('/admin/info/sg-tooltips.json')
-          .then(response => response.json())
-          .then(data => {
-            var tooltips = data.components.schemas;
-            vc.cleanupTooltips(tooltips)
-            store.commit('setTooltips', tooltips)
+            if ( vc.iCan('list', 'sgscripts') && ( !kind.length || (kind == 'sgscripts') ) ){
+              /* Scripts Data */
+              sgApi
+              .get('sgscripts')
+              .then( function(response){
+    
+                vc.lookupCRDs('sgscripts', response.data);
+      
+                var sgscripts = [];
+      
+                response.data.forEach(function(item, index){
+                  if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                    store.commit('updateNamespaces', item.metadata.namespace);
+                  
+                  if(!index)
+                    store.commit('flushResource', 'sgscripts')
+    
+                  store.commit('updateScripts', { 
+                    name: item.metadata.name,
+                    data: item
+                  });
+                })
+    
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
+              });
+            }
+  
           })
-          .catch((error) => {
-            console.log(error);
-            
-            $('body').addClass('noTooltips')
-            
-            vc.notify({
-              title: 'INFO', 
-              detail: 'Information tooltips could not be loaded properly, help texts won\'t be available. <br/><br/>This does not affect the usability of the web console. You can always refer to the <a href="https://stackgres.io/doc" target="_blank">official StackGres Documentation</a> for more information.',
-              type: 'https://stackgres.io/doc'
-            }, 'error')
-
-            store.commit('setTooltips', {error: 'Information tooltips could not be loaded'})
-          });
-        }
-
-        if(!Object.keys(store.state.postgresVersions).length) {
-
-          let pgFlavors = {'vanilla': {}, 'babelfish': {}};
-
-          Object.keys(pgFlavors).forEach(function(flavor) {
-            /* Postgres versions */
-            sgApi
-            .getPostgresVersions(flavor)
-            .then( function(response){
-
-              let postgresVersions = {};
-
-              response.data.postgresql.forEach(function(version) {
-                let major = version.split('.')[0];
-                
-                if(!postgresVersions.hasOwnProperty(major)) {
-                  postgresVersions[major] = [];
-                }
-                
-                postgresVersions[major].push(version);
-              })
-  
-              pgFlavors[flavor] = postgresVersions;
-    
-            }).catch(function(err) {
-              console.log(err);
-              vc.checkAuthError(err);
-            });
-          });
-
-          store.commit('setPostgresVersions', pgFlavors);
-
-        }
-
-        if(!store.state.applications.length) {
-
-          /* Get SG Applications */
-          sgApi
-          .get('applications')
-          .then( function(response) {
-
-            store.commit('setApplications', response.data.applications);
-  
-          }).catch(function(err) {
+          .catch(function(err) {
             console.log(err);
             vc.checkAuthError(err);
           });
 
-        }
+          if(!Object.keys(store.state.tooltips).length && !store.state.tooltips.hasOwnProperty('error')) {
+            fetch('/admin/info/sg-tooltips.json')
+            .then(response => response.json())
+            .then(data => {
+              var tooltips = data.components.schemas;
+              vc.cleanupTooltips(tooltips)
+              store.commit('setTooltips', tooltips)
+            })
+            .catch((error) => {
+              console.log(error);
+              
+              $('body').addClass('noTooltips')
+              
+              vc.notify({
+                title: 'INFO', 
+                detail: 'Information tooltips could not be loaded properly, help texts won\'t be available. <br/><br/>This does not affect the usability of the web console. You can always refer to the <a href="https://stackgres.io/doc" target="_blank">official StackGres Documentation</a> for more information.',
+                type: 'https://stackgres.io/doc'
+              }, 'error')
 
-        if(!store.state.ready)
-          store.commit('setReady',true)
-  
-        setTimeout(function(){
-          $("#reload").removeClass("active");
-          this.init = true;
-        }, 2000);
+              store.commit('setTooltips', {error: 'Information tooltips could not be loaded'})
+            });
+          }
+
+          if(!Object.keys(store.state.postgresVersions).length) {
+
+            let pgFlavors = {'vanilla': {}, 'babelfish': {}};
+
+            Object.keys(pgFlavors).forEach(function(flavor) {
+              /* Postgres versions */
+              sgApi
+              .getPostgresVersions(flavor)
+              .then( function(response){
+
+                let postgresVersions = {};
+
+                response.data.postgresql.forEach(function(version) {
+                  let major = version.split('.')[0];
+                  
+                  if(!postgresVersions.hasOwnProperty(major)) {
+                    postgresVersions[major] = [];
+                  }
+                  
+                  postgresVersions[major].push(version);
+                })
+    
+                pgFlavors[flavor] = postgresVersions;
+      
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
+              });
+            });
+
+            store.commit('setPostgresVersions', pgFlavors);
+
+          }
+
+          if(!store.state.applications.length) {
+
+            /* Get SG Applications */
+            sgApi
+            .get('applications')
+            .then( function(response) {
+
+              store.commit('setApplications', response.data.applications);
+    
+            }).catch(function(err) {
+              console.log(err);
+              vc.checkAuthError(err);
+            });
+
+          }
+
+          if(!store.state.ready)
+            store.commit('setReady',true)
+    
+          setTimeout(function(){
+            $("#reload").removeClass("active");
+            this.init = true;
+          }, 2000);
+        }
 
       },
   
