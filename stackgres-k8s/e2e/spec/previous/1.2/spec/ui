@@ -92,11 +92,21 @@ EOF
 }
 
 e2e_test_uninstall() {
-  kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots"
+  if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ]
+  then
+    kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots"
+  fi
 
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
+e2e_test_after_all() {
+  if [ "$E2E_SKIP_SPEC_UNINSTALL" = true ]
+  then
+    kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots"
+  fi
 }
 
 is_backup_phase() {
