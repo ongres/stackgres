@@ -9,6 +9,7 @@ import CreateProfile from '../components/forms/CreateSGInstanceProfiles.vue'
 import CreatePgConfig from '../components/forms/CreateSGPgConfigs.vue'
 import CreatePoolConfig from '../components/forms/CreateSGPoolConfigs.vue'
 import CreateObjectStorage from '../components/forms/CreateSGObjectStorages.vue'
+import CreateScript from '../components/forms/CreateSGScripts.vue'
 import CreateBackup from '../components/forms/CreateSGBackups.vue'
 import CreateLogsServer from '../components/forms/CreateSGDistributedLogs.vue'
 import CreateDbOps from '../components/forms/CreateSGDbOps.vue'
@@ -25,6 +26,7 @@ import SGBackups from '../components/SGBackups.vue'
 import SGPgConfigs from '../components/SGPgConfigs.vue'
 import SGPoolConfigs from '../components/SGPoolConfigs.vue'
 import SGObjectStorages from '../components/SGObjectStorages'
+import SGScripts from '../components/SGScripts'
 import SGInstanceProfiles from '../components/SGInstanceProfiles.vue'
 import SGDistributedLogs from '../components/SGDistributedLogs.vue'
 import SGDbOps from '../components/SGDbOps.vue'
@@ -130,6 +132,24 @@ const routes = [
     meta: {
       conditionalRoute: false,
       componentName: 'SGObjectStorage'
+    },
+  },
+  { 
+    path: '/:namespace/sgscripts/new', 
+    component: CreateScript,
+    name: 'CreateScript',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGScript'
+    },
+  },
+  { 
+    path: '/:namespace/sgscript/:name/edit', 
+    component: CreateScript,
+    name: 'EditScript',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGScript'
     },
   },
   { 
@@ -376,6 +396,24 @@ const routes = [
       componentName: 'SGObjectStorage'
     },
   },
+  { 
+    path: '/:namespace/sgscripts', 
+    component: SGScripts,
+    name: 'SGScripts',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGScript'
+    },
+  },
+  { 
+    path: '/:namespace/sgscript/:name', 
+    component: SGScripts,
+    name: 'SingleScripts',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGScript'
+    },
+  },
   {  
     path: '/:namespace/sginstanceprofiles', 
     component: SGInstanceProfiles,
@@ -616,7 +654,7 @@ router.beforeResolve((to, from, next) => {
             store.commit('setCurrentNamespace', namespaceName);
 
             if(to.params.hasOwnProperty('name') || to.params.hasOwnProperty('backupname')) {
-
+              
               if ( 
                   ( ( to.params.hasOwnProperty('name') || to.params.hasOwnProperty('backupname') ) && to.name.startsWith('Edit') && !iCan('patch', kind.toLowerCase(), to.params.namespace) ) ||
                   ( to.name.startsWith('Create') && !iCan('create', kind.toLowerCase(), to.params.namespace) )                  
