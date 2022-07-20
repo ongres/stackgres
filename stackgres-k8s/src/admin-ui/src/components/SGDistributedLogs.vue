@@ -228,10 +228,15 @@
                                         </td>
                                         <td class="label">
                                             Status
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.'+serviceName+'.enabled')"></span>
+                                            <span class="helpTooltip" :data-tooltip="service.enabled ? getTooltip('sgdistributedlogs.spec.postgresServices.replicas.enabled') : getTooltip('sgdistributedlogs.spec.postgresServices.replicas.enabled').replace('replicas', 'primary')"></span>
                                         </td>
                                         <td colspan="2">
-                                            {{ service.enabled ? 'Enabled' : 'Disabled' }}
+                                            <template v-if="serviceName == 'primary'">
+                                               Enabled
+                                            </template>
+                                            <template v-else>
+                                                {{ service.enabled ? 'Enabled' : 'Disabled' }}
+                                            </template>
                                         </td>
                                     </tr>
                                     <tr>

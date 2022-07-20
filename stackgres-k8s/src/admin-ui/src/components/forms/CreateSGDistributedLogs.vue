@@ -133,12 +133,6 @@
                         
                         <div class="row-50">
                             <div class="col">
-                                <label for="spec.postgresServices.primary.enabled">Service</label>  
-                                <label for="postgresServicesPrimary" class="switch yes-no" data-field="spec.postgresServices.primary.enabled">Enable<input type="checkbox" id="postgresServicesPrimary" v-model="postgresServicesPrimary" data-switch="YES"></label>
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.primary')"></span>
-                            </div>
-
-                            <div class="col">
                                 <label for="spec.postgresServices.primary.type">Type</label>
                                 <select v-model="postgresServicesPrimaryType" required data-field="spec.postgresServices.primary.type">    
                                     <option selected>ClusterIP</option>
@@ -510,7 +504,6 @@
                 annotationsAllText: '',
                 annotationsPods: [ { annotation: '', value: '' } ],
                 annotationsServices: [ { annotation: '', value: '' } ],
-                postgresServicesPrimary: true,
                 postgresServicesPrimaryType: 'ClusterIP',
                 /*
                     TO-DO: Once services annotations are implemented on the backend
@@ -588,7 +581,6 @@
                             vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
                             vm.annotationsPods = vm.hasProp(c, 'data.spec.metadata.annotations.pods') ? vm.unparseProps(c.data.spec.metadata.annotations.pods) : [];
                             vm.annotationsServices = vm.hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
-                            vm.postgresServicesPrimary = vm.hasProp(c, 'data.spec.postgresServices.primary.enabled') ? c.data.spec.postgresServices.primary.enabled : false;
                             vm.postgresServicesPrimaryType = vm.hasProp(c, 'data.spec.postgresServices.primary.type') ? c.data.spec.postgresServices.primary.type : 'ClusterIP';
                             /*
                                 TO-DO: Once services annotations are implemented on the backend
@@ -653,11 +645,10 @@
                                     ...(this.hasTolerations() && ({"tolerations": this.tolerations}))
                                 }
                             }) ),
-                             ...( ( (!this.postgresServicesPrimary || (this.postgresServicesPrimaryType != 'ClusterIP')) || (!this.postgresServicesReplicas || (this.postgresServicesReplicasType != 'ClusterIP')) ) && {
+                             ...( ( (this.postgresServicesPrimaryType != 'ClusterIP') || (!this.postgresServicesReplicas || (this.postgresServicesReplicasType != 'ClusterIP')) ) && {
                                 "postgresServices": {
-                                    ...( (!this.postgresServicesPrimary || (this.postgresServicesPrimaryType != 'ClusterIP')) && {
+                                    ...( (this.postgresServicesPrimaryType != 'ClusterIP') && {
                                         "primary": {
-                                            "enabled": this.postgresServicesPrimary,
                                             "type": this.postgresServicesPrimaryType,
                                             /*
                                                 TO-DO: Once services annotations are implemented on the backend
