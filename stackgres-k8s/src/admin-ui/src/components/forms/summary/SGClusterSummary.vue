@@ -182,104 +182,150 @@
 
 
                     <ul class="section" v-if="hasProp(cluster, 'data.spec.initialData')">
-                        <li>
-                            <strong class="sectionTitle">Cluster Initialization</strong>
-                            <ul v-if="hasProp(cluster, 'data.spec.initialData.restore.fromBackup.name')">
-                                <li>
-                                    <strong class="sectionTitle">Initialization Backup</strong>
-                                    <ul>
-                                        <li :set="backup = backups.find( b => (b.data.metadata.name == cluster.data.spec.initialData.restore.fromBackup.name) )">
-                                            <strong class="label">Backup:</strong>
-                                            <span class="value">
-                                                <template v-if="(typeof backup !== 'undefined')">
-                                                    <router-link :to="'/' + backup.data.metadata.namespace + '/sgbackup/' + backup.data.metadata.name" target="_blank"> 
-                                                        {{ backup.data.metadata.name }} [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
-                                                    </router-link>
-                                                </template>
-                                                <template v-else>
-                                                    {{ cluster.data.spec.initialData.restore.fromBackup.name }}
-                                                </template>
-                                            </span>
-                                        </li>
-                                        <li v-if="hasProp(cluster, 'data.spec.initialData.restore.fromBackup.pointInTimeRecovery')">
-                                            <strong class="label">Point-in-Time Recovery:</strong>
-                                            <span class="value timestamp">
-                                                <span class='date'>
-                                                    {{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('date') }}
-                                                </span>
-                                                <span class='time'>
-                                                    {{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('time') }}
-                                                </span>
-                                                <span class='ms'>
-                                                    {{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('ms') }}
-                                                </span>
-                                                <span class='tzOffset'>{{ showTzOffset() }}</span>
-                                            </span>
-                                        </li>
-                                        <li v-if="hasProp(cluster, 'data.spec.initialData.restore.downloadDiskConcurrency')">
-                                            <strong class="label">Download Disk Concurrency:</strong>
-                                            <span class="value">{{ cluster.data.spec.initialData.restore.downloadDiskConcurrency }}</span>
-                                        </li>
-                                    </ul>
-                                </li>
-                            </ul>
+                        <strong class="sectionTitle">Cluster Initialization</strong>
+                        
+                        <ul>
+                            <li :set="backup = backups.find( b => (b.data.metadata.name == cluster.data.spec.initialData.restore.fromBackup.name) )">
+                                <strong class="label">Backup:</strong>
+                                <span class="value">
+                                    <template v-if="(typeof backup !== 'undefined')">
+                                        <router-link :to="'/' + backup.data.metadata.namespace + '/sgbackup/' + backup.data.metadata.name" target="_blank"> 
+                                            {{ backup.data.metadata.name }} [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
+                                        </router-link>
+                                    </template>
+                                    <template v-else>
+                                        {{ cluster.data.spec.initialData.restore.fromBackup.name }}
+                                    </template>
+                                </span>
+                            </li>
+                            <li v-if="hasProp(cluster, 'data.spec.initialData.restore.fromBackup.pointInTimeRecovery')">
+                                <strong class="label">Point-in-Time Recovery:</strong>
+                                <span class="value timestamp">
+                                    <span class='date'>
+                                        {{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('date') }}
+                                    </span>
+                                    <span class='time'>
+                                        {{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('time') }}
+                                    </span>
+                                    <span class='ms'>
+                                        {{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('ms') }}
+                                    </span>
+                                    <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                </span>
+                            </li>
+                            <li v-if="hasProp(cluster, 'data.spec.initialData.restore.downloadDiskConcurrency')">
+                                <strong class="label">Download Disk Concurrency:</strong>
+                                <span class="value">{{ cluster.data.spec.initialData.restore.downloadDiskConcurrency }}</span>
+                            </li>
+                        </ul>
+                    </ul>
 
-                            <ul v-if="hasProp(cluster, 'data.spec.initialData.scripts')">
+                    <ul class="section" v-if="hasProp(cluster, 'data.spec.managedSql')">
+                        <li>
+                            <strong class="sectionTitle">Managed SQL</strong>
+                            <ul>
+                                <li v-if="( showDefaults || (cluster.data.spec.managedSql.hasOwnProperty('continueOnSGScriptError') && cluster.data.spec.managedSql.continueOnSGScriptError) )">
+                                    <strong class="label">Continue on SGScript Error:</strong>
+                                    <span class="value">{{ hasProp(cluster, 'data.spec.managedSql.continueOnSGScriptError') ? (cluster.data.spec.managedSql.continueOnSGScriptError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
+                                </li>
                                 <li>
-                                    <strong class="sectionTitle">Initialization Scripts</strong>
+                                    <strong class="sectionTitle">Scripts</strong>
                                     <ul>
-                                        <li v-for="(script, index) in cluster.data.spec.initialData.scripts">
-                                            <strong class="sectionTitle">Script #{{ index+1 }}</strong>
+                                        <li v-for="(baseScript, baseIndex) in cluster.data.spec.managedSql.scripts">
+                                            <strong class="sectionTitle">SGScript #{{ baseIndex + 1 }}</strong>
                                             <ul>
-                                                <li v-if="hasProp(script, 'name')">
-                                                    <strong class="label">Name:</strong>
-                                                    <span class="value">{{ script.name }}</span>
+                                                <li v-if="( showDefaults || ( hasProp(baseScript, 'scriptSpec.continueOnError') && baseScript.scriptSpec.continueOnError ) )">
+                                                    <strong class="label">Continue on Error:</strong>
+                                                    <span class="value">{{ hasProp(baseScript, 'scriptSpec.continueOnError') ? (baseScript.continueOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
                                                 </li>
-                                                <li v-if="hasProp(script, 'database')">
-                                                    <strong class="label">Database:</strong>
-                                                    <span class="value">{{ script.database }}</span>
+                                                <li v-if="( showDefaults || ( hasProp(baseScript, 'scriptSpec.managedVersions') && !baseScript.scriptSpec.managedVersions) )">
+                                                    <strong class="label">Managed Versions:</strong>
+                                                    <span class="value">{{ hasProp(baseScript, 'scriptSpec.managedVersions') ? (baseScript.managedVersions ? 'Enabled' : 'Disabled') : 'Enabled' }}</span>
                                                 </li>
-                                                <li>
-                                                    <strong class="label">Script Source:</strong>
-                                                    <span class="value">{{ hasProp(script, 'script') ? 'Raw Script' : (hasProp(script, 'scriptFrom.secretKeyRef') ? 'Secret Key' : "Config Map") }}</span>
-                                                </li>
-                                                <li v-if="hasProp(script, 'script')">
-                                                    <strong class="label">Script:</strong>
-                                                    <span class="value script">
-                                                        <span>
-                                                            <a @click="setContentTooltip('#script-'+index)">View Script</a>
-                                                        </span>
-                                                        <div :id="'script-' + index" class="hidden">
-                                                            <pre>{{ script.script }}</pre>
-                                                        </div>
-                                                    </span>
-                                                </li>
-                                                <li v-else-if="hasProp(script, 'scriptFrom.secretKeyRef')">
-                                                    <strong>Secret Key Reference:</strong>
+                                                <li v-if="baseScript.hasOwnProperty('scriptSpec')">
+                                                    <strong class="sectionTitle">Script Entries</strong>
+
                                                     <ul>
-                                                        <li>
-                                                            <strong class="label">Name:</strong>
-                                                            <span class="value">{{ script.scriptFrom.secretKeyRef.name }}</span>
-                                                        </li>
-                                                        <li>
-                                                            <strong class="label">Key:</strong>
-                                                            <span class="value">{{ script.scriptFrom.secretKeyRef.key }}</span>
+                                                        <li v-for="(script, index) in baseScript.scriptSpec.scripts">
+                                                            <strong class="sectionTitle">Script #{{ index + 1 }}</strong>
+
+                                                            <ul>
+                                                                <li v-if="hasProp(script, 'name')">
+                                                                    <strong class="label">Name:</strong>
+                                                                    <span class="value">{{ script.name }}</span>
+                                                                </li>
+                                                                <li v-if="hasProp(script, 'version')">
+                                                                    <strong class="label">Version:</strong>
+                                                                    <span class="value">{{ script.version }}</span>
+                                                                </li>
+                                                                <li v-if="showDefaults || hasProp(script, 'database')">
+                                                                    <strong class="label">Database:</strong>
+                                                                    <span class="value">{{ script.hasOwnProperty('database') ? script.database : 'postgres' }}</span>
+                                                                </li>
+                                                                <li v-if="showDefaults || hasProp(script, 'user')">
+                                                                    <strong class="label">User:</strong>
+                                                                    <span class="value">{{ script.hasOwnProperty('user') ? script.database : 'postgres' }}</span>
+                                                                </li>
+                                                                <li v-if="( showDefaults || ( script.hasOwnProperty('retryOnError') && script.retryOnError) )">
+                                                                    <strong class="label">Retry on Error:</strong>
+                                                                    <span class="value">{{ script.hasOwnProperty('retryOnError') ? (script.retryOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
+                                                                </li>
+                                                                <li v-if="( showDefaults || ( script.hasOwnProperty('storeStatusInDatabase') && script.storeStatusInDatabase) )">
+                                                                    <strong class="label">Store Status in Database:</strong>
+                                                                    <span class="value">{{ script.hasOwnProperty('storeStatusInDatabase') ? (script.storeStatusInDatabase ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
+                                                                </li>
+                                                                <li v-if="( showDefaults || ( script.hasOwnProperty('wrapInTransaction') && (script.wrapInTransaction != null) ) )">
+                                                                    <strong class="label">Wrap in Transaction:</strong>
+                                                                    <span class="value">{{ script.hasOwnProperty('wrapInTransaction') ? script.wrapInTransaction : 'Disabled' }}</span>
+                                                                </li>
+                                                                <li>
+                                                                    <strong class="label">Script Source:</strong>
+                                                                    <span class="value">{{ hasProp(script, 'script') ? 'Raw Script' : (hasProp(script, 'scriptFrom.secretKeyRef') ? 'Secret Key' : "Config Map") }}</span>
+                                                                </li>
+                                                                <li v-if="hasProp(script, 'script')">
+                                                                    <strong class="label">Script:</strong>
+                                                                    <span class="value script">
+                                                                        <span>
+                                                                            <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)">View Script</a>
+                                                                        </span>
+                                                                        <div :id="'script-' + baseIndex + '-' + index" class="hidden">
+                                                                            <pre>{{ script.script }}</pre>
+                                                                        </div>
+                                                                    </span>
+                                                                </li>
+                                                                <li v-else-if="hasProp(script, 'scriptFrom.secretKeyRef')">
+                                                                    <strong>Secret Key Reference:</strong>
+                                                                    <ul>
+                                                                        <li>
+                                                                            <strong class="label">Name:</strong>
+                                                                            <span class="value">{{ script.scriptFrom.secretKeyRef.name }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <strong class="label">Key:</strong>
+                                                                            <span class="value">{{ script.scriptFrom.secretKeyRef.key }}</span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                                <li v-else-if="hasProp(script, 'scriptFrom.configMapKeyRef')">
+                                                                    <strong>Config Map Key Reference:</strong>
+                                                                    <ul>
+                                                                        <li>
+                                                                            <strong class="label">Name:</strong>
+                                                                            <span class="value">{{ script.scriptFrom.configMapKeyRef.name }}</span>
+                                                                        </li>
+                                                                        <li>
+                                                                            <strong class="label">Key:</strong>
+                                                                            <span class="value">{{ script.scriptFrom.configMapKeyRef.key }}</span>
+                                                                        </li>                                                                            
+                                                                    </ul>
+                                                                </li>
+                                                            </ul>
                                                         </li>
                                                     </ul>
                                                 </li>
-                                                <li v-else-if="hasProp(script, 'scriptFrom.configMapKeyRef')">
-                                                    <strong>Config Map Key Reference:</strong>
-                                                    <ul>
-                                                        <li>
-                                                            <strong class="label">Name:</strong>
-                                                            <span class="value">{{ script.scriptFrom.configMapKeyRef.name }}</span>
-                                                        </li>
-                                                        <li>
-                                                            <strong class="label">Key:</strong>
-                                                            <span class="value">{{ script.scriptFrom.configMapKeyRef.key }}</span>
-                                                        </li>
-                                                        
-                                                    </ul>
+                                                <li v-else-if="baseScript.hasOwnProperty('sgScript')">
+                                                    <strong class="label">SGScript:</strong>
+                                                    <span class="value">{{ baseScript.sgScript }}</span>
                                                 </li>
                                             </ul>
                                         </li>
@@ -817,7 +863,7 @@
     .summary ul ul:before {
         content: "";
         display: inline;
-        height: calc(100% - 5px);
+        height: calc(100% - 12px);
         width: 2px;
         background: var(--borderColor);
         position: absolute;

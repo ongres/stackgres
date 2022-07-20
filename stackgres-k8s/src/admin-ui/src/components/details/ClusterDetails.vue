@@ -1,7 +1,7 @@
 <template>
 	<div id="clusterDetails">
         <template v-if="cluster.hasOwnProperty('data')">
-            <table class="clusterConfig">
+            <table class="crdDetails">
                 <tbody>
                     <tr>
                         <td class="label">
@@ -332,7 +332,7 @@
 
             <div class="clusterConfigurations">
                 <h2>Cluster Configurations <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations')"></span></h2>
-                <table class="clusterConfig">
+                <table class="crdDetails">
                     <tbody>
                         <tr>
                             <td class="label">
@@ -464,7 +464,7 @@
 
             <div class="podsScheduling" v-if="hasProp(cluster, 'data.spec.pods.scheduling')">
                 <h2>Pods Scheduling <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling')"></span></h2>
-                <table class="clusterConfig">
+                <table class="crdDetails">
                     <tbody>
                         <tr v-for="(item, index) in unparseProps(cluster.data.spec.pods.scheduling.nodeSelector)">
                             <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.pods.scheduling.nodeSelector).length">
@@ -506,7 +506,7 @@
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')"></span>
                     </h2>
 
-                    <table class="clusterConfig">
+                    <table class="crdDetails">
                         <thead>
                             <th>Term <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items')"></span></th>
                             <th>Match <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions') + ' It can be either of type Expressions or Fields.'"></span></th>
@@ -555,7 +555,7 @@
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')"></span>
                     </h2>
 
-                    <table class="clusterConfig">
+                    <table class="crdDetails">
                         <thead>
                             <th>Term <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items')"></span></th>
                             <th>Weight <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.weight')"></span></th>
@@ -602,101 +602,181 @@
                 </template>
             </div>
 
-            <div class="scripts" v-if="hasProp(cluster, 'data.spec.initialData.scripts')">
-                <h2>Scripts <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts')"></span></h2>
-                <table class="clusterConfig">
-                    <tbody>
-                        <template v-for="(item, index) in cluster.data.spec.initialData.scripts">
-                            <template v-if="hasProp(item, 'database')">
+            <div class="scripts" v-if="hasProp(cluster, 'data.spec.managedSql')">
+                <h2>Managed SQL <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.managedSql')"></span></h2>
+               
+                <template v-for="(baseScript, baseIndex) in cluster.data.spec.managedSql.scripts">
+					<div class="configurationDetails">
+						<table class="crdDetails">
+							<tbody>
+								<tr>
+                                    <td :rowspan="999">
+                                        Script #{{ baseIndex + 1 }}
+                                    </td>
+									<td class="label">
+                                        Name 
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.metadata.name')"></span>
+                                    </td>
+									<td>
+                                        <router-link :to="'/' + cluster.data.metadata.namespace + '/sgscript/' + baseScript.sgScript">
+                                            {{ baseScript.sgScript }}
+                                            <svg data-v-7f311205="" xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g data-v-7f311205="" transform="translate(0 -126.766)"><path data-v-7f311205="" d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"></path><path data-v-7f311205="" d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"></path></g></svg>
+                                        </router-link>
+                                    </td>
+								</tr>
                                 <tr>
-                                    <td class="label" rowspan="2">
-                                        Script #{{ index+1 }} <template v-if="hasProp(item, 'name')">– {{ item.name }} </template>
-                                        <template v-if="hasProp(item, 'scriptFrom.secretKeyRef')">
-                                            <br><span class="normal small">
-                                                This script has been set from a SecretKeySelector
-                                            </span>
-                                        </template>
+									<td class="label">
+                                        Continue on Error 
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.continueOnError').replace(/true/g, 'Enabled').replace('false','Disabled')"></span>
                                     </td>
-                                    <td class="label">
-                                        Database
+									<td>
+                                        {{ baseScript.scriptSpec.hasOwnProperty('continueOnError') ? (baseScript.scriptSpec.continueOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}
                                     </td>
-                                    <td colspan="2">
-                                        {{ item.database }}
+								</tr>
+								<tr>
+									<td class="label">
+                                        Managed Versions 
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.managedVersions').replace(/true/g, 'Enabled')"></span>
                                     </td>
-                                </tr>
-                                <tr>
-                                    <td class="label">
-                                        Script Details 
+									<td>
+                                        {{ baseScript.scriptSpec.hasOwnProperty('managedVersions') ? (baseScript.scriptSpec.managedVersions ? 'Enabled' : 'Disabled') : 'Enabled' }}
                                     </td>
-                                    <td colspan="2">
-                                        <template v-if="hasProp(item, 'scriptFrom.secretKeyRef')">
-                                            <a @click="setContentTooltip('#script-'+index)"> 
-                                                View Details
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-                                            </a>
-                                            <div :id="'script-'+index" class="hidden">
-                                                <strong>Name</strong>: {{  item.scriptFrom.secretKeyRef.name }}<br/><br/>
-                                                <strong>Key</strong>: {{  item.scriptFrom.secretKeyRef.key }}
-                                            </div>
-                                        </template>
-                                        <template v-else>
-                                            <a @click="setContentTooltip('#script-'+index)"> 
-                                                View Script
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-                                            </a>
-                                            <div :id="'script-'+index" class="hidden">
-                                                <pre v-if="item.hasOwnProperty('script')">{{ item.script }}</pre>
-                                                <pre v-else-if="hasProp(item, 'scriptFrom.configMapScript')">{{ item.scriptFrom.configMapScript }}</pre>
-                                            </div>
-                                        </template>
-                                    </td>
-                                </tr>
-                            </template>		
-                            <template v-else>
+								</tr>
                                 <tr>
                                     <td class="label">
-                                        Script #{{ index+1 }} <template v-if="hasProp(item, 'name')">– {{ item.name }} </template>
-                                        <template v-if="hasProp(item, 'scriptFrom.secretKeyRef')">
-                                            <br><span class="normal small">
-                                                This script has been set from a SecretKeySelector
-                                            </span>
-                                        </template>
+                                        Entries
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.script').replace(/ This field is mutually exclusive with `scriptFrom` field./g, '').replace('script','scripts')"></span>
                                     </td>
-                                    <td class="label">
-                                        Script Details
-                                    </td>
-                                    <td colspan="2">
-                                        <template v-if="hasProp(item, 'scriptFrom.secretKeyRef')">
-                                            <a @click="setContentTooltip('#script-'+index)"> 
-                                                View Details
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-                                            </a>
-                                            <div :id="'script-'+index" class="hidden">
-                                                <strong>Name</strong>: {{  item.scriptFrom.secretKeyRef.name }}<br/><br/>
-                                                <strong>Key</strong>: {{  item.scriptFrom.secretKeyRef.key }}
-                                            </div>
-                                        </template>
-                                        <template v-else>
-                                            <a @click="setContentTooltip('#script-'+index)"> 
-                                                View Script
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-                                            </a>
-                                            <div :id="'script-'+index" class="hidden">
-                                                <pre v-if="item.hasOwnProperty('script')">{{ item.script }}</pre>
-                                                <pre v-else-if="hasProp(item, 'scriptFrom.configMapScript')">{{ item.scriptFrom.configMapScript }}</pre>
-                                            </div>
-                                        </template>
+                                    <td>
+                                        <a @click="setContentTooltip('#baseScript-' + baseIndex)"> 
+                                            View Entries ({{ baseScript.scriptSpec.scripts.length }})
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+                                        </a>
                                     </td>
                                 </tr>
-                            </template>
-                        </template>
-                    </tbody>
-                </table>
+							</tbody>
+						</table>
+					</div>
+
+                    <div class="configurationDetails hidden" :id="'baseScript-' + baseIndex">
+                        <h2>Script Entries <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts')"></span></h2>
+
+                        <table class="crdDetails" v-for="(script, index) in baseScript.scriptSpec.scripts">
+                            <tbody>
+                                <template>
+                                    <tr>
+                                        <td :rowspan="999">
+                                            Entry #{{ index + 1 }}
+                                        </td>
+                                        <td class="label">
+                                            ID
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.id')"></span>
+                                        </td>
+                                        <td class="textRight">
+                                            {{ script.id }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="script.hasOwnProperty('name')">
+                                        <td class="label">
+                                            Name
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.name')"></span>
+                                        </td>
+                                        <td>
+                                            {{ script.name }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="script.hasOwnProperty('version')">
+                                        <td class="label">
+                                            Version
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.version')"></span>
+                                        </td>
+                                        <td class="textRight">
+                                            {{ script.version }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="script.hasOwnProperty('database')">
+                                        <td class="label">
+                                            Database
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.database')"></span>
+                                        </td>
+                                        <td>
+                                            {{ script.database }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="script.hasOwnProperty('user')">
+                                        <td class="label">
+                                            User
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.user')"></span>
+                                        </td>
+                                        <td>
+                                            {{ script.user }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">
+                                            Retry on Error
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.retryOnError').replace(/false/g, 'Disabled').replace(/true/g, 'Disabled')"></span>
+                                        </td>
+                                        <td>
+                                            {{ script.hasOwnProperty('retryOnError') ? (script.retryOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">
+                                            Store Status in Database
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.storeStatusInDatabase').replace(/false/g, 'Disabled').replace(/true/g, 'Disabled')"></span>
+                                        </td>
+                                        <td>
+                                            {{ script.hasOwnProperty('storeStatusInDatabase') ? (script.storeStatusInDatabase ? 'Enabled' : 'Disabled') : 'Disabled' }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">
+                                            Wrap in Transaction
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.wrapInTransaction').replace('If not set', 'If Disabled')"></span>
+                                        </td>
+                                        <td class="upper">
+                                            {{ script.hasOwnProperty('wrapInTransaction') ? script.wrapInTransaction : 'Disabled' }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">
+                                            Script
+                                            <span class="helpTooltip" :data-tooltip="( script.hasOwnProperty('scriptFrom') ? getTooltip('sgscript.spec.scripts.scriptFrom') : getTooltip('sgscript.spec.scripts.script') )"></span>
+                                        </td>
+                                        <td>
+                                            <template v-if="hasProp(script, 'scriptFrom.secretKeyRef')">
+                                                <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)" :data-content-tooltip="('#script-' + baseIndex + '-' + index)"> > 
+                                                    View Key Reference
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+                                                </a>
+                                                <div :id="'script-' + baseIndex + '-' + index" class="hidden">
+                                                    <strong>Name</strong>: {{  script.scriptFrom.secretKeyRef.name }}<br/><br/>
+                                                    <strong>Key</strong>: {{  script.scriptFrom.secretKeyRef.key }}
+                                                </div>
+                                            </template>
+                                            <template v-else>
+                                                <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)" :data-content-tooltip="('#script-' + baseIndex + '-' + index)"> 
+                                                    View Script
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+                                                </a>
+                                                <div :id="'script-'+ baseIndex + '-' + index" class="hidden">
+                                                    <pre v-if="script.hasOwnProperty('script')">{{ script.script }}</pre>
+                                                    <pre v-else-if="hasProp(script, 'scriptFrom.configMapScript')">{{ script.scriptFrom.configMapScript }}</pre>
+                                                </div>
+                                            </template>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>				
+				</template>
             </div>
 
             <div class="resourcesMetadata" v-if="hasProp(cluster, 'data.spec.metadata.annotations') && Object.keys(cluster.data.spec.metadata.annotations).length">
                 <h2>Resources Annotations <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations')"></span></h2>
-                <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')" class="clusterConfig">
+                <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')" class="crdDetails">
                     <tbody>
                         <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.allResources)">
                             <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.allResources).length">
@@ -713,7 +793,7 @@
                     </tbody>
                 </table>
 
-                <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.clusterPods')" class="clusterConfig">
+                <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.clusterPods')" class="crdDetails">
                     <tbody>
                         <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.clusterPods)">
                             <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.clusterPods).length">
@@ -730,7 +810,7 @@
                     </tbody>
                 </table>
 
-                <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.services')" class="clusterConfig">
+                <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.services')" class="crdDetails">
                     <tbody>
                         <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.services)">
                             <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.services).length">
@@ -747,7 +827,7 @@
                     </tbody>
                 </table>
 
-                <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.primaryService')" class="clusterConfig">
+                <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.primaryService')" class="crdDetails">
                     <tbody>
                         <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.primaryService)">
                             <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.primaryService).length">
@@ -764,7 +844,7 @@
                     </tbody>
                 </table>
 
-                <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.replicasService')" class="clusterConfig">
+                <table v-if="hasProp(cluster, 'data.spec.metadata.annotations.replicasService')" class="crdDetails">
                     <tbody>
                         <tr v-for="(item, index) in unparseProps(cluster.data.spec.metadata.annotations.replicasService)">
                             <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.annotations.replicasService).length">
@@ -784,7 +864,7 @@
 
             <div class="metadataLabels" v-if="hasProp(cluster, 'data.spec.metadata.labels')">
                 <h2>Resources Labels <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.labels')"></span></h2>
-                <table v-if="hasProp(cluster, 'data.spec.metadata.labels.clusterPods')" class="clusterConfig">
+                <table v-if="hasProp(cluster, 'data.spec.metadata.labels.clusterPods')" class="crdDetails">
                     <tbody>
                         <tr v-for="(value, label, index) in cluster.data.spec.metadata.labels.clusterPods">
                             <td v-if="!index" class="label" :rowspan="Object.keys(cluster.data.spec.metadata.labels.clusterPods).length">
@@ -805,7 +885,7 @@
             <div class="postgresServices" v-if="hasProp(cluster, 'data.spec.postgresServices') && ((hasProp(cluster, 'data.spec.postgresServices.primary') && cluster.data.spec.postgresServices.primary.enabled) || (hasProp(cluster, 'data.spec.postgresServices.replicas') && cluster.data.spec.postgresServices.replicas.enabled))">
                 <h2>Postgres Services <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices')"></span></h2>
 
-                <table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="clusterConfig">
+                <table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="crdDetails">
                     <tbody>
                         <tr>
                             <td class="label capitalize" rowspan="3">
@@ -845,7 +925,7 @@
                 <h2>Postgres Extensions Deployed/To Be Deployed <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.extensions')"></span></h2>
                 <span class="warning">The extension(s) are installed into the StackGres Postgres container. To start using them, you need to execute an appropriate <code>CREATE EXTENSION</code> command in the database(s) where you want to use the extension(s). Note that depending on each extension's requisites you may also need to add configuration to the cluster's <code>SGPostgresConfig</code> configuration, like adding the extension to <code>shared_preload_libraries</code> or adding extension-specific configuration parameters.</span>
 
-                <table class="clusterConfig">
+                <table class="crdDetails">
                     <thead>
                         <th>
                             Name
@@ -977,6 +1057,16 @@
 				return store.state.sgbackups
 			}
 		},
+
+        mounted: function() {
+
+            const vc = this;
+
+            $(document).on('click', '[data-content-tooltip]', (el) => {
+                vc.setContentTooltip(el.target.dataset.contentTooltip);
+            })
+
+        }
 
 	}
 </script>
