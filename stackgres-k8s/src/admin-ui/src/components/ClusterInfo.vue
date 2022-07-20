@@ -124,7 +124,4 @@
 		top: 11px;
 	}
 
-	table.clusterConfig a > svg {
-		margin-top: 3px;
-	}
 </style>
