@@ -842,12 +842,22 @@
                         </h2>
                         <table class="crdDetails">
                             <tbody>
-                                <template v-for="db in op.data.spec.repack.databases">
+                                <template v-for="(db, index) in op.data.spec.repack.databases">
                                     <tr>
-                                        <td class="label" :rowspan="Object.keys(db).length">
-                                            {{ db.name }}
+                                        <td class="label" :rowspan="Object.keys(db).length+1">
+                                            Database #{{ index+1 }}
                                         </td>
                                         <td class="hidden"></td><td class="hidden"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">
+                                            Name
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.name')"></span>
+                                        </td>
+                                        <td>
+                                            {{ db.name }}
+                                        </td>
+                                    
                                     </tr>
                                     <tr>
                                         <td class="label">
