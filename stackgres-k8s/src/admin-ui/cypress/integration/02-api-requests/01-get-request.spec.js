@@ -122,6 +122,10 @@ describe('GET requests', () => {
         cy.getResources('storageclasses');
     });
 
+    it('GET sgscripts', () => {
+        cy.getResources('sgscripts');
+    });
+
     it('GET sgdistributedlogs', () => {
         cy.getResources('sgdistributedlogs');
     });
