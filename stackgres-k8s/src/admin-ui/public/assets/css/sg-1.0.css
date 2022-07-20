@@ -123,11 +123,11 @@ body, html {
     font-family: 'Ubuntu Mono', 'Courier New', Courier, monospace;
 }
 
-th, table th, table.clusterConfig td.label, tr.details table .label, .yaml .label {
+th, table th, table.crdDetails td.label, tr.details table .label, .yaml .label {
     font-weight: 600;
 }
 
-body, #sets h4, #sets h3, th, .tabs a, #keyword, table.clusterConfig td.label, tr.details table .label, .details th, td.timestamp span.ms, span.timestamp span.ms, .yaml .label, #logo h1, #helpTooltip, .form label, .options label, .daterangepicker td.available:not(.off):not(.in-range):not(.active), .form input, .form select, .form textarea, ul.select, .options select, #delete .tooltip form input, .darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param, .darkmode .form label, .darkmode ul.select a {
+body, #sets h4, #sets h3, th, .tabs a, #keyword, table.crdDetails td.label, tr.details table .label, .details th, td.timestamp span.ms, span.timestamp span.ms, .yaml .label, #logo h1, #helpTooltip, .form label, .options label, .daterangepicker td.available:not(.off):not(.in-range):not(.active), .form input, .form select, .form textarea, ul.select, .options select, #delete .tooltip form input, .darkmode #sets h4, .darkmode h4, .darkmode #sets h3, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.crdDetails td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param, .darkmode .form label, .darkmode ul.select a {
     color: var(--textColor);
 }
 
@@ -229,7 +229,7 @@ td.operationType span, .card .operationType {
     background-color: var(--bgColor);
 }
 
- #side, .set.conf.active, #nav, .set:not(.active) ul.show:before, .tooltip, .contentTooltip .info, .set.active:not(.conf):not(.backups), .set.active:not(.conf), #current-namespace, .set, #ns-select, ul.breadcrumbs, header .actions, #keyword, table.backups thead, .options, hr, .darkmode .daterangepicker, .darkmode .daterangepicker .calendar-time, .darkmode .daterangepicker .drp-buttons, tbody, tr.details table th, tr.details table td,  td.usedOn li, .content h2, ul.tabs, table.clusterConfig td, table.logs thead, .options li.textFilter .search, .filter.columns label, .filter.columns input[type="checkbox"], .darkmode .daterangepicker select.hourselect, .message, .form .header, fieldset, ul.select, .form select, .form input, label.switch, #nav .right > div#clone, .form textarea, #logTooltip.show, #nameTooltip.show, #helpTooltip, #nav .right > div#signup, #signup input, #delete .tooltip h3, #delete .tooltip form input, .grafana iframe, .logInfo.open .logMessage, .logMessage .param, .logDetails.postgres tr:not(:last-of-type), .logDetails.patroni tr:not(:last-of-type), .logDetails table, .logDetails td.param, fieldset .section {
+ #side, .set.conf.active, #nav, .set:not(.active) ul.show:before, .tooltip, .contentTooltip .info, .set.active:not(.conf):not(.backups), .set.active:not(.conf), #current-namespace, .set, #ns-select, ul.breadcrumbs, header .actions, #keyword, table.backups thead, .options, hr, .darkmode .daterangepicker, .darkmode .daterangepicker .calendar-time, .darkmode .daterangepicker .drp-buttons, tbody, tr.details table th, tr.details table td,  td.usedOn li, .content h2, ul.tabs, table.crdDetails td, table.logs thead, .options li.textFilter .search, .filter.columns label, .filter.columns input[type="checkbox"], .darkmode .daterangepicker select.hourselect, .message, .form .header, fieldset, ul.select, .form select, .form input, label.switch, #nav .right > div#clone, .form textarea, #logTooltip.show, #nameTooltip.show, #helpTooltip, #nav .right > div#signup, #signup input, #delete .tooltip h3, #delete .tooltip form input, .grafana iframe, .logInfo.open .logMessage, .logMessage .param, .logDetails.postgres tr:not(:last-of-type), .logDetails.patroni tr:not(:last-of-type), .logDetails table, .logDetails td.param, fieldset .section {
     border-color: var(--borderColor);
 }
 
@@ -241,7 +241,7 @@ td.operationType span, .card .operationType {
     background-color: var(--inputBg);
 }
 
- ul#postgresVersion ul, table.clusterConfig tr, table.clusterConfig tr:nth-child(even), table.clusterConfig tr:nth-child(even):not(.base) {
+ ul#postgresVersion ul, table.crdDetails tr, table.crdDetails tr:nth-child(even), table.crdDetails tr:nth-child(even):not(.base) {
     background-color: transparent;
 }
 
@@ -254,7 +254,7 @@ td.operationType span, .card .operationType {
 }
 
 .form input[disabled="disabled"], .form select[disabled="disabled"], .form textarea[disabled="disabled"], .form fieldset[disabled="disabled"], label.switch[disabled="disabled"] {
-    opacity: .3;
+    opacity: .45;
 }
 
 .form button.border:hover, .btn.border:hover, .daterangepicker button.cancelBtn, .btn.clear:hover {
@@ -414,6 +414,7 @@ table tr:nth-child(odd), .contentTooltip table tr:nth-child(even) {
 
 .contentTooltip table.crdDetails {
     margin-bottom: 0;
+    margin-right: 10px;
 }
 
 td.label[rowspan] {
@@ -551,8 +552,8 @@ table:not(.fullWidth) td.label {
 /* Forms */
 
 form.form { 
-    max-width: 900px;
-    width: 900px;
+    max-width: 960px;
+    width: 960px;
 }
 
 form.form .helpTooltip {

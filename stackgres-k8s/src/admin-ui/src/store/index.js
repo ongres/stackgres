@@ -27,6 +27,7 @@ export default new Vuex.Store({
     sgpoolconfigs: [],
     sginstanceprofiles: [],
     sgobjectstorages: [],
+    sgscripts: [],
     storageClasses: [],
     logs: [],
     sgdistributedlogs: [],
@@ -201,6 +202,17 @@ export default new Vuex.Store({
         index.data = config.data;
       } else {
         state.sgobjectstorages.push( config );    
+      }
+
+    },
+    updateScripts ( state, config ) {
+
+      let index = state.sgscripts.find(c => (config.data.metadata.name == c.name) && (config.data.metadata.namespace == c.data.metadata.namespace) ); 
+
+      if ( typeof index !== "undefined" ) {
+        index.data = config.data;
+      } else {
+        state.sgscripts.push( config );    
       }
 
     },

@@ -225,7 +225,7 @@
 
 			nameCollision() {
 				if(store.state.cloneCRD.hasOwnProperty('kind')) {
-					let kind = store.state.cloneCRD.kind.toLowerCase();
+					let kind = ( ['sgpoolingconfig', 'sgpgconfigs'].includes(store.state.cloneCRD.kind) ? store.state.cloneCRD.kind.toLowerCase() : ( (store.state.cloneCRD.kind == 'sgpgconfigs') ? 'sgpostgresconfigs' : 'sgpoolconfigs' ) );
 					let collision = store.state[kind].find(c => ( (store.state.cloneCRD.data.metadata.namespace == c.data.metadata.namespace) && (store.state.cloneCRD.data.metadata.name == c.name) ))
 					return (typeof collision != 'undefined')
 				} else {
@@ -256,7 +256,7 @@
 						if (typeof poolconfig == 'undefined')
 							missingCRDs.push({kind: 'SGPoolingConfig', name: cloneCRD.spec.configurations.sgPoolingConfig})
 
-						if ( vc.hasProp(cloneCRD, 'spec.configurations.backups.sgObjectStorage') ) {
+						if ( this.hasProp(cloneCRD, 'spec.configurations.backups.sgObjectStorage') ) {
 							let objectStorage = store.state.sgobjectstorages.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.backups.sgObjectStorage))
 							if (typeof objectStorage == 'undefined')
 								missingCRDs.push({kind: 'SGObjectStorage', name: cloneCRD.spec.configurations.backup.sgObjectStorage})

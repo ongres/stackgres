@@ -78,6 +78,17 @@
                                         <router-link :to="'/' + namespace + '/sgobjectstorages'" title="Object Storage Configurations" target="_blank"></router-link>
                                     </td>
                                 </tr>
+                                <tr v-if="iCan('list', 'sgscripts', namespace)">
+                                    <td class="kind">
+                                        <router-link :to="'/' + namespace + '/sgscripts'" title="Scripts Configurations">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="25.628" height="18.617" viewBox="0 0 25.628 18.617"><path d="M-96.745,34.762h10.5a.954.954,0,0,0,.954-.953.953.953,0,0,0-.954-.952h-10.5a.953.953,0,0,0-.955.952A.954.954,0,0,0-96.745,34.762Z" transform="translate(97.7 -30)"/><path d="M-82.9,37.619a.954.954,0,0,0,.955-.952v-1.9h4.295a.954.954,0,0,0,.955-.953.953.953,0,0,0-.955-.952H-81.95v-1.9A.953.953,0,0,0-82.9,30a.953.953,0,0,0-.954.952v5.715A.953.953,0,0,0-82.9,37.619Z" transform="translate(97.7 -30)"/><path d="M-96.745,40.952h4.3v1.9a.953.953,0,0,0,.955.953.953.953,0,0,0,.954-.953V37.143a.954.954,0,0,0-.954-.953.954.954,0,0,0-.955.953v1.9h-4.3A.954.954,0,0,0-97.7,40,.953.953,0,0,0-96.745,40.952Z" transform="translate(97.7 -30)"/><path d="M-90.064,45.238h-6.681a.953.953,0,0,0-.955.953.953.953,0,0,0,.955.952h6.681a.953.953,0,0,0,.955-.952A.953.953,0,0,0-90.064,45.238Z" transform="translate(97.7 -30)"/><path d="M4.16.117A6.564,6.564,0,0,1,2.269-.149,4.164,4.164,0,0,1,.819-.871.73.73,0,0,1,.52-1.5.733.733,0,0,1,.683-1.97a.481.481,0,0,1,.383-.2,1.056,1.056,0,0,1,.533.182,3.9,3.9,0,0,0,1.17.585,4.724,4.724,0,0,0,1.352.182,2.662,2.662,0,0,0,1.456-.331,1.085,1.085,0,0,0,.507-.969.833.833,0,0,0-.475-.76A6.283,6.283,0,0,0,4.03-3.8a9.356,9.356,0,0,1-1.859-.572A2.625,2.625,0,0,1,1.092-5.2,2.152,2.152,0,0,1,.728-6.487,2.422,2.422,0,0,1,1.183-7.93a3,3,0,0,1,1.268-.995,4.49,4.49,0,0,1,1.826-.357,4.534,4.534,0,0,1,3.029.988.976.976,0,0,1,.241.28.738.738,0,0,1,.072.345.733.733,0,0,1-.163.474.481.481,0,0,1-.383.2.718.718,0,0,1-.241-.039,1.927,1.927,0,0,1-.292-.143,4.392,4.392,0,0,0-1.034-.579,3.5,3.5,0,0,0-1.228-.188,2.409,2.409,0,0,0-1.4.357,1.145,1.145,0,0,0-.513.994.912.912,0,0,0,.455.819,5.333,5.333,0,0,0,1.547.533,10.409,10.409,0,0,1,1.878.578,2.786,2.786,0,0,1,1.105.812,1.953,1.953,0,0,1,.384,1.235,2.359,2.359,0,0,1-.449,1.424,2.923,2.923,0,0,1-1.261.962A4.743,4.743,0,0,1,4.16.117Zm9.217,0a4.572,4.572,0,0,1-2.321-.572A3.8,3.8,0,0,1,9.529-2.093,5.516,5.516,0,0,1,9-4.589a5.475,5.475,0,0,1,.533-2.49A3.811,3.811,0,0,1,11.056-8.71a4.572,4.572,0,0,1,2.321-.572,5.026,5.026,0,0,1,1.612.253,4.188,4.188,0,0,1,1.339.734.746.746,0,0,1,.234.273.846.846,0,0,1,.065.351.746.746,0,0,1-.156.481.468.468,0,0,1-.377.195.961.961,0,0,1-.533-.182,3.855,3.855,0,0,0-1.04-.579,3.315,3.315,0,0,0-1.066-.163,2.5,2.5,0,0,0-2.048.845,3.829,3.829,0,0,0-.7,2.483,3.852,3.852,0,0,0,.7,2.5,2.5,2.5,0,0,0,2.048.845,3.06,3.06,0,0,0,1.033-.169,4.958,4.958,0,0,0,1.073-.572,1.819,1.819,0,0,1,.26-.13.728.728,0,0,1,.273-.052.468.468,0,0,1,.377.2.746.746,0,0,1,.156.481.857.857,0,0,1-.065.344.728.728,0,0,1-.234.28,4.188,4.188,0,0,1-1.339.735A5.026,5.026,0,0,1,13.377.117Z" transform="translate(9.001 18.5)"/></svg>
+                                            <span>SGScripts <i class="length">{{ sgscripts.filter(c => c.data.metadata.namespace == namespace).length }}</i></span>
+                                        </router-link>
+                                    </td>
+                                    <td class="icon invisible">
+                                        <router-link :to="'/' + namespace + '/sgscripts'" title="Scripts Configurations" target="_blank"></router-link>
+                                    </td>
+                                </tr>
                                 <tr v-if="iCan('list', 'sgdistributedlogs', namespace)">
                                     <td class="kind">
                                         <router-link :to="'/' + namespace + '/sgdistributedlogs'" title="Distributed Logs Servers">
@@ -154,7 +165,8 @@ export default {
                 store.state.sgdistributedlogs.filter(c => c.data.metadata.namespace == namespace).length ||
                 store.state.sgbackups.filter(c => c.data.metadata.namespace == namespace).length ||
                 store.state.sgdbops.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.sgobjectstorages.filter(c => c.data.metadata.namespace == namespace).length
+                store.state.sgobjectstorages.filter(c => c.data.metadata.namespace == namespace).length ||
+                store.state.sgscripts.filter(c => c.data.metadata.namespace == namespace).length
             )
         }
     },
@@ -182,6 +194,10 @@ export default {
 
         objectStorages () {
             return store.state.sgobjectstorages
+        },
+
+        sgscripts () {
+            return store.state.sgscripts
         },
 
         logsservers () {
