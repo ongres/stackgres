@@ -274,16 +274,16 @@ svg.background circle {
     font-size: inherit;
 }
 
-.darkmode .v-pagination>ul>li>a, .darkmode div.v-pagination>ul>li.disabled>a:hover, .darkmode div.v-pagination>ul>li.v-pagination__info>a:hover, .darkmode div.v-pagination>ul>li.v-pagination__list>a:hover {
+.darkmode div.v-pagination>ul>li.v-pagination__info>a:hover, .darkmode div.v-pagination>ul>li.v-pagination__list>a:hover, .darkmode div.v-pagination ul li:not(.active):not(.disabled):not(.v-pagination__list):not(.v-pagination__info):not(.v-pagination__slot) a:hover, .darkmode div.v-pagination>ul>li>a {
     background: var(--activeBg);
     border-color: var(--borderColor);
 }
 
-.darkmode .v-pagination>ul>li:not(.disabled):not(.v-pagination__info):not(.v-pagination__list)>a:hover, .darkmode .v-pagination>ul>li:not(.disabled):not(.v-pagination__info):not(.v-pagination__list)>a {
+.darkmode div.v-pagination>ul>li>a, .darkmode div.v-pagination>ul>li:not(.disabled):not(.v-pagination__info):not(.v-pagination__list)>a:hover, .darkmode div.v-pagination>ul>li:not(.disabled):not(.v-pagination__info):not(.v-pagination__list)>a {
     color: var(--textColor);
 }
 
-.darkmode .v-pagination>ul>li:not(.disabled):not(.v-pagination__info):not(.v-pagination__list)>a:hover {
+.darkmode div.v-pagination>ul>li:not(.disabled):not(.v-pagination__info):not(.v-pagination__list)>a:hover {
     filter: brightness(1.2)
 }
 
