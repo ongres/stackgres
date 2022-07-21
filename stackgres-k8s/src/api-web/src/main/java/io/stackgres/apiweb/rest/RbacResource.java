@@ -165,6 +165,7 @@ public class RbacResource {
   protected List<String> getResourcesNamespaced() {
     List<String> resourcesNamespaced =
         List.of("pods", "secrets", "configmaps", "events", "pods/exec",
+            HasMetadata.getFullResourceName(StackGresScript.class),
             HasMetadata.getFullResourceName(StackGresObjectStorage.class),
             HasMetadata.getFullResourceName(StackGresBackupConfig.class),
             HasMetadata.getFullResourceName(StackGresBackup.class),

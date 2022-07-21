@@ -37,6 +37,7 @@ import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.apiweb.transformer.ScriptTransformer;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
@@ -233,6 +234,7 @@ public class ClusterResource
   private void createOrUpdateScripts(ClusterDto resource) {
     var scriptsToCreate = getScriptsToCreate(resource)
         .stream()
+        .filter(t -> isNotDefaultScript(t.v2))
         .map(t -> t.concat(
             scriptFinder.findByNameAndNamespace(
                 t.v2.getMetadata().getName(),
@@ -275,6 +277,10 @@ public class ClusterResource
     scriptsToCreate.stream()
         .filter(t -> t.v3.isPresent())
         .forEach(t -> addFieldPrefixOnScriptValidationError(t.v1, t.v2, scriptScheduler::update));
+  }
+
+  private boolean isNotDefaultScript(StackGresScript script) {
+    return !script.getMetadata().getName().endsWith(ManagedSqlUtil.DEFAULT_SCRIPT_NAME_SUFFIX);
   }
 
   private void addFieldPrefixOnScriptValidationError(Integer sgScriptIndex, StackGresScript script,
