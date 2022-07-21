@@ -21,7 +21,7 @@
             </li>
         </ul>
 
-        <ul class="section">
+        <ul class="section" v-if="crd.data.spec.type.length">
             <li>
                 <strong class="sectionTitle">Storage Details</strong>
                 

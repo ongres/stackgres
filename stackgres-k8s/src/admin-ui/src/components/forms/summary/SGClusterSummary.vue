@@ -225,7 +225,7 @@
                             <strong class="sectionTitle">Managed SQL</strong>
                             <ul>
                                 <li v-if="( showDefaults || (cluster.data.spec.managedSql.hasOwnProperty('continueOnSGScriptError') && cluster.data.spec.managedSql.continueOnSGScriptError) )">
-                                    <strong class="label">Continue on SGScript Error:</strong>
+                                    <strong class="label">Continue on ppp Error:</strong>
                                     <span class="value">{{ hasProp(cluster, 'data.spec.managedSql.continueOnSGScriptError') ? (cluster.data.spec.managedSql.continueOnSGScriptError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
                                 </li>
                                 <li>
@@ -335,7 +335,7 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="showDefaults || cluster.data.spec.pods.disableConnectionPooling || hasProp(cluster, 'data.spec.configurations.sgPoolingConfig') || cluster.data.spec.pods.disablePostgresUtil || cluster.data.spec.pods.disableMetricsExporter || cluster.data.spec.prometheusAutobind">
+                    <ul class="section" v-if="showDefaults || cluster.data.spec.pods.disableConnectionPooling || hasProp(cluster, 'data.spec.configurations.sgPoolingConfig') || cluster.data.spec.pods.disablePostgresUtil || cluster.data.spec.pods.disableMetricsExporter || cluster.data.spec.prometheusAutobind || hasProp(cluster, 'data.spec.distributedLogs.sgDistributedLogs')">
                         <li>
                             <strong class="sectionTitle">Sidecars</strong>
                             <ul>
@@ -466,31 +466,64 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="showDefaults || hasProp(cluster, 'data.spec.postgresServices')">
+                    <ul class="section" 
+                    v-if="showDefaults || 
+                        (    
+                            (hasProp(cluster, 'data.spec.postgresServices')) &&
+                            (hasProp(cluster, 'data.spec.postgresServices.primary')) &&
+                                (
+                                    (!cluster.data.spec.postgresServices.primary.enabled) ||
+                                    (cluster.data.spec.postgresServices.primary.type != 'ClusterIP')
+                                ) ||
+                            (hasProp(cluster, 'data.spec.postgresServices.replicas')) &&
+                                (
+                                    (!cluster.data.spec.postgresServices.replicas.enabled) ||
+                                    (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP')
+                                )
+                        )"
+                    >
                         <li>
                             <strong class="sectionTitle">Customize generated Kubernetes service</strong>
                             <ul>
-                                <li v-if="showDefaults || hasProp(cluster, 'data.spec.postgresServices.primary')">
+                                <li 
+                                v-if="showDefaults || 
+                                    (
+                                        (hasProp(cluster, 'data.spec.postgresServices.primary')) &&
+                                        (
+                                            (!cluster.data.spec.postgresServices.primary.enabled) ||
+                                            (cluster.data.spec.postgresServices.primary.type != 'ClusterIP')
+                                        )
+                                    )"
+                                >
                                     <strong class="sectionTitle">Primary Service</strong>
                                     <ul>
-                                        <li v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.primary.enabled') )">
+                                        <li v-if="( showDefaults || (hasProp(cluster, 'data.spec.postgresServices.primary.enabled') && !cluster.data.spec.postgresServices.primary.enabled))">
                                             <strong class="label">Enable:</strong>
                                             <span class="value">{{ hasProp(cluster, 'data.spec.postgresServices.primary.enabled') ? (cluster.data.spec.postgresServices.primary.enabled ? 'YES' : 'NO') : 'YES' }}</span>
                                         </li>
-                                        <li v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.primary.type') )">
+                                        <li v-if="( showDefaults || (hasProp(cluster, 'data.spec.postgresServices.primary.type') && (cluster.data.spec.postgresServices.primary.type != 'ClusterIP')))">
                                             <strong class="label">Type:</strong>
                                             <span class="value">{{ hasProp(cluster, 'data.spec.postgresServices.primary.type') ? cluster.data.spec.postgresServices.primary.type : 'ClusterIP' }}</span>
                                         </li>
                                     </ul>
                                 </li>
-                                <li v-if="showDefaults || hasProp(cluster, 'data.spec.postgresServices.replicas')">
+                                <li 
+                                v-if="showDefaults || 
+                                    (
+                                        (hasProp(cluster, 'data.spec.postgresServices.replicas')) &&
+                                        (
+                                            (!cluster.data.spec.postgresServices.replicas.enabled) ||
+                                            (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP')
+                                        )
+                                    )"
+                                >
                                     <strong class="sectionTitle">Replicas Service</strong>
                                     <ul>
-                                        <li v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.replicas.enabled') )">
+                                        <li v-if="( showDefaults || (hasProp(cluster, 'data.spec.postgresServices.replicas.enabled') && !cluster.data.spec.postgresServices.replicas.enabled))">
                                             <strong class="label">Enable:</strong>
                                             <span class="value">{{ hasProp(cluster, 'data.spec.postgresServices.replicas.enabled') ? (cluster.data.spec.postgresServices.replicas.enabled ? 'YES' : 'NO') : 'YES' }}</span>
                                         </li>
-                                        <li v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.replicas.type') )">
+                                        <li v-if="( showDefaults || (hasProp(cluster, 'data.spec.postgresServices.replicas.type') && (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP')))">
                                             <strong class="label">Type:</strong>
                                             <span class="value">{{ hasProp(cluster, 'data.spec.postgresServices.replicas.type') ? cluster.data.spec.postgresServices.replicas.type : 'ClusterIP' }}</span>
                                         </li>
@@ -518,7 +551,7 @@
                                         </li>
                                     </ul>
                                 </li>
-                                <li v-if="hasProp(cluster, 'data.spec.metadata.annotations')">
+                                <li v-if="hasProp(cluster, 'data.spec.metadata.annotations') && (Object.keys(cluster.data.spec.metadata.annotations).length > 0)">
                                     <strong class="sectionTitle">Annotations</strong>
                                     <ul>
                                         <li v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')">
@@ -572,11 +605,15 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="hasProp(cluster, 'data.spec.pods.scheduling')">
+                    <ul class="section" 
+                        v-if="((hasProp(cluster, 'data.spec.pods.scheduling')) && 
+                            (hasProp(cluster, 'data.spec.pods.scheduling.nodeSelector') && (Object.keys(cluster.data.spec.pods.scheduling.nodeSelector).length > 0))
+                        )"
+                    >
                         <li>
                             <strong class="sectionTitle">Pods Scheduling</strong>
                             <ul>
-                                <li v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeSelector')">
+                                <li v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeSelector') && (Object.keys(cluster.data.spec.pods.scheduling.nodeSelector).length > 0)">
                                     <strong class="sectionTitle">Node Selectors</strong>
                                     <ul>
                                         <li v-for="(value, key) in cluster.data.spec.pods.scheduling.nodeSelector">
@@ -591,7 +628,7 @@
                                         <li v-for="(toleration, index) in cluster.data.spec.pods.scheduling.tolerations">
                                             <strong class="sectionTitle">Toleration #{{ index+1 }}</strong>
                                             <ul>
-                                                <li>
+                                                <li v-if="toleration.key.length">
                                                     <strong class="label">Key:</strong>
                                                     <span class="value">{{ toleration.key }}</span>
                                                 </li>
@@ -599,7 +636,7 @@
                                                     <strong class="label">Operator:</strong>
                                                     <span class="value">{{ toleration.operator }}</span>
                                                 </li>
-                                                <li v-if="toleration.hasOwnProperty('value')">
+                                                <li v-if="toleration.hasOwnProperty('value') && (toleration.value != null) && (toleration.value.length)">
                                                     <strong class="label">Value:</strong>
                                                     <span class="value">{{ toleration.value }}</span>
                                                 </li>
@@ -615,28 +652,56 @@
                                         </li>
                                     </ul>
                                 </li>
-                                <li v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')">
+                                <li 
+                                    v-if="((hasProp(cluster, 'data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')) &&
+                                        (
+                                            (
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].hasOwnProperty('matchExpressions')) &&
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions.length) &&
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].hasOwnProperty('operator')) &&
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator.length)
+                                            ) ||
+                                            (
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].hasOwnProperty('matchFields')) &&
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchFields.length) &&
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchFields[0].hasOwnProperty('operator')) &&
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchFields[0].operator.length)
+                                            )
+                                        )
+                                    )"
+                                >
                                     <strong class="sectionTitle">Node Affinity:</strong><br/>
                                     <span>Required During Scheduling Ignored During Execution</span>
                                     <ul>
                                         <li v-for="(term, index) in cluster.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
                                             <strong class="sectionTitle">Term #{{ index+1 }}</strong>
                                             <ul>
-                                                <li v-if="term.hasOwnProperty('matchExpressions')">
+                                                <li 
+                                                    v-if="((term.hasOwnProperty('matchExpressions')) &&
+                                                        (term.matchExpressions.length) &&
+                                                        (term.matchExpressions[0].hasOwnProperty('operator')) &&
+                                                        (term.matchExpressions[0].operator.length)
+                                                    )"
+                                                >
                                                     <strong class="sectionTitle">Match Expressions</strong>
                                                     <ul>
                                                         <li v-for="(exp, index) in term.matchExpressions">
                                                             <strong class="sectionTitle">Expression #{{ index+1 }}</strong>
                                                             <ul>
-                                                                <li>
+                                                                <li v-if="exp.key.length">
                                                                     <strong class="label">Key:</strong>
                                                                     <span class="value">{{ exp.key }}</span>
                                                                 </li>
-                                                                <li>
+                                                                <li v-if="exp.operator.length">
                                                                     <strong class="label">Operator:</strong>
                                                                     <span class="value">{{ exp.operator }}</span>
                                                                 </li>
-                                                                <li v-if="exp.hasOwnProperty('values')">
+                                                                <li 
+                                                                    v-if="((exp.hasOwnProperty('values')) &&
+                                                                        (Object.keys(exp.values).length > 0) &&
+                                                                        (exp.values[0].length)                  
+                                                                    )"
+                                                                >
                                                                     <strong class="label">{{ (exp.values.length > 1) ? 'Values' : 'Value' }}:</strong>
                                                                     <span class="value">{{ (exp.values.length > 1) ? exp.values.join(', ') : exp.values[0] }}</span>
                                                                 </li>
@@ -644,21 +709,33 @@
                                                         </li>
                                                     </ul>
                                                 </li>
-                                                <li v-if="term.hasOwnProperty('matchFields')">
+                                                <li 
+                                                    v-if="((term.hasOwnProperty('matchFields')) &&
+                                                        (term.matchFields.length) &&
+                                                        (term.matchFields[0].hasOwnProperty('operator')) &&
+                                                        (term.matchFields[0].operator.length)
+                                                    
+                                                    )"
+                                                >
                                                     <strong class="sectionTitle">Match Fields</strong>
                                                     <ul>
                                                         <li v-for="(field, index) in term.matchFields">
                                                             <strong class="sectionTitle">Field #{{ index+1 }}</strong>
                                                             <ul>
-                                                                <li>
+                                                                <li v-if="field.key.length">
                                                                     <strong class="label">Key:</strong>
                                                                     <span class="value">{{ field.key }}</span>
                                                                 </li>
-                                                                <li>
+                                                                <li v-if="field.operator.length">
                                                                     <strong class="label">Operator:</strong>
                                                                     <span class="value">{{ field.operator }}</span>
                                                                 </li>
-                                                                <li v-if="field.hasOwnProperty('values')">
+                                                                <li 
+                                                                    v-if="((field.hasOwnProperty('values')) &&
+                                                                        (Object.keys(field.values).length > 0) &&
+                                                                        (field.values[0].length)
+                                                                    )"
+                                                                >
                                                                     <strong class="label">{{ (field.values.length > 1) ? 'Values' : 'Value' }}:</strong>
                                                                     <span class="value">{{ (field.values.length > 1) ? field.values.join(', ') : field.values[0] }}</span>
                                                                 </li>
@@ -670,28 +747,57 @@
                                         </li>
                                     </ul>
                                 </li>
-                                <li v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')">
+                                <li 
+                                    v-if="((hasProp(cluster, 'data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')) &&
+                                        (
+                                            (
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.hasOwnProperty('matchExpressions')) &&
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions.length) &&
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].hasOwnProperty('operator')) &&
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].operator.length)
+                                            ) ||
+                                            (
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.hasOwnProperty('matchFields')) &&
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchFields.length) &&
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchFields[0].hasOwnProperty('operator')) &&
+                                                (cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchFields[0].operator.length)
+                                            ) ||
+                                            (cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].hasOwnProperty('weight'))
+                                        )
+                                    )"
+                                >
                                     <strong class="sectionTitle">Node Affinity:</strong><br/>
                                     <span>Preferred During Scheduling Ignored During Execution</span>
                                     <ul>
                                         <li v-for="(term, index) in cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution">
                                             <strong class="sectionTitle">Term #{{ index+1 }}</strong>
                                             <ul>
-                                                <li v-if="term.preference.hasOwnProperty('matchExpressions')">
+                                                <li 
+                                                    v-if="((term.preference.hasOwnProperty('matchExpressions')) &&
+                                                        (term.preference.matchExpressions.length) &&
+                                                        (term.preference.matchExpressions[0].hasOwnProperty('operator')) &&
+                                                        (term.preference.matchExpressions[0].operator.length)
+                                                    )"
+                                                >
                                                     <strong class="sectionTitle">Match Expressions</strong>
                                                     <ul>
                                                         <li v-for="(exp, index) in term.preference.matchExpressions">
                                                             <strong class="sectionTitle">Expression #{{ index+1 }}</strong>
                                                             <ul>
-                                                                <li>
+                                                                <li v-if="exp.key.length">
                                                                     <strong class="label">Key:</strong>
                                                                     <span class="value">{{ exp.key }}</span>
                                                                 </li>
-                                                                <li>
+                                                                <li v-if="exp.operator.length">
                                                                     <strong class="label">Operator:</strong>
                                                                     <span class="value">{{ exp.operator }}</span>
                                                                 </li>
-                                                                <li v-if="exp.hasOwnProperty('values')">
+                                                                <li
+                                                                    v-if="((exp.hasOwnProperty('values')) &&
+                                                                        (Object.keys(exp.values).length > 0) &&
+                                                                        (exp.values[0].length)                  
+                                                                    )"
+                                                                >
                                                                     <strong class="label">{{ (exp.values.length > 1) ? 'Values' : 'Value' }}:</strong>
                                                                     <span class="value">{{ (exp.values.length > 1) ? exp.values.join(', ') : exp.values[0] }}</span>
                                                                 </li>
@@ -699,21 +805,32 @@
                                                         </li>
                                                     </ul>
                                                 </li>
-                                                <li v-if="term.preference.hasOwnProperty('matchFields')">
+                                                <li 
+                                                    v-if="((term.preference.hasOwnProperty('matchFields')) &&
+                                                        (term.preference.matchFields.length) &&
+                                                        (term.preference.matchFields[0].hasOwnProperty('operator')) &&
+                                                        (term.preference.matchFields[0].operator.length)
+                                                    )"
+                                                >
                                                     <strong class="sectionTitle">Match Fields</strong>
                                                     <ul>
                                                         <li v-for="(field, index) in term.preference.matchFields">
                                                             <strong class="sectionTitle">Field #{{ index+1 }}</strong>
                                                             <ul>
-                                                                <li>
+                                                                <li v-if="field.key.length">
                                                                     <strong class="label">Key:</strong>
                                                                     <span class="value">{{ field.key }}</span>
                                                                 </li>
-                                                                <li>
+                                                                <li v-if="field.operator.length">
                                                                     <strong class="label">Operator:</strong>
                                                                     <span class="value">{{ field.operator }}</span>
                                                                 </li>
-                                                                <li v-if="field.hasOwnProperty('values')">
+                                                                <li 
+                                                                    v-if="((field.hasOwnProperty('values')) &&
+                                                                        (Object.keys(field.values).length > 0) &&
+                                                                        (field.values[0].length)  
+                                                                    )"
+                                                                >
                                                                     <strong class="label">{{ (field.values.length > 1) ? 'Values' : 'Value' }}:</strong>
                                                                     <span class="value">{{ (field.values.length > 1) ? field.values.join(', ') : field.values[0] }}</span>
                                                                 </li>

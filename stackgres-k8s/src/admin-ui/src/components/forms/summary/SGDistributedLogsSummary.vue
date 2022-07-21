@@ -85,11 +85,11 @@
                     <li v-if="showDefaults || hasProp(crd, 'data.spec.postgresServices.replicas')">
                         <strong class="sectionTitle">Replicas Service</strong>
                         <ul>
-                            <li v-if="( showDefaults || hasProp(crd, 'data.spec.postgresServices.replicas.enabled') )">
+                            <li v-if="( showDefaults || (hasProp(crd, 'data.spec.postgresServices.replicas.enabled') && !crd.data.spec.postgresServices.replicas.enabled))">
                                 <strong class="label">Enable:</strong>
                                 <span class="value">{{ hasProp(crd, 'data.spec.postgresServices.replicas.enabled') ? (crd.data.spec.postgresServices.replicas.enabled ? 'YES' : 'NO') : 'YES' }}</span>
                             </li>
-                            <li v-if="( showDefaults || hasProp(crd, 'data.spec.postgresServices.replicas.type') )">
+                            <li v-if="( showDefaults || (hasProp(crd, 'data.spec.postgresServices.replicas.type') ) && (crd.data.spec.postgresServices.replicas.type != 'ClusterIP'))">
                                 <strong class="label">Type:</strong>
                                 <span class="value">{{ hasProp(crd, 'data.spec.postgresServices.replicas.type') ? crd.data.spec.postgresServices.replicas.type : 'ClusterIP' }}</span>
                             </li>
@@ -178,7 +178,7 @@
                             <li v-for="(toleration, index) in crd.data.spec.scheduling.tolerations">
                                 <strong class="sectionTitle">Toleration #{{ index+1 }}</strong>
                                 <ul>
-                                    <li>
+                                    <li v-if="toleration.key && toleration.key.length">
                                         <strong class="label">Key:</strong>
                                         <span class="value">{{ toleration.key }}</span>
                                     </li>
@@ -186,7 +186,7 @@
                                         <strong class="label">Operator:</strong>
                                         <span class="value">{{ toleration.operator }}</span>
                                     </li>
-                                    <li v-if="toleration.hasOwnProperty('value')">
+                                    <li v-if="toleration.hasOwnProperty('value') && (toleration.value != null) && (toleration.value.length)">
                                         <strong class="label">Value:</strong>
                                         <span class="value">{{ toleration.value }}</span>
                                     </li>

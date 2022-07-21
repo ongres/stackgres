@@ -25,7 +25,7 @@
             <li>
                 <strong class="sectionTitle">Specs</strong>
                 <ul>
-                    <li>
+                    <li v-if="crd.data.spec.op.length">
                         <strong class="label">Operation:</strong>
                         <span class="value capitalize">{{ splitUppercase(crd.data.spec.op) }}</span>
                     </li>
@@ -70,7 +70,7 @@
                             <li v-for="(toleration, index) in crd.data.spec.scheduling.tolerations">
                                 <strong class="label">Toleration #{{ index+1 }}</strong>
                                 <ul>
-                                    <li>
+                                    <li v-if="toleration.key && toleration.key.length">
                                         <strong class="label">Key:</strong>
                                         <span class="value">{{ toleration.key }}</span>
                                     </li>
@@ -78,7 +78,7 @@
                                         <strong class="label">Operator:</strong>
                                         <span class="value">{{ toleration.operator }}</span>
                                     </li>
-                                    <li v-if="toleration.hasOwnProperty('value')">
+                                    <li v-if="( toleration.hasOwnProperty('value') && (toleration.value != null) && toleration.value.length)">
                                         <strong class="label">Value:</strong>
                                         <span class="value">{{ toleration.value }}</span>
                                     </li>
@@ -114,7 +114,7 @@
             </li>
         </ul>
         
-        <ul class="section" v-else-if="crd.data.spec.op == 'securityUpgrade'">
+        <ul class="section" v-else-if="( (crd.data.spec.op == 'securityUpgrade') && (showDefaults || (crd.data.spec.securityUpgrade.method != 'InPlace')) )">
             <li>
                 <strong class="sectionTitle">Security Upgrade Details</strong>
                 <ul>
@@ -178,7 +178,7 @@
             </li>
         </ul>
 
-        <ul class="section" v-if="( (crd.data.spec.op == 'vacuum') && ( showDefaults || (crd.data.spec.vacuum.full || crd.data.spec.vacuum.freeze || crd.data.spec.vacuum.analyze || crd.data.spec.vacuum.disablePageSkipping) ) )">
+        <ul class="section" v-if="( (crd.data.spec.op == 'vacuum') && ( showDefaults || (crd.data.spec.vacuum.full || crd.data.spec.vacuum.freeze || !crd.data.spec.vacuum.analyze || crd.data.spec.vacuum.disablePageSkipping || hasProp(crd, 'data.spec.vacuum.databases')) ) )">
             <li>
                 <strong class="sectionTitle">Vacuum Details</strong>
                 <ul>
@@ -190,7 +190,7 @@
                         <strong class="label">Freeze:</strong>
                         <span class="value">{{ crd.data.spec.vacuum.freeze ? 'YES' : 'NO' }}</span>
                     </li>
-                    <li v-if="( showDefaults || crd.data.spec.vacuum.analyze )">
+                    <li v-if="( showDefaults || !crd.data.spec.vacuum.analyze )">
                         <strong class="label">Analyze:</strong>
                         <span class="value">{{ crd.data.spec.vacuum.analyze ? 'YES' : 'NO' }}</span>
                     </li>
@@ -207,20 +207,20 @@
                                     Database: 
                                     <span class="value">{{ db.name }}</span>
                                 </strong>
-                                <ul>
-                                    <li>
+                                <ul v-if="showDefaults || db.full || db.freeze || !db.analyze || db.disablePageSkipping">
+                                    <li v-if="showDefaults || db.full">
                                         <strong class="label">Full Vacuum:</strong>
                                         <span class="value">{{ db.full ? 'YES' : 'NO' }}</span>
                                     </li>
-                                    <li>
+                                    <li v-if="showDefaults || db.freeze">
                                         <strong class="label">Freeze:</strong>
                                         <span class="value">{{ db.freeze ? 'YES' : 'NO' }}</span>
                                     </li>
-                                    <li>
+                                    <li v-if="showDefaults || !db.analyze">
                                         <strong class="label">Analyze:</strong>
                                         <span class="value">{{ db.analyze ? 'YES' : 'NO' }}</span>
                                     </li>
-                                    <li>
+                                    <li v-if="showDefaults || db.disablePageSkipping">
                                         <strong class="label">Page Skipping:</strong>
                                         <span class="value">{{ db.disablePageSkipping ? 'NO' : 'YES' }}</span>
                                     </li>

@@ -26,13 +26,13 @@
                 <strong class="sectionTitle">Script Details</strong>
                 <ul>
                     
-                    <li v-if="showDefaults || hasProp(crd, 'spec.continueOnError')">
+                    <li v-if="showDefaults || (hasProp(crd, 'data.spec.continueOnError') && crd.data.spec.continueOnError)">
                         <strong class="label">Continue on Error:</strong>
-                        <span class="value">{{ hasProp(crd, 'spec.continueOnError') ? (crd.spec.continueOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
+                        <span class="value">{{ hasProp(crd, 'data.spec.continueOnError') ? (crd.data.spec.continueOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
                     </li>
-                    <li v-if="showDefaults || hasProp(crd, 'spec.managedVersions')">
+                    <li v-if="showDefaults || (hasProp(crd, 'data.spec.managedVersions') && !crd.data.spec.managedVersions)">
                         <strong class="label">Managed Versions:</strong>
-                        <span class="value">{{ hasProp(crd, 'spec.managedVersions') ? (crd.spec.managedVersions ? 'Enabled' : 'Disabled') : 'Enabled' }}</span>
+                        <span class="value">{{ hasProp(crd, 'data.spec.managedVersions') ? (crd.data.spec.managedVersions ? 'Enabled' : 'Disabled') : 'Enabled' }}</span>
                     </li>
                     <li>
                         <strong class="sectionTitle">Script Entries</strong>
@@ -58,11 +58,11 @@
                                         <strong class="label">User:</strong>
                                         <span class="value">{{ script.hasOwnProperty('user') ? script.database : 'postgres' }}</span>
                                     </li>
-                                    <li v-if="showDefaults || script.hasOwnProperty('retryOnError')">
+                                    <li v-if="showDefaults || (script.hasOwnProperty('retryOnError') && script.retryOnError)">
                                         <strong class="label">Retry on Error:</strong>
-                                        <span class="value">{{ script.hasOwnProperty('retryOnError') ? (script.retyOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
+                                        <span class="value">{{ script.hasOwnProperty('retryOnError') ? (script.retryOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
                                     </li>
-                                    <li v-if="showDefaults || script.hasOwnProperty('storeStatusInDatabase')">
+                                    <li v-if="showDefaults || (script.hasOwnProperty('storeStatusInDatabase') && script.storeStatusInDatabase)">
                                         <strong class="label">Store Status in Database:</strong>
                                         <span class="value">{{ script.hasOwnProperty('storeStatusInDatabase') ? (script.storeStatusInDatabase ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
                                     </li>
