@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -14,12 +14,12 @@ import java.util.Map;
 import java.util.Random;
 
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileRequests;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,22 +33,23 @@ class PatroniRequirementsFactoryTest {
   private PatroniRequirementsFactory patroniRequirementsFactory;
 
   @Mock
-  private StackGresClusterContext context;
+  private StackGresDistributedLogsContext context;
 
-  private StackGresCluster cluster;
+  private StackGresDistributedLogs distributedLogs;
 
   private StackGresProfile profile;
 
   @BeforeEach
   void setUp() {
     patroniRequirementsFactory = new PatroniRequirementsFactory();
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    distributedLogs = JsonUtil.readFromJson("distributedlogs/default.json",
+        StackGresDistributedLogs.class);
     profile = JsonUtil.readFromJson("stackgres_profiles/size-s.json", StackGresProfile.class);
   }
 
   @Test
   void givenACluster_itShouldCreateTheResourceWithCpuAndMemory() {
-    when(context.getSource()).thenReturn(cluster);
+    when(context.getSource()).thenReturn(distributedLogs);
     when(context.getProfile()).thenReturn(profile);
 
     var requirements = patroniRequirementsFactory.createResource(context);
@@ -70,9 +71,9 @@ class PatroniRequirementsFactoryTest {
 
   @Test
   void givenAClusterWithDisabledResource_itShouldCreateTheResourceWithoutCpuAndMemory() {
-    cluster.getSpec().setNonProductionOptions(new StackGresClusterNonProduction());
-    cluster.getSpec().getNonProductionOptions().setDisablePatroniResourceRequirements(true);
-    when(context.getSource()).thenReturn(cluster);
+    distributedLogs.getSpec().setNonProductionOptions(new StackGresDistributedLogsNonProduction());
+    distributedLogs.getSpec().getNonProductionOptions().setDisablePatroniResourceRequirements(true);
+    when(context.getSource()).thenReturn(distributedLogs);
 
     var requirements = patroniRequirementsFactory.createResource(context);
 
@@ -81,13 +82,13 @@ class PatroniRequirementsFactoryTest {
 
   @Test
   void givenAClusterWithEnabledSetResources_itShouldCreateTheResourceWithCpuAndMemory() {
-    cluster.getSpec().setNonProductionOptions(new StackGresClusterNonProduction());
-    cluster.getSpec().getNonProductionOptions().setEnableSetPatroniCpuRequests(true);
-    cluster.getSpec().getNonProductionOptions().setEnableSetPatroniMemoryRequests(true);
+    distributedLogs.getSpec().setNonProductionOptions(new StackGresDistributedLogsNonProduction());
+    distributedLogs.getSpec().getNonProductionOptions().setEnableSetPatroniCpuRequests(true);
+    distributedLogs.getSpec().getNonProductionOptions().setEnableSetPatroniMemoryRequests(true);
     profile.getSpec().setRequests(new StackGresProfileRequests());
     profile.getSpec().getRequests().setCpu(new Random().nextInt(32000) + "m");
     profile.getSpec().getRequests().setMemory(new Random().nextInt(32) + "Gi");
-    when(context.getSource()).thenReturn(cluster);
+    when(context.getSource()).thenReturn(distributedLogs);
     when(context.getProfile()).thenReturn(profile);
 
     var requirements = patroniRequirementsFactory.createResource(context);
@@ -112,7 +113,7 @@ class PatroniRequirementsFactoryTest {
     profile.getSpec().setHugePages(new StackGresProfileHugePages());
     profile.getSpec().getHugePages().setHugepages2Mi("2Mi");
     profile.getSpec().getHugePages().setHugepages1Gi("1Gi");
-    when(context.getSource()).thenReturn(cluster);
+    when(context.getSource()).thenReturn(distributedLogs);
     when(context.getProfile()).thenReturn(profile);
 
     var requirements = patroniRequirementsFactory.createResource(context);

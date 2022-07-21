@@ -48,7 +48,13 @@ public class BackupProfileDecorator extends AbstractProfileDecorator
             () -> Optional.of(job)
             .map(Job::getSpec)
             .map(JobSpec::getTemplate)
-            .map(PodTemplateSpec::getSpec)));
+            .map(PodTemplateSpec::getSpec),
+            Optional.ofNullable(context.getCluster().getSpec().getNonProductionOptions())
+            .map(StackGresClusterNonProduction::getEnableSetClusterCpuRequests)
+            .orElse(false),
+            Optional.ofNullable(context.getCluster().getSpec().getNonProductionOptions())
+            .map(StackGresClusterNonProduction::getEnableSetClusterMemoryRequests)
+            .orElse(false)));
   }
 
 }

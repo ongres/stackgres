@@ -6,7 +6,6 @@
 package io.stackgres.operator.validation.profile;
 
 import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotBlank;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
@@ -47,34 +46,6 @@ class ProfileConstraintValidatorTest extends ConstraintValidationTest<SgProfileR
     SgProfileReview review = getInvalidReview();
 
     checkNotNullErrorCause(StackGresProfile.class, "spec", review);
-  }
-
-  @Test
-  void nullCpu_shouldFail() {
-    SgProfileReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setCpu(null);
-    checkErrorCause(StackGresProfileSpec.class, "spec.cpu", review, NotBlank.class);
-  }
-
-  @Test
-  void blankCpu_shouldFail() {
-    SgProfileReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setCpu("");
-    checkErrorCause(StackGresProfileSpec.class, "spec.cpu", review, NotBlank.class);
-  }
-
-  @Test
-  void blankMemory_shouldFail() {
-    SgProfileReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setMemory("");
-    checkErrorCause(StackGresProfileSpec.class, "spec.memory", review, NotBlank.class);
-  }
-
-  @Test
-  void nullMemory_shouldFail() {
-    SgProfileReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setMemory("");
-    checkErrorCause(StackGresProfileSpec.class, "spec.memory", review, NotBlank.class);
   }
 
   @Test

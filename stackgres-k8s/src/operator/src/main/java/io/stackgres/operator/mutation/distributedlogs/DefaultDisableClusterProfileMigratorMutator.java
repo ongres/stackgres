@@ -49,7 +49,8 @@ public class DefaultDisableClusterProfileMigratorMutator implements DistributedL
         .map(StackGresDistributedLogsNonProduction::getDisableClusterResourceRequirements)
         .isEmpty()) {
       if (distributedLogs.getSpec().getNonProductionOptions() == null) {
-        distributedLogs.getSpec().setNonProduction(new StackGresDistributedLogsNonProduction());
+        distributedLogs.getSpec().setNonProductionOptions(
+            new StackGresDistributedLogsNonProduction());
       }
       distributedLogs.getSpec().getNonProductionOptions()
           .setDisablePatroniResourceRequirements(true);

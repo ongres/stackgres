@@ -73,7 +73,7 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
     return nonProduction;
   }
 
-  public void setNonProduction(StackGresDistributedLogsNonProduction nonProduction) {
+  public void setNonProductionOptions(StackGresDistributedLogsNonProduction nonProduction) {
     this.nonProduction = nonProduction;
   }
 

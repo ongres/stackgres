@@ -27,6 +27,18 @@ public class DistributedLogsNonProduction {
   @JsonProperty("disableClusterResourceRequirements")
   public Boolean disableClusterResourceRequirements;
 
+  @JsonProperty("enableSetPatroniCpuRequests")
+  public Boolean enableSetPatroniCpuRequests;
+
+  @JsonProperty("enableSetClusterCpuRequests")
+  public Boolean enableSetClusterCpuRequests;
+
+  @JsonProperty("enableSetPatroniMemoryRequests")
+  public Boolean enableSetPatroniMemoryRequests;
+
+  @JsonProperty("enableSetClusterMemoryRequests")
+  public Boolean enableSetClusterMemoryRequests;
+
   public Boolean getDisableClusterPodAntiAffinity() {
     return disableClusterPodAntiAffinity;
   }
@@ -51,10 +63,44 @@ public class DistributedLogsNonProduction {
     this.disableClusterResourceRequirements = disableClusterResourceRequirements;
   }
 
+  public Boolean getEnableSetPatroniCpuRequests() {
+    return enableSetPatroniCpuRequests;
+  }
+
+  public void setEnableSetPatroniCpuRequests(Boolean enableSetPatroniCpuRequests) {
+    this.enableSetPatroniCpuRequests = enableSetPatroniCpuRequests;
+  }
+
+  public Boolean getEnableSetClusterCpuRequests() {
+    return enableSetClusterCpuRequests;
+  }
+
+  public void setEnableSetClusterCpuRequests(Boolean enableSetClusterCpuRequests) {
+    this.enableSetClusterCpuRequests = enableSetClusterCpuRequests;
+  }
+
+  public Boolean getEnableSetPatroniMemoryRequests() {
+    return enableSetPatroniMemoryRequests;
+  }
+
+  public void setEnableSetPatroniMemoryRequests(Boolean enableSetPatroniMemoryRequests) {
+    this.enableSetPatroniMemoryRequests = enableSetPatroniMemoryRequests;
+  }
+
+  public Boolean getEnableSetClusterMemoryRequests() {
+    return enableSetClusterMemoryRequests;
+  }
+
+  public void setEnableSetClusterMemoryRequests(Boolean enableSetClusterMemoryRequests) {
+    this.enableSetClusterMemoryRequests = enableSetClusterMemoryRequests;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(disableClusterPodAntiAffinity, disableClusterResourceRequirements,
-        disablePatroniResourceRequirements);
+        disablePatroniResourceRequirements, enableSetClusterCpuRequests,
+        enableSetClusterMemoryRequests, enableSetPatroniCpuRequests,
+        enableSetPatroniMemoryRequests);
   }
 
   @Override
@@ -70,7 +116,11 @@ public class DistributedLogsNonProduction {
         && Objects.equals(disableClusterResourceRequirements,
             other.disableClusterResourceRequirements)
         && Objects.equals(disablePatroniResourceRequirements,
-            other.disablePatroniResourceRequirements);
+            other.disablePatroniResourceRequirements)
+        && Objects.equals(enableSetClusterCpuRequests, other.enableSetClusterCpuRequests)
+        && Objects.equals(enableSetClusterMemoryRequests, other.enableSetClusterMemoryRequests)
+        && Objects.equals(enableSetPatroniCpuRequests, other.enableSetPatroniCpuRequests)
+        && Objects.equals(enableSetPatroniMemoryRequests, other.enableSetPatroniMemoryRequests);
   }
 
   @Override

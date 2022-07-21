@@ -13,7 +13,6 @@ import java.util.Optional;
 
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -32,11 +31,9 @@ import io.stackgres.common.validation.FieldReference.ReferencedField;
 public class StackGresProfileSpec {
 
   @JsonProperty("cpu")
-  @NotBlank(message = "cpu must be provided")
   private String cpu;
 
   @JsonProperty("memory")
-  @NotBlank(message = "memory must be provided")
   private String memory;
 
   @JsonProperty("hugePages")
@@ -50,6 +47,10 @@ public class StackGresProfileSpec {
   @JsonProperty("initContainers")
   @Valid
   private Map<String, StackGresProfileContainer> initContainers;
+
+  @JsonProperty("requests")
+  @Valid
+  private StackGresProfileRequests requests;
 
   @ReferencedField("memory")
   interface Memory extends FieldReference {
@@ -130,9 +131,17 @@ public class StackGresProfileSpec {
     this.initContainers = initContainers;
   }
 
+  public StackGresProfileRequests getRequests() {
+    return requests;
+  }
+
+  public void setRequests(StackGresProfileRequests requests) {
+    this.requests = requests;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(containers, cpu, hugePages, initContainers, memory);
+    return Objects.hash(containers, cpu, hugePages, initContainers, memory, requests);
   }
 
   @Override
@@ -147,7 +156,7 @@ public class StackGresProfileSpec {
     return Objects.equals(containers, other.containers) && Objects.equals(cpu, other.cpu)
         && Objects.equals(hugePages, other.hugePages)
         && Objects.equals(initContainers, other.initContainers)
-        && Objects.equals(memory, other.memory);
+        && Objects.equals(memory, other.memory) && Objects.equals(requests, other.requests);
   }
 
   @Override

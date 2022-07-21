@@ -171,4 +171,65 @@ spec:
 
                               The amount of RAM is assigned to the specified init container.
                     required: ["cpu", "memory"]
+                requests:
+                  type: object
+                  description: |
+                    On containerized environments, when running production workloads, enforcing container's resources requirements request to be equals to the limit allow to achieve the highest level of performance. Doing so, reduces the chances of leaving
+                     the workload with less resources than it requires. It also allow to set [static CPU management policy](https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/#static-policy) that allows to guarantee a pod the usage exclusive CPUs on the node.
+
+                    There are cases where you may need to set resource requirement request to a different value than limit. This section allow to do so but requires to enable such feature in the `SGCluster` and `SGDistributedLogs` (see `.spec.nonProductionOptions` section for each of those custom resources).
+                  properties:
+                    cpu:
+                      type: string
+                      pattern: '^[1-9][0-9]*[m]?$'
+                      description: |
+                        CPU(s) (cores) used for every instance of a SGCluster. The suffix `m`
+                         specifies millicpus (where 1000m is equals to 1).
+
+                        The number of cores set is assigned to the patroni container (that runs both Patroni and PostgreSQL).
+                    memory:
+                      type: string
+                      pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                      description: |
+                        RAM allocated to every instance of a SGCluster. The suffix `Mi` or `Gi`
+                         specifies Mebibytes or Gibibytes, respectively.
+
+                        The amount of RAM set is assigned to the patroni container (that runs both Patroni and PostgreSQL).
+                    containers:
+                      type: object
+                      description: |
+                        The CPU(s) (cores) and RAM assigned to containers other than patroni container.
+                      additionalProperties:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                            pattern: '^[1-9][0-9]*[m]?$'
+                            description: |
+                              CPU(s) (cores) used for the specified Pod container. The suffix `m`
+                               specifies millicpus (where 1000m is equals to 1).
+                          memory:
+                            type: string
+                            pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                            description: |
+                              RAM allocated to the specified Pod container. The suffix `Mi` or `Gi`
+                               specifies Mebibytes or Gibibytes, respectively.
+                    initContainers:
+                      type: object
+                      description: The CPU(s) (cores) and RAM assigned to init containers.
+                      additionalProperties:
+                        type: object
+                        properties:
+                          cpu:
+                            type: string
+                            pattern: '^[1-9][0-9]*[m]?$'
+                            description: |
+                              CPU(s) (cores) used for the specified Pod init container. The suffix
+                               `m` specifies millicpus (where 1000m is equals to 1).
+                          memory:
+                            type: string
+                            pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi)$'
+                            description: |
+                              RAM allocated to the specified Pod init container. The suffix `Mi`
+                               or `Gi` specifies Mebibytes or Gibibytes, respectively.
               required: ["cpu", "memory"]

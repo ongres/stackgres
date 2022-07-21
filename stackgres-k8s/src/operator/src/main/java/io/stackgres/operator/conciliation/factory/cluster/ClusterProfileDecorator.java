@@ -54,24 +54,33 @@ public class ClusterProfileDecorator extends AbstractProfileDecorator
             () -> Optional.of(statefulSet)
             .map(StatefulSet::getSpec)
             .map(StatefulSetSpec::getTemplate)
-            .map(PodTemplateSpec::getSpec)));
+            .map(PodTemplateSpec::getSpec),
+            Optional.ofNullable(context.getSource().getSpec().getNonProductionOptions())
+            .map(StackGresClusterNonProduction::getEnableSetClusterCpuRequests)
+            .orElse(false),
+            Optional.ofNullable(context.getSource().getSpec().getNonProductionOptions())
+            .map(StackGresClusterNonProduction::getEnableSetClusterMemoryRequests)
+            .orElse(false)));
   }
 
   @Override
   protected void setProfileContainers(StackGresProfile profile,
-      Supplier<Optional<PodSpec>> podSpecSupplier) {
+      Supplier<Optional<PodSpec>> podSpecSupplier,
+      boolean enableCpuRequests, boolean enableMemoryRequests) {
     podSpecSupplier.get()
         .map(PodSpec::getContainers)
         .stream()
         .flatMap(List::stream)
         .filter(container -> !Objects.equals(
             container.getName(), StackGresContainer.PATRONI.getName()))
-        .forEach(container -> setProfileForContainer(profile, podSpecSupplier, container));
+        .forEach(container -> setProfileForContainer(profile, podSpecSupplier, container,
+            enableCpuRequests, enableMemoryRequests));
     podSpecSupplier.get()
         .map(PodSpec::getInitContainers)
         .stream()
         .flatMap(List::stream)
-        .forEach(container -> setProfileForInitContainer(profile, podSpecSupplier, container));
+        .forEach(container -> setProfileForInitContainer(profile, podSpecSupplier, container,
+            enableCpuRequests, enableMemoryRequests));
   }
 
 }
