@@ -15,7 +15,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -110,14 +109,14 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
 
   @Override
   public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
-    return ImmutableMap.of(
+    return Map.of(
         StackGresContext.POSTGRES_VERSION_KEY,
         StackGresComponent.POSTGRESQL.get(context.getClusterContext().getCluster())
-        .findVersion(
+        .getVersion(
             context.getClusterContext().getCluster().getSpec().getPostgres().getVersion()),
         StackGresContext.PATRONI_VERSION_KEY,
         StackGresComponent.PATRONI.get(context.getClusterContext().getCluster())
-        .findLatestVersion());
+        .getLatestVersion());
   }
 
   @Override
