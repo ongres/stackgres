@@ -34,6 +34,9 @@ public class ProfileSpec {
   @JsonProperty("initContainers")
   private Map<String, ProfileContainer> initContainers;
 
+  @JsonProperty("requests")
+  private ProfileRequests requests;
+
   public String getCpu() {
     return cpu;
   }
@@ -74,9 +77,17 @@ public class ProfileSpec {
     this.initContainers = initContainers;
   }
 
+  public ProfileRequests getRequests() {
+    return requests;
+  }
+
+  public void setRequests(ProfileRequests requests) {
+    this.requests = requests;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(containers, cpu, hugePages, initContainers, memory);
+    return Objects.hash(containers, cpu, hugePages, initContainers, memory, requests);
   }
 
   @Override
@@ -91,7 +102,7 @@ public class ProfileSpec {
     return Objects.equals(containers, other.containers) && Objects.equals(cpu, other.cpu)
         && Objects.equals(hugePages, other.hugePages)
         && Objects.equals(initContainers, other.initContainers)
-        && Objects.equals(memory, other.memory);
+        && Objects.equals(memory, other.memory) && Objects.equals(requests, other.requests);
   }
 
   @Override

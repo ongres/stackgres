@@ -29,6 +29,18 @@ public class StackGresClusterNonProduction {
   @JsonProperty("disableClusterResourceRequirements")
   public Boolean disableClusterResourceRequirements;
 
+  @JsonProperty("enableSetPatroniCpuRequests")
+  public Boolean enableSetPatroniCpuRequests;
+
+  @JsonProperty("enableSetClusterCpuRequests")
+  public Boolean enableSetClusterCpuRequests;
+
+  @JsonProperty("enableSetPatroniMemoryRequests")
+  public Boolean enableSetPatroniMemoryRequests;
+
+  @JsonProperty("enableSetClusterMemoryRequests")
+  public Boolean enableSetClusterMemoryRequests;
+
   @JsonProperty("enabledFeatureGates")
   @ValidEnumList(enumClass = StackGresFeatureGates.class, allowNulls = true,
       message = "enabledFeatureGates must contain only babelfish-flavor")
@@ -58,6 +70,38 @@ public class StackGresClusterNonProduction {
     this.disableClusterResourceRequirements = disableClusterResourceRequirements;
   }
 
+  public Boolean getEnableSetPatroniCpuRequests() {
+    return enableSetPatroniCpuRequests;
+  }
+
+  public void setEnableSetPatroniCpuRequests(Boolean enableSetPatroniCpuRequests) {
+    this.enableSetPatroniCpuRequests = enableSetPatroniCpuRequests;
+  }
+
+  public Boolean getEnableSetClusterCpuRequests() {
+    return enableSetClusterCpuRequests;
+  }
+
+  public void setEnableSetClusterCpuRequests(Boolean enableSetClusterCpuRequests) {
+    this.enableSetClusterCpuRequests = enableSetClusterCpuRequests;
+  }
+
+  public Boolean getEnableSetPatroniMemoryRequests() {
+    return enableSetPatroniMemoryRequests;
+  }
+
+  public void setEnableSetPatroniMemoryRequests(Boolean enableSetPatroniMemoryRequests) {
+    this.enableSetPatroniMemoryRequests = enableSetPatroniMemoryRequests;
+  }
+
+  public Boolean getEnableSetClusterMemoryRequests() {
+    return enableSetClusterMemoryRequests;
+  }
+
+  public void setEnableSetClusterMemoryRequests(Boolean enableSetClusterMemoryRequests) {
+    this.enableSetClusterMemoryRequests = enableSetClusterMemoryRequests;
+  }
+
   public List<String> getEnabledFeatureGates() {
     return enabledFeatureGates;
   }
@@ -69,7 +113,9 @@ public class StackGresClusterNonProduction {
   @Override
   public int hashCode() {
     return Objects.hash(disableClusterPodAntiAffinity, disableClusterResourceRequirements,
-        disablePatroniResourceRequirements, enabledFeatureGates);
+        disablePatroniResourceRequirements, enableSetClusterCpuRequests,
+        enableSetClusterMemoryRequests, enableSetPatroniCpuRequests, enableSetPatroniMemoryRequests,
+        enabledFeatureGates);
   }
 
   @Override
@@ -86,6 +132,10 @@ public class StackGresClusterNonProduction {
             other.disableClusterResourceRequirements)
         && Objects.equals(disablePatroniResourceRequirements,
             other.disablePatroniResourceRequirements)
+        && Objects.equals(enableSetClusterCpuRequests, other.enableSetClusterCpuRequests)
+        && Objects.equals(enableSetClusterMemoryRequests, other.enableSetClusterMemoryRequests)
+        && Objects.equals(enableSetPatroniCpuRequests, other.enableSetPatroniCpuRequests)
+        && Objects.equals(enableSetPatroniMemoryRequests, other.enableSetPatroniMemoryRequests)
         && Objects.equals(enabledFeatureGates, other.enabledFeatureGates);
   }
 

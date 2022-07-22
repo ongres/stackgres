@@ -36,7 +36,7 @@ public class DbOpsProfileDecorator extends AbstractProfileDecorator
   public void decorate(StackGresDbOpsContext context, Iterable<? extends HasMetadata> resources) {
     if (Optional.of(context.getCluster().getSpec())
         .map(StackGresClusterSpec::getNonProductionOptions)
-        .map(StackGresClusterNonProduction::getDisablePatroniResourceRequirements)
+        .map(StackGresClusterNonProduction::getDisableClusterResourceRequirements)
         .orElse(false)) {
       return;
     }
@@ -48,7 +48,13 @@ public class DbOpsProfileDecorator extends AbstractProfileDecorator
             () -> Optional.of(job)
             .map(Job::getSpec)
             .map(JobSpec::getTemplate)
-            .map(PodTemplateSpec::getSpec)));
+            .map(PodTemplateSpec::getSpec),
+            Optional.ofNullable(context.getCluster().getSpec().getNonProductionOptions())
+            .map(StackGresClusterNonProduction::getEnableSetClusterCpuRequests)
+            .orElse(false),
+            Optional.ofNullable(context.getCluster().getSpec().getNonProductionOptions())
+            .map(StackGresClusterNonProduction::getEnableSetClusterMemoryRequests)
+            .orElse(false)));
   }
 
 }

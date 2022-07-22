@@ -175,3 +175,7 @@ The following options should NOT be enabled in a production environment.
 | disableClusterPodAntiAffinity      |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} |
 | disablePatroniResourceRequirements |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disablePatroniResourceRequirements >}} |
 | disableClusterResourceRequirements |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disableClusterResourceRequirements >}} |
+| enableSetPatroniCpuRequests        |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.enableSetPatroniCpuRequests >}} |
+| enableSetClusterCpuRequests        |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.enableSetClusterCpuRequests >}} |
+| enableSetPatroniMemoryRequests     |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.enableSetPatroniMemoryRequests >}} |
+| enableSetClusterMemoryRequests     |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.enableSetClusterMemoryRequests >}} |

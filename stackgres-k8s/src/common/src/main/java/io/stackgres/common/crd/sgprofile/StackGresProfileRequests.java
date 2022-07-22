@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgprofile;
 
+import java.util.Map;
 import java.util.Objects;
 
 import javax.validation.Valid;
@@ -18,7 +19,7 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class StackGresProfileContainer {
+public class StackGresProfileRequests {
 
   @JsonProperty("cpu")
   private String cpu;
@@ -26,9 +27,13 @@ public class StackGresProfileContainer {
   @JsonProperty("memory")
   private String memory;
 
-  @JsonProperty("hugePages")
+  @JsonProperty("containers")
   @Valid
-  private StackGresProfileHugePages hugePages;
+  private Map<String, StackGresProfileContainer> containers;
+
+  @JsonProperty("initContainers")
+  @Valid
+  private Map<String, StackGresProfileContainer> initContainers;
 
   public String getCpu() {
     return cpu;
@@ -46,17 +51,25 @@ public class StackGresProfileContainer {
     this.memory = memory;
   }
 
-  public StackGresProfileHugePages getHugePages() {
-    return hugePages;
+  public Map<String, StackGresProfileContainer> getContainers() {
+    return containers;
   }
 
-  public void setHugePages(StackGresProfileHugePages hugePages) {
-    this.hugePages = hugePages;
+  public void setContainers(Map<String, StackGresProfileContainer> containers) {
+    this.containers = containers;
+  }
+
+  public Map<String, StackGresProfileContainer> getInitContainers() {
+    return initContainers;
+  }
+
+  public void setInitContainers(Map<String, StackGresProfileContainer> initContainers) {
+    this.initContainers = initContainers;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(cpu, hugePages, memory);
+    return Objects.hash(containers, cpu, initContainers, memory);
   }
 
   @Override
@@ -64,11 +77,12 @@ public class StackGresProfileContainer {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresProfileContainer)) {
+    if (!(obj instanceof StackGresProfileRequests)) {
       return false;
     }
-    StackGresProfileContainer other = (StackGresProfileContainer) obj;
-    return Objects.equals(cpu, other.cpu) && Objects.equals(hugePages, other.hugePages)
+    StackGresProfileRequests other = (StackGresProfileRequests) obj;
+    return Objects.equals(containers, other.containers) && Objects.equals(cpu, other.cpu)
+        && Objects.equals(initContainers, other.initContainers)
         && Objects.equals(memory, other.memory);
   }
 

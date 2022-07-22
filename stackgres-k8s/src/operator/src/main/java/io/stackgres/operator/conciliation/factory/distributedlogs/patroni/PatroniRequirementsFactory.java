@@ -17,6 +17,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProd
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
+import io.stackgres.common.crd.sgprofile.StackGresProfileRequests;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
@@ -37,14 +38,30 @@ public class PatroniRequirementsFactory
     final var profile = source.getProfile();
 
     final ResourceRequirements podResources = new ResourceRequirements();
-    final var requests = new HashMap<String, Quantity>();
+    final Quantity cpuLimit = new Quantity(profile.getSpec().getCpu());
+    final Quantity memoryLimit = new Quantity(profile.getSpec().getMemory());
     final var limits = new HashMap<String, Quantity>();
-    final Quantity cpu = new Quantity(profile.getSpec().getCpu());
-    final Quantity memory = new Quantity(profile.getSpec().getMemory());
-    requests.put("cpu", cpu);
-    requests.put("memory", memory);
-    limits.put("cpu", cpu);
-    limits.put("memory", memory);
+    limits.put("cpu", cpuLimit);
+    limits.put("memory", memoryLimit);
+    final Quantity cpuRequest = Optional.of(profile.getSpec())
+        .map(StackGresProfileSpec::getRequests)
+        .map(StackGresProfileRequests::getCpu)
+        .map(Quantity::new)
+        .filter(q -> Optional.ofNullable(source.getSource().getSpec().getNonProductionOptions())
+            .map(StackGresDistributedLogsNonProduction::getEnableSetPatroniCpuRequests)
+            .orElse(false))
+        .orElse(cpuLimit);
+    final Quantity memoryRequest = Optional.of(profile.getSpec())
+        .map(StackGresProfileSpec::getRequests)
+        .map(StackGresProfileRequests::getMemory)
+        .map(Quantity::new)
+        .filter(q -> Optional.ofNullable(source.getSource().getSpec().getNonProductionOptions())
+            .map(StackGresDistributedLogsNonProduction::getEnableSetPatroniMemoryRequests)
+            .orElse(false))
+        .orElse(memoryLimit);
+    final var requests = new HashMap<String, Quantity>();
+    requests.put("cpu", cpuRequest);
+    requests.put("memory", memoryRequest);
     setHugePages1Gi(profile, requests, limits);
     setHugePages2Mi(profile, requests, limits);
     podResources.setRequests(Map.copyOf(requests));

@@ -1003,6 +1003,38 @@ spec:
                         It is a best practice, on containerized environments, when running production workloads, to enforce container's resources requirements.
 
                         By default, StackGres will configure resource requirements for all the containers. Set this property to true to prevent StackGres from setting container's resources requirements (except for patroni container, see `disablePatroniResourceRequirements`).
+                    enableSetPatroniCpuRequests:
+                      type: boolean
+                      description: |
+                        On containerized environments, when running production workloads, enforcing container's cpu requirements request to be equals to the limit allow to achieve the highest level of performance. Doing so, reduces the chances of leaving
+                         the workload with less cpu than it requires. It also allow to set [static CPU management policy](https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/#static-policy) that allows to guarantee a pod the usage exclusive CPUs on the node.
+
+                        By default, StackGres will configure cpu requirements to have the same limit and request for the patroni container. Set this property to true to prevent StackGres from setting patroni container's cpu requirements request equals to the limit
+                         when `.spec.requests.cpu` is configured in the referenced `SGInstanceProfile`.
+                    enableSetClusterCpuRequests:
+                      type: boolean
+                      description: |
+                        On containerized environments, when running production workloads, enforcing container's cpu requirements request to be equals to the limit allow to achieve the highest level of performance. Doing so, reduces the chances of leaving
+                         the workload with less cpu than it requires. It also allow to set [static CPU management policy](https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/#static-policy) that allows to guarantee a pod the usage exclusive CPUs on the node.
+
+                        By default, StackGres will configure cpu requirements to have the same limit and request for all the containers. Set this property to true to prevent StackGres from setting container's cpu requirements request equals to the limit (except for patroni container, see `enablePatroniCpuRequests`)
+                         when `.spec.requests.containers.<container name>.cpu` `.spec.requests.initContainers.<container name>.cpu` is configured in the referenced `SGInstanceProfile`.
+                    enableSetPatroniMemoryRequests:
+                      type: boolean
+                      description: |
+                        On containerized environments, when running production workloads, enforcing container's memory requirements request to be equals to the limit allow to achieve the highest level of performance. Doing so, reduces the chances of leaving
+                         the workload with less memory than it requires.
+
+                        By default, StackGres will configure memory requirements to have the same limit and request for the patroni container. Set this property to true to prevent StackGres from setting patroni container's memory requirements request equals to the limit
+                         when `.spec.requests.memory` is configured in the referenced `SGInstanceProfile`.
+                    enableSetClusterMemoryRequests:
+                      type: boolean
+                      description: |
+                        On containerized environments, when running production workloads, enforcing container's memory requirements request to be equals to the limit allow to achieve the highest level of performance. Doing so, reduces the chances of leaving
+                         the workload with less memory than it requires.
+
+                        By default, StackGres will configure memory requirements to have the same limit and request for all the containers. Set this property to true to prevent StackGres from setting container's memory requirements request equals to the limit (except for patroni container, see `enablePatroniCpuRequests`)
+                         when `.spec.requests.containers.<container name>.memory` `.spec.requests.initContainers.<container name>.memory` is configured in the referenced `SGInstanceProfile`.
                     enabledFeatureGates:
                       type: array
                       description: |
