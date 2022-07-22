@@ -956,6 +956,10 @@
                                 </td>
                                 <td class="firstLetter" colspan="2">
                                     {{ extInfo.abstract }}
+                                    <template v-if="(ext.name == 'timescaledb_tsl')">
+                                        <hr>
+                                        The license for this extension is not open source. Please check licensing details with the creators of the extension.
+                                    </template>
                                 </td>
                             </template>
                         </tr>

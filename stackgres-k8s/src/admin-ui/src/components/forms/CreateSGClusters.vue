@@ -211,17 +211,28 @@
 
             <fieldset class="step" :class="(currentStep == 'extensions') && 'active'" data-fieldset="extensions">
                 <div class="header">
-                    <h2>Postgres Extensions</h2>
+                    <h2>Postgres Extensions <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.extensions')"></span></h2>
                 </div>
                 
                 <div class="fields">
                     <div class="toolbar">
                         <div class="searchBar">
-                            <input id="keyword" v-model="searchExtension" class="search" placeholder="Search Extension..." autocomplete="off" data-field="spec.postgres.extensions">
+                            <label for="keyword">Search Extensions</label>
+                            <input id="keyword" v-model="searchExtension" class="search" placeholder="Enter text..." autocomplete="off" data-field="spec.postgres.extensions">
                             <a @click="clearExtFilters()" class="btn clear border keyword" v-if="searchExtension.length">CLEAR</a>
                         </div>
-                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.extensions')"></span>
+                        <div class="extLicense">
+                            <label for="extLicense">Extensions Licenses</label>
+                            <select v-model="extLicense" id="extLicense">
+                                <option value="opensource">Open Source (OSS/OSI)</option>
+                                <option value="nonopensource">Non Open Source</option>
+                            </select>
+                        </div>
                     </div>
+
+                    <p class="warning" v-if="(extLicense == 'nonopensource')">
+                        The extensions listed below are not open source. Please check licensing details with the creators of the extensions.
+                    </p>
                     
                     <div class="extHead">
                         <span class="install">Install</span>
@@ -233,7 +244,10 @@
                         <li class="extension notFound">
                             {{ searchExtension.length ? 'No extensions match your search terms...' : 'No extensions available for the postgres specs you selected...' }}
                         </li>
-                        <li v-for="(ext, index) in extensionsList[flavor][postgresVersion]" v-if="(!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)) && ext.versions.length" class="extension" :class="( (viewExtension == index) && !searchExtension.length) ? 'show' : ''">
+                        <li v-for="(ext, index) in extensionsList[flavor][postgresVersion]" 
+                            v-if="( ( (extLicense == 'opensource') && (ext.name != 'timescaledb_tsl') ) || ( (extLicense == 'nonopensource') && (ext.name == 'timescaledb_tsl') ) ) && (!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)) && ext.versions.length" 
+                            class="extension" 
+                            :class="( (viewExtension == index) && 'show')">
                             <label class="hoverTooltip">
                                 <input type="checkbox" class="plain enableExtension" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length || !ext.selectedVersion.length" :data-field="'spec.postgres.extensions.' + ext.name" />
                                 <span class="name">
@@ -248,12 +262,18 @@
                                     </select>
                                 </span>
                                 <span class="description firstLetter">
-                                    {{ ext.description }}
+                                    {{ ext.abstract }}
                                 </span>
                             </label>
                             <button type="button" class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
 
                             <div v-if="(viewExtension == index)" class="extDetails">
+                                <div class="header">
+                                    <h3>Description</h3>
+                                </div>
+                                <div class="description">
+                                    {{ ext.description }}
+                                </div>
                                 <div class="header">
                                     <h3>Tags</h3>
                                 </div>
@@ -1672,6 +1692,7 @@
                 postgresServicesReplicasType: 'ClusterIP',
                 postgresServicesReplicasAnnotations: [ { annotation: '', value: '' } ],
                 searchExtension: '',
+                extLicense: 'opensource',
                 extensionsList: {
                     vanilla: {
                         latest: []
@@ -2865,11 +2886,14 @@
     .searchBar {
         position: relative;
         display: block;
+        width: 70%;
+        float: left;
     }
+    
 
     .searchBar .clear {
         position: absolute;
-        top: 0;
+        top: 15px;
         right: 10px;
         border: 0;
         padding: 11px 0;
@@ -2878,6 +2902,11 @@
 
     .searchBar .clear:hover {
         background: transparent;
+    }
+
+    .extLicense {
+        width: 25%;
+        float: right;
     }
 
     .notCompatible svg {
@@ -2964,6 +2993,10 @@
 
     .extDetails {
         padding: 20px 13px 10px;
+    }
+
+    .extDetails .description {
+        line-height: 1.5;
     }
 
     .extHead .install {
@@ -3107,7 +3140,7 @@
     .extHead span.description, .extensionsList span.description {
         display: inline-block;
         margin-left: 15px;
-        width: 380px;
+        width: 515px;
     }
 
     .extensionsList span.description {
