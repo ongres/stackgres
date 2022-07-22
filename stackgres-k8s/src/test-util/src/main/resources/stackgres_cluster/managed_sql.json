@@ -1,0 +1,101 @@
+{
+  "kind": "SGCluster",
+  "apiVersion": "stackgres.io/v1",
+  "metadata": {
+    "annotations": {
+      "stackgres.io/operatorVersion": "1.2.0"
+    },
+    "creationTimestamp": "2019-09-27T09:09:34Z",
+    "generation": 1,
+    "name": "stackgres",
+    "namespace": "stackgres",
+    "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+  },
+  "spec": {
+    "instances": 1,
+    "postgres": {
+      "version": "13.4"
+    },
+    "replication": {
+      "mode": "async",
+      "role": "ha-read"
+    },
+    "sgInstanceProfile": "size-xs",
+    "initialData": {
+      "restore": {
+        "fromBackup": {
+          "name": "backup-with-default-storage-0-296"
+        }
+      }
+    },
+    "managedSql": {
+      "scripts": [{
+        "id": 0,
+        "sgScript": "test"
+      }]
+    },
+    "configurations": {
+      "sgPostgresConfig": "postgresconf",
+      "sgPoolingConfig": "pgbouncerconf",
+      "backupPath": "sgbackups.stackgres.io/stackgres/stackgres/11",
+      "sgBackupConfig": "backupconf"
+    },
+    "pods":{
+      "persistentVolume": {
+        "size": "5Gi",
+        "storageClass": "standard"
+      },
+      "disableConnectionPooling": false,
+      "disableMetricsExporter": false,
+      "disablePostgresUtil": false
+    },
+    "prometheusAutobind": "true",
+    "distributedLogs": {
+      "sgDistributedLogs": "distributedlogs"
+    },
+    "postgresServices": {
+      "primary": {
+        "enabled": true,
+        "type": "ClusterIP",
+        "externalIPs": [
+        	"13.33.108.129"
+        ]
+      },
+      "replicas": {
+        "enabled": true,
+        "type": "ClusterIP",
+        "externalIPs": [
+        	"13.33.108.129"
+        ]
+      }
+    },
+    "metadata": {
+      "annotations": {
+        "allResources": {
+          "allResourcesCustomAnnotation": "allResourcesCustomValue"
+        },
+        "clusterPods" : {
+          "podsCustomAnnotations": "podsCustomValue"
+        },
+        "primaryService": {
+          "servicesCustomAnnotation": "servicesCustomValue"
+        },
+        "replicasService": {
+          "servicesCustomAnnotation": "servicesCustomValue"
+        }
+      },
+      "labels": {
+        "clusterPods": {
+          "customLabel" : "customLabelValue"
+        }
+      }
+    }
+  },
+  "status": {
+    "managedSql": {
+      "scripts": [{
+        "id": 0
+      }]
+    }
+  }
+}

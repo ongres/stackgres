@@ -38,6 +38,7 @@ import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -164,6 +165,7 @@ public class RbacResource {
   protected List<String> getResourcesNamespaced() {
     List<String> resourcesNamespaced =
         List.of("pods", "secrets", "configmaps", "events", "pods/exec",
+            HasMetadata.getFullResourceName(StackGresScript.class),
             HasMetadata.getFullResourceName(StackGresObjectStorage.class),
             HasMetadata.getFullResourceName(StackGresBackupConfig.class),
             HasMetadata.getFullResourceName(StackGresBackup.class),

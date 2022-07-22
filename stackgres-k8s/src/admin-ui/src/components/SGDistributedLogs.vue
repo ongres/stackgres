@@ -151,7 +151,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="cluster.data.status.clusters.length">
-									<td class="label">Used on  <span class="helpTooltip" :data-tooltip="getTooltip('sgpoosgdistributedlogslingconfig.status.clusters')"></span></td>
+									<td class="label">Used on  <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.status.clusters')"></span></td>
 									<td class="usedOn" colspan="2">
 										<ul>
 											<li v-for="cluster in cluster.data.status.clusters">
@@ -219,7 +219,7 @@
                         <div class="postgresServices" v-if="hasProp(cluster, 'data.spec.postgresServices') && ( hasProp(cluster, 'data.spec.postgresServices.primary') || hasProp(cluster, 'data.spec.postgresServices.replicas') )">
                             <h2>Postgres Services <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices')"></span></h2>
 
-                            <table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="clusterConfig">
+                            <table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="crdDetails">
                                 <tbody>
                                     <tr>
                                         <td class="label capitalize" rowspan="3">

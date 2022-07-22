@@ -78,4 +78,10 @@ public class DistributedLogsResource
     super.update(resource);
   }
 
+  @Override
+  protected void updateSpec(StackGresDistributedLogs resourceToUpdate,
+      StackGresDistributedLogs resource) {
+    resourceToUpdate.setSpec(resource.getSpec());
+  }
+
 }

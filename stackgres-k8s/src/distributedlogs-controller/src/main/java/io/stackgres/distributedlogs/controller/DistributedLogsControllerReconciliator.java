@@ -77,8 +77,7 @@ public class DistributedLogsControllerReconciliator
   @Override
   protected ReconciliationResult<Void> reconcile(KubernetesClient client,
       StackGresDistributedLogsContext context) throws Exception {
-    boolean statusUpdated = false;
-    ReconciliationResult<Void> postgresBootstrapReconciliationResult =
+    ReconciliationResult<Boolean> postgresBootstrapReconciliationResult =
         postgresBootstrapReconciliator.reconcile(client, context);
     ReconciliationResult<Boolean> extensionReconciliationResult =
         extensionReconciliator.reconcile(client, context);
@@ -93,22 +92,24 @@ public class DistributedLogsControllerReconciliator
     }
     ReconciliationResult<Boolean> clusterReconciliationResult =
         clusterReconciliator.reconcile(client, context);
-    statusUpdated = statusUpdated || clusterReconciliationResult.result().orElse(false);
-    if (extensionReconciliationResult.result().orElse(false)
+    if (postgresBootstrapReconciliationResult.result().orElse(false)
+        || extensionReconciliationResult.result().orElse(false)
         || clusterReconciliationResult.result().orElse(false)) {
       final String podName = propertyContext.getString(
           DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME);
-      distributedLogsScheduler.updateStatus(context.getDistributedLogs(),
-          StackGresDistributedLogs::getStatus, (targetDistributedLogs, status) -> {
-            var podStatus = Optional.ofNullable(status)
+      distributedLogsScheduler.update(context.getDistributedLogs(),
+          (targetDistributedLogs, distributedLogsWithStatus) -> {
+            var podStatus = Optional.ofNullable(distributedLogsWithStatus.getStatus())
                 .map(StackGresDistributedLogsStatus::getPodStatuses)
                 .flatMap(podStatuses -> findPodStatus(podStatuses, podName))
                 .orElseThrow();
             if (targetDistributedLogs.getStatus() == null) {
               targetDistributedLogs.setStatus(new StackGresDistributedLogsStatus());
             }
-            targetDistributedLogs.getStatus().setArch(status.getArch());
-            targetDistributedLogs.getStatus().setOs(status.getOs());
+            targetDistributedLogs.getStatus().setArch(
+                distributedLogsWithStatus.getStatus().getArch());
+            targetDistributedLogs.getStatus().setOs(
+                distributedLogsWithStatus.getStatus().getOs());
             if (targetDistributedLogs.getStatus().getPodStatuses() == null) {
               targetDistributedLogs.getStatus().setPodStatuses(new ArrayList<>());
             }

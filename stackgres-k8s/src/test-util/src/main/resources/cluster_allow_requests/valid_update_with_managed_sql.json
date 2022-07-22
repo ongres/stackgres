@@ -1,0 +1,209 @@
+  {
+  "kind": "AdmissionReview",
+  "request": {
+    "uid": "e1bf674a-f85f-4305-ba25-271aba55e9b3",
+    "kind": {
+      "kind": "SGCluster",
+      "group": "stackgres.io",
+      "version": "v1"
+    },
+    "resource": {
+      "group": "stackgres.io",
+      "resource": "sgclusters",
+      "version": "v1"
+    },
+    "subResource": null,
+    "requestKind": {
+      "kind": "SGCluster",
+      "group": "stackgres.io",
+      "version": "v1"
+    },
+    "requestResource": {
+      "group": "stackgres.io",
+      "resource": "sgclusters",
+      "version": "v1"
+    },
+    "requestSubResource": null,
+    "name": null,
+    "namespace": "default",
+    "operation": "UPDATE",
+    "userInfo": {
+      "groups": [
+        "system:serviceaccounts",
+        "system:serviceaccounts:kube-system",
+        "system:authenticated"
+      ],
+      "uid": "516bc998-9eca-4176-945e-61c53c0fce28",
+      "username": "system:serviceaccount:kube-system:tiller"
+    },
+    "object": {
+      "kind": "SGCluster",
+      "apiVersion": "stackgres.io/v1",
+      "metadata": {
+        "creationTimestamp": "2019-09-27T09:09:34Z",
+        "generation": 1,
+        "name": "stackgres",
+        "namespace": "default",
+        "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+      },
+      "spec": {
+        "managedSql": {
+          "scripts": [{
+            "id": 0,
+            "sgScript": "stackgres-default"
+          },{
+            "id": 1,
+            "sgScript": "test1"
+          },{
+            "id": 2,
+            "sgScript": "test2"
+          },{
+            "id": 3,
+            "sgScript": "test3"
+          }]
+        },
+        "instances": 1,
+        "postgres": {
+          "version": "11.5"
+        },
+        "replication": {
+          "mode": "async",
+          "role": "ha-read"
+        },
+        "sgInstanceProfile": "size-xs",
+        "initialData": {
+          "restore": {
+            "fromBackup": {
+              "name": "backup-with-default-storage-0-296"
+            }
+          }
+        },
+        "configurations": {
+          "sgPostgresConfig": "postgresconf",
+          "backupPath": "sgbackups.stackgres.io/default/stackgres/11",
+          "sgBackupConfig": "backupconf",
+          "sgPoolingConfig": "pgbouncerconf"
+        },
+        "pods":{
+          "persistentVolume": {
+            "size": "5Gi",
+            "storageClass": "standard"
+          },
+          "disableConnectionPooling": false,
+          "disableMetricsExporter": false,
+          "disablePostgresUtil": false
+        },
+        "distributedLogs":{
+          "sgDistributedLogs": "distributedlogs"
+        }
+      },
+      "status": {
+        "managedSql": {
+          "scripts": [{
+            "id": 0
+          },{
+            "id": 1,
+            "scripts": [{
+              "id": 0,
+              "version": 0
+            }]
+          },{
+            "id": 2,
+            "scripts": []
+          },{
+            "id": 3
+          }]
+        }
+      }
+    },
+    "oldObject": {
+      "kind": "SGCluster",
+      "apiVersion": "stackgres.io/v1",
+      "metadata": {
+        "creationTimestamp": "2019-09-27T09:09:34Z",
+        "generation": 1,
+        "name": "stackgres",
+        "namespace": "default",
+        "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+      },
+      "spec": {
+        "managedSql": {
+          "scripts": [{
+            "id": 0,
+            "sgScript": "stackgres-default"
+          },{
+            "id": 1,
+            "sgScript": "test1"
+          },{
+            "id": 2,
+            "sgScript": "test2"
+          },{
+            "id": 3,
+            "sgScript": "test3"
+          }]
+        },
+        "instances": 1,
+        "postgres": {
+          "version": "11.5"
+        },
+        "replication": {
+          "mode": "async",
+          "role": "ha-read"
+        },
+        "sgInstanceProfile": "size-xs",
+        "initialData": {
+          "restore": {
+            "fromBackup": {
+              "name": "backup-with-default-storage-0-296"
+            }
+          }
+        },
+        "configurations": {
+          "sgPostgresConfig": "postgresconf",
+          "backupPath": "sgbackups.stackgres.io/default/stackgres/11",
+          "sgBackupConfig": "backupconf",
+          "sgPoolingConfig": "pgbouncerconf"
+        },
+        "pods":{
+          "persistentVolume": {
+            "size": "5Gi",
+            "storageClass": "standard"
+          },
+          "disableConnectionPooling": false,
+          "disableMetricsExporter": false,
+          "disablePostgresUtil": false
+        },
+        "distributedLogs":{
+          "sgDistributedLogs": "distributedlogs"
+        }
+      },
+      "status": {
+        "managedSql": {
+          "scripts": [{
+            "id": 0
+          },{
+            "id": 1,
+            "scripts": [{
+              "id": 0,
+              "version": 0
+            }]
+          },{
+            "id": 2,
+            "scripts": []
+          },{
+            "id": 3
+          }]
+        }
+      }
+    },
+    "options": {
+      "kind": "CreateOptions",
+      "apiVersion": "meta.k8s.io/v1",
+      "metadata": {},
+      "spec": null,
+      "status": null
+    },
+    "dryRun": false
+  },
+  "apiVersion": "admission.k8s.io/v1"
+}

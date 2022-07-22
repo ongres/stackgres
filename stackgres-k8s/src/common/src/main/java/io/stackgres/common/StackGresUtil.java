@@ -23,6 +23,7 @@ import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -150,6 +151,19 @@ public interface StackGresUtil {
     Seq.of(paths)
         .sorted()
         .map(Unchecked.function(Files::readAllBytes))
+        .forEach(messageDigest::update);
+    return HexFormat.of().withUpperCase().formatHex(messageDigest.digest());
+  }
+
+  /**
+   * Calculate MD5 hash of all strings.
+   */
+  static String getMd5Sum(String... strings) {
+    MessageDigest messageDigest = Unchecked
+        .supplier(() -> MessageDigest.getInstance("MD5")).get();
+    Seq.of(strings)
+        .filter(Objects::nonNull)
+        .map(string -> string.getBytes(StandardCharsets.UTF_8))
         .forEach(messageDigest::update);
     return HexFormat.of().withUpperCase().formatHex(messageDigest.digest());
   }

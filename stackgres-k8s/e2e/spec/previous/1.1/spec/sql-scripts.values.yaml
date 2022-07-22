@@ -10,7 +10,7 @@ cluster:
       size: 128Mi
   configurations:
     sgBackupConfig: null
-  initialData:
+  managedSql:
     scripts:
     - name: create-sakila-user
       scriptFrom:

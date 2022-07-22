@@ -82,6 +82,12 @@ public class InitReconciliationCycle implements ContainerFactory<StackGresCluste
                 .withValue(Boolean.FALSE.toString())
                 .build(),
             new EnvVarBuilder()
+                .withName(ClusterControllerProperty
+                    .CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL
+                    .getEnvironmentVariableName())
+                .withValue(Boolean.TRUE.toString())
+                .build(),
+            new EnvVarBuilder()
                 .withName("CLUSTER_CONTROLLER_LOG_LEVEL")
                 .withValue(System.getenv("OPERATOR_LOG_LEVEL"))
                 .build(),

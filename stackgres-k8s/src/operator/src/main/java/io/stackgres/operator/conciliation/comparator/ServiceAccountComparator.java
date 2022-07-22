@@ -43,11 +43,6 @@ public class ServiceAccountComparator extends AbstractComparator {
   }
 
   @Override
-  public boolean isResourceContentEqual(HasMetadata required, HasMetadata deployed) {
-    return super.isResourceContentEqual(required, deployed);
-  }
-
-  @Override
   public ArrayNode getRawJsonDiff(HasMetadata required, HasMetadata deployed) {
     final JsonNode source = PATCH_MAPPER.valueToTree(required.getMetadata());
     final JsonNode target = PATCH_MAPPER.valueToTree(deployed.getMetadata());

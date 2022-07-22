@@ -31,6 +31,14 @@ public interface ResourceUtil {
   Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
   Pattern INDEX_PATTERN = Pattern.compile("^.*-([0-9]+)$");
 
+  String KUBERNETES_NAME_KEY = "app.kubernetes.io/name";
+  String KUBERNETES_INSTANCE_KEY = "app.kubernetes.io/instance";
+  String KUBERNETES_VERSION_KEY = "app.kubernetes.io/version";
+  String KUBERNETES_COMPONENT_KEY = "app.kubernetes.io/component";
+  String KUBERNETES_PART_OF_KEY = "app.kubernetes.io/part-of";
+  String KUBERNETES_MANGED_BY_KEY = "app.kubernetes.io/managed-by";
+  String KUBERNETES_CREATED_BY_KEY = "app.kubernetes.io/created-by";
+
   /**
    * Filter metadata of resources to find if the name match in the provided list.
    *

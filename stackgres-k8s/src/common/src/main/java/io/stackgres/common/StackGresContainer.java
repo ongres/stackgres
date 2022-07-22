@@ -28,15 +28,15 @@ public enum StackGresContainer implements StackGresContainerProfile {
       ),
   POSTGRES_EXPORTER(StackGresKind.CLUSTER, "prometheus-postgres-exporter",
       cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
-      memory -> BigDecimal.valueOf(8).multiply(MEBIBYTES)
+      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
       ),
   POSTGRES_UTIL(StackGresKind.CLUSTER, "postgres-util",
       cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
-      memory -> BigDecimal.valueOf(8).multiply(MEBIBYTES)
+      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
       ),
   FLUENT_BIT(StackGresKind.CLUSTER, "fluent-bit",
       cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
-      memory -> BigDecimal.valueOf(8).multiply(MEBIBYTES)
+      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
       ),
   FLUENTD(StackGresKind.CLUSTER, "fluentd",
       cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))

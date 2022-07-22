@@ -61,6 +61,7 @@ import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -157,7 +158,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   @DisplayName("Scaling down StatefulSet without non disrputable Pods should result in the same"
       + " number of desired replicas")
   void scaleDownStatefulSetWithoutNonDisruptablePods_shouldResultInSameNumberOfDesiredReplicas() {
-    final int desiredReplicas = setUpDownscale(0, 0, PrimaryPosition.FIRST);
+    final int desiredReplicas = setUpDownscale(1, 0, 0, PrimaryPosition.FIRST);
 
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
@@ -175,7 +176,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   @DisplayName("Scaling up StatefulSet without non disrputable Pods should result in the same"
       + " number of desired replicas")
   void scaleUpWithoutNonDisrputablePods_shouldResultInTheSameNumberOfDesiredReplicas() {
-    final int desiredReplicas = setUpUpscale(0, 0, PrimaryPosition.FIRST);
+    final int desiredReplicas = setUpUpscale(1, 0, 0, PrimaryPosition.FIRST);
 
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
@@ -193,7 +194,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   @DisplayName("Scaling down StatefulSet with non disruptable Pods should result in the number of"
       + " desired replicas minus the disruptable Pods")
   void scalingDown_NumberOfDesiredReplicasMinusTheDisruptablePods() {
-    final int desiredReplicas = setUpDownscale(1, 0, PrimaryPosition.FIRST);
+    final int desiredReplicas = setUpDownscale(1, 1, 0, PrimaryPosition.FIRST);
 
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
@@ -211,7 +212,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   @DisplayName("Scaling up StatefulSet with disrputable Pods with index bigger than replicas"
       + " count should result in the same number of desired replicas minus the disruptable Pods")
   void scaleUpWithIndexBiggerThanReplicasCount_NumberOfDesiredReplicasMinusTheDisruptablePods() {
-    final int desiredReplicas = setUpUpscale(1, 1, PrimaryPosition.FIRST);
+    final int desiredReplicas = setUpUpscale(1, 1, 1, PrimaryPosition.FIRST);
 
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
@@ -229,7 +230,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   @DisplayName("Scaling up StatefulSet with non disrputable Pods with index lower than replicas"
       + " count should result in the same number of desired replicas and fix disruptable Label")
   void scaleUpWithIndexLowerThanReplicasCount_DesiredReplicasAndFixDisruptableLabel() {
-    final int desiredReplicas = setUpUpscale(1, -1, PrimaryPosition.FIRST_NONDISRUPTABLE);
+    final int desiredReplicas = setUpUpscale(1, 1, -1, PrimaryPosition.FIRST_NONDISRUPTABLE);
 
     ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
 
@@ -260,7 +261,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
       + " to be disrupted should result in the number of desired replicas minus one and make"
       + " the primary Pod non disruptable")
   void scaleDownPods_shouldResultDesiredReplicasMinusOneThePrimaryPodNonDisruptable() {
-    final int desiredReplicas = setUpDownscale(0, 0, PrimaryPosition.LAST_DISRUPTABLE);
+    final int desiredReplicas = setUpDownscale(1, 0, 0, PrimaryPosition.LAST_DISRUPTABLE);
 
     ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
 
@@ -294,7 +295,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
       + " and distance of 1 should result in the number of desired replicas minus one and"
       + " make the primary Pod non disruptable")
   void missingPrimaryPod_shouldResultDesiredReplicasMinusOneThePrimaryPodNonDisruptable() {
-    final int desiredReplicas = setUpNoScale(1, 1, PrimaryPosition.LAST_NONDISRUPTABLE_MISSING);
+    final int desiredReplicas = setUpNoScale(1, 1, 1, PrimaryPosition.LAST_NONDISRUPTABLE_MISSING);
 
     when(endpointsFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(new EndpointsBuilder()
@@ -338,7 +339,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
       + " non disruptable")
   void primaryPodWithPlchldrPods_shouldResultDesiredReplicasMinusOneThePrimaryPodNonDisruptable() {
     final int desiredReplicas =
-        setUpNoScaleWithPlaceholders(1, 1, PrimaryPosition.LAST_DISRUPTABLE);
+        setUpNoScaleWithPlaceholders(1, 1, 1, PrimaryPosition.LAST_DISRUPTABLE);
 
     when(endpointsFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(new EndpointsBuilder()
@@ -369,7 +370,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
       + " disruptible about to be disrupted should result in the number of desired replicas"
       + " minus the disruptable Pods")
   void scaleDownNonDisrputablePodsPrimaryPodNonDisruptible_DesiredReplicasMinusDisruptablePods() {
-    final int desiredReplicas = setUpDownscale(1, 0, PrimaryPosition.FIRST_NONDISRUPTABLE);
+    final int desiredReplicas = setUpDownscale(1, 1, 0, PrimaryPosition.FIRST_NONDISRUPTABLE);
 
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
@@ -388,7 +389,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
       + " disruptible and distance bigger than 0 should result in the number of desired replicas"
       + " minus the disruptable Pods")
   void scaleDownNonDisputPodsPrimaryPodNonDisrupDistBig0_DesiredReplicasMinusTheDisruptablePods() {
-    final int desiredReplicas = setUpDownscale(1, 1, PrimaryPosition.FIRST_NONDISRUPTABLE);
+    final int desiredReplicas = setUpDownscale(1, 1, 1, PrimaryPosition.FIRST_NONDISRUPTABLE);
 
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
@@ -413,7 +414,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   @Test
   void givenPodAnnotationChanges_shouldBeAppliedDirectlyToPods() {
-    final int replicas = setUpNoScale(0, 0, PrimaryPosition.FIRST);
+    final int replicas = setUpNoScale(1, 0, 0, PrimaryPosition.FIRST);
 
     final Map<String, String> requiredAnnotations = Map
         .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
@@ -454,7 +455,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   @Test
   void givenPodLabelsChanges_shouldBeAppliedDirectlyToPods() {
-    final int replicas = setUpNoScale(0, 0, PrimaryPosition.FIRST);
+    final int replicas = setUpNoScale(1, 0, 0, PrimaryPosition.FIRST);
 
     final Map<String, String> requiredLabels = Seq.seq(Map
         .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
@@ -493,8 +494,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
   }
 
   @Test
-  void givenPodOwnerReferenceChanges_shouldBeAppliedDirectlyToPods() {
-    setUpUpscale(0, 0, PrimaryPosition.FIRST);
+  void givenPodOwnerReferenceChanges_shouldBeAppliedDirectlyToPods(TestInfo testInfo) {
+    setUpUpscale(2, 0, 0, PrimaryPosition.FIRST);
 
     deployedStatefulSet.getMetadata().setUid(StringUtils.getRandomString());
     final List<OwnerReference> requiredOwnerReferences = getOwnerReferences(deployedStatefulSet);
@@ -515,7 +516,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
             "same-key", "new-value");
 
-    final int desiredReplicas = setUpNoScale(0, 0, PrimaryPosition.FIRST);
+    final int desiredReplicas = setUpNoScale(1, 0, 0, PrimaryPosition.FIRST);
     requiredStatefulSet.getSpec().getVolumeClaimTemplates().forEach(pvc -> pvc
         .getMetadata().setAnnotations(requiredAnnotations));
     final var deployedAnnotations = Seq.seq(pvcList).map(pvc -> Tuple
@@ -559,7 +560,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .of(StringUtils.getRandomString(), StringUtils.getRandomString(),
             "same-key", "new-value");
 
-    final int desiredReplicas = setUpNoScale(0, 0, PrimaryPosition.FIRST);
+    final int desiredReplicas = setUpNoScale(1, 0, 0, PrimaryPosition.FIRST);
     requiredStatefulSet.getSpec().getVolumeClaimTemplates().forEach(pvc -> pvc
         .getMetadata().setLabels(requiredLabels));
     final var deployedLabels = Seq.seq(pvcList).map(pvc -> Tuple
@@ -599,8 +600,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
     });
   }
 
-  private int setUpNoScale(int nonDisruptiblePods, int distance, PrimaryPosition primaryPosition) {
-    final int replicas = getRandomDesiredReplicas();
+  private int setUpNoScale(int min, int nonDisruptiblePods, int distance,
+      PrimaryPosition primaryPosition) {
+    final int replicas = getRandomDesiredReplicas(min);
 
     setUpPods(replicas, replicas, nonDisruptiblePods, true, distance, primaryPosition,
         false);
@@ -610,9 +612,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
     return replicas;
   }
 
-  private int setUpNoScaleWithPlaceholders(int afterDistancePods, int distance,
+  private int setUpNoScaleWithPlaceholders(int min, int afterDistancePods, int distance,
       PrimaryPosition primaryPosition) {
-    final int replicas = getRandomDesiredReplicas();
+    final int replicas = getRandomDesiredReplicas(min);
 
     setUpPods(replicas, replicas + 2, afterDistancePods, false, distance,
         primaryPosition, true);
@@ -622,9 +624,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
     return replicas;
   }
 
-  private int setUpDownscale(int nonDisruptiblePods, int distance,
+  private int setUpDownscale(int min, int nonDisruptiblePods, int distance,
       PrimaryPosition primaryPosition) {
-    final int desiredReplicas = getRandomDesiredReplicas();
+    final int desiredReplicas = getRandomDesiredReplicas(min);
 
     setUpPods(desiredReplicas, desiredReplicas + 1, nonDisruptiblePods, true, distance,
         primaryPosition, false);
@@ -634,8 +636,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
     return desiredReplicas;
   }
 
-  private int setUpUpscale(int nonDisruptiblePods, int distance, PrimaryPosition primaryPosition) {
-    final int desiredReplicas = getRandomDesiredReplicas();
+  private int setUpUpscale(int min, int nonDisruptiblePods, int distance,
+      PrimaryPosition primaryPosition) {
+    final int desiredReplicas = getRandomDesiredReplicas(min);
 
     setUpPods(desiredReplicas, desiredReplicas - 1, nonDisruptiblePods, true, distance,
         primaryPosition, false);
@@ -656,8 +659,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
     lenient().when(statefulSetWriter.update(any())).thenReturn(requiredStatefulSet);
   }
 
-  private int getRandomDesiredReplicas() {
-    return new Random().nextInt(10) + 1;
+  private int getRandomDesiredReplicas(int min) {
+    return new Random().nextInt(10) + min;
   }
 
   @SuppressWarnings("unchecked")

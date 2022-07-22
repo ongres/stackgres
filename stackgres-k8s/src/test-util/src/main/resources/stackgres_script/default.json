@@ -1,0 +1,57 @@
+{
+  "kind": "SGScript",
+  "apiVersion": "stackgres.io/v1",
+  "metadata": {
+    "annotations": {
+      "stackgres.io/operatorVersion": "1.2.0"
+    },
+    "creationTimestamp": "2019-09-27T09:09:34Z",
+    "generation": 1,
+    "name": "stackgres",
+    "namespace": "default",
+    "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+  },
+  "spec": {
+    "managedVersions": true,
+    "scripts": [{
+      "name": "test",
+      "id": 0,
+      "version": 0,
+      "retryOnError": true,
+      "script": "CREATE DATABASE IF NOT EXISTS test;"
+    },{
+      "id": 1,
+      "version": 0,
+      "wrapInTransaction": "serializable",
+      "storeStatusInDatabase": true,
+      "retryOnError": true,
+      "scriptFrom": {
+        "secretKeyRef": {
+          "name": "test",
+          "key": "test"
+        }
+      }
+    },{
+      "id": 2,
+      "version": 0,
+      "wrapInTransaction": "serializable",
+      "storeStatusInDatabase": true,
+      "retryOnError": true,
+      "scriptFrom": {
+        "configMapKeyRef": {
+          "name": "test",
+          "key": "test"
+        }
+      }
+    }]
+  },
+  "status": {
+    "scripts": [{
+      "id": 0
+    },{
+      "id": 1
+    },{
+      "id": 2
+    }]
+  }
+}

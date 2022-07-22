@@ -93,9 +93,7 @@ spec:
     {{- end }}
   sgInstanceProfile: '{{ .Values.cluster.sgInstanceProfile }}'
   {{- if .Values.cluster.initialData }}
-  {{- if or .Values.cluster.initialData.restore .Values.cluster.initialData.scripts }}
   initialData:
-  {{- end }}
   {{- if .Values.cluster.initialData.restore }}
     restore:
       fromBackup:
@@ -108,34 +106,15 @@ spec:
       downloadDiskConcurrency: {{ .Values.cluster.initialData.restore.downloadDiskConcurrency }}
     {{- end }}
   {{- end }}
-  {{- if .Values.cluster.initialData.scripts }}
-    scripts:
-  {{- range .Values.cluster.initialData.scripts }}
-    - {{- if .name }}
-      name: {{ .name }}
-      {{- end }}
-      {{- if .database }}
-      database: {{ .database }}
-      {{- end }}
-      {{- if .script }}
-      script: {{ .script }}
-      {{- end }}
-      {{- if .scriptFrom }}
-      {{- if or .scriptFrom.secretKeyRef .scriptFrom.configMapKeyRef }}
-      scriptFrom:
-        {{- if .scriptFrom.secretKeyRef }}
-        secretKeyRef:
-          name: {{ .scriptFrom.secretKeyRef.name }}
-          key: {{ .scriptFrom.secretKeyRef.key }}
-        {{- end }}
-        {{- if .scriptFrom.configMapKeyRef }}
-        configMapKeyRef:
-          name: {{ .scriptFrom.configMapKeyRef.name }}
-          key: {{ .scriptFrom.configMapKeyRef.key }}
-        {{- end }}
-      {{- end }}
-      {{- end }}
   {{- end }}
+  {{- if .Values.cluster.managedSql }}
+  managedSql:
+  {{- if .Values.cluster.managedSql.continueOnSGScriptError }}
+    continueOnSGScriptError: {{ .Values.cluster.managedSql.continueOnSGScriptError }}
+  {{- end }}
+  {{- if .Values.cluster.managedSql.scripts }}
+    scripts:
+    - sgScript: {{ $.Release.Name }}-scripts
   {{- end }}
   {{- end }}
   {{- if .Values.cluster.postgresServices }}
@@ -342,4 +321,4 @@ spec:
   {{- end }}
   {{- end }}
   {{- end }}
-{{ end }}
+{{- end }}

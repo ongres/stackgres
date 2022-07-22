@@ -14,22 +14,29 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgscript.StackGresScript;
 import org.jooq.lambda.Seq;
 
 public enum StackGresVersion {
 
+  UNDEFINED,
   V_1_1("1.1"),
   V_1_2("1.2"),
   V_1_3("1.3");
 
-  public static final StackGresVersion OLDEST = Seq.of(StackGresVersion.values())
-      .findFirst().orElseThrow();
+  public static final StackGresVersion OLDEST =
+      Seq.of(values()).findFirst().get();
 
-  public static final StackGresVersion LATEST = Seq.of(StackGresVersion.values())
-      .findLast().orElseThrow();
+  public static final StackGresVersion LATEST =
+      Seq.of(values()).findLast().get();
 
   final String version;
   final long versionAsNumber;
+
+  StackGresVersion() {
+    this.version = null;
+    this.versionAsNumber = -1;
+  }
 
   StackGresVersion(String version) {
     this.version = version;
@@ -98,6 +105,10 @@ public enum StackGresVersion {
 
   public static StackGresVersion getStackGresVersion(StackGresDistributedLogs distributedLogs) {
     return getStackGresVersionFromResource(distributedLogs);
+  }
+
+  public static StackGresVersion getStackGresVersion(StackGresScript script) {
+    return getStackGresVersionFromResource(script);
   }
 
   private static StackGresVersion getStackGresVersionFromResource(HasMetadata resource) {

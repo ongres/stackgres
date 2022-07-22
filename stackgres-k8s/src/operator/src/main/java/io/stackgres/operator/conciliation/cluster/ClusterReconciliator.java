@@ -86,19 +86,31 @@ public class ClusterReconciliator
   public void onPostReconciliation(StackGresCluster config) {
     statusManager.refreshCondition(config);
 
-    clusterScheduler.updateStatus(config,
-        StackGresCluster::getStatus, (targetCluster, status) -> {
+    clusterScheduler.update(config,
+        (targetCluster, clusterWithStatus) -> {
+          var targetOs = Optional.ofNullable(targetCluster.getStatus())
+              .map(StackGresClusterStatus::getOs)
+              .orElse(null);
+          var targetArch = Optional.ofNullable(targetCluster.getStatus())
+              .map(StackGresClusterStatus::getArch)
+              .orElse(null);
           var targetPodStatuses = Optional.ofNullable(targetCluster.getStatus())
               .map(StackGresClusterStatus::getPodStatuses)
               .orElse(null);
           var targetDbOps = Optional.ofNullable(targetCluster.getStatus())
               .map(StackGresClusterStatus::getDbOps)
               .orElse(null);
-          if (status != null) {
-            status.setPodStatuses(targetPodStatuses);
-            status.setDbOps(targetDbOps);
+          var targetManagedSql = Optional.ofNullable(targetCluster.getStatus())
+              .map(StackGresClusterStatus::getManagedSql)
+              .orElse(null);
+          if (clusterWithStatus.getStatus() != null) {
+            clusterWithStatus.getStatus().setOs(targetOs);
+            clusterWithStatus.getStatus().setArch(targetArch);
+            clusterWithStatus.getStatus().setPodStatuses(targetPodStatuses);
+            clusterWithStatus.getStatus().setDbOps(targetDbOps);
+            clusterWithStatus.getStatus().setManagedSql(targetManagedSql);
+            targetCluster.setStatus(clusterWithStatus.getStatus());
           }
-          targetCluster.setStatus(status);
         });
   }
 

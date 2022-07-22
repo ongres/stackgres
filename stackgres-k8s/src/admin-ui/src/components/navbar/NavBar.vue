@@ -264,7 +264,7 @@
 						if (typeof poolconfig == 'undefined')
 							missingCRDs.push({kind: 'SGPoolingConfig', name: cloneCRD.spec.configurations.sgPoolingConfig})
 
-						if ( vc.hasProp(cloneCRD, 'spec.configurations.backups.sgObjectStorage') ) {
+						if ( this.hasProp(cloneCRD, 'spec.configurations.backups.sgObjectStorage') ) {
 							let objectStorage = store.state.sgobjectstorages.find(p => (p.data.metadata.namespace == targetNamespace) && (p.data.metadata.name == cloneCRD.spec.configurations.backups.sgObjectStorage))
 							if (typeof objectStorage == 'undefined')
 								missingCRDs.push({kind: 'SGObjectStorage', name: cloneCRD.spec.configurations.backup.sgObjectStorage})

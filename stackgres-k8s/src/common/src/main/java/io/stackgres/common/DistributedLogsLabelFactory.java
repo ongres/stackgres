@@ -14,7 +14,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 public class DistributedLogsLabelFactory
     extends AbstractLabelFactoryForCluster<StackGresDistributedLogs> {
 
-  private final LabelMapperForCluster<StackGresDistributedLogs> labelMapper;
+  private final DistributedLogsLabelMapper labelMapper;
 
   @Inject
   public DistributedLogsLabelFactory(DistributedLogsLabelMapper labelMapper) {
@@ -22,7 +22,7 @@ public class DistributedLogsLabelFactory
   }
 
   @Override
-  public LabelMapperForCluster<StackGresDistributedLogs> labelMapper() {
+  public DistributedLogsLabelMapper labelMapper() {
     return labelMapper;
   }
 

@@ -91,6 +91,7 @@ public class PatroniReconciliator {
       boolean statusUpdated = reconcilePatroni(client, context);
       return new ReconciliationResult<>(statusUpdated);
     } catch (IOException | RuntimeException ex) {
+      LOGGER.error("An error occurred while reconciling patroni", ex);
       try {
         eventController.sendEvent(ClusterControllerEventReason.CLUSTER_CONTROLLER_ERROR,
             "An error occurred while reconciling patroni configuration: " + ex.getMessage(),

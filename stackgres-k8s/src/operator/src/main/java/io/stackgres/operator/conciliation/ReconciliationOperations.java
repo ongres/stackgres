@@ -5,9 +5,12 @@
 
 package io.stackgres.operator.conciliation;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -24,12 +27,35 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgscript.StackGresScriptList;
 import io.stackgres.common.prometheus.ServiceMonitor;
 import io.stackgres.common.prometheus.ServiceMonitorList;
 
 public interface ReconciliationOperations {
 
-  ImmutableMap<
+  List<Class<? extends HasMetadata>> RESOURCES_ORDER = List.of(
+      Secret.class,
+      ConfigMap.class,
+      ServiceAccount.class,
+      Role.class,
+      RoleBinding.class,
+      Endpoints.class,
+      Service.class,
+      ServiceMonitor.class,
+      Pod.class,
+      Job.class,
+      CronJob.class,
+      StatefulSet.class,
+      StackGresScript.class
+      );
+
+  Comparator<HasMetadata> RESOURCES_COMPARATOR = Comparator.comparingInt(
+      resource -> Optional.of(RESOURCES_ORDER.indexOf(resource.getClass()))
+          .filter(index -> index > -1)
+          .orElseGet(RESOURCES_ORDER::size));
+
+  Map<
       Class<? extends HasMetadata>,
       Function<
           KubernetesClient,
@@ -38,24 +64,26 @@ public interface ReconciliationOperations {
               ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>>
       IN_NAMESPACE_RESOURCE_OPERATIONS =
-      ImmutableMap.<Class<? extends HasMetadata>, Function<KubernetesClient,
+      Map.<Class<? extends HasMetadata>, Function<KubernetesClient,
           MixedOperation<? extends HasMetadata,
               ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>>builder()
-          .put(StatefulSet.class, client -> client.apps().statefulSets())
-          .put(Service.class, KubernetesClient::services)
-          .put(ServiceAccount.class, KubernetesClient::serviceAccounts)
-          .put(Role.class, client -> client.rbac().roles())
-          .put(RoleBinding.class, client -> client.rbac().roleBindings())
-          .put(Secret.class, KubernetesClient::secrets)
-          .put(ConfigMap.class, KubernetesClient::configMaps)
-          .put(Endpoints.class, KubernetesClient::endpoints)
-          .put(CronJob.class, client -> client.batch().v1beta1().cronjobs())
-          .put(Pod.class, KubernetesClient::pods)
-          .put(Job.class, client -> client.batch().v1().jobs())
-          .build();
+              ? extends Resource<? extends HasMetadata>>>>ofEntries(
+          Map.entry(Secret.class, KubernetesClient::secrets),
+          Map.entry(ConfigMap.class, KubernetesClient::configMaps),
+          Map.entry(ServiceAccount.class, KubernetesClient::serviceAccounts),
+          Map.entry(Role.class, client -> client.rbac().roles()),
+          Map.entry(RoleBinding.class, client -> client.rbac().roleBindings()),
+          Map.entry(Endpoints.class, KubernetesClient::endpoints),
+          Map.entry(Service.class, KubernetesClient::services),
+          Map.entry(Pod.class, KubernetesClient::pods),
+          Map.entry(Job.class, client -> client.batch().v1().jobs()),
+          Map.entry(CronJob.class, client -> client.batch().v1beta1().cronjobs()),
+          Map.entry(StatefulSet.class, client -> client.apps().statefulSets()),
+          Map.entry(StackGresScript.class, client -> client
+              .resources(StackGresScript.class, StackGresScriptList.class))
+          );
 
-  ImmutableMap<
+  Map<
       Class<? extends HasMetadata>,
       Function<
           KubernetesClient,
@@ -64,12 +92,12 @@ public interface ReconciliationOperations {
               ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>>
       ANY_NAMESPACE_RESOURCE_OPERATIONS =
-      ImmutableMap.<Class<? extends HasMetadata>, Function<KubernetesClient,
+      Map.<Class<? extends HasMetadata>, Function<KubernetesClient,
           MixedOperation<? extends HasMetadata,
               ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>>builder()
-          .put(ServiceMonitor.class, client -> client
+              ? extends Resource<? extends HasMetadata>>>>ofEntries(
+          Map.entry(ServiceMonitor.class, client -> client
               .resources(ServiceMonitor.class, ServiceMonitorList.class))
-          .build();
+          );
 
 }

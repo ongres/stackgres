@@ -13,4 +13,5 @@ import io.stackgres.operator.conciliation.factory.ContainerFactory;
 public interface ContainerFactoryDiscoverer<T extends ContainerContext> {
 
   List<ContainerFactory<T>> discoverContainers(T context);
+
 }

@@ -159,4 +159,11 @@ public class ObjectStorageResource extends AbstractRestServiceDependency<ObjectS
     secretFinder.findByNameAndNamespace(name, namespace)
         .ifPresent(secretWriter::delete);
   }
+
+  @Override
+  protected void updateSpec(StackGresObjectStorage resourceToUpdate,
+      StackGresObjectStorage resource) {
+    resourceToUpdate.setSpec(resource.getSpec());
+  }
+
 }

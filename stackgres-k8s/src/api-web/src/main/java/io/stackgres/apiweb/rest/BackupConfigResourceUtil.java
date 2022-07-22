@@ -16,19 +16,16 @@ import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 import org.jooq.lambda.tuple.Tuple4;
 
-public class BackupConfigResourceUtil {
+public interface BackupConfigResourceUtil {
 
-  public static final String S3COMPATIBLE_ACCESS_KEY = BackupStorageDtoUtil.S3COMPATIBLE_ACCESS_KEY;
-  public static final String S3COMPATIBLE_SECRET_KEY = BackupStorageDtoUtil.S3COMPATIBLE_SECRET_KEY;
+  String S3COMPATIBLE_ACCESS_KEY = BackupStorageDtoUtil.S3COMPATIBLE_ACCESS_KEY;
+  String S3COMPATIBLE_SECRET_KEY = BackupStorageDtoUtil.S3COMPATIBLE_SECRET_KEY;
 
-  BackupConfigResourceUtil() {
-  }
-
-  String secretName(BackupConfigDto resource) {
+  static String secretName(BackupConfigDto resource) {
     return BackupStorageDtoUtil.secretName(resource);
   }
 
-  Seq<Tuple2<String, Tuple4<String, Consumer<String>,
+  static Seq<Tuple2<String, Tuple4<String, Consumer<String>,
       SecretKeySelector, Consumer<SecretKeySelector>>>> extractSecretInfo(
       BackupConfigDto resource
   ) {

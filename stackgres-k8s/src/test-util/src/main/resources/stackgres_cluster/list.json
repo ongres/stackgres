@@ -117,31 +117,6 @@
         },
         "prometheusAutobind": true,
         "sgInstanceProfile": "size-xs",
-        "initialData": {
-          "scripts": [{
-            "name": "init",
-            "database": "stackgres",
-            "script": "CREATE TABLE table();"
-          }, {
-            "name": "script",
-            "database": "stackgres",
-            "scriptFrom": {
-              "secretKeyRef": {
-                "name": "script",
-                "key": "script"
-              }
-            }
-          }, {
-            "name": "script",
-            "database": "stackgres",
-            "scriptFrom": {
-              "configMapKeyRef": {
-                "name": "script",
-                "key": "script"
-              }
-            }
-          }]
-        },
         "pods":{
           "persistentVolume": {
             "size": "5Gi",

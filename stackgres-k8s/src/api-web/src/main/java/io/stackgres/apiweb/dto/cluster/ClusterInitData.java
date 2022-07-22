@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
@@ -23,23 +22,12 @@ public class ClusterInitData {
   @Valid
   private ClusterRestore restore;
 
-  @Valid
-  private List<ClusterScriptEntry> scripts;
-
   public ClusterRestore getRestore() {
     return restore;
   }
 
   public void setRestore(ClusterRestore restore) {
     this.restore = restore;
-  }
-
-  public List<ClusterScriptEntry> getScripts() {
-    return scripts;
-  }
-
-  public void setScripts(List<ClusterScriptEntry> scripts) {
-    this.scripts = scripts;
   }
 
   @Override
@@ -56,12 +44,11 @@ public class ClusterInitData {
       return false;
     }
     ClusterInitData that = (ClusterInitData) o;
-    return Objects.equals(restore, that.restore)
-        && Objects.equals(scripts, that.scripts);
+    return Objects.equals(restore, that.restore);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(restore, scripts);
+    return Objects.hash(restore);
   }
 }

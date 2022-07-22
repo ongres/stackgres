@@ -24,6 +24,7 @@ import javax.ws.rs.NotFoundException;
 import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.JdbcStatementTemplate;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.postgres.PostgresConnectionManager;
@@ -137,7 +138,7 @@ public class DistributedLogsDatabaseManager {
         .orElseThrow(() -> new NotFoundException(
             "Secret with username and password for user postgres can not be found."));
     return postgresConnectionManager.getConnection(
-        serviceName + "." + namespace,
+        serviceName + "." + namespace, EnvoyUtil.PG_PORT,
         database,
         SUPERUSER_USER_NAME,
         ResourceUtil.decodeSecret(secret.getData()

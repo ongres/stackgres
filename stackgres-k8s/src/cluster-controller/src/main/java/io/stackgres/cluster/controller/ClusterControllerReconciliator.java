@@ -38,6 +38,7 @@ public class ClusterControllerReconciliator
   private final PgBouncerReconciliator pgbouncerReconciliator;
   private final ClusterPersistentVolumeSizeReconciliator pvcSizeReconciliator;
   private final PatroniReconciliator patroniReconciliator;
+  private final ManagedSqlReconciliator managedSqlReconciliator;
   private final String podName;
 
   @Inject
@@ -48,6 +49,7 @@ public class ClusterControllerReconciliator
     this.pgbouncerReconciliator = parameters.pgbouncerReconciliator;
     this.pvcSizeReconciliator = parameters.clusterPersistentVolumeSizeReconciliator;
     this.patroniReconciliator = parameters.patroniReconciliator;
+    this.managedSqlReconciliator = parameters.managedSqlReconciliator;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
   }
@@ -61,6 +63,7 @@ public class ClusterControllerReconciliator
     this.pgbouncerReconciliator = null;
     this.pvcSizeReconciliator = null;
     this.patroniReconciliator = null;
+    this.managedSqlReconciliator = null;
     this.podName = null;
   }
 
@@ -89,7 +92,7 @@ public class ClusterControllerReconciliator
       cluster.getStatus().getPodStatuses().add(podStatus);
     }
 
-    ReconciliationResult<Void> postgresBootstrapReconciliatorResult =
+    ReconciliationResult<Boolean> postgresBootstrapReconciliatorResult =
         postgresBootstrapReconciliator.reconcile(client, context);
     ReconciliationResult<Boolean> extensionReconciliationResult =
         extensionReconciliator.reconcile(client, context);
@@ -97,33 +100,16 @@ public class ClusterControllerReconciliator
         pgbouncerReconciliator.reconcile(client, context);
     ReconciliationResult<Boolean> patroniReconciliationResult =
         patroniReconciliator.reconcile(client, context);
+    ReconciliationResult<Boolean> managedSqlReconciliationResult =
+        managedSqlReconciliator.reconcile(client, context);
 
     if (podStatusMissing
+        || postgresBootstrapReconciliatorResult.result().orElse(false)
         || extensionReconciliationResult.result().orElse(false)
         || patroniReconciliationResult.result().orElse(false)) {
-      clusterScheduler.updateStatus(cluster,
-          StackGresCluster::getStatus, (targetCluster, status) -> {
-            var podStatus = Optional.ofNullable(status)
-                .map(StackGresClusterStatus::getPodStatuses)
-                .flatMap(podStatuses -> findPodStatus(podStatuses, podName))
-                .orElseThrow();
-            if (targetCluster.getStatus() == null) {
-              targetCluster.setStatus(new StackGresClusterStatus());
-            }
-            targetCluster.getStatus().setArch(status.getArch());
-            targetCluster.getStatus().setOs(status.getOs());
-            if (targetCluster.getStatus().getPodStatuses() == null) {
-              targetCluster.getStatus().setPodStatuses(new ArrayList<>());
-            }
-            findPodStatus(targetCluster.getStatus().getPodStatuses(), podName)
-                .ifPresentOrElse(
-                    targetPodStatus -> {
-                      targetCluster.getStatus().getPodStatuses().set(
-                          targetCluster.getStatus().getPodStatuses().indexOf(targetPodStatus),
-                          podStatus);
-                    },
-                    () -> targetCluster.getStatus().getPodStatuses().add(podStatus));
-          });
+      clusterScheduler.update(cluster,
+          (targetCluster, clusterWithStatus) -> updateClusterPodStatus(
+              targetCluster, clusterWithStatus));
     }
 
     if (extensionReconciliationResult.result().orElse(false)) {
@@ -149,7 +135,32 @@ public class ClusterControllerReconciliator
     return postgresBootstrapReconciliatorResult
         .join(extensionReconciliationResult)
         .join(pgbouncerReconciliationResult)
-        .join(patroniReconciliationResult);
+        .join(patroniReconciliationResult)
+        .join(managedSqlReconciliationResult);
+  }
+
+  private void updateClusterPodStatus(StackGresCluster targetCluster,
+      StackGresCluster clusterWithStatus) {
+    var podStatus = Optional.ofNullable(clusterWithStatus.getStatus())
+        .map(StackGresClusterStatus::getPodStatuses)
+        .flatMap(podStatuses -> findPodStatus(podStatuses, podName))
+        .orElseThrow();
+    if (targetCluster.getStatus() == null) {
+      targetCluster.setStatus(new StackGresClusterStatus());
+    }
+    targetCluster.getStatus().setArch(clusterWithStatus.getStatus().getArch());
+    targetCluster.getStatus().setOs(clusterWithStatus.getStatus().getOs());
+    if (targetCluster.getStatus().getPodStatuses() == null) {
+      targetCluster.getStatus().setPodStatuses(new ArrayList<>());
+    }
+    findPodStatus(targetCluster.getStatus().getPodStatuses(), podName)
+        .ifPresentOrElse(
+            targetPodStatus -> {
+              targetCluster.getStatus().getPodStatuses().set(
+                  targetCluster.getStatus().getPodStatuses().indexOf(targetPodStatus),
+                  podStatus);
+            },
+            () -> targetCluster.getStatus().getPodStatuses().add(podStatus));
   }
 
   private Optional<StackGresClusterPodStatus> findPodStatus(
@@ -169,6 +180,7 @@ public class ClusterControllerReconciliator
     @Inject ClusterControllerPropertyContext propertyContext;
     @Inject ClusterPersistentVolumeSizeReconciliator clusterPersistentVolumeSizeReconciliator;
     @Inject PatroniReconciliator patroniReconciliator;
+    @Inject ManagedSqlReconciliator managedSqlReconciliator;
   }
 
 }

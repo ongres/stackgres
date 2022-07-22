@@ -11,23 +11,18 @@ import static java.lang.String.format;
 import static org.junit.Assert.assertThrows;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.resource.ResourceUtil;
-import io.stackgres.operator.conciliation.cluster.ClusterRequiredResourcesGenerator;
 import junit.framework.AssertionFailedError;
-import org.jooq.lambda.Unchecked;
 import org.junit.jupiter.api.Test;
 
 public abstract class AbstractRequiredResourceDecoratorTest<T> {
@@ -158,18 +153,6 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
             asserThatLabelIsComplaint(label);
           });
     }
-  }
-
-  public StackGresClusterScriptEntry getTestInitScripts() {
-    final StackGresClusterScriptEntry script = new StackGresClusterScriptEntry();
-    script.setName("test-script");
-    script.setDatabase("db");
-    script.setScript(Unchecked.supplier(() -> Resources
-        .asCharSource(ClusterRequiredResourcesGenerator.class.getResource(
-            "/prometheus-postgres-exporter/init.sql"),
-            StandardCharsets.UTF_8)
-        .read()).get());
-    return script;
   }
 
 }

@@ -8,6 +8,7 @@ export const mixin = {
 
     data: function(){
       return {
+        nullVal: null,
         confirmDeleteName: '',
         pagination: {
           amount: 0,
@@ -420,6 +421,35 @@ export const mixin = {
             });
           }
 
+          if ( vc.iCan('list', 'sgscripts') && ( !kind.length || (kind == 'sgscripts') ) ){
+            /* Scripts Data */
+            sgApi
+            .get('sgscripts')
+            .then( function(response){
+  
+              vc.lookupCRDs('sgscripts', response.data);
+    
+              var sgscripts = [];
+    
+              response.data.forEach(function(item, index){
+                if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                  store.commit('updateNamespaces', item.metadata.namespace);
+                
+                if(!index)
+                  store.commit('flushResource', 'sgscripts')
+  
+                store.commit('updateScripts', { 
+                  name: item.metadata.name,
+                  data: item
+                });
+              })
+  
+            }).catch(function(err) {
+              console.log(err);
+              vc.checkAuthError(err);
+            });
+          }
+
         })
         .catch(function(err) {
           console.log(err);
@@ -510,15 +540,19 @@ export const mixin = {
       },
   
       setContentTooltip( el = '', warning = false ) {
-        const tooltip = `<div class="contentTooltip show">
-          <div class="close"></div>
-          <div class="info` + (warning ? ' warning' : '') + `">
-            <span class="close">CLOSE</span>
-            <div class="content">` + $(el).html() + `</div>
-          </div>
-        </div>`;
 
-        $('#main').append(tooltip);
+        if($('#main .contentTooltip.show .content').last().html() != $(el).html()) {
+          const tooltip = `<div class="contentTooltip show">
+            <div class="close"></div>
+            <div class="info` + (warning ? ' warning' : '') + `">
+              <span class="close">CLOSE</span>
+              <div class="content">` + $(el).html() + `</div>
+            </div>
+          </div>`;
+
+          $('#main').append(tooltip);
+        }
+        
       },
   
       helpTooltip(kind, field) {
@@ -710,14 +744,6 @@ export const mixin = {
 
             break;
           
-          case 'SGBackups':
-            crd = JSON.parse(JSON.stringify(store.state.sgbackups.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
-            break;
-          
-          case 'SGInstanceProfiles':
-            crd = JSON.parse(JSON.stringify(store.state.sginstanceprofiles.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
-            break;
-          
           case 'SGPoolingConfigs':
             crd = JSON.parse(JSON.stringify(store.state.sgpoolconfigs.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
             break;
@@ -726,12 +752,8 @@ export const mixin = {
             crd = JSON.parse(JSON.stringify(store.state.sgpgconfigs.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
             break;
           
-          case 'SGDistributedLogs':
-            crd = JSON.parse(JSON.stringify(store.state.sgdistributedlogs.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
-            break;
-
-          case 'SGObjectStorages':
-            crd = JSON.parse(JSON.stringify(store.state.sgobjectstorages.find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+          default:
+            crd = JSON.parse(JSON.stringify(store.state[kind.toLowerCase()].find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
             break;
         }
         
@@ -1260,9 +1282,27 @@ export const mixin = {
           return 'Enabled'
         else
           return 'Disabled'
-      }
-            
+      },
+
+      moveArrayItem( parentArray, itemIndex, moveDir) {
+              
+        if(moveDir == 'up') {
+            let el = parentArray[itemIndex-1];
+            parentArray[itemIndex-1] = parentArray[itemIndex];
+            parentArray[itemIndex] = el;
+        } else if(moveDir == 'down') {
+            let el = parentArray[itemIndex+1];
+            parentArray[itemIndex+1] = parentArray[itemIndex];
+            parentArray[itemIndex] = el;
+        }
+      },
+
+      spliceArray: function( prop, index ) {
+        prop.splice( index, 1 );
+      },
+
     },
+      
   
     beforeCreate: function() {
       store.commit('setTooltipsText','Click on a question mark to get help and tips about that field.');

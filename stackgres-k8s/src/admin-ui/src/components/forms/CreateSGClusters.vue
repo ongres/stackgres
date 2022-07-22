@@ -16,7 +16,7 @@
                     <button type="button" class="btn arrow prev" @click="currentStep = formSteps[(currentStepIndex - 1)]" :disabled="( currentStepIndex == 0 )"></button>
             
                     <template v-for="(step, index) in formSteps"  v-if="( ((index < 3) && !advancedMode) || advancedMode)">
-                        <li @click="currentStep = step; checkValidSteps(_data, 'steps')" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' ), (errorStep.includes(step) && 'notValid')]" v-if="!( (step == 'initialization') && editMode && !initScripts.length && !restoreBackup.length )" :data-step="step">
+                        <li @click="currentStep = step; checkValidSteps(_data, 'steps')" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' ), (errorStep.includes(step) && 'notValid')]" v-if="!( editMode && (step == 'initialization') && !restoreBackup.length )" :data-step="step">
                             {{ step }}
                         </li>
                     </template>
@@ -283,10 +283,7 @@
                     <div class="row-50">
                         <div class="col">
                             <label>Managed Backups</label>  
-                            <label for="managedBackups" data-field="spec.configurations.backups" class="switch yes-no">
-                                Enable
-                                <input type="checkbox" id="managedBackups" v-model="managedBackups" data-switch="YES">
-                            </label>
+                            <label for="managedBackups" class="switch yes-no" data-field="spec.configurations.backups">Enable<input type="checkbox" id="managedBackups" v-model="managedBackups" data-switch="YES"></label>
                             <span class="helpTooltip" data-tooltip="If enabled, allows specifying backup configurations to automate periodical backups"></span>
                         </div>
 
@@ -413,9 +410,9 @@
                     <h2>Cluster Initialization</h2>
                 </div>
 
-                <template  v-if="!editMode || (editMode && (restoreBackup.length || initScripts.length) )">
+                <template  v-if="!editMode || (editMode && restoreBackup.length)">
 
-                    <p>Use this option to initialize the cluster with the data from an existing backup or by running some custom SQL scripts.</p><br/><br/>
+                    <p>Use this option to initialize the cluster with the data from an existing backup.</p><br/><br/>
 
                     <div class="fields">
                         <template v-if="( (editMode && restoreBackup.length) || !editMode )">
@@ -464,85 +461,232 @@
                             </fieldset>
                             <br/><br/><br/>
                         </template>
-
-                        <div class="scriptFieldset repeater" v-if="( (editMode && initScripts.length) || !editMode )">
-                            <div class="header">
-                                <h3 for="spec.initialData.scripts">
-                                    Initialization Scripts
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts')"></span>
-                                </h3>
-                            </div>
-
-                            <template v-if="initScripts.length">                            
-                                <fieldset v-for="(script, index) in initScripts">
-                                    <div class="header">
-                                        <h4>Script #{{ index+1 }} <template v-if="script.hasOwnProperty('name') && script.name.length">–</template> <span class="scriptTitle">{{ script.name }}</span></h4>
-                                        <a class="addRow" @click="spliceArray(initScripts, index)" v-if="!editMode">Delete</a>
-                                    </div>    
-                                    <div class="row">
-                                        <div class="row-50">
-                                            <template v-if="script.hasOwnProperty('name')">
-                                                <div class="col">
-                                                    <label for="spec.initialData.scripts.name">Name</label>
-                                                    <input v-model="script.name" placeholder="Type a name..." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.name')"></span>
-                                                </div>
-                                            </template>
-
-                                            <template v-if="script.hasOwnProperty('database')">
-                                                <div class="col">
-                                                    <label for="spec.initialData.scripts.database">Database</label>
-                                                    <input v-model="script.database" placeholder="Type a database name..." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.database')"></span>
-                                                </div>
-                                            </template>
-                                        </div>
-
-                                        <div class="row-100">
-                                            <div class="col">
-                                                <label for="spec.initialData.scripts.scriptSource">Script Source</label>
-                                                <select v-model="scriptSource[index]" @change="setScriptSource(index)" :disabled="editMode">
-                                                    <option value="raw">Raw script</option>
-                                                    <option value="secretKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.secretScript')">From Secret</option>
-                                                    <option value="configMapKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.configMapScript')">From ConfigMap</option>
-                                                </select>
-                                                <span class="helpTooltip" :data-tooltip="'Determine the source from which the script should be loaded. Possible values are: \n* Raw Script \n* From Secret \n* From ConfigMap.'"></span>
-                                            </div>
-                                            <div class="col">                                                
-                                                <template  v-if="(!editMode && (scriptSource[index] == 'raw') ) || (editMode && script.hasOwnProperty('script') )">
-                                                    <label for="spec.initialData.scripts.script" class="script">Script</label> <span class="uploadScript" v-if="!editMode">or <a @click="getScriptFile(index)" class="uploadLink">upload a file</a></span> 
-                                                    <input :id="'scriptFile'+index" type="file" @change="uploadScript" class="hide">
-                                                
-                                                    <textarea v-model="script.script" placeholder="Type a script..." :disabled="editMode"></textarea>
-                                                </template>
-                                                <template v-else-if="(!editMode && (scriptSource[index] != 'raw') )">
-                                                    <div class="header">
-                                                        <h3 :for="'spec.initialData.scripts.scriptFrom.properties' + scriptSource[index]" class="capitalize">{{ splitUppercase(scriptSource[index]) }}</h3>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.' + scriptSource[index])"></span> 
-                                                    </div>
-                                                    
-                                                    <label :for="'spec.initialData.scripts.scriptFrom.' + scriptSource[index] + '.properties.properties.name'">Name</label>
-                                                    <input v-model="script.scriptFrom[scriptSource[index]].name" placeholder="Type a name.." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.' + scriptSource[index] + '.properties.name')"></span>
-
-                                                    <label :for="'spec.initialData.scripts.scriptFrom.' + scriptSource[index] + '.properties.properties.key'">Key</label>
-                                                    <input v-model="script.scriptFrom[scriptSource[index]].key" placeholder="Type a key.." :disabled="editMode" autocomplete="off">
-                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.scripts.scriptFrom.properties.' + scriptSource[index] + '.properties.key')"></span>
-                                                </template>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </template>
-                            <div v-if="!editMode" class="fieldsetFooter" :class="!initScripts.length && 'topBorder'">
-                                <a class="addRow" @click="pushScript()" v-if="!editMode">Add Script</a>
-                            </div>
-                        </div>
                     </div>
                 </template>
-                <template v-else-if="editMode && !restoreBackup.length && !initScripts.length">
+                <template v-else-if="editMode && !restoreBackup.length">
                     <p class="warning orange">Data initialization is only available on cluster creation</p>
                 </template>
+            </fieldset>
+
+            <fieldset class="step" :class="(currentStep == 'scripts') && 'active'" data-fieldset="scripts">
+                <div class="header">
+                    <h2>Managed SQL</h2>
+                </div>
+
+                <p>Use this option to run a set of scripts on your cluster.</p><br/><br/>
+
+                <div class="fields">
+                    <div class="scriptFieldset repeater">
+                        <div class="header">
+                            <h3 for="spec.managedSql.scripts">
+                                Scripts
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.managedSql.scripts')"></span>
+                            </h3>
+                        </div>
+
+                        <div class="row row-50 noMargin">
+                            <div class="col">
+                                <label for="spec.managedSql.continueOnSGScriptError">Continue on SGScripts Error</label>  
+                                <label for="continueOnSGScriptError" class="switch yes-no" data-field="spec.managedSql.continueOnSGScriptError">
+                                    Enable
+                                    <input type="checkbox" id="continueOnSGScriptError" v-model="managedSql.continueOnSGScriptError" data-switch="NO">
+                                </label>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.managedSql.continueOnSGScriptError').replace(/true/g, 'Enabled').replace('false','Disabled')"></span>
+                            </div>
+                        </div>
+                        
+                        <fieldset v-for="(baseScript, baseIndex) in managedSql.scripts">
+                            <div class="header">
+                                <h4>SGScript #{{baseIndex+1 }}</h4>
+                                <div class="addRow" v-if="(baseScript.sgScript != (name + '-default') )">
+                                    <a @click="spliceArray(managedSql.scripts, baseIndex) && spliceArray(scriptSource, baseIndex)">Delete Script</a>
+                                    <template v-if="baseIndex">
+                                        <span class="separator"></span>
+                                        <a @click="moveArrayItem(managedSql.scripts, baseIndex, 'up')">Move Up</a>
+                                    </template>
+                                    <template  v-if="( (baseIndex + 1) != managedSql.scripts.length)">
+                                        <span class="separator"></span>
+                                        <a @click="moveArrayItem(managedSql.scripts, baseIndex, 'down')">Move Down</a>
+                                    </template>
+                                </div>
+                            </div>
+
+                             <div class="row-50 noMargin">
+                                <div class="col">
+                                    <label for="spec.managedSql.scripts.scriptSource">Source</label>
+                                    <select v-model="scriptSource[baseIndex].base" :disabled="editMode && isDefaultScript(baseScript.sgScript)" @change="setBaseScriptSource(baseIndex)" :data-field="'spec.managedSql.scripts.scriptSource[' + baseIndex + ']'">
+                                        <option value="" selected>Select source script...</option>
+                                        <option v-for="script in sgscripts" v-if="( (script.data.metadata.namespace == $route.params.namespace) && ( (!editMode && !isDefaultScript(baseScript.sgScript) || (editMode) ) ) )">
+                                            {{ script.name }}
+                                        </option>
+                                        <template v-if="iCan('create', 'sgscripts', $route.params.namespace)">
+                                            <option value="" disabled>– OR –</option>
+                                            <option value="createNewScript">Create new script</option>
+                                        </template>
+                                    </select>
+                                    <span class="helpTooltip" :data-tooltip="'Determine the source from which the script should be loaded.'"></span>
+                                </div>
+                            </div>
+
+                            <template v-if="( ( !editMode &&(scriptSource[baseIndex].base == 'createNewScript') ) || (editMode && baseScript.hasOwnProperty('scriptSpec')) )">
+                                <hr/>
+
+                                <div class="row-50 noMargin">
+                                    <div class="col">
+                                        <label for="spec.managedSql.scripts.continueOnError">Continue on Error</label>  
+                                        <label :for="'continueOnError-' + baseIndex" class="switch yes-no" :data-field="'spec.managedSql.scripts[' + baseIndex + '].continueOnError'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                            Enable
+                                            <input type="checkbox" :id="'continueOnError-' + baseIndex" v-model="managedSql.scripts[baseIndex].scriptSpec.continueOnError" data-switch="NO" :disabled="isDefaultScript(baseScript.sgScript)">
+                                        </label>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.continueOnError').replace(/true/g, 'Enabled').replace('false','Disabled')"></span>
+                                    </div>
+                                    <div class="col">
+                                        <label for="spec.managedSql.scripts.managedVersions">Managed Versions</label>  
+                                        <label :for="'managedVersions-' + baseIndex" class="switch yes-no" :data-field="'spec.managedSql.scripts[' + baseIndex + '].managedVersions'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                            Enable
+                                            <input type="checkbox" :id="'managedVersions-' + baseIndex" v-model="managedSql.scripts[baseIndex].scriptSpec.managedVersions" data-switch="NO" :disabled="isDefaultScript(baseScript.sgScript)">
+                                        </label>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.managedVersions').replace(/true/g, 'Enabled')"></span>
+                                    </div>
+                                </div>
+                           
+                                <div class="section">
+                                    <fieldset v-for="(script, index) in baseScript.scriptSpec.scripts">
+                                        <div class="header">
+                                            <h5>Script Entry #{{ index+1 }} <template v-if="script.hasOwnProperty('name') && script.name.length">–</template> <span class="scriptTitle">{{ script.name }}</span></h5>
+                                            <div class="addRow" v-if="!isDefaultScript(baseScript.sgScript)">
+                                                <a @click="spliceArray(baseScript.scriptSpec.scripts, index) && spliceArray(scriptSource[baseIndex].entries, index)">Delete Entry</a>
+                                                <template v-if="index">
+                                                    <span class="separator"></span>
+                                                    <a @click="moveArrayItem(baseScript.scriptSpec.scripts, index, 'up')">Move Up</a>
+                                                </template>
+                                                <template  v-if="( (index + 1) != baseScript.scriptSpec.scripts.length)">
+                                                    <span class="separator"></span>
+                                                    <a @click="moveArrayItem(baseScript.scriptSpec.scripts, index, 'down')">Move Down</a>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="row-50">
+                                                <div class="col" v-if="script.hasOwnProperty('version') && editMode">
+                                                    <label for="spec.managedSql.scripts.version">Version</label>
+                                                    <input type="number" v-model="script.version" autocomplete="off" :data-field="'spec.managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].version'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.version')"></span>
+                                                </div>
+                                            </div>
+                                            <div class="row-50">                                                
+                                                <div class="col">
+                                                    <label for="spec.managedSql.scripts.name">Name</label>
+                                                    <input v-model="script.name" placeholder="Type a name..." autocomplete="off" :data-field="'spec.managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].name'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.name')"></span>
+                                                </div>
+
+                                                <div class="col" v-if="script.hasOwnProperty('database') || !isDefaultScript(baseScript.sgScript)">
+                                                    <label for="spec.managedSql.scripts.database">Database</label>
+                                                    <input v-model="script.database" placeholder="Type a database name..." autocomplete="off" :data-field="'spec.managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].database'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.database')"></span>
+                                                </div>
+
+                                                <div class="col" v-if="script.hasOwnProperty('user') || !isDefaultScript(baseScript.sgScript)">
+                                                    <label for="spec.managedSql.scripts.user">User</label>
+                                                    <input v-model="script.user" placeholder="Type a user name..." autocomplete="off" :data-field="'spec.managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].user'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.user')"></span>
+                                                </div>
+                                                
+                                                <div class="col" v-if="script.hasOwnProperty('wrapInTransaction') || !isDefaultScript(baseScript.sgScript)">
+                                                    <label for="spec.managedSql.scripts.wrapInTransaction">Wrap in Transaction</label>
+                                                    <select v-model="script.wrapInTransaction" :data-field="'spec.managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].wrapInTransaction'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                        <option :value="nullVal">NONE</option>
+                                                        <option value="read-committed">READ COMMITTED</option>
+                                                        <option value="repeatable-read">REPEATABLE READ</option>
+                                                        <option value="serializable">SERIALIZABLE</option>
+                                                    </select>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.wrapInTransaction')"></span>
+                                                </div>
+                                            
+                                                <div class="col" v-if="script.hasOwnProperty('storeStatusInDatabase') || !isDefaultScript(baseScript.sgScript)">
+                                                    <label for="spec.managedSql.scripts.storeStatusInDatabase">Store Status in Databases</label>  
+                                                    <label :for="'storeStatusInDatabase[' + baseIndex + '][' + index + ']'" class="switch yes-no" :data-field="'spec.managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].storeStatusInDatabase'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                        Enable
+                                                        <input type="checkbox" :id="'storeStatusInDatabase[' + baseIndex + '][' + index + ']'" v-model="script.storeStatusInDatabase" data-switch="NO" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                    </label>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.storeStatusInDatabase')"></span>
+                                                </div>
+
+                                                <div class="col">
+                                                    <label for="spec.managedSql.scripts.retryOnError">Retry on Error</label>  
+                                                    <label :for="'retryOnError[' + baseIndex + '][' + index + ']'" class="switch yes-no" :data-field="'spec.managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].retryOnError'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                        Enable
+                                                        <input type="checkbox" :id="'retryOnError[' + baseIndex + '][' + index + ']'" v-model="script.retryOnError" data-switch="NO" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                    </label>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.retryOnError')"></span>
+                                                </div>
+                                            </div>
+
+                                            <div class="row-100">
+                                                <div class="col">
+                                                    <label for="spec.managedSql.scripts.scriptSource">
+                                                        Source
+                                                        <span class="req">*</span>
+                                                    </label>
+                                                    <select v-model="scriptSource[baseIndex].entries[index]" @change="setScriptSource(baseIndex, index)" :disabled="isDefaultScript(baseScript.sgScript)" :data-field="'spec.managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].source'" required>
+                                                        <option value="raw">Raw script</option>
+                                                        <option value="secretKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.secretScript')">From Secret</option>
+                                                        <option value="configMapKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.configMapScript')">From ConfigMap</option>
+                                                    </select>
+                                                    <span class="helpTooltip" :data-tooltip="'Determine the source from which the script should be loaded. Possible values are: \n* Raw Script \n* From Secret \n* From ConfigMap.'"></span>
+                                                </div>
+                                                <div class="col">                                                
+                                                    <template  v-if="(!editMode && (scriptSource[baseIndex].entries[index] == 'raw') ) || (editMode && script.hasOwnProperty('script') )">
+                                                        <label for="spec.managedSql.scripts.script" class="script">
+                                                            Script
+                                                            <span class="req">*</span>
+                                                        </label> 
+                                                        <span class="uploadScript" v-if="!editMode">or <a @click="getScriptFile(baseIndex, index)" class="uploadLink">upload a file</a></span> 
+                                                        <input :id="'scriptFile-'+ baseIndex + '-' + index" type="file" @change="uploadScript" class="hide" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                        <textarea v-model="script.script" placeholder="Type a script..." :data-field="'spec.managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].script'" :disabled="isDefaultScript(baseScript.sgScript)" required></textarea>
+                                                    </template>
+                                                    <template v-else-if="(!editMode && (scriptSource[baseIndex].entries[index] != 'raw') )">
+                                                        <div class="header">
+                                                            <h3 :for="'spec.managedSql.scripts.scriptFrom.properties' + scriptSource[baseIndex].entries[index]" class="capitalize">
+                                                                {{ splitUppercase(scriptSource[baseIndex].entries[index]) }}
+                                                                
+                                                                <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef')"></span>
+                                                                <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'secretKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef')"></span>
+                                                            </h3>
+                                                        </div>
+                                                        
+                                                        <label :for="'spec.managedSql.scripts.scriptFrom.properties.' + scriptSource[baseIndex].entries[index] + '.properties.name'">
+                                                            Name
+                                                            <span class="req">*</span>
+                                                        </label>
+                                                        <input v-model="script.scriptFrom[scriptSource[baseIndex].entries[index]].name" placeholder="Type a name.." autocomplete="off" :disabled="isDefaultScript(baseScript.sgScript)" required>
+                                                        <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
+                                                        <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'secretKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
+
+                                                        <label :for="'spec.managedSql.scripts.scriptFrom.properties.' + scriptSource[baseIndex].entries[index] + '.properties.key'">
+                                                            Key
+                                                            <span class="req">*</span>
+                                                        </label>
+                                                        <input v-model="script.scriptFrom[scriptSource[baseIndex].entries[index]].key" placeholder="Type a key.." autocomplete="off" :disabled="isDefaultScript(baseScript.sgScript)" required>
+                                                        <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
+                                                        <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'secretKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                    <div class="fieldsetFooter" :class="!baseScript.scriptSpec.scripts.length && 'topBorder'" v-if="!isDefaultScript(baseScript.sgScript)">
+                                        <a class="addRow" @click="pushScript(baseIndex)" >Add Entry</a>
+                                    </div>
+                                </div>
+                            </template>
+                        </fieldset>
+                        <div class="fieldsetFooter" :class="!managedSql.scripts.length && 'topBorder'">
+                            <a class="addRow" @click="pushScriptSet()">Add Script</a>
+                        </div>
+                    </div>
+                </div>
             </fieldset>
 
             <fieldset class="step" :class="(currentStep == 'sidecars') && 'active'" data-fieldset="sidecars">
@@ -1463,7 +1607,7 @@
                 previewCRD: {},
                 showSummary: false,
                 advancedMode: false,
-                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'sidecars', 'replication', 'services', 'metadata', 'scheduling', 'non-production'],
+                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'scripts', 'sidecars', 'replication', 'services', 'metadata', 'scheduling', 'non-production'],
                 currentStep: 'cluster',
                 errorStep: [],
                 editMode: (vm.$route.name === 'EditCluster'),
@@ -1509,9 +1653,14 @@
                 nodeSelector: [ { label: '', value: ''} ],
                 tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
                 pgConfigExists: true,
-                currentScriptIndex: 0,
-                initScripts: [ { name: '', database: '', script: '' } ],
-                scriptSource: ['raw'],
+                currentScriptIndex: { base: 0, entry: 0 },
+                managedSql: {
+                    continueOnSGScriptError: false,
+                    scripts: [ {} ]
+                },
+                scriptSource: [ 
+                    { base: '', entries: ['raw'] }
+                ],
                 annotationsAll: [ { annotation: '', value: '' } ],
                 annotationsAllText: '',
                 annotationsPods: [ { annotation: '', value: '' } ],
@@ -1587,7 +1736,7 @@
                     dom: '*',
                     month: '*',
                     dow: '*'
-                }]
+                }],
             }
 
         },
@@ -1625,6 +1774,11 @@
             logsClusters(){
                 return store.state.sgdistributedlogs
             },
+
+            sgscripts(){
+                return store.state.sgscripts
+            },
+
             nameColission() {
 
                 const vc = this;
@@ -1701,22 +1855,45 @@
                             vm.tolerations = vm.hasProp(c, 'data.spec.pods.scheduling.tolerations') ? c.data.spec.pods.scheduling.tolerations : [];
                             vm.pgConfigExists = true;
 
-                            if(vm.hasProp(c, 'data.spec.initialData.scripts')) {
-                                
-                                c.data.spec.initialData.scripts.forEach(function(script, index) {
-                                    if(script.hasOwnProperty('script')) {
-                                        vm.scriptSource[index] = 'raw';
-                                    } else if(script.scriptFrom.hasOwnProperty('secretKeyRef')) {
-                                        vm.scriptSource[index] = 'secretKeyRef';
-                                    } else if(script.scriptFrom.hasOwnProperty('configMapScript')) {
-                                        vm.scriptSource[index] = 'configMapKeyRef';
-                                        script['script'] = script.scriptFrom.configMapScript;
-                                    }
+                            if(vm.hasProp(c, 'data.spec.managedSql.scripts')) {
+                                vm.scriptSource = [];
+                                c.data.spec.managedSql.scripts.forEach(function(baseScript, baseIndex) {
+                                    
+                                    vm.scriptSource.push({ base: baseScript.sgScript, entries: [] })
+
+                                    baseScript.scriptSpec.scripts.forEach(function(script, index){
+                                        if(script.hasOwnProperty('script')) {
+                                            vm.scriptSource[baseIndex].entries.push('raw');
+                                        } else if(script.scriptFrom.hasOwnProperty('secretKeyRef')) {
+                                            vm.scriptSource[baseIndex].entries.push('secretKeyRef');
+                                        } else if(script.scriptFrom.hasOwnProperty('configMapScript')) {
+                                            vm.scriptSource[baseIndex].entries.push('configMapKeyRef');
+                                            script['script'] = script.scriptFrom.configMapScript;
+                                        }
+                                    })
                                 })
                                 
-                                vm.initScripts = c.data.spec.initialData.scripts;
+                                vm.managedSql = c.data.spec.managedSql;
                             } else {
-                                vm.initScripts = [];
+                                vm.managedSql.scripts = {
+                                    continueOnSGScriptError: false,
+                                    scripts: [ { 
+                                        continueOnError: false,
+                                        scriptSpec: {
+                                            continueOnError: false,
+                                            managedVersions: true,
+                                            scripts: [ {
+                                                name: '',
+                                                wrapInTransaction: null,
+                                                storeStatusInDatabase: false,
+                                                retryOnError: false,
+                                                user: 'postgres',
+                                                database: '',
+                                                script: ''
+                                            } ],
+                                        }
+                                    } ]
+                                };
                             }
 
                             vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
@@ -1755,9 +1932,9 @@
 
         methods: {
 
-            getScriptFile: function( index ){
-                this.currentScriptIndex = index;
-                $('input#scriptFile'+index).click();
+            getScriptFile( baseIndex, index ){
+                this.currentScriptIndex = { base: baseIndex, entry: index };
+                $('input#scriptFile-' + baseIndex + '-' + index).click();
             },
 
             uploadScript: function(e) {
@@ -1771,26 +1948,57 @@
                     var reader = new FileReader();
                     
                     reader.onload = function(e) {
-                    vm.initScripts[vm.currentScriptIndex].script = e.target.result;
+                    vm.managedSql.scripts[vm.currentScriptIndex.base].scriptSpec.scripts[vm.currentScriptIndex.entry].script = e.target.result;
                     };
                     reader.readAsText(files[0]);
                 }
+
             },
 
-            pushScript() {
-                this.initScripts.push( { name: '', database: '', script: ''} );
-                this.scriptSource[this.scriptSource.length] = 'raw';
+            pushScript(baseIndex) {
+                this.managedSql.scripts[baseIndex].scriptSpec.scripts.push({
+                    name: '',
+                    wrapInTransaction: null,
+                    storeStatusInDatabase: false,
+                    retryOnError: false,
+                    user: '',
+                    database: '',
+                    script: ''
+                } ); 
+
+                this.scriptSource[baseIndex].entries.push('raw');
             },
 
-            setScriptSource( index ) {
+            pushScriptSet() {
+                this.managedSql.scripts.push( { 
+                    continueOnError: false,
+                    scriptSpec: {
+                        continueOnError: false,
+                        managedVersions: true,
+                        scripts: [{
+                            name: '',
+                            wrapInTransaction: null,
+                            storeStatusInDatabase: false,
+                            retryOnError: false,
+                            user: '',
+                            database: '',
+                            script: ''
+                        }],
+                    }
+                } );
+
+                this.scriptSource.push({ base: '', entries: ['raw'] });
+            },
+
+            setScriptSource( baseIndex, index ) {
                 const vc = this;
 
-                if(vc.scriptSource[index] == 'raw') {
-                    delete vc.initScripts[index].scriptFrom;
+                if(vc.scriptSource[baseIndex].entries[index] == 'raw') {
+                    delete vc.managedSql.scripts[baseIndex].scriptSpec.scripts[index].scriptFrom;
                 } else {
-                    delete vc.initScripts[index].script;
-                    vc.initScripts[index]['scriptFrom'] = {
-                        [vc.scriptSource[index]]: {
+                    delete vc.managedSql.scripts[baseIndex].scriptSpec.scripts[index].script;
+                    vc.managedSql.scripts[baseIndex].scriptSpec.scripts[index]['scriptFrom'] = {
+                        [vc.scriptSource[baseIndex].entries[index]]: {
                             name: '', 
                             key: ''
                         }
@@ -1799,11 +2007,40 @@
 
             },
 
-            spliceArray: function( prop, index ) {
-                prop.splice( index, 1 );
+            setBaseScriptSource( baseIndex ) {
+                const vc = this;
+                
+                if(vc.scriptSource[baseIndex].base != 'createNewScript') {
+                    vc.managedSql.scripts[baseIndex].sgScript = vc.scriptSource[baseIndex].base;
+                    
+                    if(vc.managedSql.scripts[baseIndex].hasOwnProperty('scriptSpec')) {
+                        delete vc.managedSql.scripts[baseIndex].scriptSpec;
+                    }
 
-                if(this.initScripts.length != this.scriptSource.length) {
-                    this.scriptSource.splice( index, 1 );
+                } else {
+                    vc.managedSql.scripts[baseIndex] = { 
+                        scriptSpec: {
+                            continueOnError: false,
+                            managedVersions: true,
+                            scripts: [ {
+                                name: '',
+                                wrapInTransaction: null,
+                                storeStatusInDatabase: false,
+                                retryOnError: false,
+                                user: '',
+                                database: '',
+                                script: ''
+                            } ],
+                        }
+                    } 
+                }
+            },
+
+            isDefaultScript(scriptName) {
+                if( typeof scriptName == 'undefined') {
+                    return false
+                } else {
+                    return scriptName.endsWith('-default')
                 }
             },
 
@@ -1811,44 +2048,59 @@
                 const vc = this;
                 let hasScripts = false;
 
-                source.forEach((script, index) => {
-                    
-                    if( (
-                            (vc.scriptSource[index] == 'raw') && 
-                            (JSON.stringify(script) != '{"name":"","database":"","script":""}')
-                        ) || (
-                            (vc.scriptSource[index] != 'raw') && 
-                            (JSON.stringify(script.scriptFrom[vc.scriptSource[index]]) != '{"name":"","key":""}')
-                    )) {
+                source.forEach( function(baseScript, baseIndex) {
+                    if(baseScript.hasOwnProperty('sgScript') && baseScript.sgScript.length) {
                         hasScripts = true;
-                        return false
+                        return false                    
+                    } else if (baseScript.hasOwnProperty('scriptSpec')) {
+                        baseScript.scriptSpec.scripts.forEach( function(script, index) {
+                            if( (
+                                    (vc.scriptSource[baseIndex].entries[index] == 'raw') && 
+                                    (JSON.stringify(script) != '"name":"","wrapInTransaction":null,"storeStatusInDatabase":false,"retryOnError":false,"user":"","database":"","script":""')
+                                ) || (
+                                    (vc.scriptSource[baseIndex].entries[index] != 'raw') && 
+                                    (JSON.stringify(script.scriptFrom[vc.scriptSource[baseIndex].entries[index]]) != '{"name":"","key":""}')
+                            )) {
+                                hasScripts = true;
+                                return false
+                            }
+                        })
                     }
+                    
                 });
 
                 return hasScripts
             },
 
-            cleanupScripts(scripts) {
+            cleanupScripts(managedSql) {
                 const vc = this;
-                let nonEmptyScripts = [];
+                let scripts = [];
                 
-                scripts.forEach(function(script, index) {
-                    if ( (vc.scriptSource[index] == 'raw') && script.hasOwnProperty('script') && script.script.length ) {
-                        nonEmptyScripts.push({
-                            ...( (script.hasOwnProperty('name') && script.name.length) && ({
-                                "name": script.name
-                            })),
-                            ...( (script.hasOwnProperty('database') && script.database.length) && ({
-                                "database": script.database
-                            })),
-                            "script": script.script
-                        });
-                    } else if ( (vc.scriptSource[index] != 'raw') && (script.scriptFrom[vc.scriptSource[index]].key != '') && (script.scriptFrom[vc.scriptSource[index]].name != '') ) {
-                        nonEmptyScripts.push(script);
+                managedSql.scripts.forEach( (baseScript, baseIndex) => {
+                    if(baseScript.hasOwnProperty('scriptSpec')) {
+                        baseScript.scriptSpec.scripts.forEach( (script, index) => {
+                            Object.keys(script).forEach( (key) => {
+                                if( (script[key] == null) || ((typeof script[key] == 'string') && !script[key].length ) ) {
+                                    delete script[key]
+                                }
+                            })
+
+                            if ( 
+                                ( (vc.scriptSource[baseIndex].entries[index] == 'raw') && script.hasOwnProperty('script') && script.script.length) || 
+                                (baseScript.hasOwnProperty('sgScript') && !baseScript.sgScript.endsWith('-default') ) ||
+                                ( (vc.scriptSource[baseIndex].entries[index] != 'raw') && script.scriptFrom[vc.scriptSource[baseIndex].entries[index]].key.length && script.scriptFrom[vc.scriptSource[baseIndex].entries[index]].name.length )
+                            ) {                        
+                                scripts.push(baseScript)
+                            }
+                        })
+                    } else if (baseScript.hasOwnProperty('sgScript')) {
+                        scripts.push(baseScript)
                     }
                 })
 
-                return nonEmptyScripts;
+                managedSql.scripts = scripts;
+
+                return managedSql;
 
             },
 
@@ -1871,7 +2123,8 @@
 
                     let requiredAffinity = vc.cleanNodeAffinity(this.requiredAffinity);
                     let preferredAffinity = vc.cleanNodeAffinity(this.preferredAffinity);
-
+                    let managedSql = vc.cleanupScripts($.extend(true,{},this.managedSql));
+                    
                     var cluster = { 
                         "metadata": {
                             "name": this.name,
@@ -1929,7 +2182,7 @@
                                     }))
                                 }
                             })),
-                            ...( (this.restoreBackup.length || vc.hasScripts(this.initScripts)) && ({
+                            ...( this.restoreBackup.length && ({
                                     "initialData": {
                                         ...( this.restoreBackup.length && ({
                                             "restore": { 
@@ -1947,12 +2200,12 @@
                                                 }) )
                                             },
                                         }) ),
-                                        ...( vc.hasScripts(this.initScripts) && ({
-                                            "scripts": vc.cleanupScripts(this.initScripts)
-                                        }) )
                                     }
                                 }) 
                             ),
+                            ...( vc.hasScripts(vc.managedSql.scripts) && ({
+                                "managedSql": managedSql
+                            }) ),
                             "replication": {
                                 "role": this.replication.role,
                                 "mode": this.replication.mode,
@@ -2026,7 +2279,7 @@
                             .then(function (response) {
                                 vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgclusters');
 
-                                vc.fetchAPI('sgcluster');
+                                vc.fetchAPI('sgclusters');
                                 router.push('/' + cluster.metadata.namespace + '/sgcluster/' + cluster.metadata.name);
                                 
                             })
@@ -2042,7 +2295,7 @@
                             .then(function (response) {
                                 vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgclusters');
 
-                                vc.fetchAPI('sgcluster');
+                                vc.fetchAPI('sgclusters');
                                 router.push('/' + cluster.metadata.namespace + '/sgclusters');
                                 
                             })
@@ -2532,8 +2785,7 @@
 
             updateCronSchedule(index) {
                 this.backups[index].cronSchedule = this.cronSchedule[index].min + ' ' + this.cronSchedule[index].hour + ' ' + this.cronSchedule[index].dom + ' ' + this.cronSchedule[index].month + ' ' + this.cronSchedule[index].dow;
-            }
-
+            },
         
         },
 
@@ -2906,10 +3158,14 @@
         padding-bottom: 10px;
     }
 
-    fieldset.affinityValues, fieldset.affinityMatch {
+    fieldset.affinityValues, fieldset.affinityMatch, .scriptFieldset fieldset fieldset:last-of-type {
         margin-bottom: -10px;
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
+    }
+
+    .scriptFieldset fieldset fieldset .row {
+        margin-bottom: 20px;
     }
 
     .scheduling .fieldsetFooter {

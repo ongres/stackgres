@@ -17,7 +17,6 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -47,8 +46,6 @@ class PatroniTest {
   ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;
   @Mock
   ResourceFactory<StackGresClusterContext, ResourceRequirements> requirementsFactory;
-  @Mock
-  LabelFactoryForCluster<StackGresCluster> labelFactory;
   @Mock
   VolumeMountsProvider<ContainerContext> postgresSocket;
   @Mock
@@ -80,7 +77,7 @@ class PatroniTest {
 
   @BeforeEach
   void setUp() {
-    patroni = new Patroni(patroniEnvironmentVariables, requirementsFactory, labelFactory,
+    patroni = new Patroni(patroniEnvironmentVariables, requirementsFactory,
         postgresSocket, postgresExtensions, localBinMounts, restoreMounts, backupMounts,
         hugePagesMounts, volumeDiscoverer);
     cluster = JsonUtil.readFromJson("stackgres_cluster/default.json", StackGresCluster.class);

@@ -59,6 +59,10 @@
         position: relative;
     }
 
+    #crdSummary .header h2 {
+        width: 100%;
+    }
+
     .header label[for="showDefaults"] {
         border: 0;
         position: absolute;
@@ -125,7 +129,7 @@
     .summary ul ul:before {
         content: "";
         display: inline;
-        height: calc(100% - 5px);
+        height: calc(100% - 12px);
         width: 2px;
         background: var(--borderColor);
         position: absolute;

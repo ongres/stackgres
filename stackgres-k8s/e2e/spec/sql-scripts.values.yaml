@@ -11,7 +11,7 @@ cluster:
     managementPolicy: Parallel
   configurations:
     sgBackupConfig: null
-  initialData:
+  managedSql:
     scripts:
     - name: create-sakila-user
       scriptFrom:

@@ -661,11 +661,11 @@ form#login .warning {
     color: #171717;
 }
 
-.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select, .darkmode ul.select li.selected, .darkmode table.clusterConfig a {
+.darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode #logo h1, .darkmode .options label, .darkmode .options select, .darkmode ul.select li.selected, .darkmode table.crdDetails a {
     color: #e3e3e3;
 }
 
-.darkmode h4, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.clusterConfig td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param {
+.darkmode h4, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.crdDetails td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param {
     color: #a5a5a5;
 }
 
@@ -673,7 +673,7 @@ form#login .warning {
     background-color: #444;
 }
 
-.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.clusterConfig td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode .contentTooltip .info, .darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
+.darkmode #side, .darkmode #nav, .darkmode #current-namespace, .darkmode #ns-select, .darkmode .set.active:not(.conf):not(.backups), .darkmode ul.breadcrumbs, .darkmode tbody, .darkmode .table .head.row, .darkmode .table .row:last-child, .darkmode .boxes .row:last-child, .darkmode table.crdDetails td, .darkmode .form input, .darkmode .form select, .darkmode .form textarea, .darkmode .set, .darkmode ,.form .header, .darkmode .content .box, .darkmode .box hr, .darkmode #keyword, .darkmode .options, .darkmode .tooltip, .darkmode .message, .darkmode #nav .tooltip:before, .darkmode fieldset, .darkmode label.switch, .darkmode ul.select, .darkmode .options li.textFilter .search, .darkmode #nav .right > div#clone, .darkmode header .actions, .darkmode .contentTooltip .info, .darkmode ul.tabs, .darkmode .content h2, .darkmode .form .header, .darkmode .set.active:not(.conf), .darkmode table.poolConfig tr.details .paramDetails table, .darkmode table.pgConfig tr.details .paramDetails table {
     border-color: var(--borderColor);
 }
 
@@ -2563,7 +2563,7 @@ fieldset {
     position: relative;
 }
 
-.form fieldset .header a.addRow {
+.form fieldset .header .addRow {
     position: absolute;
     right: 0;
     bottom: 5px;
@@ -2680,11 +2680,19 @@ span.req {
     padding-right: 25px;
 }
 
-a.addRow {
+a.addRow, .addRow > a {
     font-weight: 600;
     text-transform: uppercase;
     display: inline-block;
     cursor: pointer;
+}
+
+.addRow .separator {
+    margin: 0 10px;
+    width: 1px;
+    height: 9px;
+    display: inline-block;
+    background: var(--borderColor);
 }
 
 .row {
@@ -3399,7 +3407,7 @@ table.podStatus tr:nth-child(even) {
     background-color: rgba(172, 66, 250, .25);
 }
 
-table.clusterConfig {
+table.crdDetails {
     margin-bottom: 30px;
     margin-top: 15px;
 }
@@ -3408,48 +3416,44 @@ table.clusterConfig {
     margin-bottom: 15px;
 }
 
-table.clusterConfig tr {
+table.crdDetails tr {
     background: transparent;
 }
 
-table.clusterConfig thead th {
+table.crdDetails thead th {
     border: 1px solid var(--borderColor);
 }
 
-table.clusterConfig td {
+table.crdDetails td {
     padding: 10px;
     vertical-align: top;
     border: 1px solid #F0F0F1;
 }
 
-table.clusterConfig td.label {
+table.crdDetails td.label {
     font-weight: bold;
     /*color: var(--blue);*/
     color: #4D4F5C;
 }
 
-table.clusterConfig td:not([colspan]) {
-    width: 25%;
-}
-
-table.clusterConfig a {
+table.crdDetails a {
     display: block;
     cursor: pointer;
 }
 
-table.clusterConfig a:hover {
+table.crdDetails a:hover {
     color: var(--blue);
 }
 
-table.clusterConfig a:hover svg, td.usedOn a:hover svg path {
+table.crdDetails a:hover svg, td.usedOn a:hover svg path{
     fill: var(--lblue) !important;
 }
 
-table.clusterConfig svg, td.usedOn svg, tr.controlData svg, .connectionInfo svg, .card .actions svg {
+table.crdDetails svg, td.usedOn svg, tr.controlData svg, .connectionInfo svg, .card .actions svg {
     fill: var(--blue);
     width: 15px;
     display: inline-block;
-    margin-left: 5px;
+    margin-left: 10px;
     float: right;
 }
 

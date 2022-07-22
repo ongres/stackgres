@@ -5,6 +5,9 @@
 
 package io.stackgres.apiweb.rest;
 
+import static io.stackgres.apiweb.rest.BackupConfigResourceUtil.extractSecretInfo;
+import static io.stackgres.apiweb.rest.BackupConfigResourceUtil.secretName;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -42,8 +45,6 @@ public class BackupConfigResource extends
 
   @Inject
   ResourceWriter<Secret> secretWriter;
-
-  private final BackupConfigResourceUtil util = new BackupConfigResourceUtil();
 
   @Override
   public boolean belongsToCluster(StackGresBackupConfig resource, StackGresCluster cluster) {
@@ -101,18 +102,18 @@ public class BackupConfigResource extends
   }
 
   private void setSecretKeySelectors(BackupConfigDto resource) {
-    final String name = util.secretName(resource);
-    util.extractSecretInfo(resource)
+    final String name = secretName(resource);
+    extractSecretInfo(resource)
         .filter(t -> t.v2.v1 != null)
         .forEach(t -> t.v2.v4.accept(new SecretKeySelector(t.v1, name)));
   }
 
   private void createOrUpdateSecret(BackupConfigDto resource) {
-    final ImmutableMap<String, String> secrets = util.extractSecretInfo(resource)
+    final ImmutableMap<String, String> secrets = extractSecretInfo(resource)
         .filter(t -> t.v2.v1 != null)
         .collect(ImmutableMap.toImmutableMap(t -> t.v1, t -> t.v2.v1));
     final String namespace = resource.getMetadata().getNamespace();
-    final String name = util.secretName(resource);
+    final String name = secretName(resource);
     secretFinder.findByNameAndNamespace(name, namespace)
         .map(secret -> {
           secret.setStringData(secrets);
@@ -138,9 +139,15 @@ public class BackupConfigResource extends
 
   private void deleteSecret(BackupConfigDto resource) {
     final String namespace = resource.getMetadata().getNamespace();
-    final String name = util.secretName(resource);
+    final String name = secretName(resource);
     secretFinder.findByNameAndNamespace(name, namespace)
         .ifPresent(secretWriter::delete);
+  }
+
+  @Override
+  protected void updateSpec(StackGresBackupConfig resourceToUpdate,
+      StackGresBackupConfig resource) {
+    resourceToUpdate.setSpec(resource.getSpec());
   }
 
 }

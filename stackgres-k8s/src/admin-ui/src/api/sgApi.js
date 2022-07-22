@@ -12,6 +12,7 @@ const resources = {
   sgpgconfigs: '/sgpgconfigs',
   sgpoolconfigs: '/sgpoolconfigs',
   sgobjectstorages: '/sgobjectstorages',
+  sgscripts: '/sgscripts',
   sgdistributedlogs: '/sgdistributedlogs',
   sgdbops: '/sgdbops',
   storageclasses: '/storageclasses',

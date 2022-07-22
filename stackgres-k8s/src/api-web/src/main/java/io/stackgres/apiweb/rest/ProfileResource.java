@@ -75,4 +75,9 @@ public class ProfileResource
     super.update(resource);
   }
 
+  @Override
+  protected void updateSpec(StackGresProfile resourceToUpdate, StackGresProfile resource) {
+    resourceToUpdate.setSpec(resource.getSpec());
+  }
+
 }

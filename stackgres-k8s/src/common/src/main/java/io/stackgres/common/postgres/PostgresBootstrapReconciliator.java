@@ -35,7 +35,7 @@ public abstract class PostgresBootstrapReconciliator {
     this.podName = podName;
   }
 
-  public ReconciliationResult<Void> reconcile(KubernetesClient client, ClusterContext context)
+  public ReconciliationResult<Boolean> reconcile(KubernetesClient client, ClusterContext context)
       throws Exception {
     if (context.getCluster().getStatus() != null) {
       if (context.getCluster().getStatus().getArch() != null
@@ -52,7 +52,7 @@ public abstract class PostgresBootstrapReconciliator {
               + " but this instance is " + ExtensionUtil.OS_DETECTOR.getArch()
               + "/" + ExtensionUtil.OS_DETECTOR.getOs());
         }
-        return new ReconciliationResult<>();
+        return new ReconciliationResult<>(false);
       }
     }
     try {
@@ -80,11 +80,12 @@ public abstract class PostgresBootstrapReconciliator {
         LOGGER.info("Setting cluster arch {} and os {}",
             context.getCluster().getStatus().getArch(),
             context.getCluster().getStatus().getOs());
+        return new ReconciliationResult<>(true);
       }
     } catch (Exception ex) {
-      return new ReconciliationResult<>(ex);
+      return new ReconciliationResult<>(false, ex);
     }
-    return new ReconciliationResult<>();
+    return new ReconciliationResult<>(false);
   }
 
   protected abstract void onClusterBootstrapped(KubernetesClient client);
