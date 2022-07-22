@@ -41,19 +41,19 @@ public class ContextUtil {
           String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
           String sourceMajorVersion = getPostgresFlavorComponent(cluster)
               .get(cluster)
-              .findMajorVersion(sourceVersion);
+              .getMajorVersion(sourceVersion);
           return ImmutablePostgresContainerContext.builder()
               .from(context)
               .postgresMajorVersion(getPostgresFlavorComponent(cluster)
                   .get(cluster)
-                  .findMajorVersion(targetVersion))
+                  .getMajorVersion(targetVersion))
               .oldMajorVersion(sourceMajorVersion)
               .imageBuildMajorVersion(getPostgresFlavorComponent(cluster)
                   .get(cluster)
-                  .findBuildMajorVersion(targetVersion))
+                  .getBuildMajorVersion(targetVersion))
               .oldImageBuildMajorVersion(getPostgresFlavorComponent(cluster)
                   .get(cluster)
-                  .findBuildMajorVersion(sourceVersion))
+                  .getBuildMajorVersion(sourceVersion))
               .postgresVersion(targetVersion)
               .oldPostgresVersion(sourceVersion);
         })
@@ -61,10 +61,10 @@ public class ContextUtil {
           final String postgresVersion = cluster.getSpec().getPostgres().getVersion();
           final String majorVersion = getPostgresFlavorComponent(cluster)
               .get(cluster)
-              .findMajorVersion(postgresVersion);
+              .getMajorVersion(postgresVersion);
           final String buildMajorVersion = getPostgresFlavorComponent(cluster)
               .get(cluster)
-              .findBuildMajorVersion(postgresVersion);
+              .getBuildMajorVersion(postgresVersion);
           return ImmutablePostgresContainerContext.builder()
               .from(context)
               .postgresVersion(postgresVersion)

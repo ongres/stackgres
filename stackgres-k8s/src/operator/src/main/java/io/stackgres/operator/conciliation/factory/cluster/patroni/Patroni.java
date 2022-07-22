@@ -108,11 +108,11 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
     return ImmutableMap.of(
         StackGresContext.POSTGRES_VERSION_KEY,
         StackGresComponent.POSTGRESQL.get(context.getClusterContext().getCluster())
-        .findVersion(
+        .getVersion(
             context.getClusterContext().getCluster().getSpec().getPostgres().getVersion()),
         StackGresContext.PATRONI_VERSION_KEY,
         StackGresComponent.PATRONI.get(context.getClusterContext().getCluster())
-        .findLatestVersion());
+        .getLatestVersion());
   }
 
   @Override

@@ -19,7 +19,7 @@ e2e_test_install() {
       --set-string 'cluster.postgres.extensions[0].name=timescaledb' \
       --set-string 'cluster.postgres.extensions[0].version='"$TIMESCALE_VERSION" \
       --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=timescaledb \
-      --set-string 'cluster.managedSql.scripts[0].script=CREATE EXTENSION timescaledb;'
+      --set-string 'cluster.initialData.scripts[0].script=CREATE EXTENSION timescaledb;'
   else
     echo "Extension timescaledb not found [$(uname -m)]"
     create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \

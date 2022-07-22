@@ -92,7 +92,7 @@ class DistributedLogsRequiredResourcesGeneratorTest {
         StackGresPostgresConfig.class);
     postgresConfig.getSpec()
         .setPostgresVersion(StackGresComponent.POSTGRESQL.getLatest()
-            .findLatestMajorVersion());
+            .getLatestMajorVersion());
     postgresConfig.getMetadata().setNamespace(namespace);
 
     instanceProfile =

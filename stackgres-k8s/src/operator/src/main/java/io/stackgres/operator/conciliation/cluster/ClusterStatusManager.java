@@ -117,7 +117,7 @@ public class ClusterStatusManager
         .flatMap(Set::stream)
         .anyMatch(e -> e.getKey().equals(StackGresContext.VERSION_KEY)
             && !e.getValue().equals(StackGresProperty.OPERATOR_VERSION.getString()))) {
-      LOGGER.debug("Cluster {} requires restart since it is using an old operator version",
+      LOGGER.debug("Cluster {} requires upgrade since it is using an old operator version",
           getClusterId(cluster));
       return true;
     }

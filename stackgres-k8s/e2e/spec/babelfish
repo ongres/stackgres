@@ -67,9 +67,11 @@ single_ports_check() {
     if ! ( [ "$RESPONSE_5432" = "1" ] && [ "$RESPONSE_1433" = "1" ] \
       && [ "$RESPONSE_6432" = "1" ] && [ "$RESPONSE_7432" = "1" ] && [ "$RESPONSE_7433" = "1" ] && [ "$RESPONSE_7434" = "1" ] )
     then
+      echo "FAIL: Not all 6 ports of the replica node are working"
       return 1
     fi
   else 
+      echo "FAIL: Not all 6 ports of the primary node are working"
       return 1
   fi
 }

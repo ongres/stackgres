@@ -8,7 +8,6 @@ e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
@@ -36,6 +35,7 @@ metadata:
 spec:
   sgCluster: $CLUSTER_NAME
   op: restart
+  timeout: PT30S
   restart:
     method: InPlace
 EOF

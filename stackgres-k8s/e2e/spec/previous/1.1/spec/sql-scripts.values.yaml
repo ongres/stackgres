@@ -5,9 +5,12 @@ configurations:
   backupconfig:
     create: false
 cluster:
+  postgres:
+    version: "13"
   pods:
     persistentVolume:
       size: 128Mi
+    managementPolicy: Parallel
   configurations:
     sgBackupConfig: null
   managedSql:

@@ -62,21 +62,21 @@ public class DefaultPostgresVersionMutator implements ClusterMutator {
       final ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList
           .builderWithExpectedSize(2);
       if (postgresVersion != null) {
-        final String calculatedPostgresVersion = getPostgresFlavorComponent(postgresFlavor)
-            .get(cluster).findVersion(postgresVersion);
+        final String calculatedPostgresVersion = getPostgresFlavorComponent(cluster)
+            .get(cluster).getVersion(postgresVersion);
 
         if (!calculatedPostgresVersion.equals(postgresVersion)) {
           JsonNode target = jsonMapper.valueToTree(calculatedPostgresVersion);
           operations.add(applyReplaceValue(postgresVersionPointer, target));
         }
       } else {
-        JsonNode target = jsonMapper.valueToTree(getPostgresFlavorComponent(postgresFlavor)
-            .get(cluster).findVersion(StackGresComponent.LATEST));
+        JsonNode target = jsonMapper.valueToTree(getPostgresFlavorComponent(cluster)
+            .get(cluster).getVersion(StackGresComponent.LATEST));
         operations.add(applyAddValue(postgresVersionPointer, target));
       }
 
-      if (!Objects.equals(postgresFlavor, getPostgresFlavor(postgresFlavor).toString())) {
-        JsonNode target = jsonMapper.valueToTree(getPostgresFlavor(postgresFlavor).toString());
+      if (!Objects.equals(postgresFlavor, getPostgresFlavor(cluster).toString())) {
+        JsonNode target = jsonMapper.valueToTree(getPostgresFlavor(cluster).toString());
         operations.add(applyAddValue(postgresFlavorPointer, target));
       }
 

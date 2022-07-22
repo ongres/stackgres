@@ -12,29 +12,35 @@ e2e_test_install() {
 }
 
 e2e_test() {
-  run_test "Checking that primary is working" create_database_primary
-
-  run_test "Checking that replication is working" create_database_replica
-
-  run_test "Data replication" insert_data
+  run_test "Checking that replication is working" check_replication_is_working
 
   run_test "Checking that metrics are exported" check_metrics
 }
 
-create_database_primary() {
+check_replication_is_working() {
   wait_until check_connectivity -i 0
+
+  local SYNCHRONOUS_STANDBY_NAMES
+  SYNCHRONOUS_STANDBY_NAMES="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
+    psql -At -c 'SHOW synchronous_standby_names')"
+  if echo "$SYNCHRONOUS_STANDBY_NAMES" | grep -q '^$'
+  then
+    echo "SUCCESS: async replication is set for primary"
+  else
+    echo "FAIL: async replication is not set for primary"
+    return 1
+  fi
+
+  local RESULT EXIT_CODE
   try_function run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE DATABASE test;"
   if "$RESULT"
   then
     echo "SUCCESS: It's possible to create a database in the primary node"
-    return 0
   else
     echo "FAIL: It should be possible to create a database in the primary node" 
     return 1
   fi
-}
 
-create_database_replica() {
   wait_until check_connectivity -i 1
   try_function run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "CREATE TABLE fibonacci(num integer);" -d test > "${LOG_PATH}/test1.log"
   if "$RESULT"
@@ -43,31 +49,32 @@ create_database_replica() {
     return 1
   else
     echo "SUCCESS: Good it should be possible to create a table in the replica node" 
-    return 0
   fi
-}
 
-insert_data(){
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (1);" -d test
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test
 
   PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
-  REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then
-    if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" ]
-    then
-      echo "SUCCESS: replication is working"
-      return 0
-    else
-      echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
-      return 1
-    fi
+    echo "SUCCESS: inserts on the primary where sucessful."
   else
     echo "FAIL: inserts on the primary where not sucessful."
+    return 1
+  fi
+
+  try_function wait_until eval '
+    REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
+    [ "$(echo "$PRIMARY_RESPONSE" | tr -d "\n")" = "$(echo "$REPLICA_RESPONSE" | tr -d "\n")" ]
+    '
+  if "$RESULT"
+  then
+    echo "SUCCESS: replication is working"
+  else
+    echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
     return 1
   fi
 }

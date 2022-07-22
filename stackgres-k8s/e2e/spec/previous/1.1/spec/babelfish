@@ -11,7 +11,6 @@ e2e_test_install() {
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
@@ -35,6 +34,16 @@ e2e_test() {
 }
 
 ports_check() {
+  if wait_until single_ports_check
+  then
+    echo "SUCCESS: All 6 ports of the replica node are working"
+  else
+    echo "FAIL: Not all 6 ports of the replica node are working"
+    return 1
+  fi
+}
+
+single_ports_check() {
   RESPONSE_5432="$(wait_until run_query -i 0 -p 5432)"
   RESPONSE_1433="$(wait_until run_query -t babelfish -i 0 -p 1433 | tr -d '\n')"
   RESPONSE_6432="$(run_query -i 0 -p 6432)"

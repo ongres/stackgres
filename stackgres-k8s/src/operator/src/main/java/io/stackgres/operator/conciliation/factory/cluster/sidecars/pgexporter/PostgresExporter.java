@@ -94,7 +94,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
     ContainerBuilder container = new ContainerBuilder();
     container.withName(StackGresContainer.POSTGRES_EXPORTER.getName())
         .withImage(StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.get(cluster)
-            .findLatestImageName())
+            .getLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-exc")
         .withArgs(""
@@ -165,7 +165,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
     return ImmutableMap.of(
         StackGresContext.PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY,
         StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER
-        .get(context.getClusterContext().getCluster()).findLatestVersion());
+        .get(context.getClusterContext().getCluster()).getLatestVersion());
   }
 
   @Override

@@ -8,9 +8,10 @@ cluster:
   pods:
     persistentVolume:
       size: 128Mi
+    managementPolicy: Parallel
   configurations:
     sgBackupConfig: null
-  managedSql:
+  initialData:
     scripts:
     - name: create-sakila-user
       scriptFrom:

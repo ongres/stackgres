@@ -8,16 +8,7 @@ export E2E_AFTER_RUN_TEST_FUNCTION="${E2E_AFTER_RUN_TEST_FUNCTION:-e2e_after_run
 export E2E_TEST_UNINSTALL_FUNCTION="${E2E_TEST_UNINSTALL_FUNCTION:-e2e_test_uninstall}"
 export E2E_TEST_AFTER_ALL_FUNCTION="${E2E_TEST_AFTER_ALL_FUNCTION:-e2e_test_after_all}"
 export E2E_BEFORE_RUN_TEST_COUNT=0
-export SPEC_PATH="$E2E_PATH/spec"
-if [ -n "$STACKGRES_TARGET_VERSION" ] && [ "${STACKGRES_VERSION%.*}" != "${STACKGRES_TARGET_VERSION%.*}" ]
-then
-  SPEC_PATH="$E2E_PATH/spec/previous/${STACKGRES_TARGET_VERSION%.*}/spec"
-  if [ ! -d "$SPEC_PATH" ]
-  then
-    echo "Specs for StackGres $STACKGRES_TARGET_VERSION not found"
-    exit 1
-  fi
-fi
+export SPEC_PATH="${SPEC_PATH:-$E2E_PATH/spec}"
 export E2E_LOCK
 export E2E_TEST_REGISTRY
 export E2E_TEST_REGISTRY_PATH
@@ -43,6 +34,21 @@ export E2E_HASH_VARIABLES='
     STACKGRES_PREVIOUS_VERSION
     STACKGRES_TARGET_VERSION
     '
+
+setup_spec() {
+  if [ -n "$STACKGRES_TARGET_VERSION" ] && [ "${STACKGRES_VERSION%.*}" != "${STACKGRES_TARGET_VERSION%.*}" ]
+  then
+    SPEC_PATH="$E2E_PATH/spec/previous/${STACKGRES_TARGET_VERSION%.*}/spec"
+    if [ ! -d "$SPEC_PATH" ]
+    then
+      echo "Specs for StackGres $STACKGRES_TARGET_VERSION not found"
+      exit 1
+    fi
+    echo "Using spec from $SPEC_PATH for target version $STACKGRES_TARGET_VERSION"
+  else
+    echo "Using spec from $SPEC_PATH for target version $STACKGRES_TARGET_VERSION"
+  fi
+}
 
 e2e_test_before_all() {
   true
@@ -194,8 +200,8 @@ spec() {
   local EXIT_CODE
   local SPEC_FILE="$1"
   local SPEC_VALUES_FILE="$1.values.yaml"
-  local SPEC_PATH="${SPEC_FILE%/*}"
   local SPEC_NAME="${SPEC_FILE##*/}"
+  SPEC_FILE="$SPEC_PATH/$SPEC_NAME"
   local CLUSTER_NAMESPACE="$SPEC_NAME-$(printf '%x' "$(date +%s)")"
   local CLUSTER_NAME
   CLUSTER_NAME="$(get_sgcluster_name "$SPEC_NAME")"
@@ -205,6 +211,12 @@ spec() {
   local LOG_PATH="$TARGET_PATH/logs/$SPEC_NAME/$CLUSTER_NAMESPACE"
   local SPEC_TIME="0"
   export SPEC_FILE SPEC_NAME CLUSTER_NAMESPACE CLUSTER_NAME LOG_PATH
+
+  if [ ! -f "$SPEC_FILE" ]
+  then
+    echo "Spec file $SPEC_FILE was not found"
+    return 1
+  fi
 
   mkdir -p "$LOG_PATH"
 
@@ -498,6 +510,9 @@ FROM alpine:3.13.5
   COPY . /project
 EOF
 
+  sort "$TARGET_PATH/runned-tests" 2>/dev/null | uniq > "$TARGET_PATH/uniq-runned-tests"
+  sort "$TARGET_PATH/passed-tests" 2>/dev/null | uniq > "$TARGET_PATH/uniq-passed-tests"
+
   local SPEC_PLATFORM
   SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform)"
   # shellcheck disable=SC2046
@@ -509,7 +524,7 @@ EOF
         IMAGE_NAME="$(grep "^$TEST_NAME=" "$TARGET_PATH/test-result-images" \
           | cut -d = -f 2-)"
         printf '%s %s ' '-t' "$IMAGE_NAME"
-      done < "$TARGET_PATH/passed-tests"
+      done < "$TARGET_PATH/uniq-passed-tests"
     ) \
     "$TARGET_PATH"
   docker push "$E2E_TEST_REGISTRY/$E2E_TEST_REGISTRY_PATH/e2e-test-result$E2E_SUFFIX:$IMAGE_TAG-$SPEC_PLATFORM"
@@ -518,7 +533,7 @@ EOF
     IMAGE_NAME="$(grep "^$TEST_NAME=" "$TARGET_PATH/test-result-images" \
       | cut -d = -f 2-)"
     printf '%s\n' "$IMAGE_NAME"
-  done < "$TARGET_PATH/passed-tests" \
+  done < "$TARGET_PATH/uniq-passed-tests" \
     | xargs -I % -P "$E2E_PARALLELISM" docker push %
 }
 
@@ -578,17 +593,20 @@ show_test_result_summary() {
     echo
   fi
 
-  if [ -s "$TARGET_PATH/passed-tests" ]
+  sort "$TARGET_PATH/runned-tests" 2>/dev/null | uniq > "$TARGET_PATH/uniq-runned-tests"
+  sort "$TARGET_PATH/passed-tests" 2>/dev/null | uniq > "$TARGET_PATH/uniq-passed-tests"
+
+  if [ -s "$TARGET_PATH/uniq-passed-tests" ]
   then
     echo "Passed tests:"
     echo
     while read -r TEST_NAME
     do
       printf ' - %s\n' "$TEST_NAME"
-    done < "$TARGET_PATH/passed-tests"
+    done < "$TARGET_PATH/uniq-passed-tests"
     echo
-  elif [ "$({ wc -l "$TARGET_PATH/runned-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
-    "$({ wc -l "$TARGET_PATH/passed-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
+  elif [ "$({ wc -l "$TARGET_PATH/uniq-runned-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
+    "$({ wc -l "$TARGET_PATH/uniq-passed-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
   then
     echo "Passed tests:"
     echo
@@ -596,18 +614,18 @@ show_test_result_summary() {
     echo
   fi
 
-  if [ "$({ wc -l "$TARGET_PATH/runned-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
-    "$({ wc -l "$TARGET_PATH/passed-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
+  if [ "$({ wc -l "$TARGET_PATH/uniq-runned-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" != \
+    "$({ wc -l "$TARGET_PATH/uniq-passed-tests" 2>/dev/null || echo '0'; } | cut -d ' ' -f 1)" ]
   then
     echo "Failed tests:"
     echo
     while read -r TEST_NAME
     do
-      if ! grep -qxF "$TEST_NAME" "$TARGET_PATH/passed-tests"
+      if ! grep -qxF "$TEST_NAME" "$TARGET_PATH/uniq-passed-tests"
       then
         printf ' - %s\n' "$TEST_NAME"
       fi
-    done < "$TARGET_PATH/runned-tests"
+    done < "$TARGET_PATH/uniq-runned-tests"
     echo
   else
     if [ "$EXIT_CODE" != 0 ]

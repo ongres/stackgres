@@ -58,6 +58,7 @@ public enum PatroniEnvPaths {
   TEMPLATES_PATH("/templates");
 
   private final String path;
+
   private final EnvVar envVar;
 
   PatroniEnvPaths(String path) {

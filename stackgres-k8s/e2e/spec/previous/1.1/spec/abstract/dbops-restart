@@ -16,7 +16,10 @@ reset_cluster() {
 
   wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set instanceProfiles[0].name=size-xs \
+    --set instanceProfiles[0].cpu=250m \
+    --set instanceProfiles[0].memory=512Mi \
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
@@ -56,15 +59,20 @@ check_restart_completed() {
   assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 }
 
+check_restart_without_data() {
+  check_restart "$1" "$2" true
+}
+
 check_restart() {
   local RESTARTED_PODS="$1"
   local NOT_RESTARTED_PODS="$2"
+  local SKIP_CHECK_DATA="$3"
 
   check_restart_is_running
 
   local DBOPS_JOB_NAME
   DBOPS_JOB_NAME="$(kubectl get job -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" -o name)"
+    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" -o name)"
 
   check_restart_prevent_updates_to_cluster
 
@@ -111,7 +119,7 @@ check_restart() {
   done
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" \
+    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. restart job was not removed after completion."
@@ -122,7 +130,7 @@ check_restart() {
 
   local FINAL_DBOPS_JOB_NAME
   FINAL_DBOPS_JOB_NAME="$(kubectl get job -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" -o name)"
+    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" -o name)"
   if [ "$DBOPS_JOB_NAME" = "$FINAL_DBOPS_JOB_NAME" ]
   then
     echo "SUCCESS. restart Job was not re-created."
@@ -131,9 +139,12 @@ check_restart() {
     return 1
   fi
 
-  check_mock_data_samehost "$CLUSTER_NAME"
-  if [ "$INITIAL_INSTANCES" -ge 2 ]
+  if [ "$SKIP_CHECK_DATA" != true ]
   then
-    check_mock_data_replication "$CLUSTER_NAME"
+    check_mock_data_samehost "$CLUSTER_NAME"
+    if [ "$INITIAL_INSTANCES" -ge 2 ]
+    then
+      check_mock_data_replication "$CLUSTER_NAME"
+    fi
   fi
 }

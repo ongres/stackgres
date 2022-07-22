@@ -46,14 +46,14 @@ public class KubectlUtil {
   public String getImageName(@NotNull StackGresVersion sgversion) {
     return cache.computeIfAbsent(sgversion, value -> {
       Component kubectl = StackGresComponent.KUBECTL.getOrThrow(sgversion);
-      final String imageName = kubectl.getOrderedVersions()
+      final String imageName = kubectl.streamOrderedVersions()
           .filter(ver -> k8sMinorVersion != -1)
           .findFirst(ver -> {
             int minor = Integer.parseInt(ver.split("\\.")[1]);
             return (k8sMinorVersion >= minor - 1 && k8sMinorVersion <= minor + 1);
           })
-          .map(kubectl::findImageName)
-          .orElseGet(kubectl::findLatestImageName);
+          .map(kubectl::getImageName)
+          .orElseGet(kubectl::getLatestImageName);
       LOG.debug("Using kubectl image: {}", imageName);
       return imageName;
     });

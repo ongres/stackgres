@@ -40,7 +40,7 @@ public class DbOpsSecurityUpgradeValidator implements DbOpsValidator {
         if (dbOps.getSpec().isOpSecurityUpgrade()) {
           Optional<StackGresCluster> cluster = clusterFinder.findByNameAndNamespace(
               dbOps.getSpec().getSgCluster(), dbOps.getMetadata().getNamespace());
-          if (cluster.map(c -> getPostgresFlavorComponent(c).get(c).getOrderedVersions()
+          if (cluster.map(c -> getPostgresFlavorComponent(c).get(c).streamOrderedVersions()
               .noneMatch(c.getSpec().getPostgres().getVersion()::equals))
               .orElse(false)) {
             fail("Major version upgrade must be performed on StackGresCluster before performing"

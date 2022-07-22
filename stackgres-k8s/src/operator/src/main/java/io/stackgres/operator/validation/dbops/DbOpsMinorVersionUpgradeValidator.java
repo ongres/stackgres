@@ -81,10 +81,10 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
             }
 
             String givenMajorVersion = getPostgresFlavorComponent(cluster)
-                .get(cluster).findMajorVersion(givenPgVersion);
+                .get(cluster).getMajorVersion(givenPgVersion);
             long givenMajorVersionIndex = getPostgresFlavorComponent(cluster)
                 .get(cluster)
-                .getOrderedMajorVersions()
+                .streamOrderedMajorVersions()
                 .zipWithIndex()
                 .filter(t -> t.v1.equals(givenMajorVersion))
                 .map(Tuple2::v2)
@@ -93,10 +93,10 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
             String oldPgVersion = cluster.getSpec().getPostgres().getVersion();
             String oldMajorVersion = getPostgresFlavorComponent(cluster)
                 .get(cluster)
-                .findMajorVersion(oldPgVersion);
+                .getMajorVersion(oldPgVersion);
             long oldMajorVersionIndex = getPostgresFlavorComponent(cluster)
                 .get(cluster)
-                .getOrderedMajorVersions()
+                .streamOrderedMajorVersions()
                 .zipWithIndex()
                 .filter(t -> t.v1.equals(oldMajorVersion))
                 .map(Tuple2::v2)

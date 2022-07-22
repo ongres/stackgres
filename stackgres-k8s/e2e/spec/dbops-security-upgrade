@@ -102,7 +102,7 @@ e2e_test_install() {
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
     --set configurations.backupconfig.create=true \
-    --set cluster.configurations.backups.retention=2 \
+    --set configurations.backupconfig.retention=2 \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=false \
@@ -755,7 +755,6 @@ check_backup_performance_mutation() {
     echo "FAIL. The maxNetworkBandwidth has not been set to null for sgbackup"
     return 1
   fi
-
 }
 
 check_backups_path_mutation() {

@@ -77,7 +77,7 @@ class BackupRequiredResourcesGeneratorTest {
     cluster = JsonUtil
         .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.getLatest()
-        .findLatestVersion());
+        .getLatestVersion());
     cluster.getMetadata().setNamespace(backup.getMetadata().getNamespace());
     cluster.getMetadata().setName(backup.getSpec().getSgCluster());
     profile = JsonUtil

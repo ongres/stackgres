@@ -58,7 +58,7 @@ public class DefaultPostgresDelegator implements ClusterMutator {
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPostgres)
         .map(StackGresClusterPostgres::getVersion)
-        .map(getPostgresFlavorComponent(cluster).get(cluster)::findMajorVersion)
+        .map(getPostgresFlavorComponent(cluster).get(cluster)::getMajorVersion)
         .map(factoryMap::get)
         .map(Unchecked.function(this::getMutator));
   }

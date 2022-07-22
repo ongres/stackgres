@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
@@ -274,11 +273,11 @@ public interface StackGresUtil {
   static List<Tuple2<String, Optional<String>>> getDefaultClusterExtensions(
       StackGresVersion stackGresVersion, String pgVersion, String flavor) {
     if (Component.compareBuildVersions("6.6",
-        StackGresComponent.PATRONI.getOrThrow(stackGresVersion).findBuildVersion(
-            StackGresComponent.LATEST, ImmutableMap.of(
+        StackGresComponent.PATRONI.getOrThrow(stackGresVersion)
+            .getBuildVersion(StackGresComponent.LATEST, Map.of(
                 getPostgresFlavorComponent(flavor).getOrThrow(stackGresVersion),
                 pgVersion))) <= 0) {
-      return ImmutableList.of();
+      return List.of();
     }
 
     return Seq.of(
@@ -287,7 +286,7 @@ public interface StackGresUtil {
         Tuple.tuple("dblink"),
         Tuple.tuple("plpython3u"))
         .map(t -> t.concat(Optional.<String>empty()))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   static List<Tuple2<String, Optional<String>>> getDefaultClusterExtensions(
@@ -296,11 +295,11 @@ public interface StackGresUtil {
       return List.of();
     }
     if (Component.compareBuildVersions("6.6",
-        StackGresComponent.PATRONI.getOrThrow(stackGresVersion).findBuildVersion(
-            StackGresComponent.LATEST, ImmutableMap.of(
+        StackGresComponent.PATRONI.getOrThrow(stackGresVersion)
+            .getBuildVersion(StackGresComponent.LATEST, Map.of(
                 flavor.getOrThrow(stackGresVersion),
                 pgVersion))) <= 0) {
-      return ImmutableList.of();
+      return List.of();
     }
     return Seq.of(
         Tuple.tuple("plpgsql"),
@@ -308,7 +307,7 @@ public interface StackGresUtil {
         Tuple.tuple("dblink"),
         Tuple.tuple("plpython3u"))
         .map(t -> t.concat(Optional.<String>empty()))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   static List<Tuple2<String, Optional<String>>> getDefaultDistributedLogsExtensions(
@@ -327,7 +326,7 @@ public interface StackGresUtil {
         pgVersion,
         StackGresPostgresFlavor.VANILLA.toString())).append(
             Tuple.tuple("timescaledb", Optional.of("1.7.4")))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   static boolean isLocked(HasMetadata resource, int lockTimeoutMillis) {
@@ -383,16 +382,16 @@ public interface StackGresUtil {
 
   static String getPatroniImageName(StackGresCluster cluster, String postgresVersion) {
     Component postgresComponentFlavor = getPostgresFlavorComponent(cluster).get(cluster);
-    return StackGresComponent.PATRONI.get(cluster).findImageName(
+    return StackGresComponent.PATRONI.get(cluster).getImageName(
         StackGresComponent.LATEST,
-        ImmutableMap.of(postgresComponentFlavor,
+        Map.of(postgresComponentFlavor,
             postgresVersion));
   }
 
   static String getPatroniImageName(StackGresDistributedLogs distributedLogs) {
-    return StackGresComponent.PATRONI.get(distributedLogs).findImageName(
+    return StackGresComponent.PATRONI.get(distributedLogs).getImageName(
         StackGresComponent.LATEST,
-        ImmutableMap.of(StackGresComponent.POSTGRESQL.get(distributedLogs),
+        Map.of(StackGresComponent.POSTGRESQL.get(distributedLogs),
             "12"));
   }
 

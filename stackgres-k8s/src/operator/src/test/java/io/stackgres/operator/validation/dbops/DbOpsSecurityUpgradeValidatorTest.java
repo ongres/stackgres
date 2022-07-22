@@ -44,8 +44,9 @@ class DbOpsSecurityUpgradeValidatorTest {
 
     cluster = getDefaultCluster();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.getLatest()
-        .findVersion(
-            StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions().findLast().get()));
+        .getVersion(
+            StackGresComponent.POSTGRESQL.getLatest()
+            .streamOrderedMajorVersions().findLast().get()));
   }
 
   @Test

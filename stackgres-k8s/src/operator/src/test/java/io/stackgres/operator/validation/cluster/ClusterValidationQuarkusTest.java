@@ -48,13 +48,13 @@ class ClusterValidationQuarkusTest {
       URI.create("https://extensions.stackgres.io/postgres/repository?skipHostVerification=true");
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
 
   private static final String POSTGRES_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedMajorVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions().findFirst().get();
 
   private static final String BUILD_MAJOR_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedBuildMajorVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedBuildMajorVersions().findFirst().get();
 
   @Inject
   KubernetesClient client;

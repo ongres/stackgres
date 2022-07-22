@@ -5,7 +5,10 @@
 
 package io.stackgres.operator.mutation.cluster;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -19,7 +22,9 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.github.fge.jsonpatch.ReplaceOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -30,6 +35,7 @@ import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
+import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import org.jooq.lambda.Seq;
@@ -43,21 +49,47 @@ public class ExtensionsMutator
 
   private final ClusterExtensionMetadataManager extensionMetadataManager;
   private final ObjectMapper objectMapper;
+  private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
+      supportedPostgresVersions;
 
   @Inject
   public ExtensionsMutator(
       ClusterExtensionMetadataManager extensionMetadataManager,
       ObjectMapper objectMapper) {
+    this(extensionMetadataManager, objectMapper, ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
+  }
+
+  public ExtensionsMutator(
+      ClusterExtensionMetadataManager extensionMetadataManager,
+      ObjectMapper objectMapper,
+      Map<StackGresComponent, Map<StackGresVersion, List<String>>> supportedPostgresVersions) {
     this.extensionMetadataManager = extensionMetadataManager;
     this.objectMapper = objectMapper;
+    this.supportedPostgresVersions = supportedPostgresVersions;
   }
 
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
-    return new ImmutableList.Builder<JsonPatchOperation>()
-        .addAll(mutateExtensionChannels(review))
-        .addAll(super.mutate(review))
-        .build();
+    if (review.getRequest().getOperation() == Operation.CREATE
+        || review.getRequest().getOperation() == Operation.UPDATE) {
+      StackGresCluster cluster = review.getRequest().getObject();
+      String postgresVersion = Optional.of(cluster.getSpec())
+          .map(StackGresClusterSpec::getPostgres)
+          .map(StackGresClusterPostgres::getVersion)
+          .flatMap(getPostgresFlavorComponent(cluster).get(cluster)::findVersion)
+          .orElse(null);
+      if (postgresVersion != null && supportedPostgresVersions
+          .get(getPostgresFlavorComponent(cluster))
+          .get(StackGresVersion.getStackGresVersion(cluster))
+          .contains(postgresVersion)) {
+        return new ImmutableList.Builder<JsonPatchOperation>()
+            .addAll(mutateExtensionChannels(review))
+            .addAll(super.mutate(review))
+            .build();
+      }
+    }
+
+    return List.of();
   }
 
   private List<JsonPatchOperation> mutateExtensionChannels(StackGresClusterReview review) {
@@ -89,7 +121,7 @@ public class ExtensionsMutator
       return operations.build();
     }
 
-    return ImmutableList.of();
+    return List.of();
   }
 
   private Optional<StackGresClusterInstalledExtension> getToInstallExtension(
@@ -154,7 +186,7 @@ public class ExtensionsMutator
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPostgres)
         .map(StackGresClusterPostgres::getExtensions)
-        .orElse(ImmutableList.of());
+        .orElse(List.of());
   }
 
   @Override

@@ -77,7 +77,7 @@ public class Envoy extends AbstractEnvoy {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(StackGresContainer.ENVOY.getName())
         .withImage(StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
-            .findLatestImageName())
+            .getLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(StackGresContainer.ENVOY.getName())

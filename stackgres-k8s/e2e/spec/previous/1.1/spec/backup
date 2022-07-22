@@ -13,8 +13,7 @@ e2e_test_install() {
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   # Avoid backups before waiting for pods (since backup pods could biase the wait)
-  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
-    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
+  enable_cronSchedule
 }
 
 e2e_test() {

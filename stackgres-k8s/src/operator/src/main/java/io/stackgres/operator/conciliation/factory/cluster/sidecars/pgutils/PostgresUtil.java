@@ -37,7 +37,7 @@ public class PostgresUtil extends AbstractPostgresUtil {
     return new ContainerBuilder()
         .withName(StackGresContainer.POSTGRES_UTIL.getName())
         .withImage(StackGresComponent.POSTGRES_UTIL.get(context.getClusterContext().getCluster())
-            .findImageName(
+            .getImageName(
                 context.getClusterContext().getSource().getSpec().getPostgres().getVersion()))
         .withImagePullPolicy("IfNotPresent")
         .withStdin(Boolean.TRUE)

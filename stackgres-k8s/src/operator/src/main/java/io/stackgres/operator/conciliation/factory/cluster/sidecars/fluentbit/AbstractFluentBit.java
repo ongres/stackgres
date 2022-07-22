@@ -72,7 +72,7 @@ public abstract class AbstractFluentBit implements
     return ImmutableMap.of(
         StackGresContext.FLUENTBIT_VERSION_KEY,
         StackGresComponent.FLUENT_BIT.get(context.getClusterContext().getCluster())
-        .findLatestVersion());
+        .getLatestVersion());
   }
 
   @Override
@@ -80,7 +80,7 @@ public abstract class AbstractFluentBit implements
     return new ContainerBuilder()
         .withName(StackGresContainer.FLUENT_BIT.getName())
         .withImage(StackGresComponent.FLUENT_BIT.get(context.getClusterContext().getCluster())
-            .findLatestImageName())
+            .getLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)

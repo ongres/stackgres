@@ -37,7 +37,7 @@ import org.opentest4j.AssertionFailedError;
 class DefaultBackupPathMutatorTest {
 
   private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions().findFirst().get();
+      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
 
   protected static final JsonMapper JSON_MAPPER = new JsonMapper();
 
@@ -77,7 +77,7 @@ class DefaultBackupPathMutatorTest {
     final String postgresFlavor = cluster.getSpec().getPostgres().getFlavor();
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
-        .findMajorVersion(postgresVersion);
+        .getMajorVersion(postgresVersion);
     assertEquals(
         BackupStorageUtil.getPath(
             cluster.getMetadata().getNamespace(),

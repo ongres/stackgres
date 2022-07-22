@@ -23,6 +23,9 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
@@ -88,8 +91,14 @@ public class PostgresConfigValidator implements ClusterValidator {
       return;
     }
 
-    String givenPgVersion = cluster.getSpec().getPostgres().getVersion();
-    String pgConfig = cluster.getSpec().getConfiguration().getPostgresConfig();
+    String givenPgVersion = Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getVersion)
+        .orElse(null);
+    String pgConfig = Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getConfiguration)
+        .map(StackGresClusterConfiguration::getPostgresConfig)
+        .orElse(null);
 
     checkIfProvided(givenPgVersion, "postgres version");
     checkIfProvided(pgConfig, "sgPostgresConfig");
@@ -103,7 +112,7 @@ public class PostgresConfigValidator implements ClusterValidator {
     }
 
     String givenMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .findMajorVersion(givenPgVersion);
+        .getMajorVersion(givenPgVersion);
     String namespace = cluster.getMetadata().getNamespace();
     String username = review.getRequest().getUserInfo().getUsername();
 
@@ -130,7 +139,7 @@ public class PostgresConfigValidator implements ClusterValidator {
         }
 
         long givenMajorVersionIndex = getPostgresFlavorComponent(cluster)
-            .get(cluster).getOrderedMajorVersions()
+            .get(cluster).streamOrderedMajorVersions()
             .zipWithIndex()
             .filter(t -> t.v1.equals(givenMajorVersion))
             .map(Tuple2::v2)
@@ -139,10 +148,10 @@ public class PostgresConfigValidator implements ClusterValidator {
         String oldPgVersion = oldCluster.getSpec().getPostgres().getVersion();
         String oldMajorVersion = getPostgresFlavorComponent(oldCluster)
             .get(cluster)
-            .findMajorVersion(oldPgVersion);
+            .getMajorVersion(oldPgVersion);
         long oldMajorVersionIndex = getPostgresFlavorComponent(oldCluster)
             .get(cluster)
-            .getOrderedMajorVersions()
+            .streamOrderedMajorVersions()
             .zipWithIndex()
             .filter(t -> t.v1.equals(oldMajorVersion))
             .map(Tuple2::v2)

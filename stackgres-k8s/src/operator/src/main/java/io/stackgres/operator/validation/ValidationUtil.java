@@ -35,5 +35,5 @@ public interface ValidationUtil {
                   .entrySet()
                   .stream()
                   .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey,
-                      entry -> entry.getValue().getOrderedVersions().toList()))));
+                      entry -> entry.getValue().streamOrderedVersions().toList()))));
 }

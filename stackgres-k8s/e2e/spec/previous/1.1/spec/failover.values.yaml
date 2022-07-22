@@ -6,10 +6,11 @@ configurations:
     create: false
 cluster:
   postgres:
-    version: latest
+    version: "13"
   pods:
     persistentVolume:
       size: 128Mi
+    managementPolicy: Parallel
   configurations:
     sgBackupConfig: null
   prometheusAutobind: false

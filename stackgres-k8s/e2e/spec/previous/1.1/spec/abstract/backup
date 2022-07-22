@@ -1,7 +1,7 @@
 #!/bin/sh
 
 check_backup() {
-  local NODE="$1"
+  local NODE="${1:-0}"
 
   check_wal_archive "$NODE"
 
@@ -25,6 +25,7 @@ check_backup() {
 }
 
 check_wal_archive() {
+  local NODE="${1:-0}"
   local RESULT
   local EXIT_CODE
   try_function wait_until try_check_wal_archive "$NODE"
@@ -38,23 +39,35 @@ check_wal_archive() {
 }
 
 try_check_wal_archive() {
-  local NODE="$1"
+  local NODE="${1:-0}"
   local CURRENT_WAL_FILE
-  CURRENT_WAL_FILE="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
-    psql -t -A -U postgres -p 5432 -c \
-    'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r')"
-  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
-    psql -t -A -U postgres -p 5432 -c 'CHECKPOINT'
-  wait_until -t "$((E2E_TIMEOUT / 10))" eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
-      psql -t -A -U postgres -p 5432 -c \
-      "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
+  CURRENT_WAL_FILE="$(rotate_wal_file "$1")"
   wait_until -t "$((E2E_TIMEOUT / 10))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
     kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c patroni -- \
     exec-with-env backup -- wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
 }
 
+rotate_wal_file() {
+  local NODE="${1:-0}"
+  local CURRENT_WAL_FILE
+  CURRENT_WAL_FILE="$(get_current_wal_file "$1")"
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
+    psql -t -A -U postgres -p 5432 -c 'CHECKPOINT' >/dev/null
+  wait_until -t "$((E2E_TIMEOUT / 10))" eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
+      psql -t -A -U postgres -p 5432 -c \
+      "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]' >&2
+  printf '%s' "$CURRENT_WAL_FILE"
+}
+
+get_current_wal_file() {
+  local NODE="${1:-0}"
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c postgres-util -- \
+    psql -t -A -U postgres -p 5432 -c \
+    'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r'
+}
+
 check_automatic_backup() {
-  local NODE="$1"
+  local NODE="${1:-0}"
   local CUSTOM_COLUMNS=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
 
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
@@ -127,7 +140,7 @@ check_control_data(){
 }
 
 check_automatic_backup_cr() {
-  local NODE="$1"
+  local NODE="${1:-0}"
 
   if wait_until is_automatic_backup_cr_completed "$NODE"
   then
@@ -139,7 +152,7 @@ check_automatic_backup_cr() {
 }
 
 is_automatic_backup_cr_completed() {
-  local NODE="$1"
+  local NODE="${1:-0}"
   local CUSTOM_COLUMNS=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
   local BACKUP_NAME
 
@@ -152,7 +165,7 @@ is_automatic_backup_cr_completed() {
 }
 
 check_manual_backup() {
-  local NODE="$1"
+  local NODE="${1:-0}"
   local BACKUP_NAME
   BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)")"
   local BACKUP_2_NAME
@@ -163,9 +176,8 @@ check_manual_backup() {
   local CUSTOM_COLUMNS=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
 
   # Avoid automatic backups while testing manual backups
-  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
-    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"0 5 31 2 *"}]'
-
+  disable_cronSchedule
+  
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
 
   create_backup "$BACKUP_NAME" false
@@ -251,9 +263,9 @@ check_manual_backup() {
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_3_NAME"
 
   # Avoid automatic backups while testing manual backups
-  kubectl patch sgbackupconfig -n "$CLUSTER_NAMESPACE" backupconf --type json \
-    --patch '[{"op":"replace","path":"/spec/baseBackups/cronSchedule","value":"*/1 * * * *"}]'
 
+  enable_cronSchedule
+  
   if wait_until eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
       exec-with-env backup -- wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
   then
@@ -294,7 +306,7 @@ check_is_managed_lifecycle_value() {
 }
 
 check_backup_retention() {
-  local NODE="$1"
+  local NODE="${1:-0}"
   local CUSTOM_COLUMNS=NAME:.metadata.name,BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
@@ -307,11 +319,17 @@ check_backup_retention() {
   fi
 
   local BACKUP_NAME
-  BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" --sort-by '{.metadata.creationTimestamp}' \
-      -o custom-columns="$CUSTOM_COLUMNS" \
-      | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
+  BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o json \
+    jq -r '.items | sort_by(.metadata.creationTimestamp)[]
+      | select(
+        .status != null and .status.process != null
+        and .status.backupInformation.sourcePod != null
+        and .status.process.status == "Completed"
+        and .status.backupInformation.sourcePod == "'"${CLUSTER_NAME}-${NODE}"'"
+        ).metadata.name' \
+      | head -n 1)"
 
-  if wait_until eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
+  if wait_until -t "$((E2E_TIMEOUT * 2))" eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
   then
     echo "SUCCESS. The backup retention has been honored. Old backups $BACKUP_NAME deleted"
   else
@@ -320,7 +338,7 @@ check_backup_retention() {
     return 1
   fi
 
-  if wait_until -t 5 eval '[ "$(get_completed_backup_count)" = "2" ]'
+  if wait_until eval '[ "$(get_completed_backup_count)" = "2" ]'
   then
     echo "SUCCESS. The backup retention has been honored. Remaining backups are 2"
   else
@@ -334,3 +352,14 @@ get_completed_backup_count() {
     | grep 'Completed' | wc -l
 }
 
+enable_cronSchedule() {
+  # Sets the value At every minute.
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    --patch '[{"op":"replace","path":"/spec/configurations/backups/0/cronSchedule","value":"*/1 * * * *"}]'
+}
+
+disable_cronSchedule() {
+  # Sets the value At 05:00 on day-of-month 31 in February.
+  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    --patch '[{"op":"replace","path":"/spec/configurations/backups/0/cronSchedule","value":"0 5 31 2 *"}]'
+}

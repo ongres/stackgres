@@ -3,18 +3,20 @@ configurations:
   postgresconfig:
     postgresql.conf:
       shared_buffers: '32MB'
-  backupconfig:
+  objectstorage:
     create: true
-    # Avoid backups before waiting for pods (since backup pods could biase the wait)
-    baseBackups:
-      retention: 2
-      cronSchedule: '0 5 31 2 *'
 cluster:
+  postgres:
+    version: "13"
   pods:
     persistentVolume:
       size: 128Mi
+    managementPolicy: Parallel
   configurations:
-    sgBackupConfig: backupconf
+    backups:
+      retention: 2
+      cronSchedule: '0 5 31 2 *'
+      sgObjectStorage: backupconf
   sgInstanceProfile: 'size-xs'
   prometheusAutobind: false
 nonProductionOptions:

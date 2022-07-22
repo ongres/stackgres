@@ -44,13 +44,13 @@ public class StackGresExtensionIndexSameMajorBuild {
     this.version = extension.getVersionOrDefaultChannel();
     this.flavor = ExtensionUtil.getFlavorPrefix(cluster);
     this.postgresVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .findMajorVersion(cluster.getSpec().getPostgres().getVersion());
+        .getMajorVersion(cluster.getSpec().getPostgres().getVersion());
     this.postgresExactVersion = getPostgresFlavorComponent(cluster).get(cluster)
-        .findVersion(cluster.getSpec().getPostgres().getVersion());
+        .getVersion(cluster.getSpec().getPostgres().getVersion());
     this.fromIndex = false;
     this.channels = ImmutableList.of();
     this.build = getPostgresFlavorComponent(cluster).get(cluster)
-        .findBuildMajorVersion(cluster.getSpec().getPostgres().getVersion());
+        .getBuildMajorVersion(cluster.getSpec().getPostgres().getVersion());
     this.arch = ExtensionUtil.getClusterArch(cluster, osDetector);
     this.os = ExtensionUtil.getClusterOs(cluster, osDetector);
   }

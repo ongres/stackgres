@@ -24,7 +24,7 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
   private @NotNull String postgresVersion;
 
   public DefaultPostgresFactory() {
-    this.postgresVersion = StackGresComponent.POSTGRESQL.getLatest().findMajorVersion(
+    this.postgresVersion = StackGresComponent.POSTGRESQL.getLatest().getMajorVersion(
         StackGresComponent.LATEST);
   }
 

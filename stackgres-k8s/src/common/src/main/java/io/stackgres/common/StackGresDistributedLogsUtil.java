@@ -37,17 +37,17 @@ public interface StackGresDistributedLogsUtil {
 
   static String getPostgresVersion(StackGresDistributedLogs distributedLogs) {
     return StackGresComponent.POSTGRESQL.get(distributedLogs)
-        .findVersion(POSTGRESQL_VERSION);
+        .getVersion(POSTGRESQL_VERSION);
   }
 
   static String getPostgresMajorVersion(StackGresDistributedLogs distributedLogs) {
     return StackGresComponent.POSTGRESQL.get(distributedLogs)
-        .findMajorVersion(POSTGRESQL_VERSION);
+        .getMajorVersion(POSTGRESQL_VERSION);
   }
 
   static String getPostgresBuildMajorVersion(StackGresDistributedLogs distributedLogs) {
     return StackGresComponent.POSTGRESQL.get(distributedLogs)
-        .findBuildMajorVersion(POSTGRESQL_VERSION);
+        .getBuildMajorVersion(POSTGRESQL_VERSION);
   }
 
   static @NotNull StackGresComponent getPostgresFlavorComponent(

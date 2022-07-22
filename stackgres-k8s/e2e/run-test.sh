@@ -8,10 +8,13 @@ e2e_list_utils | while read UTIL_PATH
     echo " - $UTIL_PATH"
   done
 
-echo "Preparing environment"
-
 echo "Setup versions"
 setup_versions
+echo "Setup spec"
+setup_spec
+
+echo "Preparing environment"
+
 echo "Setup k8s"
 setup_k8s
 echo "Setup images"

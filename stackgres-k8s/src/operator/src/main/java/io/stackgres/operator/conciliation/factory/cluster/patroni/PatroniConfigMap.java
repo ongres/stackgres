@@ -118,7 +118,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
 
   public @NotNull ConfigMap buildSource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
-    final String pgVersion = StackGresComponent.POSTGRESQL.get(cluster).findVersion(
+    final String pgVersion = StackGresComponent.POSTGRESQL.get(cluster).getVersion(
         cluster.getSpec().getPostgres().getVersion());
 
     final String patroniClusterLabelsAsJson;

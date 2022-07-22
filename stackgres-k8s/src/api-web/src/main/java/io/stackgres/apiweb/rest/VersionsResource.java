@@ -37,7 +37,8 @@ public class VersionsResource {
   @Path("postgresql")
   public Map<String, List<String>> supportedPostgresVersions(@QueryParam("flavor") String flavor) {
     return Map.of(
-        "postgresql", getPostgresFlavorComponent(flavor).getLatest().getOrderedVersions().toList());
+        "postgresql",
+        getPostgresFlavorComponent(flavor).getLatest().streamOrderedVersions().toList());
   }
 
 }

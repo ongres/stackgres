@@ -101,7 +101,7 @@ public class BabelfishCompass extends SgApplication {
                 .withRequests(Map.of("memory", new Quantity("128Mi"),
                     "cpu", new Quantity("500m")))
                 .build())
-            .withImage(StackGresComponent.BABELFISH_COMPASS.getLatest().findLatestImageName())
+            .withImage(StackGresComponent.BABELFISH_COMPASS.getLatest().getLatestImageName())
             .withCommand("/bin/sleep")
             .withArgs("600")
             .withVolumeMounts(new VolumeMountBuilder()

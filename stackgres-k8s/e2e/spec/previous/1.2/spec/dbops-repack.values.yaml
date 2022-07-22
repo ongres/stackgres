@@ -8,10 +8,11 @@ cluster:
   pods:
     persistentVolume:
       size: 128Mi
+    managementPolicy: Parallel
   configurations:
     sgBackupConfig: null
   prometheusAutobind: false
-  managedSql:
+  initialData:
     scripts:
       - script: 'CREATE EXTENSION pg_repack'
   postgres:

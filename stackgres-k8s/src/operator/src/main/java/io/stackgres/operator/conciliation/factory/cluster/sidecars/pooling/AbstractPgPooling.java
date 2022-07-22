@@ -99,7 +99,7 @@ public abstract class AbstractPgPooling
     return new ContainerBuilder()
         .withName(StackGresContainer.PGBOUNCER.getName())
         .withImage(StackGresComponent.PGBOUNCER.get(context.getClusterContext().getCluster())
-            .findLatestImageName())
+            .getLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(getVolumeMounts(context))
         .build();
@@ -110,7 +110,7 @@ public abstract class AbstractPgPooling
     return ImmutableMap.of(
         StackGresContext.PGBOUNCER_VERSION_KEY,
         StackGresComponent.PGBOUNCER.get(context.getClusterContext().getCluster())
-        .findLatestVersion());
+        .getLatestVersion());
   }
 
   protected abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);
