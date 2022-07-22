@@ -193,16 +193,16 @@
                 <li>
                     <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/config'" title="Configuration" class="info">Configuration</router-link>
                 </li>
-                <li v-if="iCan('list','sgbackups',$route.params.namespace)">
+                <li v-if="iCan('list','sgbackups',$route.params.namespace)" :class="$route.name.includes('Backup') && 'active'">
                     <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/sgbackups'" title="Backups" class="backups">Backups</router-link>
                 </li>
                 <li v-if="iCan('list','sgdistributedlogs',$route.params.namespace) && hasLogs">
                     <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/logs'" title="Distributed Logs" class="logs">Logs</router-link>
                 </li>
-                <li v-if="hasMonitoring">
+                <li v-if="hasMonitoring" :class="$route.name.includes('Monitor') && 'active'">
                     <router-link id="grafana-btn" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/monitor'" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
                 </li>
-                <li>
+                <li :class="$route.name == 'SingleClusterEvents' && 'active'">
                     <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/events'" title="Events" class="events">Events</router-link>
                 </li>
             </ul>
