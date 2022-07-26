@@ -11,19 +11,6 @@ FROM docker.io/docker:20.10
    RUN apk add coreutils gnupg openssl jq curl bash zsh sed libc6-compat
     RUN apk add attr-dev e2fsprogs-dev glib-dev libtirpc-dev openssl-dev util-linux-dev \
       gcc libc-dev make automake autoconf libtool linux-headers
-    RUN wget -q https://github.com/zfsonlinux/zfs/releases/download/zfs-0.8.4/zfs-0.8.4.tar.gz -O -|tar xz
-    RUN cd zfs-0.8.4 \
-      && ./configure --prefix=/usr \
-        --with-tirpc \
-        --sysconfdir=/etc \
-        --mandir=/usr/share/man \
-        --infodir=/usr/share/info \
-        --localstatedir=/var \
-        --with-config=user \
-        --with-udevdir=/lib/udev \
-        --disable-systemd \
-        --disable-static \
-      && make install
     RUN uname -a | grep -qxF aarch64 \
       || wget -q -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.0/yajsv.linux.amd64
     RUN chmod a+x /bin/yajsv
