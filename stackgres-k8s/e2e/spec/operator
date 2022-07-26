@@ -99,7 +99,7 @@ check_operator_installed() {
 
 check_operator_upgrade_alpha() {
   kubectl label deployment -n "$OPERATOR_NAMESPACE" stackgres-operator \
-    --overwrite "version=${STACKGRES_VERSION%%-*}-alpha1"
+    --overwrite "version=${STACKGRES_VERSION%%-*}-alpha100"
   local EXIT_CODE RESULT
   try_function upgrade_operator
   if "$RESULT"
@@ -113,7 +113,7 @@ check_operator_upgrade_alpha() {
 
 check_operator_upgrade_beta() {
   kubectl label deployment -n "$OPERATOR_NAMESPACE" stackgres-operator \
-    --overwrite "version=${STACKGRES_VERSION%%-*}-beta1"
+    --overwrite "version=${STACKGRES_VERSION%%-*}-beta100"
   local EXIT_CODE RESULT
   try_function upgrade_operator
   if "$RESULT"
