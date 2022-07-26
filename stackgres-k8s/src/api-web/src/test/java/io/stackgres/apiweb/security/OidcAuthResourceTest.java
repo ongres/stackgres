@@ -90,7 +90,7 @@ class OidcAuthResourceTest {
 
   @Test
   void get_oidc_redirect() {
-    String[] pgvers = StackGresComponent.POSTGRESQL.getLatest().getOrderedVersions()
+    String[] pgvers = StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
         .toArray(String[]::new);
     given()
         .cookie(getRestAssuredSessionCookie(webClient))
