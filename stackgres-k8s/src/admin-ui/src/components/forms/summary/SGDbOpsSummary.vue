@@ -279,16 +279,16 @@
                 <strong class="sectionTitle">Repack Details</strong>
                 <ul>
                     <li v-if="( showDefaults || crd.data.spec.repack.noOrder )">
-                        <strong class="label">No Order:</strong>
-                        <span class="value">{{ crd.data.spec.repack.noOrder ? 'ON' : 'OFF' }}</span>
+                        <strong class="label">Order:</strong>
+                        <span class="value">{{ crd.data.spec.repack.noOrder ? 'OFF' : 'ON' }}</span>
                     </li>
                     <li v-if="( showDefaults || crd.data.spec.repack.noKillBackend )">
-                        <strong class="label">No Kill Backend:</strong>
-                        <span class="value">{{ crd.data.spec.repack.noKillBackend ? 'ON' : 'OFF' }}</span>
+                        <strong class="label">Kill Backend:</strong>
+                        <span class="value">{{ crd.data.spec.repack.noKillBackend ? 'OFF' : 'ON' }}</span>
                     </li>
                     <li v-if="( showDefaults || crd.data.spec.repack.noAnalyze )">
-                        <strong class="label">No Analyze:</strong>
-                        <span class="value">{{ crd.data.spec.repack.noAnalyze ? 'ON' : 'OFF' }}</span>
+                        <strong class="label">Analyze:</strong>
+                        <span class="value">{{ crd.data.spec.repack.noAnalyze ? 'OFF' : 'ON' }}</span>
                     </li>
                     <li v-if="( showDefaults || crd.data.spec.repack.excludeExtension )">
                         <strong class="label">Exclude Extension:</strong>
@@ -309,16 +309,16 @@
                                 </strong>
                                 <ul v-if="( showDefaults || ( db.noOrder || db.waitTimeout || db.noKillBackend || db.noAnalyze || db.excludeExtension ) )">
                                     <li v-if="(showDefaults || db.noOrder)">
-                                        <strong class="label">No Order:</strong>
-                                        <span class="value">{{ db.noOrder ? 'ON' : 'OFF' }}</span>
+                                        <strong class="label">Order:</strong>
+                                        <span class="value">{{ db.noOrder ? 'OFF' : 'ON' }}</span>
                                     </li>
                                     <li v-if="(showDefaults || db.noKillBackend)">
-                                        <strong class="label">No Kill Backend:</strong>
-                                        <span class="value">{{ db.noKillBackend ? 'ON' : 'OFF' }}</span>
+                                        <strong class="label">Kill Backend:</strong>
+                                        <span class="value">{{ db.noKillBackend ? 'OFF' : 'ON' }}</span>
                                     </li>
                                     <li v-if="(showDefaults || db.noAnalyze)">
-                                        <strong class="label">No Analyze:</strong>
-                                        <span class="value">{{ db.noAnalyze ? 'ON' : 'OFF' }}</span>
+                                        <strong class="label">Analyze:</strong>
+                                        <span class="value">{{ db.noAnalyze ? 'OFF' : 'ON' }}</span>
                                     </li>
                                     <li v-if="(showDefaults || db.excludeExtension)">
                                         <strong class="label">Exclude Extension:</strong>
