@@ -8,7 +8,7 @@
   <parent>
     <artifactId>stackgres-parent</artifactId>
     <groupId>io.stackgres</groupId>
-    <version>1.3.0-beta1</version>
+    <version>1.3.0-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
