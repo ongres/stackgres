@@ -95,8 +95,7 @@ export const mixin = {
 
       auth() {
         const vc = this;
-        let loginToken = '';
-
+        
         sgApi
         .get('auth_type')
         .then(function(response) {
@@ -122,7 +121,7 @@ export const mixin = {
             
           } else {
             console.log('Using JWT Auth');
-            loginToken = ("; "+document.cookie).split("; sgToken=").pop().split(";").shift();
+            let loginToken = ("; "+document.cookie).split("; sgToken=").pop().split(";").shift();
 
             if(store.state.loginToken.search('Authentication Error') !== -1) {
               clearInterval(this.pooling);
@@ -132,7 +131,8 @@ export const mixin = {
                 return false;
               }
             } else if ( !store.state.loginToken.length && (loginToken.length > 0) ) {
-              $('#signup').hide();
+              vc.fetchAPI();
+              $('#signup').fadeOut();
               store.commit('setLoginToken', loginToken);
             }
           }

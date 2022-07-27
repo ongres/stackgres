@@ -710,7 +710,7 @@ router.beforeResolve((to, from, next) => {
     })
     .catch(function(err) {
       console.log(err);
-      vc.checkAuthError(err);
+      checkAuthError(err);
     });
 
   }
