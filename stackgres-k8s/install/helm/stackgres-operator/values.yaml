@@ -102,11 +102,22 @@ cert:
 
 # Custom credentials for the operator's admin user
 authentication:
+  type: jwt # oidc
   user: admin
   resetPassword: false
 #  password: <operator admin password>
   secretRef:
     name: ""
+  oidc: {}
+  #  authServerUrl: <string>
+  #  clientId: <string>
+  #  credentialsSecret: <string>
+  #  clientIdSecretRef:
+  #    name: <string>
+  #    key: <string>
+  #  credentialsSecretSecretRef:
+  #    name: <string>
+  #    Key: <string>
 
 prometheus:
   allowAutobind: true

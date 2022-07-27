@@ -16,7 +16,8 @@ import io.quarkus.security.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AbstractGenericExceptionMapper<T extends Throwable> implements ExceptionMapper<T> {
+public abstract class AbstractGenericExceptionMapper<T extends Throwable>
+    implements ExceptionMapper<T> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(
       AbstractGenericExceptionMapper.class);
@@ -25,12 +26,13 @@ public class AbstractGenericExceptionMapper<T extends Throwable> implements Exce
   public Response toResponse(T throwable) {
     int statusCode = Status.INTERNAL_SERVER_ERROR.getStatusCode();
     Throwable cause = Throwables.getRootCause(throwable);
-    if (cause instanceof WebApplicationException) {
-      statusCode = ((WebApplicationException) cause).getResponse().getStatus();
+
+    if (cause instanceof WebApplicationException e) {
+      statusCode = e.getResponse().getStatus();
     }
 
-    if (cause instanceof UnauthorizedException) {
-      return new UnauthorizedExceptionMapper().toResponse((UnauthorizedException) cause);
+    if (cause instanceof UnauthorizedException e) {
+      throw e;
     }
 
     if (statusCode == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
@@ -41,6 +43,5 @@ public class AbstractGenericExceptionMapper<T extends Throwable> implements Exce
 
     return Response.status(statusCode).type(MediaType.APPLICATION_JSON)
         .entity(ErrorResponse.create(cause, message)).build();
-
   }
 }

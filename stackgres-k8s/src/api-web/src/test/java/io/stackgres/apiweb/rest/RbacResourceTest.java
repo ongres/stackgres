@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
+import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -22,17 +23,23 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.V1AuthorizationAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.AuthorizationAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.InOutCreateable;
+import io.quarkus.security.identity.SecurityIdentity;
 import io.stackgres.apiweb.app.KubernetesClientProvider;
 import io.stackgres.apiweb.dto.PermissionsListDto;
 import io.stackgres.apiweb.dto.PermissionsListDto.Namespaced;
-import org.apache.hc.core5.http.HttpStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-public class RbacResourceTest {
+class RbacResourceTest {
+
+  @Mock
+  SecurityIdentity identity;
+
+  @Mock
+  Principal principal;
 
   @Mock
   NamespaceResource namespaces;
@@ -70,39 +77,40 @@ public class RbacResourceTest {
     given(v1AuthorizationApiGrouDsl.subjectAccessReview()).willReturn(inOutSubjectReview);
     given(inOutSubjectReview.create(any(SubjectAccessReview.class))).willReturn(review);
     given(review.getStatus()).willReturn(subjectReviewStatus);
-
+    given(identity.getPrincipal()).willReturn(principal);
+    given(identity.getPrincipal().getName()).willReturn("admin");
   }
 
   @Test
-  public void shouldCanIAccessResource_onceMyRoleHasPermission() {
+  void shouldCanIAccessResource_onceMyRoleHasPermission() {
     given(subjectReviewStatus.getAllowed()).willReturn(true);
 
     Response canIGetPodsExec =
         rbacResource.verb("GET", "pods", "sgcluster-0", Optional.of("group"));
-    assertEquals(HttpStatus.SC_OK, canIGetPodsExec.getStatus());
+    assertEquals(Response.Status.OK.getStatusCode(), canIGetPodsExec.getStatus());
   }
 
   @Test
-  public void shouldNotCanIAccessSubResource_onceMyRoleHasNotPermission() {
+  void shouldNotCanIAccessSubResource_onceMyRoleHasNotPermission() {
     given(subjectReviewStatus.getAllowed()).willReturn(false);
 
     Response canIGetPodsExec =
         rbacResource.verb("GET", "pods/logs", "sgcluster-0", Optional.of("group"));
-    assertEquals(HttpStatus.SC_FORBIDDEN, canIGetPodsExec.getStatus());
+    assertEquals(Response.Status.FORBIDDEN.getStatusCode(), canIGetPodsExec.getStatus());
   }
 
   @Test
-  public void shouldListUnnamespacedAndNamespacedResources() {
+  void shouldListUnnamespacedAndNamespacedResources() {
     given(review.getStatus()).willReturn(subjectReviewStatus);
     given(subjectReviewStatus.getAllowed()).willReturn(true);
     given(namespaces.get()).willReturn(expectedNamespaces());
 
     Response permissions = rbacResource.caniList();
 
-    assertEquals(HttpStatus.SC_OK, permissions.getStatus());
+    assertEquals(Response.Status.OK.getStatusCode(), permissions.getStatus());
     var entity = ((PermissionsListDto) permissions.getEntity());
-    assertUnnamespacedResources(entity.getUnnamespaced());
-    assertNamespacedResources(entity.getNamespaced());
+    assertUnnamespacedResources(entity.unnamespaced());
+    assertNamespacedResources(entity.namespaced());
   }
 
   private List<String> expectedNamespaces() {
@@ -112,9 +120,9 @@ public class RbacResourceTest {
   private void assertNamespacedResources(List<Namespaced> actualNamespaced) {
     assertEquals(expectedNamespaces().size(), actualNamespaced.size());
     assertEquals(expectedNamespaces().iterator().next(),
-        actualNamespaced.iterator().next().getNamespace());
+        actualNamespaced.iterator().next().namespace());
 
-    Map<String, List<String>> resources = actualNamespaced.iterator().next().getResources();
+    Map<String, List<String>> resources = actualNamespaced.iterator().next().resources();
     for (Map.Entry<String, List<String>> resource : resources.entrySet()) {
       assertNamespacedResource(resource.getKey());
     }

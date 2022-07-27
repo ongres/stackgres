@@ -26,8 +26,8 @@ Check if the restapi was successfully deployed and is available:
     kubectl describe deployment -n {{ .Release.Namespace }} {{ .Values.restapi.name }}
 
     kubectl wait -n {{ .Release.Namespace }} deployment/{{ .Values.restapi.name }} --for condition=Available
-{{- if .Values.deploy.restapi }}
 
+{{- if .Values.deploy.restapi }}
 To access StackGres Operator UI from localhost, run the below commands:
 
     POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app={{ .Values.restapi.name }}" -o jsonpath="{.items[0].metadata.name}")
@@ -40,6 +40,7 @@ Now you can access the StackGres Operator UI on:
 
 https://localhost:8443
 
+{{- if (eq .Values.authentication.type "jwt") }}
 To get the username, run the command:
 
     kubectl get secret -n {{ .Release.Namespace }} {{ .Values.authentication.secretRef.name | default .Values.restapi.name }} --template '{{ "{{" }} printf "username = %s\n" (.data.k8sUsername | base64decode) {{ "}}" }}'
@@ -52,5 +53,6 @@ To get the generated password, run the command:
 Remember to remove the generated password hint from the secret to avoid security flaws:
 
     kubectl patch secrets --namespace {{ .Release.Namespace }} {{ .Values.restapi.name }} --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
+{{- end }}
 {{- end }}
 {{- end }}

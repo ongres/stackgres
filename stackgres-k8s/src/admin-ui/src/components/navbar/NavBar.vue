@@ -24,12 +24,12 @@
 
 			<NotificationsArea v-if="loggedIn"></NotificationsArea>
 
-			<div id="reload" @click="fetchAPI()">
+			<div id="reload" @click="fetchAPI()" v-if="loggedIn">
 				<svg xmlns="http://www.w3.org/2000/svg" width="20.001" height="20" viewBox="0 0 20.001 20"><g transform="translate(0 0)"><path d="M1.053,11.154A1.062,1.062,0,0,1,0,10.089,9.989,9.989,0,0,1,16.677,2.567l.484-.484a.486.486,0,0,1,.2-.121.541.541,0,0,1,.663.343l1.318,3.748a.522.522,0,0,1,.007.327.5.5,0,0,1-.627.323L18.7,6.7l-3.743-1.32a.531.531,0,0,1-.206-.13.52.52,0,0,1-.016-.733l.464-.465A7.9,7.9,0,0,0,2.092,10.1a1.04,1.04,0,0,1-1.039,1.057Z"/><path d="M18.947,8.844A1.063,1.063,0,0,1,20,9.91,9.989,9.989,0,0,1,3.323,17.434l-.484.484a.476.476,0,0,1-.2.121.541.541,0,0,1-.663-.343L.659,13.948a.522.522,0,0,1-.007-.327.5.5,0,0,1,.627-.323l.022.008,3.743,1.32a.531.531,0,0,1,.206.13.52.52,0,0,1,.016.733l-.464.465A7.9,7.9,0,0,0,17.908,9.9a1.04,1.04,0,0,1,1.039-1.057Z"/></g></svg>
 			</div>
 
 			<div id="logout" v-if="loggedIn">
-				<a @click="logout()">Logout <svg xmlns="http://www.w3.org/2000/svg" width="10.546" height="10.5" viewBox="0 0 10.546 10.5"><g transform="translate(-30 -181.75)"><path d="M33.92,192h-2.1a1.538,1.538,0,0,1-1.571-1.5v-7a1.538,1.538,0,0,1,1.571-1.5h2.1a.5.5,0,1,1,0,1h-2.1a.515.515,0,0,0-.527.5v7a.515.515,0,0,0,.527.5h2.1a.5.5,0,1,1,0,1Z" fill="#00adb5" stroke="#00adb5" stroke-width="0.5"/><path d="M42.157,192.074l1.965-1.965a.525.525,0,0,0,0-.741L42.157,187.4a.524.524,0,0,0-.741.74l1.072,1.071h-3.7a.524.524,0,1,0,0,1.048h3.7l-1.072,1.071a.524.524,0,0,0,.741.74Z" transform="translate(-4.026 -2.739)" fill="#00adb5" stroke="#00adb5" stroke-width="0.5"/></g></svg></a>
+				<a @click="logout(authType)">Logout <svg xmlns="http://www.w3.org/2000/svg" width="10.546" height="10.5" viewBox="0 0 10.546 10.5"><g transform="translate(-30 -181.75)"><path d="M33.92,192h-2.1a1.538,1.538,0,0,1-1.571-1.5v-7a1.538,1.538,0,0,1,1.571-1.5h2.1a.5.5,0,1,1,0,1h-2.1a.515.515,0,0,0-.527.5v7a.515.515,0,0,0,.527.5h2.1a.5.5,0,1,1,0,1Z" fill="#00adb5" stroke="#00adb5" stroke-width="0.5"/><path d="M42.157,192.074l1.965-1.965a.525.525,0,0,0,0-.741L42.157,187.4a.524.524,0,0,0-.741.74l1.072,1.071h-3.7a.524.524,0,1,0,0,1.048h3.7l-1.072,1.071a.524.524,0,0,0,.741.74Z" transform="translate(-4.026 -2.739)" fill="#00adb5" stroke="#00adb5" stroke-width="0.5"/></g></svg></a>
 			</div>
 
 			<div id="delete" class="hasTooltip hideOnClick">
@@ -50,33 +50,40 @@
 				</div>
 			</div>
 
-			<div id="signup">
+			<div id="signup" :class="( (authType == 'OIDC') && 'textCenter' )">
 				<form id="login" class="form noSubmit">
 					<div class="header">
 						<h2>Welcome to StackGres!</h2>
 					</div>
+
 					<p>To continue, please Log in.</p>
 
-					<label for="loginUser">
-						Username <span class="req">*</span>
-					</label>
-					<input v-model="loginUser" placeholder="username">
+					<template v-if="(authType == 'JWT')">
+						<label for="loginUser">
+							Username <span class="req">*</span>
+						</label>
+						<input v-model="loginUser" placeholder="username">
 
-					<label for="loginPassword">
-						Password <span class="req">*</span>
-					</label>
-					<input v-model="loginPassword" placeholder="password" :type="loginPasswordType">
+						<label for="loginPassword">
+							Password <span class="req">*</span>
+						</label>
+						<input v-model="loginPassword" placeholder="password" :type="loginPasswordType">
 
-					<a @click="showPassword()" id="showPassword">
-						<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-					</a>
+						<a @click="showPassword()" id="showPassword">
+							<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+						</a>
 
-					<span class="warning" style="display:none">
-						Wrong username or password. Please try again!
-					</span>
+						<span class="warning" style="display:none">
+							Wrong username or password. Please try again!
+						</span>
 
-					<hr/>
-					<button @click="login">Login</button>
+						<hr/>
+						<button @click="login('JWT')">Login</button>
+					</template>
+					<template v-else-if="(authType == 'OIDC')">
+						<hr/>
+						<button @click="login('OIDC')">Login using OIDC</button>
+					</template>
 				</form>
 			</div>
 
@@ -223,6 +230,10 @@
 				return store.state.notFound
 			},
 
+			authType() {
+				return store.state.authType
+			},
+
 			nameCollision() {
 				if(store.state.cloneCRD.hasOwnProperty('kind')) {
 					let kind = ( 
@@ -283,31 +294,49 @@
 
 		methods: {
 
-			login: function() {
+			login(authType = 'JWT') {
 
 				const vc = this;
 
-				sgApi
-				.create('login', {
-					username: this.loginUser,
-					password: this.loginPassword
-				})
-				.then( function(response){
-					store.commit('setLoginToken', response.data.access_token);
-					$('#signup').fadeOut();
-					document.cookie = "sgToken="+response.data.access_token+"; Path=/; SameSite=Strict;";
-					vc.fetchAPI();
+				if(authType == 'JWT') {
+					sgApi
+					.create('login', {
+						username: this.loginUser,
+						password: this.loginPassword
+					})
+					.then( function(response){
+						store.commit('setLoginToken', response.data.access_token);
+						$('#signup').fadeOut();
+						document.cookie = "sgToken="+response.data.access_token+"; Path=/; SameSite=Strict;";
+						vc.fetchAPI();
+					}
+					).catch(function(err) {
+						$('#login .warning').fadeIn();
+					});
+				} else if (authType == 'OIDC') {
+					document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Strict;';
+
+					console.log('Using OIDC Auth');
+					window.location.replace( window.location.origin + '/stackgres/auth/external?redirectTo=' + window.location.href);
 				}
-				).catch(function(err) {
-					$('#login .warning').fadeIn();
-				});
-
-
 
 			},
 
-			logout: function() {
-				document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Strict;';
+			logout(authType = 'JWT') {
+
+				if(authType == 'JWT') {
+					document.cookie = 'sgToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Strict;';
+				} else if (authType == 'OIDC') {
+					sgApi
+					.get('logout')
+					.then(function(response) {
+						console.log('Logged out from OIDC');
+					})
+					.catch(function(error) {
+						console.log(error);
+					});
+				}
+				
 				store.commit('setLoginToken');
 				$('#signup').addClass('login').fadeIn();
 				router.push('/');

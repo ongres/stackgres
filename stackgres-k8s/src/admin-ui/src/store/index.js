@@ -8,6 +8,7 @@ export default new Vuex.Store({
   state: {
     theme: 'light',
     loginToken: '',
+    authType: 'JWT',
     showLogs: false,
     notFound: false,
     currentPath: {
@@ -81,7 +82,14 @@ export default new Vuex.Store({
 
     setLoginToken (state, token = '') {
       state.loginToken = token;
-      axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+
+      if(token != 'OIDC') {
+        axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+      }
+    },
+
+    setAuthType(state, authType) {
+      state.authType = authType;
     },
 
     setTheme (state, theme) {

@@ -18,6 +18,7 @@ variables:
   E2E_ENV: kind
   K8S_VERSION: 1.20.15
   LATEST: "false"
+  BUILD_UID: 0
 
 stages:
   - pre build

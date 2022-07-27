@@ -115,6 +115,44 @@ spec:
           - name: EXTENSIONS_REPOSITORY_URLS
             value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
           {{- end }}
+          {{- if .Values.authentication.type }}
+          - name: STACKGRES_AUTH_TYPE
+            value: "{{ .Values.authentication.type }}"
+          {{- end }}
+          {{- if eq .Values.authentication.type "oidc" }}
+          - name: QUARKUS_OIDC_APPLICATION_TYPE
+            value: "web-app"
+          - name: QUARKUS_OIDC_PUBLIC_KEY
+            value: ""
+          {{- if .Values.authentication.oidc.authServerUrl }}
+          - name: QUARKUS_OIDC_AUTH_SERVER_URL
+            value: "{{ .Values.authentication.oidc.authServerUrl }}"
+          {{- end }}
+          {{- if or (.Values.authentication.oidc.clientId) (.Values.authentication.oidc.clientIdSecretRef) }}
+          - name: QUARKUS_OIDC_CLIENT_ID
+            {{- if and (.Values.authentication.oidc.clientId) (not .Values.authentication.oidc.clientIdSecretRef) }}
+            value: "{{ .Values.authentication.oidc.clientId }}"
+            {{- end }}
+            {{- if .Values.authentication.oidc.clientIdSecretRef }}
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Values.authentication.oidc.clientIdSecretRef.name }}"
+                key: "{{ .Values.authentication.oidc.clientIdSecretRef.key }}"
+            {{- end }}
+          {{- end }}
+          {{- if or (.Values.authentication.oidc.credentialsSecret) (.Values.authentication.oidc.credentialsSecretSecretRef) }}
+          - name: QUARKUS_OIDC_CREDENTIALS_SECRET
+            {{- if and (.Values.authentication.oidc.credentialsSecret) (not .Values.authentication.oidc.credentialsSecretSecretRef) }}
+            value: "{{ .Values.authentication.oidc.credentialsSecret }}"
+            {{- end }}
+            {{- if .Values.authentication.oidc.credentialsSecretSecretRef }}
+            valueFrom:
+              secretKeyRef:
+                name: "{{ .Values.authentication.oidc.credentialsSecretSecretRef.name }}"
+                key: "{{ .Values.authentication.oidc.credentialsSecretSecretRef.key }}"
+            {{- end }}
+          {{- end }}
+          {{- end }}
         ports:
         - containerPort: 8080
           name: "resthttp"
