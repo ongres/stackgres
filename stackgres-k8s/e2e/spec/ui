@@ -92,7 +92,7 @@ EOF
 }
 
 e2e_test_uninstall() {
-  if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ]
+  if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ] && [ "$(uname -m)" = x86_64 ]
   then
     kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots"
   fi
@@ -103,7 +103,7 @@ e2e_test_uninstall() {
 }
 
 e2e_test_after_all() {
-  if [ "$E2E_SKIP_SPEC_UNINSTALL" = true ]
+  if [ "$E2E_SKIP_SPEC_UNINSTALL" = true ] && [ "$(uname -m)" = x86_64 ]
   then
     kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots"
   fi
