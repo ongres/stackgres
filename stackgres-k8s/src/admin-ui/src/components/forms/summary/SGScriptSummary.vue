@@ -28,11 +28,11 @@
                     
                     <li v-if="showDefaults || hasProp(crd, 'spec.continueOnError')">
                         <strong class="label">Continue on Error:</strong>
-                        <span class="value">{{ hasProp(crd, 'spec.continueOnError') ? (crd.spec.continueOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
+                        <span class="value">{{ hasProp(crd, 'spec.continueOnError') ? isEnabled(crd.spec.continueOnError) : 'Disabled' }}</span>
                     </li>
                     <li v-if="showDefaults || hasProp(crd, 'spec.managedVersions')">
                         <strong class="label">Managed Versions:</strong>
-                        <span class="value">{{ hasProp(crd, 'spec.managedVersions') ? (crd.spec.managedVersions ? 'Enabled' : 'Disabled') : 'Enabled' }}</span>
+                        <span class="value">{{ hasProp(crd, 'spec.managedVersions') ? isEnabled(crd.spec.managedVersions) : 'Enabled' }}</span>
                     </li>
                     <li>
                         <strong class="sectionTitle">Script Entries</strong>
@@ -60,11 +60,11 @@
                                     </li>
                                     <li v-if="showDefaults || script.hasOwnProperty('retryOnError')">
                                         <strong class="label">Retry on Error:</strong>
-                                        <span class="value">{{ script.hasOwnProperty('retryOnError') ? (script.retyOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
+                                        <span class="value">{{ script.hasOwnProperty('retryOnError') ? isEnabled(script.retyOnError) : 'Disabled' }}</span>
                                     </li>
                                     <li v-if="showDefaults || script.hasOwnProperty('storeStatusInDatabase')">
                                         <strong class="label">Store Status in Database:</strong>
-                                        <span class="value">{{ script.hasOwnProperty('storeStatusInDatabase') ? (script.storeStatusInDatabase ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
+                                        <span class="value">{{ script.hasOwnProperty('storeStatusInDatabase') ? isEnabled(script.storeStatusInDatabase) : 'Disabled' }}</span>
                                     </li>
                                     <li v-if="showDefaults || script.hasOwnProperty('wrapInTransaction')">
                                         <strong class="label">Wrap in Transaction:</strong>

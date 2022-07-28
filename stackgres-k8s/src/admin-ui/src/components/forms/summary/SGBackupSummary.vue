@@ -35,7 +35,7 @@
                     </li>
                     <li v-if="showDefaults || crd.data.spec.managedLifecycle">
                         <strong class="label">Managed Lifecycle:</strong>
-                        <span class="value">{{ crd.data.spec.managedLifecycle ? 'YES' : 'NO' }}</span>
+                        <span class="value">{{ isEnabled(crd.data.spec.managedLifecycle) }}</span>
                     </li>
                 </ul>
             </li>

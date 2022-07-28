@@ -233,7 +233,7 @@
                                                Enabled
                                             </template>
                                             <template v-else>
-                                                {{ service.enabled ? 'Enabled' : 'Disabled' }}
+                                                {{ isEnabled(service.enabled) }}
                                             </template>
                                         </td>
                                     </tr>
