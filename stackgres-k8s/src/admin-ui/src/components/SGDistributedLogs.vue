@@ -29,10 +29,10 @@
                     <tbody>
                         <template v-if="!clusters.length">
 							<tr class="no-results">
-								<td :colspan="3" v-if="iCan('create','sgdistributedlogs',$route.params.namespace)">
+								<td :colspan="5" v-if="iCan('create','sgdistributedlogs',$route.params.namespace)">
                                     No logs servers have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgdistributedlogs/new'" title="Add New Logs Server">create a new one?</router-link>
                                 </td>
-                                <td v-else colspan="3">
+                                <td v-else colspan="5">
                                     No logs servers have been found. You don't have enough permissions to create a new one
                                 </td>
 							</tr>
@@ -52,18 +52,16 @@
                                             {{ cluster.data.spec.persistentVolume.size }}
                                         </router-link>
                                     </td>
-                                    <template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
-                                        <td class="cpu textRight">
-                                            <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
-                                                {{ profile.data.spec.cpu }}
-                                            </router-link>
-                                        </td>
-                                        <td class="ram textRight">
-                                            <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
-                                                {{ profile.data.spec.memory }}
-                                            </router-link>
-                                        </td>
-                                    </template>
+                                    <td class="cpu textRight">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
+                                            {{ getProfileSpec(cluster.data.spec.sgInstanceProfile, 'cpu') }}
+                                        </router-link>
+                                    </td>
+                                    <td class="ram textRight">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" class="noColor">
+                                            {{ getProfileSpec(cluster.data.spec.sgInstanceProfile, 'memory') }}
+                                        </router-link>
+                                    </td>
                                     <td class="actions">
                                         <router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.name" target="_blank" class="newTab"></router-link>
                                         <router-link v-if="iCan('patch','sgdistributedlogs',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgdistributedlog/' + cluster.data.metadata.name + '/edit'" title="Edit Configuration" class="editCRD"></router-link>
@@ -116,9 +114,9 @@
                                         Instance Profile
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.sgInstanceProfile')"></span>
                                     </td>
-                                    <td v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
-                                         <router-link :to="'/' + $route.params.namespace + '/sginstanceprofile/' + cluster.data.spec.sgInstanceProfile">
-                                            {{ cluster.data.spec.sgInstanceProfile }} (Cores: {{ profile.data.spec.cpu }}, RAM: {{ profile.data.spec.memory }}) 
+                                    <td>
+                                        <router-link :to="'/' + $route.params.namespace + '/sginstanceprofile/' + cluster.data.spec.sgInstanceProfile">
+                                            {{ cluster.data.spec.sgInstanceProfile }} (Cores: {{ getProfileSpec(cluster.data.spec.sgInstanceProfile, 'cpu') }}, RAM: {{ getProfileSpec(cluster.data.spec.sgInstanceProfile, 'memory') }}) 
                                             <span class="eyeIcon"></span>
                                         </router-link>
                                     </td>
@@ -345,6 +343,10 @@
                 return propsArray
             },
 
+            getProfileSpec(profile, spec) {
+                return store.state.sginstanceprofiles.find(p => (p.data.metadata.namespace == this.$route.params.namespace) && (p.data.metadata.name == profile)).data.spec[spec]
+            }
+
         },
     
         computed: {
@@ -355,11 +357,8 @@
             
             tooltips() {
                 return store.state.tooltips
-            },
+            }            
 
-            profiles () {
-				return store.state.sginstanceprofiles
-			}
         }
     }
 </script>
