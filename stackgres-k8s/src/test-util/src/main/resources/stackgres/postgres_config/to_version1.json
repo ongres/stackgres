@@ -56,7 +56,7 @@
       "log_directory": "log",
       "listen_addresses": "localhost",
       "log_destination": "stderr",
-      "log_statement": "ddl",
+      "log_statement": "none",
       "shared_preload_libraries": "pg_stat_statements, auto_explain",
       "checkpoint_timeout": "15min",
       "wal_level": "logical",
