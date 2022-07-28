@@ -71,7 +71,7 @@
                         </template>
                     </tr>
                     <tr>
-                        <td class="label" rowspan="3">
+                        <td class="label" rowspan="4">
                             Pods
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods')"></span>
                         </td>
@@ -99,6 +99,15 @@
                         </td>
                         <td colspan="2">
                             {{ hasProp(cluster, 'data.spec.pods.disableConnectionPooling') ? isEnabled(cluster.data.spec.pods.disableConnectionPooling, true) : 'Enabled' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            Postgres Utils
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disablePostgresUtil').replace('If set to `true`', 'If disabled')"></span>
+                        </td>
+                        <td colspan="2">
+                            {{ isEnabled(cluster.data.spec.pods.disablePostgresUtil, true) }}
                         </td>
                     </tr>
                     <tr>
