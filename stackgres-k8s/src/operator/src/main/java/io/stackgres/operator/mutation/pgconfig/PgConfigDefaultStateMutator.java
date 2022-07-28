@@ -51,8 +51,8 @@ public class PgConfigDefaultStateMutator
   }
 
   @Override
-  protected Map<String, String> getParametersNode(StackGresPostgresConfig incomingResource) {
-    return Optional.ofNullable(incomingResource.getStatus())
+  protected Map<String, String> getParametersNode(StackGresPostgresConfig defaultResource) {
+    return Optional.ofNullable(defaultResource.getStatus())
         .map(StackGresPostgresConfigStatus::getDefaultParameters)
         .orElse(Map.of());
   }

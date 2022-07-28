@@ -70,6 +70,6 @@ public abstract class DefaultStateMutator
     }
   }
 
-  protected abstract Map<String, String> getParametersNode(R incomingResource);
+  protected abstract Map<String, String> getParametersNode(R defaultResource);
 
 }

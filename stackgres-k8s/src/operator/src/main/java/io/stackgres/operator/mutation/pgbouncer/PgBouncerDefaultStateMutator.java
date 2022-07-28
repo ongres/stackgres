@@ -49,8 +49,8 @@ public class PgBouncerDefaultStateMutator
   }
 
   @Override
-  protected Map<String, String> getParametersNode(StackGresPoolingConfig incomingResource) {
-    return Optional.ofNullable(incomingResource.getStatus())
+  protected Map<String, String> getParametersNode(StackGresPoolingConfig defaultResource) {
+    return Optional.ofNullable(defaultResource.getStatus())
         .map(StackGresPoolingConfigStatus::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncerStatus::getDefaultParameters)
         .orElseGet(Map::of);

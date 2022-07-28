@@ -51,6 +51,7 @@
       "max_wal_senders",
       "wal_compression",
       "autovacuum_vacuum_cost_delay",
+      "autovacuum_work_mem",
       "track_activity_query_size",
       "lc_messages",
       "log_directory",

@@ -51,6 +51,7 @@
       "max_wal_senders": "20",
       "wal_compression": "on",
       "autovacuum_vacuum_cost_delay": "2",
+      "autovacuum_work_mem": "512MB",
       "track_activity_query_size": "4096",
       "lc_messages": "C",
       "log_directory": "log",

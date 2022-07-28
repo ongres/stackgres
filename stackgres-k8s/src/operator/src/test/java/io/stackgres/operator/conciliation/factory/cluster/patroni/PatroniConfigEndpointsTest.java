@@ -27,6 +27,8 @@ import io.stackgres.common.ClusterLabelFactory;
 import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -62,6 +64,8 @@ class PatroniConfigEndpointsTest {
     generator = new PatroniConfigEndpoints(JSON_MAPPER, labelFactory);
 
     cluster = Fixtures.cluster().loadDefault().get();
+    cluster.getMetadata().getAnnotations()
+        .put(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().setDistributedLogs(null);
     backupConfig = Fixtures.backupConfig().loadDefault().get();
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
@@ -183,7 +187,8 @@ class PatroniConfigEndpointsTest {
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
     PostgresDefaultValues.getDefaultValues(version).forEach(
-        (key, value) -> assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key)));
+        (key, value) -> assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key),
+            "Patroni config for postgres does not contain parameter " + key));
     assertEquals(30, patroniConfig.getTtl());
     assertEquals(10, patroniConfig.getLoopWait());
     assertEquals(10, patroniConfig.getRetryTimeout());

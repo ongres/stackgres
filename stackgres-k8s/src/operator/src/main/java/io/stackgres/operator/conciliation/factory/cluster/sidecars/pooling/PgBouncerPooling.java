@@ -172,9 +172,8 @@ public class PgBouncerPooling extends AbstractPgPooling {
     // Blocklist removal
     PgBouncerBlocklist.getBlocklistParameters().forEach(newParams::remove);
 
-    Map<String, String> parameters = new HashMap<>(
-        PgBouncerDefaultValues.getDefaultValues(
-            StackGresVersion.getStackGresVersion(context.getCluster())));
+    Map<String, String> parameters = new HashMap<>(PgBouncerDefaultValues.getDefaultValues(
+        StackGresVersion.getStackGresVersion(context.getCluster())));
 
     parameters.putAll(getDefaultParameters());
     parameters.putAll(newParams);

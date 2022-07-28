@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -64,6 +65,8 @@ class PatroniConfigEndpointsTest {
     generator = new PatroniConfigEndpoints(MAPPER, labelFactory);
 
     cluster = Fixtures.cluster().loadDefault().get();
+    cluster.getMetadata().getAnnotations()
+        .put(StackGresContext.VERSION_KEY, StackGresVersion.V_1_1.getVersion());
     cluster.getSpec().setDistributedLogs(null);
     backupConfig = Fixtures.backupConfig().loadDefault().get();
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
@@ -74,7 +77,8 @@ class PatroniConfigEndpointsTest {
   private void setDefaultParameters(StackGresPostgresConfig postgresConfig) {
     final String version = postgresConfig.getSpec().getPostgresVersion();
     postgresConfig.getStatus()
-        .setDefaultParameters(PostgresDefaultValues.getDefaultValues(version));
+        .setDefaultParameters(PostgresDefaultValues
+            .getDefaultValues(StackGresVersion.V_1_1, version));
   }
 
   @Test
@@ -143,7 +147,8 @@ class PatroniConfigEndpointsTest {
     when(context.getCluster()).thenReturn(cluster);
 
     final String version = postgresConfig.getSpec().getPostgresVersion();
-    Map<String, String> defValues = PostgresDefaultValues.getDefaultValues(version);
+    Map<String, String> defValues = PostgresDefaultValues
+        .getDefaultValues(StackGresVersion.V_1_1, version);
 
     defValues.forEach((key, value) -> {
       postgresConfig.getSpec().getPostgresqlConf().put(key, StringUtil.generateRandom());
@@ -179,7 +184,7 @@ class PatroniConfigEndpointsTest {
         .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
-    PostgresDefaultValues.getDefaultValues(version).forEach(
+    PostgresDefaultValues.getDefaultValues(StackGresVersion.V_1_1, version).forEach(
         (key, value) -> assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key)));
     assertEquals(30, patroniConfig.getTtl());
     assertEquals(10, patroniConfig.getLoopWait());
@@ -221,9 +226,11 @@ class PatroniConfigEndpointsTest {
 
     var patroniConfig = generator.getPatroniConfig(context);
 
+    final JsonNode expected = Fixtures.upgrade().jsonPatroniConfig().loadV1_1().get();
+    final JsonNode actual = MAPPER.valueToTree(patroniConfig);
     JsonUtil.assertJsonEquals(
-        Fixtures.upgrade().jsonPatroniConfig().loadV1_1().get(),
-        MAPPER.valueToTree(patroniConfig));
+        expected,
+        actual);
   }
 
 }

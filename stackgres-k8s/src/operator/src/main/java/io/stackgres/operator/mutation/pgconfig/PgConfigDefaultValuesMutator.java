@@ -22,6 +22,7 @@ import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class PgConfigDefaultValuesMutator
@@ -54,6 +55,9 @@ public class PgConfigDefaultValuesMutator
 
   @Override
   public List<JsonPatchOperation> mutate(PgConfigReview review) {
+    if (review.getRequest().getOperation() != Operation.CREATE) {
+      return List.of();
+    }
 
     ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
 
@@ -73,6 +77,6 @@ public class PgConfigDefaultValuesMutator
 
     operations.addAll(mutate(PgConfigMutator.PG_CONFIG_POINTER, pgConfig));
     return operations.build();
-
   }
+
 }
