@@ -164,7 +164,7 @@
 											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3Compatible.enablePathStyleAddressing')"></span>
 										</td>
 										<td colspan="2">
-											{{ conf.data.spec.s3Compatible.enablePathStyleAddressing ? 'Enabled' : 'Disabled'}}
+											{{ isEnabled(conf.data.spec.s3Compatible.enablePathStyleAddressing) }}
 										</td>
 									</tr>
 									<tr v-if="hasProp(conf, 'data.spec.s3Compatible.endpoint')">

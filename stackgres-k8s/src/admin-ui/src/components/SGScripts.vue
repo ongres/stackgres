@@ -120,7 +120,7 @@
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.continueOnError').replace(/true/g, 'Enabled').replace('false','Disabled')"></span>
                                     </td>
 									<td>
-                                        {{ baseScript.data.spec.hasOwnProperty('continueOnError') ? (baseScript.data.spec.continueOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}
+                                        {{ baseScript.data.spec.hasOwnProperty('continueOnError') ? isEnabled(baseScript.data.spec.continueOnError) : 'Disabled' }}
                                     </td>
 								</tr>	
 								<tr>
@@ -129,7 +129,7 @@
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.managedVersions').replace(/true/g, 'Enabled')"></span>
                                     </td>
 									<td>
-                                        {{ baseScript.data.spec.hasOwnProperty('managedVersions') ? (baseScript.data.spec.managedVersions ? 'Enabled' : 'Disabled') : 'Enabled' }}
+                                        {{ baseScript.data.spec.hasOwnProperty('managedVersions') ? isEnabled(baseScript.data.spec.managedVersions) : 'Enabled' }}
                                     </td>
 								</tr>
                                 <tr v-if="baseScript.data.status.clusters.length">
@@ -212,7 +212,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.retryOnError').replace(/false/g, 'Disabled').replace(/true/g, 'Enabled')"></span>
                                         </td>
                                         <td>
-                                            {{ script.hasOwnProperty('retryOnError') ? (script.retryOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}
+                                            {{ script.hasOwnProperty('retryOnError') ? isEnabled(script.retryOnError) : 'Disabled' }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -221,7 +221,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.storeStatusInDatabase').replace(/false/g, 'Disabled').replace(/true/g, 'Enabled')"></span>
                                         </td>
                                         <td>
-                                            {{ script.hasOwnProperty('storeStatusInDatabase') ? (script.storeStatusInDatabase ? 'Enabled' : 'Disabled') : 'Disabled' }}
+                                            {{ script.hasOwnProperty('storeStatusInDatabase') ? isEnabled(script.storeStatusInDatabase) : 'Disabled' }}
                                         </td>
                                     </tr>
                                     <tr>
