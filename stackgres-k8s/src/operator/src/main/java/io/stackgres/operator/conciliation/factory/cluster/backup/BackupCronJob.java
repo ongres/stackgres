@@ -113,7 +113,7 @@ public class BackupCronJob
         .withLabels(labels)
         .endMetadata()
         .withNewSpec()
-        .withConcurrencyPolicy("Allow")
+        .withConcurrencyPolicy("Forbid")
         .withFailedJobsHistoryLimit(10)
         .withStartingDeadlineSeconds(5 * 60L)
         .withSchedule(Optional.of(backupConfig)
