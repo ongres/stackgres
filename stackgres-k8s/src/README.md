@@ -58,6 +58,16 @@ by kubernetes. Then to deploy the operator run from the project roor folder:
 helm install stackgres-cluster --namespace stackgres stackgres-k8s/install/helm/stackgres-cluster
 ```
 
+##### Eclipse
+
+To compile the project correctly in Eclipse you will have to do the following:
+
+* Install the module `stackgres-k8s/src/test-util-processor` using maven or the "maven install" command inside of Eclipse
+* Close the test-util-processor module
+* Restart Eclipse
+* Do Maven > Update Project on `test-util` module
+* Clean the `test-util` module
+
 #### Code Conventions
 
 To validate all the static code analysis rules and code conventions against the project you can use

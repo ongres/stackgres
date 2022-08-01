@@ -29,6 +29,7 @@
   </licenses>
 
   <modules>
+    <module>test-util-processor</module>
     <module>test-util</module>
     <module>operator-framework</module>
     <module>common</module>

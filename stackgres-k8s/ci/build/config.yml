@@ -43,6 +43,15 @@ modules:
     artifacts:
       - stackgres-k8s/src/operator-framework/target
       - .m2/repository/io/stackgres/stackgres-operator-framework
+  stackgres-test-util-processor:
+    <<: *stackgres-operator-framework
+    path: stackgres-k8s/src/test-util-processor/.
+    sources:
+      - stackgres-k8s/src/test-util-processor/pom.xml
+      - stackgres-k8s/src/test-util-processor/src/main
+    artifacts:
+      - stackgres-k8s/src/test-util-processor/target
+      - .m2/repository/io/stackgres/stackgres-test-util-processor
   stackgres-test-util:
     <<: *stackgres-operator-framework
     path: stackgres-k8s/src/test-util/.
@@ -342,7 +351,8 @@ modules:
 stages:
   - stackgres-parent: null
   - stackgres-operator-framework: stackgres-parent
-  - stackgres-test-util: stackgres-operator-framework
+  - stackgres-test-util-processor: stackgres-operator-framework
+  - stackgres-test-util: stackgres-test-util-processor
   - stackgres-common: stackgres-test-util
   - stackgres-operator: stackgres-common
   - stackgres-restapi: stackgres-common
