@@ -811,3 +811,8 @@ form.form label.switch + .helpTooltip {
 form.form .row-50 .col {
     margin-bottom: 10px;
 }
+
+.sectionTitle {
+    display: block;
+    margin-bottom: 20px;
+}
