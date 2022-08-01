@@ -46,7 +46,6 @@ import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
 import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
@@ -104,15 +103,15 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
         .withImagePullPolicy("IfNotPresent")
         .withPorts(
             new ContainerPortBuilder()
-                .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
+                .withName(EnvoyUtil.POSTGRES_PORT_NAME)
                 .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PG_PORT).build(),
             new ContainerPortBuilder()
-                .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
+                .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
                 .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build(),
             new ContainerPortBuilder()
-                .withName(PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME)
+                .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
                 .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PATRONI_ENTRY_PORT)
                 .build())

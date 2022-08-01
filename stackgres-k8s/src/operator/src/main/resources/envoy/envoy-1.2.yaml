@@ -4,7 +4,7 @@ static_resources:
     address:
       socket_address:
         address: 0.0.0.0
-        port_value: patroni_entry_port
+        port_value: '$patroni_entry_port'
     filter_chains:
     - filters:
       - name: envoy.filters.network.http_connection_manager
@@ -26,12 +26,12 @@ static_resources:
           http_filters:
           - name: envoy.filters.http.router
             typed_config: { }
-  - name: postgres_listener
+  - name: postgres_entry_listener
     per_connection_buffer_limit_bytes: 1048576 # 1 MiB
     address:
       socket_address:
         address: 0.0.0.0
-        port_value: postgres_entry_port
+        port_value: '$postgres_entry_port'
     filter_chains:
     - filters:
       - name: envoy.filters.network.postgres_proxy
@@ -39,18 +39,30 @@ static_resources:
           "@type": type.googleapis.com/envoy.extensions.filters.network.postgres_proxy.v3alpha.PostgresProxy
           stat_prefix: ingress_postgres
           enable_sql_parsing: false
+          terminate_ssl: '$enable_ssl'
       - name: envoy.tcp_proxy
         typed_config:
           "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
           stat_prefix: ingress_tcp
-          cluster: postgres_cluster
+          cluster: '$postgres_entry_cluster_name'
           idle_timeout: 0s
-  - name: postgres_raw_listener
+      transport_socket:
+        name: "starttls"
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.starttls.v3.StartTlsConfig
+          tls_socket_config:
+            common_tls_context:
+              tls_certificates:
+                certificate_chain:
+                  filename: "/etc/ssl/server.crt"
+                private_key:
+                  filename: "/etc/ssl/server.key"
+  - name: postgres_repl_entry_listener
     per_connection_buffer_limit_bytes: 1048576 # 1 MiB
     address:
       socket_address:
         address: 0.0.0.0
-        port_value: postgres_repl_entry_port
+        port_value: '$postgres_repl_entry_port'
     filter_chains:
     - filters:
       - name: envoy.tcp_proxy
@@ -58,6 +70,20 @@ static_resources:
           "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
           stat_prefix: ingress_raw_tcp
           cluster: postgres_cluster
+          idle_timeout: 0s
+  - name: babelfish_entry_listener
+    per_connection_buffer_limit_bytes: 1048576 # 1 MiB
+    address:
+      socket_address:
+        address: 0.0.0.0
+        port_value: '$babelfish_entry_port'
+    filter_chains:
+    - filters:
+      - name: envoy.tcp_proxy
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.tcp_proxy.v3.TcpProxy
+          stat_prefix: ingress_tcp
+          cluster: babelfish_cluster
           idle_timeout: 0s
   clusters:
   - name: patroni_cluster
@@ -70,7 +96,26 @@ static_resources:
             address:
               socket_address:
                 address: "127.0.0.1"
-                port_value: patroni_port
+                port_value: '$patroni_port'
+  - name: postgres_cluster_pool
+    type: STATIC
+    connect_timeout: 1s
+    per_connection_buffer_limit_bytes: 1048576 # 1 MiB
+    circuit_breakers:
+      thresholds:
+        - max_connections: 65536
+          max_requests: 65536
+          track_remaining: true
+    load_assignment:
+      cluster_name: postgres_cluster_pool
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                protocol: TCP
+                address: "127.0.0.1"
+                port_value: '$postgres_pool_port'
   - name: postgres_cluster
     type: STATIC
     connect_timeout: 1s
@@ -81,7 +126,7 @@ static_resources:
           max_requests: 65536
           track_remaining: true
     load_assignment:
-      cluster_name: postgres_raw_cluster
+      cluster_name: postgres_cluster
       endpoints:
       - lb_endpoints:
         - endpoint:
@@ -89,7 +134,26 @@ static_resources:
               socket_address:
                 protocol: TCP
                 address: "127.0.0.1"
-                port_value: postgres_port
+                port_value: '$postgres_port'
+  - name: babelfish_cluster
+    type: STATIC
+    connect_timeout: 1s
+    per_connection_buffer_limit_bytes: 1048576 # 1 MiB
+    circuit_breakers:
+      thresholds:
+        - max_connections: 65536
+          max_requests: 65536
+          track_remaining: true
+    load_assignment:
+      cluster_name: babelfish_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                protocol: TCP
+                address: "127.0.0.1"
+                port_value: '$babelfish_port'
 admin:
   access_log_path: "/dev/null"
   address:

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy;
+package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy.v13;
 
 import java.util.List;
 import java.util.Map;

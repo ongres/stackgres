@@ -33,10 +33,8 @@ e2e_test_uninstall() {
 }
 
 e2e_test() {
-  run_test "Check that exporter service is created" check_exporter_service
-  run_test "Check that exporter service monitor was created" check_exporter_service_monitor
-  run_test "Check that envoy service is created" check_envoy_service
-  run_test "Check that envoy service monitor was created" check_envoy_service_monitor
+  run_test "Check that exporter pod monitor was created" check_exporter_pod_monitor
+  run_test "Check that envoy pod monitor was created" check_envoy_pod_monitor
   run_test "Check that grafana is embedded" check_grafana_embedded
   run_test "Check that grafana secret is used" check_grafana_secret
 }
@@ -60,28 +58,14 @@ check_grafana_secret() {
   fi
 }
 
-check_exporter_service() {
-  local SERVICE
-
-  SERVICE="$CLUSTER_NAME-pgexp"
-
-  if wait_until kubectl get services -n "$CLUSTER_NAMESPACE" "$SERVICE"
-  then
-    echo "Exporter service was created"
-  else
-    echo "Exporter service was not created"
-  return 1
-  fi
-}
-
-check_exporter_service_monitor() {
+check_exporter_pod_monitor() {
   local SERVICE_MONITOR="$CLUSTER_NAMESPACE-$CLUSTER_NAME-stackgres-postgres-exporter"
 
-  if wait_until kubectl get servicemonitors.monitoring.coreos.com -n "$(prometheus_namespace)" "$SERVICE_MONITOR"
+  if wait_until kubectl get podmonitors.monitoring.coreos.com -n "$(prometheus_namespace)" "$SERVICE_MONITOR"
   then
-    echo "Exporter service monitor was created"
+    echo "Exporter pod monitor was created"
   else
-    echo "Exporter service monitor wasn't created"
+    echo "Exporter pod monitor wasn't created"
     return 1
   fi
 
@@ -106,28 +90,14 @@ check_exporter_service_monitor() {
   fi
 }
 
-check_envoy_service() {
-  local SERVICE
-
-  SERVICE="$CLUSTER_NAME-envoyexp"
-
-  if wait_until kubectl get services -n "$CLUSTER_NAMESPACE" "$SERVICE"
-  then
-    echo "Envoy service was created"
-  else
-    echo "Envoy service was not created"
-  return 1
-  fi
-}
-
-check_envoy_service_monitor() {
+check_envoy_pod_monitor() {
   local SERVICE_MONITOR="$CLUSTER_NAMESPACE-$CLUSTER_NAME-stackgres-envoy"
 
-  if wait_until kubectl get servicemonitors.monitoring.coreos.com -n "$(prometheus_namespace)" "$SERVICE_MONITOR"
+  if wait_until kubectl get podmonitors.monitoring.coreos.com -n "$(prometheus_namespace)" "$SERVICE_MONITOR"
   then
-    echo "Envoy service monitor was created"
+    echo "Envoy pod monitor was created"
   else
-    echo "Envoy service monitor wasn't created"
+    echo "Envoy pod monitor wasn't created"
     return 1
   fi
 

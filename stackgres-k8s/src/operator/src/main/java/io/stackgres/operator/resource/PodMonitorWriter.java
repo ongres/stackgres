@@ -15,22 +15,22 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.stackgres.common.StackGresKubernetesClient;
-import io.stackgres.common.prometheus.ServiceMonitor;
-import io.stackgres.common.prometheus.ServiceMonitorList;
+import io.stackgres.common.prometheus.PodMonitor;
+import io.stackgres.common.prometheus.PodMonitorList;
 import io.stackgres.common.resource.ResourceWriter;
 
 @ApplicationScoped
-public class ServiceMonitorWriter implements ResourceWriter<ServiceMonitor> {
+public class PodMonitorWriter implements ResourceWriter<PodMonitor> {
 
   private final KubernetesClient client;
 
   @Inject
-  public ServiceMonitorWriter(KubernetesClient client) {
+  public PodMonitorWriter(KubernetesClient client) {
     this.client = client;
   }
 
   @Override
-  public ServiceMonitor create(ServiceMonitor resource) {
+  public PodMonitor create(PodMonitor resource) {
     return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
         .withFieldManager(STACKGRES_FIELD_MANAGER)
         .withForce(true)
@@ -39,27 +39,27 @@ public class ServiceMonitorWriter implements ResourceWriter<ServiceMonitor> {
   }
 
   @Override
-  public ServiceMonitor update(ServiceMonitor resource) {
+  public PodMonitor update(PodMonitor resource) {
     return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
         .withFieldManager(STACKGRES_FIELD_MANAGER)
         .withForce(true)
         .build(),
-        resource, Optional.ofNullable(getServiceMonitorClient()
+        resource, Optional.ofNullable(getPodMonitorClient()
             .inNamespace(resource.getMetadata().getNamespace())
             .withName(resource.getMetadata().getName())
             .get()));
   }
 
   @Override
-  public void delete(ServiceMonitor resource) {
-    getServiceMonitorClient()
+  public void delete(PodMonitor resource) {
+    getPodMonitorClient()
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getMetadata().getName())
         .delete();
   }
 
-  private MixedOperation<ServiceMonitor, ServiceMonitorList,
-      Resource<ServiceMonitor>> getServiceMonitorClient() {
-    return client.resources(ServiceMonitor.class, ServiceMonitorList.class);
+  private MixedOperation<PodMonitor, PodMonitorList,
+      Resource<PodMonitor>> getPodMonitorClient() {
+    return client.resources(PodMonitor.class, PodMonitorList.class);
   }
 }

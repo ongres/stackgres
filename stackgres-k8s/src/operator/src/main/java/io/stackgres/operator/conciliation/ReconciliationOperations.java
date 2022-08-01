@@ -29,8 +29,8 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptList;
-import io.stackgres.common.prometheus.ServiceMonitor;
-import io.stackgres.common.prometheus.ServiceMonitorList;
+import io.stackgres.common.prometheus.PodMonitor;
+import io.stackgres.common.prometheus.PodMonitorList;
 
 public interface ReconciliationOperations {
 
@@ -42,7 +42,7 @@ public interface ReconciliationOperations {
       RoleBinding.class,
       Endpoints.class,
       Service.class,
-      ServiceMonitor.class,
+      PodMonitor.class,
       Pod.class,
       Job.class,
       CronJob.class,
@@ -96,8 +96,8 @@ public interface ReconciliationOperations {
           MixedOperation<? extends HasMetadata,
               ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>>ofEntries(
-          Map.entry(ServiceMonitor.class, client -> client
-              .resources(ServiceMonitor.class, ServiceMonitorList.class))
+          Map.entry(PodMonitor.class, client -> client
+              .resources(PodMonitor.class, PodMonitorList.class))
           );
 
 }

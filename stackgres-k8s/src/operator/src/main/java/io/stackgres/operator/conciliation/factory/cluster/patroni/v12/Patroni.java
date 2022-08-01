@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni.v12;
 
-import static io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -176,15 +174,15 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
         .withImagePullPolicy("IfNotPresent")
         .withPorts(
             new ContainerPortBuilder()
-                .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
+                .withName(EnvoyUtil.POSTGRES_PORT_NAME)
                 .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
             new ContainerPortBuilder()
-                .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
+                .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
                 .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build(),
             new ContainerPortBuilder()
-                .withName(PATRONI_RESTAPI_PORT_NAME)
+                .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
                 .withProtocol("TCP")
                 .withContainerPort(EnvoyUtil.PATRONI_ENTRY_PORT)
                 .build())
