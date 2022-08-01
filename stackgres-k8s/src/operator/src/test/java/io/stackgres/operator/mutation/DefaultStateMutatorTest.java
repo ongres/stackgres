@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
@@ -31,7 +31,7 @@ import org.mockito.Mock;
 public abstract class DefaultStateMutatorTest
       <R extends CustomResource<?, ?>, T extends AdmissionReview<R>> {
 
-  protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
+  protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
   protected DefaultStateMutator<R, T> mutator;
 
@@ -43,7 +43,7 @@ public abstract class DefaultStateMutatorTest
     when(factory.buildResource()).thenReturn(getDefaultResource());
     mutator = getMutatorInstance();
     mutator.setFactory(factory);
-    mutator.setObjectMapper(MAPPER);
+    mutator.setObjectMapper(JSON_MAPPER);
     mutator.init();
   }
 
@@ -84,7 +84,7 @@ public abstract class DefaultStateMutatorTest
 
     T review = getEmptyReview();
 
-    JsonNode crJson = MAPPER.valueToTree(review.getRequest().getObject());
+    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
 
     List<JsonPatchOperation> operations = mutator.mutate(review);
 
@@ -93,7 +93,7 @@ public abstract class DefaultStateMutatorTest
 
     JsonNode targetNode = getConfJson(newConfig);
 
-    JsonNode defaultTarget = MAPPER.createObjectNode()
+    JsonNode defaultTarget = JSON_MAPPER.createObjectNode()
         .setAll(Seq.seq(getConfigParameters(factory.buildResource()))
             .map(t -> t.map2(TextNode::new)).toMap(Tuple2::v1, Tuple2::v2));
 

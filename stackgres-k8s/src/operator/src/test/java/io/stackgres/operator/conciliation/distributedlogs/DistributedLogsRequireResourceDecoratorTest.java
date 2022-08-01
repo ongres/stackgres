@@ -20,13 +20,9 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
-import io.stackgres.operator.fixture.SecretFixture;
-import io.stackgres.operator.fixture.StackGresClusterFixture;
-import io.stackgres.operator.fixture.StackGresDistributedLogsFixture;
-import io.stackgres.operator.fixture.StackGresPostgresConfigFixture;
-import io.stackgres.operator.fixture.StackGresProfileFixture;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
@@ -48,11 +44,13 @@ class DistributedLogsRequireResourceDecoratorTest
 
   @BeforeEach
   public void setup() {
-    this.resource = new StackGresDistributedLogsFixture().build("default");
-    this.postgresConfig = new StackGresPostgresConfigFixture().build("default_postgres");
-    this.profile = new StackGresProfileFixture().build("size-s");
-    this.connectecCluster = new StackGresClusterFixture().build("default");
-    this.secret = ofNullable(new SecretFixture().build("minio"));
+    this.resource = Fixtures.distributedLogs().loadDefault().get();
+    this.postgresConfig = Fixtures.postgresConfig().loadDefault().get();
+    this.connectecCluster = Fixtures.cluster().loadDefault()
+        .withLatestPostgresVersion().get();
+    this.profile = Fixtures.instanceProfile().loadSizeS().get();
+    this.postgresConfig = Fixtures.postgresConfig().loadDefault().get();
+    this.secret = ofNullable(Fixtures.secret().loadMinio().get());
   }
 
   @Override

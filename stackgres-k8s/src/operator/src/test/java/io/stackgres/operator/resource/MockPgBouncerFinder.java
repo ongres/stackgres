@@ -8,14 +8,13 @@ package io.stackgres.operator.resource;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.testutil.JsonUtil;
 
 //@Mock
 public class MockPgBouncerFinder implements CustomResourceFinder<StackGresPoolingConfig> {
   @Override
   public Optional<StackGresPoolingConfig> findByNameAndNamespace(String name, String namespace) {
-    return Optional.of(JsonUtil
-        .readFromJson("pooling_config/default.json", StackGresPoolingConfig.class));
+    return Optional.of(Fixtures.poolingConfig().loadDefault().get());
   }
 }

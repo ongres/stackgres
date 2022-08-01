@@ -14,8 +14,8 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceList;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,8 +34,7 @@ class NamespaceResourceTest {
 
   @BeforeEach
   void setUp() {
-    namespaces = JsonUtil
-        .readFromJson("namespace/list.json", NamespaceList.class);
+    namespaces = Fixtures.namespaceList().loadDefault().get();
 
     resource = new NamespaceResource(scanner);
   }

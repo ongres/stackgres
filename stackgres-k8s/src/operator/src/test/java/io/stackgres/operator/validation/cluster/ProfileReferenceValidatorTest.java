@@ -16,11 +16,12 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,16 +45,14 @@ class ProfileReferenceValidatorTest {
   void setUp() throws Exception {
     validator = new ProfileReferenceValidator(profileFinder);
 
-    profileSizeXs = JsonUtil.readFromJson("stackgres_profiles/size-xs.json",
-        StackGresProfile.class);
+    profileSizeXs = Fixtures.instanceProfile().loadSizeXs().get();
 
   }
 
   @Test
   void givenValidStackGresReferenceOnCreation_shouldNotFail() throws ValidationFailed {
 
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -70,8 +69,7 @@ class ProfileReferenceValidatorTest {
   @Test
   void giveInvalidStackGresReferenceOnCreation_shouldFail() {
 
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -93,9 +91,8 @@ class ProfileReferenceValidatorTest {
   @Test
   void giveAnAttemptToUpdateToAnUnknownProfile_shouldFail() {
 
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/profile_config_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadProfileConfigUpdate().get();
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -119,15 +116,13 @@ class ProfileReferenceValidatorTest {
   @Test
   void giveAnAttemptToUpdateToAnKnownProfile_shouldNotFail() throws ValidationFailed {
 
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/profile_config_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadProfileConfigUpdate().get();
 
     String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    StackGresProfile profileSizeS = JsonUtil.readFromJson("stackgres_profiles/size-s.json",
-        StackGresProfile.class);
+    StackGresProfile profileSizeS = Fixtures.instanceProfile().loadSizeS().get();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
         .thenReturn(Optional.of(profileSizeS));
@@ -141,9 +136,8 @@ class ProfileReferenceValidatorTest {
   @Test
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
 
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/profile_config_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadProfileConfigUpdate().get();
     review.getRequest().setOperation(Operation.DELETE);
 
     validator.validate(review);

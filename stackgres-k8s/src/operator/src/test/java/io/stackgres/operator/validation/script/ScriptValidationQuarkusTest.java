@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.validation.script;
 
-import static io.stackgres.testutil.JsonUtil.readFromJson;
 import static org.hamcrest.Matchers.is;
 
 import javax.inject.Inject;
@@ -20,6 +19,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.stackgres.operator.common.StackGresScriptReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ValidationUtil;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -69,8 +69,8 @@ class ScriptValidationQuarkusTest {
   }
 
   private StackGresScriptReview getConstraintScriptReview() {
-    var review = readFromJson("script_allow_requests/valid_creation.json",
-        StackGresScriptReview.class);
+    var review = AdmissionReviewFixtures.script()
+        .loadCreate().get();
     review.getRequest().getObject().getMetadata().setNamespace("test");
     return review;
   }

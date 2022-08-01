@@ -7,9 +7,9 @@ package io.stackgres.operator.validation.objectstorage;
 
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.DefaultKeeperTest;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -25,20 +25,17 @@ class DefaultObjectStorageConfigKeeperTest
 
   @Override
   protected ObjectStorageReview getCreationSample() {
-    return JsonUtil.readFromJson("objectstorage_allow_request/create.json",
-        ObjectStorageReview.class);
+    return AdmissionReviewFixtures.objectStorage().loadCreate().get();
   }
 
   @Override
   protected ObjectStorageReview getDeleteSample() {
-    return JsonUtil.readFromJson("objectstorage_allow_request/delete.json",
-        ObjectStorageReview.class);
+    return AdmissionReviewFixtures.objectStorage().loadDelete().get();
   }
 
   @Override
   protected ObjectStorageReview getUpdateSample() {
-    return JsonUtil.readFromJson("objectstorage_allow_request/update.json",
-        ObjectStorageReview.class);
+    return AdmissionReviewFixtures.objectStorage().loadUpdate().get();
   }
 
 }

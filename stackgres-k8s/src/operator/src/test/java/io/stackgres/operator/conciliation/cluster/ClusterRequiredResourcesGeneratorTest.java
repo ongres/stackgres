@@ -39,8 +39,8 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.prometheus.PrometheusConfig;
-import io.stackgres.common.prometheus.PrometheusConfigList;
 import io.stackgres.common.prometheus.ServiceMonitor;
 import io.stackgres.common.resource.BackupConfigFinder;
 import io.stackgres.common.resource.BackupFinder;
@@ -51,7 +51,6 @@ import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 import io.stackgres.operator.resource.PrometheusScanner;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -92,15 +91,13 @@ class ClusterRequiredResourcesGeneratorTest {
 
   @BeforeEach
   void setUp() {
-    cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
         .getLatest().getLatestVersion());
     final String namespace = cluster.getMetadata().getNamespace();
-    backupConfig = JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
+    backupConfig = Fixtures.backupConfig().loadDefault().get();
     setNamespace(backupConfig);
-    postgresConfig = JsonUtil.readFromJson("postgres_config/default_postgres.json",
-        StackGresPostgresConfig.class);
+    postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     postgresConfig.getSpec()
         .setPostgresVersion(StackGresComponent.POSTGRESQL.getLatest()
             .getLatestMajorVersion());
@@ -109,20 +106,18 @@ class ClusterRequiredResourcesGeneratorTest {
     final String version = postgresConfig.getSpec().getPostgresVersion();
     postgresConfig.getStatus()
         .setDefaultParameters(PostgresDefaultValues.getDefaultValues(version));
-    poolingConfig =
-        JsonUtil.readFromJson("pooling_config/default.json", StackGresPoolingConfig.class);
+    poolingConfig = Fixtures.poolingConfig().loadDefault().get();
     setNamespace(poolingConfig);
     poolingConfig.setStatus(new StackGresPoolingConfigStatus());
     poolingConfig.getStatus().setPgBouncer(new StackGresPoolingConfigPgBouncerStatus());
     poolingConfig.getStatus().getPgBouncer()
         .setDefaultParameters(PgBouncerDefaultValues.getDefaultValues());
-    instanceProfile =
-        JsonUtil.readFromJson("stackgres_profiles/size-s.json", StackGresProfile.class);
+    instanceProfile = Fixtures.instanceProfile().loadSizeS().get();
     instanceProfile.getMetadata().setNamespace(namespace);
     setNamespace(instanceProfile);
-    backup = JsonUtil.readFromJson("backup/default.json", StackGresBackup.class);
+    backup = Fixtures.backup().loadDefault().get();
     setNamespace(backup);
-    minioSecret = JsonUtil.readFromJson("secret/minio.json", Secret.class);
+    minioSecret = Fixtures.secret().loadMinio().get();
   }
 
   private void setNamespace(HasMetadata resource) {
@@ -464,8 +459,7 @@ class ClusterRequiredResourcesGeneratorTest {
     mockSecrets(clusterNamespace);
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(
-        JsonUtil.readFromJson("prometheus/prometheus_list.json", PrometheusConfigList.class)
-            .getItems()));
+        Fixtures.prometheusList().loadDefault().get().getItems()));
 
     List<HasMetadata> generatedResources = generator.getRequiredResources(cluster);
 
@@ -499,8 +493,7 @@ class ClusterRequiredResourcesGeneratorTest {
         .thenReturn(Optional.of(backup));
     mockSecrets(clusterNamespace);
 
-    List<PrometheusConfig> listPrometheus =
-        JsonUtil.readFromJson("prometheus/prometheus_list.json", PrometheusConfigList.class)
+    List<PrometheusConfig> listPrometheus = Fixtures.prometheusList().loadDefault().get()
             .getItems()
             .stream()
             .peek(pc -> pc.getSpec().setServiceMonitorSelector(null))

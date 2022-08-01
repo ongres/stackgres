@@ -10,9 +10,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,8 +33,7 @@ class BackupConfigValidatorTest {
 
   @Test
   void giveStackGresBackupOnCreation_shouldFail() {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json", StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -49,9 +48,8 @@ class BackupConfigValidatorTest {
 
   @Test
   void giveAnAttemptToUpdateToAnUnknownBackupConfig_shouldFail() {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/backup_config_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadBackupConfigUpdate().get();
 
     ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -66,9 +64,8 @@ class BackupConfigValidatorTest {
 
   @Test
   void giveAnAttemptToDeleteCluster_shouldNotFail() {
-    final StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/backup_config_update.json",
-            StackGresClusterReview.class);
+    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadBackupConfigUpdate().get();
 
     review.getRequest().setOperation(Operation.DELETE);
     assertDoesNotThrow(() -> validator.validate(review));

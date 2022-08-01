@@ -21,10 +21,10 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.extension.ExtensionRequest;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -121,17 +121,14 @@ class ExtensionsValidatorTest {
   }
 
   private StackGresClusterReview getCreationReview() {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     return review;
   }
 
   private StackGresClusterReview getUpdateReview() {
-    StackGresClusterReview review = JsonUtil
-        .readFromJson("cluster_allow_requests/postgres_config_update.json",
-            StackGresClusterReview.class);
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadPostgresConfigUpdate().get();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     review.getRequest().getOldObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     return review;

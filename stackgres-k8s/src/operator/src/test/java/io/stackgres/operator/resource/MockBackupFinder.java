@@ -8,15 +8,14 @@ package io.stackgres.operator.resource;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.testutil.JsonUtil;
 
 //@Mock
 public class MockBackupFinder implements CustomResourceFinder<StackGresBackupConfig> {
 
   @Override
   public Optional<StackGresBackupConfig> findByNameAndNamespace(String name, String namespace) {
-    return Optional.of(JsonUtil
-        .readFromJson("backup_config/default.json", StackGresBackupConfig.class));
+    return Optional.of(Fixtures.backupConfig().loadDefault().get());
   }
 }

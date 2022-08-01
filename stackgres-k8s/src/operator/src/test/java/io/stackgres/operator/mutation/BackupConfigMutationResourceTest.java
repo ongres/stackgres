@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation;
 
 import io.stackgres.operator.common.BackupConfigReview;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +21,7 @@ class BackupConfigMutationResourceTest extends MutationResourceTest<BackupConfig
     resource.setPipeline(pipeline);
     this.resource = resource;
 
-    review = JsonUtil
-        .readFromJson("backupconfig_allow_request/create.json", BackupConfigReview.class);
+    review = AdmissionReviewFixtures.backupConfig().loadCreate().get();
   }
 
   @Override

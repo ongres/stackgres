@@ -27,8 +27,8 @@ import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,8 +49,7 @@ class ClusterAnnotationDecoratorTest {
 
   @BeforeEach
   void setUp() {
-    defaultCluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    defaultCluster = Fixtures.cluster().loadDefault().get();
 
     when(context.getSource()).thenReturn(defaultCluster);
 

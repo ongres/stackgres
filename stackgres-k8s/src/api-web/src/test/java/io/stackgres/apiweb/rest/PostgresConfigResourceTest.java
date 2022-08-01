@@ -11,12 +11,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.client.CustomResourceList;
+import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.PostgresConfigTransformer;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,12 +28,12 @@ class PostgresConfigResourceTest extends AbstractDependencyCustomResourceTest
 
   @Override
   protected CustomResourceList<StackGresPostgresConfig> getCustomResourceList() {
-    return JsonUtil.readFromJson("postgres_config/list.json", StackGresPostgresConfigList.class);
+    return Fixtures.postgresConfigList().loadDefault().get();
   }
 
   @Override
   protected PostgresConfigDto getResourceDto() {
-    return JsonUtil.readFromJson("postgres_config/dto.json", PostgresConfigDto.class);
+    return DtoFixtures.postgresConfig().loadDefault().get();
   }
 
   @Override

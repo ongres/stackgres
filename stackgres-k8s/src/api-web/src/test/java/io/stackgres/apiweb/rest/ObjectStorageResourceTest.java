@@ -24,14 +24,13 @@ import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.http.ContentType;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
 import io.stackgres.apiweb.transformer.ObjectStorageTransformerTest;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterScanner;
 import io.stackgres.common.resource.ObjectStorageFinder;
 import io.stackgres.common.resource.ObjectStorageScanner;
 import io.stackgres.common.resource.ObjectStorageScheduler;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -68,8 +67,7 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
 
     var clusters = objectStorageTuple.target().getStatus().getClusters()
         .stream().map(clusterName -> {
-          var cluster = JsonUtil
-              .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+          var cluster = Fixtures.cluster().loadDefault().get();
           cluster.getMetadata().setName(clusterName);
           cluster.getMetadata().setNamespace(namespace);
           var backupConfiguration = new StackGresClusterBackupConfiguration();

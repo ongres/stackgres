@@ -22,10 +22,12 @@ import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
+import io.sundr.builder.annotations.Buildable;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public class StackGresClusterPodScheduling {
 
   @JsonProperty("nodeSelector")

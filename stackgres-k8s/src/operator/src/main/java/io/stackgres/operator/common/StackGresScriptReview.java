@@ -8,8 +8,10 @@ package io.stackgres.operator.common;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
+import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
+@Buildable
 public class StackGresScriptReview extends AdmissionReview<StackGresScript> {
 
   private static final long serialVersionUID = 1L;

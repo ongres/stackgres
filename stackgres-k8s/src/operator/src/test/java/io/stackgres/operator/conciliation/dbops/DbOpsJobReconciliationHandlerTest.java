@@ -35,10 +35,10 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceWriter;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
@@ -88,16 +88,14 @@ class DbOpsJobReconciliationHandlerTest {
     handler = new DbOpsJobReconciliationHandler(
         labelFactory, jobFinder, jobWriter,
         podScanner, podWriter);
-    requiredJob = JsonUtil
-        .readFromJson("jobs/required.json", Job.class);
+    requiredJob = Fixtures.job().loadRequired().get();
 
     dbOps = new StackGresDbOps();
     dbOps.setMetadata(new ObjectMeta());
     dbOps.getMetadata().setNamespace(requiredJob.getMetadata().getNamespace());
     dbOps.getMetadata().setName(requiredJob.getMetadata().getName());
 
-    deployedJob = JsonUtil
-        .readFromJson("jobs/deployed.json", Job.class);
+    deployedJob = Fixtures.job().loadDeployed().get();
   }
 
   @Test

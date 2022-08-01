@@ -6,23 +6,20 @@
 package io.stackgres.operator.validation.pgconfig;
 
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 
 abstract class AbstractPgConfigReview {
 
   protected PgConfigReview validConfigReview() {
-    return JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig.json",
-        PgConfigReview.class);
+    return AdmissionReviewFixtures.postgresConfig().loadCreate().get();
   }
 
   protected PgConfigReview validConfigUpdate() {
-    return JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
-        PgConfigReview.class);
+    return AdmissionReviewFixtures.postgresConfig().loadUpdate().get();
   }
 
   protected PgConfigReview validConfigDelete() {
-    return JsonUtil.readFromJson("pgconfig_allow_request/pgconfig_delete.json",
-        PgConfigReview.class);
+    return AdmissionReviewFixtures.postgresConfig().loadDelete().get();
   }
 
 }

@@ -13,8 +13,8 @@ import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.crd.storages.AzureBlobStorage;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,10 +26,7 @@ class ObjectStorageTypeValidatorTest {
   @Test
   @DisplayName("Given an invalid storage type it must fail")
   void testStorageType() {
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/create.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     final String randomString = StringUtils.getRandomString(7);
     setType(review, randomString);
@@ -42,10 +39,7 @@ class ObjectStorageTypeValidatorTest {
   @Test
   @DisplayName("Given storage type s3, s3 property must be set")
   void testStorageS3Null() {
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/create.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
     setType(review, "s3");
 
     setNullStorages(review);
@@ -59,10 +53,7 @@ class ObjectStorageTypeValidatorTest {
   @DisplayName("Given storage type s3Compatible, s3Compatible property must be set")
   void testStorageS3CompatibleNull() {
 
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/create.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
     setType(review, "s3Compatible");
     setNullStorages(review);
 
@@ -74,10 +65,7 @@ class ObjectStorageTypeValidatorTest {
   @Test
   @DisplayName("Given storage type gcs, gcs property must be set")
   void testStorageGcsNull() {
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/create.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setType(review, "gcs");
 
@@ -92,10 +80,7 @@ class ObjectStorageTypeValidatorTest {
   @DisplayName("Given storage type azureBlob, azureBlob property must be set")
   void testStorageAzureBlob() {
 
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/create.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setType(review, "azureBlob");
 
@@ -109,10 +94,7 @@ class ObjectStorageTypeValidatorTest {
   @DisplayName("Given that unwanted properties set, it should fail")
   void testUnwantedPropertiesSet() {
 
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/create.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setType(review, "s3");
     setNullStorages(review);
@@ -193,10 +175,7 @@ class ObjectStorageTypeValidatorTest {
   @DisplayName("Given a valid object storage creation review it must pass")
   void testValidCreation() throws ValidationFailed {
 
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/create.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setType(review, "s3");
     setNullStorages(review);
@@ -222,10 +201,7 @@ class ObjectStorageTypeValidatorTest {
   @DisplayName("Given a valid object storage update review it must pass")
   void testValidUpdate() throws ValidationFailed {
 
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/update.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setType(review, "s3");
     setNullStorages(review);
@@ -251,10 +227,7 @@ class ObjectStorageTypeValidatorTest {
   @Test
   @DisplayName("Given a deletion review must pass")
   void testDelete() throws ValidationFailed {
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/delete.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadDelete().get();
     validator.validate(review);
   }
 

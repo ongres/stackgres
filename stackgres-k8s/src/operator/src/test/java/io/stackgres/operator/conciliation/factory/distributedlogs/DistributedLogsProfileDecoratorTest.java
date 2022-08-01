@@ -26,10 +26,10 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.AbstractProfileDecoratorTestCase;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
-import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,10 +57,8 @@ class DistributedLogsProfileDecoratorTest extends AbstractProfileDecoratorTestCa
 
   @BeforeEach
   void setUp() {
-    distributedLogs = JsonUtil
-        .readFromJson("distributedlogs/default.json", StackGresDistributedLogs.class);
-    profile = JsonUtil
-        .readFromJson("stackgres_profiles/size-xs.json", StackGresProfile.class);
+    distributedLogs = Fixtures.distributedLogs().loadDefault().get();
+    profile = Fixtures.instanceProfile().loadSizeXs().get();
 
     final ObjectMeta metadata = distributedLogs.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,

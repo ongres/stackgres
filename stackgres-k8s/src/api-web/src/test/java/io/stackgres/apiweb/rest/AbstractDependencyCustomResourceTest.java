@@ -20,10 +20,10 @@ import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -141,8 +141,7 @@ abstract class AbstractDependencyCustomResourceTest
   protected abstract T getResourceDto();
 
   private StackGresClusterList getClusterList() {
-    return JsonUtil
-        .readFromJson("stackgres_cluster/list.json", StackGresClusterList.class);
+    return Fixtures.clusterList().loadDefault().get();
   }
 
   protected abstract AbstractDependencyResourceTransformer<T, R> getTransformer();

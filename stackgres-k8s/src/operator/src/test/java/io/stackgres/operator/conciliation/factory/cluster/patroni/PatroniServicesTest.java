@@ -27,7 +27,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -53,11 +53,9 @@ class PatroniServicesTest {
   void setUp() {
     patroniServices.setLabelFactory(labelFactory);
 
-    defaultCluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    defaultCluster = Fixtures.cluster().loadDefault().get();
 
-    loadBalancerIpCluster = JsonUtil
-        .readFromJson("stackgres_cluster/using_load_balancer_ip.json", StackGresCluster.class);
+    loadBalancerIpCluster = Fixtures.cluster().loadUsingLoadBalancerIp().get();
 
     when(context.getSource())
         .thenReturn(defaultCluster);

@@ -6,7 +6,7 @@
 package io.stackgres.operator.conversion;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -15,7 +15,7 @@ class SgInstanceProfileConversionResourceTest extends ConversionResourceTest<Sta
 
   @Override
   protected StackGresProfile getCustomResource() {
-    return JsonUtil.readFromJson("stackgres_profiles/size-s.json", StackGresProfile.class);
+    return Fixtures.instanceProfile().loadSizeS().get();
   }
 
   @Override

@@ -18,6 +18,7 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
@@ -47,10 +48,9 @@ class ExtensionsMutatorTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    review = JsonUtil.readFromJson("distributedlogs_allow_request/create.json",
-        StackGresDistributedLogsReview.class);
+    review = AdmissionReviewFixtures.distributedLogs().loadCreate().get();
 
-    mutator = new ExtensionsMutator(extensionMetadataManager, JsonUtil.JSON_MAPPER);
+    mutator = new ExtensionsMutator(extensionMetadataManager, JsonUtil.jsonMapper());
 
     installedExtensions = Seq.<String>of()
         .map(this::getInstalledExtension)

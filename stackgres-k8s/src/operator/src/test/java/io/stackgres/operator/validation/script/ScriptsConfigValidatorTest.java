@@ -26,9 +26,9 @@ import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptFrom;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.StackGresScriptReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -316,15 +316,13 @@ class ScriptsConfigValidatorTest {
   }
 
   private StackGresScriptReview getCreationReview() {
-    return JsonUtil
-        .readFromJson("script_allow_requests/valid_creation.json",
-            StackGresScriptReview.class);
+    return AdmissionReviewFixtures.script()
+        .loadCreate().get();
   }
 
   private StackGresScriptReview getUpdateReview() {
-    return JsonUtil
-        .readFromJson("script_allow_requests/scripts_config_update.json",
-            StackGresScriptReview.class);
+    return AdmissionReviewFixtures.script()
+        .loadScriptsConfigUpdate().get();
   }
 
   private void prepareForScript(StackGresScriptReview review, String name, String script) {

@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.testutil.JsonUtil;
@@ -24,7 +24,7 @@ import org.mockito.Mock;
 
 public abstract class ConversionResourceTest<T extends CustomResource<?, ?>> {
 
-  protected static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
+  protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
   protected ConversionResource conversionResource;
 
@@ -84,7 +84,8 @@ public abstract class ConversionResourceTest<T extends CustomResource<?, ?>> {
     conversionReview.setRequest(new ConversionRequest());
     conversionReview.getRequest().setUid(UUID.randomUUID());
     conversionReview.getRequest().setDesiredApiVersion("stackgres.io/v1");
-    conversionReview.getRequest().setObjects(Collections.singletonList(MAPPER.valueToTree(object)));
+    conversionReview.getRequest().setObjects(Collections.singletonList(
+        JSON_MAPPER.valueToTree(object)));
     return conversionReview;
   }
 }

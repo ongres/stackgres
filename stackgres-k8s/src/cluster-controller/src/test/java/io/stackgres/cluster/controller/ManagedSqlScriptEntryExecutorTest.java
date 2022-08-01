@@ -30,8 +30,8 @@ import java.sql.Timestamp;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.postgres.PostgresConnectionManager;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -57,12 +57,8 @@ class ManagedSqlScriptEntryExecutorTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    StackGresCluster cluster = JsonUtil
-        .readFromJson("stackgres_cluster/managed_sql.json",
-            StackGresCluster.class);
-    StackGresScript script = JsonUtil
-        .readFromJson("stackgres_script/default.json",
-            StackGresScript.class);
+    StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
+    StackGresScript script = Fixtures.script().loadDefault().get();
     scriptEntry = ImmutableManagedSqlScriptEntry.builder()
         .managedSqlStatus(cluster.getStatus().getManagedSql())
         .managedScript(cluster.getSpec().getManagedSql().getScripts().get(0))

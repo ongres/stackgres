@@ -7,10 +7,10 @@ package io.stackgres.operator.validation.profile;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.SgProfileReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -28,33 +28,28 @@ class SgProfileDependenciesValidatorTest
 
   @Override
   protected SgProfileReview getReview_givenAReviewCreation_itShouldDoNothing() {
-    return JsonUtil.readFromJson("sgprofile_allow_request/create.json",
-        SgProfileReview.class);
+    return AdmissionReviewFixtures.instanceProfile().loadCreate().get();
   }
 
   @Override
   protected SgProfileReview getReview_givenAReviewUpdate_itShouldDoNothing() {
-    return JsonUtil.readFromJson("sgprofile_allow_request/update.json",
-        SgProfileReview.class);
+    return AdmissionReviewFixtures.instanceProfile().loadUpdate().get();
   }
 
   @Override
   protected SgProfileReview getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
-    return JsonUtil.readFromJson("sgprofile_allow_request/delete.json",
-        SgProfileReview.class);
+    return AdmissionReviewFixtures.instanceProfile().loadDelete().get();
   }
 
   @Override
   protected SgProfileReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
       throws ValidationFailed {
-    return JsonUtil.readFromJson("sgprofile_allow_request/delete.json",
-        SgProfileReview.class);
+    return AdmissionReviewFixtures.instanceProfile().loadDelete().get();
   }
 
   @Override
   protected SgProfileReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
-    return JsonUtil.readFromJson("sgprofile_allow_request/delete.json",
-        SgProfileReview.class);
+    return AdmissionReviewFixtures.instanceProfile().loadDelete().get();
   }
 
   @Override

@@ -10,8 +10,8 @@ import static io.stackgres.common.fixture.NodeAffinityFixture.REQUIRED_TOPOLY_KE
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.fixture.NodeAffinityFixture;
-import io.stackgres.common.fixture.StackGresClusterFixture;
 import org.junit.jupiter.api.Test;
 
 class NodeAffinityTest {
@@ -21,7 +21,7 @@ class NodeAffinityTest {
     NodeAffinity nodeAffinity = new NodeAffinityFixture()
         .withValidRequirement()
         .build();
-    StackGresCluster cluster = new StackGresClusterFixture().withNodeAffinity(nodeAffinity).build();
+    StackGresCluster cluster = Fixtures.cluster().withNodeAffinity(nodeAffinity).get();
     io.fabric8.kubernetes.api.model.NodeAffinity k8sPodNodeAffinity =
         cluster.getSpec().getPod().getScheduling().getNodeAffinity();
     assertEquals(2,
@@ -35,9 +35,10 @@ class NodeAffinityTest {
     NodeAffinity nodeAffinity = new NodeAffinityFixture()
         .withValidRequirement()
         .build();
-    StackGresCluster cluster = new StackGresClusterFixture()
+    StackGresCluster cluster = Fixtures
+        .cluster()
         .withNodeAffinity(nodeAffinity)
-        .build();
+        .get();
     io.fabric8.kubernetes.api.model.NodeAffinity k8sPodNodeAffinity =
         cluster.getSpec().getPod().getScheduling().getNodeAffinity();
     k8sPodNodeAffinity.getRequiredDuringSchedulingIgnoredDuringExecution().getNodeSelectorTerms()
@@ -53,7 +54,7 @@ class NodeAffinityTest {
     NodeAffinity nodeAffinity = new NodeAffinityFixture()
         .withValidPreferredScheduling()
         .build();
-    StackGresCluster cluster = new StackGresClusterFixture().withNodeAffinity(nodeAffinity).build();
+    StackGresCluster cluster = Fixtures.cluster().withNodeAffinity(nodeAffinity).get();
     io.fabric8.kubernetes.api.model.NodeAffinity k8sPodNodeAffinity =
         cluster.getSpec().getPod().getScheduling().getNodeAffinity();
     assertEquals(nodeAffinity.getPreferredDuringSchedulingIgnoredDuringExecution().size(),
@@ -65,7 +66,7 @@ class NodeAffinityTest {
     NodeAffinity nodeAffinity = new NodeAffinityFixture()
         .withValidPreferredScheduling()
         .build();
-    StackGresCluster cluster = new StackGresClusterFixture().withNodeAffinity(nodeAffinity).build();
+    StackGresCluster cluster = Fixtures.cluster().withNodeAffinity(nodeAffinity).get();
     io.fabric8.kubernetes.api.model.NodeAffinity k8sPodNodeAffinity =
         cluster.getSpec().getPod().getScheduling().getNodeAffinity();
     k8sPodNodeAffinity.getPreferredDuringSchedulingIgnoredDuringExecution().forEach(preference -> {

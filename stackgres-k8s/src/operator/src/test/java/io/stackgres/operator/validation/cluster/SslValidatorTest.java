@@ -20,9 +20,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -174,15 +174,11 @@ class SslValidatorTest {
   }
 
   private StackGresClusterReview getCreationReview() {
-    return JsonUtil
-        .readFromJson("cluster_allow_requests/valid_creation.json",
-            StackGresClusterReview.class);
+    return AdmissionReviewFixtures.cluster().loadCreate().get();
   }
 
   private StackGresClusterReview getUpdateReview() {
-    return JsonUtil
-        .readFromJson("cluster_allow_requests/ssl_update.json",
-            StackGresClusterReview.class);
+    return AdmissionReviewFixtures.cluster().loadSslUpdate().get();
   }
 
   private void prepareForSsl(StackGresClusterReview review) {

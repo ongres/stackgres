@@ -23,7 +23,7 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.common.BackupReview;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
@@ -39,8 +39,7 @@ class DefaultBackupPathMutatorTest {
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
-    review = JsonUtil.readFromJson("backup_allow_request/create.json",
-        BackupReview.class);
+    review = AdmissionReviewFixtures.backup().loadCreate().get();
 
     mutator = new DefaultBackupPathMutator();
     mutator.init();

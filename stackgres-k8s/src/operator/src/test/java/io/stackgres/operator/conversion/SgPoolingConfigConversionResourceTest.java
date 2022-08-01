@@ -6,7 +6,7 @@
 package io.stackgres.operator.conversion;
 
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -16,8 +16,7 @@ class SgPoolingConfigConversionResourceTest
 
   @Override
   protected StackGresPoolingConfig getCustomResource() {
-    return JsonUtil.readFromJson("pooling_config/default.json",
-        StackGresPoolingConfig.class);
+    return Fixtures.poolingConfig().loadDefault().get();
   }
 
   @Override

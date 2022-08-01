@@ -7,9 +7,9 @@ package io.stackgres.operator.validation.pgconfig;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.DefaultKeeperTest;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -25,20 +25,17 @@ class DefaultPgConfigKeeperTest
 
   @Override
   protected PgConfigReview getCreationSample() {
-    return JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig.json",
-        PgConfigReview.class);
+    return AdmissionReviewFixtures.postgresConfig().loadCreate().get();
   }
 
   @Override
   protected PgConfigReview getDeleteSample() {
-    return JsonUtil.readFromJson("pgconfig_allow_request/pgconfig_delete.json",
-        PgConfigReview.class);
+    return AdmissionReviewFixtures.postgresConfig().loadDelete().get();
   }
 
   @Override
   protected PgConfigReview getUpdateSample() {
-    return JsonUtil.readFromJson("pgconfig_allow_request/valid_pgconfig_update.json",
-        PgConfigReview.class);
+    return AdmissionReviewFixtures.postgresConfig().loadUpdate().get();
   }
 
 }

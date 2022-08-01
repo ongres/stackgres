@@ -6,7 +6,7 @@
 package io.stackgres.operator.conversion;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -16,8 +16,7 @@ class SgDistributedLogsConversionResourceTest
 
   @Override
   protected StackGresDistributedLogs getCustomResource() {
-    return JsonUtil.readFromJson("distributedlogs/default.json",
-        StackGresDistributedLogs.class);
+    return Fixtures.distributedLogs().loadDefault().get();
   }
 
   @Override

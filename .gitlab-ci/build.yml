@@ -18,7 +18,8 @@ build:
         --extract stackgres-cluster-controller:'stackgres-k8s/src/cluster-controller/target/surefire-reports/TEST-*.xml' \
         --extract stackgres-distributedlogs-controller:'stackgres-k8s/src/distributedlogs-controller/target/surefire-reports/TEST-*.xml' \
         --extract stackgres-restapi:'stackgres-k8s/src/api-web/target/swagger*' \
-        stackgres-parent stackgres-operator-framework stackgres-test-util stackgres-common \
+        stackgres-parent stackgres-operator-framework \
+        stackgres-test-util stackgres-common \
         stackgres-operator stackgres-restapi stackgres-jobs \
         stackgres-cluster-controller stackgres-distributedlogs-controller
   retry:

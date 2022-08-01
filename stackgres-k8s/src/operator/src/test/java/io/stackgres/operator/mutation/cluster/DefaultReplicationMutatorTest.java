@@ -27,6 +27,7 @@ import io.stackgres.common.crd.sgcluster.StackGresMainReplicationRole;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationMode;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,7 @@ import org.opentest4j.AssertionFailedError;
 
 class DefaultReplicationMutatorTest {
 
-  protected static final JsonMapper JSON_MAPPER = new JsonMapper();
+  protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
   protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
@@ -43,8 +44,7 @@ class DefaultReplicationMutatorTest {
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
-    review = JsonUtil.readFromJson("cluster_allow_requests/valid_creation.json",
-        StackGresClusterReview.class);
+    review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     mutator = new DefaultReplicationMutator();
     mutator.setObjectMapper(JSON_MAPPER);

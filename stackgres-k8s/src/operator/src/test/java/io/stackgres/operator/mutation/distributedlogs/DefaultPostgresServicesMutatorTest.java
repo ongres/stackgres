@@ -21,7 +21,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
@@ -30,6 +30,7 @@ import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ import org.opentest4j.AssertionFailedError;
 
 class DefaultPostgresServicesMutatorTest {
 
-  protected static final ObjectMapper JSON_MAPPER = JsonUtil.JSON_MAPPER;
+  protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
   protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
@@ -49,8 +50,7 @@ class DefaultPostgresServicesMutatorTest {
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
-    review = JsonUtil.readFromJson("distributedlogs_allow_request/create.json",
-        StackGresDistributedLogsReview.class);
+    review = AdmissionReviewFixtures.distributedLogs().loadCreate().get();
 
     mutator = new DefaultPostgresServicesMutator();
     mutator.setObjectMapper(JSON_MAPPER);

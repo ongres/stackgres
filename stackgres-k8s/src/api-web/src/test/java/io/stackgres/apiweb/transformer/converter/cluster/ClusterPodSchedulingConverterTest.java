@@ -8,8 +8,8 @@ package io.stackgres.apiweb.transformer.converter.cluster;
 import static org.junit.Assert.assertEquals;
 
 import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
-import io.stackgres.apiweb.transformer.converter.cluster.fixture.StackGresClusterPodSchedulingFixture;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,8 +22,7 @@ class ClusterPodSchedulingConverterTest {
   @BeforeEach
   public void setup() {
     this.converter = new ClusterPodSchedulingConverter();
-    this.stackGresPodSchedulingFixture =
-        new StackGresClusterPodSchedulingFixture().loadPodNodeAffinityScheduling();
+    this.stackGresPodSchedulingFixture = Fixtures.cluster().scheduling().loadDefault().get();
   }
 
   @Test

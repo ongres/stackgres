@@ -13,13 +13,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.backup.BackupDto;
+import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
 import io.stackgres.apiweb.transformer.BackupConfigTransformer;
 import io.stackgres.apiweb.transformer.BackupStorageTransformer;
 import io.stackgres.apiweb.transformer.BackupTransformer;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackup.StackGresBackupList;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -29,12 +29,12 @@ class BackupResourceTest extends AbstractCustomResourceTest
 
   @Override
   protected CustomResourceList<StackGresBackup> getCustomResourceList() {
-    return JsonUtil.readFromJson("stackgres_backup/list.json", StackGresBackupList.class);
+    return Fixtures.backupList().loadDefault().withJustFirstElement().get();
   }
 
   @Override
   protected BackupDto getDto() {
-    return JsonUtil.readFromJson("stackgres_backup/dto.json", BackupDto.class);
+    return DtoFixtures.backup().loadDefault().get();
   }
 
   @Override
@@ -174,8 +174,6 @@ class BackupResourceTest extends AbstractCustomResourceTest
         assertEquals("stackgres",
             resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getBucket());
         assertNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getPath());
-        assertEquals("s3://stackgres",
-            resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getPrefix());
         assertEquals("k8s",
             resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getRegion());
         assertNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible()

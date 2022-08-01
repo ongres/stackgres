@@ -8,9 +8,9 @@ package io.stackgres.operator.validation.backup;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -25,14 +25,12 @@ class BackupConstraintValidationTest extends ConstraintValidationTest<BackupRevi
 
   @Override
   protected BackupReview getValidReview() {
-    return JsonUtil.readFromJson("backup_allow_request/create.json",
-        BackupReview.class);
+    return AdmissionReviewFixtures.backup().loadCreate().get();
   }
 
   @Override
   protected BackupReview getInvalidReview() {
-    final BackupReview backupReview = JsonUtil.readFromJson("backup_allow_request/create.json",
-        BackupReview.class);
+    final BackupReview backupReview = AdmissionReviewFixtures.backup().loadCreate().get();
     backupReview.getRequest().getObject().setSpec(null);
     return backupReview;
   }

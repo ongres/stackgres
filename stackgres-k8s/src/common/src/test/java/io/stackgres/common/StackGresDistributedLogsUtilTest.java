@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
-import io.stackgres.common.fixture.StackGresDistributedLogsSpecFixture;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,23 +25,25 @@ class StackGresDistributedLogsUtilTest {
 
   @BeforeEach
   public void setup() {
-    this.primary = new StackGresPostgresServiceFixture().isEnabled(false).withType(EXTERNAL_NAME)
-        .build();
-    this.replicas = new StackGresPostgresServiceFixture().isEnabled(true).withType(CLUSTER_IP)
-        .build();
+    primary = Fixtures.cluster().loadDefault().get().getSpec().getPostgresServices().getPrimary();
+    primary.setEnabled(false);
+    primary.setType(EXTERNAL_NAME.toString());
+    replicas = Fixtures.cluster().loadDefault().get().getSpec().getPostgresServices().getReplicas();
+    primary.setEnabled(true);
+    primary.setType(CLUSTER_IP.toString());
   }
 
   @Test
   void shouldBuildSgDistributedLogsPostgresServices_asEmptyAvoidingAnyException() {
     assertNotNull(StackGresDistributedLogsUtil
-        .buildPostgresServices(new StackGresDistributedLogsSpecFixture().build()));
+        .buildPostgresServices(Fixtures.distributedLogs().spec().emptyPostgresServices().get()));
   }
 
   @Test
   void shouldBuildSgDistributedLogsPostgresServices_withOnlyPrimary() {
 
-    StackGresDistributedLogsSpec spec = new StackGresDistributedLogsSpecFixture()
-        .withPrimaryPostgresServices(primary).build();
+    StackGresDistributedLogsSpec spec = Fixtures.distributedLogs().spec()
+        .withPrimaryPostgresServices(primary).get();
     StackGresClusterPostgresServices postgresServices = StackGresDistributedLogsUtil
         .buildPostgresServices(spec);
 
@@ -53,8 +55,8 @@ class StackGresDistributedLogsUtilTest {
   @Test
   void shouldBuildSgDistributedLogsPostgresServices_withOnlyReplicas() {
 
-    StackGresDistributedLogsSpec spec = new StackGresDistributedLogsSpecFixture()
-        .withReplicasPostgresServices(replicas).build();
+    StackGresDistributedLogsSpec spec = Fixtures.distributedLogs().spec()
+        .withReplicasPostgresServices(replicas).get();
     StackGresClusterPostgresServices postgresServices = StackGresDistributedLogsUtil
         .buildPostgresServices(spec);
 

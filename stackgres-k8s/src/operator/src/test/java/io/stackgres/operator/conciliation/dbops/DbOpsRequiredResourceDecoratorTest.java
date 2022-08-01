@@ -15,12 +15,10 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
-import io.stackgres.operator.fixture.StackGresClusterFixture;
-import io.stackgres.operator.fixture.StackGresDbOpsFixture;
-import io.stackgres.operator.fixture.StackGresProfileFixture;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
@@ -38,9 +36,9 @@ class DbOpsRequiredResourceDecoratorTest
 
   @BeforeEach
   public void setup() {
-    this.resource = new StackGresDbOpsFixture().build("minor_version_upgrade");
-    this.profile = new StackGresProfileFixture().build("size-xs");
-    this.cluster = new StackGresClusterFixture().build("default");
+    this.resource = Fixtures.dbOps().loadMinorVersionUpgrade().get();
+    this.profile = Fixtures.instanceProfile().loadSizeXs().get();
+    this.cluster = Fixtures.cluster().loadDefault().withLatestPostgresVersion().get();
   }
 
   @Override

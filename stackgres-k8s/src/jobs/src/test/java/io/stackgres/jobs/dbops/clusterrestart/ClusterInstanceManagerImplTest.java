@@ -30,9 +30,9 @@ import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.lock.FakeClusterScheduler;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,8 +72,7 @@ class ClusterInstanceManagerImplTest {
     namespace = StringUtils.getRandomNamespace();
     clusterName = StringUtils.getRandomClusterName();
 
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
-        StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().setName(clusterName);
     cluster.getMetadata().setNamespace(namespace);
     cluster.getSpec().setInstances(3);

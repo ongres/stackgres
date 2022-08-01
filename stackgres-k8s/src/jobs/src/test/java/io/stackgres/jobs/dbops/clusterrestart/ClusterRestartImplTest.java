@@ -35,7 +35,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.DbOpsOperation;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -95,14 +95,12 @@ class ClusterRestartImplTest {
     replica2 = buildPod(REPLICA_2_POD_NAME, PatroniUtil.REPLICA_ROLE);
     additionalPod = buildPod(REPLICA_3_POD_NAME, PatroniUtil.REPLICA_ROLE);
 
-    cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().setName(CLUSTER_NAME);
     cluster.getMetadata().setNamespace(NAMESPACE);
     cluster.getSpec().setInstances(3);
 
-    dbOps = JsonUtil
-        .readFromJson("stackgres_dbops/dbops_restart.json", StackGresDbOps.class);
+    dbOps = Fixtures.dbOps().loadRestart().get();
     dbOps.getMetadata().setName(DBOPS_NAME);
     dbOps.getMetadata().setNamespace(NAMESPACE);
     dbOps.getSpec().setSgCluster(CLUSTER_NAME);

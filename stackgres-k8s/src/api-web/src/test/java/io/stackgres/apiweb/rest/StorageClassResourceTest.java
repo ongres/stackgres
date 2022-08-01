@@ -12,8 +12,8 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.api.model.storage.StorageClassList;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,8 +32,7 @@ class StorageClassResourceTest {
 
   @BeforeEach
   void setUp() {
-    storageClasses = JsonUtil
-        .readFromJson("storage_class/list.json", StorageClassList.class);
+    storageClasses = Fixtures.storageClassList().loadDefault().get();
 
     resource = new StorageClassResource();
     resource.setStorageClassScanner(scanner);

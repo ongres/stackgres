@@ -19,7 +19,7 @@ import com.github.fge.jsonpatch.ReplaceOperation;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -29,8 +29,7 @@ class PgConfigNormalizeValuesMutatorTest {
   private PgConfigMutator mutator = new PgConfigNormalizeValuesMutator();
 
   private PgConfigReview getDefaultReview() {
-    return JsonUtil
-        .readFromJson("pgconfig_allow_request/valid_pgconfig.json", PgConfigReview.class);
+    return AdmissionReviewFixtures.postgresConfig().loadCreate().get();
   }
 
   private PgConfigReview getEmptyReview() {

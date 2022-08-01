@@ -15,12 +15,11 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpecScheduling;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.ImmutableStackGresDbOpsContext;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,18 +37,17 @@ abstract class DbOpsJobTestCase {
 
   @BeforeEach
   void setUp() {
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
-        StackGresCluster.class);
-    dbOps = JsonUtil.readFromJson(fixturePath(), StackGresDbOps.class);
-    clusterProfile = JsonUtil.readFromJson("stackgres_profiles/size-xs.json",
-        StackGresProfile.class);
+    cluster = Fixtures.cluster().loadDefault().get();
+
+    clusterProfile = Fixtures.instanceProfile().loadSizeXs().get();
+
+    dbOps = getDbOps();
   }
 
-  abstract String fixturePath();
+  abstract StackGresDbOps getDbOps();
 
   void setSgDbOpsScheduling() {
-    var dbopsScheduling = JsonUtil.readFromJson("stackgres_dbops/dbops_scheduling.json",
-        StackGresDbOpsSpecScheduling.class);
+    var dbopsScheduling = Fixtures.dbOps().scheduling().loadDefault().get();
     dbOps.getSpec().setScheduling(dbopsScheduling);
   }
 

@@ -33,6 +33,7 @@ import io.stackgres.common.extension.StackGresExtension;
 import io.stackgres.common.extension.StackGresExtensionIndexAnyVersion;
 import io.stackgres.common.extension.StackGresExtensionVersion;
 import io.stackgres.common.extension.StackGresExtensions;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
@@ -72,9 +73,7 @@ class ExtensionsResourceTest {
 
   @BeforeEach
   void setUp() {
-    extensionsMetadata = JsonUtil
-        .readFromJson("extension_metadata/index.json",
-            StackGresExtensions.class);
+    extensionsMetadata = Fixtures.extensionMetadata().loadDefault().get();
     extensionsMetadata.getExtensions().stream()
         .map(StackGresExtension::getVersions)
         .flatMap(List::stream)

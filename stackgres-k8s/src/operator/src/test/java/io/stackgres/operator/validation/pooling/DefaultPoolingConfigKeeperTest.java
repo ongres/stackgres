@@ -7,9 +7,9 @@ package io.stackgres.operator.validation.pooling;
 
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.operator.common.PoolingReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.DefaultKeeperTest;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -25,20 +25,17 @@ class DefaultPoolingConfigKeeperTest
 
   @Override
   protected PoolingReview getCreationSample() {
-    return JsonUtil.readFromJson("pooling_allow_request/create.json",
-        PoolingReview.class);
+    return AdmissionReviewFixtures.poolingConfig().loadCreate().get();
   }
 
   @Override
   protected PoolingReview getDeleteSample() {
-    return JsonUtil.readFromJson("pooling_allow_request/delete.json",
-        PoolingReview.class);
+    return AdmissionReviewFixtures.poolingConfig().loadDelete().get();
   }
 
   @Override
   protected PoolingReview getUpdateSample() {
-    return JsonUtil.readFromJson("pooling_allow_request/update.json",
-        PoolingReview.class);
+    return AdmissionReviewFixtures.poolingConfig().loadUpdate().get();
   }
 
 }

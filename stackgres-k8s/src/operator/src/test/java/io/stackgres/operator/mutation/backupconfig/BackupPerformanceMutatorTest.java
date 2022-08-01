@@ -19,7 +19,7 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.common.BackupConfigReview;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
@@ -33,8 +33,7 @@ class BackupPerformanceMutatorTest {
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
-    review = JsonUtil.readFromJson("backupconfig_allow_request/create.json",
-        BackupConfigReview.class);
+    review = AdmissionReviewFixtures.backupConfig().loadCreate().get();
 
     mutator = new BackupPerformanceMutator();
     mutator.init();

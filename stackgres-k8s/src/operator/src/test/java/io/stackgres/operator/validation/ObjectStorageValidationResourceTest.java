@@ -22,7 +22,7 @@ import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.crd.storages.AwsSecretKeySelector;
 import io.stackgres.common.resource.SecretWriter;
 import io.stackgres.operator.common.ObjectStorageReview;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.RandomObjectUtils;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -66,8 +66,7 @@ class ObjectStorageValidationResourceTest {
   }
 
   private ObjectStorageReview getValidReview() {
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/create.json", ObjectStorageReview.class);
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
     var objectStorage = review.getRequest().getObject();
     var backupStorage = objectStorage.getSpec();
     backupStorage.setType("s3");

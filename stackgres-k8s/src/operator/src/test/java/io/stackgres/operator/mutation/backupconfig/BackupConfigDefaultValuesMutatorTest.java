@@ -14,10 +14,11 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.storages.AwsS3Storage;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.BackupConfigReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,21 +34,20 @@ class BackupConfigDefaultValuesMutatorTest
 
   @Override
   protected BackupConfigReview getEmptyReview() {
-    BackupConfigReview backupConfigReview = JsonUtil
-        .readFromJson("backupconfig_allow_request/create.json", BackupConfigReview.class);
+    BackupConfigReview backupConfigReview = AdmissionReviewFixtures.backupConfig()
+        .loadCreate().get();
     backupConfigReview.getRequest().getObject().setSpec(new StackGresBackupConfigSpec());
     return backupConfigReview;
   }
 
   @Override
   protected BackupConfigReview getDefaultReview() {
-    return JsonUtil
-        .readFromJson("backupconfig_allow_request/create.json", BackupConfigReview.class);
+    return AdmissionReviewFixtures.backupConfig().loadCreate().get();
   }
 
   @Override
   protected StackGresBackupConfig getDefaultResource() {
-    return JsonUtil.readFromJson("backup_config/default.json", StackGresBackupConfig.class);
+    return Fixtures.backupConfig().loadDefault().get();
   }
 
   @Override

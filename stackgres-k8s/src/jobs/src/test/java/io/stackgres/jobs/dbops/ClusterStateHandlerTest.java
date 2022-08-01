@@ -42,6 +42,7 @@ import io.stackgres.common.crd.sgdbops.DbOpsOperation;
 import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.DbOpsEventEmitter;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartImpl;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableRestartEventForTest;
@@ -49,7 +50,6 @@ import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
 import io.stackgres.jobs.dbops.clusterrestart.PodTestUtil;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEventType;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.apache.commons.compress.utils.Lists;
 import org.jooq.lambda.Seq;
@@ -128,8 +128,7 @@ public abstract class ClusterStateHandlerTest {
 
     dbOps = getDbOps();
 
-    cluster = JsonUtil.readFromJson("stackgres_cluster/default.json",
-        StackGresCluster.class);
+    cluster = Fixtures.cluster().loadDefault().get();
 
     dbOps.getMetadata().setName(dbOpsName);
     dbOps.getMetadata().setNamespace(namespace);

@@ -29,6 +29,7 @@ import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMinorVersionUpgradeStatus;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.AbstractRestartStateHandler;
 import io.stackgres.jobs.dbops.ClusterStateHandlerTest;
 import io.stackgres.jobs.dbops.StateHandler;
@@ -36,7 +37,6 @@ import io.stackgres.jobs.dbops.clusterrestart.ImmutablePatroniInformation;
 import io.stackgres.jobs.dbops.clusterrestart.MemberRole;
 import io.stackgres.jobs.dbops.clusterrestart.MemberState;
 import io.stackgres.jobs.dbops.clusterrestart.PatroniApiHandler;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
@@ -81,8 +81,7 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
 
   @Override
   protected StackGresDbOps getDbOps() {
-    return JsonUtil.readFromJson("stackgres_dbops/dbops_minorversionupgrade.json",
-        StackGresDbOps.class);
+    return Fixtures.dbOps().loadMinorVersionUpgrade().get();
   }
 
   @Override

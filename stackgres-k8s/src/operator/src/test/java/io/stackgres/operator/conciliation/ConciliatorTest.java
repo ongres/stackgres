@@ -17,7 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 
 public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
 
-  private static final ObjectMapper MAPPER = JsonUtil.JSON_MAPPER;
+  private static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
   protected ComparisonDelegator<T> resourceComparator = new ComparisonDelegator<>() {
     private final AbstractComparator comparator = new AbstractComparator() {
@@ -240,7 +240,7 @@ public abstract class ConciliatorTest<T extends CustomResource<?, ?>> {
     return source.stream().map(resource -> {
 
       try {
-        final HasMetadata resourceCopy = MAPPER.readValue(MAPPER
+        final HasMetadata resourceCopy = JSON_MAPPER.readValue(JSON_MAPPER
             .writeValueAsString(resource), HasMetadata.class);
         resource.getMetadata().setUid(UUID.randomUUID().toString());
         resource.getMetadata().setResourceVersion(StringUtil.generateRandom());

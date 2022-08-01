@@ -24,13 +24,13 @@ import io.smallrye.mutiny.Uni;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.StatefulSetFinder;
 import io.stackgres.jobs.app.JobsProperty;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.JobsStatefulSetWriter;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,10 +64,8 @@ class SecurityUpgradeJobTest {
 
   @BeforeEach
   void setUp() {
-    cluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
-    oldStatefulSet = JsonUtil
-        .readFromJson("statefulsets/0.9.5.json", StatefulSet.class);
+    cluster = Fixtures.cluster().loadDefault().get();
+    oldStatefulSet = Fixtures.statefulSet().load0_9_5().get();
     cluster.getMetadata().setName("test-" + clusterNr.incrementAndGet());
     clusterName = StringUtils.getRandomClusterName();
     clusterNamespace = StringUtils.getRandomNamespace();
@@ -78,8 +76,7 @@ class SecurityUpgradeJobTest {
     when(statefulSetReader.findByNameAndNamespace(clusterName, clusterNamespace))
         .thenReturn(Optional.of(oldStatefulSet));
 
-    dbOps =
-        JsonUtil.readFromJson("stackgres_dbops/dbops_securityupgrade.json", StackGresDbOps.class);
+    dbOps = Fixtures.dbOps().loadSecurityUpgrade().get();
     dbOps.getMetadata().setNamespace(clusterNamespace);
     dbOps.getMetadata().setName(clusterName);
     dbOps.getSpec().setSgCluster(clusterName);

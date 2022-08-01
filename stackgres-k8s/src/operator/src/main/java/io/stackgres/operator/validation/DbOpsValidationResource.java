@@ -15,7 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
@@ -25,11 +25,11 @@ import org.slf4j.LoggerFactory;
 @Path(ValidationUtil.DBOPS_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class DbOpsValidationResource implements ValidationResource<StackGresDbOpsReview> {
+public class DbOpsValidationResource implements ValidationResource<DbOpsReview> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbOpsValidationResource.class);
 
-  private ValidationPipeline<StackGresDbOpsReview> pipeline;
+  private ValidationPipeline<DbOpsReview> pipeline;
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("DbOps validation resource started");
@@ -37,12 +37,12 @@ public class DbOpsValidationResource implements ValidationResource<StackGresDbOp
 
   @Override
   @POST
-  public AdmissionReviewResponse validate(StackGresDbOpsReview admissionReview) {
+  public AdmissionReviewResponse validate(DbOpsReview admissionReview) {
     return validate(admissionReview, pipeline);
   }
 
   @Inject
-  public void setPipeline(@Any ValidationPipeline<StackGresDbOpsReview> pipeline) {
+  public void setPipeline(@Any ValidationPipeline<DbOpsReview> pipeline) {
     this.pipeline = pipeline;
   }
 }

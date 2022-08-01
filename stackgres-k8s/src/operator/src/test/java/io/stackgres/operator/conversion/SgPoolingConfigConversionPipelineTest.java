@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 
@@ -23,19 +24,19 @@ class SgPoolingConfigConversionPipelineTest {
   protected ConversionPipeline pipeline;
 
   ObjectNode getFromVersion1Resource() {
-    return JsonUtil.readFromJsonAsJson("pooling_config/from_version1.json");
+    return Fixtures.jsonPoolingConfig().loadFromVersion1().get();
   }
 
   ObjectNode getToVersion1beta1Resource() {
-    return JsonUtil.readFromJsonAsJson("pooling_config/to_version1beta1.json");
+    return Fixtures.jsonPoolingConfig().loadToVersion1beta1().get();
   }
 
   ObjectNode getFromVersion1beta1Resource() {
-    return JsonUtil.readFromJsonAsJson("pooling_config/from_version1beta1.json");
+    return Fixtures.jsonPoolingConfig().loadFromVersion1beta1().get();
   }
 
   ObjectNode getToVersion1Resource() {
-    return JsonUtil.readFromJsonAsJson("pooling_config/to_version1.json");
+    return Fixtures.jsonPoolingConfig().loadToVersion1().get();
   }
 
   @Test

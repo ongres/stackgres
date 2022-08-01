@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.StringUtil;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,10 +24,8 @@ class BackupJobComparatorTest {
 
   @BeforeEach
   void setUp() {
-    required = JsonUtil.readFromJson("jobs/required.json",
-        Job.class);
-    deployed = JsonUtil.readFromJson("jobs/deployed.json",
-        Job.class);
+    required = Fixtures.job().loadRequired().get();
+    deployed = Fixtures.job().loadDeployed().get();
   }
 
   @Test

@@ -12,11 +12,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
+import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.DistributedLogsTransformer;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
-import io.stackgres.testutil.JsonUtil;
+import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -27,14 +27,12 @@ class DistributedLogsResourceTest
 
   @Override
   protected CustomResourceList<StackGresDistributedLogs> getCustomResourceList() {
-    return JsonUtil
-        .readFromJson("distributedlogs/list.json", StackGresDistributedLogsList.class);
+    return Fixtures.distributedLogsList().loadDefault().get();
   }
 
   @Override
   protected DistributedLogsDto getResourceDto() {
-    return JsonUtil
-        .readFromJson("distributedlogs/dto.json", DistributedLogsDto.class);
+    return DtoFixtures.distributedLogs().loadDefault().get();
   }
 
   @Override

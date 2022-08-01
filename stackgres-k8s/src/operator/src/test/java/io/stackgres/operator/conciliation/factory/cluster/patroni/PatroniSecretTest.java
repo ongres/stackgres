@@ -26,8 +26,8 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,8 +54,7 @@ class PatroniSecretTest {
 
   @BeforeEach
   void setUp() {
-    StackGresCluster defaultCluster = JsonUtil
-        .readFromJson("stackgres_cluster/default.json", StackGresCluster.class);
+    StackGresCluster defaultCluster = Fixtures.cluster().loadDefault().get();
     patroniSecret.setFactoryFactory(labelFactory);
     when(labelFactory.genericLabels(any(StackGresCluster.class))).thenReturn(ImmutableMap.of());
 

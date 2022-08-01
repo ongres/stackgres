@@ -5,31 +5,28 @@
 
 package io.stackgres.operator.validation.dbops;
 
-import io.stackgres.operator.common.StackGresDbOpsReview;
+import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 
-class DbOpsVacuumConstraintValidatorTest extends ConstraintValidationTest<StackGresDbOpsReview> {
+class DbOpsVacuumConstraintValidatorTest extends ConstraintValidationTest<DbOpsReview> {
 
   @Override
-  protected ConstraintValidator<StackGresDbOpsReview> buildValidator() {
+  protected ConstraintValidator<DbOpsReview> buildValidator() {
     return new DbOpsConstraintValidator();
   }
 
   @Override
-  protected StackGresDbOpsReview getValidReview() {
-    return JsonUtil.readFromJson("dbops_allow_requests/valid_vacuum_creation.json",
-        StackGresDbOpsReview.class);
+  protected DbOpsReview getValidReview() {
+    return AdmissionReviewFixtures.dbOps().loadVacuumCreate().get();
   }
 
   @Override
-  protected StackGresDbOpsReview getInvalidReview() {
-    final StackGresDbOpsReview review = JsonUtil
-        .readFromJson("dbops_allow_requests/valid_vacuum_creation.json",
-            StackGresDbOpsReview.class);
+  protected DbOpsReview getInvalidReview() {
+    final DbOpsReview review = AdmissionReviewFixtures.dbOps().loadVacuumCreate().get();
 
     review.getRequest().getObject().setSpec(null);
     return review;
@@ -38,7 +35,7 @@ class DbOpsVacuumConstraintValidatorTest extends ConstraintValidationTest<StackG
   @Test
   void nullVacuum_shouldPass() throws ValidationFailed {
 
-    StackGresDbOpsReview review = getValidReview();
+    DbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setBenchmark(null);
 
     validator.validate(review);

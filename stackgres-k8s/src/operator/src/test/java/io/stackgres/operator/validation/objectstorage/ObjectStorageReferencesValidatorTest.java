@@ -26,9 +26,9 @@ import io.stackgres.common.crd.storages.AzureBlobStorage;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.DefaultCustomResourceHolder;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.RandomObjectUtils;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,10 +50,7 @@ class ObjectStorageReferencesValidatorTest {
   private ObjectStorageReferencesValidator validator;
 
   private static ObjectStorageReview getValidS3CreationReview() {
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/create.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setNullStorages(review);
 
@@ -67,10 +64,7 @@ class ObjectStorageReferencesValidatorTest {
   }
 
   private static ObjectStorageReview getValidS3CompatibleCreationReview() {
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/create.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setNullStorages(review);
 
@@ -86,10 +80,7 @@ class ObjectStorageReferencesValidatorTest {
   }
 
   private static ObjectStorageReview getValidAzureBlobCreationReview() {
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/create.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
 
     setNullStorages(review);
 
@@ -105,10 +96,7 @@ class ObjectStorageReferencesValidatorTest {
   }
 
   private static ObjectStorageReview getValidGcsCreationReview() {
-    ObjectStorageReview review = JsonUtil.readFromJson(
-        "objectstorage_allow_request/create.json",
-        ObjectStorageReview.class
-    );
+    ObjectStorageReview review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
     setNullStorages(review);
 
     var objectStorage = review.getRequest().getObject().getSpec();
