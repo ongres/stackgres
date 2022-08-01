@@ -75,9 +75,8 @@ public class PatroniConfigEndpoints
   @NotNull
   public Map<String, String> getPostgresConfigValues(StackGresDistributedLogsContext context) {
     final String version = StackGresDistributedLogsUtil.getPostgresVersion(context.getSource());
-    Map<String, String> params = new HashMap<>(
-        PostgresDefaultValues.getDefaultValues(
-            StackGresVersion.getStackGresVersion(context.getSource()), version));
+    Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues(
+        StackGresVersion.getStackGresVersion(context.getSource()), version));
     Map<String, String> userParams = context.getPostgresConfig().getSpec().getPostgresqlConf();
     PostgresBlocklist.getBlocklistParameters().forEach(userParams::remove);
     params.putAll(userParams);

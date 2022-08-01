@@ -95,9 +95,8 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
   protected Map<String, String> getPostgresParameters(StackGresClusterContext context,
       StackGresPostgresConfig pgConfig) {
     final String version = pgConfig.getSpec().getPostgresVersion();
-    Map<String, String> params = new HashMap<>(
-        PostgresDefaultValues.getDefaultValues(
-            StackGresVersion.getStackGresVersion(context.getCluster()), version));
+    Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues(
+        StackGresVersion.getStackGresVersion(context.getCluster()), version));
     Map<String, String> userParams = pgConfig.getSpec().getPostgresqlConf();
     PostgresBlocklist.getBlocklistParameters().forEach(userParams::remove);
     EXTRA_BLOCKLISTED_PARAMETERS.forEach(userParams::remove);

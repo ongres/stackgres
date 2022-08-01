@@ -19,6 +19,8 @@ public interface PostgresDefaultValues {
   enum PostgresDefaulValuesProperties {
     PG_DEFAULT_VALUES("/postgresql-default-values.properties"),
     PG_13_VALUES("/postgresql-default-values-pg13.properties"),
+    PG_DEFAULT_VALUES_V_1_2("/v1.2/postgresql-default-values-v1.2.properties"),
+    PG_13_VALUES_V_1_2("/v1.2/postgresql-default-values-pg13-v1.2.properties"),
     PG_DEFAULT_VALUES_V_1_1("/v1.1/postgresql-default-values-v1.1.properties"),
     PG_13_VALUES_V_1_1("/v1.1/postgresql-default-values-pg13-v1.1.properties");
 
@@ -40,17 +42,25 @@ public interface PostgresDefaultValues {
     Objects.requireNonNull(version, "operatorVersion parameter is null");
     Objects.requireNonNull(pgVersion, "pgVersion parameter is null");
     int majorVersion = Integer.parseInt(pgVersion.split("\\.")[0]);
-    if (version.getVersionAsNumber() > StackGresVersion.V_1_1.getVersionAsNumber()) {
-      if (majorVersion >= 13) {
-        return PostgresDefaulValuesProperties.PG_13_VALUES.properties;
-      }
-      return PostgresDefaulValuesProperties.PG_DEFAULT_VALUES.properties;
-    } else {
+
+    if (version.getVersionAsNumber() <= StackGresVersion.V_1_1.getVersionAsNumber()) {
       if (majorVersion >= 13) {
         return PostgresDefaulValuesProperties.PG_13_VALUES_V_1_1.properties;
       }
       return PostgresDefaulValuesProperties.PG_DEFAULT_VALUES_V_1_1.properties;
     }
+
+    if (version.getVersionAsNumber() <= StackGresVersion.V_1_2.getVersionAsNumber()) {
+      if (majorVersion >= 13) {
+        return PostgresDefaulValuesProperties.PG_13_VALUES_V_1_2.properties;
+      }
+      return PostgresDefaulValuesProperties.PG_DEFAULT_VALUES_V_1_2.properties;
+    }
+
+    if (majorVersion >= 13) {
+      return PostgresDefaulValuesProperties.PG_13_VALUES.properties;
+    }
+    return PostgresDefaulValuesProperties.PG_DEFAULT_VALUES.properties;
   }
 
   static @NotNull Map<String, String> getDefaultValues(

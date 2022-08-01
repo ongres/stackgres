@@ -22,6 +22,7 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerBlocklist;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
+import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class PgBouncerDefaultValuesMutator
@@ -45,6 +46,10 @@ public class PgBouncerDefaultValuesMutator
 
   @Override
   public List<JsonPatchOperation> mutate(PoolingReview review) {
+    if (review.getRequest().getOperation() != Operation.CREATE) {
+      return List.of();
+    }
+
     ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
 
     StackGresPoolingConfig pgBouncerConfig = review.getRequest().getObject();
@@ -77,4 +82,5 @@ public class PgBouncerDefaultValuesMutator
     operations.addAll(mutate(PG_BOUNCER_CONFIG_POINTER, pgBouncerConfig));
     return operations.build();
   }
+
 }
