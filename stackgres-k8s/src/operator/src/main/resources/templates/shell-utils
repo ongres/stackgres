@@ -2,6 +2,7 @@
 
 LOCK_TIMEOUT="${LOCK_TIMEOUT:-60}"
 LOCK_SLEEP="${LOCK_SLEEP:-5}"
+QUEUE_NAME=create_event.pipe
 
 SHELL="$(readlink /proc/$$/exe)"
 if [ "$(basename "$SHELL")" = busybox ]
@@ -247,4 +248,24 @@ trap_callback_and_exit() {
 set_trap() {
   trap 'trap_callback_and_exit $?' HUP INT QUIT PIPE TERM ABRT
   trap 'trap_callback $?' EXIT
+}
+
+create_event_queue() {
+  local PIPELINE_MODE="p"
+  rm -f "$SHARED_PATH/$QUEUE_NAME" 
+  mknod "$SHARED_PATH/$QUEUE_NAME" "$PIPELINE_MODE"
+}
+
+create_event_service() {
+  echo "$1" "$2" "$3" >> "$SHARED_PATH/$QUEUE_NAME"
+}
+
+read_events_service(){
+  while true
+  do
+    while read -r REASON TYPE MESSAGE
+    do
+      create_event "$REASON" "$TYPE" "$MESSAGE"
+    done < "$SHARED_PATH/$QUEUE_NAME"
+  done
 }

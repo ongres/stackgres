@@ -2,6 +2,8 @@
 
 . "$LOCAL_BIN_SHELL_UTILS_PATH"
 
+create_event_queue
+
 eval_in_place() {
 eval "cat << EVAL_IN_PLACE_EOF
 $*

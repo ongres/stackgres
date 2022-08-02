@@ -32,39 +32,39 @@ run_pgbench() {
   if MESSAGE="$(psql -c "CREATE DATABASE $DATABASE_NAME" 2>&1)"
   then
     echo "$MESSAGE"
-    create_event "DatabaseCreated" "Normal" "Database $DATABASE_NAME created"
+    create_event_service "DatabaseCreated" "Normal" "Database $DATABASE_NAME created"
   else
     echo "$MESSAGE"
-    create_event "CreateDatabaseFailed" "Warning" "Can not create database $DATABASE_NAME: $MESSAGE"
+    create_event_service "CreateDatabaseFailed" "Warning" "Can not create database $DATABASE_NAME: $MESSAGE"
     return 1
   fi
 
-  create_event "BenchmarkInitializationStarted" "Normal" "Benchamrk initialization started"
+  create_event_service "BenchmarkInitializationStarted" "Normal" "Benchamrk initialization started"
   if MESSAGE="$(pgbench -s "$SCALE" -i "$DATABASE_NAME" 2>&1)"
   then
     echo "$MESSAGE"
-    create_event "BenchmarkInitialized" "Normal" "Benchamrk initialized"
+    create_event_service "BenchmarkInitialized" "Normal" "Benchamrk initialized"
   else
     echo "$MESSAGE"
-    create_event "BenchmarkInitializationFailed" "Warning" "Can not initialize benchmark: $MESSAGE"
+    create_event_service "BenchmarkInitializationFailed" "Warning" "Can not initialize benchmark: $MESSAGE"
     return 1
   fi
   )
 
   if "$READ_WRITE"
   then
-    create_event "BenchmarkStarted" "Normal" "Benchamrk started"
+    create_event_service "BenchmarkStarted" "Normal" "Benchamrk started"
     if MESSAGE="$(pgbench -M "$PROTOCOL" -s "$SCALE" -T "$DURATION" -c "$CLIENTS" -j "$JOBS" -r -P 1 "$DATABASE_NAME" 2>&1)"
     then
       echo "$MESSAGE"
-      create_event "BenchmarkCompleted" "Normal" "Benchmark completed"
+      create_event_service "BenchmarkCompleted" "Normal" "Benchmark completed"
     else
       echo "$MESSAGE"
-      create_event "BenchmarkFailed" "Warning" "Can not complete benchmark: $MESSAGE"
+      create_event_service "BenchmarkFailed" "Warning" "Can not complete benchmark: $MESSAGE"
       return 1
     fi
   else
-    create_event "BenchmarkPostInitializationStarted" "Normal" "Benchamrk post initialization started"
+    create_event_service "BenchmarkPostInitializationStarted" "Normal" "Benchamrk post initialization started"
     PGBENCH_ACCOUNTS_COUNT="$(PGHOST="$PRIMARY_PGHOST" psql -t -A -d "$DATABASE_NAME" \
       -c "SELECT COUNT(*) FROM pgbench_accounts")"
 
@@ -73,16 +73,16 @@ run_pgbench() {
     do
       sleep 1
     done
-    create_event "BenchmarkPostInitializationCompleted" "Normal" "Benchamrk post initialization completed"
+    create_event_service "BenchmarkPostInitializationCompleted" "Normal" "Benchamrk post initialization completed"
 
-    create_event "BenchmarkStarted" "Normal" "Benchamrk started"
+    create_event_service "BenchmarkStarted" "Normal" "Benchamrk started"
     if MESSAGE="$(pgbench -b "select-only" -M "$PROTOCOL" -s "$SCALE" -T "$DURATION" -c "$CLIENTS" -j "$JOBS" -r -P 1 "$DATABASE_NAME" 2>&1)"
     then
       echo "$MESSAGE"
-      create_event "BenchmarkCompleted" "Normal" "Benchmark completed"
+      create_event_service "BenchmarkCompleted" "Normal" "Benchmark completed"
     else
       echo "$MESSAGE"
-      create_event "BenchmarkFailed" "Warning" "Can not complete benchmark: $MESSAGE"
+      create_event_service "BenchmarkFailed" "Warning" "Can not complete benchmark: $MESSAGE"
       return 1
     fi
   fi
@@ -100,7 +100,7 @@ try_drop_pgbench_database() {
     then
       break
     fi
-    create_event "DropDatabaseFailed" "Warning" "Can not drop $DATABASE_NAME database: $MESSAGE"
+    create_event_service "DropDatabaseFailed" "Warning" "Can not drop $DATABASE_NAME database: $MESSAGE"
     DROP_RETRY="$((DROP_RETRY - 1))"
     sleep 3
   done

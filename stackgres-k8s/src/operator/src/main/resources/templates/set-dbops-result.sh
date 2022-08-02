@@ -101,10 +101,14 @@ EOF
 }
 
 set_result() {
+  read_events_service &
+  READ_EVENTS_SERVICE_PID="$!"
   until grep -q '^EXIT_CODE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" 2>/dev/null
   do
     sleep 1
   done
+
+  kill "$READ_EVENTS_SERVICE_PID" || true
 
   EXIT_CODE="$(grep '^EXIT_CODE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2)"
   TIMED_OUT="$(grep '^TIMED_OUT=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2)"
