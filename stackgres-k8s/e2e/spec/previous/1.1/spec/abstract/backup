@@ -319,15 +319,16 @@ check_backup_retention() {
   fi
 
   local BACKUP_NAME
-  BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o json \
-    jq -r '.items | sort_by(.metadata.creationTimestamp)[]
+  BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o json)"
+  BACKUP_NAME="$(printf %s "$BACKUP_NAME" \
+    | jq -r '.items | sort_by(.metadata.creationTimestamp)[]
       | select(
         .status != null and .status.process != null
         and .status.backupInformation.sourcePod != null
         and .status.process.status == "Completed"
         and .status.backupInformation.sourcePod == "'"${CLUSTER_NAME}-${NODE}"'"
-        ).metadata.name' \
-      | head -n 1)"
+        ).metadata.name')"
+  BACKUP_NAME="$(printf %s "$BACKUP_NAME" | head -n 1)"
 
   if wait_until -t "$((E2E_TIMEOUT * 2))" eval '! kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" > /dev/null 2>&1'
   then
