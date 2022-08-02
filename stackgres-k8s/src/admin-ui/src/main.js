@@ -580,6 +580,9 @@ $(document).ready(function(){
     if( (($(this).val() != '') && ($(this).val() != null)) || ($(this).is('label') && $(this).find('input[type="checkbox"]').is(':checked'))  ) {
       let field = $(this).data('field');
       $('[data-field="' + field + '"]').removeClass('notValid');
+
+      if($(this).parent('.timeSelect'))
+        $(this).siblings('select').removeClass('notValid');
       
       let fieldset = $(this).parents('fieldset[data-fieldset]')
       let notValidFields = fieldset.find('.notValid')
