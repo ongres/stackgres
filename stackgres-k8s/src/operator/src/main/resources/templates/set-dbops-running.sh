@@ -2,8 +2,6 @@
 
 . "$LOCAL_BIN_SHELL_UTILS_PATH"
 
-create_event_queue
-
 eval_in_place() {
 eval "cat << EVAL_IN_PLACE_EOF
 $*
@@ -29,5 +27,7 @@ kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=m
 }
 EOF
     )"
+
+create_event_queue
 
 create_event "DbOpStarted" "Normal" "Database operation $OP_NAME started"

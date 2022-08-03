@@ -63,7 +63,7 @@ create_or_replace_cluster_only() {
 
   local OPERATOR_VERSION
   OPERATOR_VERSION="$(get_installed_operator_version)"
-  if [ "$OPERATOR_VERSION" != "$STACKGRES_VERSION" ]
+  if [ -n "$OPERATOR_VERSION" ] && [ "$OPERATOR_VERSION" != "$STACKGRES_VERSION" ]
   then
     create_or_replace_cluster_for_version_only "$OPERATOR_VERSION" "$RELEASE" "$NAMESPACE" "$INSTANCES" "$@"
     return

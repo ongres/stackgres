@@ -260,12 +260,16 @@ create_event_service() {
   echo "$1" "$2" "$3" >> "$SHARED_PATH/$QUEUE_NAME"
 }
 
-read_events_service(){
+read_events_service_loop() {
   while true
   do
-    while read -r REASON TYPE MESSAGE
-    do
-      create_event "$REASON" "$TYPE" "$MESSAGE"
-    done < "$SHARED_PATH/$QUEUE_NAME"
+    read_events_service
   done
+}
+
+read_events_service() {
+  while read -r REASON TYPE MESSAGE
+  do
+    create_event "$REASON" "$TYPE" "$MESSAGE"
+  done < "$SHARED_PATH/$QUEUE_NAME"
 }

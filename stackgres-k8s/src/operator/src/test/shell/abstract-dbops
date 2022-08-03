@@ -33,7 +33,12 @@ shell_unit_test_dbops() {
 
   . "$PROJECT_PATH/src/main/resources/templates/set-dbops-running.sh"
 
+  rm -f "$SHARED_PATH/create_event.pipe"
+  touch "$SHARED_PATH/create_event.pipe"
+
   . "$PROJECT_PATH/src/main/resources/templates/run-dbops.sh"
+
+  read_events_service
 
   . "$PROJECT_PATH/src/main/resources/templates/set-dbops-result.sh"
 }
