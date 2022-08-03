@@ -56,6 +56,42 @@ class KubernetesExceptionMapperTest {
   }
 
   @Test
+  void webHookErrorResponsesWithMultipleCausesAndRepeatedErrorMessage_shouldBeParsed() {
+    final String errorTypeUri = ErrorType.getErrorTypeUri(ErrorType.CONSTRAINT_VIOLATION);
+    final String message = "SGCluster has invalid properties."
+        + " operator must be Exists when key is empty.";
+    final String detail = "operator must be Exists when key is empty.";
+    final String field1 = "spec.pods.scheduling.tolerations[0].key";
+    final String field2 = "spec.pods.scheduling.tolerations[0].operator";
+    Status status = new StatusBuilder()
+        .withReason(errorTypeUri)
+        .withMessage(message)
+        .withDetails(
+            new StatusDetailsBuilder()
+            .addNewCause(
+                field1,
+                detail,
+                "javax.validation.constraints.AssertTrue")
+            .addNewCause(
+                field2,
+                detail,
+                "javax.validation.constraints.AssertTrue")
+            .build())
+        .withCode(400)
+        .build();
+
+    Response response = mapper.toResponse(new KubernetesClientException("error", 400, status));
+
+    ErrorResponse errorResponse = (ErrorResponse) response.getEntity();
+
+    Assertions.assertEquals(errorTypeUri, errorResponse.getType());
+    Assertions.assertEquals(ErrorType.CONSTRAINT_VIOLATION.getTitle(), errorResponse.getTitle());
+    Assertions.assertEquals(detail, errorResponse.getDetail());
+    Assertions.assertEquals(field1, errorResponse.getFields()[0]);
+    Assertions.assertEquals(field2, errorResponse.getFields()[1]);
+  }
+
+  @Test
   void kubernetes16Validations_shouldBeParsed() {
     Status status = Fixtures.kubeStatus().load1_16_4().get();
 
