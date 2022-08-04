@@ -150,7 +150,8 @@ public abstract class ExtensionMetadataManager {
             .plus(cacheTimeout)
             .isBefore(Instant.now())) {
           try (WebClient client = webClientFactory.create(extensionsRepositoryUri)) {
-            LOGGER.info("Downloading extensions metadata from {}", extensionsRepositoryUri);
+            LOGGER.info("Downloading extensions metadata from {}",
+                WebClientFactory.obfuscateUri(extensionsRepositoryUri));
             final URI indexUri = ExtensionUtil.getIndexUri(extensionsRepositoryUri);
             StackGresExtensions repositoryExtensions = client.getJson(
                 indexUri, StackGresExtensions.class);
@@ -162,7 +163,7 @@ public abstract class ExtensionMetadataManager {
         }
       } catch (Exception ex) {
         String message = "Can not download extensions metadata from "
-            + extensionsRepositoryUri;
+            + WebClientFactory.obfuscateUri(extensionsRepositoryUri);
         if (uriCache.get(extensionsRepositoryUri) != null) {
           LOGGER.warn(message, ex);
         } else {

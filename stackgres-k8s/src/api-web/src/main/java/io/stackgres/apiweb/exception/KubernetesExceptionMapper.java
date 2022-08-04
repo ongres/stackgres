@@ -7,6 +7,7 @@ package io.stackgres.apiweb.exception;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -19,6 +20,7 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.apiweb.rest.utils.Kubernetes16StatusParser;
 import io.stackgres.apiweb.rest.utils.StatusParser;
 import io.stackgres.common.ErrorType;
+import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,7 +161,7 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
     }
 
     final String detail = !fieldCauses.isEmpty()
-        ? String.join("\n", fieldCauses)
+        ? Seq.seq(fieldCauses).distinct().collect(Collectors.joining("\n"))
         : status.getMessage();
 
     ErrorResponse response = new ErrorResponseBuilder(reason)
