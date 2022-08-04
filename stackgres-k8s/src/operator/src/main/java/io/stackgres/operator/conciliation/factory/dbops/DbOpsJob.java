@@ -198,6 +198,7 @@ public abstract class DbOpsJob implements JobFactory {
             .withCommand("/bin/sh", "-ex",
                 ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH.path())
             .withVolumeMounts(
+                ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
                 ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
                     volumeMountBuilder -> volumeMountBuilder
                         .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH

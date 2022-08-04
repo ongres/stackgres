@@ -28,4 +28,6 @@ kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=m
 EOF
     )"
 
+create_event_queue
+
 create_event "DbOpStarted" "Normal" "Database operation $OP_NAME started"
