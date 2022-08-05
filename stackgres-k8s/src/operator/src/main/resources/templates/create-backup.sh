@@ -53,7 +53,6 @@ run() {
 
 reconcile_backups() {
   set -e
-  get_backup_crs
 
   if [ -n "$SCHEDULED_BACKUP_KEY" ]
   then
@@ -92,6 +91,8 @@ reconcile_backups() {
   fi
 
   echo "Retain backups"
+  get_backup_crs
+
   retain_backups
   if [ "$?" = 0 ]
   then
@@ -167,15 +168,15 @@ get_backup_crs() {
   BACKUP_CR_TEMPLATE="${BACKUP_CR_TEMPLATE}{{ printf "'"\n"'" }}{{ end }}"
   kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" \
     --template="$BACKUP_CR_TEMPLATE" > /tmp/all-backups-in-namespace
-  grep "^$CLUSTER_NAME:" /tmp/all-backups-in-namespace > /tmp/backups-in-namespace || true
+  grep "^$CLUSTER_NAME:" /tmp/all-backups-in-namespace > /tmp/backups-in-namespace
   true > /tmp/all-backups
   local CLUSTER_BACKUP_NAMESPACE
   for CLUSTER_BACKUP_NAMESPACE in $CLUSTER_BACKUP_NAMESPACES
   do
     kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_BACKUP_NAMESPACE" \
-      --template="$BACKUP_CR_TEMPLATE" >> /tmp/all-backups || true
+      --template="$BACKUP_CR_TEMPLATE" >> /tmp/all-backups
   done
-  grep "^$CLUSTER_NAMESPACE.$CLUSTER_NAME:" /tmp/all-backups > /tmp/backups-out-of-namespace || true
+  grep "^$CLUSTER_NAMESPACE.$CLUSTER_NAME:" /tmp/all-backups > /tmp/backups-out-of-namespace
   cat /tmp/backups-in-namespace /tmp/backups-out-of-namespace > /tmp/backups
 }
 
@@ -320,7 +321,7 @@ do_backup() {
   cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-push 2>&1
 exec-with-env "$BACKUP_ENV" \\
-  -- wal-g backup-push "$PG_DATA_PATH" -f $([ "$BACKUP_IS_PERMANENT" = true ] && echo '-p' || true)
+  -- wal-g backup-push "$PG_DATA_PATH" -f $([ "$BACKUP_IS_PERMANENT" = true ] && printf %s '-p' || true)
 EOF
   if [ "$?" != 0 ]
   then

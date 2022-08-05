@@ -158,6 +158,11 @@ public class BackupRequiredResourcesGenerator
     return backupScanner.getResources()
         .stream()
         .map(Optional::of)
+        .filter(backup -> backup
+            .map(StackGresBackup::getSpec)
+            .map(StackGresBackupSpec::getSgCluster)
+            .map(StackGresUtil::isRelativeIdNotInSameNamespace)
+            .orElse(false))
         .map(backup -> backup
             .map(StackGresBackup::getMetadata)
             .map(ObjectMeta::getNamespace))

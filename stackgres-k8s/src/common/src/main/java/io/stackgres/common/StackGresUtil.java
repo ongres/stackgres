@@ -81,9 +81,9 @@ public interface StackGresUtil {
    * This function return the namespace of the relativeId if present or the namespace.
    *
    * <p>A relative id points to a resource relative to another resource. If the resource is in the
-   * same namespace of the other resource then the relativeId is the resource name. If the resource
-   * is in another namespace then the relativeId will contain a '.' character that separate
-   * namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
+   * same namespace of the other resource then the relative id is the resource name. If the resource
+   * is in another namespace then the relative id will contain a '.' character that separate
+   * namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).</p>
    */
   static String getNamespaceFromRelativeId(String relativeId, String namespace) {
     final int slashIndex = relativeId.indexOf('.');
@@ -96,15 +96,28 @@ public interface StackGresUtil {
    * This function return the name of the relativeId.
    *
    * <p>A relative id points to a resource relative to another resource. If the resource is in the
-   * same namespace of the other resource then the relativeId is the resource name. If the resource
-   * is in another namespace then the relativeId will contain a '.' character that separate
-   * namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).
+   * same namespace of the other resource then the relative id is the resource name. If the resource
+   * is in another namespace then the relative id will contain a '.' character that separate
+   * namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).</p>
    */
   static String getNameFromRelativeId(String relativeId) {
     final int slashIndex = relativeId.indexOf('.');
     return slashIndex >= 0
         ? relativeId.substring(slashIndex + 1)
         : relativeId;
+  }
+
+  /**
+   * This function return true only if the relative id is in the same namespace as the relative
+   *  resource, false otherwise.
+   *
+   * <p>A relative id points to a resource relative to another resource. If the resource is in the
+   * same namespace of the other resource then the relative id is the resource name. If the resource
+   * is in another namespace then the relative id will contain a '.' character that separate
+   * namespace and name (`&lt;namespace&gt;.&lt;name&gt;`).</p>
+   */
+  static boolean isRelativeIdNotInSameNamespace(String relativeId) {
+    return relativeId.indexOf('.') >= 0;
   }
 
   /**

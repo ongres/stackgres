@@ -23,7 +23,9 @@ import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
@@ -179,6 +181,11 @@ public class ClusterRequiredResourcesGenerator
     return backupScanner.getResources()
         .stream()
         .map(Optional::of)
+        .filter(backup -> backup
+            .map(StackGresBackup::getSpec)
+            .map(StackGresBackupSpec::getSgCluster)
+            .map(StackGresUtil::isRelativeIdNotInSameNamespace)
+            .orElse(false))
         .map(backup -> backup
             .map(StackGresBackup::getMetadata)
             .map(ObjectMeta::getNamespace))
