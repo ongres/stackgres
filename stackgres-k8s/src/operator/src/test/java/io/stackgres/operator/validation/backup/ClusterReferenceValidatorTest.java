@@ -13,13 +13,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.BackupPhase;
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.BackupReview;
@@ -43,43 +44,15 @@ class ClusterReferenceValidatorTest {
   @Mock
   private CustomResourceFinder<StackGresCluster> clusterFinder;
 
-  @Mock
-  private CustomResourceFinder<StackGresBackup> backupFinder;
-
   private StackGresCluster cluster;
 
-  private StackGresBackup backup;
+  private StackGresClusterBackupConfiguration backup;
 
   @BeforeEach
   void setUp() throws Exception {
-    validator = new ClusterValidator(clusterFinder, backupFinder);
+    validator = new ClusterValidator(clusterFinder);
     cluster = Fixtures.cluster().loadDefault().get();
-    backup = new StackGresBackup();
-  }
-
-  @Test
-  void givenAClusterWithInvalidBackupConfigReferenceOnCreation_shouldFail()
-      throws ValidationFailed {
-
-    final BackupReview review = AdmissionReviewFixtures.backup().loadCreate().get();
-    review.getRequest().getObject().getStatus().setBackupConfig(null);
-
-    String clusterName =
-        review.getRequest().getObject().getSpec().getSgCluster();
-    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
-
-    when(clusterFinder.findByNameAndNamespace(clusterName, namespace))
-        .thenReturn(Optional.of(cluster));
-    when(backupFinder.findByNameAndNamespace(anyString(), anyString()))
-        .thenReturn(Optional.ofNullable(null));
-
-    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
-      validator.validate(review);
-    });
-
-    String resultMessage = ex.getMessage();
-
-    assertEquals("Cluster " + clusterName + " has no backup configuration", resultMessage);
+    backup = new StackGresClusterBackupConfiguration();
   }
 
   @Test
@@ -92,7 +65,7 @@ class ClusterReferenceValidatorTest {
         review.getRequest().getObject().getSpec().getSgCluster();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    cluster.getSpec().getConfiguration().setBackupConfig(null);
+    cluster.getSpec().getConfiguration().setBackups(null);
 
     when(clusterFinder.findByNameAndNamespace(clusterName, namespace))
         .thenReturn(Optional.of(cluster));
@@ -115,11 +88,10 @@ class ClusterReferenceValidatorTest {
     String clusterName =
         review.getRequest().getObject().getSpec().getSgCluster();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+    cluster.getSpec().getConfiguration().setBackups(Arrays.asList(backup));
 
     when(clusterFinder.findByNameAndNamespace(clusterName, namespace))
         .thenReturn(Optional.of(cluster));
-    when(backupFinder.findByNameAndNamespace(anyString(), anyString()))
-        .thenReturn(Optional.of(backup));
 
     validator.validate(review);
 

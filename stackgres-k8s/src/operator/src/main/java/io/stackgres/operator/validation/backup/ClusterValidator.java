@@ -28,17 +28,14 @@ import org.jooq.lambda.tuple.Tuple2;
 public class ClusterValidator implements BackupValidator {
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
-  private final CustomResourceFinder<StackGresBackup> backupFinder;
 
   private final String errorTypeUri = ErrorType
       .getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
 
   @Inject
   public ClusterValidator(
-      CustomResourceFinder<StackGresCluster> clusterFinder,
-      CustomResourceFinder<StackGresBackup> backupFinder) {
+      CustomResourceFinder<StackGresCluster> clusterFinder) {
     this.clusterFinder = clusterFinder;
-    this.backupFinder = backupFinder;
   }
 
   @Override
@@ -78,18 +75,17 @@ public class ClusterValidator implements BackupValidator {
         .findByNameAndNamespace(cluster, namespace);
 
     checkIfClusterExists(clusterOpt, "Cluster " + clusterName + " not found");
-    checkIfClusterHasValidBackupConfig(clusterOpt, namespace,
+    checkIfClusterHasValidBackupConfig(clusterOpt,
         "Cluster " + clusterName + " has no backup configuration");
   }
 
   private void checkIfClusterHasValidBackupConfig(Optional<StackGresCluster> clusterOpt,
-      String namespace, String onError) throws ValidationFailed {
+      String onError) throws ValidationFailed {
 
     var backupConfig = ofNullable(
-        clusterOpt.get().getSpec().getConfiguration().getBackupConfig());
+        clusterOpt.get().getSpec().getConfiguration().getBackups());
 
-    if (backupConfig.isEmpty() || backupFinder.findByNameAndNamespace(
-        backupConfig.get(), namespace).isEmpty()) {
+    if (backupConfig.isEmpty() || backupConfig.get().isEmpty()) {
       fail(onError);
     }
 
