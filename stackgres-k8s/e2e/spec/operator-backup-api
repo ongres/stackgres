@@ -67,7 +67,7 @@ e2e_test() {
 
   run_test "User with wrong credentials should not be authenticated" test_authentication_api_error
 
-  run_test "Backup created for cluster without backup config get pending state" check_backup_without_config_is_pending
+  run_test "Backup created for cluster without backup config get error message" check_backup_without_config_get_error_message
 
 }
 
@@ -329,7 +329,7 @@ check_authentication_error() {
   fi
 }
 
-check_backup_without_config_is_pending() {
+check_backup_without_config_get_error_message() {
   create_or_replace_cluster "$CLUSTER_NAME-no-backup" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
@@ -351,14 +351,22 @@ check_backup_without_config_is_pending() {
 EOF
 )"
 
+  local RESULT_SGBACKUP="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME")"
   set -e
 
-  if [[ "$RESULT_BACKUP_CREATION" == *"Cluster $CLUSTER_NAME-no-backup has no backup configuration"* ]]
+  if [ -z "$RESULT_SGBACKUP" ]
   then
-      echo "SUCCESS: Cluster has no backup configuration"
-      return 0
+      echo "SUCCESS: no backup created due invalid SGCluster backup config."
   else
-      echo "FAILED: Backup should not be accepted due cluster without backup configuration"
-      return 1  
+      echo "FAILED: backup should not be created!"
   fi
+
+  # if [[ "$RESULT_BACKUP_CREATION" == *"Cluster $CLUSTER_NAME-no-backup has no backup configuration" ]]
+  # then
+  #     echo "SUCCESS: Cluster has no backup configuration"
+  #     return 0
+  # else
+  #     echo "FAILED: Backup should not be accepted due cluster without backup configuration"
+  #     return 1  
+  # fi
 }
