@@ -18,10 +18,9 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.BackupReview;
+import io.stackgres.operator.resource.NamedResource;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
@@ -67,12 +66,9 @@ public class ClusterValidator implements BackupValidator {
       return;
     }
 
-    var location = getClusterLocation(review);
-    var namespace = location.v1;
-    var cluster = location.v2;
-
+    NamedResource namedResource = getClusterLocation(review);
     Optional<StackGresCluster> clusterOpt = clusterFinder
-        .findByNameAndNamespace(cluster, namespace);
+        .findByNameAndNamespace(namedResource.resource(), namedResource.namespace());
 
     checkIfClusterExists(clusterOpt, "Cluster " + clusterName + " not found");
     checkIfClusterHasValidBackupConfig(clusterOpt,
@@ -106,15 +102,15 @@ public class ClusterValidator implements BackupValidator {
     }
   }
 
-  private Tuple2<String, String> getClusterLocation(BackupReview review) {
+  private NamedResource getClusterLocation(BackupReview review) {
     StackGresBackup backup = review.getRequest().getObject();
     String cluster = backup.getSpec().getSgCluster();
     if (cluster.contains(".")) {
       String[] clusterLocation = cluster.split("\\.");
-      return Tuple.tuple(clusterLocation[0], clusterLocation[1]);
+      return new NamedResource(clusterLocation[0], clusterLocation[1]);
     } else {
       String namespace = review.getRequest().getObject().getMetadata().getNamespace();
-      return Tuple.tuple(namespace, cluster);
+      return new NamedResource(namespace, cluster);
     }
   }
 
