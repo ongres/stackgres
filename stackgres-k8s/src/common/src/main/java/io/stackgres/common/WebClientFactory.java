@@ -39,6 +39,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.common.net.HttpHeaders;
+import org.jboss.resteasy.plugins.interceptors.AcceptEncodingGZIPFilter;
+import org.jboss.resteasy.plugins.interceptors.GZIPDecodingInterceptor;
+import org.jboss.resteasy.plugins.interceptors.GZIPEncodingInterceptor;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -58,19 +61,22 @@ public class WebClientFactory {
     ClientBuilder clientBuilder = ClientBuilder.newBuilder();
     final boolean skipHostnameVerification =
         getUriQueryParameter(uri, SKIP_HOSTNAME_VERIFICATION_PARAMETER)
-        .map(Boolean::valueOf).orElse(false);
+            .map(Boolean::valueOf).orElse(false);
     final Optional<URI> optionalProxyUri = getUriQueryParameter(uri, PROXY_URL_PARAMETER)
         .map(URI::create);
     final Optional<String> optionalRetry = getUriQueryParameter(uri, RETRY_PARAMETER);
     if (skipHostnameVerification) {
       SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
       sslContext.init(null,
-          new X509TrustManager[] { InsecureX509TrustManager.INSTANCE },
+          new X509TrustManager[] {InsecureX509TrustManager.INSTANCE},
           new SecureRandom());
       clientBuilder.hostnameVerifier(InsecureHostnameVerifier.INSTANCE)
           .sslContext(sslContext);
     }
     final Map<String, String> extraHeaders = new HashMap<>();
+    extraHeaders.put(HttpHeaders.USER_AGENT,
+        String.format("StackGres/%s (Java %s)",
+            StackGresProperty.OPERATOR_VERSION.getString(), Runtime.version().feature()));
     final boolean setHttpScheme;
     if (optionalProxyUri.isPresent()) {
       final URI proxyUri = optionalProxyUri.get();
@@ -103,6 +109,9 @@ public class WebClientFactory {
       sleepBeforeRetry = Duration.ZERO;
     }
     clientBuilder.connectTimeout(5, TimeUnit.SECONDS);
+    clientBuilder.register(AcceptEncodingGZIPFilter.class)
+        .register(GZIPDecodingInterceptor.class)
+        .register(GZIPEncodingInterceptor.class);
     return new WebClient(clientBuilder.build(), extraHeaders, setHttpScheme,
         maxRetries, sleepBeforeRetry);
   }
@@ -132,8 +141,7 @@ public class WebClientFactory {
             .request(MediaType.APPLICATION_JSON);
         Seq.seq(extraHeaders).forEach(
             extraHeader -> request.header(extraHeader.v1, extraHeader.v2));
-        return request
-            .get(clazz);
+        return request.get(clazz);
       });
     }
 
@@ -191,13 +199,11 @@ public class WebClientFactory {
 
     @Override
     public void checkClientTrusted(X509Certificate[] chain,
-        String authType) throws CertificateException {
-    }
+        String authType) throws CertificateException {}
 
     @Override
     public void checkServerTrusted(X509Certificate[] chain,
-        String authType) throws CertificateException {
-    }
+        String authType) throws CertificateException {}
 
     @Override
     public X509Certificate[] getAcceptedIssuers() {
@@ -236,23 +242,23 @@ public class WebClientFactory {
     final String uriString = uri.toString();
     return uriString.substring(0, uriString.indexOf('?') + 1)
         + Optional.ofNullable(uri.getRawQuery())
-        .stream()
-        .flatMap(query -> Stream.of(query.split("&")))
-        .map(paramAndValue -> paramAndValue.split("="))
-        .filter(paramAndValue -> paramAndValue.length == 2)
-        .map(paramAndValue -> Tuple.tuple(paramAndValue[0], paramAndValue[1]))
-        .map(t -> t.map1(v -> URLDecoder.decode(v, StandardCharsets.UTF_8)))
-        .map(t -> t.map2(v -> URLDecoder.decode(v, StandardCharsets.UTF_8)))
-        .map(t -> {
-          if (t.v1.equals(parameter)) {
-            return t.map2(modifier::apply);
-          }
-          return t;
-        })
-        .map(t -> t.map1(v -> URLEncoder.encode(v, StandardCharsets.UTF_8)))
-        .map(t -> t.map2(v -> URLEncoder.encode(v, StandardCharsets.UTF_8)))
-        .map(t -> t.v1 + "=" + t.v2)
-        .collect(Collectors.joining("&"));
+            .stream()
+            .flatMap(query -> Stream.of(query.split("&")))
+            .map(paramAndValue -> paramAndValue.split("="))
+            .filter(paramAndValue -> paramAndValue.length == 2)
+            .map(paramAndValue -> Tuple.tuple(paramAndValue[0], paramAndValue[1]))
+            .map(t -> t.map1(v -> URLDecoder.decode(v, StandardCharsets.UTF_8)))
+            .map(t -> t.map2(v -> URLDecoder.decode(v, StandardCharsets.UTF_8)))
+            .map(t -> {
+              if (t.v1.equals(parameter)) {
+                return t.map2(modifier::apply);
+              }
+              return t;
+            })
+            .map(t -> t.map1(v -> URLEncoder.encode(v, StandardCharsets.UTF_8)))
+            .map(t -> t.map2(v -> URLEncoder.encode(v, StandardCharsets.UTF_8)))
+            .map(t -> t.v1 + "=" + t.v2)
+            .collect(Collectors.joining("&"));
   }
 
   private static final Pattern OBFUSCATE_URL_PARAMETER_PATTERN =
@@ -272,10 +278,10 @@ public class WebClientFactory {
     }
     return replaceUriQueryParameter(uri, PROXY_URL_PARAMETER,
         proxyUrl -> Optional
-        .of(OBFUSCATE_URL_PARAMETER_PATTERN.matcher(proxyUrl))
-        .filter(Matcher::find)
-        .map(matcher -> matcher.group(1) + "://****:****@" + matcher.group(3))
-        .orElse(proxyUrl));
+            .of(OBFUSCATE_URL_PARAMETER_PATTERN.matcher(proxyUrl))
+            .filter(Matcher::find)
+            .map(matcher -> matcher.group(1) + "://****:****@" + matcher.group(3))
+            .orElse(proxyUrl));
   }
 
 }
