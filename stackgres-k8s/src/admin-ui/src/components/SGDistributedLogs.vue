@@ -215,14 +215,14 @@
                     <div class="configurationDetails">
 
                         <div class="postgresServices" v-if="hasProp(cluster, 'data.spec.postgresServices') && ( hasProp(cluster, 'data.spec.postgresServices.primary') || hasProp(cluster, 'data.spec.postgresServices.replicas') )">
-                            <h2>Postgres Services <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices')"></span></h2>
+                            <h2>Postgres Services <span class="helpTooltip"  :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices')"></span></h2>
 
                             <table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="crdDetails">
                                 <tbody>
                                     <tr>
                                         <td class="label capitalize" rowspan="3">
                                             {{ serviceName }}
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName)"></span>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.'+serviceName)"></span>
                                         </td>
                                         <td class="label">
                                             Status
@@ -248,7 +248,7 @@
                                     <tr>
                                         <td class="label">
                                             Type
-                                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName+'.type')"></span>
+                                            <span class="helpTooltip"  :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.'+serviceName+'.type')"></span>
                                         </td>
                                         <td colspan="2">
                                             {{ service.type }}
