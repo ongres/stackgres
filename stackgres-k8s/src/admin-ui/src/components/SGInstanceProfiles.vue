@@ -39,10 +39,10 @@
 					<tbody>
 						<template v-if="!config.length">
 							<tr class="no-results">
-								<td v-if="iCan('create','sginstanceprofiles',$route.params.namespace)" colspan="5">
+								<td v-if="iCan('create','sginstanceprofiles',$route.params.namespace)" colspan="6">
 									No profiles have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sginstanceprofiles/new'" title="Add New Instance Profile">create a new one?</router-link>
 								</td>
-								<td v-else colspan="5">
+								<td v-else colspan="6">
 									No configurations have been found. You don't have enough permissions to create a new one
 								</td>
 							</tr>

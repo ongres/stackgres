@@ -412,7 +412,7 @@ a:hover .eyeIcon {
 /* Table rows background fixes */
 /* https://gitlab.com/ongresinc/stackgres/-/issues/1107 */
 
-table tr:nth-child(odd), .contentTooltip table tr:nth-child(even) {
+table tr:nth-child(odd), .contentTooltip table tr:nth-child(even), table tr.no-results {
     background: var(--activeBg);
 }
 
