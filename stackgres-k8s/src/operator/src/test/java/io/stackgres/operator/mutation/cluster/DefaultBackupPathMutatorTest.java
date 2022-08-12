@@ -21,7 +21,6 @@ import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.BackupStorageUtil;
-import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
@@ -36,8 +35,7 @@ import org.opentest4j.AssertionFailedError;
 @ExtendWith(MockitoExtension.class)
 class DefaultBackupPathMutatorTest {
 
-  private static final String POSTGRES_VERSION =
-      StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
+  private static final String POSTGRES_VERSION = "14.4";
 
   protected static final JsonMapper JSON_MAPPER = new JsonMapper();
 
