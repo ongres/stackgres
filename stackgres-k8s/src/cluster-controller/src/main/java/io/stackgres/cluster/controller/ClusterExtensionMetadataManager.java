@@ -12,6 +12,7 @@ import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionMetadataManager;
@@ -21,11 +22,8 @@ import org.jooq.lambda.Seq;
 public class ClusterExtensionMetadataManager extends ExtensionMetadataManager {
 
   @Inject
-  private static ClusterControllerPropertyContext propertyContext;
-  @Inject
-  private static WebClientFactory webClientFactory;
-
-  public ClusterExtensionMetadataManager() {
+  public ClusterExtensionMetadataManager(ClusterControllerPropertyContext propertyContext,
+      WebClientFactory webClientFactory) {
     super(
         webClientFactory,
         Seq.of(propertyContext.getStringArray(
@@ -34,9 +32,9 @@ public class ClusterExtensionMetadataManager extends ExtensionMetadataManager {
             .collect(ImmutableList.toImmutableList()));
   }
 
-//  public ClusterExtensionMetadataManager() {
-//    super(null, null);
-//    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-//  }
+  public ClusterExtensionMetadataManager() {
+    super(null, null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+  }
 
 }

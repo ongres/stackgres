@@ -44,6 +44,9 @@ class ExtensionEventEmitterImplTest {
   @Inject
   ExtensionEventEmitterImpl extensionEventEmitter;
 
+  @InjectMock
+  ClusterExtensionMetadataManager extensionManager;
+
   StackGresCluster cluster = Fixtures.cluster().loadDefault().get();
 
   String podName = ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME.getString();
