@@ -19,7 +19,6 @@ import java.util.Optional;
 
 import javax.ws.rs.core.UriBuilder;
 
-import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.WebClientFactory.WebClient;
@@ -46,7 +45,7 @@ public abstract class ExtensionMetadataManager {
   private final WebClientFactory webClientFactory;
   private final List<URI> extensionsRepositoryUris;
 
-  public ExtensionMetadataManager(WebClientFactory webClientFactory,
+  protected ExtensionMetadataManager(WebClientFactory webClientFactory,
                                   List<URI> extensionsRepositoryUrls) {
     this.webClientFactory = webClientFactory;
     this.extensionsRepositoryUris = extensionsRepositoryUrls;
@@ -85,7 +84,7 @@ public abstract class ExtensionMetadataManager {
             .get(StackGresExtensionIndexSameMajorBuild
                 .fromClusterExtension(cluster, extension, detectOs)))
         .map(this::extractLatestVersions)
-        .orElse(ImmutableList.of());
+        .orElse(List.of());
   }
 
   public Optional<StackGresExtensionMetadata> findExtensionCandidateAnyVersion(
