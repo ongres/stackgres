@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common;
+package io.stackgres.operator.mutation;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.jboss.resteasy.plugins.interceptors.AcceptEncodingGZIPFilter;
