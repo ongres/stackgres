@@ -16,7 +16,7 @@ import org.mockito.Mockito;
 class KubectlUtilTest {
 
   @ParameterizedTest
-  @ValueSource(strings = {"v1.16.10", "v1.17.11", "v1.18.1"})
+  @ValueSource(strings = {"v1.18.10", "v1.19.11", "v1.20.1"})
   void testImageName17(String version) {
     KubernetesClient mockClient = Mockito.mock(KubernetesClient.class);
 
@@ -25,7 +25,7 @@ class KubectlUtilTest {
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
-        .map(c -> c.getImageName("1.17"))
+        .map(c -> c.getImageName("1.19"))
         .orElseThrow();
     String imageName = new KubectlUtil(mockClient)
         .getImageName(StackGresVersion.LATEST);
@@ -34,7 +34,7 @@ class KubectlUtilTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"v1.19", "v1.20.2", "v1.21.7"})
+  @ValueSource(strings = {"v1.21", "v1.22.2"})
   void testImageName20(String version) {
     KubernetesClient mockClient = Mockito.mock(KubernetesClient.class);
 
@@ -43,7 +43,7 @@ class KubectlUtilTest {
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
-        .map(c -> c.getImageName("1.20"))
+        .map(c -> c.getImageName("1.22"))
         .orElseThrow();
     String imageName = new KubectlUtil(mockClient)
         .getImageName(StackGresVersion.LATEST);
@@ -52,7 +52,7 @@ class KubectlUtilTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"v1.22.9", "v1.23.3", "v1.24.0"})
+  @ValueSource(strings = {"v1.23.7", "v1.24.9", "v1.25.3", "v1.26.0"})
   void testImageName23(String version) {
     KubernetesClient mockClient = Mockito.mock(KubernetesClient.class);
 
@@ -61,7 +61,7 @@ class KubectlUtilTest {
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
-        .map(c -> c.getImageName("1.23"))
+        .map(c -> c.getImageName("1.24")) // Update to 1.25 when is released
         .orElseThrow();
     String imageName = new KubectlUtil(mockClient)
         .getImageName(StackGresVersion.LATEST);
