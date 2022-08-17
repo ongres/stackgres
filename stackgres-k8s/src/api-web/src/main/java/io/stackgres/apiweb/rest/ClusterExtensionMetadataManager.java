@@ -22,9 +22,10 @@ import org.jooq.lambda.Seq;
 public class ClusterExtensionMetadataManager extends ExtensionMetadataManager {
 
   @Inject
-  public ClusterExtensionMetadataManager(WebApiPropertyContext propertyContext) {
+  public ClusterExtensionMetadataManager(WebApiPropertyContext propertyContext,
+      WebClientFactory webClientFactory) {
     super(
-        new WebClientFactory(),
+        webClientFactory,
         Seq.of(propertyContext.getStringArray(
             WebApiProperty.EXTENSIONS_REPOSITORY_URLS))
             .map(URI::create)

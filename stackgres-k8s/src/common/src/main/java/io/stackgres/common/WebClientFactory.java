@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.enterprise.context.Dependent;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
@@ -46,6 +47,7 @@ import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
+@Dependent
 public class WebClientFactory {
 
   static final String PROPERTY_PROXY_SCHEME = "org.jboss.resteasy.jaxrs.client.proxy.scheme";
@@ -91,7 +93,7 @@ public class WebClientFactory {
       clientBuilder.property(PROPERTY_PROXY_PORT, String.valueOf(proxyUri.getPort()));
       setHttpScheme = getUriQueryParameter(
           proxyUri, SET_HTTP_SCHEME_PARAMETER)
-          .map(Boolean::valueOf).orElse(false);
+              .map(Boolean::valueOf).orElse(false);
     } else {
       setHttpScheme = false;
     }
