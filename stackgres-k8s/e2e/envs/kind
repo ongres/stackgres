@@ -272,20 +272,21 @@ EOF
   fi
 
   echo "Setting up calico for kind..."
+  until kubectl get node --template '{{ if (index .items 0).spec.podCIDR }}true{{ end }}' | grep -q 'true'
+  do
+    sleep 1
+  done
+  K8S_POD_CIDR="$(kubectl get node --template '{{ (index .items 0).spec.podCIDR }}')"
   if [ "$(echo "$K8S_VERSION" | tr . '\n' | xargs -I @ printf '%05d' @)" \
       -ge "$(echo "1.22.0" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
   then
     kubectl create -f https://docs.projectcalico.org/archive/v3.20/manifests/tigera-operator.yaml
     kubectl create -f https://docs.projectcalico.org/archive/v3.20/manifests/custom-resources.yaml
-    until kubectl get node --template '{{ if (index .items 0).spec.podCIDR }}true{{ end }}' | grep -q 'true'
-    do
-      sleep 1
-    done
-    K8S_POD_CIDR="$(kubectl get node --template '{{ (index .items 0).spec.podCIDR }}')"
     kubectl patch installations.operator.tigera.io default --type json \
       -p '[{"op":"replace","path":"/spec/calicoNetwork/ipPools/0/cidr","value":"'"$K8S_POD_CIDR"'"}]'
   else
     kubectl apply -f https://docs.projectcalico.org/v3.12/manifests/calico.yaml
+    kubectl -n kube-system set env daemonset/calico-node CALICO_IPV4POOL_CIDR=$K8S_POD_CIDR
     kubectl -n kube-system set env daemonset/calico-node FELIX_IGNORELOOSERPF=true
   fi
   echo "...done"
