@@ -1860,6 +1860,13 @@
                                 },
                                 sgObjectStorage: ''
                             }];
+                            if(!c.data.spec.configurations.backups[0].hasOwnProperty('performance')) {
+                                vm.backups[0].performance = {
+                                    maxNetworkBandwidth: '',
+                                    maxDiskBandwidth: '',
+                                    uploadDiskConcurrency: 1
+                                }
+                            };
                             vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
                             vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
                             vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
