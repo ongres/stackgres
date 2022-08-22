@@ -95,7 +95,7 @@ simple-1   6/6     Running   0          1m56s
 To open a psql console and manage the PostgreSQL cluster you may connect to the `postgres-util` container of primary instance (with label `role: master`):
 
 ```bash
-kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true,role=master -o name)" -c postgres-util -- psql
+kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,stackgres.io/cluster=true,role=master -o name)" -c postgres-util -- psql
 ```
 
 > **IMPORTANT:** Connecting directly trough the `postgres-util` sidecar will grant you access with the postgres user. It will work similar to `sudo -i postgres -c psql`.
@@ -107,7 +107,7 @@ Please check [about the postgres-util side car]({{% relref "05-administration-gu
 Now that the cluster is up and running, you can also open a shell in any instance to use patronictl and control the status of the cluster:
 
 ```bash
-kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true,role=master -o name)" -c patroni -- patronictl list
+kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,stackgres.io/cluster=true,role=master -o name)" -c patroni -- patronictl list
 ```
 
 You should see something similar to this:
@@ -127,7 +127,7 @@ kubectl delete pod simple-0
 
 After deleted the leader `simple-0` Patroni should perform the switchover, electing `simple-1` as new leader and replace with a new container the `simple-0` instance. After Patroni performs the failover operation, you can check the cluster status again:
 ```bash
-kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true,role=master -o name)" -c patroni -- patronictl list
+kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,stackgres.io/cluster=true,role=master -o name)" -c patroni -- patronictl list
 ```
 
 The final state of the failover will result with node `simple-1` as the leader and `simple-0` as the replica.

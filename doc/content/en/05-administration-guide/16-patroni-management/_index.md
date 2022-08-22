@@ -14,7 +14,7 @@ Once you hace a StackGres cluster installed you'll have a Full HA PostgreSQL con
 These represents the containers of the StackGres cluster and you can list them using `kubectl` command like:
 
 ```bash
-kubectl get pods -n default -l app=StackGresCluster,cluster=true
+kubectl get pods -n default -l app=StackGresCluster,stackgres.io/cluster=true
 ````
 
 > **Note:** Change `-n` param to point to your namespace, in this example we use default.
@@ -50,7 +50,7 @@ stackgres-0   5/5     Running   0          165m
 To identify the replica nodes:
 
 ```
-kubectl get pods -n default -l app=StackGresCluster,cluster=true -l role=replica
+kubectl get pods -n default -l app=StackGresCluster,stackgres.io/cluster=true -l role=replica
 ```
 
 output:

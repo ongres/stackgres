@@ -74,7 +74,7 @@ READ_ONLY_POD="$SGCLUSTER-$INSTANCES"
 echo "Waiting for pod $READ_ONLY_POD"
 kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$READ_ONLY_POD"
 while kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=replica" -o name \
+    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=replica" -o name \
   | grep -F "pod/$READ_ONLY_POD" | wc -l | grep -q 0; do sleep 1; done
 ```
 
@@ -85,7 +85,7 @@ while kubectl get pod -n "$NAMESPACE" \
 
 ```shell
 PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name | head -n 1)"
+    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=master" -o name | head -n 1)"
 PRIMARY_POD="${PRIMARY_POD#pod/}"
 
 echo "Restart primary instance $PRIMARY_POD"
@@ -102,7 +102,7 @@ Check which read-only pods requires to be restarted.
 ```shell
 READ_ONLY_PODS="$([ -z "$READ_ONLY_PODS" ] \
   && kubectl get pod -n "$NAMESPACE" --sort-by '{.metadata.name}' \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=replica" \
+    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=replica" \
     --template '{{ range .items }}{{ printf "%s\n" .metadata.name }}{{ end }}' \
   || (echo "$READ_ONLY_PODS" | tail -n +2))"
 echo "Read only pods to restart:"
@@ -140,9 +140,9 @@ If you have at least a read-only pod perform a switchover of the primary pod.
 
 ```shell
 READ_ONLY_POD="$(kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=replica" -o name | head -n 1)"
+    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=replica" -o name | head -n 1)"
 PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,cluster=true,role=master" -o name | head -n 1)"
+    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=master" -o name | head -n 1)"
 READ_ONLY_POD="${READ_ONLY_POD#pod/}"
 PRIMARY_POD="${PRIMARY_POD#pod/}"
 if [ -n "$READ_ONLY_POD" ]
