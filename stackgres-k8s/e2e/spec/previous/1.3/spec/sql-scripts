@@ -1,0 +1,92 @@
+#!/bin/sh
+
+e2e_test_install() {
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+
+  kubectl create -n "$CLUSTER_NAMESPACE" secret generic sql-scripts-sakila-user \
+    --from-literal=create-sakila-user.sql="CREATE USER sakila WITH PASSWORD 'sakila'"
+
+  kubectl create -n "$CLUSTER_NAMESPACE" configmap sql-scripts-sakila-schema \
+    --from-file=create-sakila-schema.sql="$SPEC_PATH/$SPEC_NAME.sakila.sql"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "2"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Check that user was created on primary node" check_user_on_primary
+  run_test "Check that database was created on primary node" check_database_on_primary
+  run_test "Check that schema was created on primary node" check_schema_on_primary
+  run_test "Check that user was created on replica node" check_user_on_replica
+  run_test "Check that database was created on replica node" check_database_on_replica
+  run_test "Check that schema was created on replica node" check_schema_on_replica
+}
+
+check_user_on_primary() {
+  check_user "$CLUSTER_NAME-primary" 1
+}
+
+check_user_on_replica() {
+  check_user "$CLUSTER_NAME-replicas" 0
+}
+
+check_user() {
+  local HOST="$1"
+  local FROM_HOST_INDEX="$2"
+  wait_until eval 'run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" \
+    -q "SELECT usename FROM pg_user;" -d "postgres" | grep -q "^sakila$"'
+  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT usename FROM pg_user;" -d "postgres" \
+    | grep -q "^sakila$"
+  then
+    echo "SUCCESS: sakila user was created successfully"
+  else
+    echo "FAIL: sakila user was not created"
+    return 1
+  fi
+}
+
+check_database_on_primary() {
+  check_database "$CLUSTER_NAME-primary" 1
+}
+
+check_database_on_replica() {
+  check_database "$CLUSTER_NAME-replicas" 0
+}
+
+check_database() {
+  local HOST="$1"
+  local FROM_HOST_INDEX="$2"
+  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT datname FROM pg_database;" -d "postgres" \
+    | grep -q "^sakila$"
+  then
+    echo "SUCCESS: sakila database was created successfully"
+  else
+    echo "FAIL: sakila database was not created"
+    return 1
+  fi
+}
+
+check_schema_on_primary() {
+  check_schema "$CLUSTER_NAME-primary" 1
+}
+
+check_schema_on_replica() {
+  check_schema "$CLUSTER_NAME-replicas" 0
+}
+
+check_schema() {
+  local HOST="$1"
+  local FROM_HOST_INDEX="$2"
+  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "sakila" \
+    | grep -q "^film$" \
+    && run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "sakila" \
+    | grep -q "^store$"
+  then
+    echo "SUCCESS: sakila schema was created successfully"
+  else
+    echo "FAIL: sakila schema was not created"
+    return 1
+  fi
+}

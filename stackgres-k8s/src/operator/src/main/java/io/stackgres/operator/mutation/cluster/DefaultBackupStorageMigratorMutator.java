@@ -21,7 +21,6 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.stackgres.common.BackupStorageUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
@@ -39,8 +38,6 @@ import io.stackgres.operatorframework.admissionwebhook.mutating.MutatorWeight;
 @ApplicationScoped
 @MutatorWeight(10)
 public class DefaultBackupStorageMigratorMutator implements ClusterMutator {
-
-  private static final long VERSION_1_1 = StackGresVersion.V_1_1.getVersionAsNumber();
 
   private final ObjectMapper mapper;
   private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
@@ -108,10 +105,7 @@ public class DefaultBackupStorageMigratorMutator implements ClusterMutator {
         if (configuration.getBackupPath() != null) {
           cbc.setPath(configuration.getBackupPath());
         } else {
-          final long version = StackGresVersion.getStackGresVersionAsNumber(cluster);
-          final String backupPath = version <= VERSION_1_1
-              ? getBackupPathPre_1_2(cluster)
-              : getBackupPath(cluster);
+          final String backupPath = getBackupPath(cluster);
           cbc.setPath(backupPath);
         }
         configuration.setBackups(List.of(cbc));
@@ -152,19 +146,6 @@ public class DefaultBackupStorageMigratorMutator implements ClusterMutator {
           });
     }
     return backupConfig;
-  }
-
-  private String getBackupPathPre_1_2(final StackGresCluster cluster) {
-    return backupConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getConfiguration().getBackupConfig(),
-        cluster.getMetadata().getNamespace())
-        .map(StackGresBackupConfig::getSpec)
-        .map(StackGresBackupConfigSpec::getStorage)
-        .map(storage -> BackupStorageUtil.getPathPre_1_2(
-            cluster.getMetadata().getNamespace(),
-            cluster.getMetadata().getName(),
-            storage))
-        .orElseGet(() -> getBackupPath(cluster));
   }
 
   private String getBackupPath(final StackGresCluster cluster) {

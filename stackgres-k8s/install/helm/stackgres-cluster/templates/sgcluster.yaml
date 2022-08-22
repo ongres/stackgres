@@ -70,9 +70,6 @@ spec:
   configurations: 
     sgPostgresConfig: '{{ .Values.cluster.configurations.sgPostgresConfig }}'
     sgPoolingConfig: '{{ .Values.cluster.configurations.sgPoolingConfig }}'
-    {{- if .Values.cluster.configurations.sgBackupConfig }}
-    sgBackupConfig: '{{ .Values.cluster.configurations.sgBackupConfig }}'
-    {{- end }}
     {{- if .Values.cluster.configurations.backups.sgObjectStorage }}
     backups:
     - retention: {{ .Values.cluster.configurations.backups.retention }}

@@ -7,9 +7,8 @@ package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.common.SgProfileReviewBuilder;
-import io.stackgres.testutil.fixture.Fixture;
 
-public class InstanceProfileReviewFixture extends Fixture<SgProfileReview> {
+public class InstanceProfileReviewFixture extends VersionedFixture<SgProfileReview> {
 
   public static InstanceProfileReviewFixture fixture() {
     return new InstanceProfileReviewFixture();

@@ -67,7 +67,12 @@ public abstract class Fixture<T> implements JsonFixture {
   }
 
   protected T readFromJson(String resource) {
-    return readAnyFromJson(resource, this::readObjectFromJson);
+    T object = readAnyFromJson(resource, this::readObjectFromJson);
+    transform(object);
+    return object;
+  }
+
+  protected void transform(T object) {
   }
 
   protected <E, R extends List<E>> R readListFromJson(String resource) {

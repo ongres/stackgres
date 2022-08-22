@@ -7,9 +7,8 @@ package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.StackGresScriptReview;
 import io.stackgres.operator.common.StackGresScriptReviewBuilder;
-import io.stackgres.testutil.fixture.Fixture;
 
-public class ScriptReviewFixture extends Fixture<StackGresScriptReview> {
+public class ScriptReviewFixture extends VersionedFixture<StackGresScriptReview> {
 
   public static ScriptReviewFixture fixture() {
     return new ScriptReviewFixture();

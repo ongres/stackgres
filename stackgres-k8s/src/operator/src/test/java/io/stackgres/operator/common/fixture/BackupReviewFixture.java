@@ -7,9 +7,8 @@ package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.common.BackupReviewBuilder;
-import io.stackgres.testutil.fixture.Fixture;
 
-public class BackupReviewFixture extends Fixture<BackupReview> {
+public class BackupReviewFixture extends VersionedFixture<BackupReview> {
 
   public static BackupReviewFixture fixture() {
     return new BackupReviewFixture();

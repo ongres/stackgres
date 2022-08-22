@@ -7,9 +7,8 @@ package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operator.common.ObjectStorageReviewBuilder;
-import io.stackgres.testutil.fixture.Fixture;
 
-public class ObjectStorageReviewFixture extends Fixture<ObjectStorageReview> {
+public class ObjectStorageReviewFixture extends VersionedFixture<ObjectStorageReview> {
 
   public static ObjectStorageReviewFixture fixture() {
     return new ObjectStorageReviewFixture();

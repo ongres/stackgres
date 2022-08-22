@@ -78,7 +78,7 @@ class ClusterMutatorPipelineTest {
     cluster.getSpec().getConfiguration().setBackupConfig(backupName);
     review.getRequest().getObject().getMetadata().setAnnotations(new HashMap<>());
     review.getRequest().getObject().getMetadata().getAnnotations()
-        .put(StackGresContext.VERSION_KEY, StackGresVersion.V_1_1.getVersion());
+        .put(StackGresContext.VERSION_KEY, StackGresVersion.V_1_2.getVersion());
 
     StackGresCluster mutateCluster = mutate(review);
 

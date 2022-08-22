@@ -7,9 +7,8 @@ package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.common.PgConfigReviewBuilder;
-import io.stackgres.testutil.fixture.Fixture;
 
-public class PostgresConfigReviewFixture extends Fixture<PgConfigReview> {
+public class PostgresConfigReviewFixture extends VersionedFixture<PgConfigReview> {
 
   public static PostgresConfigReviewFixture fixture() {
     return new PostgresConfigReviewFixture();

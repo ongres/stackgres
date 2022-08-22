@@ -26,6 +26,7 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
@@ -143,7 +144,8 @@ class DefaultStorageMigrationMutatorTest {
 
     cluster.getSpec().getPostgres().setVersion("13.4");
     cluster.getMetadata().setAnnotations(new HashMap<>());
-    cluster.getMetadata().getAnnotations().put(StackGresContext.VERSION_KEY, "1.1");
+    cluster.getMetadata().getAnnotations().put(
+        StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().getConfiguration().setBackupPath(null);
     final StackGresCluster actualCluster = mutate(review);
 

@@ -7,9 +7,8 @@ package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.StackGresClusterReviewBuilder;
-import io.stackgres.testutil.fixture.Fixture;
 
-public class ClusterReviewFixture extends Fixture<StackGresClusterReview> {
+public class ClusterReviewFixture extends VersionedFixture<StackGresClusterReview> {
 
   public static ClusterReviewFixture fixture() {
     return new ClusterReviewFixture();

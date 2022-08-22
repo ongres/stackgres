@@ -1,0 +1,17 @@
+configurations:
+  postgresconfig:
+    postgresql.conf:
+      shared_buffers: '32MB'
+  backupconfig:
+    create: false
+cluster:
+  pods:
+    persistentVolume:
+      size: 128Mi
+    disableConnectionPooling: true
+    managementPolicy: Parallel
+  configurations:
+    sgBackupConfig: null
+  prometheusAutobind: false
+nonProductionOptions:
+  disableClusterPodAntiAffinity: true
