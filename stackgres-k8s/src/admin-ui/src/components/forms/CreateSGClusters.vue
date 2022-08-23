@@ -3165,10 +3165,6 @@
         transform: translate(4px, 1px);
     }
 
-    .extension a.newTab:not(:hover) {
-        filter: brightness(100);
-    }
-
     .contentTooltip #clusterDetails {
         margin-right: 10px;
     }
