@@ -99,10 +99,10 @@
                     <tbody>
                         <template v-if="!dbOps.length">
 							<tr class="no-results">
-								<td colspan="8" v-if="iCan('create','sgdbops',$route.params.namespace)">
+								<td colspan="9" v-if="iCan('create','sgdbops',$route.params.namespace)">
 									No database operations have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgdbops/new'" title="Add New Database Operation">create a new one?</router-link>
 								</td>
-								<td v-else colspan="8">
+								<td v-else colspan="9">
 									No database operations have been found. You don't have enough permissions to create a new one
 								</td>
 							</tr>
@@ -1756,16 +1756,8 @@
         max-width: 75px;
     }
 
-    table#sgdbops, #sgdbops thead, #sgdbops th, #sgdbops tbody, #sgdbops tr, #sgdbops td {
+    table#sgdbops, #sgdbops thead, #sgdbops th, #sgdbops tbody, #sgdbops td {
         background: none;
-    }
-
-    #sgdbops tr:nth-child(even), #sgdbops tr.details:nth-child(odd) {
-        background-color: var(--activeBg);
-    }
-
-    #sgdbops tr:nth-child(odd), #sgdbops tr.details:nth-child(even) {
-        background-color: var(--rowBg);
     }
 
     .clusterStatus {
