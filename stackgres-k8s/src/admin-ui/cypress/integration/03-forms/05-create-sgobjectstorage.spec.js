@@ -57,7 +57,7 @@ describe('Create SGObjectStorage', () => {
             .type('s3-' + resourceName)
 
         // Storage Details
-        cy.get('[data-field="spec.s3"]')
+        cy.get('[for="s3"]')
             .click()
 
         cy.get('form#createObjectStorage input#advancedModeStorage')
@@ -99,7 +99,7 @@ describe('Create SGObjectStorage', () => {
             .type('s3compatible-' + resourceName)
         
         // Storage Details
-        cy.get('[data-field="spec.s3Compatible"]')
+        cy.get('[for="s3Compatible"]')
             .click()
 
         cy.get('form#createObjectStorage input#advancedModeStorage')
@@ -146,7 +146,7 @@ describe('Create SGObjectStorage', () => {
             .type('gcs-' + resourceName) 
         
         // Storage Details
-        cy.get('[data-field="spec.gcs"]')
+        cy.get('[for="gcs"]')
             .click()
         
         cy.get('form#createObjectStorage input#advancedModeStorage')
@@ -181,7 +181,7 @@ describe('Create SGObjectStorage', () => {
             .type('azure-' + resourceName)
         
         // Storage Details
-        cy.get('[data-field="spec.azureBlob"]')
+        cy.get('[for="azureBlob"]')
             .click()
         
         cy.get('form#createObjectStorage input#advancedModeStorage')
@@ -208,6 +208,33 @@ describe('Create SGObjectStorage', () => {
         
         // Test user redirection
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgobjectstorages')
+    });
+
+    it('notValid class should be added if no Type is selected and removed once Type is selected', () => {
+        // Name
+        cy.get('[data-field="metadata.name"]')
+            .type('not-valid-' + resourceName)
+        
+        // Submit
+        cy.get('form#createObjectStorage button[type="submit"]')
+            .click()
+
+        // Error notificacion should appear
+        cy.get('#notifications .message.show .kind')
+            .should(($notification) => {
+                expect($notification).contain('error')
+            })
+
+        // notValid class should be added to Type boxes
+        cy.get('.optionBoxes label')
+            .should('have.class', 'notValid')
+
+        // notValid class should be removed when Type is selected
+        cy.get('[for="azureBlob"]')
+            .click()
+
+        cy.get('.optionBoxes label')
+            .should('not.have.class', 'notValid')
     });
 })
     
