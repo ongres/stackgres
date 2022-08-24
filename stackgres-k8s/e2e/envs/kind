@@ -420,7 +420,7 @@ check_kind_image_exists() {
 }
 
 get_kind_image() {
-  get_kind_images | sed 's/^v//' | grep "^$1@"
+  get_kind_images | sed 's/^v//' | grep "^$1[.@]"
 }
 
 get_kind_images() {

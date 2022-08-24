@@ -12,9 +12,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.testutil.fixture.Fixture;
+import io.stackgres.common.fixture.VersionedFixture;
 
-public class ClusterFixture extends Fixture<StackGresCluster> {
+public class ClusterFixture extends VersionedFixture<StackGresCluster> {
 
   public static final String POSTGRES_LATEST_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().get(0).get();

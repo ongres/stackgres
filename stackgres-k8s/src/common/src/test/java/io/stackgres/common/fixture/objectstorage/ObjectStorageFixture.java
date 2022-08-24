@@ -7,9 +7,9 @@ package io.stackgres.common.fixture.objectstorage;
 
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorageBuilder;
-import io.stackgres.testutil.fixture.Fixture;
+import io.stackgres.common.fixture.VersionedFixture;
 
-public class ObjectStorageFixture extends Fixture<StackGresObjectStorage> {
+public class ObjectStorageFixture extends VersionedFixture<StackGresObjectStorage> {
 
   public ObjectStorageFixture loadDefault() {
     fixture = readFromJson(STACKGRES_OBJECT_STORAGE_DEFAULT_JSON);

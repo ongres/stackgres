@@ -7,9 +7,8 @@ package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.common.PoolingReviewBuilder;
-import io.stackgres.testutil.fixture.Fixture;
 
-public class PoolingConfigReviewFixture extends Fixture<PoolingReview> {
+public class PoolingConfigReviewFixture extends VersionedFixture<PoolingReview> {
 
   public static PoolingConfigReviewFixture fixture() {
     return new PoolingConfigReviewFixture();

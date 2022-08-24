@@ -7,9 +7,9 @@ package io.stackgres.common.fixture.dbops;
 
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBuilder;
-import io.stackgres.testutil.fixture.Fixture;
+import io.stackgres.common.fixture.VersionedFixture;
 
-public class DbOpsFixture extends Fixture<StackGresDbOps> {
+public class DbOpsFixture extends VersionedFixture<StackGresDbOps> {
 
   public DbOpsFixture loadRestart() {
     fixture = readFromJson(STACKGRES_DB_OPS_RESTART_JSON);

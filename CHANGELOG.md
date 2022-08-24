@@ -1,3 +1,118 @@
+# :rocket: Release 1.3.0 (2022-08-23)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.3.0 is out and something is changed!! Thanks to all our growing community for all the feedback they are providing, StackGres is better also thanks to you!! :tada: :cyclone: :top: :heartpulse: 
+
+*IMPORTANT*: PostgreSQL 14.0, 14.1, 14.2, and 14.3 had an issue with CREATE INDEX CONCURRENTLY and REINDEX CONCURRENTLY that could cause silent data corruption of indexes. 
+ Please upgrade to PostgreSQL 14.5 as soon as possible to avoid any corruption of your data. For more info see https://www.postgresql.org/about/news/postgresql-144-released-2470/.
+
+*IMPORTANT*: We have introduced a possible breaking change for your deployment since we replaced the `SGBackupConfig` CRD with the `SGObjectStorage` CRD. All your existing clusters will continue to work since the upgrade process
+ will take care of converting `SGBackupConfig` CRs to the new `SGObjectStorage` CRs and apply the required changes to the `SGCluster` CRs. The change was needed in order to introduce more functionality in the next releases, but for
+ now, the only difference is that `SGObjectStorage` will contain only the `.spec.storage` part of the previous `SGBackupConfig`. Also, the backup configuration in the `SGCluster` is moved to the section `.spec.configurations.backups` where you will be able to set the referenced `SGObjectStorage` and configure the automatic backup properties. Please make sure your deployment code reflects the changes introduced by the upgrade by changing the `.spec.configurations`
+ section and converting the `SGBackupConfig` into an `SGObjectStorage`.
+
+Before this release, you had to set SQL scripts at initialization, but now you will be able to change and add them live. Also, scripts will be re-usable since they are now stored in the new SGScript CRD.
+
+When a new cluster is created you will be able to set resource requirements for all the StackGres Pod's containers using the new sections `.spec.containers` and `.spec.initContainers`. Those sections are pre-filled with default values
+ and you may disable this behavior by setting to `true` the field `.spec.nonProductionOptions.disableClusterResourceRequirements` in the `SGCluster` and `SGDistributedLogs` CRs.
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Support Kubernetes 1.24
+* Updated kubectl image to use version 1.24
+* PostgreSQL 14.5, 14.4, 13.8, 13.7, 12.12 and 12.11
+* Fluent-Bit 1.9.6 and Fluentd to 1.15.0
+* Wal-g 2.0.0
+* Disallow creation using PostgreSQL 14.3- and create a warning if a user is using it
+* Added SGStorageObject CRD to configure where to store any kind of object (used initially only for backups) 
+* Support to configure backups in SGCluster specifying automatic backup configuration and reference SGStorageObject CRs
+* Automatic migration from SGBackupConfig CR to the new SGStorageObject CR in SGCluster and deprecation of SGBackupConfig
+* Support to configure managed SQL in SGCluster specifying a reference to SGScript CRs
+* Automatic migration from initial data script to managed SQL with SGScript CRs
+* Support for resource restrictions for all Pod's containers
+* Allow to specify requests and limit in SGInstanceProfile for non-production
+* Support SGInstanceProfile and SGPostgresConfig on SGDistributedLogs 
+* Removed compatibility with clusters created in StackGres 1.0
+* Validate and integrate into tests OpenShift 4.9+
+* Allow specifying loadBalancerIP for postgres services
+* Tolerations for SGDbOps
+* Allow specifying node selector and node affinity for SGBackup, SGDistributedLogs, and SGDbOps
+* Show wal-g wal-verify output in backup Job logs
+* Allow managing pods in parallel
+* Improved operator helm chart upgrade
+* Annotations, affinity, tolerations, and nodeSelector added in Operator Helm Chart
+* Support for Cert Manager certificates added in Operator Helm Chart
+* Change backup CronJob concurrencyPolicy to Forbid
+* Support for HTTP gzip compression when fetching the extension's metadata
+
+### Web Console
+
+* Initial support for OpenID Connect
+* Divide extensions according to their license
+* Enhanced usability/discoverability of the "enable monitoring" option when creating a cluster
+* Unify switches texts on forms
+* Change the text of Close Details button
+* Improve Backup configuration layout/order on SGCluster form
+* Simplify action buttons names on CRD Details
+* Update and improve the UI Connection Info popup
+* Add button to go back to List view on Cluster Details
+
+## :bug: FIXES
+
+* Events service being suppressed during benchmark job
+* Repeated error messages returned from REST API
+* Backups Job shows some permission errors in the log
+* Pending state during the creation of SGBackup for clusters without backup configuration
+* Unable to restore PITR in any cluster
+* Images with a non-root account fail to read the token file on EKS
+* Mutating webhook bug make validation to be skipped when a wrong postgres version was issued
+* Add missing resources to the can-i REST API endpoint
+* The info property of all sgcluster related endpoints is returning the deprecated `<cluster name>-primary` service
+* Set default log_statement value to none for SGPostgresConfig
+* Lower the initial param autovacuum_work_mem
+
+### Web Console
+
+* General improvement of distributed logs and benchmark results
+* General improvement of user permissions validations
+* Monitoring tab is empty when there are no active pods
+* Pods and time range selectors missing on the monitoring tab
+* Namespace selector won't stay open
+* Review and adjust tooltips that won't match reverse-logic specs
+* Not Found appears on top of Header on Details views
+* Details about Distributed logs configuration not shown in the logs server section
+* Namespaces Overview header appears when logged out but won't show on login
+* Managed backups specs not loading on SGCluster form
+* Proposed default names contain non-valid characters
+* Clone CRD function not working for SGClusters, SGPostgresConfigs and SGPoolingConfigs
+* Adjust pagination color scheme on dark mode
+* Wait Timeout on Repack databases appears empty
+* Remove Enable Primary Service toggle from Distributed Logs form
+* Missing service status on SGCluster and SGDistributedLogs details
+* Fix misplaced warning icons
+
+## :construction: KNOWN ISSUES
+
+* Installation fails in EKS 1.22+ due to CSR not returning the certificate ([#1732](https://gitlab.com/ongresinc/stackgres/-/issues/1732)). Use cert-manager as a workaround. 
+* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.3.0/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.3.0)
+
 # :rocket: Release 1.3.0-RC1 (2022-08-16)
 
 ## :notepad_spiral: NOTES

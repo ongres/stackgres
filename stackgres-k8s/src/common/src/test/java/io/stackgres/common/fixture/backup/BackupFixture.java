@@ -7,9 +7,9 @@ package io.stackgres.common.fixture.backup;
 
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupBuilder;
-import io.stackgres.testutil.fixture.Fixture;
+import io.stackgres.common.fixture.VersionedFixture;
 
-public class BackupFixture extends Fixture<StackGresBackup> {
+public class BackupFixture extends VersionedFixture<StackGresBackup> {
 
   public BackupFixture loadDefault() {
     fixture = readFromJson(STACKGRES_BACKUP_DEFAULT_JSON);

@@ -7,9 +7,9 @@ package io.stackgres.common.fixture.distributedlogs;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsBuilder;
-import io.stackgres.testutil.fixture.Fixture;
+import io.stackgres.common.fixture.VersionedFixture;
 
-public class DistributedLogsFixture extends Fixture<StackGresDistributedLogs> {
+public class DistributedLogsFixture extends VersionedFixture<StackGresDistributedLogs> {
 
   public DistributedLogsSpecFixture spec() {
     return new DistributedLogsSpecFixture();

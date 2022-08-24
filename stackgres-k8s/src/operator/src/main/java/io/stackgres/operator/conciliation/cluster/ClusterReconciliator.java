@@ -13,7 +13,6 @@ import javax.inject.Inject;
 
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -33,8 +32,6 @@ import org.slf4j.helpers.MessageFormatter;
 @ApplicationScoped
 public class ClusterReconciliator
     extends AbstractReconciliator<StackGresCluster> {
-
-  private static final long VERSION_1_1 = StackGresVersion.V_1_1.getVersionAsNumber();
 
   public ClusterReconciliator() {
     super(StackGresCluster.KIND);
@@ -58,19 +55,6 @@ public class ClusterReconciliator
 
   @Override
   public void onPreReconciliation(StackGresCluster config) {
-    if (Optional.of(config)
-        .map(StackGresCluster::getStatus)
-        .map(StackGresClusterStatus::getLabelPrefix)
-        .isEmpty()) {
-      final long version = StackGresVersion.getStackGresVersionAsNumber(config);
-      if (version <= VERSION_1_1) {
-        if (config.getStatus() == null) {
-          config.setStatus(new StackGresClusterStatus());
-        }
-        config.getStatus().setLabelPrefix("");
-      }
-    }
-
     if (PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()
         .contains(config.getSpec().getPostgres().getVersion())) {
       eventController.sendEvent(ClusterEventReason.CLUSTER_SECURITY_WARNING,

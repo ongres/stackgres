@@ -216,61 +216,6 @@ configurations:
     #      accessKey:
     #        name: azureblobcredentials
     #        key: accesskey
-  backupconfig:
-    create: false
-    baseBackups:
-      retention: 5
-      cronSchedule: "*/2 * * * *"
-      compression: lz4
-      performance:
-        uploadDiskConcurrency: 1
-        #maxNetworkBandwidth:
-        #maxDiskBandwidth:
-    storage:
-      s3: {}
-      #  bucket: stackgres
-      #  awsCredentials:
-      #    secretKeySelectors:
-      #      accessKeyId:
-      #        name: awscredentials
-      #        key: accesskey
-      #      secretAccessKey:
-      #        name: awscredentials
-      #        key: secretkey
-      #  region:
-      #  storageClass:
-      s3Compatible: {}
-      #  bucket: stackgres
-      #  awsCredentials:
-      #    secretKeySelectors:
-      #      accessKeyId:
-      #        name: minio
-      #        key: accesskey
-      #      secretAccessKey:
-      #        name: minio
-      #        key: secretkey
-      #  region: k8s
-      #  endpoint: minio.stackgres.svc
-      #  enablePathStyleAddressing: true
-      #  storageClass:
-      gcs: {}
-      #  bucket: stackgres
-      #  gcpCredentials:
-      #    fetchCredentialsFromMetadataService: false
-      #    secretKeySelectors:
-      #      serviceAccountJSON:
-      #        name: gcscredentials
-      #        key: key
-      azureBlob: {}
-      #  bucket: stackgres
-      #  azureCredentials:
-      #    secretKeySelectors:
-      #      storageAccount:
-      #        name: azureblobcredentials
-      #        key: storageaccount
-      #      accessKey:
-      #        name: azureblobcredentials
-      #        key: accesskey
 
 distributedLogs:
   enabled: false

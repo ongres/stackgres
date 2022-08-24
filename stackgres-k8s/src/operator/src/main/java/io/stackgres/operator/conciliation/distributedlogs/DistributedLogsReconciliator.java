@@ -15,7 +15,6 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -32,8 +31,6 @@ import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
 public class DistributedLogsReconciliator extends AbstractReconciliator<StackGresDistributedLogs> {
-
-  private static final long VERSION_1_1 = StackGresVersion.V_1_1.getVersionAsNumber();
 
   public DistributedLogsReconciliator() {
     super(StackGresDistributedLogs.KIND);
@@ -57,18 +54,6 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
 
   @Override
   public void onPreReconciliation(StackGresDistributedLogs config) {
-    if (Optional.of(config)
-        .map(StackGresDistributedLogs::getStatus)
-        .map(StackGresDistributedLogsStatus::getLabelPrefix)
-        .isEmpty()) {
-      final long version = StackGresVersion.getStackGresVersionAsNumber(config);
-      if (version <= VERSION_1_1) {
-        if (config.getStatus() == null) {
-          config.setStatus(new StackGresDistributedLogsStatus());
-        }
-        config.getStatus().setLabelPrefix("");
-      }
-    }
   }
 
   @Override

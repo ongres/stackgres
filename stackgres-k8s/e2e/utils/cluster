@@ -167,14 +167,14 @@ create_or_replace_cluster_for_version_only() {
   VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
   VERSION_1_0_0_ALPHA1_AS_NUMBER="$(get_version_as_number 1.0.0-alpha1)"
   VERSION_1_2_0_RC1_AS_NUMBER="$(get_version_as_number 1.2.0-RC1)"
-  VERSION_1_2_0_AS_NUMBER="$(get_version_as_number 1.2.0)"
+  VERSION_1_3_0_BETA1_AS_NUMBER="$(get_version_as_number 1.3.0-beta1)"
   if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA1_AS_NUMBER" ]
   then
     TRANSFORMER="transform_to_0_9"
   elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_2_0_RC1_AS_NUMBER" ]
   then
     TRANSFORMER="transform_to_1_1"
-  elif [ "$VERSION_AS_NUMBER" -le "$VERSION_1_2_0_AS_NUMBER" ]
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_3_0_BETA1_AS_NUMBER" ]
   then
     TRANSFORMER="transform_to_1_2"
   fi
@@ -199,7 +199,19 @@ create_or_replace_cluster_for_version_only() {
 transform_to_1_2() {
   if printf '%s' "$1" | grep -q '^cluster\.managedSql\.scripts'
   then
-    printf '%s' "$1" | sed 's/^cluster\.managedSql\.scripts\(.*\)/cluster.initialData.scripts\1/'
+    printf '%s' "$1" | sed 's/^cluster\.managedSql\.scripts/cluster.initialData.scripts/'
+  elif [ "${1%=*}" = 'cluster.configurations.backups.sgObjectStorage' ]
+  then
+    printf "%s=%s" "cluster.configurations.sgBackupConfig" "${1#*=}"
+  elif [ "${1%=*}" = 'configurations.objectstorage.create' ]
+  then
+    printf "%s=%s" "configurations.backupconfig.create" "${1#*=}"
+  elif printf '%s' "$1" | grep -q '^configurations\.objectstorage\.'
+  then
+    printf '%s' "$1" | sed 's/^configurations\.objectstorage\./configurations.backupconfig.storage./'
+  elif printf '%s' "$1" | grep -q '^cluster\.configurations\.backups\.'
+  then
+    printf '%s' "$1" | sed 's/^cluster\.configurations\.backups\./configurations.backupconfig.baseBackups./'
   else
     dont_transform "$1"
   fi
@@ -208,7 +220,7 @@ transform_to_1_2() {
 transform_to_1_1() {
   if printf '%s' "$1" | grep -q '^cluster\.managedSql\.scripts'
   then
-    printf '%s' "$1" | sed 's/^cluster\.managedSql\.scripts\(.*\)/cluster.initialData.scripts\1/'
+    printf '%s' "$1" | sed 's/^cluster\.managedSql\.scripts/cluster.initialData.scripts/'
   elif [ "${1%=*}" = 'configurations.backupconfig.baseBackups.performance.maxDiskBandwidth' ]
   then
     printf "%s=%s" "configurations.backupconfig.baseBackups.performance.maxDiskBandwitdh" "${1#*=}"
@@ -226,18 +238,18 @@ transform_to_1_1() {
 }
 
 transform_to_0_9() {
-  if printf '%s' "$1" | grep -q '^cluster\.metadata\.labels\.clusterPods'
+  if printf '%s' "$1" | grep -q '^cluster\.metadata\.labels\.clusterPods\.'
   then
-    printf '%s' "$1" | sed 's/^cluster\.metadata\.labels\.clusterPods\(.*\)/cluster.pods.metadata.labels\1/'
-  elif printf '%s' "$1" | grep -q '^cluster\.metadata\.annotations\.clusterPods'
+    printf '%s' "$1" | sed 's/^cluster\.metadata\.labels\.clusterPods\./cluster.pods.metadata.labels./'
+  elif printf '%s' "$1" | grep -q '^cluster\.metadata\.annotations\.clusterPods\.'
   then
-    printf '%s' "$1" | sed 's/^cluster\.metadata\.annotations\.clusterPods\(.*\)/cluster.metadata.annotations.pods\1/'
-  elif printf '%s' "$1" | grep -q '^cluster\.metadata\.annotations\.primaryService'
+    printf '%s' "$1" | sed 's/^cluster\.metadata\.annotations\.clusterPods\./cluster.metadata.annotations.pods./'
+  elif printf '%s' "$1" | grep -q '^cluster\.metadata\.annotations\.primaryService\.'
   then
-    printf '%s' "$1" | sed 's/^cluster\.metadata\.annotations\.primaryService\(.*\)/cluster.postgresServices.primary.annotations\1/'
-  elif printf '%s' "$1" | grep -q '^cluster\.metadata\.annotations\.replicasService'
+    printf '%s' "$1" | sed 's/^cluster\.metadata\.annotations\.primaryService\./cluster.postgresServices.primary.annotations./'
+  elif printf '%s' "$1" | grep -q '^cluster\.metadata\.annotations\.replicasService\.'
   then
-    printf '%s' "$1" | sed 's/^cluster\.metadata\.annotations\.replicasService\(.*\)/cluster.postgresServices.replicas.annotations\1/'
+    printf '%s' "$1" | sed 's/^cluster\.metadata\.annotations\.replicasService\./cluster.postgresServices.replicas.annotations./'
   elif [ "${1%=*}" = 'cluster.postgres.version' ]
   then
     printf '%s=%s' 'cluster.postgresVersion' "${1#*=}"

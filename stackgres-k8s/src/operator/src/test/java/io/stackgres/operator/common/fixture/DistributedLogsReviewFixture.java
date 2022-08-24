@@ -7,9 +7,8 @@ package io.stackgres.operator.common.fixture;
 
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.StackGresDistributedLogsReviewBuilder;
-import io.stackgres.testutil.fixture.Fixture;
 
-public class DistributedLogsReviewFixture extends Fixture<StackGresDistributedLogsReview> {
+public class DistributedLogsReviewFixture extends VersionedFixture<StackGresDistributedLogsReview> {
 
   public static DistributedLogsReviewFixture fixture() {
     return new DistributedLogsReviewFixture();

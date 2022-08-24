@@ -7,9 +7,9 @@ package io.stackgres.common.fixture.instanceprofile;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileBuilder;
-import io.stackgres.testutil.fixture.Fixture;
+import io.stackgres.common.fixture.VersionedFixture;
 
-public class InstanceProfileFixture extends Fixture<StackGresProfile> {
+public class InstanceProfileFixture extends VersionedFixture<StackGresProfile> {
 
   public InstanceProfileFixture loadSizeXs() {
     fixture = readFromJson(STACKGRES_INSTANCE_PROFILE_SIZE_XS_JSON);
