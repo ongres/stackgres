@@ -15,6 +15,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -66,20 +67,17 @@ public abstract class SetterGetterTestCase {
       );
     } else {
       String fieldName = field.getName();
-
-      final String setMethodName = "set"
-          + fieldName.substring(0, 1).toUpperCase()
+      String pascalCaseFieldName =
+          fieldName.substring(0, 1).toUpperCase(Locale.US)
           + fieldName.substring(1);
+
+      final String setMethodName = "set" + pascalCaseFieldName;
       Method setMethod = findMethod(
           targetClazz,
           setMethodName,
           field.getType());
-      final String getMethodName = "get"
-          + fieldName.substring(0, 1).toUpperCase()
-          + fieldName.substring(1);
-      final String isMethodName = "is"
-          + fieldName.substring(0, 1).toUpperCase()
-          + fieldName.substring(1);
+      final String getMethodName = "get" + pascalCaseFieldName;
+      final String isMethodName = "is" + pascalCaseFieldName;
       Method getMethod = findMethod(
           targetClazz,
           getMethodName);
