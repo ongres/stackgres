@@ -321,8 +321,8 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     clusterDto.getMetadata().setName(StringUtils.getRandomClusterName());
     ClusterSpec spec = clusterDto.getSpec();
     spec.setInitData(null);
-    spec.setConfigurations(new ClusterConfiguration());
-    spec.getConfigurations().setBackups(new ArrayList<>());
+    spec.setConfiguration(new ClusterConfiguration());
+    spec.getConfiguration().setBackups(new ArrayList<>());
 
     ClusterBackupsConfiguration clusterBackupsConfiguration = new ClusterBackupsConfiguration();
     clusterBackupsConfiguration.setCompressionMethod("brotli");
@@ -334,7 +334,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     clusterBackupsConfiguration.getPerformance().setMaxNetworkBandwidth(10L);
     clusterBackupsConfiguration.getPerformance().setUploadDiskConcurrency(10);
 
-    spec.getConfigurations().getBackups().add(clusterBackupsConfiguration);
+    spec.getConfiguration().getBackups().add(clusterBackupsConfiguration);
 
     given()
         .header(AUTHENTICATION_HEADER)

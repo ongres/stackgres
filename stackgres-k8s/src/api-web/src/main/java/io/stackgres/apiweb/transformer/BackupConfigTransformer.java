@@ -82,7 +82,7 @@ public class BackupConfigTransformer
     BackupConfigSpec transformation = new BackupConfigSpec();
 
     Optional.ofNullable(source.getBaseBackups())
-        .ifPresent(sourceBaseBackup -> transformation.setBaseBackup(
+        .ifPresent(sourceBaseBackup -> transformation.setBaseBackups(
             objectMapper.convertValue(sourceBaseBackup,
                 BaseBackupConfig.class)
         ));

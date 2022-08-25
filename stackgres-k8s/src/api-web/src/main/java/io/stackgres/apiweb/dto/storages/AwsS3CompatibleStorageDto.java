@@ -32,7 +32,7 @@ public class AwsS3CompatibleStorageDto {
   private String endpoint;
 
   @JsonProperty("enablePathStyleAddressing")
-  private Boolean enablePathStyleAddressing;
+  private Boolean forcePathStyle;
 
   @JsonProperty("storageClass")
   private String storageClass;
@@ -78,11 +78,11 @@ public class AwsS3CompatibleStorageDto {
   }
 
   public Boolean isForcePathStyle() {
-    return enablePathStyleAddressing;
+    return forcePathStyle;
   }
 
   public void setForcePathStyle(Boolean enablePathStyleAddressing) {
-    this.enablePathStyleAddressing = enablePathStyleAddressing;
+    this.forcePathStyle = enablePathStyleAddressing;
   }
 
   public String getStorageClass() {
@@ -111,13 +111,13 @@ public class AwsS3CompatibleStorageDto {
         && Objects.equals(credentials, that.credentials)
         && Objects.equals(region, that.region)
         && Objects.equals(endpoint, that.endpoint)
-        && Objects.equals(enablePathStyleAddressing, that.enablePathStyleAddressing)
+        && Objects.equals(forcePathStyle, that.forcePathStyle)
         && Objects.equals(storageClass, that.storageClass);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(bucket, path, credentials, region, endpoint,
-        enablePathStyleAddressing, storageClass);
+        forcePathStyle, storageClass);
   }
 }
