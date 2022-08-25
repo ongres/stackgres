@@ -53,8 +53,17 @@ public class StackGresDbOpsPgbenchStatus {
     return latency;
   }
 
+  public void setLatency(StackGresDbOpsPgbenchStatusLatency latency) {
+    this.latency = latency;
+  }
+
   public StackGresDbOpsPgbenchStatusTransactionsPerSecond getTransactionsPerSecond() {
     return transactionsPerSecond;
+  }
+
+  public void setTransactionsPerSecond(
+      StackGresDbOpsPgbenchStatusTransactionsPerSecond transactionsPerSecond) {
+    this.transactionsPerSecond = transactionsPerSecond;
   }
 
   @Override

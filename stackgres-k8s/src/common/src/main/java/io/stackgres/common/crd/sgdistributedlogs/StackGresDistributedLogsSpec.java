@@ -36,7 +36,7 @@ public class StackGresDistributedLogsSpec {
 
   @JsonProperty("nonProductionOptions")
   @Valid
-  private StackGresDistributedLogsNonProduction nonProduction;
+  private StackGresDistributedLogsNonProduction nonProductionOptions;
 
   @JsonProperty("scheduling")
   @Valid
@@ -69,11 +69,11 @@ public class StackGresDistributedLogsSpec {
   }
 
   public StackGresDistributedLogsNonProduction getNonProductionOptions() {
-    return nonProduction;
+    return nonProductionOptions;
   }
 
-  public void setNonProductionOptions(StackGresDistributedLogsNonProduction nonProduction) {
-    this.nonProduction = nonProduction;
+  public void setNonProductionOptions(StackGresDistributedLogsNonProduction nonProductionOptions) {
+    this.nonProductionOptions = nonProductionOptions;
   }
 
   public StackGresDistributedLogsPodScheduling getScheduling() {
@@ -127,8 +127,8 @@ public class StackGresDistributedLogsSpec {
 
   @Override
   public int hashCode() {
-    return Objects.hash(configuration, metadata, nonProduction, persistentVolume, postgresServices,
-        resourceProfile, scheduling, toInstallPostgresExtensions);
+    return Objects.hash(configuration, metadata, nonProductionOptions, persistentVolume,
+        postgresServices, resourceProfile, scheduling, toInstallPostgresExtensions);
   }
 
   @Override
@@ -142,7 +142,7 @@ public class StackGresDistributedLogsSpec {
     StackGresDistributedLogsSpec other = (StackGresDistributedLogsSpec) obj;
     return Objects.equals(configuration, other.configuration)
         && Objects.equals(metadata, other.metadata)
-        && Objects.equals(nonProduction, other.nonProduction)
+        && Objects.equals(nonProductionOptions, other.nonProductionOptions)
         && Objects.equals(persistentVolume, other.persistentVolume)
         && Objects.equals(postgresServices, other.postgresServices)
         && Objects.equals(resourceProfile, other.resourceProfile)

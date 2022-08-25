@@ -47,7 +47,7 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
   private String endpoint;
 
   @JsonProperty("enablePathStyleAddressing")
-  private Boolean enablePathStyleAddressing;
+  private Boolean forcePathStyle;
 
   @JsonProperty("storageClass")
   @ValidEnum(enumClass = StorageClassS3.class, allowNulls = true,
@@ -106,11 +106,11 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
   }
 
   public Boolean isForcePathStyle() {
-    return enablePathStyleAddressing;
+    return forcePathStyle;
   }
 
-  public void setForcePathStyle(Boolean enablePathStyleAddressing) {
-    this.enablePathStyleAddressing = enablePathStyleAddressing;
+  public void setForcePathStyle(Boolean forcePathStyle) {
+    this.forcePathStyle = forcePathStyle;
   }
 
   public String getStorageClass() {
@@ -123,7 +123,7 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(awsCredentials, bucket, enablePathStyleAddressing, endpoint, path, region,
+    return Objects.hash(awsCredentials, bucket, forcePathStyle, endpoint, path, region,
         storageClass);
   }
 
@@ -138,7 +138,7 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
     AwsS3CompatibleStorage other = (AwsS3CompatibleStorage) obj;
     return Objects.equals(awsCredentials, other.awsCredentials)
         && Objects.equals(bucket, other.bucket)
-        && Objects.equals(enablePathStyleAddressing, other.enablePathStyleAddressing)
+        && Objects.equals(forcePathStyle, other.forcePathStyle)
         && Objects.equals(endpoint, other.endpoint)
         && Objects.equals(path, other.path)
         && Objects.equals(region, other.region)
