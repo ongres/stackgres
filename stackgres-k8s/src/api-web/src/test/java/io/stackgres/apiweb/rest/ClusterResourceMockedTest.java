@@ -875,7 +875,7 @@ class ClusterResourceMockedTest extends
       assertEquals(dtoSpec.getPostgres().getVersion(), resourceSpec.getPostgres().getVersion());
       assertEquals(dtoSpec.getSgInstanceProfile(), resourceSpec.getResourceProfile());
 
-      final ClusterConfiguration dtoSpecConfigurations = dtoSpec.getConfigurations();
+      final ClusterConfiguration dtoSpecConfigurations = dtoSpec.getConfiguration();
 
       final StackGresClusterConfiguration resourceSpecConfiguration = resourceSpec
           .getConfiguration();

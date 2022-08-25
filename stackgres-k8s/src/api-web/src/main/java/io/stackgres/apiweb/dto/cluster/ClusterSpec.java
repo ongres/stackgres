@@ -35,6 +35,9 @@ public class ClusterSpec {
   @JsonProperty("initialData")
   private ClusterInitData initData;
 
+  @JsonProperty("replicateFrom")
+  private ClusterReplicateFrom replicateFrom;
+
   @JsonProperty("managedSql")
   private ClusterManagedSql managedSql;
 
@@ -83,11 +86,11 @@ public class ClusterSpec {
     this.replication = replication;
   }
 
-  public ClusterConfiguration getConfigurations() {
+  public ClusterConfiguration getConfiguration() {
     return configuration;
   }
 
-  public void setConfigurations(ClusterConfiguration configurations) {
+  public void setConfiguration(ClusterConfiguration configurations) {
     this.configuration = configurations;
   }
 
@@ -129,6 +132,14 @@ public class ClusterSpec {
 
   public void setInitData(ClusterInitData initData) {
     this.initData = initData;
+  }
+
+  public ClusterReplicateFrom getReplicateFrom() {
+    return replicateFrom;
+  }
+
+  public void setReplicateFrom(ClusterReplicateFrom replicateFrom) {
+    this.replicateFrom = replicateFrom;
   }
 
   public ClusterManagedSql getManagedSql() {
@@ -175,8 +186,8 @@ public class ClusterSpec {
   @Override
   public int hashCode() {
     return Objects.hash(configuration, distributedLogs, initData, instances, managedSql, metadata,
-        nonProductionOptions, pods, postgres, postgresServices, prometheusAutobind, replication,
-        sgInstanceProfile, toInstallPostgresExtensions);
+        nonProductionOptions, pods, postgres, postgresServices, prometheusAutobind, replicateFrom,
+        replication, sgInstanceProfile, toInstallPostgresExtensions);
   }
 
   @Override
@@ -196,6 +207,7 @@ public class ClusterSpec {
         && Objects.equals(pods, other.pods) && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresServices, other.postgresServices)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)
+        && Objects.equals(replicateFrom, other.replicateFrom)
         && Objects.equals(replication, other.replication)
         && Objects.equals(sgInstanceProfile, other.sgInstanceProfile)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
