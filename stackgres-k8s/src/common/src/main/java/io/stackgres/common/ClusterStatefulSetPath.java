@@ -5,10 +5,12 @@
 
 package io.stackgres.common;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import org.jooq.lambda.Seq;
@@ -28,7 +30,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
   LOCAL_BIN_SETUP_SCRIPTS_SH_PATH(LOCAL_BIN_PATH, "setup-scripts.sh"),
   LOCAL_BIN_RELOCATE_BINARIES_SH_PATH(LOCAL_BIN_PATH, "relocate-binaries.sh"),
   LOCAL_BIN_START_PATRONI_SH_PATH(LOCAL_BIN_PATH, "start-patroni.sh"),
-  LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH(LOCAL_BIN_PATH, "start-patroni-with-restore.sh"),
+  LOCAL_BIN_PATRONICTL_PATH(LOCAL_BIN_PATH, "patronictl"),
   LOCAL_BIN_POST_INIT_SH_PATH(LOCAL_BIN_PATH, "post-init.sh"),
   LOCAL_BIN_EXEC_WITH_ENV_PATH(LOCAL_BIN_PATH, "exec-with-env"),
   LOCAL_BIN_CREATE_BACKUP_SH_PATH(LOCAL_BIN_PATH, "create-backup.sh"),
@@ -43,6 +45,8 @@ public enum ClusterStatefulSetPath implements VolumePath {
       "dbops/major-version-upgrade/run-major-version-upgrade.sh"),
   LOCAL_BIN_RUN_RESTART_SH_PATH(LOCAL_BIN_PATH,
       "dbops/restart/run-restart.sh"),
+  LOCAL_BIN_COPY_BINARIES_SH_PATH(LOCAL_BIN_PATH,
+      "dbops/major-version-upgrade/copy-binaries.sh"),
   LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH(LOCAL_BIN_PATH,
       "dbops/major-version-upgrade/major-version-upgrade.sh"),
   LOCAL_BIN_RESET_PATRONI_SH_PATH(LOCAL_BIN_PATH,
@@ -92,6 +96,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
   BASE_ENV_PATH("/etc/env"),
   BASE_SECRET_PATH(BASE_ENV_PATH, ".secret"),
   PATRONI_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.PATRONI_ENV.substVar()),
+  PATRONI_SECRET_ENV_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.PATRONI_ENV.substVar()),
   PATRONI_CONFIG_PATH("/etc/patroni"),
   BACKUP_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.BACKUP_ENV.substVar()),
   BACKUP_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.BACKUP_ENV.substVar()),
@@ -253,11 +258,19 @@ public enum ClusterStatefulSetPath implements VolumePath {
         .build();
   }
 
-  private Map<String, String> envVars(ClusterContext context,
-                                               Map<String, String> envVars) {
-    Map<String, String> mergedEnvVars = Maps.newHashMap(context.getEnvironmentVariables());
+  private Map<String, String> envVars(
+      ClusterContext context,
+      Map<String, String> envVars) {
+    Map<String, String> mergedEnvVars = new HashMap<>(context.getEnvironmentVariables());
     mergedEnvVars.putAll(envVars);
     return Map.copyOf(mergedEnvVars);
+  }
+
+  public static List<EnvVar> envVars(ClusterContext context) {
+    return Arrays
+        .stream(values())
+        .map(path -> path.envVar(context))
+        .toList();
   }
 
 }

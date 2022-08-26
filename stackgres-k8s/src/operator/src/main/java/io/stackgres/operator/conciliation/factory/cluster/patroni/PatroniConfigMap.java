@@ -139,13 +139,11 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
     data.put("PATRONI_KUBERNETES_PORTS", getKubernetesPorts(
         cluster, pgPort, pgRawPort, babelfishPort));
-    data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
-    data.put("PATRONI_REPLICATION_USERNAME", "replicator");
     data.put("PATRONI_POSTGRESQL_LISTEN", pgHost + ":" + EnvoyUtil.PG_PORT);
     data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
         "${PATRONI_KUBERNETES_POD_IP}:" + pgRawPort);
 
-    data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
+    data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:" + EnvoyUtil.PATRONI_PORT);
     data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterStatefulSetPath.PG_DATA_PATH.path());
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
     data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterStatefulSetPath.PG_RUN_PATH.path());

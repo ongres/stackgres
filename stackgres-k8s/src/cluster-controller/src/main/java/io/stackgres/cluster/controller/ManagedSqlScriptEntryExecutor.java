@@ -6,7 +6,7 @@
 package io.stackgres.cluster.controller;
 
 import static io.stackgres.common.crd.sgscript.StackGresScriptTransactionIsolationLevel.fromString;
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_USER_NAME;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -127,7 +127,7 @@ public class ManagedSqlScriptEntryExecutor {
       throws SQLException {
     try (Connection connection = getConnection(
         scriptEntry.getScriptEntry().getDatabaseOrDefault(),
-        SUPERUSER_USER_NAME)) {
+        SUPERUSER_USERNAME)) {
       try {
         boolean managedSqlStatusTableMissing = isManagedSqlStatusTableMissing(connection);
         if (managedSqlStatusTableMissing) {

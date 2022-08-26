@@ -31,16 +31,28 @@ cluster:
     # - name: group-1
     #   role: HA_READ
     #   instances: 1
+  # replicateFrom:
+  #   instance:
+  #     external:
+  #       host:
+  #       port:
+  #       secretKeyRefs:
+  #         username:
+  #           name:
+  #           key:
+  #         password:
+  #           name:
+  #           key:
   sgInstanceProfile: size-xs
   postgresServices:
     primary:
       enabled: true
       type: ClusterIP
-#      loadBalancerIP:
+      # loadBalancerIP:
     replicas:
       enabled: true
       type: ClusterIP
-#      loadBalancerIP:
+      # loadBalancerIP:
   # metadata:
   #   annotations:
   #     allResources:

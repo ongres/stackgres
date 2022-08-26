@@ -67,6 +67,39 @@ spec:
       {{- end }}
     {{- end }}
     {{- end }}
+  {{- if .Values.cluster.replicateFrom }}
+  replicateFrom:
+    {{- if .Values.cluster.replicateFrom.instance }}
+    instance:
+      {{- if .Values.cluster.replicateFrom.instance.external }}
+      external:
+        host: {{ .Values.cluster.replicateFrom.instance.external.host }}
+        port: {{ .Values.cluster.replicateFrom.instance.external.port }}
+        secretKeyRefs:
+          superuser:
+            username:
+              name: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.superuser.username.name }}
+              key: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.superuser.username.key }}
+            password:
+              name: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.superuser.password.name }}
+              key: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.superuser.password.key }}
+          replication:
+            username:
+              name: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.replication.username.name }}
+              key: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.replication.username.key }}
+            password:
+              name: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.replication.password.name }}
+              key: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.replication.password.key }}
+          authenticator:
+            username:
+              name: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.username.name }}
+              key: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.username.key }}
+            password:
+              name: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.password.name }}
+              key: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.password.key }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
   configurations: 
     sgPostgresConfig: '{{ .Values.cluster.configurations.sgPostgresConfig }}'
     sgPoolingConfig: '{{ .Values.cluster.configurations.sgPoolingConfig }}'

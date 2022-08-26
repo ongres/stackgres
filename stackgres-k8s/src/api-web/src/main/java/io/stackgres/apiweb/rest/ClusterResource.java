@@ -5,8 +5,8 @@
 
 package io.stackgres.apiweb.rest;
 
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_PASSWORD_KEY;
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_USER_NAME;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME;
 
 import java.util.List;
 import java.util.Map;
@@ -172,7 +172,7 @@ public class ClusterResource
     serviceFinder.findByNameAndNamespace(PatroniUtil.readOnlyName(clusterName), namespace)
         .ifPresent(service -> info.setReplicasDns(StackGresUtil.getServiceDnsName(service)));
 
-    info.setSuperuserUsername(SUPERUSER_USER_NAME);
+    info.setSuperuserUsername(SUPERUSER_USERNAME);
     info.setSuperuserSecretName(clusterName);
     info.setSuperuserPasswordKey(SUPERUSER_PASSWORD_KEY);
 

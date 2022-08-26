@@ -24,9 +24,12 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.patroni.PatroniConfig;
+import io.stackgres.common.patroni.StandbyCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
@@ -63,8 +66,23 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
         cluster.getSpec().getReplication().isStrictSynchronousMode());
     patroniConf.setSynchronousNodeCount(
         cluster.getSpec().getReplication().getSyncInstances());
+
+    Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getReplicateFrom)
+        .map(StackGresClusterReplicateFrom::getInstance)
+        .map(StackGresClusterReplicateFromInstance::getExternal)
+        .ifPresent(external -> {
+          patroniConf.setStandbyCluster(new StandbyCluster());
+          patroniConf.getStandbyCluster().setHost(external.getHost());
+          patroniConf.getStandbyCluster().setPort(String.valueOf(external.getPort()));
+        });
+
     patroniConf.setPostgresql(new PatroniConfig.PostgreSql());
     patroniConf.getPostgresql().setUsePgRewind(true);
+    patroniConf.getPostgresql().setUseSlots(
+        Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getReplicateFrom)
+        .isEmpty());
     patroniConf.getPostgresql().setParameters(getPostgresConfigValues(context));
     patroniConf.getPostgresql().setRecoveryConf(getPostgresRecoveryConfigValues(context));
     return patroniConf;
