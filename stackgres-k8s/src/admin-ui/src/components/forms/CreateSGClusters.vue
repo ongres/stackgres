@@ -1330,7 +1330,7 @@
                                                         Value #{{ (valIndex + 1) }}
                                                     </label>
                                                     <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'" data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values">
-                                                    <a class="addRow" @click="spliceArray(expression.values, valIndex)">Delete</a>
+                                                    <a class="addRow" @click="spliceArray(expression.values, valIndex)" v-if="!['Gt', 'Lt'].includes(expression.operator)">Delete</a>
                                                 </div>
                                             </fieldset>
                                             <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(expression.operator)" :class="!expression.values.length && 'topBorder'">
@@ -1389,7 +1389,7 @@
                                                         Value #{{ (valIndex + 1) }}
                                                     </label>
                                                     <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'" data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values">
-                                                    <a class="addRow" @click="spliceArray(field.values, valIndex)">Delete</a>
+                                                    <a class="addRow" @click="spliceArray(field.values, valIndex)" v-if="!['Gt', 'Lt'].includes(field.operator)">Delete</a>
                                                 </div>
                                             </fieldset>
                                             <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(field.operator)" :class="!field.values.length && 'topBorder'">
@@ -1478,7 +1478,7 @@
                                                         Value #{{ (valIndex + 1) }}
                                                     </label>
                                                     <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :preferred="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'" data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values">
-                                                    <a class="addRow" @click="spliceArray(expression.values, valIndex)">Delete</a>
+                                                    <a class="addRow" @click="spliceArray(expression.values, valIndex)" v-if="!['Gt', 'Lt'].includes(expression.operator)">Delete</a>
                                                 </div>
                                             </fieldset>
                                             <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(expression.operator)" :class="!expression.values.length && 'topBorder'">
@@ -1537,7 +1537,7 @@
                                                         Value #{{ (valIndex + 1) }}
                                                     </label>
                                                     <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'" data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values">
-                                                    <a class="addRow" @click="spliceArray(field.values, valIndex)">Delete</a>
+                                                    <a class="addRow" @click="spliceArray(field.values, valIndex)" v-if="!['Gt', 'Lt'].includes(field.operator)">Delete</a>
                                                 </div>
                                             </fieldset>
                                             <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(field.operator)" :class="!field.values.length && 'topBorder'">
@@ -2598,11 +2598,16 @@
 
                     aff.forEach(function(a, affIndex) {
 
-                        let item = Object.create(a.hasOwnProperty('preference') ? a.preference : a);
+                        let item = JSON.parse(JSON.stringify(a.hasOwnProperty('preference') ? a.preference : a));
 
                         Object.keys(item).forEach(function(match) {
+
                             if(JSON.stringify(item[match]) == '[{"key":"","operator":"","values":[""]}]') {
-                                delete aff[affIndex][match];
+                                if(aff[affIndex].hasOwnProperty('preference')) {
+                                    delete aff[affIndex].preference[match];
+                                } else {
+                                    delete aff[affIndex][match];  
+                                }
                             } else {
                                 item[match].forEach(function(exp, expIndex) {
                                     if(!exp.key.length || !exp.operator.length || (exp.hasOwnProperty('values') && (exp.values == ['']) ) ) {
