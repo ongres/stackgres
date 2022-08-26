@@ -5,9 +5,9 @@
 
 package io.stackgres.cluster.controller;
 
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_DATABASE;
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_PASSWORD_KEY;
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_USER_NAME;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_DATABASE;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -95,7 +95,7 @@ public class PgBouncerAuthFileReconciliator {
     return Optional.of(secret).map(Secret::getData)
         .filter(data -> data.containsKey(SUPERUSER_PASSWORD_KEY))
         .map(data -> data.get(SUPERUSER_PASSWORD_KEY))
-        .map(ResourceUtil::dencodeSecret)
+        .map(ResourceUtil::decodeSecret)
         .orElseThrow(() -> new RuntimeException("Can not find key "
             + SUPERUSER_PASSWORD_KEY + " in secret "
             + context.getCluster().getMetadata().getName()));
@@ -122,7 +122,7 @@ public class PgBouncerAuthFileReconciliator {
     try (Connection connection = postgresConnectionManager.getConnection(
         "localhost", EnvoyUtil.PG_PORT,
         SUPERUSER_DATABASE,
-        SUPERUSER_USER_NAME,
+        SUPERUSER_USERNAME,
         postgresPassword);
         PreparedStatement statement = connection.prepareStatement(
             SELECT_PGBOUNCER_USERS_FROM_PG_SHADOW)) {

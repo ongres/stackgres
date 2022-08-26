@@ -22,6 +22,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterNonProduction;
 import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgres;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresServices;
+import io.stackgres.apiweb.dto.cluster.ClusterReplicateFrom;
 import io.stackgres.apiweb.dto.cluster.ClusterReplication;
 import io.stackgres.apiweb.dto.cluster.ClusterReplicationGroup;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
@@ -39,6 +40,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationGroup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -118,6 +120,10 @@ class ClusterTransformerTest {
     var initialData = createInitialData();
     source.setInitData(initialData.source());
     target.setInitData(initialData.target());
+
+    var replicateFrom = createReplicateFrom();
+    source.setReplicateFrom(replicateFrom.source());
+    target.setReplicateFrom(replicateFrom.target());
 
     var managedSql = createManagedSql();
     source.setManagedSql(managedSql.source());
@@ -200,6 +206,13 @@ class ClusterTransformerTest {
   private static TransformerTuple<ClusterInitData, StackGresClusterInitData> createInitialData() {
     var initialData = TransformerTestUtil
         .fillTupleWithRandomData(ClusterInitData.class, StackGresClusterInitData.class);
+    return initialData;
+  }
+
+  private static TransformerTuple<ClusterReplicateFrom, StackGresClusterReplicateFrom>
+      createReplicateFrom() {
+    var initialData = TransformerTestUtil
+        .fillTupleWithRandomData(ClusterReplicateFrom.class, StackGresClusterReplicateFrom.class);
     return initialData;
   }
 

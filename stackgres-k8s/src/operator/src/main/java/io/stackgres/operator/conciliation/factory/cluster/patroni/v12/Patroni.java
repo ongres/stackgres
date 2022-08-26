@@ -55,6 +55,7 @@ import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMount
 import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniVolumeMounts;
 
 @Singleton
 @OperatorVersionBinder(stopAt = StackGresVersion.V_1_2)
@@ -69,6 +70,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
   private final LocalBinMounts localBinMounts;
   private final RestoreVolumeMounts restoreMounts;
   private final BackupVolumeMounts backupMounts;
+  private final PatroniVolumeMounts patroniMounts;
   private final HugePagesMounts hugePagesMounts;
   private final VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
   private final ClusterDefaultScripts patroniDefaultScripts;
@@ -82,6 +84,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
       LocalBinMounts localBinMounts,
       RestoreVolumeMounts restoreMounts,
       BackupVolumeMounts backupMounts,
+      PatroniVolumeMounts patroniMounts,
       HugePagesMounts hugePagesMounts,
       VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer,
       ClusterDefaultScripts patroniDefaultScripts) {
@@ -93,6 +96,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
     this.localBinMounts = localBinMounts;
     this.restoreMounts = restoreMounts;
     this.backupMounts = backupMounts;
+    this.patroniMounts = patroniMounts;
     this.hugePagesMounts = hugePagesMounts;
     this.volumeDiscoverer = volumeDiscoverer;
     this.patroniDefaultScripts = patroniDefaultScripts;
@@ -119,13 +123,6 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
     ResourceRequirements podResources = requirementsFactory
         .createResource(clusterContext);
 
-    final String startScript = Optional
-        .ofNullable(cluster.getSpec().getInitData())
-        .map(StackGresClusterInitData::getRestore)
-        .map(StackGresClusterRestore::getFromBackup)
-        .map(StackGresClusterRestoreFromBackup::getName).isPresent()
-        ? "/start-patroni-with-restore.sh" : "/start-patroni.sh";
-
     ImmutableList.Builder<VolumeMount> volumeMounts = ImmutableList.<VolumeMount>builder()
         .addAll(postgresSocket.getVolumeMounts(context))
         .add(new VolumeMountBuilder()
@@ -137,15 +134,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
             .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
             .build())
         .addAll(localBinMounts.getVolumeMounts(context))
-        .add(
-            new VolumeMountBuilder()
-                .withName(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName())
-                .withMountPath("/etc/env/patroni")
-                .build(),
-            new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.PATRONI_CONFIG.getVolumeName())
-                .withMountPath("/etc/patroni")
-                .build())
+        .addAll(patroniMounts.getVolumeMounts(context))
         .addAll(backupMounts.getVolumeMounts(context))
         .addAll(postgresExtensions.getVolumeMounts(context))
         .addAll(hugePagesMounts.getVolumeMounts(context));
@@ -161,7 +150,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .withName(StackGresContainer.PATRONI.getName())
         .withImage(patroniImageName)
         .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.LOCAL_BIN_PATH.path() + startScript)
+            ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
         .withImagePullPolicy("IfNotPresent")
         .withPorts(
             new ContainerPortBuilder()
@@ -235,14 +224,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .addAll(localBinMounts.getDerivedEnvVars(context))
         .addAll(postgresExtensions.getDerivedEnvVars(context))
         .addAll(patroniEnvironmentVariables.createResource(context.getClusterContext()))
-        .add(new EnvVarBuilder()
-                .withName("PATRONI_CONFIG_PATH")
-                .withValue("/etc/patroni")
-                .build(),
-            new EnvVarBuilder()
-                .withName("PATRONI_ENV_PATH")
-                .withValue("/etc/env/patroni")
-                .build())
+        .addAll(patroniMounts.getDerivedEnvVars(context))
         .addAll(backupMounts.getDerivedEnvVars(context))
         .addAll(restoreMounts.getDerivedEnvVars(context))
         .addAll(hugePagesMounts.getDerivedEnvVars(context))

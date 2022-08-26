@@ -36,6 +36,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -60,6 +61,8 @@ class PatroniTest {
   @Mock
   BackupVolumeMounts backupMounts;
   @Mock
+  PatroniVolumeMounts patroniMounts;
+  @Mock
   HugePagesMounts hugePagesMounts;
 
   @Mock
@@ -70,7 +73,7 @@ class PatroniTest {
   @Mock
   private ClusterContainerContext clusterContainerContext;
 
-  @Mock
+  @Mock(answer = Answers.CALLS_REAL_METHODS)
   private StackGresClusterContext clusterContext;
 
   @Mock
@@ -82,7 +85,7 @@ class PatroniTest {
   void setUp() {
     patroni = new Patroni(patroniEnvironmentVariables, requirementsFactory,
         postgresSocket, postgresExtensions, localBinMounts, restoreMounts, backupMounts,
-        hugePagesMounts, volumeDiscoverer);
+        patroniMounts, hugePagesMounts, volumeDiscoverer);
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);

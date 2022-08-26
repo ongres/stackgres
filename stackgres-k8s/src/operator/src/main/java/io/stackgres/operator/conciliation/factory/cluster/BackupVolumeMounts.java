@@ -40,7 +40,6 @@ public class BackupVolumeMounts implements VolumeMountsProvider<ClusterContainer
     final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
         ClusterStatefulSetEnvVars.BACKUP_ENV.envVar(clusterContext),
-        ClusterStatefulSetPath.BASE_SECRET_PATH.envVar(clusterContext),
         ClusterStatefulSetPath.BACKUP_ENV_PATH.envVar(clusterContext),
         ClusterStatefulSetPath.BACKUP_SECRET_PATH.envVar(clusterContext)
     );

@@ -14,31 +14,13 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.patroni.StackGresRandomPasswordKeys;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 
 public abstract class PatroniEnvironmentVariablesFactory<T>
     implements ResourceFactory<T, List<EnvVar>> {
 
   protected List<EnvVar> createPatroniEnvVars(HasMetadata cluster) {
     return List.of(
-        new EnvVarBuilder()
-            .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
-            .withValue("${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PATRONI_ENTRY_PORT)
-            .build(),
-        new EnvVarBuilder()
-            .withName("PATRONI_RESTAPI_USERNAME")
-            .withValue("superuser")
-            .build(),
-        new EnvVarBuilder()
-            .withName("PATRONI_RESTAPI_PASSWORD")
-            .withValueFrom(new EnvVarSourceBuilder()
-                .withSecretKeyRef(
-                    new SecretKeySelectorBuilder()
-                        .withName(cluster.getMetadata().getName())
-                        .withKey(StackGresRandomPasswordKeys.RESTAPI_PASSWORD_KEY)
-                        .build())
-                .build())
-            .build(),
         new EnvVarBuilder().withName("PATRONI_NAME")
             .withValueFrom(new EnvVarSourceBuilder()
                 .withFieldRef(
@@ -68,7 +50,7 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
                         .withName(cluster.getMetadata().getName())
-                        .withKey(StackGresRandomPasswordKeys.SUPERUSER_PASSWORD_KEY)
+                        .withKey(StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY)
                         .build())
                 .build())
             .build(),
@@ -77,23 +59,27 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
                         .withName(cluster.getMetadata().getName())
-                        .withKey(StackGresRandomPasswordKeys.REPLICATION_PASSWORD_KEY)
+                        .withKey(StackGresPasswordKeys.REPLICATION_PASSWORD_KEY)
                         .build())
                 .build())
             .build(),
-        new EnvVarBuilder().withName(
-                "PATRONI_" + StackGresRandomPasswordKeys.AUTHENTICATOR_USER_NAME + "_PASSWORD")
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
+            .withValue("${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PATRONI_ENTRY_PORT)
+            .build(),
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_USERNAME")
+            .withValue("superuser")
+            .build(),
+        new EnvVarBuilder()
+            .withName("PATRONI_RESTAPI_PASSWORD")
             .withValueFrom(new EnvVarSourceBuilder()
                 .withSecretKeyRef(
                     new SecretKeySelectorBuilder()
                         .withName(cluster.getMetadata().getName())
-                        .withKey(StackGresRandomPasswordKeys.AUTHENTICATOR_PASSWORD_KEY)
+                        .withKey(StackGresPasswordKeys.RESTAPI_PASSWORD_KEY)
                         .build())
                 .build())
-            .build(),
-        new EnvVarBuilder().withName(
-                "PATRONI_" + StackGresRandomPasswordKeys.AUTHENTICATOR_USER_NAME + "_OPTIONS")
-            .withValue("superuser")
             .build());
   }
 }

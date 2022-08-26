@@ -12,6 +12,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 public enum StatefulSetDynamicVolumes {
 
   PATRONI_ENV("patroni-env", "%s"),
+  PATRONI_CREDENTIALS("patroni-secret-env", "%s"),
   SCRIPT_TEMPLATES("templates", "%s-templates"),
   BACKUP_CREDENTIALS("backup-secret", "%s-backup"),
   BACKUP_ENV("backup-env", "%s-backup"),

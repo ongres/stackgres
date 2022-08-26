@@ -9,8 +9,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
@@ -164,11 +166,23 @@ public interface ResourceUtil {
         .build();
   }
 
+  static Map<String, String> encodeSecret(Map<String, String> data) {
+    return data.entrySet().stream()
+        .map(entry -> Map.entry(entry.getKey(), encodeSecret(entry.getValue())))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
   static String encodeSecret(String string) {
     return Base64.getEncoder().encodeToString(string.getBytes(StandardCharsets.UTF_8));
   }
 
-  static String dencodeSecret(String string) {
+  static Map<String, String> decodeSecret(Map<String, String> data) {
+    return data.entrySet().stream()
+        .map(entry -> Map.entry(entry.getKey(), decodeSecret(entry.getValue())))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  static String decodeSecret(String string) {
     return new String(Base64.getDecoder().decode(string.getBytes(StandardCharsets.UTF_8)),
         StandardCharsets.UTF_8);
   }

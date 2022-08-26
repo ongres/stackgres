@@ -65,9 +65,21 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   Optional<Prometheus> getPrometheus();
 
-  Optional<Secret> getDatabaseCredentials();
+  Optional<Secret> getDatabaseSecret();
 
   Set<String> getClusterBackupNamespaces();
+
+  Optional<Secret> getExternalSuperuserUsernameSecret();
+
+  Optional<Secret> getExternalSuperuserPasswordSecret();
+
+  Optional<Secret> getExternalReplicationUsernameSecret();
+
+  Optional<Secret> getExternalReplicationPasswordSecret();
+
+  Optional<Secret> getExternalAuthenticatorUsernameSecret();
+
+  Optional<Secret> getExternalAuthenticatorPasswordSecret();
 
   default Optional<String> getBackupPath() {
     Optional<@NotNull StackGresClusterConfiguration> config = Optional.of(getCluster())

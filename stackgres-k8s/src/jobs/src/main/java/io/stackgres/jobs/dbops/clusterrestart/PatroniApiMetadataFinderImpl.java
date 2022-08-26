@@ -13,6 +13,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 
 @ApplicationScoped
 public class PatroniApiMetadataFinderImpl implements PatroniApiMetadataFinder {
@@ -83,6 +84,6 @@ public class PatroniApiMetadataFinderImpl implements PatroniApiMetadataFinder {
   }
 
   protected String getPatroniUser() {
-    return "superuser";
+    return StackGresPasswordKeys.RESTAPI_USERNAME;
   }
 }

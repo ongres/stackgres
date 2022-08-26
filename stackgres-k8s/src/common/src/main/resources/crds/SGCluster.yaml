@@ -978,6 +978,113 @@ spec:
                                     type: string
                                     description: |
                                       The key name within the ConfigMap that contains the SQL script to execute.
+                replicateFrom:
+                  type: object
+                  description: |
+                    Make the cluster a read-only standby replica allowing to replicate from another PostgreSQL instance and acting as a rely.
+                  properties:
+                    instance:
+                      type: object
+                      description: |
+                        Configure replication from a PostgreSQL instance.
+                      properties:
+                        external:
+                          type: object
+                          description: |
+                            Configure replication from an external PostgreSQL instance.
+                          properties:
+                            host:
+                              type: string
+                              description: The host of the PostgreSQL to replicate from.
+                            port:
+                              type: integer
+                              description: The port of the PostgreSQL to replicate from.
+                            secretKeyRefs:
+                              type: object
+                              description: |
+                                A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the credentials of the users.
+                              properties:
+                                superuser:
+                                  type: object
+                                  description: |
+                                    A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the credentials of the superuser (usually the postgres user).
+                                  properties:
+                                    username:
+                                      type: object
+                                      description: |
+                                        A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the username of the user.
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        key:
+                                          type: string
+                                          description: The key of the secret to select from. Must be a valid secret key.
+                                    password:
+                                      type: object
+                                      description: |
+                                        A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the password of the user.
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        key:
+                                          type: string
+                                          description: The key of the secret to select from. Must be a valid secret key.
+                                replication:
+                                  type: object
+                                  description: |
+                                    A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the credentials of the replication user used to replicate from the primary cluster and from replicas of this cluster.
+                                  properties:
+                                    username:
+                                      type: object
+                                      description: |
+                                        A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the username of the user.
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        key:
+                                          type: string
+                                          description: The key of the secret to select from. Must be a valid secret key.
+                                    password:
+                                      type: object
+                                      description: |
+                                        A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the password of the user.
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        key:
+                                          type: string
+                                          description: The key of the secret to select from. Must be a valid secret key.
+                                authenticator:
+                                  type: object
+                                  description: |
+                                    A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the credentials of the authenticator user used by pgbouncer to authenticate other users.
+                                  properties:
+                                    username:
+                                      type: object
+                                      description: |
+                                        A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the username of the user.
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        key:
+                                          type: string
+                                          description: The key of the secret to select from. Must be a valid secret key.
+                                    password:
+                                      type: object
+                                      description: |
+                                        A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the password of the user.
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        key:
+                                          type: string
+                                          description: The key of the secret to select from. Must be a valid secret key.
                 prometheusAutobind:
                   type: boolean
                   description: |
