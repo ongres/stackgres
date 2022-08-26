@@ -65,7 +65,7 @@ class ClusterRequiredResourceDecoratorTest
         .backupConfig(backupConfig)
         .poolingConfig(pooling)
         .prometheus(new Prometheus(false, null))
-        .databaseCredentials(secret)
+        .databaseSecret(secret)
         .build();
   }
 

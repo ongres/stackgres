@@ -12,8 +12,10 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
+import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
@@ -31,6 +33,9 @@ public class DataPathsInitializer implements ContainerFactory<DistributedLogsCon
 
   @Override
   public Container getContainer(DistributedLogsContainerContext context) {
+    final ClusterContext clusterContext = () -> StackGresDistributedLogsUtil
+        .getStackGresClusterForDistributedLogs(context.getDistributedLogsContext().getSource());
+
     return new ContainerBuilder()
         .withName(StackGresInitContainer.SETUP_DATA_PATHS.getName())
         .withImage(kubectl
@@ -39,7 +44,7 @@ public class DataPathsInitializer implements ContainerFactory<DistributedLogsCon
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
                 + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
-        .withEnv(PatroniEnvPaths.getEnvVars())
+        .withEnv(PatroniEnvPaths.envVars(clusterContext))
         .addToEnv(new EnvVarBuilder().withName("HOME").withValue("/tmp").build())
         .withVolumeMounts(
             new VolumeMountBuilder()

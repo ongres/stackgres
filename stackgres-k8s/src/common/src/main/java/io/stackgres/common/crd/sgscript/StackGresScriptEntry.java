@@ -5,8 +5,8 @@
 
 package io.stackgres.common.crd.sgscript;
 
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_DATABASE;
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_USER_NAME;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_DATABASE;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -144,7 +144,7 @@ public class StackGresScriptEntry {
 
   @JsonIgnore
   public String getUserOrDefault() {
-    return Optional.ofNullable(user).orElse(SUPERUSER_USER_NAME);
+    return Optional.ofNullable(user).orElse(SUPERUSER_USERNAME);
   }
 
   public void setUser(String user) {

@@ -11,7 +11,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
@@ -24,7 +23,7 @@ public abstract class AbstractPostgresUtil
 
   @Override
   public Map<String, String> getComponentVersions(ClusterContainerContext context) {
-    return ImmutableMap.of(
+    return Map.of(
         StackGresContext.POSTGRES_VERSION_KEY,
         getPostgresFlavorComponent(context.getClusterContext().getCluster())
         .get(context.getClusterContext().getCluster())

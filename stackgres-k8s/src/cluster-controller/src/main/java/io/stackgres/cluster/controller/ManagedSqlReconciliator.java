@@ -279,7 +279,7 @@ public class ManagedSqlReconciliator {
                 "Secret " + secretKeyRef.getName() + " not found")))
             .map(Secret::getData)
             .map(data -> data.get(secretKeyRef.getKey()))
-            .map(ResourceUtil::dencodeSecret)
+            .map(ResourceUtil::decodeSecret)
             .orElseThrow(() -> new IllegalArgumentException(
                 "Key " + secretKeyRef.getKey() + " not found in Secret "
                     + secretKeyRef.getName()));

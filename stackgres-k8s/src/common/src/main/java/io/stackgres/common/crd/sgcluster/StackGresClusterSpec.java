@@ -58,6 +58,10 @@ public class StackGresClusterSpec {
   @Valid
   private StackGresClusterInitData initData;
 
+  @JsonProperty("replicateFrom")
+  @Valid
+  private StackGresClusterReplicateFrom replicateFrom;
+
   @JsonProperty("managedSql")
   @Valid
   private StackGresClusterManagedSql managedSql;
@@ -189,6 +193,14 @@ public class StackGresClusterSpec {
     this.initData = initData;
   }
 
+  public StackGresClusterReplicateFrom getReplicateFrom() {
+    return replicateFrom;
+  }
+
+  public void setReplicateFrom(StackGresClusterReplicateFrom replicateFrom) {
+    this.replicateFrom = replicateFrom;
+  }
+
   public StackGresClusterManagedSql getManagedSql() {
     return managedSql;
   }
@@ -257,8 +269,8 @@ public class StackGresClusterSpec {
   @Override
   public int hashCode() {
     return Objects.hash(configuration, distributedLogs, initData, instances, managedSql, metadata,
-        nonProductionOptions, pod, postgres, postgresServices, prometheusAutobind, replication,
-        resourceProfile, toInstallPostgresExtensions);
+        nonProductionOptions, pod, postgres, postgresServices, prometheusAutobind, replicateFrom,
+        replication, resourceProfile, toInstallPostgresExtensions);
   }
 
   @Override
@@ -278,6 +290,7 @@ public class StackGresClusterSpec {
         && Objects.equals(pod, other.pod) && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresServices, other.postgresServices)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)
+        && Objects.equals(replicateFrom, other.replicateFrom)
         && Objects.equals(replication, other.replication)
         && Objects.equals(resourceProfile, other.resourceProfile)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);

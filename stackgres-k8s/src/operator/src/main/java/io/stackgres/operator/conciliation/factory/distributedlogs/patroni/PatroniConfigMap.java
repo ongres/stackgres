@@ -113,16 +113,14 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
     data.put("PATRONI_KUBERNETES_LABELS", patroniClusterLabelsAsJson);
     data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
     data.put("PATRONI_KUBERNETES_PORTS", getKubernetesPorts(pgPort, pgRawPort));
-    data.put("PATRONI_SUPERUSER_USERNAME", "postgres");
-    data.put("PATRONI_REPLICATION_USERNAME", "replicator");
     data.put("PATRONI_POSTGRESQL_LISTEN", pgHost + ":" + EnvoyUtil.PG_PORT);
     data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
         "${PATRONI_KUBERNETES_POD_IP}:" + pgRawPort);
 
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
-    data.put("PATRONI_POSTGRESQL_DATA_DIR", PatroniEnvPaths.PG_DATA_PATH.getPath());
+    data.put("PATRONI_POSTGRESQL_DATA_DIR", PatroniEnvPaths.PG_DATA_PATH.path());
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
-    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", PatroniEnvPaths.PG_RUN_PATH.getPath());
+    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", PatroniEnvPaths.PG_RUN_PATH.path());
 
     if (PATRONI_LOGGER.isTraceEnabled()) {
       data.put("PATRONI_LOG_LEVEL", "DEBUG");

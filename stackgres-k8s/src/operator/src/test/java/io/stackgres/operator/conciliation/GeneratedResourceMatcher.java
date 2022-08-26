@@ -40,7 +40,7 @@ public class GeneratedResourceMatcher {
 
   private StackGresPostgresConfig stackGresPostgresConfig;
   private StackGresProfile stackGresProfile;
-  private Secret databaseCredentials;
+  private Secret databaseSecret;
 
   private GeneratedResourceMatcher(
       StackGresCluster cluster,
@@ -71,7 +71,7 @@ public class GeneratedResourceMatcher {
         .source(cluster)
         .profile(stackGresProfile)
         .postgresConfig(stackGresPostgresConfig)
-        .databaseCredentials(Optional.ofNullable(databaseCredentials))
+        .databaseSecret(Optional.ofNullable(databaseSecret))
         .prometheus(new Prometheus(false, null))
         .build();
   }
@@ -113,7 +113,7 @@ public class GeneratedResourceMatcher {
   }
 
   public GeneratedResourceMatcher andDatabaseCredentials(Secret databaseCredentials) {
-    this.databaseCredentials = databaseCredentials;
+    this.databaseSecret = databaseCredentials;
     return this;
   }
 

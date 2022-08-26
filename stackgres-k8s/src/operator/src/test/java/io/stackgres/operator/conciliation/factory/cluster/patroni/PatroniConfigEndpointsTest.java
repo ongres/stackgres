@@ -32,6 +32,10 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternalSecretKeyRefs;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.fixture.Fixtures;
@@ -193,7 +197,48 @@ class PatroniConfigEndpointsTest {
     assertEquals(10, patroniConfig.getLoopWait());
     assertEquals(10, patroniConfig.getRetryTimeout());
     assertTrue(patroniConfig.getPostgresql().getUsePgRewind());
-    assertNull(patroniConfig.getPostgresql().getUseSlots());
+    assertTrue(patroniConfig.getPostgresql().getUseSlots());
+    assertNull(patroniConfig.getStandbyCluster());
+  }
+
+  @Test
+  void generatedEndpointWithReplicateFrom_shouldBeConfiguredAccordingly()
+      throws JsonProcessingException {
+    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
+    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
+    cluster.getSpec().getReplicateFrom().getInstance()
+        .setExternal(new StackGresClusterReplicateFromExternal());
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
+        .setHost("test");
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
+        .setPort(5433);
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
+        .setSecretKeyRefs(new StackGresClusterReplicateFromExternalSecretKeyRefs());
+    Endpoints endpoints = generateEndpoint();
+
+    final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
+    assertTrue(annotations.containsKey(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY));
+
+    PatroniConfig patroniConfig = JSON_MAPPER
+        .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY),
+            PatroniConfig.class);
+    final String version = postgresConfig.getSpec().getPostgresVersion();
+    PostgresDefaultValues.getDefaultValues(version).forEach(
+        (key, value) -> assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key),
+            "Patroni config for postgres does not contain parameter " + key));
+    assertEquals(30, patroniConfig.getTtl());
+    assertEquals(10, patroniConfig.getLoopWait());
+    assertEquals(10, patroniConfig.getRetryTimeout());
+    assertTrue(patroniConfig.getPostgresql().getUsePgRewind());
+    assertFalse(patroniConfig.getPostgresql().getUseSlots());
+    assertNotNull(patroniConfig.getStandbyCluster());
+    assertEquals("test", patroniConfig.getStandbyCluster().getHost());
+    assertEquals("5433", patroniConfig.getStandbyCluster().getPort());
+    assertNull(patroniConfig.getStandbyCluster().getCreateReplicaMethods());
+    assertNull(patroniConfig.getStandbyCluster().getArchiveCleanupCommand());
+    assertNull(patroniConfig.getStandbyCluster().getPrimarySlotName());
+    assertNull(patroniConfig.getStandbyCluster().getRecoveryMinApplyDelay());
+    assertNull(patroniConfig.getStandbyCluster().getRestoreCommand());
   }
 
   private Endpoints generateEndpoint() {
