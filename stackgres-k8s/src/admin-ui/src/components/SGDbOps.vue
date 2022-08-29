@@ -629,7 +629,7 @@
                             <tbody>
                                 <tr>
                                     <td class="label">
-                                        Link
+                                        Hard Link Files
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.link')"></span>
                                     </td>
                                     <td>
@@ -638,7 +638,7 @@
                                 </tr>
                                 <tr>
                                     <td class="label">
-                                        Clone
+                                        Clone Files
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.clone')"></span>
                                     </td>
                                     <td>
@@ -647,7 +647,7 @@
                                 </tr>
                                 <tr>
                                     <td class="label">
-                                        Check
+                                        Check Clusters
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.check')"></span>
                                     </td>
                                     <td>
@@ -774,7 +774,7 @@
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.restart.onlyPendingRestart')"></span> 
                                     </td>
                                     <td>
-                                        {{ op.data.spec.restart.onlyPendingRestart }}
+                                        {{ isEnabled(op.data.spec.restart.onlyPendingRestart) }}
                                     </td>
                                 </tr>
                             </tbody>
