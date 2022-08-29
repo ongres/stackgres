@@ -3,28 +3,22 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory;
+package io.stackgres.operator.conciliation.factory.cluster;
 
 import java.util.List;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ContainerContext;
 import org.immutables.value.Value;
 
 @Value.Immutable
-public interface PostgresContainerContext extends ContainerContext {
+public interface ClusterContainerContext extends ContainerContext {
 
-  String getPostgresVersion();
-
-  String getPostgresMajorVersion();
-
-  String getImageBuildMajorVersion();
+  StackGresClusterContext getClusterContext();
 
   Optional<String> getOldPostgresVersion();
-
-  Optional<String> getOldMajorVersion();
-
-  Optional<String> getOldImageBuildMajorVersion();
 
   List<StackGresClusterInstalledExtension> getInstalledExtensions();
 

@@ -22,11 +22,10 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
-import io.stackgres.operator.conciliation.factory.ContextUtil;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.PostgresExtensionMounts;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
+import io.stackgres.operator.conciliation.factory.distributedlogs.PostgresExtensionMounts;
 
 @Singleton
 @OperatorVersionBinder
@@ -74,7 +73,7 @@ public class InitRelocateBinaries implements ContainerFactory<DistributedLogsCon
   }
 
   public List<EnvVar> getEnvVars(DistributedLogsContainerContext context) {
-    return postgresExtensionsMounts.getDerivedEnvVars(ContextUtil.toPostgresContext(context));
+    return postgresExtensionsMounts.getDerivedEnvVars(context);
   }
 
 }

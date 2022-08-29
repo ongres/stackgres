@@ -23,12 +23,12 @@ import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.SETUP_DATA_PATHS)
-public class DataPathsInitializer implements ContainerFactory<StackGresClusterContainerContext> {
+public class DataPathsInitializer implements ContainerFactory<ClusterContainerContext> {
 
   private final PostgresDataMounts postgresDataMounts;
 
@@ -50,7 +50,7 @@ public class DataPathsInitializer implements ContainerFactory<StackGresClusterCo
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresInitContainer.SETUP_DATA_PATHS.getName())
         .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
@@ -66,7 +66,7 @@ public class DataPathsInitializer implements ContainerFactory<StackGresClusterCo
         .build();
   }
 
-  private List<EnvVar> getClusterEnvVars(StackGresClusterContainerContext context) {
+  private List<EnvVar> getClusterEnvVars(ClusterContainerContext context) {
     return postgresDataMounts.getDerivedEnvVars(context);
   }
 

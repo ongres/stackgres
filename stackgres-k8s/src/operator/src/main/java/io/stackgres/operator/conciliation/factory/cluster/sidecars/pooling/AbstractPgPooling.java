@@ -32,12 +32,12 @@ import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractPgPooling
-    implements ContainerFactory<StackGresClusterContainerContext>,
+    implements ContainerFactory<ClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
 
   protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
@@ -56,9 +56,9 @@ public abstract class AbstractPgPooling
   protected abstract Map<String, String> getDefaultParameters();
 
   @Override
-  public boolean isActivated(StackGresClusterContainerContext context) {
+  public boolean isActivated(ClusterContainerContext context) {
     return Optional.ofNullable(context)
-        .map(StackGresClusterContainerContext::getClusterContext)
+        .map(ClusterContainerContext::getClusterContext)
         .map(StackGresClusterContext::getSource)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPod)
@@ -95,7 +95,7 @@ public abstract class AbstractPgPooling
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresContainer.PGBOUNCER.getName())
         .withImage(StackGresComponent.PGBOUNCER.get(context.getClusterContext().getCluster())
@@ -106,14 +106,14 @@ public abstract class AbstractPgPooling
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
+  public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.PGBOUNCER_VERSION_KEY,
         StackGresComponent.PGBOUNCER.get(context.getClusterContext().getCluster())
         .getLatestVersion());
   }
 
-  protected abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);
+  protected abstract List<VolumeMount> getVolumeMounts(ClusterContainerContext context);
 
   protected abstract String getConfigFile(StackGresClusterContext context);
 

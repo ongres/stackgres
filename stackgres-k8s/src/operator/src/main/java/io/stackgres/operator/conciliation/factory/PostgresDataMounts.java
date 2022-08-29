@@ -11,7 +11,6 @@ import javax.enterprise.context.ApplicationScoped;
 
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
@@ -32,15 +31,9 @@ public class PostgresDataMounts implements VolumeMountsProvider<ContainerContext
 
   @Override
   public List<EnvVar> getDerivedEnvVars(ContainerContext context) {
-    return ImmutableList.<EnvVar>builder()
-        .add(new EnvVarBuilder()
-            .withName("PG_BASE_PATH")
-            .withValue(ClusterStatefulSetPath.PG_BASE_PATH.path())
-            .build())
-        .add(new EnvVarBuilder()
-            .withName("PG_DATA_PATH")
-            .withValue(ClusterStatefulSetPath.PG_DATA_PATH.path())
-            .build())
-        .build();
+    return List.of(
+        ClusterStatefulSetPath.PG_BASE_PATH.envVar(),
+        ClusterStatefulSetPath.PG_DATA_PATH.envVar()
+        );
   }
 }

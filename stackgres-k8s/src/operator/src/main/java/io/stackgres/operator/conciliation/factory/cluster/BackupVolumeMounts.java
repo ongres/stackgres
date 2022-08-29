@@ -10,48 +10,39 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
+import io.stackgres.common.ClusterContext;
+import io.stackgres.common.ClusterStatefulSetEnvVars;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 
 @ApplicationScoped
-public class BackupVolumeMounts implements VolumeMountsProvider<ContainerContext> {
+public class BackupVolumeMounts implements VolumeMountsProvider<ClusterContainerContext> {
 
   @Override
-  public List<VolumeMount> getVolumeMounts(ContainerContext context) {
+  public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
+    final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
         new VolumeMountBuilder()
             .withName(StatefulSetDynamicVolumes.BACKUP_ENV.getVolumeName())
-            .withMountPath("/etc/env/backup")
+            .withMountPath(ClusterStatefulSetPath.BACKUP_ENV_PATH.path(clusterContext))
             .build(),
         new VolumeMountBuilder()
             .withName(StatefulSetDynamicVolumes.BACKUP_CREDENTIALS.getVolumeName())
-            .withMountPath("/etc/env/.secret/backup")
+            .withMountPath(ClusterStatefulSetPath.BACKUP_SECRET_PATH.path(clusterContext))
             .build()
     );
   }
 
   @Override
-  public List<EnvVar> getDerivedEnvVars(ContainerContext context) {
+  public List<EnvVar> getDerivedEnvVars(ClusterContainerContext context) {
+    final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
-        new EnvVarBuilder()
-            .withName("BACKUP_ENV")
-            .withValue("backup")
-        .build(),
-        new EnvVarBuilder()
-            .withName("BASE_SECRET_PATH")
-            .withValue("/etc/env/.secret")
-            .build(),
-        new EnvVarBuilder()
-            .withName("BACKUP_ENV_PATH")
-            .withValue("/etc/env/backup")
-            .build(),
-        new EnvVarBuilder()
-            .withName("BACKUP_SECRET_PATH")
-            .withValue("/etc/env/.secret/backup")
-            .build()
+        ClusterStatefulSetEnvVars.BACKUP_ENV.envVar(clusterContext),
+        ClusterStatefulSetPath.BASE_SECRET_PATH.envVar(clusterContext),
+        ClusterStatefulSetPath.BACKUP_ENV_PATH.envVar(clusterContext),
+        ClusterStatefulSetPath.BACKUP_SECRET_PATH.envVar(clusterContext)
     );
   }
 }

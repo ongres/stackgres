@@ -46,7 +46,7 @@ import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
 @Sidecar(StackGresContainer.POSTGRES_EXPORTER)
 @OperatorVersionBinder(startAt = StackGresVersion.V_1_4)
 @RunningContainer(StackGresContainer.POSTGRES_EXPORTER)
-public class PostgresExporter implements ContainerFactory<StackGresClusterContainerContext>,
+public class PostgresExporter implements ContainerFactory<ClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
 
   public static final String POSTGRES_EXPORTER_PORT_NAME = "pgexporter";
@@ -78,7 +78,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
   }
 
   @Override
-  public boolean isActivated(StackGresClusterContainerContext context) {
+  public boolean isActivated(ClusterContainerContext context) {
     return Optional.of(context.getClusterContext().getCluster())
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPod)
@@ -88,7 +88,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     StackGresCluster cluster = context.getClusterContext().getSource();
     ContainerBuilder container = new ContainerBuilder();
     container.withName(StackGresContainer.POSTGRES_EXPORTER.getName())
@@ -161,7 +161,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
+  public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY,
         StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER

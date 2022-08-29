@@ -36,16 +36,15 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.ContextUtil;
 import io.stackgres.operator.conciliation.factory.FactoryName;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
-import io.stackgres.operator.conciliation.factory.PostgresExtensionMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
 import io.stackgres.operator.conciliation.factory.distributedlogs.HugePagesMounts;
+import io.stackgres.operator.conciliation.factory.distributedlogs.PostgresExtensionMounts;
 import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
@@ -176,7 +175,7 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
                 .withSubPath("distributed-logs-template.sql")
                 .withReadOnly(true)
                 .build())
-        .addAll(postgresExtensions.getVolumeMounts(ContextUtil.toPostgresContext(context)))
+        .addAll(postgresExtensions.getVolumeMounts(context))
         .addAll(hugePagesMounts.getVolumeMounts(context))
         .build();
   }
@@ -185,7 +184,7 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
 
     final List<EnvVar> localBinMountsEnvVars = localBinMounts.getDerivedEnvVars(context);
     final List<EnvVar> postgresExtensionsEnvVars = postgresExtensions
-        .getDerivedEnvVars(ContextUtil.toPostgresContext(context));
+        .getDerivedEnvVars(context);
     final List<EnvVar> resource = envVarFactory
         .createResource(context.getDistributedLogsContext());
     return ImmutableList.<EnvVar>builder()

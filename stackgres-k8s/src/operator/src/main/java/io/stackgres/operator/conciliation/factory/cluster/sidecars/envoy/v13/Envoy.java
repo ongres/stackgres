@@ -46,7 +46,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import org.jooq.lambda.Seq;
 
 @Singleton
@@ -69,7 +69,7 @@ public class Envoy extends AbstractEnvoy {
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(StackGresContainer.ENVOY.getName())
         .withImage(StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
@@ -287,7 +287,7 @@ public class Envoy extends AbstractEnvoy {
   }
 
   @Override
-  public List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context) {
+  public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     return Seq.seq(containerUserOverrideMounts.getVolumeMounts(context))
         .append(Optional.ofNullable(context.getClusterContext().getSource().getSpec())
             .map(StackGresClusterSpec::getPostgres)

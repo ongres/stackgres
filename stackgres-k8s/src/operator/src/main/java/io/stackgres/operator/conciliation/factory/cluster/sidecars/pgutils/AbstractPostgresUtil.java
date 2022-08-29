@@ -15,15 +15,15 @@ import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 
 public abstract class AbstractPostgresUtil
-    implements ContainerFactory<StackGresClusterContainerContext> {
+    implements ContainerFactory<ClusterContainerContext> {
 
   protected PostgresSocketMount postgresSocket;
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
+  public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.POSTGRES_VERSION_KEY,
         getPostgresFlavorComponent(context.getClusterContext().getCluster())

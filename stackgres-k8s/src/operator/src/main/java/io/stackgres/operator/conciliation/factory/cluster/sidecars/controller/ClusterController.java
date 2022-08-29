@@ -35,14 +35,14 @@ import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
 @Sidecar(StackGresContainer.CLUSTER_CONTROLLER)
 @OperatorVersionBinder
 @RunningContainer(StackGresContainer.CLUSTER_CONTROLLER)
-public class ClusterController implements ContainerFactory<StackGresClusterContainerContext> {
+public class ClusterController implements ContainerFactory<ClusterContainerContext> {
 
   private final PostgresDataMounts postgresDataMounts;
   private final ContainerUserOverrideMounts userContainerMounts;
@@ -59,7 +59,7 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresContainer.CLUSTER_CONTROLLER.getName())
         .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
@@ -161,7 +161,7 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
+  public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY,
         StackGresController.CLUSTER_CONTROLLER.getVersion());

@@ -31,13 +31,13 @@ import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractFluentBit implements
-    ContainerFactory<StackGresClusterContainerContext>,
+    ContainerFactory<ClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
 
   private static final String CONFIG_SUFFIX = "-fluent-bit";
@@ -63,12 +63,12 @@ public abstract class AbstractFluentBit implements
   }
 
   @Override
-  public boolean isActivated(StackGresClusterContainerContext context) {
+  public boolean isActivated(ClusterContainerContext context) {
     return context.getClusterContext().getSource().getSpec().getDistributedLogs() != null;
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
+  public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.FLUENTBIT_VERSION_KEY,
         StackGresComponent.FLUENT_BIT.get(context.getClusterContext().getCluster())
@@ -76,7 +76,7 @@ public abstract class AbstractFluentBit implements
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresContainer.FLUENT_BIT.getName())
         .withImage(StackGresComponent.FLUENT_BIT.get(context.getClusterContext().getCluster())
@@ -130,10 +130,10 @@ public abstract class AbstractFluentBit implements
         .build();
   }
 
-  protected abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);
+  protected abstract List<VolumeMount> getVolumeMounts(ClusterContainerContext context);
 
   protected abstract List<EnvVar> getContainerEnvironmentVariables(
-      StackGresClusterContainerContext context);
+      ClusterContainerContext context);
 
   @Override
   public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {

@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -30,19 +28,18 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.ImmutablePostgresContainerContext;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.MajorVersionUpgradeMounts;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
-import io.stackgres.operator.conciliation.factory.PostgresContainerContext;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ImmutableClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.MAJOR_VERSION_UPGRADE)
-public class MajorVersionUpgradeInit implements ContainerFactory<StackGresClusterContainerContext> {
+public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContainerContext> {
 
   private final MajorVersionUpgradeMounts majorVersionUpgradeMounts;
   private final ScriptTemplatesVolumeMounts templateMounts;
@@ -56,7 +53,7 @@ public class MajorVersionUpgradeInit implements ContainerFactory<StackGresCluste
   }
 
   @Override
-  public boolean isActivated(StackGresClusterContainerContext context) {
+  public boolean isActivated(ClusterContainerContext context) {
     return Optional.of(context.getClusterContext().getSource())
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getDbOps)
@@ -64,7 +61,7 @@ public class MajorVersionUpgradeInit implements ContainerFactory<StackGresCluste
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
     StackGresClusterDbOpsMajorVersionUpgradeStatus majorVersionUpgradeStatus =
         Optional.of(clusterContext.getSource())
@@ -76,9 +73,6 @@ public class MajorVersionUpgradeInit implements ContainerFactory<StackGresCluste
     String primaryInstance = majorVersionUpgradeStatus.getPrimaryInstance();
     String targetVersion = majorVersionUpgradeStatus.getTargetPostgresVersion();
     String sourceVersion = majorVersionUpgradeStatus.getSourcePostgresVersion();
-    String sourceMajorVersion = getPostgresFlavorComponent(clusterContext.getCluster())
-        .get(clusterContext.getCluster())
-        .getMajorVersion(sourceVersion);
     String locale = majorVersionUpgradeStatus.getLocale();
     String encoding = majorVersionUpgradeStatus.getEncoding();
     String dataChecksum = majorVersionUpgradeStatus.getDataChecksum().toString();
@@ -89,20 +83,9 @@ public class MajorVersionUpgradeInit implements ContainerFactory<StackGresCluste
     final String targetPatroniImageName = StackGresUtil.getPatroniImageName(
         clusterContext.getCluster(), targetVersion);
 
-    final PostgresContainerContext postgresContainerContext =
-        ImmutablePostgresContainerContext.builder()
+    final ClusterContainerContext majorVersoinUpgradeContainerContext =
+        ImmutableClusterContainerContext.builder()
             .from(context)
-            .postgresMajorVersion(getPostgresFlavorComponent(clusterContext.getCluster())
-                .get(clusterContext.getCluster())
-                .getMajorVersion(targetVersion))
-            .oldMajorVersion(sourceMajorVersion)
-            .imageBuildMajorVersion(getPostgresFlavorComponent(clusterContext.getCluster())
-                .get(clusterContext.getCluster())
-                .getBuildMajorVersion(targetVersion))
-            .oldImageBuildMajorVersion(getPostgresFlavorComponent(clusterContext.getCluster())
-                .get(clusterContext.getCluster())
-                .getBuildMajorVersion(sourceVersion))
-            .postgresVersion(targetVersion)
             .oldPostgresVersion(sourceVersion)
             .build();
     return
@@ -166,10 +149,11 @@ public class MajorVersionUpgradeInit implements ContainerFactory<StackGresCluste
                         .build())
                     .build(),
                 ClusterStatefulSetPath.ETC_POSTGRES_PATH.envVar())
-            .addAllToEnv(majorVersionUpgradeMounts.getDerivedEnvVars(postgresContainerContext))
+            .addAllToEnv(majorVersionUpgradeMounts
+                .getDerivedEnvVars(majorVersoinUpgradeContainerContext))
             .withVolumeMounts(templateMounts.getVolumeMounts(context))
             .addAllToVolumeMounts(
-                majorVersionUpgradeMounts.getVolumeMounts(postgresContainerContext)
+                majorVersionUpgradeMounts.getVolumeMounts(majorVersoinUpgradeContainerContext)
             )
             .addToVolumeMounts(new VolumeMountBuilder()
                 .withName(PatroniStaticVolume.DSHM.getVolumeName())

@@ -25,12 +25,12 @@ import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.SETUP_SCRIPTS)
-public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerContext> {
+public class ScriptsSetUp implements ContainerFactory<ClusterContainerContext> {
 
   private final ContainerUserOverrideMounts containerUserOverrideMounts;
   private final LocalBinMounts localBinMounts;
@@ -50,7 +50,7 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerC
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresInitContainer.SETUP_SCRIPTS.getName())
         .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
@@ -66,7 +66,7 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerC
         .build();
   }
 
-  private List<EnvVar> getClusterEnvVars(StackGresClusterContainerContext context) {
+  private List<EnvVar> getClusterEnvVars(ClusterContainerContext context) {
     return ImmutableList.<EnvVar>builder()
         .addAll(localBinMounts.getDerivedEnvVars(context))
         .addAll(templateMounts.getDerivedEnvVars(context))

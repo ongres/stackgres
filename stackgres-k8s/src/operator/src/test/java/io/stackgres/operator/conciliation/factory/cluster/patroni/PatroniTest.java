@@ -24,14 +24,14 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
-import io.stackgres.operator.conciliation.factory.PostgresExtensionMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.BackupVolumeMounts;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
+import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
 import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +68,7 @@ class PatroniTest {
   private Patroni patroni;
 
   @Mock
-  private StackGresClusterContainerContext clusterContainerContext;
+  private ClusterContainerContext clusterContainerContext;
 
   @Mock
   private StackGresClusterContext clusterContext;
@@ -87,7 +87,6 @@ class PatroniTest {
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
     when(requirementsFactory.createResource(clusterContext)).thenReturn(podResources);
-    when(clusterContainerContext.getDataVolumeName()).thenReturn("test");
     when(patroniEnvironmentVariables.createResource(clusterContext)).thenReturn(List.of());
     when(volumeDiscoverer.discoverVolumes(clusterContext))
         .thenReturn(Map.of(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName(),

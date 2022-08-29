@@ -23,10 +23,10 @@ import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 
 @ApplicationScoped
-public class HugePagesMounts implements VolumeMountsProvider<StackGresClusterContainerContext> {
+public class HugePagesMounts implements VolumeMountsProvider<ClusterContainerContext> {
 
   @Override
-  public List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context) {
+  public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     if (Optional.of(context.getClusterContext().getSource().getSpec())
         .map(StackGresClusterSpec::getNonProductionOptions)
         .map(StackGresClusterNonProduction::getDisablePatroniResourceRequirements)
@@ -55,7 +55,7 @@ public class HugePagesMounts implements VolumeMountsProvider<StackGresClusterCon
   }
 
   @Override
-  public List<EnvVar> getDerivedEnvVars(StackGresClusterContainerContext context) {
+  public List<EnvVar> getDerivedEnvVars(ClusterContainerContext context) {
     return List.of(
         ClusterStatefulSetPath.HUGEPAGES_2M_PATH.envVar(),
         ClusterStatefulSetPath.HUGEPAGES_1G_PATH.envVar()

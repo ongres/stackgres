@@ -32,8 +32,8 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.LogVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Sidecar(StackGresContainer.FLUENT_BIT)
@@ -52,7 +52,7 @@ public class FluentBit extends AbstractFluentBit {
   }
 
   @Override
-  protected List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context) {
+  protected List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     return ImmutableList.<VolumeMount>builder()
         .addAll(logMounts.getVolumeMounts(context))
         .add(
@@ -66,7 +66,7 @@ public class FluentBit extends AbstractFluentBit {
 
   @Override
   protected List<EnvVar> getContainerEnvironmentVariables(
-      StackGresClusterContainerContext context) {
+      ClusterContainerContext context) {
     return logMounts.getDerivedEnvVars(context);
   }
 

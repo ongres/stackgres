@@ -147,7 +147,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "
             + CLUSTER_NAME + "-" + 0 + " -c patroni --"
-            + " sh -c \"exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(null) + "'"
+            + " sh -c \"exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value() + "'"
             + " wal-g wal-fetch " + currentWalFileName
             + " /tmp/" + currentWalFileName + " && echo 1\"")),
         s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
@@ -157,7 +157,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "
             + CLUSTER_NAME + "-" + 0 + " -c patroni --"
-            + " sh -c \"exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(null) + "'"
+            + " sh -c \"exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value() + "'"
             + " wal-g backup-list | grep -n . | cut -d : -f 1\"")),
         s -> s.anyMatch(line -> line.equals("2")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(

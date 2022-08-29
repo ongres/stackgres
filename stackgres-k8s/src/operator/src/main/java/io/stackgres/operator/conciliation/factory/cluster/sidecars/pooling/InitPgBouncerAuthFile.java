@@ -22,13 +22,13 @@ import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.PGBOUNCER_AUTH_FILE)
-public class InitPgBouncerAuthFile implements ContainerFactory<StackGresClusterContainerContext> {
+public class InitPgBouncerAuthFile implements ContainerFactory<ClusterContainerContext> {
 
   private static final String PGBOUNCER_ADMIN_PASSWORD_PATH =
       ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path()
@@ -41,7 +41,7 @@ public class InitPgBouncerAuthFile implements ContainerFactory<StackGresClusterC
   KubectlUtil kubectl;
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresInitContainer.PGBOUNCER_AUTH_FILE.getName())
         .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))

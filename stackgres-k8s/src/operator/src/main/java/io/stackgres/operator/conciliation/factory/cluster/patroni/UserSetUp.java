@@ -25,12 +25,12 @@ import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.SETUP_ARBITRARY_USER)
-public class UserSetUp implements ContainerFactory<StackGresClusterContainerContext> {
+public class UserSetUp implements ContainerFactory<ClusterContainerContext> {
 
   private final ScriptTemplatesVolumeMounts scriptTemplateMounts;
 
@@ -48,7 +48,7 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContainerCont
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresInitContainer.SETUP_ARBITRARY_USER.getName())
         .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
@@ -68,7 +68,7 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContainerCont
         .build();
   }
 
-  private List<EnvVar> getClusterEnvVars(StackGresClusterContainerContext context) {
+  private List<EnvVar> getClusterEnvVars(ClusterContainerContext context) {
 
     return ImmutableList.<EnvVar>builder()
         .addAll(scriptTemplateMounts.getDerivedEnvVars(context))
