@@ -60,7 +60,7 @@
                                     </li>
                                     <li v-if="showDefaults || script.hasOwnProperty('retryOnError')">
                                         <strong class="label">Retry on Error:</strong>
-                                        <span class="value">{{ script.hasOwnProperty('retryOnError') ? isEnabled(script.retyOnError) : 'Disabled' }}</span>
+                                        <span class="value">{{ script.hasOwnProperty('retryOnError') ? isEnabled(script.retryOnError) : 'Disabled' }}</span>
                                     </li>
                                     <li v-if="showDefaults || script.hasOwnProperty('storeStatusInDatabase')">
                                         <strong class="label">Store Status in Database:</strong>
