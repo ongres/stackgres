@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy.v13;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
 
 import java.util.List;
 import java.util.Map;
@@ -44,11 +43,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
-import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import org.jooq.lambda.Seq;
 
@@ -59,14 +56,13 @@ import org.jooq.lambda.Seq;
 public class Envoy extends AbstractEnvoy {
 
   private final ObjectMapper objectMapper;
-  private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
+  private final ContainerUserOverrideMounts containerUserOverrideMounts;
 
   @Inject
   public Envoy(YamlMapperProvider yamlMapperProvider,
       ObjectMapper jsonMapper,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-      VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
+      ContainerUserOverrideMounts containerUserOverrideMounts) {
     super(yamlMapperProvider, labelFactory);
     this.objectMapper = jsonMapper;
     this.containerUserOverrideMounts = containerUserOverrideMounts;

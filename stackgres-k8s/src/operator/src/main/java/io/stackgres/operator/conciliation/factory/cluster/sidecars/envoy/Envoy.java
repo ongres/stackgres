@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
 
 import java.util.List;
 import java.util.Map;
@@ -48,13 +47,11 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
-import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
@@ -92,14 +89,13 @@ public class Envoy implements ContainerFactory<StackGresClusterContainerContext>
   protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final ObjectMapper objectMapper;
-  private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
+  private final ContainerUserOverrideMounts containerUserOverrideMounts;
 
   @Inject
   public Envoy(YamlMapperProvider yamlMapperProvider,
       ObjectMapper jsonMapper,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-      VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
+      ContainerUserOverrideMounts containerUserOverrideMounts) {
     this.yamlMapperProvider = yamlMapperProvider;
     this.labelFactory = labelFactory;
     this.objectMapper = jsonMapper;

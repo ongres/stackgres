@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -18,12 +16,10 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
-import io.stackgres.operator.conciliation.factory.ProviderName;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
 import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
@@ -32,15 +28,14 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 @InitContainer(StackGresInitContainer.SETUP_SCRIPTS)
 public class ScriptsSetUp implements ContainerFactory<DistributedLogsContainerContext> {
 
-  private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
+  private final ContainerUserOverrideMounts containerUserOverrideMounts;
 
   @Inject
   KubectlUtil kubectl;
 
   @Inject
   public ScriptsSetUp(
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-          VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
+      ContainerUserOverrideMounts containerUserOverrideMounts) {
     this.containerUserOverrideMounts = containerUserOverrideMounts;
   }
 

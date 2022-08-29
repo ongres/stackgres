@@ -5,10 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_EXTENSIONS;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.SCRIPT_TEMPLATES;
-
 import java.util.List;
 
 import javax.inject.Inject;
@@ -24,13 +20,12 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ContextUtil;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.PostgresContainerContext;
-import io.stackgres.operator.conciliation.factory.ProviderName;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.PostgresExtensionMounts;
+import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
 
 @Singleton
@@ -38,18 +33,15 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLog
 @InitContainer(StackGresInitContainer.RELOCATE_BINARIES)
 public class InitRelocateBinaries implements ContainerFactory<DistributedLogsContainerContext> {
 
-  private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
-  private final VolumeMountsProvider<PostgresContainerContext> postgresExtensionsMounts;
-  private final VolumeMountsProvider<ContainerContext> templateMounts;
+  private final ContainerUserOverrideMounts containerUserOverrideMounts;
+  private final PostgresExtensionMounts postgresExtensionsMounts;
+  private final ScriptTemplatesVolumeMounts templateMounts;
 
   @Inject
   public InitRelocateBinaries(
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-          VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
-      @ProviderName(POSTGRES_EXTENSIONS)
-          VolumeMountsProvider<PostgresContainerContext> postgresExtensionsMounts,
-      @ProviderName(SCRIPT_TEMPLATES)
-          VolumeMountsProvider<ContainerContext> templateMounts) {
+      ContainerUserOverrideMounts containerUserOverrideMounts,
+      PostgresExtensionMounts postgresExtensionsMounts,
+      ScriptTemplatesVolumeMounts templateMounts) {
     this.containerUserOverrideMounts = containerUserOverrideMounts;
     this.postgresExtensionsMounts = postgresExtensionsMounts;
     this.templateMounts = templateMounts;

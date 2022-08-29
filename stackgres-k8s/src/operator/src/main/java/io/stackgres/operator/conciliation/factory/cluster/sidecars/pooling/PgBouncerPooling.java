@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling;
 
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,11 +37,10 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
-import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
@@ -58,15 +54,13 @@ import org.jetbrains.annotations.NotNull;
 @RunningContainer(StackGresContainer.PGBOUNCER)
 public class PgBouncerPooling extends AbstractPgPooling {
 
-  private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
-  private final VolumeMountsProvider<ContainerContext> postgresSocket;
+  private final ContainerUserOverrideMounts containerUserOverrideMounts;
+  private final PostgresSocketMount postgresSocket;
 
   @Inject
   protected PgBouncerPooling(LabelFactoryForCluster<StackGresCluster> labelFactory,
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-      VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
-      @ProviderName(POSTGRES_SOCKET)
-      VolumeMountsProvider<ContainerContext> postgresSocket) {
+      ContainerUserOverrideMounts containerUserOverrideMounts,
+      PostgresSocketMount postgresSocket) {
     super(labelFactory);
     this.containerUserOverrideMounts = containerUserOverrideMounts;
     this.postgresSocket = postgresSocket;

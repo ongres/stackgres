@@ -39,20 +39,22 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContextUtil;
+import io.stackgres.operator.conciliation.factory.LocalBinMounts;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.PostgresContainerContext;
-import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.PostgresExtensionMounts;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.VolumePair;
+import io.stackgres.operator.conciliation.factory.cluster.BackupVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
+import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
+import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
@@ -65,12 +67,12 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   private final ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;
 
   private final ResourceFactory<StackGresClusterContext, ResourceRequirements> requirementsFactory;
-  private final VolumeMountsProvider<ContainerContext> postgresSocket;
-  private final VolumeMountsProvider<PostgresContainerContext> postgresExtensions;
-  private final VolumeMountsProvider<ContainerContext> localBinMounts;
-  private final VolumeMountsProvider<ContainerContext> restoreMounts;
-  private final VolumeMountsProvider<ContainerContext> backupMounts;
-  private final VolumeMountsProvider<StackGresClusterContainerContext> hugePagesMounts;
+  private final PostgresSocketMount postgresSocket;
+  private final PostgresExtensionMounts postgresExtensions;
+  private final LocalBinMounts localBinMounts;
+  private final RestoreVolumeMounts restoreMounts;
+  private final BackupVolumeMounts backupMounts;
+  private final HugePagesMounts hugePagesMounts;
   private final VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
   private final ClusterDefaultScripts patroniDefaultScripts;
 
@@ -78,18 +80,12 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
   public Patroni(
       ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables,
       ResourceFactory<StackGresClusterContext, ResourceRequirements> requirementsFactory,
-      @ProviderName(VolumeMountProviderName.POSTGRES_SOCKET)
-          VolumeMountsProvider<ContainerContext> postgresSocket,
-      @ProviderName(VolumeMountProviderName.POSTGRES_EXTENSIONS)
-          VolumeMountsProvider<PostgresContainerContext> postgresExtensions,
-      @ProviderName(VolumeMountProviderName.LOCAL_BIN)
-          VolumeMountsProvider<ContainerContext> localBinMounts,
-      @ProviderName(VolumeMountProviderName.RESTORE)
-          VolumeMountsProvider<ContainerContext> restoreMounts,
-      @ProviderName(VolumeMountProviderName.BACKUP)
-          VolumeMountsProvider<ContainerContext> backupMounts,
-      @ProviderName(VolumeMountProviderName.HUGE_PAGES)
-          VolumeMountsProvider<StackGresClusterContainerContext> hugePagesMounts,
+      PostgresSocketMount postgresSocket,
+      PostgresExtensionMounts postgresExtensions,
+      LocalBinMounts localBinMounts,
+      RestoreVolumeMounts restoreMounts,
+      BackupVolumeMounts backupMounts,
+      HugePagesMounts hugePagesMounts,
       VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer,
       ClusterDefaultScripts patroniDefaultScripts) {
     super();

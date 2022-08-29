@@ -6,8 +6,6 @@
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.MAJOR_VERSION_UPGRADE;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.SCRIPT_TEMPLATES;
 
 import java.util.Optional;
 
@@ -31,14 +29,13 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutablePostgresContainerContext;
 import io.stackgres.operator.conciliation.factory.InitContainer;
+import io.stackgres.operator.conciliation.factory.MajorVersionUpgradeMounts;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.PostgresContainerContext;
-import io.stackgres.operator.conciliation.factory.ProviderName;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
@@ -47,15 +44,13 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 @InitContainer(StackGresInitContainer.MAJOR_VERSION_UPGRADE)
 public class MajorVersionUpgradeInit implements ContainerFactory<StackGresClusterContainerContext> {
 
-  private final VolumeMountsProvider<PostgresContainerContext> majorVersionUpgradeMounts;
-  private final VolumeMountsProvider<ContainerContext> templateMounts;
+  private final MajorVersionUpgradeMounts majorVersionUpgradeMounts;
+  private final ScriptTemplatesVolumeMounts templateMounts;
 
   @Inject
   public MajorVersionUpgradeInit(
-      @ProviderName(MAJOR_VERSION_UPGRADE)
-          VolumeMountsProvider<PostgresContainerContext> majorVersionUpgradeMounts,
-      @ProviderName(SCRIPT_TEMPLATES)
-          VolumeMountsProvider<ContainerContext> templateMounts) {
+      MajorVersionUpgradeMounts majorVersionUpgradeMounts,
+      ScriptTemplatesVolumeMounts templateMounts) {
     this.majorVersionUpgradeMounts = majorVersionUpgradeMounts;
     this.templateMounts = templateMounts;
   }

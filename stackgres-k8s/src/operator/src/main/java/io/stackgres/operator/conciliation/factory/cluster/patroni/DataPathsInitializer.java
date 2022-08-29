@@ -5,10 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_DATA;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.SCRIPT_TEMPLATES;
-
 import java.util.List;
 
 import javax.inject.Inject;
@@ -22,11 +18,11 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.ProviderName;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
+import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 
 @Singleton
@@ -34,23 +30,20 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 @InitContainer(StackGresInitContainer.SETUP_DATA_PATHS)
 public class DataPathsInitializer implements ContainerFactory<StackGresClusterContainerContext> {
 
-  private final VolumeMountsProvider<ContainerContext> postgresDataMounts;
+  private final PostgresDataMounts postgresDataMounts;
 
-  private final VolumeMountsProvider<ContainerContext> scriptTemplateMounts;
+  private final ScriptTemplatesVolumeMounts scriptTemplateMounts;
 
-  private final VolumeMountsProvider<ContainerContext> containerUserOverride;
+  private final ContainerUserOverrideMounts containerUserOverride;
 
   @Inject
   KubectlUtil kubectl;
 
   @Inject
   public DataPathsInitializer(
-      @ProviderName(POSTGRES_DATA)
-          VolumeMountsProvider<ContainerContext> postgresDataMounts,
-      @ProviderName(SCRIPT_TEMPLATES)
-          VolumeMountsProvider<ContainerContext> scriptTemplateMounts,
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-          VolumeMountsProvider<ContainerContext> containerUserOverride) {
+      PostgresDataMounts postgresDataMounts,
+      ScriptTemplatesVolumeMounts scriptTemplateMounts,
+      ContainerUserOverrideMounts containerUserOverride) {
     this.postgresDataMounts = postgresDataMounts;
     this.scriptTemplateMounts = scriptTemplateMounts;
     this.containerUserOverride = containerUserOverride;

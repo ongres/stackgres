@@ -17,24 +17,21 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import org.jooq.lambda.Seq;
 
 //TODO extract format
 @ApplicationScoped
-@ProviderName(VolumeMountProviderName.POSTGRES_EXTENSIONS)
 public class PostgresExtensionMounts implements VolumeMountsProvider<PostgresContainerContext> {
 
   static final String PG_BIN_PATH_FORMAT = "/usr/lib/postgresql/%s/bin";
-  private static final String PG_LIB64_PATH_FORMAT = "/usr/lib64";
+  static final String PG_LIB64_PATH_FORMAT = "/usr/lib64";
   static final String PG_EXTRA_LIB_PATH_FORMAT = "/usr/lib/postgresql/%s/extra/lib";
-  @Inject
-  @ProviderName(VolumeMountProviderName.POSTGRES_DATA)
-  VolumeMountsProvider<ContainerContext> postgresData;
 
   @Inject
-  @ProviderName(VolumeMountProviderName.CONTAINER_USER_OVERRIDE)
-  VolumeMountsProvider<ContainerContext> containerUserOverride;
+  PostgresDataMounts postgresData;
+
+  @Inject
+  ContainerUserOverrideMounts containerUserOverride;
 
   @Override
   public List<VolumeMount> getVolumeMounts(PostgresContainerContext context) {

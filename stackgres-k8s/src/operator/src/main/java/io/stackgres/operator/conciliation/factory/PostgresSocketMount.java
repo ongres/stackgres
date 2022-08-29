@@ -13,10 +13,8 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.operator.conciliation.VolumeMountProviderName;
 
 @ApplicationScoped
-@ProviderName(VolumeMountProviderName.POSTGRES_SOCKET)
 public class PostgresSocketMount implements VolumeMountsProvider<ContainerContext> {
 
   @Override

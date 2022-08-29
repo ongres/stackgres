@@ -17,15 +17,12 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.operator.conciliation.VolumeMountProviderName;
 
 @ApplicationScoped
-@ProviderName(VolumeMountProviderName.MAJOR_VERSION_UPGRADE)
 public class MajorVersionUpgradeMounts implements VolumeMountsProvider<PostgresContainerContext> {
 
   private static final String PG_LIB_PATH_FORMAT = "/usr/lib/postgresql/%s/lib";
 
-  @ProviderName(VolumeMountProviderName.POSTGRES_EXTENSIONS)
   @Inject
   PostgresExtensionMounts postgresExtensionMounts;
 

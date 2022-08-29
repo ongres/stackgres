@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory;
 
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
-
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -18,7 +16,6 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 
 @ApplicationScoped
-@ProviderName(CONTAINER_USER_OVERRIDE)
 public class ContainerUserOverrideMounts implements VolumeMountsProvider<ContainerContext> {
 
   @Override

@@ -22,12 +22,15 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
-import io.stackgres.operator.conciliation.factory.PostgresContainerContext;
+import io.stackgres.operator.conciliation.factory.LocalBinMounts;
+import io.stackgres.operator.conciliation.factory.PostgresExtensionMounts;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import io.stackgres.operator.conciliation.factory.cluster.BackupVolumeMounts;
+import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
+import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,17 +50,17 @@ class PatroniTest {
   @Mock
   ResourceFactory<StackGresClusterContext, ResourceRequirements> requirementsFactory;
   @Mock
-  VolumeMountsProvider<ContainerContext> postgresSocket;
+  PostgresSocketMount postgresSocket;
   @Mock
-  VolumeMountsProvider<PostgresContainerContext> postgresExtensions;
+  PostgresExtensionMounts postgresExtensions;
   @Mock
-  VolumeMountsProvider<ContainerContext> localBinMounts;
+  LocalBinMounts localBinMounts;
   @Mock
-  VolumeMountsProvider<ContainerContext> restoreMounts;
+  RestoreVolumeMounts restoreMounts;
   @Mock
-  VolumeMountsProvider<ContainerContext> backupMounts;
+  BackupVolumeMounts backupMounts;
   @Mock
-  VolumeMountsProvider<StackGresClusterContainerContext> hugePagesMounts;
+  HugePagesMounts hugePagesMounts;
 
   @Mock
   VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;

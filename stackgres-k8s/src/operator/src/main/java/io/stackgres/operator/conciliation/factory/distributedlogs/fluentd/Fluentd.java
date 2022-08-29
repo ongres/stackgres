@@ -7,8 +7,6 @@ package io.stackgres.operator.conciliation.factory.distributedlogs.fluentd;
 
 import static io.stackgres.common.FluentdUtil.PATRONI_LOG_TYPE;
 import static io.stackgres.common.FluentdUtil.POSTGRES_LOG_TYPE;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -46,13 +44,12 @@ import io.stackgres.common.distributedlogs.PostgresTableFields;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
-import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.fluentbit.FluentBit;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
@@ -77,8 +74,8 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
       .map(PostgresTableFields::getFieldName)
       .collect(Collectors.joining(","));
   private static final Logger FLEUNTD_LOGGER = LoggerFactory.getLogger("io.stackgres.fleuntd");
-  private VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
-  private VolumeMountsProvider<ContainerContext> postgresSocket;
+  private ContainerUserOverrideMounts containerUserOverrideMounts;
+  private PostgresSocketMount postgresSocket;
   private LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   @Override
@@ -341,15 +338,13 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
 
   @Inject
   public void setContainerUserOverrideMounts(
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-          VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
+      ContainerUserOverrideMounts containerUserOverrideMounts) {
     this.containerUserOverrideMounts = containerUserOverrideMounts;
   }
 
   @Inject
   public void setPostgresSocket(
-      @ProviderName(POSTGRES_SOCKET)
-          VolumeMountsProvider<ContainerContext> postgresSocket) {
+      PostgresSocketMount postgresSocket) {
     this.postgresSocket = postgresSocket;
   }
 }
