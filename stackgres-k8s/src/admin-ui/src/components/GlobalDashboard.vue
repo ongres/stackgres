@@ -1,9 +1,9 @@
 <template>
-    <div id="globalDashboard" v-if="loggedIn && isReady && !notFound">
+    <div id="globalDashboard" v-if="loggedIn && isReady && !notFound" :class="!usedNamespaces.length ? 'noCards' : ''">
         <div class="content noScroll">
-            <h3 class="textCenter pad">Used Namespaces</h3>
+            <h3 class="textCenter pad">{{ usedNamespaces.length ? 'Used Namespaces' : 'Select a namespace' }}</h3>
             <div class="overview">
-                <template v-for="namespace in namespaces" v-if="hasCRDs(namespace)">
+                <template v-for="namespace in usedNamespaces">
                     <div class="card namespace">
                         <table class="fullWidth">
                             <thead>
@@ -127,10 +127,10 @@
                     </div>
                 </template>
             </div>
-            <hr/>
+            <hr v-if="usedNamespaces.length"/>
             <div class="textCenter pad">
                 <select class="plain" v-model="selectedNamespace" @change="goTo(selectedNamespace)">
-                    <option disabled selected value="">Or select a namespace...</option>
+                    <option disabled selected value="">{{ usedNamespaces.length ? 'Or select a namespace...' : 'Namespaces' }}</option>
                     <option v-for="namespace in namespaces" :value="'/' + namespace">
                         {{ namespace }}
                     </option>
@@ -151,24 +151,12 @@ export default {
     
     data() {
         return {
-            selectedNamespace: ''  
+            selectedNamespace: '' 
         }
     },
 
     methods: {
-        hasCRDs(namespace) {
-            return (
-                store.state.sgclusters.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.sginstanceprofiles.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.sgpgconfigs.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.sgpoolconfigs.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.sgdistributedlogs.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.sgbackups.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.sgdbops.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.sgobjectstorages.filter(c => c.data.metadata.namespace == namespace).length ||
-                store.state.sgscripts.filter(c => c.data.metadata.namespace == namespace).length
-            )
-        }
+        
     },
 
     computed: {
@@ -211,6 +199,34 @@ export default {
         dbops () {
             return store.state.sgdbops
         },
+
+        usedNamespaces() {
+            const vc = this;
+            const usedNamespaces = [];
+
+            store.state.namespaces.forEach(function(namespace) {
+                const namespaceHasCrd = store.state.sgclusters.filter(c => c.data.metadata.namespace == namespace).length ||
+                    store.state.sginstanceprofiles.filter(c => c.data.metadata.namespace == namespace).length ||
+                    store.state.sgpgconfigs.filter(c => c.data.metadata.namespace == namespace).length ||
+                    store.state.sgpoolconfigs.filter(c => c.data.metadata.namespace == namespace).length ||
+                    store.state.sgdistributedlogs.filter(c => c.data.metadata.namespace == namespace).length ||
+                    store.state.sgbackups.filter(c => c.data.metadata.namespace == namespace).length ||
+                    store.state.sgdbops.filter(c => c.data.metadata.namespace == namespace).length ||
+                    store.state.sgobjectstorages.filter(c => c.data.metadata.namespace == namespace).length ||
+                    store.state.sgscripts.filter(c => c.data.metadata.namespace == namespace).length;
+
+                if(namespaceHasCrd)
+                    usedNamespaces.push(namespace)
+
+            })
+
+            if(!usedNamespaces.length)
+                $('#header').addClass('hide')
+            else
+                $('#header').removeClass('hide')
+                
+            return usedNamespaces
+        }
 
     }
 
@@ -258,6 +274,10 @@ export default {
 
     thead .icon svg {
         transform: rotate(-45deg)
+    }
+
+    .noCards h3 {
+        margin-bottom: -10px;
     }
     
 </style>
