@@ -53,7 +53,7 @@ spec:
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | size                                       | ✓        |           | string   |                              | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.size >}} |
-| storageClass                               | ✓        |           | string   | default storage class        | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.storageClass >}} |
+| storageClass                               |          |           | string   | default storage class        | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.storageClass >}} |
 
 ## Postgres Services
 
@@ -67,7 +67,7 @@ spec:
 | Property                        | Required | Updatable | Type     | Default   | Description                                                                 |
 |:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGDistributedLogs.spec.postgresServices.primary.type >}}  |
-| loadBalancerIP                            |          | ✓         | string   |  | {{< crd-field-description SGDistributedLogs.spec.postgresServices.primary.loadBalancerIP >}}  |
+| loadBalancerIP                  |          | ✓         | string   |  | {{< crd-field-description SGDistributedLogs.spec.postgresServices.primary.loadBalancerIP >}}  |
 | annotations                     |          | ✓         | object   |           | {{< crd-field-description SGDistributedLogs.spec.postgresServices.primary.annotations >}}  |
 
 ### Replicas service type
@@ -76,7 +76,7 @@ spec:
 |:--------------------------------|----------|-----------|:---------|:----------|:----------------------------------------------------------------------------|
 | enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas.enabled >}}  |
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas.type >}}  |
-| loadBalancerIP                            |          | ✓         | string   |  | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas.loadBalancerIP >}}  |
+| loadBalancerIP                  |          | ✓         | string   |  | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas.loadBalancerIP >}}  |
 | annotations                     |          | ✓         | object   |           | {{< crd-field-description SGDistributedLogs.spec.postgresServices.replicas.annotations >}}  |
 
 Example:
@@ -99,20 +99,20 @@ spec:
 
 Holds scheduling configuration for StackGres pods to have.
 
-| Property                    | Required | Updatable | Type     | Default        | Description |
-|:----------------------------|----------|-----------|:---------|:---------------|:------------|
-| nodeSelector                |          | ✓         | object   |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeSelector >}} |
+| Property                      | Required | Updatable | Type     | Default        | Description |
+|:------------------------------|----------|-----------|:---------|:---------------|:------------|
+| nodeSelector                  |          | ✓         | object   |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeSelector >}} |
 | [nodeAffinity](#nodeAffinity) |          | ✓         | object    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity >}} |
-| [tolerations](#tolerations) |          | ✓         | array    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
+| [tolerations](#tolerations)   |          | ✓         | array    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
 
 #### Node Affinity
 
 Sets the pod's affinity to restrict it to run only on a certain set of node(s)
 
-| Property          | Required | Updatable | Type     | Default                 | Description |
-|:------------------|----------|-----------|:---------|:------------------------|:------------|
+| Property                                        | Required | Updatable | Type     | Default                 | Description |
+|:------------------------------------------------|----------|-----------|:---------|:------------------------|:------------|
 | requiredDuringSchedulingIgnoredDuringExecution  |          | ✓         | object   |                         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution >}} |
-| preferredDuringSchedulingIgnoredDuringExecution |          | ✓         | array   |                         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution >}} |
+| preferredDuringSchedulingIgnoredDuringExecution |          | ✓         | array    |                         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution >}} |
 
 See Kubernetes pod node affinity [definition](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity{}) for more details.
 <br>
