@@ -225,10 +225,10 @@ public class ScriptsConfigMutator
             scriptEntry.setScriptFrom(new StackGresScriptFrom());
             if (initDataScriptEntry.v1.getScriptFrom().getConfigMapKeyRef() != null) {
               scriptEntry.getScriptFrom().setConfigMapKeyRef(
-                  scriptEntry.getScriptFrom().getConfigMapKeyRef());
+                  initDataScriptEntry.v1.getScriptFrom().getConfigMapKeyRef());
             } else {
               scriptEntry.getScriptFrom().setSecretKeyRef(
-                  scriptEntry.getScriptFrom().getSecretKeyRef());
+                  initDataScriptEntry.v1.getScriptFrom().getSecretKeyRef());
             }
           }
           script.getSpec().getScripts().add(scriptEntry);
