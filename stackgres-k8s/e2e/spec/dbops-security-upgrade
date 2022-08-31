@@ -161,6 +161,10 @@ EOF
   wait_until is_backup_phase "Completed"
 
   remove_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
+  kubectl create secret generic -n "$CLUSTER_NAMESPACE" secret-script \
+    --from-literal=script="CREATE DATABASE secret_managed_sql;"
+  kubectl create configmap -n "$CLUSTER_NAMESPACE" configmap-script \
+    --from-literal=script="CREATE DATABASE configmap_managed_sql;"
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
@@ -172,6 +176,8 @@ EOF
     --set cluster.configurations.backups.performance.maxDiskBandwidth=10485760 \
     --set cluster.configurations.backups.performance.maxNetworkBandwidth=5242880 \
     --set-string cluster.managedSql.scripts[0].script="CREATE DATABASE managed_sql;" \
+    --set-string cluster.managedSql.scripts[1].scriptFrom.secretRefKey.name=secret-script \
+    --set-string cluster.managedSql.scripts[2].scriptFrom.configMapRefKey.name=configmap-script \
     --set-string cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
     --set-string cluster.metadata.labels.clusterPods.pod-label="$RANDOM_VALUE" \
     --set-string cluster.metadata.annotations.clusterPods.pod-annotation="$RANDOM_VALUE" \
@@ -854,7 +860,7 @@ check_distributedlogs_mutations() {
 
 check_managed_sql_mutation() {
   if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" --template '{{ len .spec.managedSql.scripts }}')" \
-    = "2" ]
+    = "4" ]
   then
     echo "SUCCESS. Managed SQL was added to cluster configuration after operator upgrade"
   else
