@@ -151,18 +151,23 @@ Holds scheduling configuration for StackGres pods to have.
 | link                                       |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.link >}} |
 | clone                                      |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.clone >}} |
 | check                                      |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.check >}} |
+| postgresVersion                            |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.postgresVersion >}} |
+| sgPostgresConfig                           |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.sgPostgresConfig >}} |
+| backupPath                                 |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.backupPath >}} |
 
 ## Restart
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.restart.method >}} |
+| onlyPendingRestart                         |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.restart.onlyPendingRestart >}} |
 
 ## Minor Version Upgrade
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.minorVersionUpgrade.method >}} |
+| postgresVersion                            |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.minorVersionUpgrade.postgresVersion >}} |
 
 ## Security Upgrade
 
@@ -188,11 +193,11 @@ Holds scheduling configuration for StackGres pods to have.
 
 ## Pgbench Status
 
-| Property                                   | Required | Updatable | Type     | Default                      | Description |
-|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
-| scaleFactor                                |          |           | numeric  |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.scaleFactor >}} |
-| transactionsProcessed                      |          |           | integer  |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsProcessed >}} |
-| [latency](#pgbench-status-latency)                                    |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency >}} |
+| Property                                     | Required | Updatable | Type     | Default                      | Description |
+|:---------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| scaleFactor                                  |          |           | numeric  |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.scaleFactor >}} |
+| transactionsProcessed                        |          |           | integer  |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsProcessed >}} |
+| [latency](#pgbench-status-latency)           |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency >}} |
 | [transactionsPerSecond](#pgbench-status-tps) |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond >}} |
 
 ## Pgbench Status Latency
@@ -246,6 +251,8 @@ Holds scheduling configuration for StackGres pods to have.
 | pendingToRestartInstances                  |          |           | array    |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.pendingToRestartInstances >}} |
 | restartedInstances                         |          |           | array    |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.restartedInstances >}} |
 | failure                                    |          |           | string   |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.failure >}} |
+| sourcePostgresVersion                      |          |           | string   |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.sourcePostgresVersion >}} |
+| targetPostgresVersion                      |          |           | string   |                              | {{< crd-field-description SGDbOps.status.majorVersionUpgrade.targetPostgresVersion >}} |
 
 ## Restart Status
 
@@ -270,6 +277,8 @@ Holds scheduling configuration for StackGres pods to have.
 | switchoverInitiated                        |          |           | string   |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.switchoverInitiated >}} |
 | switchoverFinalized                        |          |           | string   |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.switchoverFinalized >}} |
 | failure                                    |          |           | string   |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.failure >}} |
+| sourcePostgresVersion                      |          |           | string   |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.sourcePostgresVersion >}} |
+| targetPostgresVersion                      |          |           | string   |                              | {{< crd-field-description SGDbOps.status.minorVersionUpgrade.targetPostgresVersion >}} |
 
 ## Security Upgrade Status
 
