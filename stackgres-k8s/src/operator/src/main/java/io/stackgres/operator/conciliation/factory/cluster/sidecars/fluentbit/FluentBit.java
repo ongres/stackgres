@@ -29,9 +29,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.LogVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
@@ -42,7 +40,7 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 @RunningContainer(StackGresContainer.FLUENT_BIT)
 public class FluentBit extends AbstractFluentBit {
 
-  private final VolumeMountsProvider<ContainerContext> logMounts;
+  private final LogVolumeMounts logMounts;
 
   @Inject
   public FluentBit(LabelFactoryForCluster<StackGresCluster> labelFactory,
