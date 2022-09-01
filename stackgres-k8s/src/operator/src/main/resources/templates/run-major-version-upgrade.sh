@@ -99,21 +99,6 @@ EOF
     done
   fi
 
-  echo "Waiting StatefulSet to be updated..."
-  echo
-  while true
-  do
-    IS_STATEFULSET_UPDATED="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-      --template="{{ range .spec.template.spec.initContainers }}{{ if eq .name \"$MAJOR_VERSION_UPGRADE_CONTAINER_NAME\" }}true{{ end }}{{ end }}")"
-    if [ "$IS_STATEFULSET_UPDATED" = "true" ]
-    then
-      break
-    fi
-    sleep 1
-  done
-  echo "done"
-  echo
-
   if [ -z "$TARGET_BACKUP_PATH" ]
   then
     echo "Setting postgres version to $TARGET_VERSION and postgres config to $TARGET_POSTGRES_CONFIG..."
@@ -140,6 +125,22 @@ EOF
     printf '%s' "$CLUSTER" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
     )
   do
+    sleep 1
+  done
+  echo "done"
+  echo
+
+  echo "Waiting StatefulSet to be updated..."
+  echo
+  while true
+  do
+    IS_STATEFULSET_UPDATED="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+      | jq "(.spec.template.spec.initContainers | any(.name == \"$MAJOR_VERSION_UPGRADE_CONTAINER_NAME\"))
+        and (.spec.template.metadata.annotations[\"$POSTGRES_VERSION_KEY\"] == \"$TARGET_VERSION\")")"
+    if [ "$IS_STATEFULSET_UPDATED" = "true" ]
+    then
+      break
+    fi
     sleep 1
   done
   echo "done"

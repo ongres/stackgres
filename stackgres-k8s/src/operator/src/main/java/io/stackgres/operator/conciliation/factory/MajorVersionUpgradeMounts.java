@@ -19,6 +19,8 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecBuilder;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
 
@@ -97,11 +99,11 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
   private ClusterContext getOldClusterContext(ClusterContainerContext context) {
     final StackGresCluster cluster = context.getClusterContext().getCluster();
     final StackGresCluster oldCluster = new StackGresClusterBuilder(cluster)
-        .editOrNewSpec()
-        .editOrNewPostgres()
-        .withVersion(context.getOldPostgresVersion().orElseThrow())
-        .endPostgres()
-        .endSpec()
+        .withSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
+            .withPostgres(new StackGresClusterPostgresBuilder(cluster.getSpec().getPostgres())
+                .withVersion(context.getOldPostgresVersion().orElseThrow())
+                .build())
+            .build())
         .build();
     return () -> oldCluster;
   }

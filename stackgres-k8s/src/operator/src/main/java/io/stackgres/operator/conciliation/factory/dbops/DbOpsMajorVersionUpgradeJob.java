@@ -27,6 +27,7 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContainer;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -167,7 +168,11 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
                 .withName("MAJOR_VERSION_UPGRADE_CONTAINER_NAME")
                 .withValue(StackGresInitContainer.MAJOR_VERSION_UPGRADE.getName())
                 .build(),
-                new EnvVarBuilder()
+            new EnvVarBuilder()
+                .withName("POSTGRES_VERSION_KEY")
+                .withValue(StackGresContext.POSTGRES_VERSION_KEY)
+                .build(),
+            new EnvVarBuilder()
                 .withName("LOCK_TIMEOUT")
                 .withValue(OperatorProperty.LOCK_TIMEOUT.getString())
                 .build(),

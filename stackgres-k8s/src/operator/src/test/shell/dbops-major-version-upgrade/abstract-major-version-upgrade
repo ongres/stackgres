@@ -9,6 +9,7 @@ NORMALIZED_OP_NAME='major version upgrade'
 KEBAB_OP_NAME='major-version-upgrade'
 PATRONI_CONTAINER_NAME=patroni
 MAJOR_VERSION_UPGRADE_CONTAINER_NAME=major-version-upgrade
+POSTGRES_VERSION_KEY=stackgres.io/postgresql-version
 TARGET_VERSION=12.6
 DATA_CHECKSUM=true
 
@@ -158,8 +159,23 @@ kubectl_mock() {
     ("get sts -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .status.updateRevision }}")
     echo "hash-1"
     ;;
-    ("get sts -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ range .spec.template.spec.initContainers }}{{ if eq .name \"$MAJOR_VERSION_UPGRADE_CONTAINER_NAME\" }}true{{ end }}{{ end }}")
-    echo "true"
+    ("get sts -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json")
+    echo '{
+      "spec": {
+        "template": {
+          "metadata": {
+            "annotations": {
+              "stackgres.io/postgresql-version": "12.6"
+            }
+          },
+          "spec": {
+            "initContainers": [{
+              "name": "major-version-upgrade"
+            }]
+          }
+        }
+      }
+    }'
     ;;
     ("patch $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*"{\"op\":\"replace\",\"path\":\"/spec/instances\",\"value\":1}"*)
     (
