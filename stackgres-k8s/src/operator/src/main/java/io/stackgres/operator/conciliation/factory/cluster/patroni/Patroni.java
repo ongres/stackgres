@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import static io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap.PATRONI_RESTAPI_PORT_NAME;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,7 +18,6 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -170,20 +167,6 @@ public class Patroni implements ContainerFactory<StackGresClusterContainerContex
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.LOCAL_BIN_PATH.path() + startScript)
         .withImagePullPolicy("IfNotPresent")
-        .withPorts(
-            new ContainerPortBuilder()
-                .withName(PatroniConfigMap.POSTGRES_PORT_NAME)
-                .withProtocol("TCP")
-                .withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
-            new ContainerPortBuilder()
-                .withName(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME)
-                .withProtocol("TCP")
-                .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build(),
-            new ContainerPortBuilder()
-                .withName(PATRONI_RESTAPI_PORT_NAME)
-                .withProtocol("TCP")
-                .withContainerPort(EnvoyUtil.PATRONI_ENTRY_PORT)
-                .build())
         .withVolumeMounts(volumeMounts.build())
         .withEnv(getEnvVars(context))
         .withEnvFrom(new EnvFromSourceBuilder()

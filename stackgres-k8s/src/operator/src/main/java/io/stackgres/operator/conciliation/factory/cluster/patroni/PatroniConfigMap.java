@@ -48,10 +48,6 @@ import org.slf4j.LoggerFactory;
 public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> {
 
   public static final int PATRONI_LOG_FILE_SIZE = 256 * 1024 * 1024;
-  public static final String POSTGRES_PORT_NAME = "pgport";
-  public static final String POSTGRES_REPLICATION_PORT_NAME = "pgreplication";
-  public static final String PATRONI_RESTAPI_PORT_NAME = "patroniport";
-  public static final String BABELFISH_PORT_NAME = "babelfish";
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
 
@@ -75,22 +71,22 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
       return "["
           + "{\"protocol\":\"TCP\","
-          + "\"name\":\"" + POSTGRES_PORT_NAME + "\","
+          + "\"name\":\"" + EnvoyUtil.POSTGRES_PORT_NAME + "\","
           + "\"port\":" + pgPort + "},"
           + "{\"protocol\":\"TCP\","
-          + "\"name\":\"" + POSTGRES_REPLICATION_PORT_NAME + "\","
+          + "\"name\":\"" + EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME + "\","
           + "\"port\":" + pgRawPort + "},"
           + "{\"protocol\":\"TCP\","
-          + "\"name\":\"" + BABELFISH_PORT_NAME + "\","
+          + "\"name\":\"" + EnvoyUtil.BABELFISH_PORT_NAME + "\","
           + "\"port\":" + babelfishPort + "}"
           + "]";
     } else {
       return "["
           + "{\"protocol\":\"TCP\","
-          + "\"name\":\"" + POSTGRES_PORT_NAME + "\","
+          + "\"name\":\"" + EnvoyUtil.POSTGRES_PORT_NAME + "\","
           + "\"port\":" + pgPort + "},"
           + "{\"protocol\":\"TCP\","
-          + "\"name\":\"" + POSTGRES_REPLICATION_PORT_NAME + "\","
+          + "\"name\":\"" + EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME + "\","
           + "\"port\":" + pgRawPort + "}"
           + "]";
     }

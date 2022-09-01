@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy;
+package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy.v13;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
@@ -20,16 +20,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
-import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -37,7 +34,6 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -49,47 +45,18 @@ import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
-import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
-import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
-import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar(StackGresContainer.ENVOY)
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_4)
+@OperatorVersionBinder(stopAt = StackGresVersion.V_1_3)
 @RunningContainer(StackGresContainer.ENVOY)
-public class Envoy implements ContainerFactory<StackGresClusterContainerContext>,
-    VolumeFactory<StackGresClusterContext> {
-
-  public static final String POD_MONITOR = "-stackgres-envoy";
-  public static final String SERVICE = "-envoyexp";
-
-  private static final String CONFIG_SUFFIX = "-envoy-config";
-  protected static final Logger ENVOY_LOGGER = LoggerFactory.getLogger("io.stackgres.envoy");
-  protected static final Map<String, Integer> PORT_MAPPING =
-      Map.of(
-          "postgres_entry_port", EnvoyUtil.PG_ENTRY_PORT,
-          "postgres_repl_entry_port", EnvoyUtil.PG_REPL_ENTRY_PORT,
-          "babelfish_entry_port", EnvoyUtil.BF_ENTRY_PORT,
-          "patroni_entry_port", EnvoyUtil.PATRONI_ENTRY_PORT,
-          "postgres_pool_port", EnvoyUtil.PG_POOL_PORT,
-          "postgres_port", EnvoyUtil.PG_PORT,
-          "babelfish_port", EnvoyUtil.BF_PORT,
-          "patroni_port", EnvoyUtil.PATRONI_PORT,
-          "envoy_port", EnvoyUtil.ENVOY_PORT);
-
-  protected final YamlMapperProvider yamlMapperProvider;
-  protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
+public class Envoy extends AbstractEnvoy {
 
   private final ObjectMapper objectMapper;
   private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
@@ -100,55 +67,9 @@ public class Envoy implements ContainerFactory<StackGresClusterContainerContext>
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       @ProviderName(CONTAINER_USER_OVERRIDE)
       VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
-    this.yamlMapperProvider = yamlMapperProvider;
-    this.labelFactory = labelFactory;
+    super(yamlMapperProvider, labelFactory);
     this.objectMapper = jsonMapper;
     this.containerUserOverrideMounts = containerUserOverrideMounts;
-  }
-
-  public static String configName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getSource().getMetadata().getName();
-    return ResourceUtil.resourceName(name + CONFIG_SUFFIX);
-  }
-
-  public static String serviceName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getSource().getMetadata().getName();
-    return ResourceUtil.resourceName(name + SERVICE);
-  }
-
-  public static String podMonitorName(StackGresClusterContext clusterContext) {
-    String namespace = clusterContext.getSource().getMetadata().getNamespace();
-    String name = clusterContext.getSource().getMetadata().getName();
-    return ResourceUtil.resourceName(namespace + "-" + name + POD_MONITOR);
-  }
-
-  @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
-    return Map.of(
-        StackGresContext.ENVOY_VERSION_KEY,
-        StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
-        .getLatestVersion());
-  }
-
-  @Override
-  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
-    return Seq.<VolumePair>of(
-        ImmutableVolumePair.builder()
-            .volume(buildVolume(context))
-            .source(buildSource(context))
-            .build())
-        .append(sslVolume(context));
-  }
-
-  protected Volume buildVolume(StackGresClusterContext context) {
-    final String clusterName = context.getSource().getMetadata().getName();
-    return new VolumeBuilder()
-        .withName(StackGresContainer.ENVOY.getName())
-        .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withDefaultMode(420)
-            .withName(StatefulSetDynamicVolumes.ENVOY.getResourceName(clusterName))
-            .build())
-        .build();
   }
 
   @Override
@@ -165,60 +86,26 @@ public class Envoy implements ContainerFactory<StackGresClusterContainerContext>
             .build()
         )
         .addAllToVolumeMounts(getVolumeMounts(context))
-        .withPorts(getContainerPorts(context.getClusterContext().getCluster()))
+        .withPorts(
+            new ContainerPortBuilder()
+                .withProtocol("TCP")
+                .withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
+            new ContainerPortBuilder()
+                .withProtocol("TCP")
+                .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build())
         .withCommand("/usr/local/bin/envoy")
         .withArgs(Seq.of("-c", "/etc/envoy/envoy.json")
             .append(Seq.of(ENVOY_LOGGER.isTraceEnabled())
                 .filter(traceEnabled -> traceEnabled)
-                .map(traceEnabled -> ImmutableList.of("-l", "debug"))
+                .map(traceEnabled -> List.of("-l", "debug"))
                 .flatMap(List::stream))
             .toArray(String[]::new));
     return container.build();
   }
 
-  private List<ContainerPort> getContainerPorts(StackGresCluster cluster) {
-    if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
-      return List.of(
-          new ContainerPortBuilder()
-              .withProtocol("TCP")
-              .withName(EnvoyUtil.POSTGRES_PORT_NAME)
-              .withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
-          new ContainerPortBuilder()
-              .withProtocol("TCP")
-              .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
-              .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build(),
-          new ContainerPortBuilder()
-              .withProtocol("TCP")
-              .withName(EnvoyUtil.BABELFISH_PORT_NAME)
-              .withContainerPort(EnvoyUtil.BF_ENTRY_PORT).build(),
-          new ContainerPortBuilder()
-              .withProtocol("TCP")
-              .withName(EnvoyUtil.ENVOY_PORT_NAME)
-              .withContainerPort(EnvoyUtil.ENVOY_PORT).build(),
-          new ContainerPortBuilder()
-              .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
-              .withProtocol("TCP")
-              .withContainerPort(EnvoyUtil.PATRONI_ENTRY_PORT)
-              .build());
-    }
-    return List.of(
-        new ContainerPortBuilder()
-            .withProtocol("TCP")
-            .withName(EnvoyUtil.POSTGRES_PORT_NAME)
-            .withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
-        new ContainerPortBuilder()
-            .withProtocol("TCP")
-            .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
-            .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build(),
-        new ContainerPortBuilder()
-            .withProtocol("TCP")
-            .withName(EnvoyUtil.ENVOY_PORT_NAME)
-            .withContainerPort(EnvoyUtil.ENVOY_PORT).build(),
-        new ContainerPortBuilder()
-            .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
-            .withProtocol("TCP")
-            .withContainerPort(EnvoyUtil.PATRONI_ENTRY_PORT)
-            .build());
+  @Override
+  protected Stream<ImmutableVolumePair> buildExtraVolumes(StackGresClusterContext context) {
+    return sslVolume(context);
   }
 
   private Stream<ImmutableVolumePair> sslVolume(StackGresClusterContext context) {
@@ -239,33 +126,24 @@ public class Envoy implements ContainerFactory<StackGresClusterContainerContext>
             .build());
   }
 
-  private HasMetadata buildSource(StackGresClusterContext context) {
+  @Override
+  protected String getEnvoyConfigPath(final StackGresCluster stackGresCluster,
+      boolean disablePgBouncer) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  protected HasMetadata buildSource(StackGresClusterContext context) {
     final StackGresCluster stackGresCluster = context.getSource();
 
     YAMLMapper yamlMapper = yamlMapperProvider.get();
     final ObjectNode envoyConfig;
     try {
       envoyConfig = (ObjectNode) yamlMapper
-          .readTree(Envoy.class.getResource("/envoy/envoy.yaml"));
+          .readTree(Envoy.class.getResource("/envoy/envoy-1.2.yaml"));
     } catch (Exception ex) {
       throw new IllegalStateException("couldn't read envoy config file", ex);
     }
-
-    Optional.of(envoyConfig.get("admin").get("address").get("socket_address"))
-        .map(ObjectNode.class::cast)
-        .filter(socketAddress -> socketAddress.has("port_value")
-            && socketAddress.get("port_value").asText().startsWith("$"))
-        .ifPresent(socketAddress -> socketAddress.put("port_value",
-            Optional.ofNullable(
-                PORT_MAPPING.get(socketAddress
-                .get("port_value")
-                .asText()
-                .substring(1)))
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Can not replace value " + socketAddress.get("port_value").asText()
-                .substring(1) + " of field"
-                + " .admin.address.socket_address.port_value"
-                + " in Envoy configuration"))));
 
     Seq.seq(envoyConfig.get("static_resources").get("listeners"))
         .map(listener -> listener
@@ -276,7 +154,7 @@ public class Envoy implements ContainerFactory<StackGresClusterContainerContext>
             && socketAddress.get("port_value").asText().startsWith("$"))
         .forEach(socketAddress -> socketAddress.put("port_value",
             Optional.ofNullable(
-                PORT_MAPPING.get(socketAddress
+                LISTEN_SOCKET_ADDRESS_PORT_MAPPING.get(socketAddress
                 .get("port_value")
                 .asText()
                 .substring(1)))
@@ -300,7 +178,7 @@ public class Envoy implements ContainerFactory<StackGresClusterContainerContext>
         .filter(socketAddress -> socketAddress.has("port_value")
             && socketAddress.get("port_value").asText().startsWith("$"))
         .forEach(socketAddress -> socketAddress.put("port_value",
-            Optional.ofNullable(PORT_MAPPING.get(socketAddress
+            Optional.ofNullable(CLUSTER_SOCKET_ADDRESS_PORT_MAPPING.get(socketAddress
                 .get("port_value")
                 .asText()
                 .substring(1)))
@@ -319,14 +197,14 @@ public class Envoy implements ContainerFactory<StackGresClusterContainerContext>
 
     final Map<String, String> data;
     try {
-      data = Map.of("envoy.json",
+      data = ImmutableMap.of("envoy.json",
           objectMapper.writeValueAsString(envoyConfig));
     } catch (Exception ex) {
       throw new IllegalStateException("couldn't parse envoy config file", ex);
     }
 
     String namespace = stackGresCluster.getMetadata().getNamespace();
-    String configMapName = configName(context);
+    String configMapName = AbstractEnvoy.configName(context);
 
     return new ConfigMapBuilder()
         .withNewMetadata()
@@ -412,7 +290,8 @@ public class Envoy implements ContainerFactory<StackGresClusterContainerContext>
     }
   }
 
-  private List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context) {
+  @Override
+  public List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context) {
     return Seq.seq(containerUserOverrideMounts.getVolumeMounts(context))
         .append(Optional.ofNullable(context.getClusterContext().getSource().getSpec())
             .map(StackGresClusterSpec::getPostgres)

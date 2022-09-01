@@ -20,14 +20,14 @@ public class PrometheusConfigSpec implements KubernetesResource {
 
   private static final long serialVersionUID = 1L;
 
-  private LabelSelector serviceMonitorSelector;
+  private LabelSelector podMonitorSelector;
 
-  public LabelSelector getServiceMonitorSelector() {
-    return serviceMonitorSelector;
+  public LabelSelector getPodMonitorSelector() {
+    return podMonitorSelector;
   }
 
-  public void setServiceMonitorSelector(LabelSelector serviceMonitorSelector) {
-    this.serviceMonitorSelector = serviceMonitorSelector;
+  public void setPodMonitorSelector(LabelSelector podMonitorSelector) {
+    this.podMonitorSelector = podMonitorSelector;
   }
 
 }

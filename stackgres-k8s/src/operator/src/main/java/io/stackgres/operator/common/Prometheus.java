@@ -11,18 +11,18 @@ import io.stackgres.common.prometheus.PrometheusInstallation;
 
 public class Prometheus {
 
-  private final Boolean createServiceMonitor;
+  private final Boolean createPodMonitor;
   private final List<PrometheusInstallation> prometheusInstallations;
 
-  public Prometheus(Boolean createServiceMonitor,
+  public Prometheus(Boolean createPodMonitor,
       List<PrometheusInstallation> prometheusInstallations) {
     super();
-    this.createServiceMonitor = createServiceMonitor;
+    this.createPodMonitor = createPodMonitor;
     this.prometheusInstallations = prometheusInstallations;
   }
 
-  public Boolean getCreateServiceMonitor() {
-    return createServiceMonitor;
+  public Boolean getCreatePodMonitor() {
+    return createPodMonitor;
   }
 
   public List<PrometheusInstallation> getPrometheusInstallations() {

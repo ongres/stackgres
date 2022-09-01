@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter;
+package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter.v13;
 
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
 import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
@@ -59,13 +59,10 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar(StackGresContainer.POSTGRES_EXPORTER)
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_4)
+@OperatorVersionBinder(stopAt = StackGresVersion.V_1_3)
 @RunningContainer(StackGresContainer.POSTGRES_EXPORTER)
 public class PostgresExporter implements ContainerFactory<StackGresClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
-
-  public static final String POSTGRES_EXPORTER_PORT_NAME = "pgexporter";
-  public static final int POSTGRES_EXPORTER_PORT = 9187;
 
   private static final Logger POSTGRES_EXPORTER_LOGGER = LoggerFactory.getLogger(
       "io.stackgres.prometheus-postgres-exporter");
@@ -147,8 +144,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
                 .build())
         .withPorts(new ContainerPortBuilder()
             .withProtocol("TCP")
-            .withName(POSTGRES_EXPORTER_PORT_NAME)
-            .withContainerPort(POSTGRES_EXPORTER_PORT)
+            .withContainerPort(9187)
             .build())
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addToVolumeMounts(

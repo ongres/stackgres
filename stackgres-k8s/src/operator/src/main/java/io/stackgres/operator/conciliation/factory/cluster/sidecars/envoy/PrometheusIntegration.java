@@ -6,8 +6,10 @@
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -17,26 +19,23 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServicePortBuilder;
-import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.prometheus.Endpoint;
 import io.stackgres.common.prometheus.NamespaceSelector;
-import io.stackgres.common.prometheus.ServiceMonitor;
-import io.stackgres.common.prometheus.ServiceMonitorSpec;
+import io.stackgres.common.prometheus.PodMonitor;
+import io.stackgres.common.prometheus.PodMonitorSpec;
+import io.stackgres.common.prometheus.PrometheusInstallation;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import org.jetbrains.annotations.NotNull;
-import org.jooq.lambda.Seq;
 
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_4)
 public class PrometheusIntegration implements ResourceGenerator<StackGresClusterContext> {
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
@@ -48,69 +47,52 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    final StackGresCluster cluster = context.getSource();
-    final Map<String, String> crossNamespaceLabels = labelFactory
-        .clusterCrossNamespaceLabels(cluster);
-    final Map<String, String> clusterSelectorLabels = labelFactory.patroniClusterLabels(cluster);
+    Optional<Stream<HasMetadata>> podMonitors = context.getPrometheus()
+        .filter(c -> Optional.ofNullable(c.getCreatePodMonitor()).orElse(false))
+        .map(c -> getPodMonitors(context, c));
 
-    Seq<HasMetadata> resources = Seq.of(
-        new ServiceBuilder()
-            .withNewMetadata()
-            .withNamespace(cluster.getMetadata().getNamespace())
-            .withName(AbstractEnvoy.serviceName(context))
-            .withLabels(ImmutableMap.<String, String>builder()
-                .putAll(crossNamespaceLabels)
-                .put(StackGresContext.CONTAINER_KEY, StackGresContainer.ENVOY.getName())
-                .build())
-            .endMetadata()
-            .withSpec(new ServiceSpecBuilder()
-                .withSelector(clusterSelectorLabels)
-                .withPorts(new ServicePortBuilder()
-                    .withProtocol("TCP")
-                    .withName(StackGresContainer.ENVOY.getName())
-                    .withPort(8001)
-                    .build())
-                .build())
-            .build());
-
-    Optional<Stream<HasMetadata>> serviceMonitors = context.getPrometheus()
-        .filter(c -> Optional.ofNullable(c.getCreateServiceMonitor()).orElse(false))
-        .map(c -> getServiceMonitors(context, crossNamespaceLabels, c));
-
-    return serviceMonitors
-        .map(hasMetadataStream -> Stream.concat(resources, hasMetadataStream))
-        .orElse(resources);
+    return podMonitors.stream().flatMap(Function.identity());
   }
 
   @NotNull
-  private Stream<HasMetadata> getServiceMonitors(StackGresClusterContext context,
-                                                 Map<String, String> labels,
-                                                 Prometheus prometheusConfig) {
-    return prometheusConfig.getPrometheusInstallations().stream().map(pi -> {
-      ServiceMonitor serviceMonitor = new ServiceMonitor();
-      serviceMonitor.setMetadata(new ObjectMetaBuilder()
-          .withNamespace(pi.getNamespace())
-          .withName(AbstractEnvoy.serviceMonitorName(context))
-          .withLabels(ImmutableMap.<String, String>builder()
-              .putAll(pi.getMatchLabels())
-              .putAll(labels)
-              .build())
-          .build());
+  private Stream<HasMetadata> getPodMonitors(
+      StackGresClusterContext context,
+      Prometheus prometheusConfig) {
+    return prometheusConfig.getPrometheusInstallations().stream()
+        .map(prometheusInstallation -> getPodMonitor(context, prometheusInstallation));
+  }
 
-      ServiceMonitorSpec spec = new ServiceMonitorSpec();
-      serviceMonitor.setSpec(spec);
-      LabelSelector selector = new LabelSelector();
-      spec.setSelector(selector);
-      NamespaceSelector namespaceSelector = new NamespaceSelector();
-      namespaceSelector.setAny(true);
-      spec.setNamespaceSelector(namespaceSelector);
+  private HasMetadata getPodMonitor(StackGresClusterContext context,
+      PrometheusInstallation prometheusInstallation) {
+    final StackGresCluster cluster = context.getSource();
+    final String clusterNamespace = cluster.getMetadata().getNamespace();
+    final Map<String, String> crossNamespaceLabels = labelFactory
+        .clusterCrossNamespaceLabels(cluster);
+    final Map<String, String> clusterSelectorLabels = labelFactory
+        .patroniClusterLabels(cluster);
+    PodMonitor podMonitor = new PodMonitor();
+    podMonitor.setMetadata(new ObjectMetaBuilder()
+        .withNamespace(prometheusInstallation.getNamespace())
+        .withName(Envoy.podMonitorName(context))
+        .withLabels(ImmutableMap.<String, String>builder()
+            .putAll(prometheusInstallation.getMatchLabels())
+            .putAll(crossNamespaceLabels)
+            .build())
+        .build());
 
-      selector.setMatchLabels(labels);
-      Endpoint endpoint = new Endpoint();
-      endpoint.setPort(StackGresContainer.ENVOY.getName());
-      endpoint.setPath("/stats/prometheus");
-      spec.setEndpoints(Collections.singletonList(endpoint));
-      return serviceMonitor;
-    });
+    PodMonitorSpec spec = new PodMonitorSpec();
+    podMonitor.setSpec(spec);
+    LabelSelector selector = new LabelSelector();
+    spec.setSelector(selector);
+    NamespaceSelector namespaceSelector = new NamespaceSelector();
+    namespaceSelector.setMatchNames(List.of(clusterNamespace));
+    spec.setNamespaceSelector(namespaceSelector);
+
+    selector.setMatchLabels(clusterSelectorLabels);
+    Endpoint endpoint = new Endpoint();
+    endpoint.setPort(String.valueOf(EnvoyUtil.ENVOY_PORT));
+    endpoint.setPath("/stats/prometheus");
+    spec.setPodMetricsEndpoints(Collections.singletonList(endpoint));
+    return podMonitor;
   }
 }

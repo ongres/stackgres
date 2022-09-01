@@ -27,6 +27,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -40,8 +42,8 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.prometheus.PodMonitor;
 import io.stackgres.common.prometheus.PrometheusConfig;
-import io.stackgres.common.prometheus.ServiceMonitor;
 import io.stackgres.common.resource.BackupConfigFinder;
 import io.stackgres.common.resource.BackupFinder;
 import io.stackgres.common.resource.PoolingConfigFinder;
@@ -94,6 +96,8 @@ class ClusterRequiredResourcesGeneratorTest {
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
         .getLatest().getLatestVersion());
+    cluster.getMetadata().getAnnotations().put(
+        StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     final String namespace = cluster.getMetadata().getNamespace();
     backupConfig = Fixtures.backupConfig().loadDefault().get();
     setNamespace(backupConfig);
@@ -438,7 +442,7 @@ class ClusterRequiredResourcesGeneratorTest {
   }
 
   @Test
-  void givenADefaultPrometheusInstallation_shouldGenerateServiceMonitors() {
+  void givenADefaultPrometheusInstallation_shouldGeneratePodMonitors() {
     System.setProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName(), "true");
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
@@ -463,17 +467,17 @@ class ClusterRequiredResourcesGeneratorTest {
 
     List<HasMetadata> generatedResources = generator.getRequiredResources(cluster);
 
-    var serviceMonitors = generatedResources.stream()
-        .filter(r -> r.getKind().equals(ServiceMonitor.KIND))
+    var podMonitors = generatedResources.stream()
+        .filter(r -> r.getKind().equals(PodMonitor.KIND))
         .count();
 
-    assertEquals(2, serviceMonitors);
+    assertEquals(2, podMonitors);
     verify(prometheusScanner).findResources();
     System.clearProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName());
   }
 
   @Test
-  void givenAPrometheusInstallationWithNoServiceMonitorSelector_shouldGenerateServiceMonitors() {
+  void givenAPrometheusInstallationWithNoPodMonitorSelector_shouldGeneratePodMonitors() {
     System.setProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName(), "true");
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
@@ -496,18 +500,18 @@ class ClusterRequiredResourcesGeneratorTest {
     List<PrometheusConfig> listPrometheus = Fixtures.prometheusList().loadDefault().get()
             .getItems()
             .stream()
-            .peek(pc -> pc.getSpec().setServiceMonitorSelector(null))
+            .peek(pc -> pc.getSpec().setPodMonitorSelector(null))
             .toList();
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(listPrometheus));
 
     List<HasMetadata> generatedResources = generator.getRequiredResources(cluster);
 
-    var serviceMonitors = generatedResources.stream()
-        .filter(r -> r.getKind().equals(HasMetadata.getKind(ServiceMonitor.class)))
+    var podMonitors = generatedResources.stream()
+        .filter(r -> r.getKind().equals(HasMetadata.getKind(PodMonitor.class)))
         .count();
 
-    assertEquals(2, serviceMonitors);
+    assertEquals(2, podMonitors);
     System.clearProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName());
   }
 

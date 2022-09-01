@@ -53,7 +53,7 @@ pod-nodeselectors:37
 pod-tolerations:45
 profile-removal:23
 prometheus-integration-default:442
-prometheus-no-service-monitor:458
+prometheus-no-label-filtering:458
 reconciliation-ignore:96
 regression:146
 reinstall:449

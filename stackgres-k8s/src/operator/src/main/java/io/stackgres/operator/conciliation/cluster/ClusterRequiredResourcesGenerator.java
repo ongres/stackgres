@@ -108,7 +108,7 @@ public class ClusterRequiredResourcesGenerator
 
   private static PrometheusInstallation toPrometheusInstallation(PrometheusConfig pc) {
     Map<String, String> matchLabels = Optional.ofNullable(pc.getSpec())
-        .map(PrometheusConfigSpec::getServiceMonitorSelector)
+        .map(PrometheusConfigSpec::getPodMonitorSelector)
         .map(LabelSelector::getMatchLabels)
         .map(Map::copyOf)
         .orElse(Map.of());

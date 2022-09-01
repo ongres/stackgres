@@ -72,6 +72,7 @@ rules:
 - apiGroups: ["monitoring.coreos.com"]
   resources:
   - servicemonitors
+  - podmonitors
   verbs:
   - list
   - get

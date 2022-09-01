@@ -70,8 +70,8 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptList;
 import io.stackgres.common.kubernetesclient.workaround.SecretOperationsImpl;
 import io.stackgres.common.kubernetesclient.workaround.ServiceOperationsImpl;
-import io.stackgres.common.prometheus.ServiceMonitor;
-import io.stackgres.common.prometheus.ServiceMonitorList;
+import io.stackgres.common.prometheus.PodMonitor;
+import io.stackgres.common.prometheus.PodMonitorList;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -590,8 +590,8 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
           .put(CronJob.class, client -> client.batch().v1beta1().cronjobs())
           .put(Pod.class, KubernetesClient::pods)
           .put(Job.class, client -> client.batch().v1().jobs())
-          .put(ServiceMonitor.class, client -> client
-              .resources(ServiceMonitor.class, ServiceMonitorList.class))
+          .put(PodMonitor.class, client -> client
+              .resources(PodMonitor.class, PodMonitorList.class))
           .put(StackGresScript.class, client -> client
               .resources(StackGresScript.class, StackGresScriptList.class))
           .build();
