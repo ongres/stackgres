@@ -1848,7 +1848,7 @@
                             vm.connPooling = !c.data.spec.pods.disableConnectionPooling,
                             vm.connectionPoolingConfig = (typeof c.data.spec.configurations.sgPoolingConfig !== 'undefined') ? c.data.spec.configurations.sgPoolingConfig : '';
                             vm.managedBackups = vm.hasProp(c, 'data.spec.configurations.backups') && c.data.spec.configurations.backups.length;
-                            vm.backups = (typeof c.data.spec.configurations.backups !== 'undefined') ? c.data.spec.configurations.backups :  [{
+                            vm.backups = (typeof c.data.spec.configurations.backups !== 'undefined') ? c.data.spec.configurations.backups : [{
                                 path: '',
                                 compression: 'lz4',
                                 cronSchedule: '0 5 * * *',
@@ -1860,7 +1860,7 @@
                                 },
                                 sgObjectStorage: ''
                             }];
-                            if(!c.data.spec.configurations.backups[0].hasOwnProperty('performance')) {
+                            if(vm.managedBackups && !c.data.spec.configurations.backups[0].hasOwnProperty('performance')) {
                                 vm.backups[0].performance = {
                                     maxNetworkBandwidth: '',
                                     maxDiskBandwidth: '',
