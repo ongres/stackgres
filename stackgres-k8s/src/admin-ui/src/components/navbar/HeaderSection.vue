@@ -44,7 +44,7 @@
                 </template>
                 
                 <!--CRD Name-->
-                <template v-if="!$route.params.hasOwnProperty('name') && currentPath.name">
+                <template v-if="currentPath.hasOwnProperty('name') && currentPath.name.length">
                     <li>
                         <template v-if="(currentPath.component.startsWith('Edit')) || ($route.meta.componentName == 'SGCluster')">
                             <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + currentPath.name" :title="currentPath.name">
@@ -158,7 +158,17 @@
                         </router-link>
                     </template>
                     <template v-if="($route.params.hasOwnProperty('name') || $route.params.hasOwnProperty('backupname'))">
-                        <template v-if="!$route.name.includes('DbOp')">
+                        <template v-if="($route.name == 'SingleClusterBackups')">
+                            <router-link v-if="iCan('patch', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' +  $route.params.name + '/sgbackup/' + $route.params.backupname + '/edit'" :title="'Edit ' + getSuffix($route.meta.componentName)" :class="$route.name.includes('Script') && isDefaultScript($route.params.name) && 'disabled'">
+                                Edit
+                            </router-link>
+                        </template>
+                        <template v-else-if="($route.name == 'SingleBackups')">
+                            <router-link v-if="iCan('patch', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" :to="'/' + $route.params.namespace + '/sgbackup/' + $route.params.backupname + '/edit'" :title="'Edit ' + getSuffix($route.meta.componentName)" :class="$route.name.includes('Script') && isDefaultScript($route.params.name) && 'disabled'">
+                                Edit
+                            </router-link>
+                        </template>
+                        <template v-else-if="!$route.name.includes('DbOp')">
                             <router-link v-if="iCan('patch', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/edit'" :title="'Edit ' + getSuffix($route.meta.componentName)" :class="$route.name.includes('Script') && isDefaultScript($route.params.name) && 'disabled'">
                                 Edit
                             </router-link>
