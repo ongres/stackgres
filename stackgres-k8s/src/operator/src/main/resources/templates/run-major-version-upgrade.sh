@@ -87,7 +87,7 @@ EOF
     until kubectl patch "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type=json \
         -p "$(cat << EOF
 [
-  {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/targetPostgresVersion","value": $TARGET_VERSION},
+  {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/targetPostgresVersion","value": "$TARGET_VERSION"},
   {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/link","value": $LINK},
   {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/clone","value": $CLONE},
   {"op":"replace","path":"/status/dbOps/majorVersionUpgrade/check","value": $CHECK}
