@@ -108,7 +108,7 @@ set_result() {
     sleep 1
   done
 
-  kill -SIGINT "$READ_EVENTS_SERVICE_PID" || true
+  kill "$READ_EVENTS_SERVICE_PID" || true
 
   EXIT_CODE="$(grep '^EXIT_CODE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2)"
   TIMED_OUT="$(grep '^TIMED_OUT=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2)"
