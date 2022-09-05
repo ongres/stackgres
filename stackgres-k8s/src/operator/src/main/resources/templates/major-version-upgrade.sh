@@ -46,8 +46,8 @@ then
   if [ ! -f .copied-missing-lib64.done ]
   then
     copy_missing() {
-      SOURCE="$1"
-      TARGET="$2"
+      local SOURCE="$1"
+      local TARGET="$2"
       ls -1 "$SOURCE" \
         | while read FILE
           do
@@ -57,11 +57,18 @@ then
               echo "$FILE"
             elif [ -d "$SOURCE/$FILE" ] && [ -d "$TARGET/$FILE" ]
             then
-              copy_missing "$SOURCE/$FILE" "$TARGER/$FILE"
+              copy_missing "$SOURCE/$FILE" "$TARGET/$FILE"
             fi
         done
     }
     copy_missing "$SOURCE_PG_LIB64_PATH" "$TARGET_PG_LIB64_PATH" > copied-missing-lib64
+    if [ -s copied-missing-lib64 ]
+    then
+      echo "Following files where copied from $SOURCE_PG_LIB64_PATH to $TARGET_PG_LIB64_PATH"
+      echo
+      cat copied-missing-lib64
+      echo
+    fi
     touch .copied-missing-lib64.done
   fi
   if [ "$CHECK" ]
