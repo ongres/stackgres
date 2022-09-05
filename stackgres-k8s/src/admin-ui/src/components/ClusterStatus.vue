@@ -174,20 +174,24 @@
 									(avg. load {{ pod.hasOwnProperty('cpuPsiAvg60') ? pod.cpuPsiAvg60 : pod.averageLoad1m }})
 								</template>
 								
-								<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
+								<!--Temporarily disabled until REST API response data is set properly-->
+									
+								<!--<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
 									<template v-if="( pod.cpuRequested != ( (pod.cpuRequested.includes('m') && !profile.data.spec.cpu.includes('m')) ? ( (profile.data.spec.cpu * 1000) + 'm') : profile.data.spec.cpu ) )">
 										<span class="helpTooltip alert" data-tooltip="A CPU change request is pending to be applied"></span>
 									</template>
-								</template>
+								</template>-->
 							</td>
 							<td class="textRight">
 								{{ pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested }}
 								
-								<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
+								<!--Temporarily disabled until REST API response data is set properly-->
+									
+								<!--<template v-for="profile in profiles" v-if="( (profile.name == cluster.data.spec.sgInstanceProfile) && (profile.data.metadata.namespace == cluster.data.metadata.namespace) )">
 									<template v-if="( (pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested).replace('.00','') != profile.data.spec.memory) ">
 										<span class="helpTooltip alert" data-tooltip="A memory change request is pending to be applied"></span>
 									</template>
-								</template>
+								</template>-->
 							</td>
 							<td class="textRight">
 							<template v-if="pod.hasOwnProperty('diskUsed')">{{ pod.diskUsed }}</template><template v-else>-</template> / {{ pod.diskRequested }} <span v-if="pod.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ pod.diskPsiAvg60 }})</span>
