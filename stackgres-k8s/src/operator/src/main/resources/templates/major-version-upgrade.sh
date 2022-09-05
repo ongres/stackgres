@@ -43,6 +43,27 @@ then
   } > "$PG_UPGRADE_PATH/$TARGET_VERSION/data/postgresql.conf"
   (
   cd "$PG_UPGRADE_PATH/$TARGET_VERSION"
+  if [ ! -f .copied-missing-lib64.done ]
+  then
+    copy_missing() {
+      SOURCE="$1"
+      TARGET="$2"
+      ls -1 "$SOURCE" \
+        | while read FILE
+          do
+            if ! ls -1 "$TARGET" | grep -qF "$FILE"
+            then
+              cp -a "$SOURCE/$FILE" "$TARGET/$FILE"
+              echo "$FILE"
+            elif [ -d "$SOURCE/$FILE" ] && [ -d "$TARGET/$FILE" ]
+            then
+              copy_missing "$SOURCE/$FILE" "$TARGER/$FILE"
+            fi
+        done
+    }
+    copy_missing "$SOURCE_PG_LIB64_PATH" "$TARGET_PG_LIB64_PATH" > copied-missing-lib64
+    touch .copied-missing-lib64.done
+  fi
   if [ "$CHECK" ]
   then
     echo "Checking major version upgrade"
@@ -74,6 +95,7 @@ then
     grep . *.txt *.log 2>/dev/null | cat >&2
     exit 1
   fi
+  touch "$PG_DATA_PATH/.upgraded-from-$SOURCE_VERSION-to-$TARGET_VERSION"
   )
 fi
 
@@ -92,5 +114,10 @@ then
   mv "$PG_UPGRADE_PATH/$TARGET_VERSION/data" "$PG_DATA_PATH"
 fi
 rm -rf "$PG_UPGRADE_PATH/$SOURCE_VERSION/data"
+cat "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" \
+  | while read FILE
+    do
+      rm -rf "$FILE"
+    done
 touch "$PG_UPGRADE_PATH/.upgraded-from-$SOURCE_VERSION-to-$TARGET_VERSION"
 echo "Major version upgrade performed"
