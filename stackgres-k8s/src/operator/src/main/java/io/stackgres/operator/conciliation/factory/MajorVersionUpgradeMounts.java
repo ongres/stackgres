@@ -24,6 +24,8 @@ import io.stackgres.operator.conciliation.VolumeMountProviderName;
 public class MajorVersionUpgradeMounts implements VolumeMountsProvider<PostgresContainerContext> {
 
   private static final String PG_LIB_PATH_FORMAT = "/usr/lib/postgresql/%s/lib";
+  private static final String PG_RELOCATED_LIB64_PATH_FORMAT =
+      "/var/lib/postgresql/relocated/%s/usr/lib64";
 
   @ProviderName(VolumeMountProviderName.POSTGRES_EXTENSIONS)
   @Inject
@@ -97,12 +99,20 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<PostgresC
                 .withValue(String.format(PG_LIB_PATH_FORMAT, postgresVersion))
                 .build(),
             new EnvVarBuilder()
+                .withName("TARGET_PG_LIB64_PATH")
+                .withValue(String.format(PG_RELOCATED_LIB64_PATH_FORMAT, postgresVersion))
+                .build(),
+            new EnvVarBuilder()
                 .withName("TARGET_PG_EXTRA_LIB_PATH")
                 .withValue(String.format(PG_EXTRA_LIB_PATH_FORMAT, postgresVersion))
                 .build(),
             new EnvVarBuilder()
                 .withName("SOURCE_PG_LIB_PATH")
                 .withValue(String.format(PG_LIB_PATH_FORMAT, oldPostgresVersion))
+                .build(),
+            new EnvVarBuilder()
+                .withName("SOURCE_PG_LIB64_PATH")
+                .withValue(String.format(PG_RELOCATED_LIB64_PATH_FORMAT, oldPostgresVersion))
                 .build(),
             new EnvVarBuilder()
                 .withName("SOURCE_PG_EXTRA_LIB_PATH")
