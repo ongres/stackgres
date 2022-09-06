@@ -155,6 +155,10 @@ EOF
   wait_until is_backup_phase "Completed"
 
   remove_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
+  kubectl create secret generic -n "$CLUSTER_NAMESPACE" secret-script \
+    --from-literal=script="CREATE DATABASE secret_managed_sql;"
+  kubectl create configmap -n "$CLUSTER_NAMESPACE" configmap-script \
+    --from-literal=script="CREATE DATABASE configmap_managed_sql;"
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
@@ -164,6 +168,10 @@ EOF
     --set backupconfig.retention=2 \
     --set-string cluster.configurations.sgBackupConfig=backupconf \
     --set-string cluster.managedSql.scripts[0].script="CREATE DATABASE managed_sql;" \
+    --set-string cluster.managedSql.scripts[1].scriptFrom.secretKeyRef.name=secret-script \
+    --set-string cluster.managedSql.scripts[1].scriptFrom.secretKeyRef.key=script \
+    --set-string cluster.managedSql.scripts[2].scriptFrom.configMapKeyRef.name=configmap-script \
+    --set-string cluster.managedSql.scripts[2].scriptFrom.configMapKeyRef.key=script \
     --set-string cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
     --set-string cluster.metadata.labels.clusterPods.pod-label="$RANDOM_VALUE" \
     --set-string cluster.metadata.annotations.clusterPods.pod-annotation="$RANDOM_VALUE" \
@@ -859,6 +867,33 @@ check_managed_sql_mutation() {
     echo "SUCCESS. Initial data SGScript was created after operator upgrade"
   else
     echo "FAIL. Initial data SGScript was not created after operator upgrade"
+    return 1
+  fi
+  if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-inital-data" -o json \
+    | jq '.spec.scripts | map(select(.script != null)) | length')" \
+    = "1" ]
+  then
+    echo "SUCCESS. Initial data SGScript was created with expected number of inline scripts after operator upgrade"
+  else
+    echo "FAIL. Initial data SGScript was not created with expected number of inline scripts after operator upgrade"
+    return 1
+  fi
+  if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-inital-data" -o json \
+    | jq '.spec.scripts | map(select(.scriptFrom != null and .scriptFrom.secretKeyRef)) | length')" \
+    = "1" ]
+  then
+    echo "SUCCESS. Initial data SGScript was created with expected number of secret scripts after operator upgrade"
+  else
+    echo "FAIL. Initial data SGScript was not created with expected number of secret scripts after operator upgrade"
+    return 1
+  fi
+  if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-inital-data" -o json \
+    | jq '.spec.scripts | map(select(.scriptFrom != null and .scriptFrom.configMapKeyRef)) | length')" \
+    = "1" ]
+  then
+    echo "SUCCESS. Initial data SGScript was created with expected number of configmap scripts after operator upgrade"
+  else
+    echo "FAIL. Initial data SGScript was not created with expected number of configmap scripts after operator upgrade"
     return 1
   fi
 }

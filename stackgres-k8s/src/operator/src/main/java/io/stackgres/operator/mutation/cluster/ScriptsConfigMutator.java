@@ -46,6 +46,11 @@ import org.jooq.lambda.Seq;
 public class ScriptsConfigMutator
     implements ClusterMutator {
 
+  private static final int DEFAULT_SCRIPT_ID = 0;
+  private static final int DEFAULT_SCRIPT_INDEX = 0;
+  private static final int INITIAL_DATA_SCRIPT_ID = 1;
+  private static final int INITIAL_DATA_SCRIPT_INDEX = 1;
+
   private static final long VERSION_1_2 = StackGresVersion.V_1_2.getVersionAsNumber();
 
   static final JsonPointer INITIAL_DATA_SCRIPTS_POINTER = SPEC_POINTER.append("initialData")
@@ -75,6 +80,7 @@ public class ScriptsConfigMutator
         .orElse(null);
     final boolean addDefaultScripts = addDefaultScripts(request);
     final boolean moveInitialDataScripts = moveInitialDataScripts(request);
+    resetIdForScriptsWithDefaultId(request);
     final boolean fillRequiredFields = fillRequiredFields(request);
     if (addDefaultScripts || moveInitialDataScripts || fillRequiredFields) {
       if (managedSql == null) {
@@ -122,11 +128,11 @@ public class ScriptsConfigMutator
         return false;
       }
       request.getObject().getSpec().getManagedSql().getScripts()
-          .add(0, new StackGresClusterManagedScriptEntry());
-      request.getObject().getSpec().getManagedSql().getScripts().get(0).setId(
-          0);
-      request.getObject().getSpec().getManagedSql().getScripts().get(0).setSgScript(
-          defaultScriptName);
+          .add(DEFAULT_SCRIPT_INDEX, new StackGresClusterManagedScriptEntry());
+      request.getObject().getSpec().getManagedSql().getScripts().get(DEFAULT_SCRIPT_INDEX)
+          .setId(DEFAULT_SCRIPT_ID);
+      request.getObject().getSpec().getManagedSql().getScripts().get(DEFAULT_SCRIPT_INDEX)
+          .setSgScript(defaultScriptName);
       if (request.getObject().getStatus() == null) {
         request.getObject().setStatus(new StackGresClusterStatus());
       }
@@ -137,10 +143,11 @@ public class ScriptsConfigMutator
         request.getObject().getStatus().getManagedSql().setScripts(new ArrayList<>());
       }
       request.getObject().getStatus().getManagedSql().getScripts()
-          .removeIf(entry -> Objects.equals(0, entry.getId()));
+          .removeIf(entry -> Objects.equals(DEFAULT_SCRIPT_ID, entry.getId()));
       request.getObject().getStatus().getManagedSql().getScripts()
-          .add(0, new StackGresClusterManagedScriptEntryStatus());
-      request.getObject().getStatus().getManagedSql().getScripts().get(0).setId(0);
+          .add(DEFAULT_SCRIPT_INDEX, new StackGresClusterManagedScriptEntryStatus());
+      request.getObject().getStatus().getManagedSql().getScripts().get(DEFAULT_SCRIPT_INDEX)
+          .setId(DEFAULT_SCRIPT_ID);
       return true;
     }
     return false;
@@ -165,10 +172,10 @@ public class ScriptsConfigMutator
         scriptScheduler.update(initDataScript);
       }
       request.getObject().getSpec().getManagedSql().getScripts()
-          .add(1, new StackGresClusterManagedScriptEntry());
-      request.getObject().getSpec().getManagedSql().getScripts().get(1)
-          .setId(1);
-      request.getObject().getSpec().getManagedSql().getScripts().get(1)
+          .add(INITIAL_DATA_SCRIPT_INDEX, new StackGresClusterManagedScriptEntry());
+      request.getObject().getSpec().getManagedSql().getScripts().get(INITIAL_DATA_SCRIPT_INDEX)
+          .setId(INITIAL_DATA_SCRIPT_ID);
+      request.getObject().getSpec().getManagedSql().getScripts().get(INITIAL_DATA_SCRIPT_INDEX)
           .setSgScript(initDataScript.getMetadata().getName());
       if (request.getObject().getStatus() == null) {
         request.getObject().setStatus(new StackGresClusterStatus());
@@ -180,28 +187,41 @@ public class ScriptsConfigMutator
         request.getObject().getStatus().getManagedSql().setScripts(new ArrayList<>());
       }
       request.getObject().getStatus().getManagedSql().getScripts()
-          .removeIf(entry -> Objects.equals(1, entry.getId()));
+          .removeIf(entry -> Objects.equals(INITIAL_DATA_SCRIPT_ID, entry.getId()));
       request.getObject().getStatus().getManagedSql().getScripts()
-          .add(1, new StackGresClusterManagedScriptEntryStatus());
-      request.getObject().getStatus().getManagedSql().getScripts().get(1).setId(1);
-      request.getObject().getStatus().getManagedSql().getScripts().get(1).setStartedAt(
-          Instant.now().toString());
-      request.getObject().getStatus().getManagedSql().getScripts().get(1).setCompletedAt(
-          Instant.now().toString());
-      request.getObject().getStatus().getManagedSql().getScripts().get(1).setScripts(
-          new ArrayList<>());
+          .add(INITIAL_DATA_SCRIPT_INDEX, new StackGresClusterManagedScriptEntryStatus());
+      request.getObject().getStatus().getManagedSql().getScripts().get(INITIAL_DATA_SCRIPT_INDEX)
+          .setId(INITIAL_DATA_SCRIPT_ID);
+      request.getObject().getStatus().getManagedSql().getScripts().get(INITIAL_DATA_SCRIPT_INDEX)
+          .setStartedAt(Instant.now().toString());
+      request.getObject().getStatus().getManagedSql().getScripts().get(INITIAL_DATA_SCRIPT_INDEX)
+          .setCompletedAt(Instant.now().toString());
+      request.getObject().getStatus().getManagedSql().getScripts().get(INITIAL_DATA_SCRIPT_INDEX)
+          .setScripts(new ArrayList<>());
       Seq.seq(request.getObject().getSpec().getInitData().getScripts())
           .zipWithIndex()
           .forEach(initDataScriptEntry -> {
             var managedScriptEntryStatus = new StackGresClusterManagedScriptEntryScriptStatus();
             managedScriptEntryStatus.setId(initDataScriptEntry.v2.intValue());
             managedScriptEntryStatus.setVersion(0);
-            request.getObject().getStatus().getManagedSql().getScripts().get(1).getScripts()
+            request.getObject().getStatus().getManagedSql().getScripts()
+                .get(INITIAL_DATA_SCRIPT_INDEX).getScripts()
                 .add(managedScriptEntryStatus);
           });
       return true;
     }
     return false;
+  }
+
+  private void resetIdForScriptsWithDefaultId(AdmissionRequest<StackGresCluster> request) {
+    if (request.getOperation() == Operation.CREATE) {
+      request.getObject().getSpec().getManagedSql().getScripts()
+          .stream()
+          .skip(DEFAULT_SCRIPT_INDEX + 1)
+          .filter(script -> script.getId() != null)
+          .filter(script -> script.getId().intValue() <= DEFAULT_SCRIPT_INDEX)
+          .forEach(script -> script.setId(null));
+    }
   }
 
   private StackGresScript createInitDataScript(AdmissionRequest<StackGresCluster> request) {
@@ -225,10 +245,10 @@ public class ScriptsConfigMutator
             scriptEntry.setScriptFrom(new StackGresScriptFrom());
             if (initDataScriptEntry.v1.getScriptFrom().getConfigMapKeyRef() != null) {
               scriptEntry.getScriptFrom().setConfigMapKeyRef(
-                  scriptEntry.getScriptFrom().getConfigMapKeyRef());
+                  initDataScriptEntry.v1.getScriptFrom().getConfigMapKeyRef());
             } else {
               scriptEntry.getScriptFrom().setSecretKeyRef(
-                  scriptEntry.getScriptFrom().getSecretKeyRef());
+                  initDataScriptEntry.v1.getScriptFrom().getSecretKeyRef());
             }
           }
           script.getSpec().getScripts().add(scriptEntry);
