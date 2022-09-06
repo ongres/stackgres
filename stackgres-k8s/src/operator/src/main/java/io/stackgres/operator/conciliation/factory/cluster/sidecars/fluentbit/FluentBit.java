@@ -28,13 +28,10 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
-import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.LogVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Sidecar(StackGresContainer.FLUENT_BIT)
@@ -43,18 +40,17 @@ import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolu
 @RunningContainer(StackGresContainer.FLUENT_BIT)
 public class FluentBit extends AbstractFluentBit {
 
-  private final VolumeMountsProvider<ContainerContext> logMounts;
+  private final LogVolumeMounts logMounts;
 
   @Inject
   public FluentBit(LabelFactoryForCluster<StackGresCluster> labelFactory,
-                   @ProviderName(VolumeMountProviderName.POSTGRES_LOG)
-                       VolumeMountsProvider<ContainerContext> logMounts) {
+      LogVolumeMounts logMounts) {
     super(labelFactory);
     this.logMounts = logMounts;
   }
 
   @Override
-  protected List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context) {
+  protected List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     return ImmutableList.<VolumeMount>builder()
         .addAll(logMounts.getVolumeMounts(context))
         .add(
@@ -68,7 +64,7 @@ public class FluentBit extends AbstractFluentBit {
 
   @Override
   protected List<EnvVar> getContainerEnvironmentVariables(
-      StackGresClusterContainerContext context) {
+      ClusterContainerContext context) {
     return logMounts.getDerivedEnvVars(context);
   }
 

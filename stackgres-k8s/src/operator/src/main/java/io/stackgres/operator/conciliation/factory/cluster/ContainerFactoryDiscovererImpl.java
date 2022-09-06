@@ -20,14 +20,14 @@ import io.stackgres.operator.conciliation.factory.RunningContainer;
 
 @ApplicationScoped
 public class ContainerFactoryDiscovererImpl
-    extends AnnotatedResourceDiscoverer<ContainerFactory<StackGresClusterContainerContext>,
+    extends AnnotatedResourceDiscoverer<ContainerFactory<ClusterContainerContext>,
         RunningContainer>
-    implements ContainerFactoryDiscoverer<StackGresClusterContainerContext> {
+    implements ContainerFactoryDiscoverer<ClusterContainerContext> {
 
   @Inject
   public ContainerFactoryDiscovererImpl(
       @Any
-      Instance<ContainerFactory<StackGresClusterContainerContext>> instance) {
+      Instance<ContainerFactory<ClusterContainerContext>> instance) {
     init(instance);
     resourceHub.forEach((key, value) -> {
       value.sort((f1, f2) -> {
@@ -46,8 +46,8 @@ public class ContainerFactoryDiscovererImpl
   }
 
   @Override
-  public List<ContainerFactory<StackGresClusterContainerContext>> discoverContainers(
-      StackGresClusterContainerContext context) {
+  public List<ContainerFactory<ClusterContainerContext>> discoverContainers(
+      ClusterContainerContext context) {
     return resourceHub.get(context.getClusterContext().getVersion()).stream()
         .filter(f -> f.isActivated(context))
         .collect(Collectors.toUnmodifiableList());

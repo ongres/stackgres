@@ -13,8 +13,8 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.cluster.ImmutableStackGresClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ImmutableClusterContainerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -31,26 +31,26 @@ class PostgresExporterTest {
 
   @Test
   void ifDisableMetricsExporterIsNotSpecified_shouldBeActivated() {
-    StackGresClusterContainerContext context = getStackGresClusterContainerContext();
+    ClusterContainerContext context = getClusterContainerContext();
     assertTrue(postgresExporter.isActivated(context));
   }
 
   @Test
   void ifDisableMetricsExporterIsFalse_shouldBeActivated() {
-    StackGresClusterContainerContext context = getStackGresClusterContainerContext();
+    ClusterContainerContext context = getClusterContainerContext();
     context.getClusterContext().getSource().getSpec().getPod().setDisableMetricsExporter(false);
     assertTrue(postgresExporter.isActivated(context));
   }
 
   @Test
   void ifDisableMetricsExporterIsTrue_shouldNotBeActivated() {
-    StackGresClusterContainerContext context = getStackGresClusterContainerContext();
+    ClusterContainerContext context = getClusterContainerContext();
     context.getClusterContext().getSource().getSpec().getPod().setDisableMetricsExporter(true);
     assertFalse(postgresExporter.isActivated(context));
   }
 
-  private ImmutableStackGresClusterContainerContext getStackGresClusterContainerContext() {
-    return ImmutableStackGresClusterContainerContext.builder()
+  private ImmutableClusterContainerContext getClusterContainerContext() {
+    return ImmutableClusterContainerContext.builder()
         .clusterContext(ImmutableStackGresClusterContext.builder()
             .source(getDefaultCluster())
             .postgresConfig(new StackGresPostgresConfig())

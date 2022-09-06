@@ -5,10 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.LOCAL_BIN;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.SCRIPT_TEMPLATES;
-
 import java.util.List;
 
 import javax.inject.Inject;
@@ -24,40 +20,37 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.ProviderName;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.LocalBinMounts;
+import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.SETUP_SCRIPTS)
-public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerContext> {
+public class ScriptsSetUp implements ContainerFactory<ClusterContainerContext> {
 
-  private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
-  private final VolumeMountsProvider<ContainerContext> localBinMounts;
-  private final VolumeMountsProvider<ContainerContext> templateMounts;
+  private final ContainerUserOverrideMounts containerUserOverrideMounts;
+  private final LocalBinMounts localBinMounts;
+  private final ScriptTemplatesVolumeMounts templateMounts;
 
   @Inject
   KubectlUtil kubectl;
 
   @Inject
   public ScriptsSetUp(
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-          VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
-      @ProviderName(LOCAL_BIN)
-          VolumeMountsProvider<ContainerContext> localBinMounts,
-      @ProviderName(SCRIPT_TEMPLATES)
-          VolumeMountsProvider<ContainerContext> templateMounts) {
+      ContainerUserOverrideMounts containerUserOverrideMounts,
+      LocalBinMounts localBinMounts,
+      ScriptTemplatesVolumeMounts templateMounts) {
     this.containerUserOverrideMounts = containerUserOverrideMounts;
     this.localBinMounts = localBinMounts;
     this.templateMounts = templateMounts;
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresInitContainer.SETUP_SCRIPTS.getName())
         .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
@@ -73,7 +66,7 @@ public class ScriptsSetUp implements ContainerFactory<StackGresClusterContainerC
         .build();
   }
 
-  private List<EnvVar> getClusterEnvVars(StackGresClusterContainerContext context) {
+  private List<EnvVar> getClusterEnvVars(ClusterContainerContext context) {
     return ImmutableList.<EnvVar>builder()
         .addAll(localBinMounts.getDerivedEnvVars(context))
         .addAll(templateMounts.getDerivedEnvVars(context))

@@ -13,14 +13,11 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
-import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 
 @ApplicationScoped
-@ProviderName(VolumeMountProviderName.POSTGRES_LOG)
 public class LogVolumeMounts implements VolumeMountsProvider<ContainerContext> {
 
   @Override

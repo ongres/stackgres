@@ -20,39 +20,35 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.VolumeMountProviderName;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
-import io.stackgres.operator.conciliation.factory.ProviderName;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
+import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.SETUP_ARBITRARY_USER)
-public class UserSetUp implements ContainerFactory<StackGresClusterContainerContext> {
+public class UserSetUp implements ContainerFactory<ClusterContainerContext> {
 
-  private final VolumeMountsProvider<ContainerContext> scriptTemplateMounts;
+  private final ScriptTemplatesVolumeMounts scriptTemplateMounts;
 
-  private final VolumeMountsProvider<ContainerContext> postgresSocketMounts;
+  private final PostgresDataMounts postgresDataMounts;
 
   @Inject
   KubectlUtil kubectl;
 
   @Inject
   public UserSetUp(
-      @ProviderName(VolumeMountProviderName.SCRIPT_TEMPLATES)
-          VolumeMountsProvider<ContainerContext> scriptTemplateMounts,
-      @ProviderName(VolumeMountProviderName.POSTGRES_DATA)
-          VolumeMountsProvider<ContainerContext> postgresSocketMounts) {
+      ScriptTemplatesVolumeMounts scriptTemplateMounts,
+      PostgresDataMounts postgresDataMounts) {
     this.scriptTemplateMounts = scriptTemplateMounts;
-    this.postgresSocketMounts = postgresSocketMounts;
+    this.postgresDataMounts = postgresDataMounts;
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresInitContainer.SETUP_ARBITRARY_USER.getName())
         .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
@@ -72,11 +68,11 @@ public class UserSetUp implements ContainerFactory<StackGresClusterContainerCont
         .build();
   }
 
-  private List<EnvVar> getClusterEnvVars(StackGresClusterContainerContext context) {
+  private List<EnvVar> getClusterEnvVars(ClusterContainerContext context) {
 
     return ImmutableList.<EnvVar>builder()
         .addAll(scriptTemplateMounts.getDerivedEnvVars(context))
-        .addAll(postgresSocketMounts.getDerivedEnvVars(context))
+        .addAll(postgresDataMounts.getDerivedEnvVars(context))
         .build();
 
   }

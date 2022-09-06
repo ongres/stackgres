@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy.v13;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
 
 import java.util.List;
 import java.util.Map;
@@ -44,12 +43,10 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
-import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import org.jooq.lambda.Seq;
 
 @Singleton
@@ -59,21 +56,20 @@ import org.jooq.lambda.Seq;
 public class Envoy extends AbstractEnvoy {
 
   private final ObjectMapper objectMapper;
-  private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
+  private final ContainerUserOverrideMounts containerUserOverrideMounts;
 
   @Inject
   public Envoy(YamlMapperProvider yamlMapperProvider,
       ObjectMapper jsonMapper,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-      VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
+      ContainerUserOverrideMounts containerUserOverrideMounts) {
     super(yamlMapperProvider, labelFactory);
     this.objectMapper = jsonMapper;
     this.containerUserOverrideMounts = containerUserOverrideMounts;
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(StackGresContainer.ENVOY.getName())
         .withImage(StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
@@ -291,7 +287,7 @@ public class Envoy extends AbstractEnvoy {
   }
 
   @Override
-  public List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context) {
+  public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     return Seq.seq(containerUserOverrideMounts.getVolumeMounts(context))
         .append(Optional.ofNullable(context.getClusterContext().getSource().getSpec())
             .map(StackGresClusterSpec::getPostgres)

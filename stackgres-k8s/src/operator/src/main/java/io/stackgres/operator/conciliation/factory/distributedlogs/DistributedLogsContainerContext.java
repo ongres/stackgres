@@ -5,9 +5,9 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
-import java.util.Map;
+import java.util.List;
 
-import io.fabric8.kubernetes.api.model.Volume;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import org.immutables.value.Value;
@@ -17,8 +17,6 @@ public interface DistributedLogsContainerContext extends ContainerContext {
 
   StackGresDistributedLogsContext getDistributedLogsContext();
 
-  Map<String, Volume> availableVolumes();
-
-  String getDataVolumeName();
+  List<StackGresClusterInstalledExtension> getInstalledExtensions();
 
 }

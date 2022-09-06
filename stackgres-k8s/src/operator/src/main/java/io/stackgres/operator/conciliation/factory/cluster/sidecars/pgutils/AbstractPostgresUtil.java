@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgutils;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
 
 import java.util.Map;
 
@@ -14,19 +13,17 @@ import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.ProviderName;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 
 public abstract class AbstractPostgresUtil
-    implements ContainerFactory<StackGresClusterContainerContext> {
+    implements ContainerFactory<ClusterContainerContext> {
 
-  protected VolumeMountsProvider<ContainerContext> postgresSocket;
+  protected PostgresSocketMount postgresSocket;
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
+  public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.POSTGRES_VERSION_KEY,
         getPostgresFlavorComponent(context.getClusterContext().getCluster())
@@ -37,8 +34,7 @@ public abstract class AbstractPostgresUtil
 
   @Inject
   public void setPostgresSocket(
-      @ProviderName(POSTGRES_SOCKET)
-          VolumeMountsProvider<ContainerContext> postgresSocket) {
+      PostgresSocketMount postgresSocket) {
     this.postgresSocket = postgresSocket;
   }
 }

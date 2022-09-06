@@ -29,7 +29,7 @@ import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +37,7 @@ import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractEnvoy implements ContainerFactory<StackGresClusterContainerContext>,
+public abstract class AbstractEnvoy implements ContainerFactory<ClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
 
   public static final String SERVICE_MONITOR = "-stackgres-envoy";
@@ -85,7 +85,7 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
+  public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.ENVOY_VERSION_KEY,
         StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
@@ -120,6 +120,6 @@ public abstract class AbstractEnvoy implements ContainerFactory<StackGresCluster
   protected abstract String getEnvoyConfigPath(final StackGresCluster stackGresCluster,
       boolean disablePgBouncer);
 
-  public abstract List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context);
+  public abstract List<VolumeMount> getVolumeMounts(ClusterContainerContext context);
 
 }

@@ -7,7 +7,6 @@ package io.stackgres.operator.conciliation.cluster;
 
 import static java.util.Optional.ofNullable;
 
-import java.io.IOException;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -58,7 +57,7 @@ class ClusterRequiredResourceDecoratorTest
   }
 
   @Override
-  protected StackGresClusterContext getResourceContext() throws IOException {
+  protected StackGresClusterContext getResourceContext() {
     return ImmutableStackGresClusterContext.builder()
         .source(resource)
         .postgresConfig(pgConfig)

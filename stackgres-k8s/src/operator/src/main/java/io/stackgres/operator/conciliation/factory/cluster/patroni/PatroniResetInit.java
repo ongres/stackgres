@@ -27,27 +27,25 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgrad
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
-import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.RESET_PATRONI)
-public class PatroniResetInit implements ContainerFactory<StackGresClusterContainerContext> {
+public class PatroniResetInit implements ContainerFactory<ClusterContainerContext> {
 
   private final PatroniServices patroniServices;
 
-  private final VolumeMountsProvider<ContainerContext> postgresDataMounts;
+  private final PostgresDataMounts postgresDataMounts;
 
-  private final VolumeMountsProvider<ContainerContext> templateMounts;
+  private final ScriptTemplatesVolumeMounts templateMounts;
 
   private final ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;
 
@@ -58,10 +56,8 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
   public PatroniResetInit(
       @OperatorVersionBinder
           PatroniServices patroniServices,
-      @ProviderName(VolumeMountProviderName.POSTGRES_DATA)
-          VolumeMountsProvider<ContainerContext> postgresDataMounts,
-      @ProviderName(VolumeMountProviderName.SCRIPT_TEMPLATES)
-          VolumeMountsProvider<ContainerContext> templateMounts,
+      PostgresDataMounts postgresDataMounts,
+      ScriptTemplatesVolumeMounts templateMounts,
       ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables) {
     this.patroniServices = patroniServices;
     this.postgresDataMounts = postgresDataMounts;
@@ -70,7 +66,7 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
   }
 
   @Override
-  public boolean isActivated(StackGresClusterContainerContext context) {
+  public boolean isActivated(ClusterContainerContext context) {
     return Optional.of(context.getClusterContext().getSource())
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getDbOps)
@@ -78,7 +74,7 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
 
     final StackGresClusterContext clusterContext = context.getClusterContext();
     StackGresClusterDbOpsMajorVersionUpgradeStatus majorVersionUpgradeStatus =
@@ -157,7 +153,7 @@ public class PatroniResetInit implements ContainerFactory<StackGresClusterContai
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
+  public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return Map.of();
   }
 }

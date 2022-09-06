@@ -13,11 +13,9 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @ApplicationScoped
-@ProviderName(VolumeMountProviderName.SCRIPT_TEMPLATES)
 public class ScriptTemplatesVolumeMounts implements VolumeMountsProvider<ContainerContext> {
 
   @Override

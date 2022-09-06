@@ -49,14 +49,14 @@ class PodTemplateSpecFactoryTest {
   private ClusterLabelMapper labelMapper;
 
   @Mock
-  private ContainerFactoryDiscoverer<StackGresClusterContainerContext> containerFactoryDiscoverer;
+  private ContainerFactoryDiscoverer<ClusterContainerContext> containerFactoryDiscoverer;
 
   @Mock
-  private InitContainerFactoryDiscover<StackGresClusterContainerContext>
+  private InitContainerFactoryDiscover<ClusterContainerContext>
       initContainerFactoryDiscoverer;
 
   @Mock
-  private ContainerFactory<StackGresClusterContainerContext> patroniContainerFactory;
+  private ContainerFactory<ClusterContainerContext> patroniContainerFactory;
 
   @Mock
   private Container patroniContainer;
@@ -65,7 +65,7 @@ class PodTemplateSpecFactoryTest {
   private PodTemplateSpecFactory podTemplateSpecFactory;
 
   @Mock
-  private StackGresClusterContainerContext clusterContainerContext;
+  private ClusterContainerContext clusterContainerContext;
 
   @Mock
   private StackGresClusterContext clusterContext;

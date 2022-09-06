@@ -58,11 +58,27 @@ public enum ClusterStatefulSetEnvVars {
     return substVar;
   }
 
+  public String value(ClusterContext context) {
+    return value(context.getCluster());
+  }
+
   public String value(StackGresCluster context) {
     return getEnvVar.apply(context).getValue();
   }
 
+  public String value() {
+    return getEnvVar.apply(null).getValue();
+  }
+
+  public EnvVar envVar(ClusterContext context) {
+    return envVar(context.getCluster());
+  }
+
   public EnvVar envVar(StackGresCluster context) {
     return getEnvVar.apply(context);
+  }
+
+  public EnvVar envVar() {
+    return getEnvVar.apply(null);
   }
 }

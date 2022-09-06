@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,6 +30,7 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StorageConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -45,14 +47,14 @@ public class ClusterStatefulSet
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  private final PodTemplateFactoryDiscoverer<StackGresClusterContainerContext>
+  private final PodTemplateFactoryDiscoverer<ClusterContainerContext>
       podTemplateSpecFactoryDiscoverer;
   private final VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
 
   @Inject
   public ClusterStatefulSet(
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      PodTemplateFactoryDiscoverer<StackGresClusterContainerContext>
+      PodTemplateFactoryDiscoverer<ClusterContainerContext>
           podTemplateSpecFactoryDiscoverer,
       VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer) {
     this.labelFactory = labelFactory;
@@ -102,10 +104,17 @@ public class ClusterStatefulSet
             vp -> vp.getValue().getVolume()
         ));
 
-    var containerContext = ImmutableStackGresClusterContainerContext.builder()
+    final var installedExtensions = Optional
+        .ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getToInstallPostgresExtensions)
+        .stream()
+        .flatMap(Collection::stream)
+        .collect(Collectors.toUnmodifiableList());
+    var containerContext = ImmutableClusterContainerContext.builder()
         .clusterContext(context)
         .availableVolumes(availableVolumes)
         .dataVolumeName(dataName(context))
+        .addAllInstalledExtensions(installedExtensions)
         .build();
     var podTemplateSpecFactory = podTemplateSpecFactoryDiscoverer
         .discoverPodSpecFactory(containerContext);

@@ -19,13 +19,10 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProd
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
-import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
-import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 
 @ApplicationScoped
-@ProviderName(VolumeMountProviderName.HUGE_PAGES)
 public class HugePagesMounts implements VolumeMountsProvider<DistributedLogsContainerContext> {
 
   @Override

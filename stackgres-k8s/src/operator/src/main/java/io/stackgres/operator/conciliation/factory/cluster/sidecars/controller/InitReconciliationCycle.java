@@ -21,15 +21,15 @@ import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 
 @Singleton
 @OperatorVersionBinder
 @InitContainer(StackGresInitContainer.CLUSTER_RECONCILIATION_CYCLE)
-public class InitReconciliationCycle implements ContainerFactory<StackGresClusterContainerContext> {
+public class InitReconciliationCycle implements ContainerFactory<ClusterContainerContext> {
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresInitContainer.CLUSTER_RECONCILIATION_CYCLE.getName())
         .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())

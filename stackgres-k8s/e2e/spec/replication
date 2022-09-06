@@ -32,7 +32,7 @@ check_replication_is_working() {
   fi
 
   local RESULT EXIT_CODE
-  try_function run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE DATABASE test;"
+  try_function run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE DATABASE test;"
   if "$RESULT"
   then
     echo "SUCCESS: It's possible to create a database in the primary node"
@@ -48,15 +48,15 @@ check_replication_is_working() {
     echo "FAIL: It's possible to create a table in the replica node"
     return 1
   else
-    echo "SUCCESS: Good it should be possible to create a table in the replica node" 
+    echo "SUCCESS: Good it is not possible to create a table in the replica node" 
   fi
 
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (1);" -d test
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci(num) VALUES (1);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test
 
-  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
   then

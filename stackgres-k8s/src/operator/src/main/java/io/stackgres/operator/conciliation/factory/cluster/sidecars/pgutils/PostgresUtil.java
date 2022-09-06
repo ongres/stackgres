@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgutils;
 
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -17,12 +15,10 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
-import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 
 @Sidecar(StackGresContainer.POSTGRES_UTIL)
 @Singleton
@@ -30,10 +26,10 @@ import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContai
 @RunningContainer(StackGresContainer.POSTGRES_UTIL)
 public class PostgresUtil extends AbstractPostgresUtil {
 
-  private VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
+  private ContainerUserOverrideMounts containerUserOverrideMounts;
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresContainer.POSTGRES_UTIL.getName())
         .withImage(StackGresComponent.POSTGRES_UTIL.get(context.getClusterContext().getCluster())
@@ -57,8 +53,7 @@ public class PostgresUtil extends AbstractPostgresUtil {
 
   @Inject
   public void setContainerUserOverrideMounts(
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-          VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
+      ContainerUserOverrideMounts containerUserOverrideMounts) {
     this.containerUserOverrideMounts = containerUserOverrideMounts;
   }
 

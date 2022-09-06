@@ -56,24 +56,24 @@ import org.jooq.lambda.Seq;
 @Singleton
 @OperatorVersionBinder
 public class PodTemplateSpecFactory
-    implements PodTemplateFactory<StackGresClusterContainerContext> {
+    implements PodTemplateFactory<ClusterContainerContext> {
 
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext;
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  private final ContainerFactoryDiscoverer<StackGresClusterContainerContext>
+  private final ContainerFactoryDiscoverer<ClusterContainerContext>
       containerFactoryDiscoverer;
 
-  private final InitContainerFactoryDiscover<StackGresClusterContainerContext>
+  private final InitContainerFactoryDiscover<ClusterContainerContext>
       initContainerFactoryDiscoverer;
 
   @Inject
   public PodTemplateSpecFactory(
       ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      ContainerFactoryDiscoverer<StackGresClusterContainerContext> containerFactoryDiscoverer,
-      InitContainerFactoryDiscover<StackGresClusterContainerContext>
+      ContainerFactoryDiscoverer<ClusterContainerContext> containerFactoryDiscoverer,
+      InitContainerFactoryDiscover<ClusterContainerContext>
           initContainerFactoryDiscoverer) {
     this.podSecurityContext = podSecurityContext;
     this.labelFactory = labelFactory;
@@ -82,9 +82,9 @@ public class PodTemplateSpecFactory
   }
 
   @Override
-  public PodTemplateResult getPodTemplateSpec(StackGresClusterContainerContext context) {
+  public PodTemplateResult getPodTemplateSpec(ClusterContainerContext context) {
 
-    final List<ContainerFactory<StackGresClusterContainerContext>> containerFactories =
+    final List<ContainerFactory<ClusterContainerContext>> containerFactories =
         containerFactoryDiscoverer.discoverContainers(context);
 
     final List<Container> containers = containerFactories.stream()
@@ -97,7 +97,7 @@ public class PodTemplateSpecFactory
         .distinct()
         .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, Map.Entry::getValue));
 
-    final List<ContainerFactory<StackGresClusterContainerContext>> initContainerFactories =
+    final List<ContainerFactory<ClusterContainerContext>> initContainerFactories =
         initContainerFactoryDiscoverer.discoverContainers(context);
 
     List<Container> initContainers = initContainerFactories

@@ -15,19 +15,19 @@ import io.stackgres.operator.conciliation.factory.PodTemplateFactory;
 
 @ApplicationScoped
 public class PodTemplateFactoryDiscovererImpl
-    extends ResourceDiscoverer<PodTemplateFactory<StackGresClusterContainerContext>>
-    implements PodTemplateFactoryDiscoverer<StackGresClusterContainerContext> {
+    extends ResourceDiscoverer<PodTemplateFactory<ClusterContainerContext>>
+    implements PodTemplateFactoryDiscoverer<ClusterContainerContext> {
 
   @Inject
   public PodTemplateFactoryDiscovererImpl(
       @Any
-          Instance<PodTemplateFactory<StackGresClusterContainerContext>> instance) {
+          Instance<PodTemplateFactory<ClusterContainerContext>> instance) {
     init(instance);
   }
 
   @Override
-  public PodTemplateFactory<StackGresClusterContainerContext> discoverPodSpecFactory(
-      StackGresClusterContainerContext context) {
+  public PodTemplateFactory<ClusterContainerContext> discoverPodSpecFactory(
+      ClusterContainerContext context) {
     var podTemplateFactories = resourceHub.get(context.getClusterContext().getVersion());
 
     if (podTemplateFactories.size() != 1) {

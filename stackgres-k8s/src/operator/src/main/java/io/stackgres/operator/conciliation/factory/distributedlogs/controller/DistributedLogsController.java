@@ -5,10 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.controller;
 
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_DATA;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
-
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -30,11 +26,11 @@ import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
+import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
 import io.stackgres.operator.conciliation.factory.distributedlogs.FluentdStaticVolume;
 import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
@@ -45,20 +41,17 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDyn
 public class DistributedLogsController
     implements ContainerFactory<DistributedLogsContainerContext> {
 
-  private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
+  private final ContainerUserOverrideMounts containerUserOverrideMounts;
 
-  private final VolumeMountsProvider<ContainerContext> postgresSocket;
+  private final PostgresSocketMount postgresSocket;
 
-  private final VolumeMountsProvider<ContainerContext> postgresDataMounts;
+  private final PostgresDataMounts postgresDataMounts;
 
   @Inject
   public DistributedLogsController(
-      @ProviderName(POSTGRES_DATA)
-      VolumeMountsProvider<ContainerContext> postgresDataMounts,
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-      VolumeMountsProvider<ContainerContext> containerUserOverrideMounts,
-      @ProviderName(POSTGRES_SOCKET)
-      VolumeMountsProvider<ContainerContext> postgresSocket) {
+      PostgresDataMounts postgresDataMounts,
+      ContainerUserOverrideMounts containerUserOverrideMounts,
+      PostgresSocketMount postgresSocket) {
     this.containerUserOverrideMounts = containerUserOverrideMounts;
     this.postgresSocket = postgresSocket;
     this.postgresDataMounts = postgresDataMounts;

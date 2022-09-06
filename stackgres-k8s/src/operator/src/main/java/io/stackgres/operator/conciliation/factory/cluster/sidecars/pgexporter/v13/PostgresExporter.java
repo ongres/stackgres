@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter.v13;
 
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
@@ -42,15 +39,14 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
-import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
@@ -61,7 +57,7 @@ import org.slf4j.LoggerFactory;
 @Sidecar(StackGresContainer.POSTGRES_EXPORTER)
 @OperatorVersionBinder(stopAt = StackGresVersion.V_1_3)
 @RunningContainer(StackGresContainer.POSTGRES_EXPORTER)
-public class PostgresExporter implements ContainerFactory<StackGresClusterContainerContext>,
+public class PostgresExporter implements ContainerFactory<ClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
 
   private static final Logger POSTGRES_EXPORTER_LOGGER = LoggerFactory.getLogger(
@@ -69,9 +65,9 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
 
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  private VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
+  private ContainerUserOverrideMounts containerUserOverrideMounts;
 
-  private VolumeMountsProvider<ContainerContext> postgresSocket;
+  private PostgresSocketMount postgresSocket;
 
   public static String configName(StackGresClusterContext clusterContext) {
     final String name = clusterContext.getSource().getMetadata().getName();
@@ -79,7 +75,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
   }
 
   @Override
-  public boolean isActivated(StackGresClusterContainerContext context) {
+  public boolean isActivated(ClusterContainerContext context) {
     return Optional.of(context.getClusterContext().getCluster())
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPod)
@@ -89,7 +85,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     StackGresCluster cluster = context.getClusterContext().getSource();
     ContainerBuilder container = new ContainerBuilder();
     container.withName(StackGresContainer.POSTGRES_EXPORTER.getName())
@@ -161,7 +157,7 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
+  public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY,
         StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER
@@ -212,15 +208,13 @@ public class PostgresExporter implements ContainerFactory<StackGresClusterContai
 
   @Inject
   public void setContainerUserOverrideMounts(
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-          VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
+      ContainerUserOverrideMounts containerUserOverrideMounts) {
     this.containerUserOverrideMounts = containerUserOverrideMounts;
   }
 
   @Inject
   public void setPostgresSocket(
-      @ProviderName(POSTGRES_SOCKET)
-          VolumeMountsProvider<ContainerContext> postgresSocket) {
+      PostgresSocketMount postgresSocket) {
     this.postgresSocket = postgresSocket;
   }
 }

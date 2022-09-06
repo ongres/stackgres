@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
 
 import java.util.List;
 import java.util.Map;
@@ -48,15 +47,13 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
-import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +65,7 @@ import org.slf4j.LoggerFactory;
 @Sidecar(StackGresContainer.ENVOY)
 @OperatorVersionBinder(startAt = StackGresVersion.V_1_4)
 @RunningContainer(StackGresContainer.ENVOY)
-public class Envoy implements ContainerFactory<StackGresClusterContainerContext>,
+public class Envoy implements ContainerFactory<ClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
 
   public static final String POD_MONITOR = "-stackgres-envoy";
@@ -92,14 +89,13 @@ public class Envoy implements ContainerFactory<StackGresClusterContainerContext>
   protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final ObjectMapper objectMapper;
-  private final VolumeMountsProvider<ContainerContext> containerUserOverrideMounts;
+  private final ContainerUserOverrideMounts containerUserOverrideMounts;
 
   @Inject
   public Envoy(YamlMapperProvider yamlMapperProvider,
       ObjectMapper jsonMapper,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-      VolumeMountsProvider<ContainerContext> containerUserOverrideMounts) {
+      ContainerUserOverrideMounts containerUserOverrideMounts) {
     this.yamlMapperProvider = yamlMapperProvider;
     this.labelFactory = labelFactory;
     this.objectMapper = jsonMapper;
@@ -123,7 +119,7 @@ public class Envoy implements ContainerFactory<StackGresClusterContainerContext>
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
+  public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return Map.of(
         StackGresContext.ENVOY_VERSION_KEY,
         StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
@@ -152,7 +148,7 @@ public class Envoy implements ContainerFactory<StackGresClusterContainerContext>
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     ContainerBuilder container = new ContainerBuilder();
     container.withName(StackGresContainer.ENVOY.getName())
         .withImage(StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
@@ -412,7 +408,7 @@ public class Envoy implements ContainerFactory<StackGresClusterContainerContext>
     }
   }
 
-  private List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context) {
+  private List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     return Seq.seq(containerUserOverrideMounts.getVolumeMounts(context))
         .append(Optional.ofNullable(context.getClusterContext().getSource().getSpec())
             .map(StackGresClusterSpec::getPostgres)

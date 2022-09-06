@@ -29,7 +29,7 @@ class HugePagesMountsTest {
   private HugePagesMounts hugePagesMounts;
 
   @Mock
-  private StackGresClusterContainerContext clusterContainerContext;
+  private ClusterContainerContext clusterContainerContext;
 
   @Mock
   private StackGresClusterContext clusterContext;

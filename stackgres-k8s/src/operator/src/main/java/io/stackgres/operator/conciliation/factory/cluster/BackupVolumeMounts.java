@@ -18,19 +18,19 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 
 @ApplicationScoped
-public class RestoreVolumeMounts implements VolumeMountsProvider<ClusterContainerContext> {
+public class BackupVolumeMounts implements VolumeMountsProvider<ClusterContainerContext> {
 
   @Override
   public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
         new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.RESTORE_ENV.getVolumeName())
-            .withMountPath(ClusterStatefulSetPath.RESTORE_ENV_PATH.path(clusterContext))
+            .withName(StatefulSetDynamicVolumes.BACKUP_ENV.getVolumeName())
+            .withMountPath(ClusterStatefulSetPath.BACKUP_ENV_PATH.path(clusterContext))
             .build(),
         new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.RESTORE_CREDENTIALS.getVolumeName())
-            .withMountPath(ClusterStatefulSetPath.RESTORE_SECRET_PATH.path(clusterContext))
+            .withName(StatefulSetDynamicVolumes.BACKUP_CREDENTIALS.getVolumeName())
+            .withMountPath(ClusterStatefulSetPath.BACKUP_SECRET_PATH.path(clusterContext))
             .build()
     );
   }
@@ -39,9 +39,10 @@ public class RestoreVolumeMounts implements VolumeMountsProvider<ClusterContaine
   public List<EnvVar> getDerivedEnvVars(ClusterContainerContext context) {
     final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
-        ClusterStatefulSetEnvVars.RESTORE_ENV.envVar(clusterContext),
-        ClusterStatefulSetPath.RESTORE_ENV_PATH.envVar(clusterContext),
-        ClusterStatefulSetPath.RESTORE_SECRET_PATH.envVar(clusterContext)
+        ClusterStatefulSetEnvVars.BACKUP_ENV.envVar(clusterContext),
+        ClusterStatefulSetPath.BASE_SECRET_PATH.envVar(clusterContext),
+        ClusterStatefulSetPath.BACKUP_ENV_PATH.envVar(clusterContext),
+        ClusterStatefulSetPath.BACKUP_SECRET_PATH.envVar(clusterContext)
     );
   }
 }

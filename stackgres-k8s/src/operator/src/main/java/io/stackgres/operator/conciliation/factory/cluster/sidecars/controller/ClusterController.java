@@ -5,10 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
 
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.CONTAINER_USER_OVERRIDE;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_DATA;
-import static io.stackgres.operator.conciliation.VolumeMountProviderName.POSTGRES_SOCKET;
-
 import java.util.Map;
 import java.util.Optional;
 
@@ -33,40 +29,37 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
-import io.stackgres.operator.conciliation.factory.ProviderName;
+import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
-import io.stackgres.operator.conciliation.factory.cluster.StackGresClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
 @Sidecar(StackGresContainer.CLUSTER_CONTROLLER)
 @OperatorVersionBinder
 @RunningContainer(StackGresContainer.CLUSTER_CONTROLLER)
-public class ClusterController implements ContainerFactory<StackGresClusterContainerContext> {
+public class ClusterController implements ContainerFactory<ClusterContainerContext> {
 
-  private final VolumeMountsProvider<ContainerContext> postgresDataMounts;
-  private final VolumeMountsProvider<ContainerContext> userContainerMounts;
-  private final VolumeMountsProvider<ContainerContext> postgresSocket;
+  private final PostgresDataMounts postgresDataMounts;
+  private final ContainerUserOverrideMounts userContainerMounts;
+  private final PostgresSocketMount postgresSocket;
 
   @Inject
   public ClusterController(
-      @ProviderName(POSTGRES_DATA)
-      VolumeMountsProvider<ContainerContext> postgresDataMounts,
-      @ProviderName(CONTAINER_USER_OVERRIDE)
-      VolumeMountsProvider<ContainerContext> userContainerMounts,
-      @ProviderName(POSTGRES_SOCKET)
-      VolumeMountsProvider<ContainerContext> postgresSocket) {
+      PostgresDataMounts postgresDataMounts,
+      ContainerUserOverrideMounts userContainerMounts,
+      PostgresSocketMount postgresSocket) {
     this.postgresDataMounts = postgresDataMounts;
     this.userContainerMounts = userContainerMounts;
     this.postgresSocket = postgresSocket;
   }
 
   @Override
-  public Container getContainer(StackGresClusterContainerContext context) {
+  public Container getContainer(ClusterContainerContext context) {
     return new ContainerBuilder()
         .withName(StackGresContainer.CLUSTER_CONTROLLER.getName())
         .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
@@ -168,7 +161,7 @@ public class ClusterController implements ContainerFactory<StackGresClusterConta
   }
 
   @Override
-  public Map<String, String> getComponentVersions(StackGresClusterContainerContext context) {
+  public Map<String, String> getComponentVersions(ClusterContainerContext context) {
     return ImmutableMap.of(
         StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY,
         StackGresController.CLUSTER_CONTROLLER.getVersion());

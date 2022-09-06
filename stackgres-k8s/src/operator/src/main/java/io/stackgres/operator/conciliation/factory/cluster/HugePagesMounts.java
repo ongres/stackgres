@@ -19,17 +19,14 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
-import io.stackgres.operator.conciliation.VolumeMountProviderName;
 import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
-import io.stackgres.operator.conciliation.factory.ProviderName;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 
 @ApplicationScoped
-@ProviderName(VolumeMountProviderName.HUGE_PAGES)
-public class HugePagesMounts implements VolumeMountsProvider<StackGresClusterContainerContext> {
+public class HugePagesMounts implements VolumeMountsProvider<ClusterContainerContext> {
 
   @Override
-  public List<VolumeMount> getVolumeMounts(StackGresClusterContainerContext context) {
+  public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     if (Optional.of(context.getClusterContext().getSource().getSpec())
         .map(StackGresClusterSpec::getNonProductionOptions)
         .map(StackGresClusterNonProduction::getDisablePatroniResourceRequirements)
@@ -58,7 +55,7 @@ public class HugePagesMounts implements VolumeMountsProvider<StackGresClusterCon
   }
 
   @Override
-  public List<EnvVar> getDerivedEnvVars(StackGresClusterContainerContext context) {
+  public List<EnvVar> getDerivedEnvVars(ClusterContainerContext context) {
     return List.of(
         ClusterStatefulSetPath.HUGEPAGES_2M_PATH.envVar(),
         ClusterStatefulSetPath.HUGEPAGES_1G_PATH.envVar()
