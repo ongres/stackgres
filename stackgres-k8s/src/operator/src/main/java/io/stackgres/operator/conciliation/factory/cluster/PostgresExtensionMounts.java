@@ -40,48 +40,27 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
         .addAll(postgresData.getVolumeMounts(context))
         .addAll(containerUserOverride.getVolumeMounts(context))
         .add(
-            new VolumeMountBuilder()
-                .withName(context.getDataVolumeName())
-                .withMountPath(ClusterStatefulSetPath.PG_LIB64_PATH.path(clusterContext))
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH
-                    .subPath(clusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
-                .build(),
-            new VolumeMountBuilder()
-                .withName(context.getDataVolumeName())
-                .withMountPath(ClusterStatefulSetPath.PG_BIN_PATH.path(clusterContext))
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH
-                    .subPath(clusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
-                .build(),
-            new VolumeMountBuilder()
-                .withName(context.getDataVolumeName())
-                .withMountPath(ClusterStatefulSetPath.PG_LIB_PATH.path(clusterContext))
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH
-                    .subPath(clusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
-                .build(),
-            new VolumeMountBuilder()
-                .withName(context.getDataVolumeName())
-                .withMountPath(ClusterStatefulSetPath.PG_SHARE_PATH.path(clusterContext))
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH
-                    .subPath(clusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
-                .build(),
-            new VolumeMountBuilder()
-                .withName(context.getDataVolumeName())
-                .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(clusterContext))
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH
-                    .subPath(clusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
-                .build(),
-            new VolumeMountBuilder()
-                .withName(context.getDataVolumeName())
-                .withMountPath(ClusterStatefulSetPath.PG_EXTRA_BIN_PATH.path(clusterContext))
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_BIN_PATH
-                    .subPath(clusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
-                .build(),
-            new VolumeMountBuilder()
-                .withName(context.getDataVolumeName())
-                .withMountPath(ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(clusterContext))
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH
-                    .subPath(clusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
-                .build()
+            volumeMountForSubPathFromPostgresData(context, clusterContext,
+                ClusterStatefulSetPath.PG_LIB64_PATH,
+                ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH),
+            volumeMountForSubPathFromPostgresData(context, clusterContext,
+                ClusterStatefulSetPath.PG_BIN_PATH,
+                ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH),
+            volumeMountForSubPathFromPostgresData(context, clusterContext,
+                ClusterStatefulSetPath.PG_LIB_PATH,
+                ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH),
+            volumeMountForSubPathFromPostgresData(context, clusterContext,
+                ClusterStatefulSetPath.PG_SHARE_PATH,
+                ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH),
+            volumeMountForSubPathFromPostgresData(context, clusterContext,
+                ClusterStatefulSetPath.PG_EXTENSION_PATH,
+                ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH),
+            volumeMountForSubPathFromPostgresData(context, clusterContext,
+                ClusterStatefulSetPath.PG_EXTRA_BIN_PATH,
+                ClusterStatefulSetPath.PG_EXTENSIONS_BIN_PATH),
+            volumeMountForSubPathFromPostgresData(context, clusterContext,
+                ClusterStatefulSetPath.PG_EXTRA_LIB_PATH,
+                ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH)
         )
         .addAll(context.getInstalledExtensions()
             .stream()
@@ -96,6 +75,19 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
                     .subPath(clusterContext, ClusterStatefulSetPath.PG_BASE_PATH) + extraMount)
                 .build())
             .toList())
+        .build();
+  }
+
+  private VolumeMount volumeMountForSubPathFromPostgresData(
+      ClusterContainerContext context,
+      final ClusterContext clusterContext,
+      final ClusterStatefulSetPath mountPath,
+      final ClusterStatefulSetPath subPath) {
+    return new VolumeMountBuilder()
+        .withName(context.getDataVolumeName())
+        .withMountPath(mountPath.path(clusterContext))
+        .withSubPath(subPath
+            .subPath(clusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
         .build();
   }
 
