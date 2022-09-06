@@ -1,7 +1,7 @@
 #!/bin/sh
 
-export E2E_MAJOR_SOURCE_POSTGRES_VERSION="${E2E_MAJOR_SOURCE_POSTGRES_VERSION:-12.9}"
-export E2E_MAJOR_TARGET_POSTGRES_VERSION="${E2E_MAJOR_TARGET_POSTGRES_VERSION:-13.5}"
+export E2E_MAJOR_SOURCE_POSTGRES_VERSION="${E2E_MAJOR_SOURCE_POSTGRES_VERSION:-12.8}"
+export E2E_MAJOR_TARGET_POSTGRES_VERSION="${E2E_MAJOR_TARGET_POSTGRES_VERSION:-13.7}"
 export E2E_STORAGE_CLASS_REFLINK_ENABLED="${E2E_STORAGE_CLASS_REFLINK_ENABLED:-false}"
 
 e2e_use_extensions() {
@@ -89,6 +89,22 @@ CREATE EXTENSION timescaledb;
 EOF
       )"
   fi
+
+  # Trigger libLLVM bug. See https://gitlab.com/ongresinc/stackgres/-/issues/1980
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util \
+    -- psql -c "$(cat << 'EOF'
+      DO $$DECLARE r integer;
+        BEGIN
+          FOR r IN SELECT i FROM generate_series(1, 300) AS i
+          LOOP
+            EXECUTE 'CREATE TABLE test' || r
+              || ' (a integer, b text, c text, d date, e text, f text, g text'
+              || ', h timestamp with time zone, i timestamp with time zone'
+              || ', j integer, k integer, l integer)';
+          END LOOP;
+      END$$
+EOF
+      )"
 
   if [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
   then
