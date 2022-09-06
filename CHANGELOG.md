@@ -1,3 +1,61 @@
+# :rocket: Release 1.3.1 (2022-09-07)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.3.1 has come to fix some issues reported by our users, a big thank you for all the feedback provided!! :top: :heartpulse: 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+Nothing new here! :eyes: 
+
+### Web Console
+
+Nothing new here! :eyes: 
+
+## :bug: FIXES
+
+* Some libraries from source postgres version are missing while running pg_upgrade
+* Syntax error while setting target postgres version on major version upgrade SGDbOps
+* SGDbOps's Job prefix is not generated correctly
+* Fields configMapKeyRef and secretKeyRef are not filled on upgrade when generating SGScript from old SGCluster
+* Field .spec.managedSql.scripts entry duplicates id when a new entry with id 0 is provided by the user
+
+### Web Console
+
+* Resource name not shown on breadcrumbs
+* CPU & Memory alerts are shown on every cluster
+* Improve homepage when there are no namespaces in use
+* Adjust color of Open in new tab icons
+* Adjust layout on DbOps Overview when empty
+* Highlight Storage Types fields when they cause an error on submit
+* Node Affinity match set when no inputs have been filled
+* Unify switches texts on forms
+* Postgres Utils missing on Cluster Details
+* SGCluster edit screen and summary assumes backup performance specs always exist
+* Backup EDIT button points to undefined resource
+* Cluster Config tab wont load because of Script without scriptSpec
+
+## :construction: KNOWN ISSUES
+
+* Installation fails in EKS 1.22+ due to CSR not returning the certificate ([#1732](https://gitlab.com/ongresinc/stackgres/-/issues/1732)). Use cert-manager as a workaround. 
+* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.3.1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.3.1)
+
 # :rocket: Release 1.3.0 (2022-08-23)
 
 ## :notepad_spiral: NOTES
