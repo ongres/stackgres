@@ -6,7 +6,7 @@ variables:
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
   SKIP_DEPLOY: "false"
-  E2E_JOBS: 3
+  E2E_JOBS: 4
   E2E_EXCLUSIVE_JOBS: 3
   E2E_RETRY: 2
   E2E_FAILURE_RETRY: 3
