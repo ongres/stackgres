@@ -456,10 +456,14 @@ table.crdDetails td a:hover {
 }
 
 .crdDetails td.usedOn svg, .crdDetails tr.controlData svg {
-    float: none;
+    float: right;
     position: relative;
     top: 2px;
     margin: 0 10px;
+}
+
+.crdDetails tr.controlData td:last-of-type {
+    padding-right: 0;
 }
 
 .configurationDetails + .paramDetails, .crdDetails + .crdDetails {
@@ -492,8 +496,12 @@ span.eyeIcon {
     position: relative;
     top: 1px;
     margin-left: 5px;
-    transform: scale(0.9);    
+    transform: scale(0.85);    
     float: right;
+}
+
+.usedOn span.eyeIcon {
+    margin-right: 7px;
 }
 
 /*Top Menu*/
