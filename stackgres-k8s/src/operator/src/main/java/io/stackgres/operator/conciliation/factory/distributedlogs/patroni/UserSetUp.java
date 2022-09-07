@@ -45,7 +45,7 @@ public class UserSetUp implements ContainerFactory<DistributedLogsContainerConte
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
                 + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename())
-        .withEnv(PatroniEnvPaths.envVars(clusterContext))
+        .withEnv(ClusterStatefulSetPath.envVars(clusterContext))
         .addToEnv(new EnvVarBuilder().withName("HOME").withValue("/tmp").build())
         .withVolumeMounts(
             new VolumeMountBuilder()
