@@ -102,11 +102,4 @@ fi
 
 export LC_ALL=C.UTF-8
 
-cat << EOF > "/usr/local/bin"
-#!/bin/sh
-
-exec-with-env "${PATRONI_ENV}" -- patronictl "$@"
-EOF
-chmod a+x "$PATRONI_CONFIG_PATH/bootstrap"
-
 exec-with-env "${PATRONI_ENV}" -- /usr/bin/patroni "$PATRONI_CONFIG_PATH/postgres.yml"
