@@ -226,7 +226,7 @@
                             <ul>
                                 <li v-if="( showDefaults || (cluster.data.spec.managedSql.hasOwnProperty('continueOnSGScriptError') && cluster.data.spec.managedSql.continueOnSGScriptError) )">
                                     <strong class="label">Continue on SGScript Error:</strong>
-                                    <span class="value">{{ hasProp(cluster, 'data.spec.managedSql.continueOnSGScriptError') ? (cluster.data.spec.managedSql.continueOnSGScriptError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
+                                    <span class="value">{{ hasProp(cluster, 'data.spec.managedSql.continueOnSGScriptError') ? isEnabled(cluster.data.spec.managedSql.continueOnSGScriptError) : 'Disabled' }}</span>
                                 </li>
                                 <li>
                                     <strong class="sectionTitle">Scripts</strong>
@@ -236,11 +236,11 @@
                                             <ul>
                                                 <li v-if="( showDefaults || ( hasProp(baseScript, 'scriptSpec.continueOnError') && baseScript.scriptSpec.continueOnError ) )">
                                                     <strong class="label">Continue on Error:</strong>
-                                                    <span class="value">{{ hasProp(baseScript, 'scriptSpec.continueOnError') ? (baseScript.continueOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
+                                                    <span class="value">{{ hasProp(baseScript, 'scriptSpec.continueOnError') ? isEnabled(baseScript.continueOnError) : 'Disabled' }}</span>
                                                 </li>
                                                 <li v-if="( showDefaults || ( hasProp(baseScript, 'scriptSpec.managedVersions') && !baseScript.scriptSpec.managedVersions) )">
                                                     <strong class="label">Managed Versions:</strong>
-                                                    <span class="value">{{ hasProp(baseScript, 'scriptSpec.managedVersions') ? (baseScript.managedVersions ? 'Enabled' : 'Disabled') : 'Enabled' }}</span>
+                                                    <span class="value">{{ hasProp(baseScript, 'scriptSpec.managedVersions') ? isEnabled(baseScript.managedVersions) : 'Enabled' }}</span>
                                                 </li>
                                                 <li v-if="baseScript.hasOwnProperty('scriptSpec')">
                                                     <strong class="sectionTitle">Script Entries</strong>
@@ -268,11 +268,11 @@
                                                                 </li>
                                                                 <li v-if="( showDefaults || ( script.hasOwnProperty('retryOnError') && script.retryOnError) )">
                                                                     <strong class="label">Retry on Error:</strong>
-                                                                    <span class="value">{{ script.hasOwnProperty('retryOnError') ? (script.retryOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
+                                                                    <span class="value">{{ script.hasOwnProperty('retryOnError') ? isEnabled(script.retryOnError) : 'Disabled' }}</span>
                                                                 </li>
                                                                 <li v-if="( showDefaults || ( script.hasOwnProperty('storeStatusInDatabase') && script.storeStatusInDatabase) )">
                                                                     <strong class="label">Store Status in Database:</strong>
-                                                                    <span class="value">{{ script.hasOwnProperty('storeStatusInDatabase') ? (script.storeStatusInDatabase ? 'Enabled' : 'Disabled') : 'Disabled' }}</span>
+                                                                    <span class="value">{{ script.hasOwnProperty('storeStatusInDatabase') ? isEnabled(script.storeStatusInDatabase) : 'Disabled' }}</span>
                                                                 </li>
                                                                 <li v-if="( showDefaults || ( script.hasOwnProperty('wrapInTransaction') && (script.wrapInTransaction != null) ) )">
                                                                     <strong class="label">Wrap in Transaction:</strong>
@@ -341,11 +341,8 @@
                             <ul>
                                 <li v-if="showDefaults || cluster.data.spec.pods.disableConnectionPooling || hasProp(cluster, 'data.spec.configurations.sgPoolingConfig')">
                                     <strong class="sectionTitle">Connection Pooling</strong>
+                                    <span v-if="showDefaults || cluster.data.spec.pods.disableConnectionPooling"><strong>:</strong> {{ isEnabled(cluster.data.spec.pods.disableConnectionPooling, true) }}</span>
                                     <ul>
-                                        <li v-if="showDefaults || cluster.data.spec.pods.disableConnectionPooling">
-                                            <strong class="label">Enable:</strong>
-                                            <span class="value">{{ cluster.data.spec.pods.disableConnectionPooling ? 'NO' : 'YES' }}</span>
-                                        </li>
                                         <li v-if="showDefaults || hasProp(cluster, 'data.spec.configurations.sgPoolingConfig')">
                                             <strong class="label">Connection Pooling Configuration:</strong>
                                             <span class="value">
@@ -363,37 +360,19 @@
                                 </li>
                                 <li v-if="showDefaults || cluster.data.spec.pods.disablePostgresUtil">
                                     <strong class="sectionTitle">Postgres Utils</strong>
-                                    <ul>
-                                        <li>
-                                            <strong class="label">Enable:</strong>
-                                            <span class="value">{{ cluster.data.spec.pods.disablePostgresUtil ? 'NO' : 'YES' }}</span>
-                                        </li>
-                                    </ul>
+                                    <span><strong>:</strong> {{ isEnabled(cluster.data.spec.pods.disablePostgresUtil, true) }}</span>
                                 </li>
                                 <li v-if="showDefaults || cluster.data.spec.pods.disableMetricsExporter || cluster.data.spec.prometheusAutobind">
                                     <strong class="sectionTitle">Monitoring</strong>
+                                    <span><strong>:</strong> {{ (!cluster.data.spec.pods.disableMetricsExporter && cluster.data.spec.prometheusAutobind) ? ' Enabled' : ' Disabled' }}</span>
                                     <ul>
-                                        <li>
-                                            <strong class="sectionTitle">Enable:</strong>
-                                            <span class="value">{{ (!cluster.data.spec.pods.disableMetricsExporter && cluster.data.spec.prometheusAutobind) ? ' YES' : ' NO' }}</span>
-                                        </li>
                                         <li v-if="showDefaults || cluster.data.spec.pods.disableMetricsExporter">
                                             <strong class="sectionTitle">Metrics Exporter</strong>
-                                            <ul>
-                                                <li>
-                                                    <strong class="label">Enable:</strong>
-                                                    <span class="value">{{ cluster.data.spec.pods.disableMetricsExporter ? 'NO' : 'YES' }}</span>
-                                                </li>
-                                            </ul>
+                                            <span><strong>:</strong> {{ isEnabled(cluster.data.spec.pods.disableMetricsExporter, true) }}</span>
                                         </li>
                                         <li v-if="showDefaults || cluster.data.spec.prometheusAutobind">
                                             <strong class="sectionTitle">Prometheus Autobind</strong>
-                                            <ul>
-                                                <li>
-                                                    <strong class="label">Enable:</strong>
-                                                    <span class="value">{{ cluster.data.spec.prometheusAutobind ? 'YES' : 'NO' }}</span>
-                                                </li>
-                                            </ul>
+                                            <span><strong>:</strong> {{ isEnabled(cluster.data.spec.prometheusAutobind) }}</span>
                                         </li>
                                     </ul>
                                 </li>
@@ -472,11 +451,8 @@
                             <ul>
                                 <li v-if="showDefaults || hasProp(cluster, 'data.spec.postgresServices.primary')">
                                     <strong class="sectionTitle">Primary Service</strong>
+                                    <span v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.primary.enabled') )"><strong>:</strong> {{ hasProp(cluster, 'data.spec.postgresServices.primary.enabled') ? isEnabled(cluster.data.spec.postgresServices.primary.enabled) : 'Enabled' }}</span>
                                     <ul>
-                                        <li v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.primary.enabled') )">
-                                            <strong class="label">Enable:</strong>
-                                            <span class="value">{{ hasProp(cluster, 'data.spec.postgresServices.primary.enabled') ? (cluster.data.spec.postgresServices.primary.enabled ? 'YES' : 'NO') : 'YES' }}</span>
-                                        </li>
                                         <li v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.primary.type') )">
                                             <strong class="label">Type:</strong>
                                             <span class="value">{{ hasProp(cluster, 'data.spec.postgresServices.primary.type') ? cluster.data.spec.postgresServices.primary.type : 'ClusterIP' }}</span>
@@ -485,11 +461,8 @@
                                 </li>
                                 <li v-if="showDefaults || hasProp(cluster, 'data.spec.postgresServices.replicas')">
                                     <strong class="sectionTitle">Replicas Service</strong>
+                                    <span v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.replicas.enabled') )"><strong>:</strong> {{ hasProp(cluster, 'data.spec.postgresServices.replicas.enabled') ? isEnabled(cluster.data.spec.postgresServices.replicas.enabled) : 'Enabled' }}</span>
                                     <ul>
-                                        <li v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.replicas.enabled') )">
-                                            <strong class="label">Enable:</strong>
-                                            <span class="value">{{ hasProp(cluster, 'data.spec.postgresServices.replicas.enabled') ? (cluster.data.spec.postgresServices.replicas.enabled ? 'YES' : 'NO') : 'YES' }}</span>
-                                        </li>
                                         <li v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.replicas.type') )">
                                             <strong class="label">Type:</strong>
                                             <span class="value">{{ hasProp(cluster, 'data.spec.postgresServices.replicas.type') ? cluster.data.spec.postgresServices.replicas.type : 'ClusterIP' }}</span>
@@ -739,12 +712,7 @@
                             <ul>
                                 <li>
                                     <strong class="sectionTitle">Cluster Pod Anti Affinity</strong>
-                                    <ul>
-                                        <li>
-                                            <strong class="label">Enable:</strong>
-                                            <span class="value">{{ hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? (cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity ? 'NO' : 'YES') : 'YES' }}</span>
-                                        </li>
-                                    </ul>
+                                    <span><strong>:</strong> {{ hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? isEnabled(cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity) : 'Enabled' }}</span>
                                 </li>
                             </ul>
                         </li>

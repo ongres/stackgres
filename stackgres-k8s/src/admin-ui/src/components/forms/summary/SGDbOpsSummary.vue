@@ -148,15 +148,15 @@
                 <ul>
                     <li v-if="( showDefaults || crd.data.spec.majorVersionUpgrade.link )">
                         <strong class="label">Hard Link Files:</strong>
-                        <span class="value">{{ crd.data.spec.majorVersionUpgrade.link ? 'YES' : 'NO' }}</span>
+                        <span class="value">{{ isEnabled(crd.data.spec.majorVersionUpgrade.link) }}</span>
                     </li>
                     <li v-if="( showDefaults || crd.data.spec.majorVersionUpgrade.clone )">
                         <strong class="label">Clone Files:</strong>
-                        <span class="value">{{ crd.data.spec.majorVersionUpgrade.clone ? 'YES' : 'NO' }}</span>
+                        <span class="value">{{ isEnabled(crd.data.spec.majorVersionUpgrade.clone) }}</span>
                     </li>
                     <li v-if="( showDefaults || crd.data.spec.majorVersionUpgrade.check )">
                         <strong class="label">Check Clusters:</strong>
-                        <span class="value">{{ crd.data.spec.majorVersionUpgrade.check ? 'YES' : 'NO' }}</span>
+                        <span class="value">{{ isEnabled(crd.data.spec.majorVersionUpgrade.check) }}</span>
                     </li>
                     <li v-if="crd.data.spec.majorVersionUpgrade.backupPath.length">
                         <strong class="label">Backup Path:</strong>
@@ -184,19 +184,19 @@
                 <ul>
                     <li v-if="( showDefaults || crd.data.spec.vacuum.full )">
                         <strong class="label">Full Vacuum:</strong>
-                        <span class="value">{{ crd.data.spec.vacuum.full ? 'YES' : 'NO' }}</span>
+                        <span class="value">{{ isEnabled(crd.data.spec.vacuum.full) }}</span>
                     </li>
                     <li v-if="( showDefaults || crd.data.spec.vacuum.freeze )">
                         <strong class="label">Freeze:</strong>
-                        <span class="value">{{ crd.data.spec.vacuum.freeze ? 'YES' : 'NO' }}</span>
+                        <span class="value">{{ isEnabled(crd.data.spec.vacuum.freeze) }}</span>
                     </li>
                     <li v-if="( showDefaults || crd.data.spec.vacuum.analyze )">
                         <strong class="label">Analyze:</strong>
-                        <span class="value">{{ crd.data.spec.vacuum.analyze ? 'YES' : 'NO' }}</span>
+                        <span class="value">{{ isEnabled(crd.data.spec.vacuum.analyze) }}</span>
                     </li>
                     <li v-if="( showDefaults || crd.data.spec.vacuum.disablePageSkipping )">
                         <strong class="label">Page Skipping:</strong>
-                        <span class="value">{{ crd.data.spec.vacuum.disablePageSkipping ? 'NO' : 'YES' }}</span>
+                        <span class="value">{{ isEnabled(crd.data.spec.vacuum.disablePageSkipping, true) }}</span>
                     </li>
                     
                     <li v-if="hasProp(crd, 'data.spec.vacuum.databases')">
@@ -210,19 +210,19 @@
                                 <ul>
                                     <li>
                                         <strong class="label">Full Vacuum:</strong>
-                                        <span class="value">{{ db.full ? 'YES' : 'NO' }}</span>
+                                        <span class="value">{{ isEnabled(db.full) }}</span>
                                     </li>
                                     <li>
                                         <strong class="label">Freeze:</strong>
-                                        <span class="value">{{ db.freeze ? 'YES' : 'NO' }}</span>
+                                        <span class="value">{{ isEnabled(db.freeze) }}</span>
                                     </li>
                                     <li>
                                         <strong class="label">Analyze:</strong>
-                                        <span class="value">{{ db.analyze ? 'YES' : 'NO' }}</span>
+                                        <span class="value">{{ isEnabled(db.analyze) }}</span>
                                     </li>
                                     <li>
                                         <strong class="label">Page Skipping:</strong>
-                                        <span class="value">{{ db.disablePageSkipping ? 'NO' : 'YES' }}</span>
+                                        <span class="value">{{ isEnabled(db.disablePageSkipping, true) }}</span>
                                     </li>
                                 </ul>
                             </li>
@@ -254,7 +254,7 @@
                             </li>
                             <li v-if="( showDefaults || crd.data.spec.benchmark.pgbench.usePreparedStatements )">
                                 <strong class="label">Prepared Statements:</strong>
-                                <span class="value">{{ crd.data.spec.benchmark.pgbench.usePreparedStatements ? 'YES' : 'NO' }}</span>
+                                <span class="value">{{ isEnabled(crd.data.spec.benchmark.pgbench.usePreparedStatements) }}</span>
                             </li>
                             <li v-if="( showDefaults || (crd.data.spec.benchmark.pgbench.concurrentClients > 1) )">
                                 <strong class="label">Concurrent Clients:</strong>
@@ -280,19 +280,19 @@
                 <ul>
                     <li v-if="( showDefaults || crd.data.spec.repack.noOrder )">
                         <strong class="label">Order:</strong>
-                        <span class="value">{{ crd.data.spec.repack.noOrder ? 'OFF' : 'ON' }}</span>
+                        <span class="value">{{ isEnabled(crd.data.spec.repack.noOrder, true) }}</span>
                     </li>
                     <li v-if="( showDefaults || crd.data.spec.repack.noKillBackend )">
                         <strong class="label">Kill Backend:</strong>
-                        <span class="value">{{ crd.data.spec.repack.noKillBackend ? 'OFF' : 'ON' }}</span>
+                        <span class="value">{{ isEnabled(crd.data.spec.repack.noKillBackend, true) }}</span>
                     </li>
                     <li v-if="( showDefaults || crd.data.spec.repack.noAnalyze )">
                         <strong class="label">Analyze:</strong>
-                        <span class="value">{{ crd.data.spec.repack.noAnalyze ? 'OFF' : 'ON' }}</span>
+                        <span class="value">{{ isEnabled(crd.data.spec.repack.noAnalyze, true) }}</span>
                     </li>
                     <li v-if="( showDefaults || crd.data.spec.repack.excludeExtension )">
                         <strong class="label">Exclude Extension:</strong>
-                        <span class="value">{{ crd.data.spec.repack.excludeExtension ? 'ON' : 'OFF' }}</span>
+                        <span class="value">{{ isEnabled(crd.data.spec.repack.excludeExtension) }}</span>
                     </li>
                     <li v-if="(showDefaults || crd.data.spec.repack.waitTimeout)">
                         <strong class="label">Wait Timeout:</strong>
@@ -310,19 +310,19 @@
                                 <ul v-if="( showDefaults || ( db.noOrder || db.waitTimeout || db.noKillBackend || db.noAnalyze || db.excludeExtension ) )">
                                     <li v-if="(showDefaults || db.noOrder)">
                                         <strong class="label">Order:</strong>
-                                        <span class="value">{{ db.noOrder ? 'OFF' : 'ON' }}</span>
+                                        <span class="value">{{ isEnabled(db.noOrder, true) }}</span>
                                     </li>
                                     <li v-if="(showDefaults || db.noKillBackend)">
                                         <strong class="label">Kill Backend:</strong>
-                                        <span class="value">{{ db.noKillBackend ? 'OFF' : 'ON' }}</span>
+                                        <span class="value">{{ isEnabled(db.noKillBackend, true) }}</span>
                                     </li>
                                     <li v-if="(showDefaults || db.noAnalyze)">
                                         <strong class="label">Analyze:</strong>
-                                        <span class="value">{{ db.noAnalyze ? 'OFF' : 'ON' }}</span>
+                                        <span class="value">{{ isEnabled(db.noAnalyze, true) }}</span>
                                     </li>
                                     <li v-if="(showDefaults || db.excludeExtension)">
                                         <strong class="label">Exclude Extension:</strong>
-                                        <span class="value">{{ db.excludeExtensions ? 'ON' : 'OFF' }}</span>
+                                        <span class="value">{{ isEnabled(db.excludeExtensions) }}</span>
                                     </li>
                                     <li v-if="(showDefaults || db.waitTimeout)">
                                         <strong class="label">Wait Timeout:</strong>

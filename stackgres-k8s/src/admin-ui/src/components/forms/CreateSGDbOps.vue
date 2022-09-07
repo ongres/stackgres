@@ -1148,11 +1148,6 @@
 </script>
 
 <style scoped>
-    .sectionTitle {
-        display: block;
-        margin-bottom: 20px;
-    }
-
     .optionBoxes > label {
         height: 100px;
         padding: 0 10px;

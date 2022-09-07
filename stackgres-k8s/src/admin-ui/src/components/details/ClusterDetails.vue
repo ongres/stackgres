@@ -59,9 +59,11 @@
                                     {{ cluster.data.spec.sgInstanceProfile }} (Cores: {{ profile.data.spec.cpu }}, RAM: {{ profile.data.spec.memory }}) 
                                     <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
                                 </router-link>
-                                <template v-if="clusterProfileMismatch(cluster, profile)">
+                                <!--Temporarily disabled until REST API response data is set properly-->
+                                
+                                <!--<template v-if="clusterProfileMismatch(cluster, profile)">
                                     <span class="helpTooltip alert" data-tooltip="This profile has been modified recently. Cluster must be restarted in order to apply such changes."></span>
-                                </template>
+                                </template>-->
                             </td>
                         </template>
                         <template v-else>
@@ -71,7 +73,7 @@
                         </template>
                     </tr>
                     <tr>
-                        <td class="label" rowspan="3">
+                        <td class="label" rowspan="4">
                             Pods
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods')"></span>
                         </td>
@@ -98,12 +100,16 @@
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>
                         </td>
                         <td colspan="2">
-                            <template v-if="hasProp(cluster, 'data.spec.pods.disableConnectionPooling') && cluster.data.spec.pods.disableConnectionPooling">
-                                Disabled
-                            </template>
-                            <template v-else>
-                                Enabled
-                            </template>
+                            {{ hasProp(cluster, 'data.spec.pods.disableConnectionPooling') ? isEnabled(cluster.data.spec.pods.disableConnectionPooling, true) : 'Enabled' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            Postgres Utils
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disablePostgresUtil').replace('If set to `true`', 'If disabled')"></span>
+                        </td>
+                        <td colspan="2">
+                            {{ isEnabled(cluster.data.spec.pods.disablePostgresUtil, true) }}
                         </td>
                     </tr>
                     <tr>
@@ -112,12 +118,7 @@
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.disableMetricsExporter').replace('If set to `true`', 'If disabled').replace('Recommended', 'Recommended to be disabled')"></span>
                         </td>
                         <td colspan="3">
-                            <template v-if="!cluster.data.spec.pods.disableMetricsExporter">
-                                Enabled
-                            </template>
-                            <template v-else>
-                                Disabled
-                            </template>
+                            {{ isEnabled(cluster.data.spec.pods.disableMetricsExporter, true )}}
                         </td>
                     </tr>
                     <tr>
@@ -183,12 +184,7 @@
                             <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
                         </td>
                         <td colspan="3">
-                            <template v-if="(typeof cluster.data.spec.prometheusAutobind !== 'undefined') && !cluster.data.spec.pods.disableMetricsExporter">
-                                Enabled
-                            </template>
-                            <template v-else>
-                                Disabled
-                            </template>
+                            {{ (typeof cluster.data.spec.prometheusAutobind !== 'undefined') ? isEnabled(cluster.data.spec.pods.disableMetricsExporter, true) : 'Disabled' }}
                         </td>
                     </tr>
                     <tr>
@@ -618,47 +614,56 @@
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.metadata.name')"></span>
                                     </td>
 									<td>
-                                        <router-link :to="'/' + cluster.data.metadata.namespace + '/sgscript/' + baseScript.sgScript">
+                                        <template v-if="scripts.find(s => (s.name == baseScript.sgScript))">
+                                            <router-link :to="'/' + cluster.data.metadata.namespace + '/sgscript/' + baseScript.sgScript">
+                                                {{ baseScript.sgScript }}
+                                                <svg data-v-7f311205="" xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g data-v-7f311205="" transform="translate(0 -126.766)"><path data-v-7f311205="" d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"></path><path data-v-7f311205="" d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"></path></g></svg>
+                                            </router-link>
+                                        </template>
+
+                                        <template v-else>
                                             {{ baseScript.sgScript }}
-                                            <svg data-v-7f311205="" xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g data-v-7f311205="" transform="translate(0 -126.766)"><path data-v-7f311205="" d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"></path><path data-v-7f311205="" d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"></path></g></svg>
-                                        </router-link>
+                                        </template>
                                     </td>
 								</tr>
-                                <tr>
-									<td class="label">
-                                        Continue on Error 
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.continueOnError').replace(/true/g, 'Enabled').replace('false','Disabled')"></span>
-                                    </td>
-									<td>
-                                        {{ baseScript.scriptSpec.hasOwnProperty('continueOnError') ? (baseScript.scriptSpec.continueOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}
-                                    </td>
-								</tr>
-								<tr>
-									<td class="label">
-                                        Managed Versions 
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.managedVersions').replace(/true/g, 'Enabled')"></span>
-                                    </td>
-									<td>
-                                        {{ baseScript.scriptSpec.hasOwnProperty('managedVersions') ? (baseScript.scriptSpec.managedVersions ? 'Enabled' : 'Disabled') : 'Enabled' }}
-                                    </td>
-								</tr>
-                                <tr>
-                                    <td class="label">
-                                        Entries
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.script').replace(/ This field is mutually exclusive with `scriptFrom` field./g, '').replace('script','scripts')"></span>
-                                    </td>
-                                    <td>
-                                        <a @click="setContentTooltip('#baseScript-' + baseIndex)"> 
-                                            View Entries ({{ baseScript.scriptSpec.scripts.length }})
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-                                        </a>
-                                    </td>
-                                </tr>
+
+                                <template v-if="baseScript.hasOwnProperty('scriptSpec')">
+                                    <tr>
+                                        <td class="label">
+                                            Continue on Error 
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.continueOnError').replace(/true/g, 'Enabled').replace('false','Disabled')"></span>
+                                        </td>
+                                        <td>
+                                            {{ baseScript.scriptSpec.hasOwnProperty('continueOnError') ? isEnabled(baseScript.scriptSpec.continueOnError) : 'Disabled' }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">
+                                            Managed Versions 
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.managedVersions').replace(/true/g, 'Enabled')"></span>
+                                        </td>
+                                        <td>
+                                            {{ baseScript.scriptSpec.hasOwnProperty('managedVersions') ? isEnabled(baseScript.scriptSpec.managedVersions) : 'Enabled' }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">
+                                            Entries
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.script').replace(/ This field is mutually exclusive with `scriptFrom` field./g, '').replace('script','scripts')"></span>
+                                        </td>
+                                        <td>
+                                            <a @click="setContentTooltip('#baseScript-' + baseIndex)"> 
+                                                View Entries ({{ baseScript.scriptSpec.scripts.length }})
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </template>
 							</tbody>
 						</table>
 					</div>
 
-                    <div class="configurationDetails hidden" :id="'baseScript-' + baseIndex">
+                    <div class="configurationDetails hidden" :id="'baseScript-' + baseIndex" v-if="baseScript.hasOwnProperty('scriptSpec')">
                         <h2>Script Entries <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts')"></span></h2>
 
                         <table class="crdDetails" v-for="(script, index) in baseScript.scriptSpec.scripts">
@@ -718,7 +723,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.retryOnError').replace(/false/g, 'Disabled').replace(/true/g, 'Disabled')"></span>
                                         </td>
                                         <td>
-                                            {{ script.hasOwnProperty('retryOnError') ? (script.retryOnError ? 'Enabled' : 'Disabled') : 'Disabled' }}
+                                            {{ script.hasOwnProperty('retryOnError') ? isEnabled(script.retryOnError) : 'Disabled' }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -727,7 +732,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.storeStatusInDatabase').replace(/false/g, 'Disabled').replace(/true/g, 'Disabled')"></span>
                                         </td>
                                         <td>
-                                            {{ script.hasOwnProperty('storeStatusInDatabase') ? (script.storeStatusInDatabase ? 'Enabled' : 'Disabled') : 'Disabled' }}
+                                            {{ script.hasOwnProperty('storeStatusInDatabase') ? isEnabled(script.storeStatusInDatabase) : 'Disabled' }}
                                         </td>
                                     </tr>
                                     <tr>
@@ -746,7 +751,7 @@
                                         </td>
                                         <td>
                                             <template v-if="hasProp(script, 'scriptFrom.secretKeyRef')">
-                                                <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)" :data-content-tooltip="('#script-' + baseIndex + '-' + index)"> > 
+                                                <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)" :data-content-tooltip="('#script-' + baseIndex + '-' + index)">
                                                     View Key Reference
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
                                                 </a>
@@ -897,7 +902,7 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName+'.enabled')"></span>
                             </td>
                             <td colspan="2">
-                                {{ service.enabled ? 'Enabled' : 'Disabled' }}
+                                {{ isEnabled(service.enabled) }}
                             </td>
                         </tr>
                         <tr>
@@ -1059,7 +1064,11 @@
 
 			backups () {
 				return store.state.sgbackups
-			}
+			},
+
+            scripts () {
+                return store.state.sgscripts
+            }
 		},
 
         mounted: function() {
