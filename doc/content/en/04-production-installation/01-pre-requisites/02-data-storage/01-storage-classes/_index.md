@@ -44,7 +44,7 @@ allowVolumeExpansion: true
 
 Check the [Storage Class documentation](https://kubernetes.io/docs/concepts/storage/storage-classes/) for more details and other providers.
 
-Do not forget using your custom Storage Class when you create a cluster, check the required parameters in [Cluster Parameters]({{% relref "04-production-installation/06-cluster-parameters/#pods" %}})
+Do not forget using your custom Storage Class when you create a cluster, check the required parameters in [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}})
 
 **Important note:**
 Make sure you include these parameters in order to avoid some of the next errors:
