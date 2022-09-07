@@ -44,7 +44,7 @@ public class DataPathsInitializer implements ContainerFactory<DistributedLogsCon
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.TEMPLATES_PATH.path()
                 + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename())
-        .withEnv(PatroniEnvPaths.envVars(clusterContext))
+        .withEnv(ClusterStatefulSetPath.envVars(clusterContext))
         .addToEnv(new EnvVarBuilder().withName("HOME").withValue("/tmp").build())
         .withVolumeMounts(
             new VolumeMountBuilder()

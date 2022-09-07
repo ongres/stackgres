@@ -91,7 +91,7 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
         .withName(StackGresContainer.PATRONI.getName())
         .withImage(StackGresUtil.getPatroniImageName(cluster))
         .withCommand("/bin/sh", "-ex",
-            PatroniEnvPaths.LOCAL_BIN_START_PATRONI_SH_PATH.path())
+            ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
         .withResources(podResources)
         .withImagePullPolicy("IfNotPresent")
         .withPorts(
