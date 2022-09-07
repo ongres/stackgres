@@ -10,25 +10,6 @@ To allow access outside the k8s cluster is necessary to update the [services tha
 
 All examples on this pages are assuming that there is a cluster named `my-db-cluster` on the `default` namespace.
 
-## Portforward access to the SGCluster
-
-The easiest way to use `kubectl` to port-forward the postgres port on the SGCluster:
-
-
-```bash
-## get the service name for the primary database on my-dbcluster
-kubectl get services -o name -l app=StackGresCluster,cluster-name=my-db-cluster,role=master
-# service/my-db-cluster-primary
-
-kubectl port-forward service/my-db-cluster-primary --address 0.0.0.0 5432:5432
-```
-
-On another session run:
-
-```bash
-psql -h localhost -U postgres
-```
-
 ## Updating the service configuration
 
 By default, SGCluster services type are `ClusterIP` which means that the SGCluster will not be opened outside the k8s cluster. To change that behavior, is necessary to update the cluster, changing the service configuration.
@@ -59,7 +40,7 @@ Once applied, the service configuration is updated to `NodePort`:
 ```bash
 kubectl get services -l cluster=true,cluster-name=my-db-cluster
 # NAME                     TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)                         AGE
-# my-db-cluster-primary    NodePort   10.101.139.224   <none>        5432:31884/TCP,5433:31998/TCP   35m
+# my-db-cluster            NodePort   10.101.139.224   <none>        5432:31884/TCP,5433:31998/TCP   35m
 # my-db-cluster-replicas   NodePort   10.99.44.2       <none>        5432:32106/TCP,5433:31851/TCP   35m
 
 ```
@@ -77,7 +58,7 @@ kubectl get nodes -o wide
 # kind-worker5         Ready    <none>   85s    v1.17.11   172.18.0.6    <none>        Ubuntu Groovy Gorilla (development branch)   5.8.0-36-generic   containerd://1.4.0
 ```
 
-Connect on the cluster using `psql` with the `INTERNAL IP` of any node (172.18.0.2 per example) and the service port (`31884` will point to `my-db-cluster-primary` on port `5432`):
+Connect on the cluster using `psql` with the `INTERNAL IP` of any node (172.18.0.2 per example) and the service port (`31884` will point to `my-db-cluster` on port `5432`):
 
 ```bash
 psql -h 172.18.0.2 -U postgres -p 31884
@@ -113,7 +94,7 @@ Once updated, get the service information:
 ```bash
 kubectl get services -l cluster=true,cluster-name=my-db-cluster
 # NAME                     TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)                         AGE
-# my-db-cluster-primary    LoadBalancer   10.108.32.129   172.18.0.102   5432:30219/TCP,5433:30886/TCP   8m13s
+# my-db-cluster            LoadBalancer   10.108.32.129   172.18.0.102   5432:30219/TCP,5433:30886/TCP   8m13s
 # my-db-cluster-replicas   LoadBalancer   10.111.30.87    172.18.0.101   5432:31146/TCP,5433:32063/TCP   8m13s
 ```
 > Please note that, since we change both services to `LoadBalancer`, two loadbalancers were created, one for each service. 
