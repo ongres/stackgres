@@ -33,6 +33,10 @@ spec:
     sgPostgresConfig: 'pgconfig1'
     sgPoolingConfig: 'poolconfig1'
     sgBackupConfig: 'backupconfig1'
+    backups:
+    - sgObjectStorage: backupconfig1
+      cronSchedule: '*/5 * * * *'
+      retention: 6
   distributedLogs:
     sgDistributedLogs: 'distributedlogs'
   prometheusAutobind: true
