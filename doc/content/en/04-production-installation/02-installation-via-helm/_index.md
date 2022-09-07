@@ -58,7 +58,7 @@ stackgres-charts/stackgres-operator
 > You can specify the version adding `--version 1.0.0` to the Helm command. 
 
 In the previous example StackGres have included several options to the installation, including the needed options to enable
-the monitoring. Follow the [Cluster Parameters]({{% relref "04-production-installation/06-cluster-parameters" %}}) section for a described list.
+the monitoring. Follow the [Operator Parameters]({{% relref "04-production-installation/06-operator-parameters" %}}) section for a described list.
 
 
 ## Creating and customizing your Postgres Clusters 
@@ -351,7 +351,7 @@ Look up to the yaml into the here doc above, every CR previously being included 
 And there is in place the script created through the secret, but StackGres includes an extra example for you, the second script
 show you how to run a SQL instruction directly into the yaml. 
 
-Another important entry to highlight in the yaml is [prometheusAutobind: true]({{% relref "04-production-installation/06-cluster-parameters" %}}). 
+Another important entry to highlight in the yaml is [prometheusAutobind: true]({{% relref "04-production-installation/06-operator-parameters" %}}). 
 It is not enough to have the Prometheus operator installed to have monitoring, we need to enable this parameter to have monitoring as documentation indicates.
 
 Awesome, now you can relax and wait for the SGCluster spinning up.
