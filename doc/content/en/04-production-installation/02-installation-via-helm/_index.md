@@ -83,7 +83,7 @@ EOF
 
 But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}})
  or the PGBouncer setting with [SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}})
- and more, like the backup specification using [SGBackupConfig]({{% relref "06-crd-reference/05-sgbackupconfig" %}})
+ and more, like the backup storage specification using [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}})
 
 The next code snippets will show you how to play with these CRs.
 
@@ -129,71 +129,45 @@ spec:
 EOF
 ```
 
-The longest step for this demonstration is the backup CR:
+The longest step for this demonstration is the backup storage CR.
+ For example, [Google Cloud Storage](https://cloud.google.com/storage/) could be used:
 
 ```yaml
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
-kind: SGBackupConfig
+apiVersion: stackgres.io/v1beta1
+kind: SGObjectStorage
 metadata:
   namespace: my-cluster
   name: backupconfig1
 spec:
-  baseBackups:
-    cronSchedule: "*/5 * * * *"
-    retention: 6
-  storage:
-    type: "gcs"
-    gcs:
+  type: "gcs"
+  gcs:
+    bucket: backup-my-cluster-of-stackgres-io
+    gcpCredentials:
+      secretKeySelectors:
+        serviceAccountJSON: 
+          name: gcp-backup-bucket-secret
+          key: my-creds.json
 EOF
 ```
 
-Alternatively, StackGres could be instructed to use [Google Cloud Storage](https://cloud.google.com/storage/)
+Or [AWS S3](https://aws.amazon.com/s3/) if you want to:
 
 ```yaml
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
-kind: SGBackupConfig
+apiVersion: stackgres.io/v1beta1
+kind: SGObjectStorage
 metadata:
   namespace: my-cluster
   name: backupconfig1
 spec:
-  baseBackups:
-    cronSchedule: "*/5 * * * *"
-    retention: 6
-  storage:
-    type: "gcs"
-    gcs:
-      bucket: backup-my-cluster-of-stackgres-io
-      gcpCredentials:
-        secretKeySelectors:
-          serviceAccountJSON: 
-            name: gcp-backup-bucket-secret
-            key: my-creds.json
-EOF
-```
-
-Or [AWS S3](https://aws.amazon.com/s3/) if you want
-
-```yaml
-cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
-kind: SGBackupConfig
-metadata:
-  namespace: my-cluster
-  name: backupconfig1
-spec:
-  baseBackups:
-    cronSchedule: '*/5 * * * *'
-    retention: 6
-  storage:
-    type: 's3'
-    s3:
-      bucket: 'backup.my-cluster.stackgres.io'
-      awsCredentials:
-        secretKeySelectors:
-          accessKeyId: {name: 'aws-creds-secret', key: 'accessKeyId'}
-          secretAccessKey: {name: 'aws-creds-secret', key: 'secretAccessKey'}
+  type: 's3'
+  s3:
+    bucket: 'backup.my-cluster.stackgres.io'
+    awsCredentials:
+      secretKeySelectors:
+        accessKeyId: {name: 'aws-creds-secret', key: 'accessKeyId'}
+        secretAccessKey: {name: 'aws-creds-secret', key: 'secretAccessKey'}
 EOF
 ```
 
@@ -352,7 +326,10 @@ spec:
   configurations:
     sgPostgresConfig: 'pgconfig1'
     sgPoolingConfig: 'poolconfig1'
-    sgBackupConfig: 'backupconfig1'
+    backups:
+    - sgObjectStorage: 'backupconfig1'
+      cronSchedule: '*/5 * * * *'
+      retention: 6
   distributedLogs:
     sgDistributedLogs: 'distributedlogs'
   initialData:

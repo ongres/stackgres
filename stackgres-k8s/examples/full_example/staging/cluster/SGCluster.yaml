@@ -23,7 +23,10 @@ spec:
   configurations:
     sgPostgresConfig: 'pgconfig'
     sgPoolingConfig: 'poolconfig'
-    sgBackupConfig: 'backupconfig'
+    backups:
+    - sgObjectStorage: 'backupconfig'
+      cronSchedule: '30 02 */4 * *'
+      retention: 4
   distributedLogs:
     sgDistributedLogs: 'distributedlogs'
   initialData:

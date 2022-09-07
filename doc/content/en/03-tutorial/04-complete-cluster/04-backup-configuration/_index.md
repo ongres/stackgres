@@ -88,7 +88,7 @@ Having the credentials secret created, we just need to create the object storage
 Create the file `sgobjectstorage-backupconfig1.yaml`:
 
 ```yaml
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v1beta1
 kind: SGObjectStorage
 metadata:
   namespace: demo
