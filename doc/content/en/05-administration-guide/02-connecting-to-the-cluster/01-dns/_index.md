@@ -12,7 +12,7 @@ The primary service is used to connect to the primary node and the replica servi
 
 These services will follow a convention that is based in the cluster name and the function of the service, so that, the name of the services will be:
 
- - `${CLUSTER-NAME}-primary`
+ - `${CLUSTER-NAME}`
  - `${CLUSTER-NAME}-replicas`
 
 Both services will accept connections to ports `5432` and `5433` where:
@@ -21,7 +21,7 @@ Both services will accept connections to ports `5432` and `5433` where:
 1. Port `5433` will point to postgres - used for replication purposes
 
 Therefore, given a cluster with name "stackgres" in the namespace "demo", the primary node will accessible through
- the URL: `stackgres-primary.demo:5432`.  Meanwhile, the replica node is accessible through the URL: `stackgres-replicas.demo:5432`.
+ the URL: `stackgres.demo:5432`.  Meanwhile, the replica node is accessible through the URL: `stackgres-replicas.demo:5432`.
 
 ## Examples
 
@@ -32,5 +32,5 @@ For all the following examples we're going to assume that we have a StackGres cl
 With a pod with `psql` running in the same kubernetes cluster than the StackGres cluster, we can connect to the primary node with the following command:
 
 ``` sh
-PGPASSWORD=1775-d517-4136-958 psql -h stackgres-primary.demo -U postgres
+PGPASSWORD=1775-d517-4136-958 psql -h stackgres.demo -U postgres
 ```
