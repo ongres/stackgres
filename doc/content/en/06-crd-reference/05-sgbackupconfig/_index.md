@@ -6,6 +6,9 @@ description: Details about SGBackupConfig configurations
 showToc: true
 ---
 
+**WARNING**: This CRD has been deprecated and replaced by [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}) CRD and a the new section
+ `.spec.configurations.backups` in the [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}) CRD.
+
 ## Configuration
 
 Backup configuration allow to specify when and how backups are performed. By default this is done

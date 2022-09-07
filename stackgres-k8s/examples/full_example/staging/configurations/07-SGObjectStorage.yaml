@@ -1,0 +1,14 @@
+apiVersion: stackgres.io/v1beta1
+kind: SGObjectStorage
+metadata:
+  namespace: demo-db
+  name: backupconfig
+spec:
+  type: gcs
+  gcs:
+    bucket: stackgres-backups
+    gcpCredentials:
+      secretKeySelectors:
+        serviceAccountJSON:
+          name: backups-gcp
+          key: gcloudkey
