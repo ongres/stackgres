@@ -83,7 +83,7 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
                 .build(),
             new EnvVarBuilder()
                 .withName("TARGET_PG_LIB64_PATH")
-                .withValue(String.format(PG_RELOCATED_LIB64_PATH_FORMAT, postgresVersion))
+                .withValue(ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH.path(clusterContext))
                 .build(),
             new EnvVarBuilder()
                 .withName("TARGET_PG_EXTRA_LIB_PATH")
@@ -95,7 +95,7 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
                 .build(),
             new EnvVarBuilder()
                 .withName("SOURCE_PG_LIB64_PATH")
-                .withValue(String.format(PG_RELOCATED_LIB64_PATH_FORMAT, oldPostgresVersion))
+                .withValue(ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH.path(oldClusterContext))
                 .build(),
             new EnvVarBuilder()
                 .withName("SOURCE_PG_EXTRA_LIB_PATH")
