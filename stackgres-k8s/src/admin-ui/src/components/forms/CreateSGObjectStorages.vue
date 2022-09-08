@@ -5,7 +5,9 @@
 
         <form id="createObjectStorage" class="form" @submit.prevent>
             <div class="header">
-                <h2>Object Storage Details</h2>
+                <h2>
+                    <span>{{ editMode ? 'Edit' : 'Create' }} Object Storage Configuration</span>
+                </h2>
             </div>
             
             <div class="row-50">

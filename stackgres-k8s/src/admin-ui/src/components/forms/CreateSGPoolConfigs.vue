@@ -5,7 +5,9 @@
         
         <form id="createPoolConfig" class="form" @submit.prevent>
             <div class="header">
-                <h2>Connection Pooling Configuration Details</h2>
+                <h2>
+                    <span>{{ editMode ? 'Edit' : 'Create' }} Connection Pooling Configuration</span>
+                </h2>
             </div>
 
             <div class="row-50">

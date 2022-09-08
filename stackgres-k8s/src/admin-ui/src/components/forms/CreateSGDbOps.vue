@@ -2,7 +2,9 @@
     <div id="create-dbops" v-if="iCanLoad">
         <form id="createDbops" class="form dbopsForm" @submit.prevent>
             <div class="header">
-                <h2>Database Operation Details</h2>
+                <h2>
+                    <span>Create Database Operation</span>
+                </h2>
             </div>
 
             <div class="row-50">
