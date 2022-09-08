@@ -80,7 +80,7 @@ public interface DbOpsUtil {
   static String getKebabCaseOperation(StackGresDbOps dbOps) {
     return UPPERCASE_LETTER_PATTERN
         .matcher(dbOps.getSpec().getOp())
-        .replaceAll(m -> m.group().toLowerCase(Locale.US) + "-");
+        .replaceAll(m -> "-" + m.group().toLowerCase(Locale.US));
   }
 
   static Integer getCurrentRetry(StackGresDbOps dbOps) {
