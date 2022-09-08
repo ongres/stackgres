@@ -36,7 +36,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Pos
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_2)
+@OperatorVersionBinder
 public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
 
   @Inject
@@ -79,10 +79,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
 
     patroniConf.setPostgresql(new PatroniConfig.PostgreSql());
     patroniConf.getPostgresql().setUsePgRewind(true);
-    patroniConf.getPostgresql().setUseSlots(
-        Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getReplicateFrom)
-        .isEmpty());
+    patroniConf.getPostgresql().setUseSlots(true);
     patroniConf.getPostgresql().setParameters(getPostgresConfigValues(context));
     patroniConf.getPostgresql().setRecoveryConf(getPostgresRecoveryConfigValues(context));
     return patroniConf;
