@@ -230,7 +230,7 @@ class PatroniConfigEndpointsTest {
     assertEquals(10, patroniConfig.getLoopWait());
     assertEquals(10, patroniConfig.getRetryTimeout());
     assertTrue(patroniConfig.getPostgresql().getUsePgRewind());
-    assertFalse(patroniConfig.getPostgresql().getUseSlots());
+    assertTrue(patroniConfig.getPostgresql().getUseSlots());
     assertNotNull(patroniConfig.getStandbyCluster());
     assertEquals("test", patroniConfig.getStandbyCluster().getHost());
     assertEquals("5433", patroniConfig.getStandbyCluster().getPort());
