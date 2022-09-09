@@ -5,7 +5,9 @@
                 
         <form id="createBackup" class="form" @submit.prevent>
             <div class="header">
-                <h2>Backup Details</h2>
+                <h2>
+                    <span>{{ editMode ? 'Edit' : 'Create' }} Backup</span>
+                </h2>
             </div>
             
             <div class="row-50">

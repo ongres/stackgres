@@ -5,7 +5,9 @@
 
         <form id="createProfile" class="form" @submit.prevent>
             <div class="header">
-                <h2>Instance Profile Details</h2>
+                <h2>
+                    <span>{{ editMode ? 'Edit' : 'Create' }} Instance Profile</span>
+                </h2>
             </div>
 
             <div class="row-50">

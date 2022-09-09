@@ -5,7 +5,9 @@
         
         <form id="createScripts" class="form" @submit.prevent>
             <div class="header">
-                <h2>Script Details</h2>
+                <h2>
+                    <span>{{ editMode ? 'Edit' : 'Create' }} Script Configuration</span>   
+                </h2>
             </div>
 
             <div class="row-50">

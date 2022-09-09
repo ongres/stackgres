@@ -5,7 +5,9 @@
 
         <form id="createCluster" class="form" @submit.prevent>
             <div class="header stickyHeader">
-                <h2>Create Cluster</h2>
+                <h2>
+                    <span>{{ editMode ? 'Edit' :  'Create' }} Cluster</span>
+                </h2>
                 <label for="advancedMode" class="floatRight">
                     <span>ADVANCED OPTIONS </span>
                     <input type="checkbox" id="advancedMode" name="advancedMode" v-model="advancedMode" class="switch" @change="( (!advancedMode && (currentStepIndex > 2)) && (currentStep = formSteps[0]))">
