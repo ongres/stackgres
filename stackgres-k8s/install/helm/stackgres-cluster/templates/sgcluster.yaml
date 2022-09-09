@@ -75,29 +75,31 @@ spec:
       external:
         host: {{ .Values.cluster.replicateFrom.instance.external.host }}
         port: {{ .Values.cluster.replicateFrom.instance.external.port }}
-        secretKeyRefs:
-          superuser:
-            username:
-              name: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.superuser.username.name }}
-              key: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.superuser.username.key }}
-            password:
-              name: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.superuser.password.name }}
-              key: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.superuser.password.key }}
-          replication:
-            username:
-              name: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.replication.username.name }}
-              key: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.replication.username.key }}
-            password:
-              name: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.replication.password.name }}
-              key: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.replication.password.key }}
-          authenticator:
-            username:
-              name: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.username.name }}
-              key: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.username.key }}
-            password:
-              name: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.password.name }}
-              key: {{ .Values.cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.password.key }}
       {{- end }}
+    {{- end }}
+    {{- if .Values.cluster.users }}
+    users:
+      superuser:
+        username:
+          name: {{ .Values.cluster.replicateFrom.users.superuser.username.name }}
+          key: {{ .Values.cluster.replicateFrom.users.superuser.username.key }}
+        password:
+          name: {{ .Values.cluster.replicateFrom.users.superuser.password.name }}
+          key: {{ .Values.cluster.replicateFrom.users.superuser.password.key }}
+      replication:
+        username:
+          name: {{ .Values.cluster.replicateFrom.users.replication.username.name }}
+          key: {{ .Values.cluster.replicateFrom.users.replication.username.key }}
+        password:
+          name: {{ .Values.cluster.replicateFrom.users.replication.password.name }}
+          key: {{ .Values.cluster.replicateFrom.users.replication.password.key }}
+      authenticator:
+        username:
+          name: {{ .Values.cluster.replicateFrom.users.authenticator.username.name }}
+          key: {{ .Values.cluster.replicateFrom.users.authenticator.username.key }}
+        password:
+          name: {{ .Values.cluster.replicateFrom.users.authenticator.password.name }}
+          key: {{ .Values.cluster.replicateFrom.users.authenticator.password.key }}
     {{- end }}
   {{- end }}
   configurations: 

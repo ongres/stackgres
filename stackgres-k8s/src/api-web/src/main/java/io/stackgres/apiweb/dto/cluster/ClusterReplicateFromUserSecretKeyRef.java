@@ -17,7 +17,7 @@ import io.stackgres.common.crd.SecretKeySelector;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterReplicateFromExternalSecretKeyRef {
+public class ClusterReplicateFromUserSecretKeyRef {
 
   @JsonProperty("username")
   private SecretKeySelector username;
@@ -51,11 +51,11 @@ public class ClusterReplicateFromExternalSecretKeyRef {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof ClusterReplicateFromExternalSecretKeyRef)) {
+    if (!(obj instanceof ClusterReplicateFromUserSecretKeyRef)) {
       return false;
     }
-    ClusterReplicateFromExternalSecretKeyRef other =
-        (ClusterReplicateFromExternalSecretKeyRef) obj;
+    ClusterReplicateFromUserSecretKeyRef other =
+        (ClusterReplicateFromUserSecretKeyRef) obj;
     return Objects.equals(password, other.password) && Objects.equals(username, other.username);
   }
 

@@ -80,6 +80,20 @@ public abstract class PatroniEnvironmentVariablesFactory<T>
                         .withKey(StackGresPasswordKeys.RESTAPI_PASSWORD_KEY)
                         .build())
                 .build())
+            .build(),
+        new EnvVarBuilder().withName(
+            StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV)
+            .withValueFrom(new EnvVarSourceBuilder()
+                .withSecretKeyRef(
+                    new SecretKeySelectorBuilder()
+                        .withName(cluster.getMetadata().getName())
+                        .withKey(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_KEY)
+                        .build())
+                .build())
+            .build(),
+        new EnvVarBuilder().withName(
+            StackGresPasswordKeys.AUTHENTICATOR_OPTIONS_ENV)
+            .withValue("superuser")
             .build());
   }
 }
