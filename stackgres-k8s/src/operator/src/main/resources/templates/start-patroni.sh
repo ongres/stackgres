@@ -29,7 +29,7 @@ bootstrap:
 $(
 if [ -n "$RECOVERY_FROM_BACKUP" ]
 then
-  cat << 'RECOVERY_EOF'
+  cat << RECOVERY_EOF
   method: wal_g
   wal_g:
     command: '${PATRONI_CONFIG_PATH}/bootstrap'

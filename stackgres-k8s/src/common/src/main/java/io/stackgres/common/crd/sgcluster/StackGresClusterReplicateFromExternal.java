@@ -7,19 +7,18 @@ package io.stackgres.common.crd.sgcluster;
 
 import java.util.Objects;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public class StackGresClusterReplicateFromExternal {
 
@@ -30,11 +29,6 @@ public class StackGresClusterReplicateFromExternal {
   @JsonProperty("port")
   @NotNull(message = "port is required")
   private Integer port;
-
-  @JsonProperty("secretKeyRefs")
-  @NotNull(message = "secretKeyRefs section is required")
-  @Valid
-  private StackGresClusterReplicateFromExternalSecretKeyRefs secretKeyRefs;
 
   public String getHost() {
     return host;
@@ -52,17 +46,9 @@ public class StackGresClusterReplicateFromExternal {
     this.port = port;
   }
 
-  public StackGresClusterReplicateFromExternalSecretKeyRefs getSecretKeyRefs() {
-    return secretKeyRefs;
-  }
-
-  public void setSecretKeyRefs(StackGresClusterReplicateFromExternalSecretKeyRefs secretKeyRefs) {
-    this.secretKeyRefs = secretKeyRefs;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(host, port, secretKeyRefs);
+    return Objects.hash(host, port);
   }
 
   @Override
@@ -74,8 +60,7 @@ public class StackGresClusterReplicateFromExternal {
       return false;
     }
     StackGresClusterReplicateFromExternal other = (StackGresClusterReplicateFromExternal) obj;
-    return Objects.equals(host, other.host) && Objects.equals(port, other.port)
-        && Objects.equals(secretKeyRefs, other.secretKeyRefs);
+    return Objects.equals(host, other.host) && Objects.equals(port, other.port);
   }
 
   @Override

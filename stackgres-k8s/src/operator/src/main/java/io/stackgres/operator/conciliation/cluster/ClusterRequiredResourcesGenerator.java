@@ -33,10 +33,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternalSecretKeyRef;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternalSecretKeyRefs;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUserSecretKeyRef;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUsers;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -167,12 +165,10 @@ public class ClusterRequiredResourcesGenerator
 
     final Optional<StackGresBackup> restoreBackup = findRestoreBackup(config, clusterNamespace);
 
-    final var replicateFromExternalInstance =
+    final var replicateFromUsers =
         Optional.ofNullable(spec)
         .map(StackGresClusterSpec::getReplicateFrom)
-        .map(StackGresClusterReplicateFrom::getInstance)
-        .map(StackGresClusterReplicateFromInstance::getExternal)
-        .map(StackGresClusterReplicateFromExternal::getSecretKeyRefs);
+        .map(StackGresClusterReplicateFrom::getUsers);
 
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .source(config)
@@ -186,44 +182,44 @@ public class ClusterRequiredResourcesGenerator
         .clusterBackupNamespaces(clusterBackupNamespaces)
         .databaseSecret(secretFinder.findByNameAndNamespace(clusterName, clusterNamespace))
         .externalSuperuserUsernameSecret(
-            replicateFromExternalInstance
-            .map(StackGresClusterReplicateFromExternalSecretKeyRefs::getSuperuser)
-            .map(StackGresClusterReplicateFromExternalSecretKeyRef::getUsername)
+            replicateFromUsers
+            .map(StackGresClusterReplicateFromUsers::getSuperuser)
+            .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
             .map(SecretKeySelector::getName)
             .flatMap(secretName -> secretFinder
                 .findByNameAndNamespace(secretName, clusterNamespace)))
         .externalSuperuserPasswordSecret(
-            replicateFromExternalInstance
-            .map(StackGresClusterReplicateFromExternalSecretKeyRefs::getSuperuser)
-            .map(StackGresClusterReplicateFromExternalSecretKeyRef::getPassword)
+            replicateFromUsers
+            .map(StackGresClusterReplicateFromUsers::getSuperuser)
+            .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
             .map(SecretKeySelector::getName)
             .flatMap(secretName -> secretFinder
                 .findByNameAndNamespace(secretName, clusterNamespace)))
         .externalReplicationUsernameSecret(
-            replicateFromExternalInstance
-            .map(StackGresClusterReplicateFromExternalSecretKeyRefs::getReplication)
-            .map(StackGresClusterReplicateFromExternalSecretKeyRef::getUsername)
+            replicateFromUsers
+            .map(StackGresClusterReplicateFromUsers::getReplication)
+            .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
             .map(SecretKeySelector::getName)
             .flatMap(secretName -> secretFinder
                 .findByNameAndNamespace(secretName, clusterNamespace)))
         .externalReplicationPasswordSecret(
-            replicateFromExternalInstance
-            .map(StackGresClusterReplicateFromExternalSecretKeyRefs::getReplication)
-            .map(StackGresClusterReplicateFromExternalSecretKeyRef::getPassword)
+            replicateFromUsers
+            .map(StackGresClusterReplicateFromUsers::getReplication)
+            .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
             .map(SecretKeySelector::getName)
             .flatMap(secretName -> secretFinder
                 .findByNameAndNamespace(secretName, clusterNamespace)))
         .externalAuthenticatorUsernameSecret(
-            replicateFromExternalInstance
-            .map(StackGresClusterReplicateFromExternalSecretKeyRefs::getAuthenticator)
-            .map(StackGresClusterReplicateFromExternalSecretKeyRef::getUsername)
+            replicateFromUsers
+            .map(StackGresClusterReplicateFromUsers::getAuthenticator)
+            .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
             .map(SecretKeySelector::getName)
             .flatMap(secretName -> secretFinder
                 .findByNameAndNamespace(secretName, clusterNamespace)))
         .externalAuthenticatorPasswordSecret(
-            replicateFromExternalInstance
-            .map(StackGresClusterReplicateFromExternalSecretKeyRefs::getAuthenticator)
-            .map(StackGresClusterReplicateFromExternalSecretKeyRef::getPassword)
+            replicateFromUsers
+            .map(StackGresClusterReplicateFromUsers::getAuthenticator)
+            .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
             .map(SecretKeySelector::getName)
             .flatMap(secretName -> secretFinder
                 .findByNameAndNamespace(secretName, clusterNamespace)))

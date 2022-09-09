@@ -24,9 +24,6 @@ public class ClusterReplicateFromExternal {
   @JsonProperty("port")
   private Integer port;
 
-  @JsonProperty("secretKeyRefs")
-  private ClusterReplicateFromExternalSecretKeyRefs secretKeyRefs;
-
   public String getHost() {
     return host;
   }
@@ -43,17 +40,9 @@ public class ClusterReplicateFromExternal {
     this.port = port;
   }
 
-  public ClusterReplicateFromExternalSecretKeyRefs getSecretKeyRefs() {
-    return secretKeyRefs;
-  }
-
-  public void setSecretKeyRefs(ClusterReplicateFromExternalSecretKeyRefs secretKeyRefs) {
-    this.secretKeyRefs = secretKeyRefs;
-  }
-
   @Override
   public int hashCode() {
-    return Objects.hash(host, port, secretKeyRefs);
+    return Objects.hash(host, port);
   }
 
   @Override
@@ -65,8 +54,7 @@ public class ClusterReplicateFromExternal {
       return false;
     }
     ClusterReplicateFromExternal other = (ClusterReplicateFromExternal) obj;
-    return Objects.equals(host, other.host) && Objects.equals(port, other.port)
-        && Objects.equals(secretKeyRefs, other.secretKeyRefs);
+    return Objects.equals(host, other.host) && Objects.equals(port, other.port);
   }
 
   @Override

@@ -16,38 +16,38 @@ import io.stackgres.common.StackGresUtil;
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class ClusterReplicateFromExternalSecretKeyRefs {
+public class ClusterReplicateFromUsers {
 
   @JsonProperty("superuser")
-  private ClusterReplicateFromExternalSecretKeyRef superuser;
+  private ClusterReplicateFromUserSecretKeyRef superuser;
 
   @JsonProperty("replication")
-  private ClusterReplicateFromExternalSecretKeyRef replication;
+  private ClusterReplicateFromUserSecretKeyRef replication;
 
   @JsonProperty("authenticator")
-  private ClusterReplicateFromExternalSecretKeyRef authenticator;
+  private ClusterReplicateFromUserSecretKeyRef authenticator;
 
-  public ClusterReplicateFromExternalSecretKeyRef getSuperuser() {
+  public ClusterReplicateFromUserSecretKeyRef getSuperuser() {
     return superuser;
   }
 
-  public void setSuperuser(ClusterReplicateFromExternalSecretKeyRef superuser) {
+  public void setSuperuser(ClusterReplicateFromUserSecretKeyRef superuser) {
     this.superuser = superuser;
   }
 
-  public ClusterReplicateFromExternalSecretKeyRef getReplication() {
+  public ClusterReplicateFromUserSecretKeyRef getReplication() {
     return replication;
   }
 
-  public void setReplication(ClusterReplicateFromExternalSecretKeyRef replication) {
+  public void setReplication(ClusterReplicateFromUserSecretKeyRef replication) {
     this.replication = replication;
   }
 
-  public ClusterReplicateFromExternalSecretKeyRef getAuthenticator() {
+  public ClusterReplicateFromUserSecretKeyRef getAuthenticator() {
     return authenticator;
   }
 
-  public void setAuthenticator(ClusterReplicateFromExternalSecretKeyRef authenticator) {
+  public void setAuthenticator(ClusterReplicateFromUserSecretKeyRef authenticator) {
     this.authenticator = authenticator;
   }
 
@@ -61,11 +61,11 @@ public class ClusterReplicateFromExternalSecretKeyRefs {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof ClusterReplicateFromExternalSecretKeyRefs)) {
+    if (!(obj instanceof ClusterReplicateFromUsers)) {
       return false;
     }
-    ClusterReplicateFromExternalSecretKeyRefs other =
-        (ClusterReplicateFromExternalSecretKeyRefs) obj;
+    ClusterReplicateFromUsers other =
+        (ClusterReplicateFromUsers) obj;
     return Objects.equals(authenticator, other.authenticator)
         && Objects.equals(replication, other.replication)
         && Objects.equals(superuser, other.superuser);
