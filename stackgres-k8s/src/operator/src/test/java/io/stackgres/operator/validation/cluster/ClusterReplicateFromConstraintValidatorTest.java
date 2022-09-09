@@ -10,9 +10,9 @@ import javax.validation.constraints.AssertTrue;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternalSecretKeyRef;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternalSecretKeyRefs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUserSecretKeyRef;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUsers;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ConstraintValidationTest;
@@ -41,27 +41,27 @@ class ClusterReplicateFromConstraintValidatorTest
         .setHost("test");
     review.getRequest().getObject().getSpec().getReplicateFrom().getInstance().getExternal()
         .setPort(12345);
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance().getExternal()
-        .setSecretKeyRefs(new StackGresClusterReplicateFromExternalSecretKeyRefs());
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance().getExternal()
-        .getSecretKeyRefs().setSuperuser(new StackGresClusterReplicateFromExternalSecretKeyRef());
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance().getExternal()
-        .getSecretKeyRefs().getSuperuser().setUsername(new SecretKeySelector("test", "test"));
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance().getExternal()
-        .getSecretKeyRefs().getSuperuser().setPassword(new SecretKeySelector("test", "test"));
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance().getExternal()
-        .getSecretKeyRefs().setReplication(new StackGresClusterReplicateFromExternalSecretKeyRef());
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance().getExternal()
-        .getSecretKeyRefs().getReplication().setUsername(new SecretKeySelector("test", "test"));
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance().getExternal()
-        .getSecretKeyRefs().getReplication().setPassword(new SecretKeySelector("test", "test"));
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance().getExternal()
-        .getSecretKeyRefs().setAuthenticator(
-            new StackGresClusterReplicateFromExternalSecretKeyRef());
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance().getExternal()
-        .getSecretKeyRefs().getAuthenticator().setUsername(new SecretKeySelector("test", "test"));
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance().getExternal()
-        .getSecretKeyRefs().getAuthenticator().setPassword(new SecretKeySelector("test", "test"));
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setUsers(new StackGresClusterReplicateFromUsers());
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().setSuperuser(new StackGresClusterReplicateFromUserSecretKeyRef());
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getSuperuser().setUsername(new SecretKeySelector("test", "test"));
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getSuperuser().setPassword(new SecretKeySelector("test", "test"));
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().setReplication(new StackGresClusterReplicateFromUserSecretKeyRef());
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getReplication().setUsername(new SecretKeySelector("test", "test"));
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getReplication().setPassword(new SecretKeySelector("test", "test"));
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().setAuthenticator(
+            new StackGresClusterReplicateFromUserSecretKeyRef());
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getAuthenticator().setUsername(new SecretKeySelector("test", "test"));
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getAuthenticator().setPassword(new SecretKeySelector("test", "test"));
     return review;
   }
 
@@ -125,58 +125,58 @@ class ClusterReplicateFromConstraintValidatorTest
   }
 
   @Test
-  void nullSecretKeyRefs_shouldFail() {
+  void nullUsers_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().setSecretKeyRefs(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setUsers(null);
 
-    checkNotNullErrorCause(StackGresClusterReplicateFromExternal.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs", review);
+    checkNotNullErrorCause(StackGresClusterReplicateFrom.class,
+        "spec.replicateFrom.users", review);
   }
 
   @Test
   void nullSuperuser_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().setSuperuser(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().setSuperuser(null);
 
-    checkNotNullErrorCause(StackGresClusterReplicateFromExternalSecretKeyRefs.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.superuser", review);
+    checkNotNullErrorCause(StackGresClusterReplicateFromUsers.class,
+        "spec.replicateFrom.users.superuser", review);
   }
 
   @Test
   void nullSuperuserUsername_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getSuperuser().setUsername(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getSuperuser().setUsername(null);
 
-    checkNotNullErrorCause(StackGresClusterReplicateFromExternalSecretKeyRef.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.superuser.username", review);
+    checkNotNullErrorCause(StackGresClusterReplicateFromUserSecretKeyRef.class,
+        "spec.replicateFrom.users.superuser.username", review);
   }
 
   @Test
   void nullSuperuserPassword_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getSuperuser().setPassword(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getSuperuser().setPassword(null);
 
-    checkNotNullErrorCause(StackGresClusterReplicateFromExternalSecretKeyRef.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.superuser.password", review);
+    checkNotNullErrorCause(StackGresClusterReplicateFromUserSecretKeyRef.class,
+        "spec.replicateFrom.users.superuser.password", review);
   }
 
   @Test
   void nullSuperuserUsernameSecretName_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getSuperuser().getUsername().setName(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getSuperuser().getUsername().setName(null);
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.superuser.username.name",
+        "spec.replicateFrom.users.superuser.username.name",
         "isNameNotEmpty", review, AssertTrue.class);
   }
 
@@ -184,11 +184,11 @@ class ClusterReplicateFromConstraintValidatorTest
   void nullSuperuserUsernameSecretKey_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getSuperuser().getUsername().setKey(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getSuperuser().getUsername().setKey(null);
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.superuser.username.key",
+        "spec.replicateFrom.users.superuser.username.key",
         "isKeyNotEmpty", review, AssertTrue.class);
   }
 
@@ -196,11 +196,11 @@ class ClusterReplicateFromConstraintValidatorTest
   void nullSuperuserPasswordSecretName_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getSuperuser().getPassword().setName(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getSuperuser().getPassword().setName(null);
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.superuser.password.name",
+        "spec.replicateFrom.users.superuser.password.name",
         "isNameNotEmpty", review, AssertTrue.class);
   }
 
@@ -208,11 +208,11 @@ class ClusterReplicateFromConstraintValidatorTest
   void nullSuperuserPasswordSecretKey_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getSuperuser().getPassword().setKey(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getSuperuser().getPassword().setKey(null);
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.superuser.password.key",
+        "spec.replicateFrom.users.superuser.password.key",
         "isKeyNotEmpty", review, AssertTrue.class);
   }
 
@@ -220,44 +220,44 @@ class ClusterReplicateFromConstraintValidatorTest
   void nullReplication_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().setReplication(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().setReplication(null);
 
-    checkNotNullErrorCause(StackGresClusterReplicateFromExternalSecretKeyRefs.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.replication", review);
+    checkNotNullErrorCause(StackGresClusterReplicateFromUsers.class,
+        "spec.replicateFrom.users.replication", review);
   }
 
   @Test
   void nullReplicationUsername_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getReplication().setUsername(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getReplication().setUsername(null);
 
-    checkNotNullErrorCause(StackGresClusterReplicateFromExternalSecretKeyRef.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.replication.username", review);
+    checkNotNullErrorCause(StackGresClusterReplicateFromUserSecretKeyRef.class,
+        "spec.replicateFrom.users.replication.username", review);
   }
 
   @Test
   void nullReplicationPassword_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getReplication().setPassword(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getReplication().setPassword(null);
 
-    checkNotNullErrorCause(StackGresClusterReplicateFromExternalSecretKeyRef.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.replication.password", review);
+    checkNotNullErrorCause(StackGresClusterReplicateFromUserSecretKeyRef.class,
+        "spec.replicateFrom.users.replication.password", review);
   }
 
   @Test
   void nullReplicationUsernameSecretName_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getReplication().getUsername().setName(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getReplication().getUsername().setName(null);
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.replication.username.name",
+        "spec.replicateFrom.users.replication.username.name",
         "isNameNotEmpty", review, AssertTrue.class);
   }
 
@@ -265,11 +265,11 @@ class ClusterReplicateFromConstraintValidatorTest
   void nullReplicationUsernameSecretKey_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getReplication().getUsername().setKey(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getReplication().getUsername().setKey(null);
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.replication.username.key",
+        "spec.replicateFrom.users.replication.username.key",
         "isKeyNotEmpty", review, AssertTrue.class);
   }
 
@@ -277,11 +277,11 @@ class ClusterReplicateFromConstraintValidatorTest
   void nullReplicationPasswordSecretName_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getReplication().getPassword().setName(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getReplication().getPassword().setName(null);
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.replication.password.name",
+        "spec.replicateFrom.users.replication.password.name",
         "isNameNotEmpty", review, AssertTrue.class);
   }
 
@@ -289,11 +289,11 @@ class ClusterReplicateFromConstraintValidatorTest
   void nullReplicationPasswordSecretKey_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getReplication().getPassword().setKey(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getReplication().getPassword().setKey(null);
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.replication.password.key",
+        "spec.replicateFrom.users.replication.password.key",
         "isKeyNotEmpty", review, AssertTrue.class);
   }
 
@@ -301,44 +301,44 @@ class ClusterReplicateFromConstraintValidatorTest
   void nullAuthenticator_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().setAuthenticator(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().setAuthenticator(null);
 
-    checkNotNullErrorCause(StackGresClusterReplicateFromExternalSecretKeyRefs.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.authenticator", review);
+    checkNotNullErrorCause(StackGresClusterReplicateFromUsers.class,
+        "spec.replicateFrom.users.authenticator", review);
   }
 
   @Test
   void nullAuthenticatorUsername_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getAuthenticator().setUsername(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getAuthenticator().setUsername(null);
 
-    checkNotNullErrorCause(StackGresClusterReplicateFromExternalSecretKeyRef.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.authenticator.username", review);
+    checkNotNullErrorCause(StackGresClusterReplicateFromUserSecretKeyRef.class,
+        "spec.replicateFrom.users.authenticator.username", review);
   }
 
   @Test
   void nullAuthenticatorPassword_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getAuthenticator().setPassword(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getAuthenticator().setPassword(null);
 
-    checkNotNullErrorCause(StackGresClusterReplicateFromExternalSecretKeyRef.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.authenticator.password", review);
+    checkNotNullErrorCause(StackGresClusterReplicateFromUserSecretKeyRef.class,
+        "spec.replicateFrom.users.authenticator.password", review);
   }
 
   @Test
   void nullAuthenticatorUsernameSecretName_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getAuthenticator().getUsername().setName(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getAuthenticator().getUsername().setName(null);
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.authenticator.username.name",
+        "spec.replicateFrom.users.authenticator.username.name",
         "isNameNotEmpty", review, AssertTrue.class);
   }
 
@@ -346,11 +346,11 @@ class ClusterReplicateFromConstraintValidatorTest
   void nullAuthenticatorUsernameSecretKey_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getAuthenticator().getUsername().setKey(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getAuthenticator().getUsername().setKey(null);
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.authenticator.username.key",
+        "spec.replicateFrom.users.authenticator.username.key",
         "isKeyNotEmpty", review, AssertTrue.class);
   }
 
@@ -358,11 +358,11 @@ class ClusterReplicateFromConstraintValidatorTest
   void nullAuthenticatorPasswordSecretName_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getAuthenticator().getPassword().setName(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getAuthenticator().getPassword().setName(null);
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.authenticator.password.name",
+        "spec.replicateFrom.users.authenticator.password.name",
         "isNameNotEmpty", review, AssertTrue.class);
   }
 
@@ -370,11 +370,11 @@ class ClusterReplicateFromConstraintValidatorTest
   void nullAuthenticatorPasswordSecretKey_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
-    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
-        .getExternal().getSecretKeyRefs().getAuthenticator().getPassword().setKey(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getUsers().getAuthenticator().getPassword().setKey(null);
 
     checkErrorCause(SecretKeySelector.class,
-        "spec.replicateFrom.instance.external.secretKeyRefs.authenticator.password.key",
+        "spec.replicateFrom.users.authenticator.password.key",
         "isKeyNotEmpty", review, AssertTrue.class);
   }
 

@@ -10,55 +10,55 @@ import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public class StackGresClusterReplicateFromExternalSecretKeyRefs {
+public class StackGresClusterReplicateFromUsers {
 
   @JsonProperty("superuser")
   @NotNull(message = "superuser section is required")
   @Valid
-  private StackGresClusterReplicateFromExternalSecretKeyRef superuser;
+  private StackGresClusterReplicateFromUserSecretKeyRef superuser;
 
   @JsonProperty("replication")
   @NotNull(message = "replication section is required")
   @Valid
-  private StackGresClusterReplicateFromExternalSecretKeyRef replication;
+  private StackGresClusterReplicateFromUserSecretKeyRef replication;
 
   @JsonProperty("authenticator")
   @NotNull(message = "authenticator section is required")
   @Valid
-  private StackGresClusterReplicateFromExternalSecretKeyRef authenticator;
+  private StackGresClusterReplicateFromUserSecretKeyRef authenticator;
 
-  public StackGresClusterReplicateFromExternalSecretKeyRef getSuperuser() {
+  public StackGresClusterReplicateFromUserSecretKeyRef getSuperuser() {
     return superuser;
   }
 
-  public void setSuperuser(StackGresClusterReplicateFromExternalSecretKeyRef superuser) {
+  public void setSuperuser(StackGresClusterReplicateFromUserSecretKeyRef superuser) {
     this.superuser = superuser;
   }
 
-  public StackGresClusterReplicateFromExternalSecretKeyRef getReplication() {
+  public StackGresClusterReplicateFromUserSecretKeyRef getReplication() {
     return replication;
   }
 
-  public void setReplication(StackGresClusterReplicateFromExternalSecretKeyRef replication) {
+  public void setReplication(StackGresClusterReplicateFromUserSecretKeyRef replication) {
     this.replication = replication;
   }
 
-  public StackGresClusterReplicateFromExternalSecretKeyRef getAuthenticator() {
+  public StackGresClusterReplicateFromUserSecretKeyRef getAuthenticator() {
     return authenticator;
   }
 
-  public void setAuthenticator(StackGresClusterReplicateFromExternalSecretKeyRef authenticator) {
+  public void setAuthenticator(StackGresClusterReplicateFromUserSecretKeyRef authenticator) {
     this.authenticator = authenticator;
   }
 
@@ -72,11 +72,11 @@ public class StackGresClusterReplicateFromExternalSecretKeyRefs {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresClusterReplicateFromExternalSecretKeyRefs)) {
+    if (!(obj instanceof StackGresClusterReplicateFromUsers)) {
       return false;
     }
-    StackGresClusterReplicateFromExternalSecretKeyRefs other =
-        (StackGresClusterReplicateFromExternalSecretKeyRefs) obj;
+    StackGresClusterReplicateFromUsers other =
+        (StackGresClusterReplicateFromUsers) obj;
     return Objects.equals(authenticator, other.authenticator)
         && Objects.equals(replication, other.replication)
         && Objects.equals(superuser, other.superuser);

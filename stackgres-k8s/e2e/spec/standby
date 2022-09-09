@@ -10,18 +10,18 @@ e2e_test_install() {
     --set instanceProfiles=null \
     --set-string cluster.replicateFrom.instance.external.host="$PRIMARY_CLUSTER_NAME" \
     --set-string cluster.replicateFrom.instance.external.port="5433" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.superuser.username.name="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.superuser.username.key="PATRONI_SUPERUSER_USERNAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.superuser.password.name="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.superuser.password.key="PATRONI_SUPERUSER_PASSWORD" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.replication.username.name="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.replication.username.key="PATRONI_REPLICATION_USERNAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.replication.password.name="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.replication.password.key="PATRONI_REPLICATION_PASSWORD" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.username.name="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.username.key="PATRONI_authenticator_USERNAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.password.name="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.password.key="PATRONI_authenticator_PASSWORD"
+    --set-string cluster.replicateFrom.users.superuser.username.name="$PRIMARY_CLUSTER_NAME" \
+    --set-string cluster.replicateFrom.users.superuser.username.key="PATRONI_SUPERUSER_USERNAME" \
+    --set-string cluster.replicateFrom.users.superuser.password.name="$PRIMARY_CLUSTER_NAME" \
+    --set-string cluster.replicateFrom.users.superuser.password.key="PATRONI_SUPERUSER_PASSWORD" \
+    --set-string cluster.replicateFrom.users.replication.username.name="$PRIMARY_CLUSTER_NAME" \
+    --set-string cluster.replicateFrom.users.replication.username.key="PATRONI_REPLICATION_USERNAME" \
+    --set-string cluster.replicateFrom.users.replication.password.name="$PRIMARY_CLUSTER_NAME" \
+    --set-string cluster.replicateFrom.users.replication.password.key="PATRONI_REPLICATION_PASSWORD" \
+    --set-string cluster.replicateFrom.users.authenticator.username.name="$PRIMARY_CLUSTER_NAME" \
+    --set-string cluster.replicateFrom.users.authenticator.username.key="PATRONI_authenticator_USERNAME" \
+    --set-string cluster.replicateFrom.users.authenticator.password.name="$PRIMARY_CLUSTER_NAME" \
+    --set-string cluster.replicateFrom.users.authenticator.password.key="PATRONI_authenticator_PASSWORD"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
@@ -166,18 +166,18 @@ check_primary_can_be_converted_to_standby() {
     --set instanceProfiles=null \
     --set-string cluster.replicateFrom.instance.external.host="$PRIMARY_CLUSTER_NAME" \
     --set-string cluster.replicateFrom.instance.external.port="5433" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.superuser.username.name="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.superuser.username.key="PATRONI_SUPERUSER_USERNAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.superuser.password.name="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.superuser.password.key="PATRONI_SUPERUSER_PASSWORD" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.replication.username.name="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.replication.username.key="PATRONI_REPLICATION_USERNAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.replication.password.name="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.replication.password.key="PATRONI_REPLICATION_PASSWORD" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.username.name="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.username.key="PATRONI_authenticator_USERNAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.password.name="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.secretKeyRefs.authenticator.password.key="PATRONI_authenticator_PASSWORD"
+    --set-string cluster.replicateFrom.users.superuser.username.name="$PRIMARY_CLUSTER_NAME" \
+    --set-string cluster.replicateFrom.users.superuser.username.key="PATRONI_SUPERUSER_USERNAME" \
+    --set-string cluster.replicateFrom.users.superuser.password.name="$PRIMARY_CLUSTER_NAME" \
+    --set-string cluster.replicateFrom.users.superuser.password.key="PATRONI_SUPERUSER_PASSWORD" \
+    --set-string cluster.replicateFrom.users.replication.username.name="$PRIMARY_CLUSTER_NAME" \
+    --set-string cluster.replicateFrom.users.replication.username.key="PATRONI_REPLICATION_USERNAME" \
+    --set-string cluster.replicateFrom.users.replication.password.name="$PRIMARY_CLUSTER_NAME" \
+    --set-string cluster.replicateFrom.users.replication.password.key="PATRONI_REPLICATION_PASSWORD" \
+    --set-string cluster.replicateFrom.users.authenticator.username.name="$PRIMARY_CLUSTER_NAME" \
+    --set-string cluster.replicateFrom.users.authenticator.username.key="PATRONI_authenticator_USERNAME" \
+    --set-string cluster.replicateFrom.users.authenticator.password.name="$PRIMARY_CLUSTER_NAME" \
+    --set-string cluster.replicateFrom.users.authenticator.password.key="PATRONI_authenticator_PASSWORD"
 
   local RESULT EXIT_CODE
   try_function wait_until run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "$(cat << 'EOF'

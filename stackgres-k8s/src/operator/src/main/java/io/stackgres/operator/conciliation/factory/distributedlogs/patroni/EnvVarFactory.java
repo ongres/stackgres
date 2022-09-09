@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.stackgres.common.EnvoyUtil;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.FactoryName;
 import io.stackgres.operator.conciliation.factory.PatroniEnvironmentVariablesFactory;
@@ -29,6 +30,14 @@ public class EnvVarFactory
         .add(new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_LISTEN")
             .withValue("0.0.0.0:" + EnvoyUtil.PATRONI_ENTRY_PORT)
+            .build())
+        .add(new EnvVarBuilder()
+            .withName(StackGresPasswordKeys.SUPERUSER_USERNAME_ENV)
+            .withValue(StackGresPasswordKeys.SUPERUSER_USERNAME)
+            .build())
+        .add(new EnvVarBuilder()
+            .withName(StackGresPasswordKeys.REPLICATION_USERNAME_ENV)
+            .withValue(StackGresPasswordKeys.REPLICATION_USERNAME)
             .build())
         .addAll(createPatroniEnvVars(context.getSource()))
         .build();

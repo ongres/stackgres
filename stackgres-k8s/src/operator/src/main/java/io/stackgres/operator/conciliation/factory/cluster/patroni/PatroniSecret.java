@@ -26,10 +26,8 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternalSecretKeyRef;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternalSecretKeyRefs;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUserSecretKeyRef;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUsers;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -88,10 +86,8 @@ public class PatroniSecret
     final String name = cluster.getMetadata().getName();
     final String namespace = cluster.getMetadata().getNamespace();
     final Map<String, String> labels = factoryFactory.genericLabels(cluster);
-    final var external = Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getReplicateFrom)
-        .map(StackGresClusterReplicateFrom::getInstance)
-        .map(StackGresClusterReplicateFromInstance::getExternal);
+    final var replicateFrom = Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getReplicateFrom);
 
     final Map<String, String> previousSecretData = context.getDatabaseSecret()
         .map(Secret::getData)
@@ -100,11 +96,11 @@ public class PatroniSecret
 
     final Map<String, String> data = new HashMap<>();
 
-    setSuperuserCredentials(context, external, previousSecretData, data);
+    setSuperuserCredentials(context, replicateFrom, previousSecretData, data);
 
-    setReplicationCredentials(context, external, previousSecretData, data);
+    setReplicationCredentials(context, replicateFrom, previousSecretData, data);
 
-    setAuthenticatorCredentials(context, external, previousSecretData, data);
+    setAuthenticatorCredentials(context, replicateFrom, previousSecretData, data);
 
     if (getPostgresFlavorComponent(context.getSource()) == StackGresComponent.BABELFISH) {
       setBabelfishCredentials(previousSecretData, data);
@@ -126,24 +122,24 @@ public class PatroniSecret
   }
 
   private void setSuperuserCredentials(StackGresClusterContext context,
-      final Optional<StackGresClusterReplicateFromExternal> external,
+      final Optional<StackGresClusterReplicateFrom> replicateFrom,
       Map<String, String> previousSecretData, Map<String, String> data) {
     data.put(SUPERUSER_USERNAME_ENV, previousSecretData
         .getOrDefault(SUPERUSER_USERNAME_ENV, SUPERUSER_USERNAME));
-    setReplicateFromExternalInstanceForSuperuserUsername(context, data, external);
+    setReplicateFromExternalInstanceForSuperuserUsername(context, data, replicateFrom);
     data.put(SUPERUSER_PASSWORD_KEY, previousSecretData
         .getOrDefault(SUPERUSER_PASSWORD_KEY, previousSecretData
             .getOrDefault(SUPERUSER_PASSWORD_ENV, generatePassword())));
     data.put(SUPERUSER_PASSWORD_ENV, data.get(SUPERUSER_PASSWORD_KEY));
-    setReplicateFromExternalInstanceForSuperuserPassword(context, data, external);
+    setReplicateFromExternalInstanceForSuperuserPassword(context, data, replicateFrom);
   }
 
   private void setReplicateFromExternalInstanceForSuperuserUsername(StackGresClusterContext context,
-      Map<String, String> data, Optional<StackGresClusterReplicateFromExternal> external) {
-    external
-        .map(StackGresClusterReplicateFromExternal::getSecretKeyRefs)
-        .map(StackGresClusterReplicateFromExternalSecretKeyRefs::getSuperuser)
-        .map(StackGresClusterReplicateFromExternalSecretKeyRef::getUsername)
+      Map<String, String> data, Optional<StackGresClusterReplicateFrom> replicateFrom) {
+    replicateFrom
+        .map(StackGresClusterReplicateFrom::getUsers)
+        .map(StackGresClusterReplicateFromUsers::getSuperuser)
+        .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
         .map(secretKeyRef -> context
             .getExternalSuperuserUsernameSecret()
             .map(Secret::getData)
@@ -158,11 +154,11 @@ public class PatroniSecret
   }
 
   private void setReplicateFromExternalInstanceForSuperuserPassword(StackGresClusterContext context,
-      Map<String, String> data, Optional<StackGresClusterReplicateFromExternal> external) {
-    external
-        .map(StackGresClusterReplicateFromExternal::getSecretKeyRefs)
-        .map(StackGresClusterReplicateFromExternalSecretKeyRefs::getSuperuser)
-        .map(StackGresClusterReplicateFromExternalSecretKeyRef::getPassword)
+      Map<String, String> data, Optional<StackGresClusterReplicateFrom> replicateFrom) {
+    replicateFrom
+        .map(StackGresClusterReplicateFrom::getUsers)
+        .map(StackGresClusterReplicateFromUsers::getSuperuser)
+        .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
         .map(secretKeyRef -> context
             .getExternalSuperuserPasswordSecret()
             .map(Secret::getData)
@@ -179,25 +175,25 @@ public class PatroniSecret
   }
 
   private void setReplicationCredentials(StackGresClusterContext context,
-      final Optional<StackGresClusterReplicateFromExternal> external,
+      final Optional<StackGresClusterReplicateFrom> replicateFrom,
       Map<String, String> previousSecretData, Map<String, String> data) {
     data.put(REPLICATION_USERNAME_ENV, previousSecretData
         .getOrDefault(REPLICATION_USERNAME_ENV, REPLICATION_USERNAME));
-    setReplicateFromExternalInstanceForReplicationUsername(context, data, external);
+    setReplicateFromExternalInstanceForReplicationUsername(context, data, replicateFrom);
     data.put(REPLICATION_PASSWORD_KEY, previousSecretData
         .getOrDefault(REPLICATION_PASSWORD_KEY, previousSecretData
             .getOrDefault(REPLICATION_PASSWORD_ENV, generatePassword())));
     data.put(REPLICATION_PASSWORD_ENV, data.get(REPLICATION_PASSWORD_KEY));
-    setReplicateFromExternalInstanceForReplicationPassword(context, data, external);
+    setReplicateFromExternalInstanceForReplicationPassword(context, data, replicateFrom);
   }
 
   private void setReplicateFromExternalInstanceForReplicationUsername(
       StackGresClusterContext context, Map<String, String> data,
-      Optional<StackGresClusterReplicateFromExternal> external) {
-    external
-        .map(StackGresClusterReplicateFromExternal::getSecretKeyRefs)
-        .map(StackGresClusterReplicateFromExternalSecretKeyRefs::getReplication)
-        .map(StackGresClusterReplicateFromExternalSecretKeyRef::getUsername)
+      Optional<StackGresClusterReplicateFrom> replicateFrom) {
+    replicateFrom
+        .map(StackGresClusterReplicateFrom::getUsers)
+        .map(StackGresClusterReplicateFromUsers::getReplication)
+        .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
         .map(secretKeyRef -> context
             .getExternalReplicationUsernameSecret()
             .map(Secret::getData)
@@ -213,11 +209,11 @@ public class PatroniSecret
 
   private void setReplicateFromExternalInstanceForReplicationPassword(
       StackGresClusterContext context, Map<String, String> data,
-      Optional<StackGresClusterReplicateFromExternal> external) {
-    external
-        .map(StackGresClusterReplicateFromExternal::getSecretKeyRefs)
-        .map(StackGresClusterReplicateFromExternalSecretKeyRefs::getReplication)
-        .map(StackGresClusterReplicateFromExternalSecretKeyRef::getPassword)
+      Optional<StackGresClusterReplicateFrom> replicateFrom) {
+    replicateFrom
+        .map(StackGresClusterReplicateFrom::getUsers)
+        .map(StackGresClusterReplicateFromUsers::getReplication)
+        .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
         .map(secretKeyRef -> context
             .getExternalReplicationPasswordSecret()
             .map(Secret::getData)
@@ -234,11 +230,11 @@ public class PatroniSecret
   }
 
   private void setAuthenticatorCredentials(StackGresClusterContext context,
-      final Optional<StackGresClusterReplicateFromExternal> external,
+      final Optional<StackGresClusterReplicateFrom> replicateFrom,
       Map<String, String> previousSecretData, Map<String, String> data) {
     data.put(AUTHENTICATOR_USERNAME_ENV, previousSecretData
         .getOrDefault(AUTHENTICATOR_USERNAME_ENV, AUTHENTICATOR_USERNAME));
-    setReplicateFromExternalInstanceForAuthenticatorUsername(context, data, external);
+    setReplicateFromExternalInstanceForAuthenticatorUsername(context, data, replicateFrom);
     final String authenticatorPasswordEnv = AUTHENTICATOR_PASSWORD_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV));
     final String authenticatorOptionsEnv = AUTHENTICATOR_OPTIONS_ENV
@@ -247,17 +243,17 @@ public class PatroniSecret
         .getOrDefault(AUTHENTICATOR_PASSWORD_KEY, previousSecretData
             .getOrDefault(authenticatorPasswordEnv, generatePassword())));
     data.put(authenticatorPasswordEnv, data.get(AUTHENTICATOR_PASSWORD_KEY));
-    setReplicateFromExternalInstanceForAuthenticatorPassword(context, data, external);
+    setReplicateFromExternalInstanceForAuthenticatorPassword(context, data, replicateFrom);
     data.put(authenticatorOptionsEnv, "superuser");
   }
 
   private void setReplicateFromExternalInstanceForAuthenticatorUsername(
       StackGresClusterContext context, Map<String, String> data,
-      Optional<StackGresClusterReplicateFromExternal> external) {
-    external
-        .map(StackGresClusterReplicateFromExternal::getSecretKeyRefs)
-        .map(StackGresClusterReplicateFromExternalSecretKeyRefs::getAuthenticator)
-        .map(StackGresClusterReplicateFromExternalSecretKeyRef::getUsername)
+      Optional<StackGresClusterReplicateFrom> replicateFrom) {
+    replicateFrom
+        .map(StackGresClusterReplicateFrom::getUsers)
+        .map(StackGresClusterReplicateFromUsers::getAuthenticator)
+        .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
         .map(secretKeyRef -> context
             .getExternalAuthenticatorUsernameSecret()
             .map(Secret::getData)
@@ -273,13 +269,13 @@ public class PatroniSecret
 
   private void setReplicateFromExternalInstanceForAuthenticatorPassword(
       StackGresClusterContext context, Map<String, String> data,
-      Optional<StackGresClusterReplicateFromExternal> external) {
+      Optional<StackGresClusterReplicateFrom> replicateFrom) {
     final String authenticatorPasswordEnv = AUTHENTICATOR_PASSWORD_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV));
-    external
-        .map(StackGresClusterReplicateFromExternal::getSecretKeyRefs)
-        .map(StackGresClusterReplicateFromExternalSecretKeyRefs::getAuthenticator)
-        .map(StackGresClusterReplicateFromExternalSecretKeyRef::getPassword)
+    replicateFrom
+        .map(StackGresClusterReplicateFrom::getUsers)
+        .map(StackGresClusterReplicateFromUsers::getAuthenticator)
+        .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
         .map(secretKeyRef -> context
             .getExternalAuthenticatorPasswordSecret()
             .map(Secret::getData)

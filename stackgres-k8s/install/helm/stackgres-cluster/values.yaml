@@ -36,13 +36,28 @@ cluster:
   #     external:
   #       host:
   #       port:
-  #       secretKeyRefs:
-  #         username:
-  #           name:
-  #           key:
-  #         password:
-  #           name:
-  #           key:
+  #    users:
+  #      superuser:
+  #        username:
+  #          name:
+  #          key:
+  #        password:
+  #          name:
+  #          key:
+  #      replication:
+  #        username:
+  #          name:
+  #          key:
+  #        password:
+  #          name:
+  #          key:
+  #      authenticator:
+  #        username:
+  #          name:
+  #          key:
+  #        password:
+  #          name:
+  #          key:
   sgInstanceProfile: size-xs
   postgresServices:
     primary:

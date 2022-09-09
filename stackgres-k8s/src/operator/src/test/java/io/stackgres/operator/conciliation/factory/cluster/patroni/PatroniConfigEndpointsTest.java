@@ -34,8 +34,8 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternalSecretKeyRefs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUsers;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.fixture.Fixtures;
@@ -212,8 +212,8 @@ class PatroniConfigEndpointsTest {
         .setHost("test");
     cluster.getSpec().getReplicateFrom().getInstance().getExternal()
         .setPort(5433);
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setSecretKeyRefs(new StackGresClusterReplicateFromExternalSecretKeyRefs());
+    cluster.getSpec().getReplicateFrom()
+        .setUsers(new StackGresClusterReplicateFromUsers());
     Endpoints endpoints = generateEndpoint();
 
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();

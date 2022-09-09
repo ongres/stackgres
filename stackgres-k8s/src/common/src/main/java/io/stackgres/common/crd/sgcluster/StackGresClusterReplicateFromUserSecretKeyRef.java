@@ -10,19 +10,19 @@ import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public class StackGresClusterReplicateFromExternalSecretKeyRef {
+public class StackGresClusterReplicateFromUserSecretKeyRef {
 
   @JsonProperty("username")
   @NotNull(message = "username section is required")
@@ -60,11 +60,11 @@ public class StackGresClusterReplicateFromExternalSecretKeyRef {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresClusterReplicateFromExternalSecretKeyRef)) {
+    if (!(obj instanceof StackGresClusterReplicateFromUserSecretKeyRef)) {
       return false;
     }
-    StackGresClusterReplicateFromExternalSecretKeyRef other =
-        (StackGresClusterReplicateFromExternalSecretKeyRef) obj;
+    StackGresClusterReplicateFromUserSecretKeyRef other =
+        (StackGresClusterReplicateFromUserSecretKeyRef) obj;
     return Objects.equals(password, other.password) && Objects.equals(username, other.username);
   }
 
