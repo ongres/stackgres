@@ -19,4 +19,6 @@ FROM "$BASE_IMAGE"
   EXPOSE 8080
   EXPOSE 8443
 
+  RUN JAVA_CDS_GENERATION=true /app/stackgres-distributedlogs-controller.sh
+
   CMD '/app/stackgres-distributedlogs-controller.sh'
