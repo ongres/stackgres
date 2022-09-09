@@ -241,7 +241,8 @@
 
             isDeletable () {
                 const vc = this;
-                let c = ''
+                let c = '';
+                let l = ''
 
                 switch(vc.$route.meta.componentName) {
                     
@@ -254,11 +255,13 @@
                         c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && ((c.data.spec.hasOwnProperty('distributedLogs')) &&  (c.data.spec.distributedLogs.sgDistributedLogs == vc.$route.params.name)))
                         return (typeof c == 'undefined')
                     case 'SGInstanceProfile':
-                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.sgInstanceProfile == vc.$route.params.name))
-                        return (typeof c == 'undefined')
+                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.sgInstanceProfile == vc.$route.params.name));
+                        l = store.state.sgdistributedlogs.find(l => (l.data.metadata.namespace == vc.$route.params.namespace) && (l.data.spec.sgInstanceProfile == vc.$route.params.name))
+                        return ((typeof c == 'undefined') && (typeof l == 'undefined'))
                     case 'SGPgConfig':
-                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPostgresConfig == vc.$route.params.name))
-                        return (typeof c == 'undefined') 
+                        c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPostgresConfig == vc.$route.params.name));
+                        l = store.state.sgdistributedlogs.find(l => (l.data.metadata.namespace == vc.$route.params.namespace) && (l.data.spec.configurations.sgPostgresConfig == vc.$route.params.name))
+                        return ((typeof c == 'undefined') && (typeof l == 'undefined'))
                     case 'SGPoolConfig':
                         c = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.configurations.sgPoolingConfig == vc.$route.params.name))
                         return (typeof c == 'undefined') 
