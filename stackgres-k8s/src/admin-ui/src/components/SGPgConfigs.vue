@@ -189,13 +189,8 @@
 		methods: {
 
 			hasParamsSet(conf) {
-				
-				if(Object.keys(conf.data.status.defaultParameters).length != conf.data.status['postgresql.conf'].length) {
-					return true
-				} else {
-					let setParam = conf.data.status['postgresql.conf'].find(p => ( (conf.data.status.defaultParameters[p.parameter] != p.value) ))
-					return (typeof setParam != 'undefined')
-				}
+				let setParam = conf.data.status['postgresql.conf'].find(p => ( (conf.data.status.defaultParameters[p.parameter] != p.value) ))
+				return (typeof setParam != 'undefined')
 			}
 
 		}
