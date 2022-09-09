@@ -85,6 +85,10 @@
 									<td class="label">Name <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.metadata.name')"></span></td>
 									<td>{{ conf.name }}</td>
 								</tr>
+								<tr>
+									<td class="label">Postgres Version <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresVersion')"></span></td>
+									<td>{{ conf.data.spec.postgresVersion }}</td>
+								</tr>
 								<tr v-if="conf.data.status.clusters.length">
 									<td class="label">Used on  <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.status.clusters')"></span></td>
 									<td class="usedOn">
