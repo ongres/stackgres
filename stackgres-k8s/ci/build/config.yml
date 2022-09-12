@@ -289,7 +289,7 @@ modules:
       - stackgres-k8s/install/helm/stackgres-cluster
       - stackgres-k8s/install/helm/build-helm-packages.sh
       - stackgres-k8s/src/pom.xml
-    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.14
+    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.15
     build_commands:
       - export HOME=/project
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-packages.sh
@@ -303,7 +303,7 @@ modules:
       - stackgres-k8s/install/helm/stackgres-cluster
       - stackgres-k8s/install/helm/build-helm-templates.sh
       - stackgres-k8s/src/pom.xml
-    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.14
+    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.15
     build_commands:
       - export HOME=/project
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-templates.sh
