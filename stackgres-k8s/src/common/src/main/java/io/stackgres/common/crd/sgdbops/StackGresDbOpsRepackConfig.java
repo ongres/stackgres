@@ -6,6 +6,7 @@
 package io.stackgres.common.crd.sgdbops;
 
 import java.time.format.DateTimeParseException;
+import java.util.Objects;
 
 import javax.validation.constraints.AssertTrue;
 
@@ -87,6 +88,26 @@ public abstract class StackGresDbOpsRepackConfig {
 
   public void setExcludeExtension(Boolean excludeExtension) {
     this.excludeExtension = excludeExtension;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(excludeExtension, noAnalyze, noKillBackend, noOrder, waitTimeout);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresDbOpsRepackConfig)) {
+      return false;
+    }
+    StackGresDbOpsRepackConfig other = (StackGresDbOpsRepackConfig) obj;
+    return Objects.equals(excludeExtension, other.excludeExtension)
+        && Objects.equals(noAnalyze, other.noAnalyze)
+        && Objects.equals(noKillBackend, other.noKillBackend)
+        && Objects.equals(noOrder, other.noOrder) && Objects.equals(waitTimeout, other.waitTimeout);
   }
 
 }

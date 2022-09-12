@@ -7,22 +7,18 @@ package io.stackgres.common.crd.sgdbops;
 
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public class StackGresDbOpsVacuumDatabase extends StackGresDbOpsVacuumConfig
-    implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+public class StackGresDbOpsVacuumDatabase extends StackGresDbOpsVacuumConfig {
 
   @JsonProperty("name")
   private String name;
@@ -37,7 +33,10 @@ public class StackGresDbOpsVacuumDatabase extends StackGresDbOpsVacuumConfig
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, analyze, disablePageSkipping, freeze, full);
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(name);
+    return result;
   }
 
   @Override
@@ -45,14 +44,14 @@ public class StackGresDbOpsVacuumDatabase extends StackGresDbOpsVacuumConfig
     if (this == obj) {
       return true;
     }
+    if (!super.equals(obj)) {
+      return false;
+    }
     if (!(obj instanceof StackGresDbOpsVacuumDatabase)) {
       return false;
     }
     StackGresDbOpsVacuumDatabase other = (StackGresDbOpsVacuumDatabase) obj;
-    return Objects.equals(name, other.name)
-        && Objects.equals(analyze, other.analyze)
-        && Objects.equals(disablePageSkipping, other.disablePageSkipping)
-        && Objects.equals(freeze, other.freeze) && Objects.equals(full, other.full);
+    return Objects.equals(name, other.name);
   }
 
   @Override

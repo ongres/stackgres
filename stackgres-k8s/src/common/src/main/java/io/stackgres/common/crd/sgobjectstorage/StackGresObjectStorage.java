@@ -10,6 +10,7 @@ import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.Namespaced;
@@ -23,27 +24,26 @@ import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.storages.BackupStorage;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 @Group(CommonDefinition.GROUP)
 @Version(StackGresObjectStorage.VERSION)
 @Kind(StackGresObjectStorage.KIND)
-@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public class StackGresObjectStorage extends CustomResource<BackupStorage, Void>
     implements Namespaced {
+
   private static final long serialVersionUID = 1L;
 
   public static final String KIND = "SGObjectStorage";
+
   public static final String VERSION = "v1beta1";
 
   @JsonProperty("spec")
   @NotNull(message = "The specification is required")
   @Valid
   private BackupStorage spec;
-
-  public StackGresObjectStorage() {
-    super();
-  }
 
   @Override
   public BackupStorage getSpec() {

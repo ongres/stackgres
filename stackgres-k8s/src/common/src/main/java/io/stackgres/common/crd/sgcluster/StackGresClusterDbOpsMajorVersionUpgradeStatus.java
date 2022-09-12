@@ -9,22 +9,18 @@ import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOpsRestartStatus
-    implements KubernetesResource {
-
-  private static final long serialVersionUID = -1;
+public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOpsRestartStatus {
 
   @JsonProperty("sourcePostgresVersion")
   @NotNull
@@ -123,31 +119,33 @@ public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOps
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    if (!super.equals(o)) {
-      return false;
-    }
-    StackGresClusterDbOpsMajorVersionUpgradeStatus that =
-        (StackGresClusterDbOpsMajorVersionUpgradeStatus) o;
-    return Objects.equals(sourcePostgresVersion, that.sourcePostgresVersion)
-        && Objects.equals(targetPostgresVersion, that.targetPostgresVersion)
-        && Objects.equals(locale, that.locale)
-        && Objects.equals(encoding, that.encoding)
-        && Objects.equals(dataChecksum, that.dataChecksum)
-        && Objects.equals(link, that.link) && Objects.equals(clone, that.clone)
-        && Objects.equals(check, that.check);
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(check, clone, dataChecksum, encoding, link, locale,
+        sourcePostgresVersion, targetPostgresVersion);
+    return result;
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), sourcePostgresVersion, targetPostgresVersion,
-        locale, encoding, dataChecksum, link, clone, check);
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
+      return false;
+    }
+    if (!(obj instanceof StackGresClusterDbOpsMajorVersionUpgradeStatus)) {
+      return false;
+    }
+    StackGresClusterDbOpsMajorVersionUpgradeStatus other =
+        (StackGresClusterDbOpsMajorVersionUpgradeStatus) obj;
+    return Objects.equals(check, other.check) && Objects.equals(clone, other.clone)
+        && Objects.equals(dataChecksum, other.dataChecksum)
+        && Objects.equals(encoding, other.encoding) && Objects.equals(link, other.link)
+        && Objects.equals(locale, other.locale)
+        && Objects.equals(sourcePostgresVersion, other.sourcePostgresVersion)
+        && Objects.equals(targetPostgresVersion, other.targetPostgresVersion);
   }
 
   @Override

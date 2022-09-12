@@ -3,29 +3,23 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.app.postgres.service;
+package io.stackgres.apiweb.dto.postgres.service;
 
 import static java.lang.Boolean.TRUE;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
+@RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties({ "enabled" })
 public class EnabledPostgresService extends PostgresService {
 
-  private static final long serialVersionUID = 1L;
-
-  public EnabledPostgresService() {}
-
-  public EnabledPostgresService(String type, List<String> externalIPs, String loadBalancerIP) {
-    super(TRUE, type, externalIPs, loadBalancerIP);
+  public EnabledPostgresService() {
+    super.setEnabled(TRUE);
   }
 
-  public EnabledPostgresService(String type) {
-    super(TRUE, type);
-  }
-
-  @JsonIgnore
   @Override
   public Boolean getEnabled() {
     return TRUE;

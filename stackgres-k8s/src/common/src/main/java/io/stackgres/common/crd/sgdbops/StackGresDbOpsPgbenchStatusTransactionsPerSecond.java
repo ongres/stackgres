@@ -7,41 +7,24 @@ package io.stackgres.common.crd.sgdbops;
 
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public class StackGresDbOpsPgbenchStatusTransactionsPerSecond implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+public class StackGresDbOpsPgbenchStatusTransactionsPerSecond {
 
   @JsonProperty("excludingConnectionsEstablishing")
   private StackGresDbOpsPgbenchStatusMeasure excludingConnectionsEstablishing;
 
   @JsonProperty("includingConnectionsEstablishing")
   private StackGresDbOpsPgbenchStatusMeasure includingConnectionsEstablishing;
-
-  public StackGresDbOpsPgbenchStatusTransactionsPerSecond() { }
-
-  public StackGresDbOpsPgbenchStatusTransactionsPerSecond(
-      StackGresDbOpsPgbenchStatusMeasure excludingConnectionsEstablishing,
-      StackGresDbOpsPgbenchStatusMeasure includingConnectionsEstablishing) {
-    this.excludingConnectionsEstablishing = excludingConnectionsEstablishing;
-    this.includingConnectionsEstablishing = includingConnectionsEstablishing;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(excludingConnectionsEstablishing, includingConnectionsEstablishing);
-  }
 
   public StackGresDbOpsPgbenchStatusMeasure getExcludingConnectionsEstablishing() {
     return excludingConnectionsEstablishing;
@@ -62,8 +45,8 @@ public class StackGresDbOpsPgbenchStatusTransactionsPerSecond implements Kuberne
   }
 
   @Override
-  public String toString() {
-    return StackGresUtil.toPrettyYaml(this);
+  public int hashCode() {
+    return Objects.hash(excludingConnectionsEstablishing, includingConnectionsEstablishing);
   }
 
   @Override
@@ -76,9 +59,13 @@ public class StackGresDbOpsPgbenchStatusTransactionsPerSecond implements Kuberne
     }
     StackGresDbOpsPgbenchStatusTransactionsPerSecond other =
         (StackGresDbOpsPgbenchStatusTransactionsPerSecond) obj;
-    return Objects.equals(getExcludingConnectionsEstablishing(),
-        other.getExcludingConnectionsEstablishing())
-        && Objects.equals(getIncludingConnectionsEstablishing(),
-        other.getIncludingConnectionsEstablishing());
+    return Objects.equals(excludingConnectionsEstablishing, other.excludingConnectionsEstablishing)
+        && Objects.equals(includingConnectionsEstablishing, other.includingConnectionsEstablishing);
   }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
+  }
+
 }

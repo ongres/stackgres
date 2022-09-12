@@ -7,17 +7,12 @@ package io.stackgres.apiweb.dto.distributedlogs;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class DistributedLogsCondition implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+public class DistributedLogsCondition {
 
   @JsonProperty("lastTransitionTime")
   private String lastTransitionTime;

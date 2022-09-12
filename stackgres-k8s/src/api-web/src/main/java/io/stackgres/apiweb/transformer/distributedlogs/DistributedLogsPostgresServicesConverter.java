@@ -7,12 +7,13 @@ package io.stackgres.apiweb.transformer.distributedlogs;
 
 import java.util.Optional;
 
-import io.stackgres.apiweb.app.postgres.service.EnabledPostgresService;
-import io.stackgres.apiweb.app.postgres.service.PostgresService;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPostgresServices;
+import io.stackgres.apiweb.dto.postgres.service.EnabledPostgresService;
+import io.stackgres.apiweb.dto.postgres.service.PostgresService;
 import io.stackgres.apiweb.transformer.converter.DtoConverter;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServicesBuilder;
 
 public class DistributedLogsPostgresServicesConverter implements
     DtoConverter<StackGresDistributedLogsPostgresServices, DistributedLogsPostgresServices> {
@@ -30,8 +31,12 @@ public class DistributedLogsPostgresServicesConverter implements
   private PostgresService convertToPostgreService(StackGresPostgresService replicas) {
     return Optional.ofNullable(replicas)
         .map(pgReplicas -> {
-          return new PostgresService(pgReplicas.getEnabled(), pgReplicas.getType(),
-              pgReplicas.getExternalIPs(), pgReplicas.getLoadBalancerIP());
+          var postgresService = new PostgresService();
+          postgresService.setEnabled(pgReplicas.getEnabled());
+          postgresService.setType(pgReplicas.getType());
+          postgresService.setLoadBalancerIP(pgReplicas.getLoadBalancerIP());
+          postgresService.setExternalIPs(pgReplicas.getExternalIPs());
+          return postgresService;
         }).orElse(null);
   }
 
@@ -39,19 +44,21 @@ public class DistributedLogsPostgresServicesConverter implements
       StackGresPostgresService sgPostgresService) {
     return Optional.ofNullable(sgPostgresService)
         .map(sgPgServices -> {
-          return new EnabledPostgresService(sgPgServices.getType(), sgPgServices.getExternalIPs(),
-              sgPgServices.getLoadBalancerIP());
+          var enabledPostgresService = new EnabledPostgresService();
+          enabledPostgresService.setType(sgPgServices.getType());
+          enabledPostgresService.setExternalIPs(sgPgServices.getExternalIPs());
+          enabledPostgresService.setLoadBalancerIP(sgPgServices.getLoadBalancerIP());
+          return enabledPostgresService;
         }).orElse(null);
   }
 
   public StackGresDistributedLogsPostgresServices to(
       DistributedLogsPostgresServices postgresServices) {
     return Optional.ofNullable(postgresServices)
-        .map(pgServices -> {
-          return new StackGresDistributedLogsPostgresServices(map(pgServices.getPrimary()),
-              map(pgServices.getReplicas()));
-        }).orElse(null);
-
+        .map(pgServices -> new StackGresDistributedLogsPostgresServicesBuilder()
+            .withPrimary(map(pgServices.getPrimary()))
+            .withReplicas(map(pgServices.getReplicas()))
+            .build()).orElse(null);
   }
 
   private StackGresPostgresService map(PostgresService postgresService) {

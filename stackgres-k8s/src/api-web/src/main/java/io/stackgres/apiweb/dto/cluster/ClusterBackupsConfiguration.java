@@ -7,24 +7,17 @@ package io.stackgres.apiweb.dto.cluster;
 
 import java.util.Objects;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.backupconfig.BaseBackupPerformance;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterBackupsConfiguration {
 
   @JsonProperty("retention")
-  @Positive(message = "retention should be greater than zero")
   private Integer retention;
 
   @JsonProperty("cronSchedule")
@@ -34,11 +27,9 @@ public class ClusterBackupsConfiguration {
   private String compressionMethod;
 
   @JsonProperty("performance")
-  @Valid
   private BaseBackupPerformance performance;
 
   @JsonProperty("sgObjectStorage")
-  @NotNull
   private String objectStorage;
 
   @JsonProperty("path")

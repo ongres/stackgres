@@ -10,8 +10,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.common.StackGresUtil;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class DbOpsDto extends ResourceDto {
 
   private DbOpsSpec spec;

@@ -3,24 +3,19 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.app.postgres.service;
+package io.stackgres.apiweb.dto.postgres.service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class PostgresService implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+public class PostgresService {
 
   private Boolean enabled;
 
@@ -29,21 +24,6 @@ public class PostgresService implements KubernetesResource {
   private List<String> externalIPs;
 
   private String loadBalancerIP;
-
-  public PostgresService() {}
-
-  public PostgresService(Boolean enabled, String type, List<String> externalIPs,
-      String loadBalancerIP) {
-    this.enabled = enabled;
-    this.type = type;
-    this.externalIPs = externalIPs;
-    this.loadBalancerIP = loadBalancerIP;
-  }
-
-  public PostgresService(Boolean enabled, String type) {
-    this.enabled = enabled;
-    this.type = type;
-  }
 
   public Boolean getEnabled() {
     return enabled;

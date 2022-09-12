@@ -9,19 +9,16 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
+@RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@RegisterForReflection
-public class ServiceMonitorSpec implements KubernetesResource {
-
-  private static final long serialVersionUID = 2000013861182789247L;
+@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
+public class ServiceMonitorSpec {
 
   private LabelSelector selector;
   private NamespaceSelector namespaceSelector;

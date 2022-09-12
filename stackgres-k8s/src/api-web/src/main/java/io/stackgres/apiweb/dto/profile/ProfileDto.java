@@ -7,21 +7,17 @@ package io.stackgres.apiweb.dto.profile;
 
 import java.util.Objects;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ProfileDto extends ResourceDto {
 
-  @NotNull(message = "The specification of profile is required")
-  @Valid
   private ProfileSpec spec;
 
-  @Valid
   private ProfileStatus status;
 
   public ProfileSpec getSpec() {

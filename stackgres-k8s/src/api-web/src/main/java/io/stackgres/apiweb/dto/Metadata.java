@@ -5,23 +5,21 @@
 
 package io.stackgres.apiweb.dto;
 
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true,
     value = {"annotations", "clusterName", "creationTimestamp", "deletionGracePeriodSeconds",
         "deletionTimestamp", "finalizers", "generateName", "generation", "labels", "managedFields",
         "ownerReferences", "resourceVersion", "selfLink"})
 public class Metadata {
 
-  @NotNull
   private String namespace;
 
-  @NotNull
   private String name;
 
   private String uid;

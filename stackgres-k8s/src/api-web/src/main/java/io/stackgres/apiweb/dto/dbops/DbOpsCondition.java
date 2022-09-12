@@ -7,22 +7,15 @@ package io.stackgres.apiweb.dto.dbops;
 
 import java.util.Objects;
 
-import javax.validation.constraints.NotBlank;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.operatorframework.resource.Condition;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class DbOpsCondition implements Condition, KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+public class DbOpsCondition implements Condition {
 
   @JsonProperty("lastTransitionTime")
   private String lastTransitionTime;
@@ -31,15 +24,12 @@ public class DbOpsCondition implements Condition, KubernetesResource {
   private String message;
 
   @JsonProperty("reason")
-  @NotBlank(message = "The condition reason is required")
   private String reason;
 
   @JsonProperty("status")
-  @NotBlank(message = "The condition status is required")
   private String status;
 
   @JsonProperty("type")
-  @NotBlank(message = "The condition type is required")
   private String type;
 
   /**

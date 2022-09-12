@@ -6,15 +6,11 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.apiweb.app.postgres.service.PostgresServices;
+import io.stackgres.apiweb.dto.postgres.service.PostgresServices;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterPostgresServices extends PostgresServices {
-
-  private static final long serialVersionUID = 1L;
 
 }

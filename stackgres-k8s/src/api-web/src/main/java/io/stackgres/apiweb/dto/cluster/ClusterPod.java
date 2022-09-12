@@ -10,15 +10,13 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
+@RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 //TODO remove once the UI has fixes the sending metadata in this object
 @JsonIgnoreProperties(ignoreUnknown = true)
-@RegisterForReflection
 public class ClusterPod {
 
   @JsonProperty("persistentVolume")

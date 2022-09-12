@@ -6,21 +6,20 @@
 package io.stackgres.common.crd.sgdbops;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public class StackGresDbOpsPgbenchStatusMeasure implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+public class StackGresDbOpsPgbenchStatusMeasure {
 
   @JsonProperty("value")
   private BigDecimal value;
@@ -30,13 +29,6 @@ public class StackGresDbOpsPgbenchStatusMeasure implements KubernetesResource {
 
   public BigDecimal getValue() {
     return value;
-  }
-
-  public StackGresDbOpsPgbenchStatusMeasure() { }
-
-  public StackGresDbOpsPgbenchStatusMeasure(BigDecimal value, String unit) {
-    this.value = value;
-    this.unit = unit;
   }
 
   public void setValue(BigDecimal value) {
@@ -49,6 +41,28 @@ public class StackGresDbOpsPgbenchStatusMeasure implements KubernetesResource {
 
   public void setUnit(String unit) {
     this.unit = unit;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(unit, value);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresDbOpsPgbenchStatusMeasure)) {
+      return false;
+    }
+    StackGresDbOpsPgbenchStatusMeasure other = (StackGresDbOpsPgbenchStatusMeasure) obj;
+    return Objects.equals(unit, other.unit) && Objects.equals(value, other.value);
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

@@ -7,22 +7,18 @@ package io.stackgres.common.crd.sgdbops;
 
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public class StackGresDbOpsRepackDatabase extends StackGresDbOpsRepackConfig
-    implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+public class StackGresDbOpsRepackDatabase extends StackGresDbOpsRepackConfig {
 
   @JsonProperty("name")
   private String name;
@@ -37,8 +33,10 @@ public class StackGresDbOpsRepackDatabase extends StackGresDbOpsRepackConfig
 
   @Override
   public int hashCode() {
-    return Objects.hash(name, excludeExtension, noAnalyze, noKillBackend, noOrder,
-        waitTimeout);
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(name);
+    return result;
   }
 
   @Override
@@ -46,16 +44,14 @@ public class StackGresDbOpsRepackDatabase extends StackGresDbOpsRepackConfig
     if (this == obj) {
       return true;
     }
+    if (!super.equals(obj)) {
+      return false;
+    }
     if (!(obj instanceof StackGresDbOpsRepackDatabase)) {
       return false;
     }
     StackGresDbOpsRepackDatabase other = (StackGresDbOpsRepackDatabase) obj;
-    return Objects.equals(name, other.name)
-        && Objects.equals(excludeExtension, other.excludeExtension)
-        && Objects.equals(noAnalyze, other.noAnalyze)
-        && Objects.equals(noKillBackend, other.noKillBackend)
-        && Objects.equals(noOrder, other.noOrder)
-        && Objects.equals(waitTimeout, other.waitTimeout);
+    return Objects.equals(name, other.name);
   }
 
   @Override

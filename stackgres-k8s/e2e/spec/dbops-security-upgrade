@@ -426,6 +426,8 @@ check_distributedlogs_security_upgrade() {
 }
 
 check_cluster_1_security_upgrade_start() {
+  check_no_unrecognized_property_exception
+
   check_mutations
 
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME"
@@ -724,6 +726,23 @@ check_backup_performance_using_deprecated_fields_in_previous_versions() {
     return 1
   fi
 
+}
+
+check_no_unrecognized_property_exception() {
+  if kubectl logs -n "$CLUSTER_NAMESPACE" \
+      -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_1_NAME,stackgres.io/cluster=true" \
+      --all-containers \
+    | grep -q 'UnrecognizedPropertyException'
+  then
+    echo "FAIL. The UnrecognizedPropertyException was found in the logs"
+    kubectl logs -n "$CLUSTER_NAMESPACE" \
+        -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_1_NAME,stackgres.io/cluster=true" \
+        --all-containers \
+      | grep 'UnrecognizedPropertyException'
+    return 1
+  else
+    echo "SUCCESS. The UnrecognizedPropertyException was not found in the logs"
+  fi
 }
 
 check_mutations() {

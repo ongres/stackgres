@@ -7,17 +7,13 @@ package io.stackgres.apiweb.dto.storages;
 
 import java.util.Objects;
 
-import javax.validation.Valid;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class AwsCredentialsDto {
 
   @JsonProperty("accessKeyId")
@@ -27,7 +23,6 @@ public class AwsCredentialsDto {
   private String secretKey;
 
   @JsonProperty("secretKeySelectors")
-  @Valid
   private AwsSecretKeySelector secretKeySelectors = new AwsSecretKeySelector();
 
   public String getAccessKey() {

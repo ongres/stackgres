@@ -6,19 +6,14 @@
 package io.stackgres.apiweb.dto.distributedlogs;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.apiweb.app.postgres.service.EnabledPostgresService;
-import io.stackgres.apiweb.app.postgres.service.PostgresService;
+import io.stackgres.apiweb.dto.postgres.service.EnabledPostgresService;
+import io.stackgres.apiweb.dto.postgres.service.PostgresService;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class DistributedLogsPostgresServices implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+public class DistributedLogsPostgresServices {
 
   private EnabledPostgresService primary;
 
