@@ -45,23 +45,7 @@ then
   cd "$PG_UPGRADE_PATH/$TARGET_VERSION"
   if [ ! -f .copied-missing-lib64.done ]
   then
-    copy_missing() {
-      local SOURCE="$1"
-      local TARGET="$2"
-      ls -1 "$SOURCE" \
-        | while read FILE
-          do
-            if ! ls -1 "$TARGET" | grep -qF "$FILE"
-            then
-              cp -a "$SOURCE/$FILE" "$TARGET/$FILE"
-              echo "$FILE"
-            elif [ -d "$SOURCE/$FILE" ] && [ -d "$TARGET/$FILE" ]
-            then
-              copy_missing "$SOURCE/$FILE" "$TARGET/$FILE"
-            fi
-        done
-    }
-    copy_missing "$SOURCE_PG_LIB64_PATH" "$TARGET_PG_LIB64_PATH" > copied-missing-lib64
+    cp -auv "$SOURCE_PG_LIB64_PATH" "${TARGET_PG_LIB64_PATH%/*}" > copied-missing-lib64
     if [ -s copied-missing-lib64 ]
     then
       echo "Following files where copied from $SOURCE_PG_LIB64_PATH to $TARGET_PG_LIB64_PATH"
@@ -122,9 +106,10 @@ then
 fi
 rm -rf "$PG_UPGRADE_PATH/$SOURCE_VERSION/data"
 cat "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" \
+  | cut -d ' ' -f 3 | tr -d "'" \
   | while read FILE
     do
-      rm -rf "$FILE"
+      rm -rfv "$FILE"
     done
 touch "$PG_UPGRADE_PATH/.upgraded-from-$SOURCE_VERSION-to-$TARGET_VERSION"
 echo "Major version upgrade performed"
