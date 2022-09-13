@@ -330,6 +330,21 @@ load_image_k8s() {
 pull_image_k8s() {
   check_kind_version
 
+  local IMAGE_ID
+  IMAGE_ID="$( (docker inspect --format '{{ .ID }}' "$1" 2>/dev/null || printf unknown) | grep -v '^$')"
+  local KIND_IMAGE_ID
+  KIND_IMAGE_ID="$( (docker exec "${KIND_NAME}-control-plane" crictl inspecti -o json "$1" 2>/dev/null || printf '{"status": {"id": "unknown"}}') | jq -r '.status.id' | grep -v '^$')"
+  if [ "$IMAGE_ID" = unknown ] && [ "$KIND_IMAGE_ID" != unknown ]
+  then
+    echo "Image $1 already loaded in kind environemnt $KIND_NAME"
+    return
+  fi
+  if [ "$KIND_IMAGE_ID" = "$IMAGE_ID" ] && [ "$IMAGE_ID" != unknown ]
+  then
+    echo "Image $1 already loaded in kind environemnt $KIND_NAME"
+    return
+  fi
+
   local AUTH
   AUTH="$(jq -r '.auths|to_entries|.[]|.key + "|" + .value.auth' "${HOME}/.docker/config.json" \
     | grep -F "${1%%/*}" | head -n 1 | cut -d '|' -f 2)"
