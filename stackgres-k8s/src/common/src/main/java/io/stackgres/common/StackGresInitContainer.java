@@ -12,41 +12,43 @@ import java.util.function.Function;
 
 public enum StackGresInitContainer implements StackGresContainerProfile {
 
-  SETUP_ARBITRARY_USER(StackGresKind.CLUSTER, "setup-arbitrary-user",
+  SETUP_ARBITRARY_USER(StackGresGroupKind.CLUSTER, "setup-arbitrary-user",
       cpu -> cpu,
       memory -> memory),
-  SETUP_SCRIPTS(StackGresKind.CLUSTER, "setup-scripts",
+  SETUP_SCRIPTS(StackGresGroupKind.CLUSTER, "setup-scripts",
       cpu -> cpu,
       memory -> memory),
-  RELOCATE_BINARIES(StackGresKind.CLUSTER, "relocate-binaries",
+  RELOCATE_BINARIES(StackGresGroupKind.CLUSTER, "relocate-binaries",
       cpu -> cpu,
       memory -> memory),
-  PGBOUNCER_AUTH_FILE(StackGresKind.CLUSTER, "pgbouncer-auth-file",
+  PGBOUNCER_AUTH_FILE(StackGresGroupKind.CLUSTER, "pgbouncer-auth-file",
       cpu -> cpu,
       memory -> memory),
-  DISTRIBUTEDLOGS_RECONCILIATION_CYCLE(StackGresKind.CLUSTER,
+  DISTRIBUTEDLOGS_RECONCILIATION_CYCLE(StackGresGroupKind.CLUSTER,
       "distributedlogs-reconciliation-cycle",
       cpu -> cpu,
       memory -> memory),
-  CLUSTER_RECONCILIATION_CYCLE(StackGresKind.CLUSTER, "cluster-reconciliation-cycle",
+  CLUSTER_RECONCILIATION_CYCLE(StackGresGroupKind.CLUSTER, "cluster-reconciliation-cycle",
       cpu -> cpu,
       memory -> memory),
-  MAJOR_VERSION_UPGRADE(StackGresKind.CLUSTER, "major-version-upgrade",
+  MAJOR_VERSION_UPGRADE(StackGresGroupKind.CLUSTER, "major-version-upgrade",
       cpu -> cpu,
       memory -> memory),
-  RESET_PATRONI(StackGresKind.CLUSTER, "reset-patroni",
+  RESET_PATRONI(StackGresGroupKind.CLUSTER, "reset-patroni",
       cpu -> cpu,
       memory -> memory),
-  DBOPS_SET_DBOPS_RUNNING(StackGresKind.DBOPS, "set-dbops-running",
+  DBOPS_SET_DBOPS_RUNNING(StackGresGroupKind.DBOPS, "set-dbops-running",
       cpu -> BigDecimal.ONE,
       memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES));
 
-  private final StackGresKind kind;
+  public static final String CUSTOM = "custom-%s";
+
+  private final StackGresGroupKind kind;
   private final String name;
   private final Function<BigDecimal, BigDecimal> cpuFormula;
   private final Function<BigDecimal, BigDecimal> memoryFormula;
 
-  StackGresInitContainer(StackGresKind kind, String name,
+  StackGresInitContainer(StackGresGroupKind kind, String name,
       Function<BigDecimal, BigDecimal> cpuFormula,
       Function<BigDecimal, BigDecimal> memoryFormula) {
     this.kind = kind;
@@ -56,7 +58,7 @@ public enum StackGresInitContainer implements StackGresContainerProfile {
   }
 
   @Override
-  public StackGresKind getKind() {
+  public StackGresGroupKind getKind() {
     return kind;
   }
 

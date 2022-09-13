@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -19,6 +18,7 @@ import javax.inject.Singleton;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
@@ -30,10 +30,15 @@ import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -88,7 +93,7 @@ public class PodTemplateSpecFactory
         containerFactoryDiscoverer.discoverContainers(context);
 
     final List<Container> containers = containerFactories.stream()
-        .map(f -> f.getContainer(context)).collect(Collectors.toUnmodifiableList());
+        .map(f -> f.getContainer(context)).toList();
 
     Map<String, String> componentVersions = containerFactories.stream()
         .map(f -> f.getComponentVersions(context))
@@ -102,13 +107,13 @@ public class PodTemplateSpecFactory
 
     List<Container> initContainers = initContainerFactories
         .stream().map(f -> f.getContainer(context))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     final List<String> claimedVolumes = Stream.concat(containers.stream(), initContainers.stream())
         .flatMap(container -> container.getVolumeMounts().stream())
         .map(VolumeMount::getName)
         .distinct()
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     claimedVolumes.forEach(rv -> {
       if (!context.availableVolumes().containsKey(rv) && !context.getDataVolumeName().equals(rv)) {
@@ -119,7 +124,7 @@ public class PodTemplateSpecFactory
     List<Volume> volumes = claimedVolumes.stream()
         .map(volumeName -> context.availableVolumes().get(volumeName))
         .filter(Objects::nonNull)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     StackGresCluster cluster = context.getClusterContext().getSource();
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
@@ -183,8 +188,58 @@ public class PodTemplateSpecFactory
         .withServiceAccountName(PatroniRoleGenerator.roleName(context.getClusterContext()))
         .withSecurityContext(podSecurityContext.createResource(context.getClusterContext()))
         .withVolumes(volumes)
+        .addAllToVolumes(Optional.of(cluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPod)
+            .map(StackGresClusterPod::getCustomVolumes)
+            .stream()
+            .flatMap(List::stream)
+            .map(VolumeBuilder::new)
+            .map(builder -> builder.withName(StackGresVolume.CUSTOM.getName(builder.getName())))
+            .map(VolumeBuilder::build)
+            .toList())
         .withContainers(containers)
+        .addAllToContainers(Optional.of(cluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPod)
+            .map(StackGresClusterPod::getCustomContainers)
+            .stream()
+            .flatMap(List::stream)
+            .map(ContainerBuilder::new)
+            .map(builder -> builder.withName(
+                StackGresContainer.CUSTOM.formatted(builder.getName())))
+            .map(builder -> builder.withVolumeMounts(
+                Optional.ofNullable(builder.buildVolumeMounts())
+                .stream()
+                .flatMap(List::stream)
+                .map(VolumeMountBuilder::new)
+                .map(volumeMountBuilder -> volumeMountBuilder.withName(
+                    StackGresVolume.CUSTOM.getName(volumeMountBuilder.getName())))
+                .map(VolumeMountBuilder::build)
+                .toList()))
+            .map(ContainerBuilder::build)
+            .toList())
         .withInitContainers(initContainers)
+        .addAllToContainers(Optional.of(cluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPod)
+            .map(StackGresClusterPod::getCustomInitContainers)
+            .stream()
+            .flatMap(List::stream)
+            .map(ContainerBuilder::new)
+            .map(builder -> builder.withName(
+                StackGresInitContainer.CUSTOM.formatted(builder.getName())))
+            .map(builder -> builder.withVolumeMounts(
+                Optional.ofNullable(builder.buildVolumeMounts())
+                .stream()
+                .flatMap(List::stream)
+                .map(VolumeMountBuilder::new)
+                .map(volumeMountBuilder -> volumeMountBuilder.withName(
+                    StackGresVolume.CUSTOM.getName(volumeMountBuilder.getName())))
+                .map(VolumeMountBuilder::build)
+                .toList()))
+            .map(ContainerBuilder::build)
+            .toList())
         .withTerminationGracePeriodSeconds(60L)
         .endSpec()
         .build();

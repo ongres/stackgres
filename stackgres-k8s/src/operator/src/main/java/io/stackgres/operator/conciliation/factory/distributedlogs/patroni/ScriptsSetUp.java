@@ -17,13 +17,12 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
-import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
 @OperatorVersionBinder
@@ -58,13 +57,13 @@ public class ScriptsSetUp implements ContainerFactory<DistributedLogsContainerCo
         .addToEnv(new EnvVarBuilder().withName("HOME").withValue("/tmp").build())
         .withVolumeMounts(
             new VolumeMountBuilder()
-                .withName(StatefulSetDynamicVolumes.SCRIPT_TEMPLATES.getVolumeName())
+                .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
                 .withMountPath(ClusterStatefulSetPath.TEMPLATES_PATH.path())
                 .build())
         .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.LOCAL_BIN.getVolumeName())
+                .withName(StackGresVolume.LOCAL_BIN.getName())
                 .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_PATH.path())
                 .build())
         .build();

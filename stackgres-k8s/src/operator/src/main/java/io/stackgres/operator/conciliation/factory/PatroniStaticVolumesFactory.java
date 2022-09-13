@@ -7,21 +7,22 @@ package io.stackgres.operator.conciliation.factory;
 
 import java.util.stream.Stream;
 
+import io.stackgres.common.StackGresVolume;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class PatroniStaticVolumesFactory<T> implements StaticVolumeFactory<T> {
+public abstract class PatroniStaticVolumesFactory<T> implements VolumeFactory<T> {
 
   @Override
   public @NotNull Stream<VolumePair> buildVolumes(T context) {
     return Stream.of(
-        inMemoryDir(PatroniStaticVolume.POSTGRES_SOCKET.getVolumeName()),
-        inMemoryDir(PatroniStaticVolume.DSHM.getVolumeName()),
-        emptyDir(PatroniStaticVolume.SHARED.getVolumeName()),
-        emptyDir(PatroniStaticVolume.EMPTY_BASE.getVolumeName()),
-        emptyDir(PatroniStaticVolume.USER.getVolumeName()),
-        emptyDir(PatroniStaticVolume.LOCAL_BIN.getVolumeName()),
-        emptyDir(PatroniStaticVolume.LOG.getVolumeName()),
-        emptyDir(PatroniStaticVolume.PATRONI_CONFIG.getVolumeName())
+        inMemoryDir(StackGresVolume.POSTGRES_SOCKET.getName()),
+        inMemoryDir(StackGresVolume.DSHM.getName()),
+        emptyDir(StackGresVolume.SHARED.getName()),
+        emptyDir(StackGresVolume.EMPTY_BASE.getName()),
+        emptyDir(StackGresVolume.USER.getName()),
+        emptyDir(StackGresVolume.LOCAL_BIN.getName()),
+        emptyDir(StackGresVolume.LOG.getName()),
+        emptyDir(StackGresVolume.PATRONI_CONFIG.getName())
     );
   }
 }

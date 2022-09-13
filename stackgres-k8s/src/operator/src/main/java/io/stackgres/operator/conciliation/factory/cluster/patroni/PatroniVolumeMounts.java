@@ -15,10 +15,9 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @ApplicationScoped
 public class PatroniVolumeMounts implements VolumeMountsProvider<ClusterContainerContext> {
@@ -27,17 +26,17 @@ public class PatroniVolumeMounts implements VolumeMountsProvider<ClusterContaine
   public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     return List.of(
         new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName())
+            .withName(StackGresVolume.PATRONI_ENV.getName())
             .withMountPath(ClusterStatefulSetPath.PATRONI_ENV_PATH
                 .path(context.getClusterContext()))
             .build(),
         new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.PATRONI_CREDENTIALS.getVolumeName())
+            .withName(StackGresVolume.PATRONI_CREDENTIALS.getName())
             .withMountPath(ClusterStatefulSetPath.PATRONI_SECRET_ENV_PATH
                 .path(context.getClusterContext()))
             .build(),
         new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.PATRONI_CONFIG.getVolumeName())
+            .withName(StackGresVolume.PATRONI_CONFIG.getName())
             .withMountPath(ClusterStatefulSetPath.PATRONI_CONFIG_PATH.path())
             .build()
     );

@@ -30,6 +30,7 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
@@ -38,7 +39,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +62,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
   }
 
   public static String name(ClusterContext clusterContext) {
-    return StatefulSetDynamicVolumes.PATRONI_ENV
+    return StackGresVolume.PATRONI_ENV
         .getResourceName(clusterContext.getCluster().getMetadata().getName());
   }
 
@@ -104,7 +104,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
 
   public @NotNull Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName())
+        .withName(StackGresVolume.PATRONI_ENV.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(name(context))
             .withDefaultMode(444)

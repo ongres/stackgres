@@ -13,6 +13,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.StackGresVolume;
 
 @ApplicationScoped
 public class LocalBinMounts implements VolumeMountsProvider<ContainerContext> {
@@ -21,7 +22,7 @@ public class LocalBinMounts implements VolumeMountsProvider<ContainerContext> {
   public List<VolumeMount> getVolumeMounts(ContainerContext context) {
     return List.of(
         new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.LOCAL_BIN.getVolumeName())
+            .withName(StackGresVolume.LOCAL_BIN.getName())
             .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_PATH.path())
             .build()
     );

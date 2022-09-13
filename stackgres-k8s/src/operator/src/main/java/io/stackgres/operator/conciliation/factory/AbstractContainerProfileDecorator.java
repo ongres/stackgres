@@ -24,7 +24,8 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.common.StackGresKind;
+import io.stackgres.common.StackGresGroupKind;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
@@ -32,9 +33,9 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileRequests;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import org.jooq.lambda.Seq;
 
-public abstract class AbstractProfileDecorator {
+public abstract class AbstractContainerProfileDecorator {
 
-  protected abstract StackGresKind getKind();
+  protected abstract StackGresGroupKind getKind();
 
   protected void setProfileContainers(StackGresProfile profile,
       Supplier<Optional<PodSpec>> podSpecSupplier,
@@ -182,7 +183,7 @@ public abstract class AbstractProfileDecorator {
             .stream())
         .flatMap(List::stream)
         .append(new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName()
+            .withName(StackGresVolume.HUGEPAGES_2M.getName()
                 + "-" + entry.getKey())
             .withMountPath(ClusterStatefulSetPath.HUGEPAGES_2M_PATH.path())
             .build())
@@ -195,7 +196,7 @@ public abstract class AbstractProfileDecorator {
         .stream()
         .flatMap(List::stream))
         .append(new VolumeBuilder()
-            .withName(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName()
+            .withName(StackGresVolume.HUGEPAGES_2M.getName()
                 + "-" + entry.getKey())
             .withEmptyDir(new EmptyDirVolumeSourceBuilder()
                 .withMedium("HugePages-2Mi")
@@ -217,7 +218,7 @@ public abstract class AbstractProfileDecorator {
             .stream())
         .flatMap(List::stream)
         .append(new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName()
+            .withName(StackGresVolume.HUGEPAGES_1G.getName()
                 + "-" + entry.getKey())
             .withMountPath(ClusterStatefulSetPath.HUGEPAGES_1G_PATH.path())
             .build())
@@ -230,7 +231,7 @@ public abstract class AbstractProfileDecorator {
         .stream()
         .flatMap(List::stream))
         .append(new VolumeBuilder()
-            .withName(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName()
+            .withName(StackGresVolume.HUGEPAGES_1G.getName()
                 + "-" + entry.getKey())
             .withEmptyDir(new EmptyDirVolumeSourceBuilder()
                 .withMedium("HugePages-1Gi")

@@ -9,11 +9,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.postgres.service.EnabledPostgresService;
 import io.stackgres.apiweb.dto.postgres.service.PostgresService;
+import io.stackgres.apiweb.dto.postgres.service.PostgresServices;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class DistributedLogsPostgresServices {
+public class DistributedLogsPostgresServices
+    extends PostgresServices<EnabledPostgresService, PostgresService> {
 
   private EnabledPostgresService primary;
 

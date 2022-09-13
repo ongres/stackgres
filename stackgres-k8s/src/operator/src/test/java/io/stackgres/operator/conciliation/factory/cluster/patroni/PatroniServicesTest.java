@@ -24,6 +24,7 @@ import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
@@ -295,7 +296,7 @@ class PatroniServicesTest {
 
   private void enablePrimaryService(boolean enabled) {
     StackGresClusterPostgresServices postgresServices = new StackGresClusterPostgresServices();
-    StackGresPostgresService primaryService = new StackGresPostgresService();
+    StackGresClusterPostgresService primaryService = new StackGresClusterPostgresService();
     primaryService.setEnabled(enabled);
     postgresServices.setPrimary(primaryService);
     defaultCluster.getSpec().setPostgresServices(postgresServices);
@@ -323,7 +324,7 @@ class PatroniServicesTest {
 
   private void resetReplicas(boolean enabled) {
     StackGresClusterPostgresServices postgresServices = new StackGresClusterPostgresServices();
-    StackGresPostgresService replicaService = new StackGresPostgresService();
+    StackGresClusterPostgresService replicaService = new StackGresClusterPostgresService();
     replicaService.setEnabled(enabled);
     postgresServices.setReplicas(replicaService);
     defaultCluster.getSpec().setPostgresServices(postgresServices);

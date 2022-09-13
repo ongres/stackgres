@@ -34,6 +34,7 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -112,7 +113,7 @@ public class Envoy extends AbstractEnvoy {
         .stream()
         .map(ssl -> ImmutableVolumePair.builder()
             .volume(new VolumeBuilder()
-                .withName("ssl")
+                .withName(StackGresVolume.POSTGRES_SSL.getName())
                 .withSecret(new SecretVolumeSourceBuilder()
                     .withSecretName(ssl.getCertificateSecretKeySelector().getName())
                     .withDefaultMode(0400) //NOPMD
@@ -296,13 +297,13 @@ public class Envoy extends AbstractEnvoy {
             .stream()
             .flatMap(ssl -> Seq.of(
                 new VolumeMountBuilder()
-                .withName("ssl")
+                .withName(StackGresVolume.POSTGRES_SSL.getName())
                 .withMountPath("/etc/ssl/server.crt")
                 .withSubPath(ssl.getCertificateSecretKeySelector().getKey())
                 .withReadOnly(true)
                 .build(),
                 new VolumeMountBuilder()
-                .withName("ssl")
+                .withName(StackGresVolume.POSTGRES_SSL.getName())
                 .withMountPath("/etc/ssl/server.key")
                 .withSubPath(ssl.getPrivateKeySecretKeySelector().getKey())
                 .withReadOnly(true)

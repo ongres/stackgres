@@ -5,6 +5,7 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -12,6 +13,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.CustomContainer;
+import io.stackgres.common.crd.CustomInitContainer;
+import io.stackgres.common.crd.CustomVolume;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 
 @RegisterForReflection
@@ -40,6 +44,15 @@ public class ClusterPod {
 
   @JsonProperty("scheduling")
   private ClusterPodScheduling scheduling;
+
+  @JsonProperty("customVolumes")
+  private List<CustomVolume> customVolumes;
+
+  @JsonProperty("customContainers")
+  private List<CustomContainer> customContainers;
+
+  @JsonProperty("customInitContainers")
+  private List<CustomInitContainer> customInitContainers;
 
   public ClusterPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -97,30 +110,59 @@ public class ClusterPod {
     this.scheduling = scheduling;
   }
 
+  public List<CustomVolume> getCustomVolumes() {
+    return customVolumes;
+  }
+
+  public void setCustomVolumes(List<CustomVolume> customVolumes) {
+    this.customVolumes = customVolumes;
+  }
+
+  public List<CustomContainer> getCustomContainers() {
+    return customContainers;
+  }
+
+  public void setCustomContainers(List<CustomContainer> customContainers) {
+    this.customContainers = customContainers;
+  }
+
+  public List<CustomInitContainer> getCustomInitContainers() {
+    return customInitContainers;
+  }
+
+  public void setCustomInitContainers(List<CustomInitContainer> customInitContainers) {
+    this.customInitContainers = customInitContainers;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof ClusterPod)) {
+      return false;
+    }
+    ClusterPod other = (ClusterPod) obj;
+    return Objects.equals(customContainers, other.customContainers)
+        && Objects.equals(customInitContainers, other.customInitContainers)
+        && Objects.equals(customVolumes, other.customVolumes)
+        && Objects.equals(disableConnectionPooling, other.disableConnectionPooling)
+        && Objects.equals(disableMetricsExporter, other.disableMetricsExporter)
+        && Objects.equals(disablePostgresUtil, other.disablePostgresUtil)
+        && Objects.equals(persistentVolume, other.persistentVolume)
+        && Objects.equals(scheduling, other.scheduling);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(customContainers, customInitContainers, customVolumes,
+        disableConnectionPooling, disableMetricsExporter, disablePostgresUtil, persistentVolume,
+        scheduling);
+  }
+
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterPod that = (ClusterPod) o;
-    return Objects.equals(persistentVolume, that.persistentVolume)
-        && Objects.equals(disableConnectionPooling, that.disableConnectionPooling)
-        && Objects.equals(disableMetricsExporter, that.disableMetricsExporter)
-        && Objects.equals(disablePostgresUtil, that.disablePostgresUtil)
-        && Objects.equals(scheduling, that.scheduling);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(persistentVolume, disableConnectionPooling, disableMetricsExporter,
-        disablePostgresUtil, scheduling);
-  }
 }

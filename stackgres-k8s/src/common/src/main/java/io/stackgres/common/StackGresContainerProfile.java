@@ -8,24 +8,10 @@ package io.stackgres.common;
 import java.math.BigDecimal;
 import java.util.function.Function;
 
-import io.fabric8.kubernetes.client.CustomResource;
-
-public interface StackGresContainerProfile {
-
-  StackGresKind getKind();
-
-  String getName();
+public interface StackGresContainerProfile extends StackGresScopedObject {
 
   Function<BigDecimal, BigDecimal> getCpuFormula();
 
   Function<BigDecimal, BigDecimal> getMemoryFormula();
-
-  default boolean isContainerProfileFor(Class<? extends CustomResource<?, ?>> kind) {
-    return getKind().getKindType().isAssignableFrom(kind);
-  }
-
-  default String getNameWithPrefix() {
-    return getKind().getContainerPrefix() + getName();
-  }
 
 }

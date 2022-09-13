@@ -21,7 +21,8 @@ import com.google.common.base.Predicates;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.stackgres.common.StackGresKind;
+import io.stackgres.common.StackGresGroupKind;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
@@ -37,7 +38,7 @@ public abstract class AbstractProfileDecoratorTestCase {
 
   protected abstract PodSpec getPodSpec();
 
-  protected abstract StackGresKind getKind();
+  protected abstract StackGresGroupKind getKind();
 
   protected abstract void decorate();
 
@@ -482,10 +483,10 @@ public abstract class AbstractProfileDecoratorTestCase {
         container.getResources().getRequests());
     assertEquals(2, container.getVolumeMounts().size());
     assertTrue(container.getVolumeMounts().stream().anyMatch(volumeMount -> Objects.equals(
-        PatroniStaticVolume.HUGEPAGES_2M.getVolumeName() + "-" + entry.getKey(),
+        StackGresVolume.HUGEPAGES_2M.getName() + "-" + entry.getKey(),
         volumeMount.getName())));
     assertTrue(container.getVolumeMounts().stream().anyMatch(volumeMount -> Objects.equals(
-        PatroniStaticVolume.HUGEPAGES_1G.getVolumeName() + "-" + entry.getKey(),
+        StackGresVolume.HUGEPAGES_1G.getName() + "-" + entry.getKey(),
         volumeMount.getName())));
   }
 

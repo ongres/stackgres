@@ -23,6 +23,7 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
@@ -41,7 +42,6 @@ import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterStatefulSet;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operator.conciliation.factory.cluster.backup.AbstractBackupConfigMap;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,7 +54,7 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
   public static String name(ClusterContext context) {
     final String clusterName = context.getCluster().getMetadata().getName();
-    return StatefulSetDynamicVolumes.RESTORE_ENV.getResourceName(clusterName);
+    return StackGresVolume.RESTORE_ENV.getResourceName(clusterName);
   }
 
   @Override
@@ -68,7 +68,7 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
   private Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.RESTORE_ENV.getVolumeName())
+        .withName(StackGresVolume.RESTORE_ENV.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(name(context))
             .build())

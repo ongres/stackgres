@@ -73,10 +73,24 @@ cluster:
       enabled: true
       type: ClusterIP
       # loadBalancerIP:
+      # customPorts:
+      # - name:
+      #   protocol:
+      #   port:
+      #   targetPort:
+      #   appProtocol:
+      #   nodePort:
     replicas:
       enabled: true
       type: ClusterIP
       # loadBalancerIP:
+      # customPorts:
+      # - name:
+      #   protocol:
+      #   port:
+      #   targetPort:
+      #   appProtocol:
+      #   nodePort:
   # metadata:
   #   annotations:
   #     allResources:
@@ -129,6 +143,18 @@ cluster:
     #       value: 
     #       effect: 
     #       tolerationSeconds: 
+    # customVolumes:
+    # - configMap:
+    # - downwardAPI:
+    # - emptyDir:
+    # - gitRepo:
+    # - glusterfs:
+    # - hostPath:
+    # - nfs:
+    # - projected:
+    # - secret:
+    # customContainers:
+    # customInitContainers:
   configurations:
     sgPostgresConfig: postgresconf
     sgPoolingConfig: pgbouncerconf

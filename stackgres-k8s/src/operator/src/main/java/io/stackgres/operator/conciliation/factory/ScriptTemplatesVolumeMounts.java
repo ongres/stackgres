@@ -13,7 +13,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
+import io.stackgres.common.StackGresVolume;
 
 @ApplicationScoped
 public class ScriptTemplatesVolumeMounts implements VolumeMountsProvider<ContainerContext> {
@@ -22,7 +22,7 @@ public class ScriptTemplatesVolumeMounts implements VolumeMountsProvider<Contain
   public List<VolumeMount> getVolumeMounts(ContainerContext context) {
     return List.of(
         new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.SCRIPT_TEMPLATES.getVolumeName())
+            .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
             .withMountPath(ClusterStatefulSetPath.TEMPLATES_PATH.path())
             .build()
     );

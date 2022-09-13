@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.dbops;
+package io.stackgres.operator.conciliation.factory.cluster;
 
 import static org.mockito.Mockito.lenient;
 
@@ -14,21 +14,19 @@ import java.util.Random;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodSpec;
-import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresKind;
+import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractProfileDecoratorTestCase;
-import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,44 +34,42 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DbOpsProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
+class BackupCronJobContainerProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
 
-  private static final StackGresKind KIND = StackGresKind.DBOPS;
+  private static final StackGresGroupKind KIND = StackGresGroupKind.BACKUP;
 
-  private final DbOpsProfileDecorator profileDecorator = new DbOpsProfileDecorator();
+  private final BackupCronJobContainerProfileDecorator profileDecorator =
+      new BackupCronJobContainerProfileDecorator();
 
   @Mock
-  private StackGresDbOpsContext context;
-
-  private StackGresDbOps dbOps;
+  private StackGresClusterContext context;
 
   private StackGresCluster cluster;
 
   private StackGresProfile profile;
 
-  private Job job;
+  private CronJob cronJob;
 
   private List<HasMetadata> resources;
 
   @BeforeEach
   void setUp() {
-    dbOps = Fixtures.dbOps().loadRestart().get();
     cluster = Fixtures.cluster().loadDefault().get();
     profile = Fixtures.instanceProfile().loadSizeXs().get();
 
-    final ObjectMeta metadata = dbOps.getMetadata();
+    final ObjectMeta metadata = cluster.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,
         StackGresProperty.OPERATOR_VERSION.getString());
     resources = KubernetessMockResourceGenerationUtil
         .buildResources(metadata.getName(), metadata.getNamespace());
-    job = resources.stream()
-        .filter(Job.class::isInstance)
-        .map(Job.class::cast)
+    cronJob = resources.stream()
+        .filter(CronJob.class::isInstance)
+        .map(CronJob.class::cast)
         .findFirst()
         .orElseThrow();
     profile.getSpec().setContainers(new HashMap<>());
     profile.getSpec().setInitContainers(new HashMap<>());
-    Seq.seq(job.getSpec()
+    Seq.seq(cronJob.getSpec().getJobTemplate().getSpec()
             .getTemplate().getSpec().getContainers())
         .forEach(container -> {
           StackGresProfileContainer containerProfile = new StackGresProfileContainer();
@@ -82,7 +78,7 @@ class DbOpsProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
           profile.getSpec().getContainers().put(
               KIND.getContainerPrefix() + container.getName(), containerProfile);
         });
-    Seq.seq(job.getSpec()
+    Seq.seq(cronJob.getSpec().getJobTemplate().getSpec()
             .getTemplate().getSpec().getInitContainers())
         .forEach(container -> {
           StackGresProfileContainer containerProfile = new StackGresProfileContainer();
@@ -99,8 +95,7 @@ class DbOpsProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
     profile.getSpec().getInitContainers().put(
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
 
-    lenient().when(context.getSource()).thenReturn(dbOps);
-    lenient().when(context.getCluster()).thenReturn(cluster);
+    lenient().when(context.getSource()).thenReturn(cluster);
     lenient().when(context.getProfile()).thenReturn(profile);
   }
 
@@ -111,11 +106,12 @@ class DbOpsProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
 
   @Override
   protected PodSpec getPodSpec() {
-    return job.getSpec().getTemplate().getSpec();
+    return cronJob.getSpec().getJobTemplate().getSpec()
+        .getTemplate().getSpec();
   }
 
   @Override
-  protected StackGresKind getKind() {
+  protected StackGresGroupKind getKind() {
     return KIND;
   }
 

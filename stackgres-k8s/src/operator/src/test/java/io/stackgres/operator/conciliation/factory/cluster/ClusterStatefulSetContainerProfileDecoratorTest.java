@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresKind;
+import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -37,11 +37,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ClusterProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
+class ClusterStatefulSetContainerProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
 
-  private static final StackGresKind KIND = StackGresKind.CLUSTER;
+  private static final StackGresGroupKind KIND = StackGresGroupKind.CLUSTER;
 
-  private final ClusterProfileDecorator profileDecorator = new ClusterProfileDecorator();
+  private final ClusterStatefulSetContainerProfileDecorator profileDecorator =
+      new ClusterStatefulSetContainerProfileDecorator();
 
   @Mock
   private StackGresClusterContext context;
@@ -116,7 +117,7 @@ class ClusterProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
   }
 
   @Override
-  protected StackGresKind getKind() {
+  protected StackGresGroupKind getKind() {
     return KIND;
   }
 

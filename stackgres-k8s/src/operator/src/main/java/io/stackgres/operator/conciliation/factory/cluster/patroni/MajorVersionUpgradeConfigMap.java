@@ -20,13 +20,13 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
@@ -36,7 +36,7 @@ public class MajorVersionUpgradeConfigMap implements VolumeFactory<StackGresClus
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   public static String name(ClusterContext clusterContext) {
-    return StatefulSetDynamicVolumes.POSTGRES_CONFIG
+    return StackGresVolume.POSTGRES_CONFIG
         .getResourceName(clusterContext.getCluster().getMetadata().getName());
   }
 
@@ -52,7 +52,7 @@ public class MajorVersionUpgradeConfigMap implements VolumeFactory<StackGresClus
 
   public @NotNull Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.POSTGRES_CONFIG.getVolumeName())
+        .withName(StackGresVolume.POSTGRES_CONFIG.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(name(context))
             .withDefaultMode(444)

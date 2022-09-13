@@ -10,9 +10,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
@@ -20,9 +17,11 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.EmptyDirVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
@@ -33,15 +32,15 @@ import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpecScheduling;
-import io.stackgres.operator.cluster.factory.DbOpsEnvironmentVariables;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
+import io.stackgres.operator.conciliation.factory.VolumePair;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
@@ -53,18 +52,21 @@ public abstract class DbOpsJob implements JobFactory {
 
   private final ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory;
   private final DbOpsEnvironmentVariables clusterEnvironmentVariables;
-  private final ImmutableMap<DbOpsStatusCondition, String> conditions;
+  private final Map<DbOpsStatusCondition, String> conditions;
   protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
   protected final LabelFactoryForDbOps dbOpsLabelFactory;
+  protected final KubectlUtil kubectl;
+  private final DbOpsVolumeMounts dbOpsVolumeMounts;
+  private final DbOpsTemplatesVolumeFactory dbOpsTemplatesVolumeFactory;
 
-  @Inject
-  KubectlUtil kubectl;
-
-  @Inject
   protected DbOpsJob(ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
       DbOpsEnvironmentVariables clusterEnvironmentVariables,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      LabelFactoryForDbOps dbOpsLabelFactory, ObjectMapper jsonMapper) {
+      LabelFactoryForDbOps dbOpsLabelFactory,
+      ObjectMapper jsonMapper,
+      KubectlUtil kubectl,
+      DbOpsVolumeMounts dbOpsVolumeMounts,
+      DbOpsTemplatesVolumeFactory dbOpsTemplatesVolumeFactory) {
     this.podSecurityFactory = podSecurityFactory;
     this.clusterEnvironmentVariables = clusterEnvironmentVariables;
     this.labelFactory = labelFactory;
@@ -76,6 +78,9 @@ public abstract class DbOpsJob implements JobFactory {
             .map(t -> t.map2(Unchecked.function(jsonMapper::writeValueAsString)))
             .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)))
         .orElse(ImmutableMap.of());
+    this.kubectl = kubectl;
+    this.dbOpsVolumeMounts = dbOpsVolumeMounts;
+    this.dbOpsTemplatesVolumeFactory = dbOpsTemplatesVolumeFactory;
   }
 
   public String jobName(StackGresDbOps dbOps) {
@@ -197,20 +202,7 @@ public abstract class DbOpsJob implements JobFactory {
                 .build())
             .withCommand("/bin/sh", "-ex",
                 ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH.path())
-            .withVolumeMounts(
-                ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
-                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH
-                            .filename())
-                        .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH
-                            .path())
-                        .withReadOnly(true)),
-                ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-                    volumeMountBuilder -> volumeMountBuilder
-                        .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
-                        .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
-                        .withReadOnly(true)))
+            .withVolumeMounts(dbOpsVolumeMounts.getVolumeMounts(context))
             .build())
         .withContainers(
             new ContainerBuilder()
@@ -261,26 +253,7 @@ public abstract class DbOpsJob implements JobFactory {
                     .build())
                 .withCommand("/bin/sh", "-ex",
                     ClusterStatefulSetPath.LOCAL_BIN_RUN_DBOPS_SH_PATH.path())
-                .withVolumeMounts(
-                    ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
-                    ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-                        volumeMountBuilder -> volumeMountBuilder
-                            .withSubPath(
-                                ClusterStatefulSetPath.LOCAL_BIN_RUN_DBOPS_SH_PATH.filename())
-                            .withMountPath(
-                                ClusterStatefulSetPath.LOCAL_BIN_RUN_DBOPS_SH_PATH.path())
-                            .withReadOnly(true)),
-                    ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-                        volumeMountBuilder -> volumeMountBuilder
-                            .withSubPath(
-                                ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
-                            .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
-                            .withReadOnly(true)),
-                    ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-                        volumeMountBuilder -> volumeMountBuilder
-                            .withSubPath(getRunScript().filename())
-                            .withMountPath(getRunScript().path())
-                            .withReadOnly(true)))
+                .withVolumeMounts(dbOpsVolumeMounts.getVolumeMounts(context))
                 .build(),
             new ContainerBuilder()
                 .withName("set-dbops-result")
@@ -346,38 +319,12 @@ public abstract class DbOpsJob implements JobFactory {
                     .build())
                 .withCommand("/bin/sh", "-ex",
                     ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH.path())
-                .withVolumeMounts(
-                    ClusterStatefulSetVolumeConfig.SHARED.volumeMount(context),
-                    ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-                        volumeMountBuilder -> volumeMountBuilder
-                            .withSubPath(
-                                ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH
-                                    .filename())
-                            .withMountPath(
-                                ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH.path())
-                            .withReadOnly(true)),
-                    ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-                        volumeMountBuilder -> volumeMountBuilder
-                            .withSubPath(
-                                ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
-                            .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
-                            .withReadOnly(true)))
-                .addAllToVolumeMounts(Optional.ofNullable(getSetResultScript())
-                    .map(script -> ClusterStatefulSetVolumeConfig.TEMPLATES.volumeMount(context,
-                        volumeMountBuilder -> volumeMountBuilder
-                            .withSubPath(script.filename())
-                            .withMountPath(script.path())
-                            .withReadOnly(true)))
-                    .stream()
-                    .collect(Collectors.toList()))
+                .withVolumeMounts(dbOpsVolumeMounts.getVolumeMounts(context))
                 .build())
         .withVolumes(
-            ClusterStatefulSetVolumeConfig.SHARED.volume(context),
-            new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES.volume(context))
-                .editConfigMap()
-                .withDefaultMode(0555) // NOPMD
-                .endConfigMap()
-                .build())
+            Seq.of(buildSharedVolume())
+            .append(dbOpsTemplatesVolumeFactory.buildVolumes(context).map(VolumePair::getVolume))
+            .toList())
         .endSpec()
         .endTemplate()
         .endSpec()
@@ -407,7 +354,7 @@ public abstract class DbOpsJob implements JobFactory {
                 .map(StackGresDbOpsSpec::getScheduling)
                 .map(StackGresDbOpsSpecScheduling::getNodeAffinity)
                 .orElse(null)))
-        .map(builder -> builder.build())
+        .map(AffinityBuilder::build)
         .orElse(null);
   }
 
@@ -418,4 +365,13 @@ public abstract class DbOpsJob implements JobFactory {
         .map(StackGresDbOpsSpecScheduling::getNodeSelector)
         .orElse(null);
   }
+
+  private Volume buildSharedVolume() {
+    return new VolumeBuilder()
+        .withName(StackGresVolume.SHARED.getName())
+        .withEmptyDir(new EmptyDirVolumeSourceBuilder()
+            .build())
+        .build();
+  }
+
 }

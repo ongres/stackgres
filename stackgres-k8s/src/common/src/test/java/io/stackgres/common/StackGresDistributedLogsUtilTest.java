@@ -36,7 +36,8 @@ class StackGresDistributedLogsUtilTest {
   @Test
   void shouldBuildSgDistributedLogsPostgresServices_asEmptyAvoidingAnyException() {
     assertNotNull(StackGresDistributedLogsUtil
-        .buildPostgresServices(Fixtures.distributedLogs().spec().emptyPostgresServices().get()));
+        .buildClusterPostgresServices(
+            Fixtures.distributedLogs().spec().emptyPostgresServices().get()));
   }
 
   @Test
@@ -45,7 +46,7 @@ class StackGresDistributedLogsUtilTest {
     StackGresDistributedLogsSpec spec = Fixtures.distributedLogs().spec()
         .withPrimaryPostgresServices(primary).get();
     StackGresClusterPostgresServices postgresServices = StackGresDistributedLogsUtil
-        .buildPostgresServices(spec);
+        .buildClusterPostgresServices(spec);
 
     assertNotNull(postgresServices.getPrimary());
     assertNull(postgresServices.getReplicas());
@@ -58,7 +59,7 @@ class StackGresDistributedLogsUtilTest {
     StackGresDistributedLogsSpec spec = Fixtures.distributedLogs().spec()
         .withReplicasPostgresServices(replicas).get();
     StackGresClusterPostgresServices postgresServices = StackGresDistributedLogsUtil
-        .buildPostgresServices(spec);
+        .buildClusterPostgresServices(spec);
 
     assertNull(postgresServices.getPrimary());
     assertNotNull(postgresServices.getReplicas());

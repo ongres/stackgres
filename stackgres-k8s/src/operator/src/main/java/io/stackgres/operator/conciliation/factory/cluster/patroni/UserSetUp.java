@@ -19,10 +19,10 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
@@ -61,7 +61,7 @@ public class UserSetUp implements ContainerFactory<ClusterContainerContext> {
         .withVolumeMounts(scriptTemplateMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.USER.getVolumeName())
+                .withName(StackGresVolume.USER.getName())
                 .withMountPath("/local/etc")
                 .withSubPath("etc")
                 .build())

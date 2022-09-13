@@ -11,19 +11,11 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.google.common.io.Resources;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Unchecked;
 
 public abstract class AbstractPatroniTemplatesConfigMap<T>
     implements VolumeFactory<T> {
-
-  private static final String TEMPLATES_SUFFIX = "-templates";
-
-  public static String name(CustomResource<?, ?> resource) {
-    return ResourceUtil.resourceName(resource.getMetadata().getName() + TEMPLATES_SUFFIX);
-  }
 
   protected Map<String, String> getPatroniTemplates() {
     Map<String, String> data = new HashMap<String, String>();

@@ -12,6 +12,7 @@ import io.stackgres.apiweb.dto.postgres.service.EnabledPostgresService;
 import io.stackgres.apiweb.dto.postgres.service.PostgresService;
 import io.stackgres.apiweb.transformer.converter.DtoConverter;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceBuilder;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServicesBuilder;
 
@@ -63,10 +64,12 @@ public class DistributedLogsPostgresServicesConverter implements
 
   private StackGresPostgresService map(PostgresService postgresService) {
     return Optional.ofNullable(postgresService)
-        .map(pgServices -> {
-          return new StackGresPostgresService(pgServices.getEnabled(),
-              pgServices.getType(), pgServices.getExternalIPs(), pgServices.getLoadBalancerIP());
-        }).orElse(null);
-
+        .map(pgServices -> new StackGresPostgresServiceBuilder()
+            .withEnabled(pgServices.getEnabled())
+            .withType(pgServices.getType())
+            .withExternalIPs(pgServices.getExternalIPs())
+            .withLoadBalancerIP(pgServices.getLoadBalancerIP())
+            .build()).orElse(null);
   }
+
 }

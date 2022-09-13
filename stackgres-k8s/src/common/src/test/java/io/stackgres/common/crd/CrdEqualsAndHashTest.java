@@ -15,6 +15,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.testutil.ModelTestUtil;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,15 +25,16 @@ public class CrdEqualsAndHashTest {
 
   @ParameterizedTest
   @ValueSource(classes = {
-    StackGresCluster.class,
-    StackGresPostgresConfig.class,
-    StackGresPoolingConfig.class,
-    StackGresBackupConfig.class,
-    StackGresBackup.class,
-    StackGresDbOps.class,
-    StackGresDistributedLogs.class,
-    StackGresObjectStorage.class,
-    StackGresScript.class,
+      StackGresCluster.class,
+      StackGresProfile.class,
+      StackGresPostgresConfig.class,
+      StackGresPoolingConfig.class,
+      StackGresBackupConfig.class,
+      StackGresBackup.class,
+      StackGresDbOps.class,
+      StackGresDistributedLogs.class,
+      StackGresObjectStorage.class,
+      StackGresScript.class,
   })
   void crdShouldHaveEqualsAndHash(Class<?> resourceClazz) {
     var resource = ModelTestUtil.createWithRandomData(resourceClazz);

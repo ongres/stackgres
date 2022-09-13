@@ -38,6 +38,7 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.distributedlogs.PatroniTableFields;
 import io.stackgres.common.distributedlogs.PostgresTableFields;
@@ -53,8 +54,6 @@ import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.fluentbit.FluentBit;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
-import io.stackgres.operator.conciliation.factory.distributedlogs.FluentdStaticVolume;
-import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
@@ -122,12 +121,12 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
-                .withName(StatefulSetDynamicVolumes.FLUENTD_CONFIG.getVolumeName())
+                .withName(StackGresVolume.FLUENTD_CONFIG.getName())
                 .withMountPath("/etc/fluentd")
                 .withReadOnly(Boolean.FALSE)
                 .build(),
             new VolumeMountBuilder()
-                .withName(FluentdStaticVolume.FLUENTD_BUFFER.getVolumeName())
+                .withName(StackGresVolume.FLUENTD_BUFFER.getName())
                 .withMountPath("/var/log/fluentd")
                 .build())
         .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
@@ -147,7 +146,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
 
   public @NotNull Volume buildVolume(StackGresDistributedLogsContext context) {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.FLUENTD_CONFIG.getVolumeName())
+        .withName(StackGresVolume.FLUENTD_CONFIG.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(FluentdUtil.configName(
                 context.getSource()))

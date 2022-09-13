@@ -34,6 +34,7 @@ import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
@@ -42,7 +43,6 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
@@ -54,7 +54,6 @@ import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniConfigMap;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniVolumeMounts;
 
@@ -130,11 +129,11 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
     ImmutableList.Builder<VolumeMount> volumeMounts = ImmutableList.<VolumeMount>builder()
         .addAll(postgresSocket.getVolumeMounts(context))
         .add(new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.DSHM.getVolumeName())
+            .withName(StackGresVolume.DSHM.getName())
             .withMountPath(ClusterStatefulSetPath.SHARED_MEMORY_PATH.path())
             .build())
         .add(new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.LOG.getVolumeName())
+            .withName(StackGresVolume.LOG.getName())
             .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
             .build())
         .addAll(localBinMounts.getVolumeMounts(context))
@@ -196,7 +195,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .addToEnv(new EnvVarBuilder()
             .withName("PATRONI_CONFIG_MD5SUM")
             .withValue(volumeDiscoverer.discoverVolumes(clusterContext)
-                .get(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName())
+                .get(StackGresVolume.PATRONI_ENV.getName())
                 .getSource()
                 .map(ConfigMap.class::cast)
                 .map(ConfigMap::getData)

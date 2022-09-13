@@ -17,33 +17,25 @@ import io.sundr.builder.annotations.Buildable;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public class StackGresPostgresServices {
+public class StackGresPostgresServices<T extends StackGresPostgresService> {
 
-  protected StackGresPostgresService primary;
+  protected T primary;
 
-  protected StackGresPostgresService replicas;
+  protected T replicas;
 
-  public StackGresPostgresServices() {}
-
-  public StackGresPostgresServices(StackGresPostgresService primary,
-      StackGresPostgresService replicas) {
-    this.primary = primary;
-    this.replicas = replicas;
-  }
-
-  public StackGresPostgresService getPrimary() {
+  public T getPrimary() {
     return primary;
   }
 
-  public void setPrimary(StackGresPostgresService primary) {
+  public void setPrimary(T primary) {
     this.primary = primary;
   }
 
-  public StackGresPostgresService getReplicas() {
+  public T getReplicas() {
     return replicas;
   }
 
-  public void setReplicas(StackGresPostgresService replicas) {
+  public void setReplicas(T replicas) {
     this.replicas = replicas;
   }
 
@@ -60,7 +52,7 @@ public class StackGresPostgresServices {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    StackGresPostgresServices that = (StackGresPostgresServices) o;
+    StackGresPostgresServices<?> that = (StackGresPostgresServices<?>) o;
     return Objects.equals(primary, that.primary)
         && Objects.equals(replicas, that.replicas);
   }

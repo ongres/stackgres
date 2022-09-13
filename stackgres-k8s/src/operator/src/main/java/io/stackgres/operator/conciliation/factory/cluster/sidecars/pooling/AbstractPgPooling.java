@@ -24,6 +24,7 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -33,7 +34,6 @@ import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractPgPooling
@@ -50,7 +50,7 @@ public abstract class AbstractPgPooling
 
   public static String configName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getSource().getMetadata().getName();
-    return StatefulSetDynamicVolumes.PGBOUNCER.getResourceName(name);
+    return StackGresVolume.PGBOUNCER.getResourceName(name);
   }
 
   protected abstract Map<String, String> getDefaultParameters();
@@ -78,7 +78,7 @@ public abstract class AbstractPgPooling
 
   protected Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.PGBOUNCER.getVolumeName())
+        .withName(StackGresVolume.PGBOUNCER.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(configName(context))
             .withDefaultMode(420)

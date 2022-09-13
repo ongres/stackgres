@@ -11,8 +11,8 @@ spec:
   instances: {{ .Values.cluster.instances }}
   postgres:
     version: '{{ .Values.cluster.postgres.version }}'
-    {{- if .Values.cluster.postgres.flavor }}
-    flavor: {{ .Values.cluster.postgres.flavor }}
+    {{- with .Values.cluster.postgres.flavor }}
+    flavor: {{ . }}
     {{- end }}
     {{- if not .Values.cluster.postgres.extensions }}
     extensions: []
@@ -23,14 +23,14 @@ spec:
     extensions:
     {{- range .Values.cluster.postgres.extensions }}
       - name: "{{ .name }}"
-        {{- if .publisher }}
-        publisher: "{{ .publisher }}"
+        {{- with .publisher }}
+        publisher: "{{ . }}"
         {{- end }}
-        {{- if .version }}
-        version: "{{ .version }}"
+        {{- with .version }}
+        version: "{{ . }}"
         {{- end }}
-        {{- if .repository }}
-        repository: "{{ .repository }}"
+        {{- with .repository }}
+        repository: "{{ . }}"
         {{- end }}
     {{- end }}
     {{- end }}
@@ -52,18 +52,18 @@ spec:
   replication:
     mode: '{{ .Values.cluster.replication.mode }}'
     role: '{{ .Values.cluster.replication.role }}'
-    {{- if .Values.cluster.replication.syncInstances }}
-    syncInstances: {{ .Values.cluster.replication.syncInstances }}
+    {{- with .Values.cluster.replication.syncInstances }}
+    syncInstances: {{ . }}
     {{- end }}
     {{- if .Values.cluster.replication.groups }}
     groups:
     {{- range .Values.cluster.replication.groups }}
     - instances: {{ .instances }}
-      {{- if .role }}
-      role: {{ .role }}
+      {{- with .role }}
+      role: {{ . }}
       {{- end }}
-      {{- if .name }}
-      name: {{ .name }}
+      {{- with .name }}
+      name: {{ . }}
       {{- end }}
     {{- end }}
     {{- end }}
@@ -71,8 +71,8 @@ spec:
   replicateFrom:
     {{- if .Values.cluster.replicateFrom.instance }}
     instance:
-      {{- if .Values.cluster.replicateFrom.instance.sgCluster }}
-      sgCluster: {{ .Values.cluster.replicateFrom.instance.sgCluster }}
+      {{- with .Values.cluster.replicateFrom.instance.sgCluster }}
+      sgCluster: {{ . }}
       {{- end }}
       {{- if .Values.cluster.replicateFrom.instance.external }}
       external:
@@ -82,19 +82,19 @@ spec:
     {{- end }}
     {{- if .Values.cluster.replicateFrom.storage }}
     storage:
-      {{- if .Values.cluster.replicateFrom.storage.compression }}
-      compression: '{{ .Values.cluster.replicateFrom.storage.compression }}'
+      {{- with .Values.cluster.replicateFrom.storage.compression }}
+      compression: '{{ . }}'
       {{- end }}
       {{- if .Values.cluster.replicateFrom.storage.performance }}
       performance: 
-        {{- if .Values.cluster.replicateFrom.storage.performance.downloadConcurrency }}
-        downloadConcurrency: {{ .Values.cluster.replicateFrom.storage.performance.downloadConcurrency }}
+        {{- with .Values.cluster.replicateFrom.storage.performance.downloadConcurrency }}
+        downloadConcurrency: {{ . }}
         {{- end }}
-        {{- if .Values.cluster.replicateFrom.storage.performance.maxNetworkBandwidth }}
-        maxNetworkBandwidth: {{ .Values.cluster.replicateFrom.storage.performance.maxNetworkBandwidth }}
+        {{- with .Values.cluster.replicateFrom.storage.performance.maxNetworkBandwidth }}
+        maxNetworkBandwidth: {{ . }}
         {{- end }}
-        {{- if .Values.cluster.replicateFrom.storage.performance.maxDiskBandwidth }}
-        maxDiskBandwidth: {{ .Values.cluster.replicateFrom.storage.performance.maxDiskBandwidth }}
+        {{- with .Values.cluster.replicateFrom.storage.performance.maxDiskBandwidth }}
+        maxDiskBandwidth: {{ . }}
         {{- end }}
       {{- end }}
       sgObjectStorage: '{{ .Values.cluster.replicateFrom.storage.sgObjectStorage }}'
@@ -135,12 +135,11 @@ spec:
       compression: '{{ .Values.cluster.configurations.backups.compression }}'
       performance: 
         uploadDiskConcurrency: {{ .Values.cluster.configurations.backups.performance.uploadDiskConcurrency }}
-        uploadConcurrency: {{ .Values.cluster.configurations.backups.performance.uploadConcurrency }}
-        {{- if .Values.cluster.configurations.backups.performance.maxNetworkBandwidth }}
-        maxNetworkBandwidth: {{ .Values.cluster.configurations.backups.performance.maxNetworkBandwidth }}
+        {{- with .Values.cluster.configurations.backups.performance.maxNetworkBandwidth }}
+        maxNetworkBandwidth: {{ . }}
         {{- end }}
-        {{- if .Values.cluster.configurations.backups.performance.maxDiskBandwidth }}
-        maxDiskBandwidth: {{ .Values.cluster.configurations.backups.performance.maxDiskBandwidth }}
+        {{- with .Values.cluster.configurations.backups.performance.maxDiskBandwidth }}
+        maxDiskBandwidth: {{ . }}
         {{- end }}
       sgObjectStorage: '{{ .Values.cluster.configurations.backups.sgObjectStorage }}'
       {{- if .Values.cluster.configurations.backups.path }}
@@ -150,23 +149,26 @@ spec:
   sgInstanceProfile: '{{ .Values.cluster.sgInstanceProfile }}'
   {{- if .Values.cluster.initialData }}
   initialData:
-  {{- if .Values.cluster.initialData.restore }}
+    {{- if .Values.cluster.initialData.restore }}
     restore:
+      {{- if .Values.cluster.initialData.restore.fromBackup }}
       fromBackup:
         name: {{ .Values.cluster.initialData.restore.fromBackup.name }}
-        {{- if .Values.cluster.initialData.restore.fromBackup.pointInTimeRecovery }}
+        {{- with .Values.cluster.initialData.restore.fromBackup.pointInTimeRecovery }}
         pointInTimeRecovery:
-          restoreToTimestamp: {{ .Values.cluster.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp }}
+          restoreToTimestamp: {{ . }}
         {{- end }}
-      {{- if .Values.cluster.initialData.restore.downloadDiskConcurrency }}
-      downloadDiskConcurrency: {{ .Values.cluster.initialData.restore.downloadDiskConcurrency }}
+      {{- end }}
+      {{- with .Values.cluster.initialData.restore.downloadDiskConcurrency }}
+      downloadDiskConcurrency: {{ . }}
+      {{- end }}
+      {{- end }}
     {{- end }}
-  {{- end }}
   {{- end }}
   {{- if .Values.cluster.managedSql }}
   managedSql:
-  {{- if .Values.cluster.managedSql.continueOnSGScriptError }}
-    continueOnSGScriptError: {{ .Values.cluster.managedSql.continueOnSGScriptError }}
+  {{- with .Values.cluster.managedSql.continueOnSGScriptError }}
+    continueOnSGScriptError: {{ . }}
   {{- end }}
   {{- if .Values.cluster.managedSql.scripts }}
     scripts:
@@ -178,84 +180,74 @@ spec:
     {{- if .Values.cluster.postgresServices.primary }}
     primary:
       enabled: {{ .Values.cluster.postgresServices.primary.enabled }}
-      {{- if .Values.cluster.postgresServices.primary.type }}
-      type:  {{ .Values.cluster.postgresServices.primary.type }}
+      {{- with .Values.cluster.postgresServices.primary.type }}
+      type:  {{ . }}
       {{- end }}
-      {{- if .Values.cluster.postgresServices.primary.externalIPs }}
+      {{- with .Values.cluster.postgresServices.primary.externalIPs }}
       externalIPs:
-        {{-  range .Values.cluster.postgresServices.primary.externalIPs }}
-          - {{ . }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.cluster.postgresServices.primary.loadBalancerIP }}
-      loadBalancerIP: {{ .Values.cluster.postgresServices.primary.loadBalancerIP }}
+      {{- with .Values.cluster.postgresServices.primary.loadBalancerIP }}
+      loadBalancerIP: {{ . }}
       {{- end }}
-    {{- end }}    
+      {{- with .Values.cluster.postgresServices.primary.customPorts }}
+      customPorts:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
     {{- if .Values.cluster.postgresServices.replicas }}
     replicas:
       enabled: {{ .Values.cluster.postgresServices.replicas.enabled }}
-      {{- if .Values.cluster.postgresServices.replicas.type }}
-      type:  {{ .Values.cluster.postgresServices.replicas.type }}
+      {{- with .Values.cluster.postgresServices.replicas.type }}
+      type:  {{ . }}
       {{- end }}
-      {{- if .Values.cluster.postgresServices.replicas.externalIPs }}
+      {{- with .Values.cluster.postgresServices.replicas.externalIPs }}
       externalIPs:
-        {{-  range .Values.cluster.postgresServices.replicas.externalIPs }}
-          - {{ . }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.cluster.postgresServices.replicas.annotations }}
+      {{- with .Values.cluster.postgresServices.replicas.annotations }}
       annotations:
-        {{- range $annot, $value := .Values.cluster.postgresServices.replicas.annotations }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.cluster.postgresServices.replicas.loadBalancerIP }}
-      loadBalancerIP: {{ .Values.cluster.postgresServices.replicas.loadBalancerIP }}
+      {{- with .Values.cluster.postgresServices.replicas.loadBalancerIP }}
+      loadBalancerIP: {{ . }}
       {{- end }}
-    {{- end }}    
+      {{- with .Values.cluster.postgresServices.replicas.customPorts }}
+      customPorts:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- end }}
   {{- end }}
   {{- if .Values.cluster.metadata }}
   metadata:
     {{- if .Values.cluster.metadata.annotations }}
     annotations:
-      {{- if .Values.cluster.metadata.annotations.allResources }}
+      {{- with .Values.cluster.metadata.annotations.allResources }}
       allResources: 
-        {{- range $annot, $value := .Values.cluster.metadata.annotations.allResources }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.cluster.metadata.annotations.clusterPods }}
+      {{-with .Values.cluster.metadata.annotations.clusterPods }}
       clusterPods:
-        {{- range $annot, $value := .Values.cluster.metadata.annotations.clusterPods }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.cluster.metadata.annotations.services }}
+      {{- with .Values.cluster.metadata.annotations.services }}
       services:
-        {{- range $annot, $value := .Values.cluster.metadata.annotations.services }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.cluster.metadata.annotations.primaryService }}
+      {{- with .Values.cluster.metadata.annotations.primaryService }}
       primaryService:
-        {{- range $annot, $value := .Values.cluster.metadata.annotations.primaryService }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.cluster.metadata.annotations.replicasService }}
+      {{- with .Values.cluster.metadata.annotations.replicasService }}
       replicasService:
-        {{- range $annot, $value := .Values.cluster.metadata.annotations.replicasService }}
-        {{ $annot }}: {{ $value }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
     {{- end }}
     {{- if .Values.cluster.metadata.labels }}
     labels:
-      {{- if .Values.cluster.metadata.labels.clusterPods }}
+      {{- with .Values.cluster.metadata.labels.clusterPods }}
       clusterPods:
-        {{- range $label, $value := .Values.cluster.metadata.labels.clusterPods }}
-        {{ $label }}: {{ $value }}
-        {{- end }}  
+        {{- toYaml . | nindent 8 }}
       {{- end }}
     {{- end }} 
   {{- end }}
@@ -274,82 +266,44 @@ spec:
     disableMetricsExporter: {{ .Values.cluster.pods.disableMetricsExporter }}
     {{- if .Values.cluster.pods.scheduling }}
     scheduling:
-      {{- if .Values.cluster.pods.scheduling.nodeAffinity }}
+      {{- with .Values.cluster.pods.scheduling.nodeAffinity }}
       nodeAffinity:
-        {{- if .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution }}
-        requiredDuringSchedulingIgnoredDuringExecution:
-          {{- if .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms }}
-          nodeSelectorTerms:
-            {{- range .Values.cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms }}
-              {{- if .matchExpressions }}
-              - matchExpressions:
-                {{- range .matchExpressions }}  
-                - key: {{ .key }}
-                  operator: {{ .operator }}
-                  {{- if .values }}
-                  values:
-                    {{-  range .values }}
-                    - {{ . }}
-                    {{- end }}
-                  {{- end }}
-                {{- end }}
-              {{- end }}
-            {{- end }}
-          {{- end }}
-        {{- end }}
-        {{- if .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution }}
-        preferredDuringSchedulingIgnoredDuringExecution:
-          {{- range .Values.cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution }}
-            {{- if .preference }}
-            - weight: {{ .weight }}
-              preference:
-              {{- if .preference.matchExpressions }}
-                matchExpressions:
-                  {{- range .preference.matchExpressions }}
-                  - key: {{ .key }}
-                    operator: {{ .operator }}
-                    {{- if .values }}
-                    values:
-                      {{-  range .values }}
-                      - {{ . }}
-                      {{- end }}
-                    {{- end }}
-                  {{- end }}
-              {{- end }}
-            {{- end }}
-          {{- end }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.cluster.pods.scheduling.nodeSelector }}
+      {{- with .Values.cluster.pods.scheduling.nodeSelector }}
       nodeSelector:
-        {{- range $label, $value := .Values.cluster.pods.scheduling.nodeSelector }}
-        {{ $label }}: {{ $value }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.cluster.pods.scheduling.tolerations }}
+      {{- with .Values.cluster.pods.scheduling.tolerations }}
       tolerations:
-        {{- range .Values.cluster.pods.scheduling.tolerations }}
-        - effect: {{ .effect }}
-          key: {{ .key }}
-          operator: {{ .operator }}
-          value: {{ .value }}
-          tolerationSeconds: {{ .tolerationSeconds }}
-        {{- end }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.cluster.pods.scheduling.backup }}
+      {{- with .Values.cluster.pods.scheduling.backup }}
       backup:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 
     {{- end }}
-    {{- if .Values.cluster.pods.managementPolicy }}
-    managementPolicy: {{ .Values.cluster.pods.managementPolicy }}
+    {{- with .Values.cluster.pods.managementPolicy }}
+    managementPolicy: {{ . }}
+    {{- end }}
+    {{- with .Values.cluster.pods.customVolumes }}
+    customVolumes:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.cluster.pods.customContainers }}
+    customContainers:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.cluster.pods.customInitContainers }}
+    customInitContainers:
+      {{- toYaml . | nindent 6 }}
     {{- end }}
   {{- if .Values.distributedLogs.enabled }}
   distributedLogs:
     sgDistributedLogs: {{ .Values.cluster.distributedLogs.sgDistributedLogs }}
-    {{- if .Values.cluster.distributedLogs.retention }}
-    retention: {{ .Values.cluster.distributedLogs.retention }}
+    {{- with .Values.cluster.distributedLogs.retention }}
+    retention: {{ . }}
     {{- end }}
   {{- end }}
   prometheusAutobind: {{ .Values.cluster.prometheusAutobind }}

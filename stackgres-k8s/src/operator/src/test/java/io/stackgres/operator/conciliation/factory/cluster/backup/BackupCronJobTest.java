@@ -5,15 +5,74 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.backup;
 
+import static io.stackgres.common.StringUtil.generateRandom;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.BDDMockito.given;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
+import io.stackgres.common.ClusterContext;
+import io.stackgres.common.KubectlUtil;
+import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.LabelMapperForCluster;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.operator.conciliation.backup.BackupConfiguration;
+import io.stackgres.operator.conciliation.backup.BackupPerformance;
+import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-public class BackupCronJobTest extends BackupJobTestCase {
+public class BackupCronJobTest {
+
+  @Mock
+  private ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> envFactoryDiscoverer;
+  @Mock
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  @Mock
+  private ResourceFactory<StackGresClusterContext, PodSecurityContext> clusterPodSecurityFactory;
+  @Mock
+  private KubectlUtil kubectl;
+  @Mock
+  private StackGresClusterContext clusterContext;
+  @Mock
+  private StackGresBackupContext backupContext;
+  @Mock
+  private LabelMapperForCluster<StackGresCluster> labelMapperSgCluster;
+  @Mock
+  private BackupScriptTemplatesVolumeMounts backupScriptTemplatesVolumeMounts;
+  @Mock
+  private BackupTemplatesVolumeFactory backupTemplatesConfigMap;
+  private BackupCronJob backupCronJob;
+  private StackGresCluster sgCluster;
+  private StackGresBackup sgBackup;
+  private BackupConfiguration backupConfig;
+  private BackupPerformance backupPerformance;
+
+  @BeforeEach
+  public void setup() {
+    MockitoAnnotations.openMocks(this);
+    backupCronJob =
+        new BackupCronJob(envFactoryDiscoverer, labelFactory, clusterPodSecurityFactory,
+            kubectl, backupScriptTemplatesVolumeMounts, backupTemplatesConfigMap);
+    sgBackup = Fixtures.backup().loadDefault().get();
+    sgCluster = Fixtures.cluster().loadSchedulingBackup().get();
+    backupPerformance = new BackupPerformance(10L, 10L, 1, null, null);
+    backupConfig =
+        new BackupConfiguration(5, "* * * 5 *", "10", "/tmp", backupPerformance);
+    sgBackup.getSpec().setSgCluster(sgCluster.getMetadata().getName());
+  }
 
   @Test
   public void shouldCreateNewBackupJobWithNodeSelector_OnceClusterSchedulingBackupHasSelectors() {
@@ -36,6 +95,22 @@ public class BackupCronJobTest extends BackupJobTestCase {
         affinity.getNodeAffinity().getRequiredDuringSchedulingIgnoredDuringExecution();
     assertEquals(1, affinityPreferred.size());
     assertEquals(1, affinityRequired.getNodeSelectorTerms().size());
+  }
+
+  private void givenExpectedBackupConfigAndClusterValues() {
+    given(clusterContext.getBackupConfiguration()).willReturn(Optional.of(backupConfig));
+    given(clusterContext.getSource()).willReturn(sgCluster);
+    given(clusterContext.getCluster()).willReturn(sgCluster);
+    given(clusterContext.getBackupConfigurationCustomResourceName())
+        .willReturn(Optional.of(generateRandom()));
+
+    given(backupContext.getBackupConfiguration()).willReturn(backupConfig);
+    given(backupContext.getSource()).willReturn(sgBackup);
+    given(backupContext.getCluster()).willReturn(sgCluster);
+    given(labelFactory.labelMapper()).willReturn(labelMapperSgCluster);
+    given(backupContext.getObjectStorage()).willReturn(Optional.of(new StackGresObjectStorage()));
+
+    given(kubectl.getImageName(sgCluster)).willReturn(generateRandom());
   }
 
 }
