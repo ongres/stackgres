@@ -26,8 +26,6 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterContext;
@@ -53,10 +51,10 @@ import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupCronRole;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -77,8 +75,9 @@ public class BackupJob
   private final LabelFactoryForBackup labelFactory;
   private final LabelFactoryForCluster<StackGresCluster> labelFactoryForCluster;
   private final ResourceFactory<StackGresBackupContext, PodSecurityContext> podSecurityFactory;
-
-  KubectlUtil kubectl;
+  private final KubectlUtil kubectl;
+  private final BackupScriptTemplatesVolumeMounts backupScriptTemplatesVolumeMounts;
+  private final BackupTemplatesVolumeFactory backupTemplatesVolumeFactory;
 
   @Inject
   public BackupJob(
@@ -86,13 +85,17 @@ public class BackupJob
       LabelFactoryForBackup labelFactory,
       LabelFactoryForCluster<StackGresCluster> labelFactoryForCluster,
       ResourceFactory<StackGresBackupContext, PodSecurityContext> podSecurityFactory,
-      KubectlUtil kubectl) {
+      KubectlUtil kubectl,
+      BackupScriptTemplatesVolumeMounts backupScriptTemplatesVolumeMounts,
+      BackupTemplatesVolumeFactory backupTemplatesVolumeFactory) {
     super();
     this.clusterEnvVarFactoryDiscoverer = clusterEnvVarFactoryDiscoverer;
     this.labelFactory = labelFactory;
     this.labelFactoryForCluster = labelFactoryForCluster;
     this.podSecurityFactory = podSecurityFactory;
     this.kubectl = kubectl;
+    this.backupScriptTemplatesVolumeMounts = backupScriptTemplatesVolumeMounts;
+    this.backupTemplatesVolumeFactory = backupTemplatesVolumeFactory;
   }
 
   public static String backupJobName(StackGresBackup backup) {
@@ -163,18 +166,6 @@ public class BackupJob
     String cluster = backup.getSpec().getSgCluster();
 
     Map<String, String> labels = labelFactory.backupPodLabels(context.getSource());
-    final VolumeMount utilsVolumeMount = ClusterStatefulSetVolumeConfig.TEMPLATES
-        .volumeMount(context, volumeMountBuilder -> volumeMountBuilder
-            .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
-            .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
-            .withReadOnly(true));
-    final VolumeMount backupVolumeMount = ClusterStatefulSetVolumeConfig.TEMPLATES
-        .volumeMount(context, volumeMountBuilder -> volumeMountBuilder
-            .withSubPath(ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH
-                .filename())
-            .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH
-                .path())
-            .withReadOnly(true));
     return new JobBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
@@ -344,14 +335,11 @@ public class BackupJob
                 .build())
             .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
                 ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
-            .withVolumeMounts(backupVolumeMount, utilsVolumeMount)
+            .withVolumeMounts(backupScriptTemplatesVolumeMounts.getVolumeMounts(context))
             .build())
-        .withVolumes(new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES
-            .volume(context))
-                .editConfigMap()
-                .withDefaultMode(0555) // NOPMD
-                .endConfigMap()
-                .build())
+        .withVolumes(backupTemplatesVolumeFactory.buildVolumes(context)
+            .map(VolumePair::getVolume)
+            .toList())
         .endSpec()
         .endTemplate()
         .endSpec()

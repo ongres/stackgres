@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -33,7 +34,6 @@ import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -95,7 +95,7 @@ class PatroniTest {
     when(requirementsFactory.createResource(clusterContext)).thenReturn(podResources);
     when(patroniEnvironmentVariables.createResource(clusterContext)).thenReturn(List.of());
     when(volumeDiscoverer.discoverVolumes(clusterContext))
-        .thenReturn(Map.of(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName(),
+        .thenReturn(Map.of(StackGresVolume.PATRONI_ENV.getName(),
             ImmutableVolumePair.builder()
             .volume(new VolumeBuilder()
                 .withNewConfigMap()

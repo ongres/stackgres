@@ -13,6 +13,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.StackGresVolume;
 
 @ApplicationScoped
 public class ContainerUserOverrideMounts implements VolumeMountsProvider<ContainerContext> {
@@ -21,25 +22,25 @@ public class ContainerUserOverrideMounts implements VolumeMountsProvider<Contain
   public List<VolumeMount> getVolumeMounts(ContainerContext context) {
     return List.of(
         new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.USER.getVolumeName())
+            .withName(StackGresVolume.USER.getName())
             .withMountPath(ClusterStatefulSetPath.ETC_PASSWD_PATH.path())
             .withSubPath(ClusterStatefulSetPath.ETC_PASSWD_PATH.subPath())
             .withReadOnly(true)
             .build(),
         new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.USER.getVolumeName())
+            .withName(StackGresVolume.USER.getName())
             .withMountPath(ClusterStatefulSetPath.ETC_GROUP_PATH.path())
             .withSubPath(ClusterStatefulSetPath.ETC_GROUP_PATH.subPath())
             .withReadOnly(true)
             .build(),
         new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.USER.getVolumeName())
+            .withName(StackGresVolume.USER.getName())
             .withMountPath(ClusterStatefulSetPath.ETC_SHADOW_PATH.path())
             .withSubPath(ClusterStatefulSetPath.ETC_SHADOW_PATH.subPath())
             .withReadOnly(true)
             .build(),
         new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.USER.getVolumeName())
+            .withName(StackGresVolume.USER.getName())
             .withMountPath(ClusterStatefulSetPath.ETC_GSHADOW_PATH.path())
             .withSubPath(ClusterStatefulSetPath.ETC_GSHADOW_PATH.subPath())
             .withReadOnly(true)

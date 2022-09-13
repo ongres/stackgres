@@ -15,24 +15,24 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpec;
-import io.stackgres.common.StackGresKind;
+import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.AbstractProfileDecorator;
+import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
-public class BackupProfileDecorator extends AbstractProfileDecorator
+public class BackupCronJobContainerProfileDecorator extends AbstractContainerProfileDecorator
     implements Decorator<StackGresClusterContext> {
 
   @Override
-  protected StackGresKind getKind() {
-    return StackGresKind.BACKUP;
+  protected StackGresGroupKind getKind() {
+    return StackGresGroupKind.BACKUP;
   }
 
   @Override

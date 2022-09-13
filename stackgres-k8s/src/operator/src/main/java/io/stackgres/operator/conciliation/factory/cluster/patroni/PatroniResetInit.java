@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -30,7 +31,6 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
@@ -138,14 +138,14 @@ public class PatroniResetInit implements ContainerFactory<ClusterContainerContex
                     .build())
             .addAllToEnv(patroniEnvironmentVariables.createResource(clusterContext))
             .withVolumeMounts(new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.USER.getVolumeName())
+                .withName(StackGresVolume.USER.getName())
                 .withMountPath("/etc/passwd")
                 .withSubPath("etc/passwd")
                 .withReadOnly(true)
                 .build())
             .addAllToVolumeMounts(templateMounts.getVolumeMounts(context))
             .addToVolumeMounts(new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.LOCAL_BIN.getVolumeName())
+                .withName(StackGresVolume.LOCAL_BIN.getName())
                 .withMountPath(
                     "/usr/local/bin/dbops/major-version-upgrade/reset-patroni.sh")
                 .withSubPath("reset-patroni.sh")

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.google.common.io.Resources;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
@@ -17,6 +18,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -84,7 +87,7 @@ public interface StackGresDistributedLogsUtil {
     distributedLogsCluster.getSpec().getPod().getPersistentVolume().setStorageClass(
         distributedLogs.getSpec().getPersistentVolume().getStorageClass());
     distributedLogsCluster.getSpec().setPostgresServices(
-        buildPostgresServices(distributedLogs.getSpec()));
+        buildClusterPostgresServices(distributedLogs.getSpec()));
     distributedLogsCluster.getSpec().getPod().setScheduling(new StackGresClusterPodScheduling());
     Optional.of(distributedLogs)
         .map(StackGresDistributedLogs::getSpec)
@@ -142,16 +145,31 @@ public interface StackGresDistributedLogsUtil {
     return distributedLogsCluster;
   }
 
-  static StackGresClusterPostgresServices buildPostgresServices(
+  static StackGresClusterPostgresServices buildClusterPostgresServices(
       StackGresDistributedLogsSpec stackGresDistributedLogsSpec) {
     StackGresClusterPostgresServices postgresServices = new StackGresClusterPostgresServices();
     Optional.ofNullable(stackGresDistributedLogsSpec)
         .map(StackGresDistributedLogsSpec::getPostgresServices)
         .ifPresent(pgServices -> {
-          postgresServices.setPrimary(pgServices.getPrimary());
-          postgresServices.setReplicas(pgServices.getReplicas());
+          postgresServices.setPrimary(
+              buildClusterPostgresService(pgServices.getPrimary()));
+          postgresServices.setReplicas(
+              buildClusterPostgresService(pgServices.getReplicas()));
         });
     return postgresServices;
+  }
+
+  static StackGresClusterPostgresService buildClusterPostgresService(
+      StackGresPostgresService postgresService) {
+    if (postgresService == null) {
+      return null;
+    }
+    return new StackGresClusterPostgresServiceBuilder()
+        .withEnabled(postgresService.getEnabled())
+        .withType(postgresService.getType())
+        .withLoadBalancerIP(postgresService.getLoadBalancerIP())
+        .withExternalIPs(postgresService.getExternalIPs())
+        .build();
   }
 
 }

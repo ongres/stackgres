@@ -18,25 +18,25 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StackGresKind;
+import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsResources;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.AbstractProfileDecorator;
+import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
-public class DistributedLogsProfileDecorator extends AbstractProfileDecorator
-    implements Decorator<StackGresDistributedLogsContext> {
+public class DistributedLogsStatefulSetContainerProfileDecorator extends
+    AbstractContainerProfileDecorator implements Decorator<StackGresDistributedLogsContext> {
 
   @Override
-  protected StackGresKind getKind() {
-    return StackGresKind.CLUSTER;
+  protected StackGresGroupKind getKind() {
+    return StackGresGroupKind.CLUSTER;
   }
 
   @Override

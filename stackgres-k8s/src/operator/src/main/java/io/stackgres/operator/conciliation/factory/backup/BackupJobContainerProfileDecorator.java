@@ -13,24 +13,24 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
-import io.stackgres.common.StackGresKind;
+import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
-import io.stackgres.operator.conciliation.factory.AbstractProfileDecorator;
+import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
-public class BackupProfileDecorator extends AbstractProfileDecorator
+public class BackupJobContainerProfileDecorator extends AbstractContainerProfileDecorator
     implements Decorator<StackGresBackupContext> {
 
   @Override
-  protected StackGresKind getKind() {
-    return StackGresKind.BACKUP;
+  protected StackGresGroupKind getKind() {
+    return StackGresGroupKind.BACKUP;
   }
 
   @Override

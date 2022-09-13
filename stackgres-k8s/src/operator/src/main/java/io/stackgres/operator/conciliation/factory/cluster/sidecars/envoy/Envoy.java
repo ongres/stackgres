@@ -38,6 +38,7 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -54,7 +55,6 @@ import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -139,10 +139,10 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
   protected Volume buildVolume(StackGresClusterContext context) {
     final String clusterName = context.getSource().getMetadata().getName();
     return new VolumeBuilder()
-        .withName(StackGresContainer.ENVOY.getName())
+        .withName(StackGresVolume.ENVOY.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withDefaultMode(420)
-            .withName(StatefulSetDynamicVolumes.ENVOY.getResourceName(clusterName))
+            .withName(StackGresVolume.ENVOY.getResourceName(clusterName))
             .build())
         .build();
   }
@@ -150,12 +150,12 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
   @Override
   public Container getContainer(ClusterContainerContext context) {
     ContainerBuilder container = new ContainerBuilder();
-    container.withName(StackGresContainer.ENVOY.getName())
+    container.withName(StackGresVolume.ENVOY.getName())
         .withImage(StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
             .getLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withVolumeMounts(new VolumeMountBuilder()
-            .withName(StackGresContainer.ENVOY.getName())
+            .withName(StackGresVolume.ENVOY.getName())
             .withMountPath("/etc/envoy")
             .withReadOnly(true)
             .build()
@@ -225,7 +225,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
         .stream()
         .map(ssl -> ImmutableVolumePair.builder()
             .volume(new VolumeBuilder()
-                .withName("ssl")
+                .withName(StackGresVolume.POSTGRES_SSL.getName())
                 .withSecret(new SecretVolumeSourceBuilder()
                     .withSecretName(ssl.getCertificateSecretKeySelector().getName())
                     .withDefaultMode(0400) //NOPMD
@@ -417,13 +417,13 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
             .stream()
             .flatMap(ssl -> Seq.of(
                 new VolumeMountBuilder()
-                .withName("ssl")
+                .withName(StackGresVolume.POSTGRES_SSL.getName())
                 .withMountPath("/etc/ssl/server.crt")
                 .withSubPath(ssl.getCertificateSecretKeySelector().getKey())
                 .withReadOnly(true)
                 .build(),
                 new VolumeMountBuilder()
-                .withName("ssl")
+                .withName(StackGresVolume.POSTGRES_SSL.getName())
                 .withMountPath("/etc/ssl/server.key")
                 .withSubPath(ssl.getPrivateKeySecretKeySelector().getKey())
                 .withReadOnly(true)

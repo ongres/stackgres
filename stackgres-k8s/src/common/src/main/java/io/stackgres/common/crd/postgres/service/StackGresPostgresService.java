@@ -21,25 +21,15 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public class StackGresPostgresService {
 
-  private Boolean enabled;
+  protected Boolean enabled;
 
   @ValidEnum(enumClass = StackGresPostgresServiceType.class, allowNulls = true,
       message = "type must be one of ClusterIP, LoadBalancer, NodePort or ExternalName")
-  private String type;
+  protected String type;
 
-  private List<String> externalIPs;
+  protected List<String> externalIPs;
 
-  private String loadBalancerIP;
-
-  public StackGresPostgresService() {}
-
-  public StackGresPostgresService(Boolean enabled, String type, List<String> externalIPs,
-      String loadBalancerIP) {
-    this.enabled = enabled;
-    this.type = type;
-    this.externalIPs = externalIPs;
-    this.loadBalancerIP = loadBalancerIP;
-  }
+  protected String loadBalancerIP;
 
   public Boolean getEnabled() {
     return enabled;

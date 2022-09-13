@@ -19,13 +19,13 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
@@ -37,7 +37,7 @@ public class BackupConfigMap extends AbstractBackupConfigMap
 
   public static String name(ClusterContext clusterContext) {
     final String clusterName = clusterContext.getCluster().getMetadata().getName();
-    return StatefulSetDynamicVolumes.BACKUP_ENV.getResourceName(clusterName);
+    return StackGresVolume.BACKUP_ENV.getResourceName(clusterName);
   }
 
   @Override
@@ -52,7 +52,7 @@ public class BackupConfigMap extends AbstractBackupConfigMap
 
   private Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.BACKUP_ENV.getVolumeName())
+        .withName(StackGresVolume.BACKUP_ENV.getName())
         .withNewConfigMap()
         .withName(name(context))
         .withDefaultMode(444)

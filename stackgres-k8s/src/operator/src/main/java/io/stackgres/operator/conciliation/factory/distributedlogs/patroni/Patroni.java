@@ -32,20 +32,19 @@ import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.FactoryName;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
 import io.stackgres.operator.conciliation.factory.distributedlogs.HugePagesMounts;
 import io.stackgres.operator.conciliation.factory.distributedlogs.PostgresExtensionMounts;
-import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
 @OperatorVersionBinder
@@ -151,25 +150,25 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
     return ImmutableList.<VolumeMount>builder()
         .addAll(postgresSocket.getVolumeMounts(context))
         .add(new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.DSHM.getVolumeName())
+            .withName(StackGresVolume.DSHM.getName())
             .withMountPath(ClusterStatefulSetPath.SHARED_MEMORY_PATH.path())
             .build())
         .add(new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.LOG.getVolumeName())
+            .withName(StackGresVolume.LOG.getName())
             .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
             .build())
         .addAll(localBinMounts.getVolumeMounts(context))
         .add(
             new VolumeMountBuilder()
-                .withName(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName())
+                .withName(StackGresVolume.PATRONI_ENV.getName())
                 .withMountPath("/etc/env/patroni")
                 .build(),
             new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.PATRONI_CONFIG.getVolumeName())
+                .withName(StackGresVolume.PATRONI_CONFIG.getName())
                 .withMountPath("/etc/patroni")
                 .build(),
             new VolumeMountBuilder()
-                .withName(StatefulSetDynamicVolumes.INIT_SCRIPT.getVolumeName())
+                .withName(StackGresVolume.INIT_SCRIPT.getName())
                 .withMountPath("/etc/patroni/init-script.d/distributed-logs-template.template1.sql")
                 .withSubPath("distributed-logs-template.sql")
                 .withReadOnly(true)

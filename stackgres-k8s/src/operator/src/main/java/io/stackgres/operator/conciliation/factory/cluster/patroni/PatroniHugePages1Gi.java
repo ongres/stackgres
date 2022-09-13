@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.EmptyDirVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
@@ -20,7 +21,6 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +52,7 @@ public class PatroniHugePages1Gi implements VolumeFactory<StackGresClusterContex
 
   public @NotNull Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName())
+        .withName(StackGresVolume.HUGEPAGES_1G.getName())
         .withEmptyDir(new EmptyDirVolumeSourceBuilder()
             .withMedium("HugePages-1Gi")
             .build())

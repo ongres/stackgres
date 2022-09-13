@@ -29,6 +29,7 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
@@ -43,7 +44,7 @@ import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 import org.jetbrains.annotations.NotNull;
@@ -111,7 +112,7 @@ public class PgBouncerPooling extends AbstractPgPooling {
 
   private Volume buildAuthFileVolume() {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.PGBOUNCER_AUTH_FILE.getVolumeName())
+        .withName(StackGresVolume.PGBOUNCER_AUTH_FILE.getName())
         .withEmptyDir(new EmptyDirVolumeSourceBuilder()
             .build())
         .build();
@@ -119,9 +120,9 @@ public class PgBouncerPooling extends AbstractPgPooling {
 
   private Volume buildSecretVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.PGBOUNCER_SECRETS.getVolumeName())
+        .withName(StackGresVolume.PGBOUNCER_SECRETS.getName())
         .withSecret(new SecretVolumeSourceBuilder()
-            .withSecretName(context.getCluster().getMetadata().getName())
+            .withSecretName(PatroniSecret.name(context))
             .build())
         .build();
   }
@@ -139,13 +140,13 @@ public class PgBouncerPooling extends AbstractPgPooling {
     return ImmutableList.<VolumeMount>builder()
         .addAll(postgresSocket.getVolumeMounts(context))
         .add(new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.PGBOUNCER.getVolumeName())
+            .withName(StackGresVolume.PGBOUNCER.getName())
             .withMountPath(ClusterStatefulSetPath.PGBOUNCER_CONFIG_FILE_PATH.path())
             .withSubPath("pgbouncer.ini")
             .withReadOnly(true)
             .build())
         .add(new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.PGBOUNCER_AUTH_FILE.getVolumeName())
+            .withName(StackGresVolume.PGBOUNCER_AUTH_FILE.getName())
             .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path())
             .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath())
             .withReadOnly(true)

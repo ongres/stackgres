@@ -17,13 +17,13 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.AbstractPatroniTemplatesConfigMap;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
@@ -35,7 +35,7 @@ public class PatroniTemplatesConfigMap
 
   private static String name(StackGresDistributedLogsContext context) {
     final String clusterName = context.getSource().getMetadata().getName();
-    return StatefulSetDynamicVolumes.SCRIPT_TEMPLATES.getResourceName(clusterName);
+    return StackGresVolume.SCRIPT_TEMPLATES.getResourceName(clusterName);
   }
 
   @Override
@@ -50,7 +50,7 @@ public class PatroniTemplatesConfigMap
 
   public @NotNull Volume buildVolume(StackGresDistributedLogsContext context) {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.SCRIPT_TEMPLATES.getVolumeName())
+        .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(name(context))
             .withDefaultMode(420)
@@ -67,7 +67,8 @@ public class PatroniTemplatesConfigMap
     return new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(name(cluster))
+        .withName(StackGresVolume.SCRIPT_TEMPLATES.getResourceName(
+            cluster.getMetadata().getName()))
         .withLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withData(data)

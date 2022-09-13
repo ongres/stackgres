@@ -3,32 +3,32 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.distributedlogs;
+package io.stackgres.operator.conciliation.factory.backup;
 
 import static org.mockito.Mockito.lenient;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
-import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodSpec;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.stackgres.common.StackGresContainer;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresKind;
+import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsResources;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
+import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
 import io.stackgres.operator.conciliation.factory.AbstractProfileDecoratorTestCase;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import org.jooq.lambda.Seq;
@@ -38,42 +38,46 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DistributedLogsProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
+class BackupJobContainerProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
 
-  private static final StackGresKind KIND = StackGresKind.CLUSTER;
+  private static final StackGresGroupKind KIND = StackGresGroupKind.BACKUP;
 
-  private final DistributedLogsProfileDecorator profileDecorator =
-      new DistributedLogsProfileDecorator();
+  private final BackupJobContainerProfileDecorator profileDecorator =
+      new BackupJobContainerProfileDecorator();
 
   @Mock
-  private StackGresDistributedLogsContext context;
+  private StackGresBackupContext context;
 
-  private StackGresDistributedLogs distributedLogs;
+  private StackGresBackup backup;
+
+  private StackGresCluster cluster;
 
   private StackGresProfile profile;
 
-  private StatefulSet statefulSet;
+  private Job job;
 
   private List<HasMetadata> resources;
 
   @BeforeEach
   void setUp() {
-    distributedLogs = Fixtures.distributedLogs().loadDefault().get();
+    backup = Fixtures.backup().loadDefault().get();
+    cluster = Fixtures.cluster().loadDefault().get();
     profile = Fixtures.instanceProfile().loadSizeXs().get();
 
-    final ObjectMeta metadata = distributedLogs.getMetadata();
+    final ObjectMeta metadata = backup.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,
         StackGresProperty.OPERATOR_VERSION.getString());
     resources = KubernetessMockResourceGenerationUtil
         .buildResources(metadata.getName(), metadata.getNamespace());
-    statefulSet = resources.stream()
-        .filter(StatefulSet.class::isInstance)
-        .map(StatefulSet.class::cast)
+    job = resources.stream()
+        .filter(Job.class::isInstance)
+        .map(Job.class::cast)
         .findFirst()
         .orElseThrow();
     profile.getSpec().setContainers(new HashMap<>());
     profile.getSpec().setInitContainers(new HashMap<>());
-    Seq.seq(statefulSet.getSpec().getTemplate().getSpec().getContainers())
+    Seq.seq(job.getSpec()
+            .getTemplate().getSpec().getContainers())
         .forEach(container -> {
           StackGresProfileContainer containerProfile = new StackGresProfileContainer();
           containerProfile.setCpu(new Random().nextInt(32000) + "m");
@@ -81,7 +85,8 @@ class DistributedLogsProfileDecoratorTest extends AbstractProfileDecoratorTestCa
           profile.getSpec().getContainers().put(
               KIND.getContainerPrefix() + container.getName(), containerProfile);
         });
-    Seq.seq(statefulSet.getSpec().getTemplate().getSpec().getInitContainers())
+    Seq.seq(job.getSpec()
+            .getTemplate().getSpec().getInitContainers())
         .forEach(container -> {
           StackGresProfileContainer containerProfile = new StackGresProfileContainer();
           containerProfile.setCpu(new Random().nextInt(32000) + "m");
@@ -96,15 +101,13 @@ class DistributedLogsProfileDecoratorTest extends AbstractProfileDecoratorTestCa
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
     profile.getSpec().getInitContainers().put(
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
+    backup.setStatus(null);
 
-    lenient().when(context.getSource()).thenReturn(distributedLogs);
+    lenient().when(context.getObjectStorage()).thenReturn(
+        Optional.of(new StackGresObjectStorage()));
+    lenient().when(context.getSource()).thenReturn(backup);
+    lenient().when(context.getCluster()).thenReturn(cluster);
     lenient().when(context.getProfile()).thenReturn(profile);
-  }
-
-  @Override
-  protected boolean filterContainers(Container container) {
-    return !Objects.equals(
-        container.getName(), StackGresContainer.PATRONI.getNameWithPrefix());
   }
 
   @Override
@@ -114,11 +117,11 @@ class DistributedLogsProfileDecoratorTest extends AbstractProfileDecoratorTestCa
 
   @Override
   protected PodSpec getPodSpec() {
-    return statefulSet.getSpec().getTemplate().getSpec();
+    return job.getSpec().getTemplate().getSpec();
   }
 
   @Override
-  protected StackGresKind getKind() {
+  protected StackGresGroupKind getKind() {
     return KIND;
   }
 
@@ -129,21 +132,21 @@ class DistributedLogsProfileDecoratorTest extends AbstractProfileDecoratorTestCa
 
   @Override
   protected void disableResourceRequirements() {
-    distributedLogs.getSpec().setNonProductionOptions(new StackGresDistributedLogsNonProduction());
-    distributedLogs.getSpec().getNonProductionOptions().setDisableClusterResourceRequirements(true);
+    cluster.getSpec().setNonProductionOptions(new StackGresClusterNonProduction());
+    cluster.getSpec().getNonProductionOptions().setDisableClusterResourceRequirements(true);
   }
 
   @Override
   protected void enableRequests() {
-    distributedLogs.getSpec().setNonProductionOptions(new StackGresDistributedLogsNonProduction());
-    distributedLogs.getSpec().getNonProductionOptions().setEnableSetClusterCpuRequests(true);
-    distributedLogs.getSpec().getNonProductionOptions().setEnableSetClusterMemoryRequests(true);
+    cluster.getSpec().setNonProductionOptions(new StackGresClusterNonProduction());
+    cluster.getSpec().getNonProductionOptions().setEnableSetClusterCpuRequests(true);
+    cluster.getSpec().getNonProductionOptions().setEnableSetClusterMemoryRequests(true);
   }
 
   @Override
   protected void enableLimits() {
-    distributedLogs.getSpec().setResources(new StackGresDistributedLogsResources());
-    distributedLogs.getSpec().getResources().setEnableClusterLimitsRequirements(true);
+    cluster.getSpec().getPod().setResources(new StackGresClusterResources());
+    cluster.getSpec().getPod().getResources().setEnableClusterLimitsRequirements(true);
   }
 
 }

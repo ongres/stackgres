@@ -9,23 +9,24 @@ import java.util.stream.Stream;
 
 import javax.inject.Singleton;
 
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.StaticVolumeFactory;
+import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
 public class FluentdStaticVolumesFactory
-    implements StaticVolumeFactory<StackGresDistributedLogsContext> {
+    implements VolumeFactory<StackGresDistributedLogsContext> {
 
   @Override
   public @NotNull Stream<VolumePair> buildVolumes(StackGresDistributedLogsContext context) {
     return Stream.of(
-        emptyDir(FluentdStaticVolume.FLUENTD.getVolumeName()),
-        emptyDir(FluentdStaticVolume.FLUENTD_BUFFER.getVolumeName()),
-        emptyDir(FluentdStaticVolume.FLUENTD_LOG.getVolumeName())
+        emptyDir(StackGresVolume.FLUENTD.getName()),
+        emptyDir(StackGresVolume.FLUENTD_BUFFER.getName()),
+        emptyDir(StackGresVolume.FLUENTD_LOG.getName())
     );
   }
 

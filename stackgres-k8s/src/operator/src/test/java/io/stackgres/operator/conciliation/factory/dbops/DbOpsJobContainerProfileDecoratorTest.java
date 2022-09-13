@@ -3,13 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.backup;
+package io.stackgres.operator.conciliation.factory.dbops;
 
 import static org.mockito.Mockito.lenient;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -17,18 +16,17 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresKind;
+import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
-import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
+import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.AbstractProfileDecoratorTestCase;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import org.jooq.lambda.Seq;
@@ -38,16 +36,17 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class BackupProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
+class DbOpsJobContainerProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
 
-  private static final StackGresKind KIND = StackGresKind.BACKUP;
+  private static final StackGresGroupKind KIND = StackGresGroupKind.DBOPS;
 
-  private final BackupProfileDecorator profileDecorator = new BackupProfileDecorator();
+  private final DbOpsJobContainerProfileDecorator profileDecorator =
+      new DbOpsJobContainerProfileDecorator();
 
   @Mock
-  private StackGresBackupContext context;
+  private StackGresDbOpsContext context;
 
-  private StackGresBackup backup;
+  private StackGresDbOps dbOps;
 
   private StackGresCluster cluster;
 
@@ -59,11 +58,11 @@ class BackupProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
 
   @BeforeEach
   void setUp() {
-    backup = Fixtures.backup().loadDefault().get();
+    dbOps = Fixtures.dbOps().loadRestart().get();
     cluster = Fixtures.cluster().loadDefault().get();
     profile = Fixtures.instanceProfile().loadSizeXs().get();
 
-    final ObjectMeta metadata = backup.getMetadata();
+    final ObjectMeta metadata = dbOps.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,
         StackGresProperty.OPERATOR_VERSION.getString());
     resources = KubernetessMockResourceGenerationUtil
@@ -100,11 +99,8 @@ class BackupProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
     profile.getSpec().getInitContainers().put(
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
-    backup.setStatus(null);
 
-    lenient().when(context.getObjectStorage()).thenReturn(
-        Optional.of(new StackGresObjectStorage()));
-    lenient().when(context.getSource()).thenReturn(backup);
+    lenient().when(context.getSource()).thenReturn(dbOps);
     lenient().when(context.getCluster()).thenReturn(cluster);
     lenient().when(context.getProfile()).thenReturn(profile);
   }
@@ -120,7 +116,7 @@ class BackupProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
   }
 
   @Override
-  protected StackGresKind getKind() {
+  protected StackGresGroupKind getKind() {
     return KIND;
   }
 

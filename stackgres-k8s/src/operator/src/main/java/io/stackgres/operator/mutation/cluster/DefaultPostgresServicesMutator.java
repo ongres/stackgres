@@ -16,8 +16,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
-import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
@@ -68,8 +68,8 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
     return isNotCreationOrUpdate;
   }
 
-  private StackGresPostgresService definePostgresServiceInfoFor(
-      StackGresPostgresService pgPrimary) {
+  private StackGresClusterPostgresService definePostgresServiceInfoFor(
+      StackGresClusterPostgresService pgPrimary) {
 
     if (pgPrimary == null) {
       return createNewPostgresService();
@@ -98,8 +98,8 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
     return operations.build();
   }
 
-  private StackGresPostgresService createNewPostgresService() {
-    StackGresPostgresService service = new StackGresPostgresService();
+  private StackGresClusterPostgresService createNewPostgresService() {
+    StackGresClusterPostgresService service = new StackGresClusterPostgresService();
     service.setEnabled(Boolean.TRUE);
     service.setType(StackGresPostgresServiceType.CLUSTER_IP.toString());
     return service;

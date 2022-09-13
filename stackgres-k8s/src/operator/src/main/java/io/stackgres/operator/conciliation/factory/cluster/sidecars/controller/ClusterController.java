@@ -24,6 +24,7 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -31,12 +32,10 @@ import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
 @Sidecar(StackGresContainer.CLUSTER_CONTROLLER)
@@ -148,13 +147,13 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.PGBOUNCER_AUTH_FILE.getVolumeName())
+            .withName(StackGresVolume.PGBOUNCER_AUTH_FILE.getName())
             .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path())
             .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath())
             .build())
         .addToVolumeMounts(
             new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.PATRONI_CONFIG.getVolumeName())
+                .withName(StackGresVolume.PATRONI_CONFIG.getName())
                 .withMountPath("/etc/patroni")
                 .build())
         .build();

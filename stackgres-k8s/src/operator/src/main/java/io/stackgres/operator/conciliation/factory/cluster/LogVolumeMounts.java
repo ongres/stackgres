@@ -13,8 +13,8 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 
 @ApplicationScoped
@@ -24,7 +24,7 @@ public class LogVolumeMounts implements VolumeMountsProvider<ContainerContext> {
   public List<VolumeMount> getVolumeMounts(ContainerContext context) {
     return List.of(
         new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.LOG.getVolumeName())
+            .withName(StackGresVolume.LOG.getName())
             .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
             .build()
     );

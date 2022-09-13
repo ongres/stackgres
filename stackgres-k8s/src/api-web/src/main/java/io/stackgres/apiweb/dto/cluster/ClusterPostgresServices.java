@@ -11,6 +11,7 @@ import io.stackgres.apiweb.dto.postgres.service.PostgresServices;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ClusterPostgresServices extends PostgresServices {
+public class ClusterPostgresServices
+    extends PostgresServices<ClusterPostgresService, ClusterPostgresService> {
 
 }
