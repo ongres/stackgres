@@ -168,6 +168,7 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
                 .withName("MAJOR_VERSION_UPGRADE_CONTAINER_NAME")
                 .withValue(StackGresInitContainer.MAJOR_VERSION_UPGRADE.getName())
                 .build(),
+            ClusterStatefulSetPath.PG_UPGRADE_PATH.envVar(),
             new EnvVarBuilder()
                 .withName("POSTGRES_VERSION_KEY")
                 .withValue(StackGresContext.POSTGRES_VERSION_KEY)

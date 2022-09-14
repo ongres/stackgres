@@ -357,22 +357,6 @@ class PostgresVersionValidatorTest {
   }
 
   @Test
-  void givenWrongMajorPostgresVersionUpdate_shouldFail() {
-    final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
-        .loadWrongMajorPostgresVersionUpdate().get();
-
-    review.getRequest().getObject().getSpec().getPostgres().setVersion(SECOND_PG_MAJOR_VERSION);
-    review.getRequest().getOldObject().getSpec().getPostgres().setVersion(FIRST_PG_MAJOR_VERSION);
-    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
-      validator.validate(review);
-    });
-
-    String resultMessage = exception.getResult().getMessage();
-
-    assertEquals("postgres version can not be changed to a previous major version", resultMessage);
-  }
-
-  @Test
   void givenMinorPostgresVersionUpdate_shouldFailForUser() throws ValidationFailed {
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
         .loadMinorPostgresVersionUpdate().get();

@@ -211,7 +211,7 @@ class DbOpsStatusManagerTest {
 
     statusManager.refreshCondition(dbOps);
 
-    Assertions.assertEquals(1, dbOps.getStatus().getOpRetries());
+    Assertions.assertEquals(0, dbOps.getStatus().getOpRetries());
     Assertions.assertNotNull(dbOps.getStatus().getOpStarted());
     Assertions.assertNotNull(dbOps.getStatus().getRestart());
     assertCondition(

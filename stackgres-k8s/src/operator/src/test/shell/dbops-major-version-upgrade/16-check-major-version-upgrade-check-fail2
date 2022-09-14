@@ -1,0 +1,59 @@
+#!/bin/sh
+
+CHECK=true
+LINK=false
+CLONE=false
+
+. "$TEST_SHELL_PATH/dbops-major-version-upgrade/abstract-major-version-upgrade"
+
+shell_unit_test() {
+  ! shell_unit_test_dbops_major_version_upgrade
+  check_dbops_result
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("logs -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $MAJOR_VERSION_UPGRADE_CONTAINER_NAME")
+    ;;
+    ("get pod -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -o json")
+    echo '{
+      "status": {
+        "initContainerStatuses": [{
+          "name": "major-version-upgrade",
+          "restartCount": 1
+        }]
+      }
+    }'
+    ;;
+    ("logs -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" --all-containers --prefix --timestamp")
+    ;;
+    ("get sts -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json")
+    echo '{
+      "spec": {
+        "template": {
+          "metadata": {
+            "annotations": {
+              "stackgres.io/postgresql-version": "12.6"
+            }
+          },
+          "spec": {
+            "initContainers": [{
+              "name": "major-version-upgrade",
+              "env": [{
+                "name": "ROLLBACK",
+                "value": "true"
+              }]
+            }]
+          }
+        }
+      }
+    }'
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

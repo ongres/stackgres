@@ -32,8 +32,12 @@ kubectl_mock_overwrite() {
                   },
                   "sgInstanceProfile": "size-xs",
                   "configurations": {
-                    "sgBackupConfig": "test",
-                    "backupPath": "test"
+                    "sgBackupConfig": null,
+                    "backupPath": null,
+                    "backups": [{
+                      "sgObjectStorage": "test",
+                      "path": "test"
+                    }]
                   }
               },
               "status": {
@@ -58,7 +62,7 @@ kubectl_mock_overwrite() {
             }'
     ;;
     ("replace --raw /apis/$CRD_GROUP/v1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME -f"*)
-    if [ "$(cat | jq -r '.spec.configurations.backupPath')" != test ]
+    if [ "$(cat | jq -r '.spec.configurations.backups[0].path')" != test ]
     then
       return 1
     fi

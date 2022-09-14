@@ -1,0 +1,67 @@
+#!/bin/sh
+
+CHECK=false
+LINK=false
+CLONE=false
+
+. "$TEST_SHELL_PATH/dbops-major-version-upgrade/abstract-major-version-upgrade"
+
+shell_unit_test() {
+  ! shell_unit_test_dbops_major_version_upgrade
+  check_dbops_result
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("wait pod -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" --for condition=Ready --timeout 0")
+    if [ ! -f "$TEST_TARGET_PATH/pod_0_ready_check_count" ]
+    then
+      echo 0 > "$TEST_TARGET_PATH/pod_0_ready_check_count"
+    fi
+    POD_0_READY_CHECK_COUNT="$(cat "$TEST_TARGET_PATH/pod_0_ready_check_count")"
+    echo "$((POD_0_READY_CHECK_COUNT + 1))" > "$TEST_TARGET_PATH/pod_0_ready_check_count"
+    if [ "$POD_0_READY_CHECK_COUNT" -le 0 ]
+    then
+      return 1
+    fi
+    ;;
+    ("get pod -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -o json")
+    echo '{
+      "status": {
+        "initContainerStatuses": [{
+          "name": "major-version-upgrade",
+          "restartCount": 1
+        }]
+      }
+    }'
+    ;;
+    ("get sts -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json")
+    echo '{
+      "spec": {
+        "template": {
+          "metadata": {
+            "annotations": {
+              "stackgres.io/postgresql-version": "12.6"
+            }
+          },
+          "spec": {
+            "initContainers": [{
+              "name": "major-version-upgrade",
+              "env": [{
+                "name": "ROLLBACK",
+                "value": "true"
+              }]
+            }]
+          }
+        }
+      }
+    }'
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

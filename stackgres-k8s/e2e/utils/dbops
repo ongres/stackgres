@@ -54,7 +54,7 @@ traceable_assert_dbops_running() {
         echo "Job logs:"
         echo
         kubectl logs -n "$CLUSTER_NAMESPACE" \
-          -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" \
+          -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
           --all-containers --ignore-errors --tail=-1
         echo
         return 1
@@ -68,7 +68,7 @@ traceable_assert_dbops_running() {
       echo "Job logs:"
       echo
       kubectl logs -n "$CLUSTER_NAMESPACE" \
-        -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" \
+        -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
         --all-containers --ignore-errors --tail=-1
       echo
       return 1
@@ -124,7 +124,7 @@ traceable_assert_dbops_completion() {
         echo "Job logs:"
         echo
         kubectl logs -n "$CLUSTER_NAMESPACE" \
-          -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" \
+          -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
           --all-containers --ignore-errors --tail=-1
         echo
         return 1
@@ -138,7 +138,7 @@ traceable_assert_dbops_completion() {
       echo "Job logs:"
       echo
       kubectl logs -n "$CLUSTER_NAMESPACE" \
-        -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" \
+        -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
         --all-containers --ignore-errors --tail=-1
       echo
       return 1
@@ -182,7 +182,7 @@ traceable_assert_dbops_failure() {
       echo "Job logs:"
       echo
       kubectl logs -n "$CLUSTER_NAMESPACE" \
-        -l "app=StackGresDbOps,dbops-name=$DBOPS_NAME,db-ops=true" \
+        -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
         --all-containers --ignore-errors --tail=-1
       echo
       return 1

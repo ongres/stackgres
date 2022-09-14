@@ -26,6 +26,13 @@ public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOps
   @NotNull
   private String sourcePostgresVersion;
 
+  @JsonProperty("sourceSgPostgresConfig")
+  @NotNull
+  private String sourceSgPostgresConfig;
+
+  @JsonProperty("sourceBackupPath")
+  private String sourceBackupPath;
+
   @JsonProperty("targetPostgresVersion")
   @NotNull
   private String targetPostgresVersion;
@@ -54,12 +61,31 @@ public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOps
   @NotNull
   private Boolean check;
 
+  @JsonProperty("rollback")
+  private Boolean rollback;
+
   public String getSourcePostgresVersion() {
     return sourcePostgresVersion;
   }
 
   public void setSourcePostgresVersion(String sourcePostgresVersion) {
     this.sourcePostgresVersion = sourcePostgresVersion;
+  }
+
+  public String getSourceSgPostgresConfig() {
+    return sourceSgPostgresConfig;
+  }
+
+  public void setSourceSgPostgresConfig(String sourceSgPostgresConfig) {
+    this.sourceSgPostgresConfig = sourceSgPostgresConfig;
+  }
+
+  public String getSourceBackupPath() {
+    return sourceBackupPath;
+  }
+
+  public void setSourceBackupPath(String sourceBackupPath) {
+    this.sourceBackupPath = sourceBackupPath;
   }
 
   public String getTargetPostgresVersion() {
@@ -118,12 +144,21 @@ public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOps
     this.check = check;
   }
 
+  public Boolean getRollback() {
+    return rollback;
+  }
+
+  public void setRollback(Boolean rollback) {
+    this.rollback = rollback;
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = super.hashCode();
-    result = prime * result + Objects.hash(check, clone, dataChecksum, encoding, link, locale,
-        sourcePostgresVersion, targetPostgresVersion);
+    result =
+        prime * result + Objects.hash(check, clone, dataChecksum, encoding, link, locale, rollback,
+            sourceBackupPath, sourcePostgresVersion, sourceSgPostgresConfig, targetPostgresVersion);
     return result;
   }
 
@@ -143,8 +178,10 @@ public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOps
     return Objects.equals(check, other.check) && Objects.equals(clone, other.clone)
         && Objects.equals(dataChecksum, other.dataChecksum)
         && Objects.equals(encoding, other.encoding) && Objects.equals(link, other.link)
-        && Objects.equals(locale, other.locale)
+        && Objects.equals(locale, other.locale) && Objects.equals(rollback, other.rollback)
+        && Objects.equals(sourceBackupPath, other.sourceBackupPath)
         && Objects.equals(sourcePostgresVersion, other.sourcePostgresVersion)
+        && Objects.equals(sourceSgPostgresConfig, other.sourceSgPostgresConfig)
         && Objects.equals(targetPostgresVersion, other.targetPostgresVersion);
   }
 

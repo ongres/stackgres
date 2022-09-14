@@ -158,11 +158,6 @@ public class PostgresConfigValidator implements ClusterValidator {
             .findAny()
             .get();
 
-        if (givenMajorVersionIndex > oldMajorVersionIndex) {
-          fail(errorForbiddenUpdateUri,
-              "postgres version can not be changed to a previous major version");
-        }
-
         if (!oldPgVersion.equals(givenPgVersion)
             && !(
                 StackGresUtil.isLocked(cluster, timeout)

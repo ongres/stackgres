@@ -70,7 +70,10 @@ public class PatroniResetInit implements ContainerFactory<ClusterContainerContex
     return Optional.of(context.getClusterContext().getSource())
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getDbOps)
-        .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade).isPresent();
+        .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+        .filter(status -> !Boolean.TRUE.equals(status.getCheck()))
+        .filter(status -> !Boolean.TRUE.equals(status.getRollback()))
+        .isPresent();
   }
 
   @Override

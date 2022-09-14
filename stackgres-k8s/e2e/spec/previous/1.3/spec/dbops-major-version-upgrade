@@ -150,7 +150,7 @@ spec:
     check: true
 EOF
 
-  check_major_version_upgrade
+  check_major_version_upgrade_check
 
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }

@@ -2,6 +2,29 @@
 
 set -e
 
+if [ "$ROLLBACK" = true ]
+then
+  if [ -d "$PG_UPGRADE_PATH/$SOURCE_VERSION/data" ]
+  then
+    rm -rf "$PG_DATA_PATH"
+    mv "$PG_UPGRADE_PATH/$SOURCE_VERSION/data" "$PG_DATA_PATH"
+  fi
+  if [ -f "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" ]
+  then
+    cat "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" \
+      | cut -d ' ' -f 3 | tr -d "'" \
+      | while read FILE
+        do
+          rm -rfv "$FILE"
+        done
+  fi
+  if [ -d "$PG_UPGRADE_PATH/$TARGET_VERSION/data" ]
+  then
+    rm -rf "$PG_UPGRADE_PATH/$TARGET_VERSION/data"
+  fi
+  exit 0
+fi
+
 if [ -f "$PG_UPGRADE_PATH/.upgraded-from-$SOURCE_VERSION-to-$TARGET_VERSION" ]
 then
   echo "Major version upgrade already performed"
@@ -55,7 +78,7 @@ then
     fi
     touch .copied-missing-lib64.done
   fi
-  if [ "$CHECK" ]
+  if [ "$CHECK" = true ]
   then
     echo "Checking major version upgrade"
     if ! pg_upgrade -c \
@@ -65,12 +88,22 @@ then
       -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
       -o "-c 'dynamic_library_path=$SOURCE_PG_LIB_PATH:$SOURCE_PG_EXTRA_LIB_PATH'" \
       -O "-c 'dynamic_library_path=$TARGET_PG_LIB_PATH:$TARGET_PG_EXTRA_LIB_PATH'" \
-      $("$LINK" && echo "-k" || true) \
-      $("$CLONE" && echo "--clone" || true)
+      $("$LINK" && printf %s "-k" || true) \
+      $("$CLONE" && printf %s "--clone" || true)
     then
+      echo "Major version upgrade check failed"
       grep . *.txt *.log 2>/dev/null | cat >&2
-      exit 1
     fi
+    
+    echo "Major version upgrade check performed"
+    
+    echo -n "Wait for the major version upgrade rollback to happen"
+    while true
+    do
+      printf .
+      sleep 30
+    done
+    exit 0
   fi
   echo "Performing major version upgrade"
   if ! pg_upgrade \
@@ -80,8 +113,8 @@ then
     -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
     -o "-c 'dynamic_library_path=$SOURCE_PG_LIB_PATH:$SOURCE_PG_EXTRA_LIB_PATH'" \
     -O "-c 'dynamic_library_path=$TARGET_PG_LIB_PATH:$TARGET_PG_EXTRA_LIB_PATH'" \
-    $("$LINK" && echo "-k" || true) \
-    $("$CLONE" && echo "--clone" || true)
+    $("$LINK" && printf %s "-k" || true) \
+    $("$CLONE" && printf %s "--clone" || true)
   then
     grep . *.txt *.log 2>/dev/null | cat >&2
     exit 1
@@ -90,7 +123,8 @@ then
   )
 fi
 
-if [ ! -d "$PG_UPGRADE_PATH/$SOURCE_VERSION/data" ]
+if [ ! -d "$PG_UPGRADE_PATH/$SOURCE_VERSION/data" ] \
+  && [ -d "$PG_UPGRADE_PATH/$TARGET_VERSION/data" ]
 then
   mkdir -p "$PG_UPGRADE_PATH/$SOURCE_VERSION"
   mv "$PG_DATA_PATH" "$PG_UPGRADE_PATH/$SOURCE_VERSION/data"
@@ -104,7 +138,6 @@ then
   fi
   mv "$PG_UPGRADE_PATH/$TARGET_VERSION/data" "$PG_DATA_PATH"
 fi
-rm -rf "$PG_UPGRADE_PATH/$SOURCE_VERSION/data"
 cat "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" \
   | cut -d ' ' -f 3 | tr -d "'" \
   | while read FILE

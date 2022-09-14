@@ -57,7 +57,8 @@ public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContaine
     return Optional.of(context.getClusterContext().getSource())
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getDbOps)
-        .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade).isPresent();
+        .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+        .isPresent();
   }
 
   @Override
@@ -79,6 +80,9 @@ public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContaine
     String link = majorVersionUpgradeStatus.getLink().toString();
     String clone = majorVersionUpgradeStatus.getClone().toString();
     String check = majorVersionUpgradeStatus.getCheck().toString();
+    String rollback = Optional.ofNullable(majorVersionUpgradeStatus.getRollback())
+        .map(Object::toString)
+        .orElse(Boolean.FALSE.toString());
 
     final String targetPatroniImageName = StackGresUtil.getPatroniImageName(
         clusterContext.getCluster(), targetVersion);
@@ -141,6 +145,10 @@ public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContaine
                 new EnvVarBuilder()
                     .withName("CHECK")
                     .withValue(check)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("ROLLBACK")
+                    .withValue(rollback)
                     .build(),
                 new EnvVarBuilder()
                     .withName("POD_NAME")

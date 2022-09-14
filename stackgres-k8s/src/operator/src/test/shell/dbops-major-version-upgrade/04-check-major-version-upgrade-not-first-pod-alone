@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CHECK=true
+CHECK=false
 LINK=false
 CLONE=false
 
@@ -8,12 +8,12 @@ CLONE=false
 
 shell_unit_test_dbops_major_version_upgrade_setup() {
   (
-  echo "pod/test-0"
-  echo "pod/test-1"
+  echo "pod/$CLUSTER_NAME-0"
+  echo "pod/$CLUSTER_NAME-1"
   ) > "$TEST_TARGET_PATH/cluster_pods"
   echo false > "$TEST_TARGET_PATH/pod_0_restarted"
   echo false > "$TEST_TARGET_PATH/pod_1_restarted"
-  echo "pod/test-1" > "$TEST_TARGET_PATH/primary_pod"
+  echo "pod/$CLUSTER_NAME-1" > "$TEST_TARGET_PATH/primary_pod"
 }
 
 shell_unit_test() {
@@ -26,10 +26,10 @@ mock kubectl kubectl_mock_overwrite
 kubectl_mock_overwrite() {
   mokked
   case "$*" in
-    ("get pod -n $CLUSTER_NAMESPACE test-1 --template={{ range .spec.containers }}{{ if eq .name \"$PATRONI_CONTAINER_NAME\" }}{{ .image }}{{ end }}{{ end }}")
+    ("get pod -n $CLUSTER_NAMESPACE $CLUSTER_NAME-1 --template={{ range .spec.containers }}{{ if eq .name \"$PATRONI_CONTAINER_NAME\" }}{{ .image }}{{ end }}{{ end }}")
     echo 'ongres/patroni:v1.6.5-pg11.8-build-5.1'
     ;;
-    ("exec -n $CLUSTER_NAMESPACE test-1 -c $PATRONI_CONTAINER_NAME -- patronictl switchover "*)
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-1 -c $PATRONI_CONTAINER_NAME -- patronictl switchover "*)
     echo "pod/test-0" > "$TEST_TARGET_PATH/primary_pod"
     ;;
     *)

@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -19,8 +20,10 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
 
@@ -32,6 +35,17 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
 
   @Override
   public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
+    if (Optional.of(context.getClusterContext().getSource())
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getDbOps)
+        .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+        .filter(status -> Boolean.TRUE.equals(status.getRollback()))
+        .isPresent()) {
+      return ImmutableList.<VolumeMount>builder()
+          .addAll(postgresExtensionMounts.getVolumeMounts(context))
+          .build();
+    }
+
     final var oldClusterContext = getOldClusterContext(context);
 
     return ImmutableList.<VolumeMount>builder()
@@ -72,6 +86,17 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
 
   @Override
   public List<EnvVar> getDerivedEnvVars(ClusterContainerContext context) {
+    if (Optional.of(context.getClusterContext().getSource())
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getDbOps)
+        .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+        .filter(status -> Boolean.TRUE.equals(status.getRollback()))
+        .isPresent()) {
+      return ImmutableList.<EnvVar>builder()
+          .addAll(postgresExtensionMounts.getDerivedEnvVars(context))
+          .build();
+    }
+
     final ClusterContext clusterContext = context.getClusterContext();
     final var oldClusterContext = getOldClusterContext(context);
 

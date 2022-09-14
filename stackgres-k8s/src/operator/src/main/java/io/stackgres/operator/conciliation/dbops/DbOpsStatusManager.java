@@ -54,7 +54,6 @@ public class DbOpsStatusManager
       updateCondition(getFailedDueToUnexpectedFailure(), source);
       source.getStatus().setOpRetries(Optional.of(source.getStatus())
           .map(StackGresDbOpsStatus::getOpRetries)
-          .map(opRetries -> opRetries + 1)
           .orElse(0));
     }
     return source;
