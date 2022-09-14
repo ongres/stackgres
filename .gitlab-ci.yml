@@ -1,7 +1,7 @@
 image: null
 
 variables:
-  SG_CI_IMAGE_NAME: "ci:1.14"
+  SG_CI_IMAGE_NAME: "ci:1.15"
   BUILDER_IMAGE_NAME: "builder:1.4"
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
@@ -16,7 +16,7 @@ variables:
   RESTORE_CACHE_ATTEMPTS: 3
   E2E_SHELL: sh
   E2E_ENV: kind
-  K8S_VERSION: 1.20.15
+  K8S_VERSION: "1.20"
   LATEST: "false"
   BUILD_UID: 0
 
