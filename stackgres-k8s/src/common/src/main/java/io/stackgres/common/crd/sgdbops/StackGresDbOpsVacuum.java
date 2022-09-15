@@ -8,22 +8,18 @@ package io.stackgres.common.crd.sgdbops;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public class StackGresDbOpsVacuum extends StackGresDbOpsVacuumConfig
-    implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+public class StackGresDbOpsVacuum extends StackGresDbOpsVacuumConfig {
 
   @JsonProperty("databases")
   private List<StackGresDbOpsVacuumDatabase> databases;
@@ -38,7 +34,10 @@ public class StackGresDbOpsVacuum extends StackGresDbOpsVacuumConfig
 
   @Override
   public int hashCode() {
-    return Objects.hash(databases, analyze, disablePageSkipping, freeze, full);
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(databases);
+    return result;
   }
 
   @Override
@@ -46,14 +45,14 @@ public class StackGresDbOpsVacuum extends StackGresDbOpsVacuumConfig
     if (this == obj) {
       return true;
     }
+    if (!super.equals(obj)) {
+      return false;
+    }
     if (!(obj instanceof StackGresDbOpsVacuum)) {
       return false;
     }
     StackGresDbOpsVacuum other = (StackGresDbOpsVacuum) obj;
-    return Objects.equals(databases, other.databases)
-        && Objects.equals(analyze, other.analyze)
-        && Objects.equals(disablePageSkipping, other.disablePageSkipping)
-        && Objects.equals(freeze, other.freeze) && Objects.equals(full, other.full);
+    return Objects.equals(databases, other.databases);
   }
 
   @Override

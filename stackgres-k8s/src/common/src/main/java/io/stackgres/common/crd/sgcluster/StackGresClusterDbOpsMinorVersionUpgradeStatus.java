@@ -9,22 +9,18 @@ import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public class StackGresClusterDbOpsMinorVersionUpgradeStatus extends ClusterDbOpsRestartStatus
-    implements KubernetesResource {
-
-  private static final long serialVersionUID = -1;
+public class StackGresClusterDbOpsMinorVersionUpgradeStatus extends ClusterDbOpsRestartStatus {
 
   @JsonProperty("sourcePostgresVersion")
   @NotNull
@@ -51,25 +47,28 @@ public class StackGresClusterDbOpsMinorVersionUpgradeStatus extends ClusterDbOps
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    if (!super.equals(o)) {
-      return false;
-    }
-    StackGresClusterDbOpsMinorVersionUpgradeStatus that =
-        (StackGresClusterDbOpsMinorVersionUpgradeStatus) o;
-    return Objects.equals(sourcePostgresVersion, that.sourcePostgresVersion)
-        && Objects.equals(targetPostgresVersion, that.targetPostgresVersion);
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(sourcePostgresVersion, targetPostgresVersion);
+    return result;
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(super.hashCode(), sourcePostgresVersion, targetPostgresVersion);
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
+      return false;
+    }
+    if (!(obj instanceof StackGresClusterDbOpsMinorVersionUpgradeStatus)) {
+      return false;
+    }
+    StackGresClusterDbOpsMinorVersionUpgradeStatus other =
+        (StackGresClusterDbOpsMinorVersionUpgradeStatus) obj;
+    return Objects.equals(sourcePostgresVersion, other.sourcePostgresVersion)
+        && Objects.equals(targetPostgresVersion, other.targetPostgresVersion);
   }
 
   @Override

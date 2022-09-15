@@ -7,30 +7,22 @@ package io.stackgres.apiweb.dto.profile;
 
 import java.util.Objects;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ProfileContainer {
 
   @JsonProperty("cpu")
-  @NotBlank(message = "cpu must be provided")
   private String cpu;
 
   @JsonProperty("memory")
-  @NotBlank(message = "memory must be provided")
   private String memory;
 
   @JsonProperty("hugePages")
-  @Valid
   private ProfileHugePages hugePages;
 
   public String getCpu() {

@@ -5,58 +5,40 @@
 
 package io.stackgres.common.crd;
 
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.testutil.ResourceTestUtil;
-import org.junit.jupiter.api.Test;
+import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.testutil.ModelTestUtil;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class CrdEqualsAndHashTest {
 
-  @Test
-  void shouldStackGresCluster_haveEqualsAndHash() {
-    var resource = ResourceTestUtil.createWithRandomData(StackGresCluster.class);
-    ResourceTestUtil.assertEqualsAndHashCode(resource);
-  }
-
-  @Test
-  void shouldStackGresPostgresConfig_haveEqualsAndHash() {
-    var resource = ResourceTestUtil.createWithRandomData(StackGresPostgresConfig.class);
-    ResourceTestUtil.assertEqualsAndHashCode(resource);
-  }
-
-  @Test
-  void shouldStackGresPoolingConfig_haveEqualsAndHash() {
-    var resource = ResourceTestUtil.createWithRandomData(StackGresPoolingConfig.class);
-    ResourceTestUtil.assertEqualsAndHashCode(resource);
-  }
-
-  @Test
-  void shouldStackGresBackupConfig_haveEqualsAndHash() {
-    var resource = ResourceTestUtil.createWithRandomData(StackGresBackupConfig.class);
-    ResourceTestUtil.assertEqualsAndHashCode(resource);
-  }
-
-  @Test
-  void shouldStackGresBackup_haveEqualsAndHash() {
-    var resource = ResourceTestUtil.createWithRandomData(StackGresBackup.class);
-    ResourceTestUtil.assertEqualsAndHashCode(resource);
-  }
-
-  @Test
-  void shouldStackGresDbOps_haveEqualsAndHash() {
-    var resource = ResourceTestUtil.createWithRandomData(StackGresDbOps.class);
-    ResourceTestUtil.assertEqualsAndHashCode(resource);
-  }
-
-  @Test
-  void shouldStackGresDistributedLogs_haveEqualsAndHash() {
-    var resource = ResourceTestUtil.createWithRandomData(StackGresDistributedLogs.class);
-    ResourceTestUtil.assertEqualsAndHashCode(resource);
+  @ParameterizedTest
+  @ValueSource(classes = {
+    StackGresCluster.class,
+    StackGresPostgresConfig.class,
+    StackGresPoolingConfig.class,
+    StackGresBackupConfig.class,
+    StackGresBackup.class,
+    StackGresDbOps.class,
+    StackGresDistributedLogs.class,
+    StackGresObjectStorage.class,
+    StackGresScript.class,
+  })
+  void crdShouldHaveEqualsAndHash(Class<?> resourceClazz) {
+    var resource = ModelTestUtil.createWithRandomData(resourceClazz);
+    ModelTestUtil.assertEqualsAndHashCode(resource);
+    var anotherResource = ModelTestUtil.createWithRandomData(resourceClazz);
+    assertNotEquals(anotherResource, resource);
   }
 
 }

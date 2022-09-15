@@ -10,20 +10,17 @@ import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public class StackGresPoolingConfigStatus implements KubernetesResource {
-
-  private static final long serialVersionUID = 2000013861182789247L;
+public class StackGresPoolingConfigStatus {
 
   @NotNull(message = "pgBouncer is required")
   @Valid

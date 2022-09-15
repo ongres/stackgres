@@ -7,16 +7,12 @@ package io.stackgres.apiweb.dto.backup;
 
 import java.util.Map;
 
-import javax.validation.Valid;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class BackupInformation {
 
   private String startWalFile;
@@ -25,11 +21,9 @@ public class BackupInformation {
   private String pgData;
   private String postgresVersion;
 
-  @Valid
   private BackupLsn lsn;
   private String systemIdentifier;
 
-  @Valid
   private BackupSize size;
   private Map<String, String> controlData;
 

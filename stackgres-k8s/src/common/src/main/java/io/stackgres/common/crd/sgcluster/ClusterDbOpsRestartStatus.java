@@ -10,17 +10,9 @@ import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
-@RegisterForReflection
-@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public class ClusterDbOpsRestartStatus {
+public abstract class ClusterDbOpsRestartStatus {
 
   @JsonProperty("initialInstances")
   @NotNull
@@ -29,24 +21,6 @@ public class ClusterDbOpsRestartStatus {
   @JsonProperty("primaryInstance")
   @NotNull
   private String primaryInstance;
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterDbOpsRestartStatus that = (ClusterDbOpsRestartStatus) o;
-    return Objects.equals(initialInstances, that.initialInstances)
-        && Objects.equals(primaryInstance, that.primaryInstance);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(initialInstances, primaryInstance);
-  }
 
   public List<String> getInitialInstances() {
     return initialInstances;
@@ -63,4 +37,23 @@ public class ClusterDbOpsRestartStatus {
   public void setPrimaryInstance(String primaryInstance) {
     this.primaryInstance = primaryInstance;
   }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(initialInstances, primaryInstance);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof ClusterDbOpsRestartStatus)) {
+      return false;
+    }
+    ClusterDbOpsRestartStatus other = (ClusterDbOpsRestartStatus) obj;
+    return Objects.equals(initialInstances, other.initialInstances)
+        && Objects.equals(primaryInstance, other.primaryInstance);
+  }
+
 }

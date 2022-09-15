@@ -7,30 +7,22 @@ package io.stackgres.apiweb.dto.storages;
 
 import java.util.Objects;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class AwsS3StorageDto {
 
   @JsonProperty("bucket")
-  @NotNull(message = "The bucket is required")
   private String bucket;
 
   @JsonProperty("path")
   private String path;
 
   @JsonProperty("awsCredentials")
-  @NotNull(message = "The credentials is required")
-  @Valid
   private AwsCredentialsDto credentials;
 
   @JsonProperty("region")

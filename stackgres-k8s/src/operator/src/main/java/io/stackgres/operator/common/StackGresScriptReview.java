@@ -14,6 +14,4 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable
 public class StackGresScriptReview extends AdmissionReview<StackGresScript> {
 
-  private static final long serialVersionUID = 1L;
-
 }

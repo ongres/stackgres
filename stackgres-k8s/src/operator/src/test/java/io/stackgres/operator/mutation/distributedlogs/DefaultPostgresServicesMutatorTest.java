@@ -29,6 +29,7 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServicesBuilder;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
@@ -172,7 +173,10 @@ class DefaultPostgresServicesMutatorTest {
 
   private void setupDistributedLogsPgServices(StackGresPostgresService primary,
       StackGresPostgresService replicas) {
-    this.sgDistributedLogs = new StackGresDistributedLogsPostgresServices(primary, replicas);
+    this.sgDistributedLogs = new StackGresDistributedLogsPostgresServicesBuilder()
+        .withPrimary(primary)
+        .withReplicas(replicas)
+        .build();
     review.getRequest().getObject().getSpec().setPostgresServices(sgDistributedLogs);
   }
 

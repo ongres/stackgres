@@ -9,8 +9,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-import io.stackgres.apiweb.app.postgres.service.PostgresService;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsPostgresServices;
+import io.stackgres.apiweb.dto.postgres.service.PostgresService;
 import io.stackgres.apiweb.transformer.distributedlogs.DistributedLogsPostgresServicesConverter;
 import io.stackgres.apiweb.transformer.distributedlogs.converter.fixture.StackGresDistributedLogsPostgresServicesFixture;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;

@@ -7,18 +7,15 @@ package io.stackgres.common.prometheus;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PrometheusConfigSpec implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
+public class PrometheusConfigSpec {
 
   private LabelSelector podMonitorSelector;
 

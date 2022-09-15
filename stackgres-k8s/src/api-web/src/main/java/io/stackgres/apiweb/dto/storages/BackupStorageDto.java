@@ -7,38 +7,28 @@ package io.stackgres.apiweb.dto.storages;
 
 import java.util.Objects;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class BackupStorageDto {
 
   @JsonProperty("type")
-  @NotNull(message = "The storage type is required")
   private String type;
 
   @JsonProperty("s3")
-  @Valid
   private AwsS3StorageDto s3;
 
   @JsonProperty("s3Compatible")
-  @Valid
   private AwsS3CompatibleStorageDto s3Compatible;
 
   @JsonProperty("gcs")
-  @Valid
   private GoogleCloudStorageDto gcs;
 
   @JsonProperty("azureBlob")
-  @Valid
   private AzureBlobStorageDto azureBlob;
 
   public String getType() {

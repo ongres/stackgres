@@ -5,14 +5,10 @@
 
 package io.stackgres.common.crd.sgdbops;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.quarkus.runtime.annotations.RegisterForReflection;
+import java.util.Objects;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
-@RegisterForReflection
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public abstract class StackGresDbOpsVacuumConfig {
 
   @JsonProperty("full")
@@ -57,6 +53,25 @@ public abstract class StackGresDbOpsVacuumConfig {
 
   public void setDisablePageSkipping(Boolean disablePageSkipping) {
     this.disablePageSkipping = disablePageSkipping;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(analyze, disablePageSkipping, freeze, full);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresDbOpsVacuumConfig)) {
+      return false;
+    }
+    StackGresDbOpsVacuumConfig other = (StackGresDbOpsVacuumConfig) obj;
+    return Objects.equals(analyze, other.analyze)
+        && Objects.equals(disablePageSkipping, other.disablePageSkipping)
+        && Objects.equals(freeze, other.freeze) && Objects.equals(full, other.full);
   }
 
 }

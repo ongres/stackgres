@@ -8,18 +8,13 @@ package io.stackgres.apiweb.dto.script;
 import java.util.List;
 import java.util.Objects;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ScriptSpec {
 
   @JsonProperty("managedVersions")
@@ -29,8 +24,6 @@ public class ScriptSpec {
   private Boolean continueOnError;
 
   @JsonProperty("scripts")
-  @NotNull(message = "scripts section cannot be null")
-  @Valid
   private List<ScriptEntry> scripts;
 
   public Boolean isManagedVersions() {

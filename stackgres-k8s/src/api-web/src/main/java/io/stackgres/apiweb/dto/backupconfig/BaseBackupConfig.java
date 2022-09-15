@@ -5,22 +5,16 @@
 
 package io.stackgres.apiweb.dto.backupconfig;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class BaseBackupConfig {
 
   @JsonProperty("retention")
-  @Positive(message = "retention should be greater than zero")
   private Integer retention;
 
   @JsonProperty("cronSchedule")
@@ -29,7 +23,6 @@ public class BaseBackupConfig {
   @JsonProperty("compression")
   private String compressionMethod;
 
-  @Valid
   private BaseBackupPerformance performance;
 
   public Integer getRetention() {

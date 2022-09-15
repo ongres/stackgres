@@ -7,9 +7,7 @@ package io.stackgres.apiweb.dto.objectstorage;
 
 import java.util.Objects;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
@@ -17,11 +15,10 @@ import io.stackgres.apiweb.dto.storages.BackupStorageDto;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ObjectStorageDto extends ResourceDto {
 
   @JsonProperty("spec")
-  @NotNull(message = "The spec is required")
-  @Valid
   private BackupStorageDto spec;
 
   @JsonProperty("status")

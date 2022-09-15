@@ -11,14 +11,16 @@ import java.util.Optional;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.Predicates;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public class StackGresExtensionVersionTarget {
 
   private String flavor;

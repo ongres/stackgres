@@ -15,11 +15,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.sundr.builder.annotations.Buildable;
 
-@JsonDeserialize
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonInclude(Include.NON_EMPTY)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public class PatroniConfig {
 
   @JsonProperty("ttl")

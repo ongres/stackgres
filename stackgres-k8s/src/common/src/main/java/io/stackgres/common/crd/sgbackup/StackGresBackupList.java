@@ -5,14 +5,18 @@
 
 package io.stackgres.common.crd.sgbackup;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.client.CustomResourceList;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public final class StackGresBackupList extends CustomResourceList<StackGresBackup> {
 
-  private static final long serialVersionUID = -1519749838799557685L;
+  private static final long serialVersionUID = 1L;
 
 }

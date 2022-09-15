@@ -10,6 +10,7 @@ import java.util.Objects;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.Namespaced;
@@ -22,17 +23,18 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CommonDefinition;
 import io.sundr.builder.annotations.Buildable;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 @Group(CommonDefinition.GROUP)
 @Version(CommonDefinition.VERSION)
 @Kind(StackGresDbOps.KIND)
-@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public final class StackGresDbOps
     extends CustomResource<StackGresDbOpsSpec, StackGresDbOpsStatus>
     implements Namespaced {
 
-  private static final long serialVersionUID = 4405727567343191955L;
+  private static final long serialVersionUID = 1L;
 
   public static final String KIND = "SGDbOps";
 
@@ -89,8 +91,6 @@ public final class StackGresDbOps
 
   @Override
   public String toString() {
-    // TODO: review if this should return a YAML or keep the same format of toString().
-    // if the yaml is needed it should be called from another method.
     return StackGresUtil.toPrettyYaml(this);
   }
 }

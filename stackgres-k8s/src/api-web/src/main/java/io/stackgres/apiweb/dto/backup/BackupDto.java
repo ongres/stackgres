@@ -5,21 +5,17 @@
 
 package io.stackgres.apiweb.dto.backup;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class BackupDto extends ResourceDto {
 
-  @NotNull(message = "The specification of backup is required")
-  @Valid
   private BackupSpec spec;
 
-  @Valid
   private BackupStatus status;
 
   public BackupSpec getSpec() {

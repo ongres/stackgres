@@ -3,33 +3,21 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.app.postgres.service;
+package io.stackgres.apiweb.dto.postgres.service;
 
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
-@JsonDeserialize
-@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @RegisterForReflection
-public class PostgresServices implements KubernetesResource {
-
-  private static final long serialVersionUID = 1L;
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+public class PostgresServices {
 
   private PostgresService primary;
 
   private PostgresService replicas;
-
-  public PostgresServices() {}
-
-  public PostgresServices(PostgresService primary, PostgresService replicas) {
-    this.primary = primary;
-    this.replicas = replicas;
-  }
 
   public PostgresService getPrimary() {
     return primary;
@@ -45,11 +33,6 @@ public class PostgresServices implements KubernetesResource {
 
   public void setReplicas(PostgresService replicas) {
     this.replicas = replicas;
-  }
-
-  @Override
-  public String toString() {
-    return StackGresUtil.toPrettyYaml(this);
   }
 
   @Override
@@ -69,4 +52,10 @@ public class PostgresServices implements KubernetesResource {
   public int hashCode() {
     return Objects.hash(primary, replicas);
   }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
+  }
+
 }
