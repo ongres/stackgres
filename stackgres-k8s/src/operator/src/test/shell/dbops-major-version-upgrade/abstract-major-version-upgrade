@@ -10,8 +10,11 @@ KEBAB_OP_NAME='major-version-upgrade'
 PATRONI_CONTAINER_NAME=patroni
 MAJOR_VERSION_UPGRADE_CONTAINER_NAME=major-version-upgrade
 POSTGRES_VERSION_KEY=stackgres.io/postgresql-version
+SOURCE_VERSION=11.8
 TARGET_VERSION=12.6
+TARGET_POSTGRES_CONFIG=postgresconf-12
 DATA_CHECKSUM=true
+PG_UPGRADE_PATH="/var/lib/postgresql/upgrade"
 
 shell_unit_test_skip() {
   if [ -z "$IMAGE_NAME" ] && echo "$IMAGE_NAME" | grep "patroni"
@@ -58,7 +61,13 @@ kubectl_mock() {
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .status.dbOps }}{{ if .status.dbOps.$OP_NAME }}true{{ end }}{{ end }}")
     ;;
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .spec.postgres.version }}")
-    printf '%s' "11.8"
+    printf '%s' "$SOURCE_VERSION"
+    ;;
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ .spec.configurations.sgPostgresConfig }}")
+    printf %s "postgresconf"
+    ;;
+    ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .spec.configurations.backups }}{{ (index .spec.configurations.backups 0).path }}{{ else }}{{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ end }}{{ end }}")
+    printf %s "sgbackup.stackgres.io/$CLUSTER_NAMESPACE/$CLUSTER_NAME/${SOURCE_VERSION%.*}"
     ;;
     ("get $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json")
       echo '{
@@ -198,16 +207,17 @@ kubectl_mock() {
     ("delete pod -n $CLUSTER_NAMESPACE test-1")
     echo true > "$TEST_TARGET_PATH/pod_1_restarted"
     ;;
-    ("exec -n $CLUSTER_NAMESPACE test-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SHOW lc_collate")
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SHOW lc_collate")
     echo 'en_US.UTF-8'
     ;;
-    ("exec -n $CLUSTER_NAMESPACE test-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SHOW server_encoding")
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SHOW server_encoding")
     echo 'UTF8'
     ;;
-    ("exec -n $CLUSTER_NAMESPACE test-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SELECT CASE WHEN current_setting('data_checksums')"*)
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SELECT CASE WHEN current_setting('data_checksums')"*)
     echo '"true"'
     ;;
-
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- rm -rf $PG_UPGRADE_PATH/$SOURCE_VERSION/data")
+    ;;
     *)
     not_mokked
     ;;

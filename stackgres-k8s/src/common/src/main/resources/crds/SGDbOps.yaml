@@ -504,7 +504,7 @@ spec:
                     check:
                       type: boolean
                       description: |
-                        If true check clusters before changing any data. Defaults to: `false`.
+                        If true does some checks to see if the cluster can perform a major version upgrade without changing any data. Defaults to: `false`.
                 restart:
                   type: object
                   description: |

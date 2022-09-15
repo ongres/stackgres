@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CHECK=false
+CHECK=true
 LINK=false
 CLONE=false
 
@@ -38,6 +38,40 @@ kubectl_mock_overwrite() {
     printf 'test-0'
     ;;
     ("patch $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*"{\"op\":\"replace\",\"path\":\"/status/dbOps/majorVersionUpgrade"*)
+    ;;
+    ("logs -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $MAJOR_VERSION_UPGRADE_CONTAINER_NAME")
+    echo "Major version upgrade check performed"
+    ;;
+    ("get pod -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -o json")
+    echo '{
+      "status": {
+        "initContainerStatuses": [{
+          "name": "major-version-upgrade"
+        }]
+      }
+    }'
+    ;;
+    ("get sts -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json")
+    echo '{
+      "spec": {
+        "template": {
+          "metadata": {
+            "annotations": {
+              "stackgres.io/postgresql-version": "12.6"
+            }
+          },
+          "spec": {
+            "initContainers": [{
+              "name": "major-version-upgrade",
+              "env": [{
+                "name": "ROLLBACK",
+                "value": "true"
+              }]
+            }]
+          }
+        }
+      }
+    }'
     ;;
     *)
     not_mokked

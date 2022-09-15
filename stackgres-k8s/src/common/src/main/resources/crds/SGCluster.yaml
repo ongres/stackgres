@@ -1190,6 +1190,14 @@ spec:
                           type: string
                           description: |
                             The source PostgreSQL version
+                        sourceSgPostgresConfig:
+                          type: string
+                          description: |
+                            The source SGPostgresConfig reference
+                        sourceBackupPath:
+                          type: string
+                          description: |
+                            The source backup path
                         targetPostgresVersion:
                           type: string
                           description: |
@@ -1217,7 +1225,11 @@ spec:
                         check:
                           type: boolean
                           description: |
-                            Run `pg_upgrade` with check option before performing the real upgrade
+                            Run `pg_upgrade` with check option instead of performing the real upgrade
+                        rollback:
+                          type: boolean
+                          description: |
+                            Indicates to rollback from a previous major version upgrade
                     restart:
                       type: object
                       description: |

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-CHECK=true
+CHECK=false
 LINK=false
 CLONE=false
 
