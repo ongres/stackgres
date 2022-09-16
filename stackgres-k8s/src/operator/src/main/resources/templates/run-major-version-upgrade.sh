@@ -79,7 +79,7 @@ EOF
     )"
 
     until (
-      DBOPS="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
+      DBOPS="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json || printf . | jq -c .)"
       DBOPS="$(printf '%s' "$DBOPS" | jq '.status.dbOps = '"$DB_OPS_PATCH")"
       printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
       )
@@ -129,7 +129,7 @@ EOF
   fi
   echo
   until (
-    CLUSTER="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
+    CLUSTER="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json || printf . | jq -c .)"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq '.spec.postgres.version = "'"$TARGET_VERSION"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq '.spec.configurations.sgPostgresConfig = "'"$TARGET_POSTGRES_CONFIG"'"')"
     if [ -n "$TARGET_BACKUP_PATH" ]
@@ -158,7 +158,7 @@ EOF
   do
     IS_STATEFULSET_UPDATED="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
       | jq "(.spec.template.spec.initContainers | any(.name == \"$MAJOR_VERSION_UPGRADE_CONTAINER_NAME\"))
-        and (.spec.template.metadata.annotations[\"$POSTGRES_VERSION_KEY\"] == \"$TARGET_VERSION\")")"
+        and (.spec.template.metadata.annotations[\"$POSTGRES_VERSION_KEY\"] == \"$TARGET_VERSION\")" || printf false)"
     if [ "$IS_STATEFULSET_UPDATED" = "true" ]
     then
       break
@@ -224,7 +224,7 @@ EOF
   if [ "$CHECK" != true ]
   then
     echo "Restarting primary instance $PRIMARY_INSTANCE to perform major version upgrade..."
-    create_event "MajorVersionUpgradeStarted" "Normal" "Major version upgrade started on pod $PRIMARY_INSTANCE"
+    create_event "MajorVersionUpgradeStarted" "Normal" "Major version upgrade started on instance $PRIMARY_INSTANCE"
 
     kubectl delete pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE"
 
@@ -238,14 +238,18 @@ EOF
     then
       return 1
     fi
-    create_event "MajorVersionUpgradeCompleted" "Normal" "Major version upgrade completed on Pod $PRIMARY_INSTANCE"
+    create_event "MajorVersionUpgradeCompleted" "Normal" "Major version upgrade completed on instance $PRIMARY_INSTANCE"
 
     echo "Major version upgrade completed successfully, removing old data from instance $PRIMARY_INSTANCE"
     kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
       rm -rf "$PG_UPGRADE_PATH/$SOURCE_VERSION/data"
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
+      rm -rf "$PG_RELOCATED_BASE_PATH/$SOURCE_VERSION"
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
+      rm -rf "$PG_EXTENSIONS_BASE_PATH/${SOURCE_VERSION%.*}"
   else
     echo "Restarting primary instance $PRIMARY_INSTANCE to perform major version upgrade check..."
-    create_event "MajorVersionUpgradeCheckStarted" "Normal" "Major version upgrade check started on pod $PRIMARY_INSTANCE"
+    create_event "MajorVersionUpgradeCheckStarted" "Normal" "Major version upgrade check started on instance $PRIMARY_INSTANCE"
 
     kubectl delete pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE"
 
@@ -259,7 +263,7 @@ EOF
     then
       return 1
     fi
-    create_event "MajorVersionUpgradeCheckCompleted" "Normal" "Major version upgrade check completed on Pod $PRIMARY_INSTANCE"
+    create_event "MajorVersionUpgradeCheckCompleted" "Normal" "Major version upgrade check completed on instance $PRIMARY_INSTANCE"
   fi
 
   CURRENT_PRIMARY_POD="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_PRIMARY_POD_LABELS" -o name)"
@@ -470,14 +474,14 @@ EOF
 
     echo "Performing switchover from primary $PRIMARY_INSTANCE to replica $TARGET_INSTANCE..."
 
-    create_event "SwitchoverInitiated" "Normal" "Switchover of $CLUSTER_CRD_NAME $CLUSTER_NAME initiated"
+    create_event "SwitchoverInitiated" "Normal" "Switchover of $CLUSTER_CRD_NAME $CLUSTER_NAME from $PRIMARY_INSTANCE to $TARGET_INSTANCE initiated"
 
     kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
       patronictl switchover "$CLUSTER_NAME" --master "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force \
 
     echo "done"
 
-    create_event "SwitchoverFinalized" "Normal" "Switchover of $CLUSTER_CRD_NAME $CLUSTER_NAME completed"
+    create_event "SwitchoverFinalized" "Normal" "Switchover of $CLUSTER_CRD_NAME $CLUSTER_NAME from $PRIMARY_INSTANCE to $TARGET_INSTANCE completed"
     echo
 
     PRIMARY_INSTANCE="$TARGET_INSTANCE"
@@ -529,8 +533,7 @@ wait_for_major_version_upgrade() {
   done
   until kubectl wait pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" --for condition=Ready --timeout 0 >/dev/null 2>&1
   do
-    POD_INIT_CONTAINER_FAILURES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o json || true)"
-    POD_INIT_CONTAINER_FAILURES="$(printf %s "$POD_INIT_CONTAINER_FAILURES" \
+    POD_INIT_CONTAINER_FAILURES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o json \
       | jq '.status.containerStatuses + .status.initContainerStatuses + [] | map(select(.restartCount > 0)) | length' \
       || printf 0)"
     if [ "$POD_INIT_CONTAINER_FAILURES" -gt 0 ]
@@ -555,8 +558,7 @@ wait_for_major_version_upgrade_check() {
     MAJOR_VERSION_UPGRADE_LOGS="$(
       kubectl logs -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$MAJOR_VERSION_UPGRADE_CONTAINER_NAME" 2>/dev/null \
         | grep "^Major version upgrade check " || true)"
-    POD_INIT_CONTAINER_FAILURES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o json || true)"
-    POD_INIT_CONTAINER_FAILURES="$(printf %s "$POD_INIT_CONTAINER_FAILURES" \
+    POD_INIT_CONTAINER_FAILURES="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -o json \
       | jq '.status.containerStatuses + .status.initContainerStatuses + [] | map(select(.restartCount > 0)) | length' \
       || printf 0)"
     if [ "$POD_INIT_CONTAINER_FAILURES" -gt 0 ] \
@@ -602,7 +604,7 @@ rollback_major_version_upgrade() {
   fi
   echo
   until (
-    CLUSTER="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
+    CLUSTER="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json || printf . | jq -c .)"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq '.spec.postgres.version = "'"$SOURCE_VERSION"'"')"
     CLUSTER="$(printf '%s' "$CLUSTER" | jq '.spec.configurations.sgPostgresConfig = "'"$SOURCE_POSTGRES_CONFIG"'"')"
     if [ -n "$SOURCE_BACKUP_PATH" ]
@@ -628,7 +630,7 @@ rollback_major_version_upgrade() {
   echo "Signaling major version upgrade rollback started to cluster"
   echo
   until (
-    DBOPS="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
+    DBOPS="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json || printf . | jq -c .)"
     DBOPS="$(printf '%s' "$DBOPS" | jq '.status.dbOps.majorVersionUpgrade.rollback = true')"
     printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
     )
@@ -643,7 +645,7 @@ rollback_major_version_upgrade() {
     IS_STATEFULSET_UPDATED="$(kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
       | jq "(.spec.template.spec.initContainers | any(.name == \"$MAJOR_VERSION_UPGRADE_CONTAINER_NAME\"))
         and (.spec.template.spec.initContainers[] | select(.name == \"$MAJOR_VERSION_UPGRADE_CONTAINER_NAME\")
-          | .env | any(.name == \"ROLLBACK\" and .value == \"true\"))")"
+          | .env | any(.name == \"ROLLBACK\" and .value == \"true\"))" || printf false)"
     if [ "$IS_STATEFULSET_UPDATED" = "true" ]
     then
       break
@@ -654,7 +656,7 @@ rollback_major_version_upgrade() {
   echo
 
   echo "Restarting primary instance $PRIMARY_INSTANCE to perform major version upgrade rollback..."
-  create_event "MajorVersionUpgradeRollbackStarted" "Normal" "Major version upgrade rollback started on pod $PRIMARY_INSTANCE"
+  create_event "MajorVersionUpgradeRollbackStarted" "Normal" "Major version upgrade rollback started on instance $PRIMARY_INSTANCE"
 
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE"
 
@@ -664,7 +666,7 @@ rollback_major_version_upgrade() {
   echo "Waiting primary instance $PRIMARY_INSTANCE major version upgrade rollback..."
 
   wait_for_instance "$PRIMARY_INSTANCE"
-  create_event "MajorVersionUpgradeRollbackCompleted" "Normal" "Major version upgrade rollback completed on Pod $PRIMARY_INSTANCE"
+  create_event "MajorVersionUpgradeRollbackCompleted" "Normal" "Major version upgrade rollback completed on instance $PRIMARY_INSTANCE"
 
   CURRENT_PRIMARY_POD="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_PRIMARY_POD_LABELS" -o name)"
   CURRENT_PRIMARY_INSTANCE="$(printf '%s' "$CURRENT_PRIMARY_POD" | cut -d / -f 2)"

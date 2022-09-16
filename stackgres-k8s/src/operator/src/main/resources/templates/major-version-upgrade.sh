@@ -4,7 +4,7 @@ set -e
 
 if [ "$ROLLBACK" = true ]
 then
-  if [ -d "$PG_UPGRADE_PATH/$SOURCE_VERSION/data" ]
+  if [ -f "$PG_UPGRADE_PATH/$SOURCE_VERSION/data/PG_VERSION" ]
   then
     rm -rf "$PG_DATA_PATH"
     mv "$PG_UPGRADE_PATH/$SOURCE_VERSION/data" "$PG_DATA_PATH"
@@ -22,10 +22,18 @@ then
   then
     rm -rf "$PG_UPGRADE_PATH/$TARGET_VERSION/data"
   fi
+  if [ -d "$PG_RELOCATED_BASE_PATH/$TARGET_VERSION" ]
+  then
+    rm -rf "$PG_RELOCATED_BASE_PATH/$TARGET_VERSION"
+  fi
+  if [ -d "$PG_EXTENSIONS_BASE_PATH/$TARGET_VERSION" ]
+  then
+    rm -rf "$PG_EXTENSIONS_BASE_PATH/$TARGET_VERSION"
+  fi
   exit 0
 fi
 
-if [ -f "$PG_UPGRADE_PATH/.upgraded-from-$SOURCE_VERSION-to-$TARGET_VERSION" ]
+if [ -f "$PG_UPGRADE_PATH/.upgrade-from-$SOURCE_VERSION-to-$TARGET_VERSION.done" ]
 then
   echo "Major version upgrade already performed"
   exit 0
@@ -42,12 +50,12 @@ then
   echo "Removing data of non primary instance"
   rm -rf "$PG_DATA_PATH"
   mkdir -p "$PG_UPGRADE_PATH"
-  touch "$PG_UPGRADE_PATH/.upgraded-from-$SOURCE_VERSION-to-$TARGET_VERSION"
+  touch "$PG_UPGRADE_PATH/.upgrade-from-$SOURCE_VERSION-to-$TARGET_VERSION.done"
   echo "Major version upgrade not needed for non primary instance"
   exit 0
 fi
 
-if [ ! -f "$PG_DATA_PATH/.upgraded-from-$SOURCE_VERSION-to-$TARGET_VERSION" ]
+if [ ! -f "$PG_UPGRADE_PATH/$TARGET_VERSION/data/.pg_upgrade-from-$SOURCE_VERSION-to-$TARGET_VERSION.done" ]
 then
   echo "Creating new database"
   rm -rf "$PG_UPGRADE_PATH/$TARGET_VERSION/data"
@@ -66,9 +74,9 @@ then
   } > "$PG_UPGRADE_PATH/$TARGET_VERSION/data/postgresql.conf"
   (
   cd "$PG_UPGRADE_PATH/$TARGET_VERSION"
-  if [ ! -f .copied-missing-lib64.done ]
+  if [ ! -f .copy-missing-lib64.done ]
   then
-    cp -auv "$SOURCE_PG_LIB64_PATH" "${TARGET_PG_LIB64_PATH%/*}" > copied-missing-lib64
+    cp -aunv "$SOURCE_PG_LIB64_PATH" "${TARGET_PG_LIB64_PATH%/*}" > copied-missing-lib64
     if [ -s copied-missing-lib64 ]
     then
       echo "Following files where copied from $SOURCE_PG_LIB64_PATH to $TARGET_PG_LIB64_PATH"
@@ -76,7 +84,7 @@ then
       cat copied-missing-lib64
       echo
     fi
-    touch .copied-missing-lib64.done
+    touch .copy-missing-lib64.done
   fi
   if [ "$CHECK" = true ]
   then
@@ -119,7 +127,7 @@ then
     grep . *.txt *.log 2>/dev/null | cat >&2
     exit 1
   fi
-  touch "$PG_DATA_PATH/.upgraded-from-$SOURCE_VERSION-to-$TARGET_VERSION"
+  touch "$PG_UPGRADE_PATH/$TARGET_VERSION/data/.pg_upgrade-from-$SOURCE_VERSION-to-$TARGET_VERSION.done"
   )
 fi
 
@@ -144,5 +152,5 @@ cat "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" \
     do
       rm -rfv "$FILE"
     done
-touch "$PG_UPGRADE_PATH/.upgraded-from-$SOURCE_VERSION-to-$TARGET_VERSION"
+touch "$PG_UPGRADE_PATH/.upgrade-from-$SOURCE_VERSION-to-$TARGET_VERSION.done"
 echo "Major version upgrade performed"

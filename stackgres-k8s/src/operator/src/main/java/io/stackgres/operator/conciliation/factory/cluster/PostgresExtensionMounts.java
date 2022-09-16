@@ -115,6 +115,7 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
             ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.envVar(clusterContext),
             ClusterStatefulSetPath.PG_SHARE_PATH.envVar(clusterContext),
             ClusterStatefulSetPath.PG_EXTENSION_PATH.envVar(clusterContext),
+            ClusterStatefulSetPath.PG_RELOCATED_BASE_PATH.envVar(clusterContext),
             ClusterStatefulSetPath.PG_RELOCATED_PATH.envVar(clusterContext),
             ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH.envVar(clusterContext),
             ClusterStatefulSetPath.PG_RELOCATED_BINARIES_PATH.envVar(clusterContext),
