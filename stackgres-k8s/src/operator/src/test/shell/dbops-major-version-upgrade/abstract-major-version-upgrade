@@ -15,6 +15,8 @@ TARGET_VERSION=12.6
 TARGET_POSTGRES_CONFIG=postgresconf-12
 DATA_CHECKSUM=true
 PG_UPGRADE_PATH="/var/lib/postgresql/upgrade"
+PG_RELOCATED_BASE_PATH="/var/lib/postgresql/relocated"
+PG_EXTENSIONS_BASE_PATH="/var/lib/postgresql/extensions"
 
 shell_unit_test_skip() {
   if [ -z "$IMAGE_NAME" ] && echo "$IMAGE_NAME" | grep "patroni"
@@ -217,6 +219,10 @@ kubectl_mock() {
     echo '"true"'
     ;;
     ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- rm -rf $PG_UPGRADE_PATH/$SOURCE_VERSION/data")
+    ;;
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- rm -rf $PG_RELOCATED_BASE_PATH/$SOURCE_VERSION")
+    ;;
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- rm -rf $PG_EXTENSIONS_BASE_PATH/${SOURCE_VERSION%.*}")
     ;;
     *)
     not_mokked
