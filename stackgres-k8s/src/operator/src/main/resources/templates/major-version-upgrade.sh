@@ -93,11 +93,6 @@ then
     fi
     touch "$PG_UPGRADE_PATH/$TARGET_VERSION/.copy-missing-lib64.done"
   fi
-  if [ "$PG_DATA_PATH/postmaster.pid" ]
-  then
-    echo "Removing stale $PG_DATA_PATH/postmaster.pid"
-    rm  "$PG_DATA_PATH/postmaster.pid"
-  fi
   if [ "$CHECK" = true ]
   then
     echo "Checking major version upgrade"

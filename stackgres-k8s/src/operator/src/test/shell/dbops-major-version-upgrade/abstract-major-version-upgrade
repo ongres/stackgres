@@ -218,11 +218,7 @@ kubectl_mock() {
     ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c SELECT CASE WHEN current_setting('data_checksums')"*)
     echo '"true"'
     ;;
-    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- rm -rf $PG_UPGRADE_PATH/$SOURCE_VERSION/data")
-    ;;
-    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- rm -rf $PG_RELOCATED_BASE_PATH/$SOURCE_VERSION")
-    ;;
-    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- rm -rf $PG_EXTENSIONS_BASE_PATH/${SOURCE_VERSION%.*}")
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- sh -c rm -rf \"$PG_UPGRADE_PATH/$SOURCE_VERSION/data\""*)
     ;;
     *)
     not_mokked

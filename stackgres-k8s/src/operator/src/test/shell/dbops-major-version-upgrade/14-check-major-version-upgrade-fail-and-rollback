@@ -38,6 +38,8 @@ kubectl_mock_overwrite() {
       }
     }'
     ;;
+    ("logs -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" --all-containers --prefix --timestamp")
+    ;;
     ("get sts -n $CLUSTER_NAMESPACE $CLUSTER_NAME -o json")
     echo '{
       "spec": {
