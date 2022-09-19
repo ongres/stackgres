@@ -25,7 +25,11 @@ do
   then
     echo "Relocating ${RELOCATE_PATH%:*} to ${RELOCATE_PATH#*:} ..."
     mkdir -p "${RELOCATE_PATH#*:}"
-    rm -fr "${RELOCATE_PATH#*:}"
+    if [ -d "${RELOCATE_PATH#*:}" ]
+    then
+      chmod -R u+rw "${RELOCATE_PATH#*:}"
+      rm -fr "${RELOCATE_PATH#*:}"
+    fi
     cp -a "${RELOCATE_PATH%:*}" "${RELOCATE_PATH#*:}"
     chmod 700 "${RELOCATE_PATH#*:}" -R
     touch "${RELOCATE_PATH#*:}/.done"
