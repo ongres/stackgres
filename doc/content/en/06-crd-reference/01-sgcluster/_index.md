@@ -350,6 +350,9 @@ Custom configurations to be applied to the cluster.
 | [sgPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}) |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPostgresConfig >}} |
 | [sgPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}})   |          | ✓         | string   | will be generated | {{< crd-field-description SGCluster.spec.configurations.sgPoolingConfig >}}  |
 | [sgBackupConfig]({{% relref "06-crd-reference/05-sgbackupconfig" %}})     |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}}   |
+| backupPath                                                                |          | ✓         | string   |                   | {{< crd-field-description SGCluster.spec.configurations.backupPath >}}   |
+| [backups](#backups)                                                       |          | ✓         | array    |                   | {{< crd-field-description SGCluster.spec.configurations.backups >}}   |
+
 Example:
 
 ``` yaml
@@ -362,9 +365,28 @@ spec:
   configurations:
     sgPostgresConfig: 'postgresconf'
     sgPoolingConfig: 'pgbouncerconf'
-    sgBackupConfig: 'backupconf'
-
+    backups:
+    - sgObjectStorage: 'backupconf'
 ```
+
+### Backups
+
+| Property                                                                  | Required | Updatable | Type    | Default           | Description |
+|:--------------------------------------------------------------------------|----------|-----------|:--------|:------------------|:------------|
+| [sgObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}})   |          | ✓         | string  |           | {{< crd-field-description SGCluster.spec.configurations.backups.items.sgObjectStorage >}} |
+| path                                                                      |          | ✓         | string  |           | {{< crd-field-description SGCluster.spec.configurations.backups.items.path >}}   |
+| retention                                                                 |          | ✓         | integer | 5         | {{< crd-field-description SGCluster.spec.configurations.backups.items.retention >}} |
+| cronSchedule                                                              |          | ✓         | string  | 05:00 UTC | {{< crd-field-description SGCluster.spec.configurations.backups.items.cronSchedule >}} |
+| compression                                                               |          | ✓         | string  | lz4       | {{< crd-field-description SGCluster.spec.configurations.backups.items.compression >}} |
+| [performance](#backups-performance)                                       |          | ✓         | object  |           | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance >}} |
+
+#### Backups Performance
+
+| Property                               | Required | Updatable |Type     | Default   | Description |
+|:---------------------------------------|----------|-----------|:--------|:----------|:------------|
+| maxDiskBandwidth                       |          | ✓         | integer | unlimited | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxDiskBandwidth >}} |
+| maxNetworkBandwidth                    |          | ✓         | integer | unlimited | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxNetworkBandwidth >}} |
+| uploadDiskConcurrency                  |          | ✓         | integer | 1         | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.uploadDiskConcurrency >}} |
 
 ## Initial Data Configuration
 

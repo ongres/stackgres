@@ -24,7 +24,7 @@ stackgres/
 │   │   ├── 04-SGPostgresConfig.yaml
 │   │   ├── 05-SGPoolingConfig.yaml
 │   │   ├── 06-SGDistributedLogs.yaml
-│   │   └── 07-SGBackupConfig.yaml
+│   │   └── 07-SGObjectStorage.yaml
 │   ├── maintenance-jobs
 │   │   └── maintenance-vacuum-freeze.yaml
 │   └── operator
@@ -39,7 +39,7 @@ stackgres/
     │   ├── 04-SGPostgresConfig.yaml
     │   ├── 05-SGPoolingConfig.yaml
     │   ├── 06-SGDistributedLogs.yaml
-    │   └── 07-SGBackupConfig.yaml
+    │   └── 07-SGObjectStorage.yaml
     └── operator
         └── helmfile.yaml
 ```

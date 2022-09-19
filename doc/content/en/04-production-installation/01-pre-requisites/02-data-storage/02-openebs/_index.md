@@ -65,7 +65,7 @@ blockdevice-eda267ed... stackgres-demo-default-pool-7350ae65-kb6w   402653184000
 
 >**Note:** You can customize which devices will be discovered and managed by OpenEBS using the instructions [here](https://docs.openebs.io/docs/next/uglocalpv-device.html#optional-block-device-tagging).
 
-Now you'll be ready to create your StackGres cluster. Do not forget using a OpenEBS Storage Class according to your use case when you create a cluster, check the required parameters in [Cluster Parameters]({{% relref "04-production-installation/06-cluster-parameters/#pods" %}})
+Now you'll be ready to create your StackGres cluster. Do not forget using a OpenEBS Storage Class according to your use case when you create a cluster, check the required parameters in [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}})
 
 After you create your cluster you can check that the storage devices were claimed:
 

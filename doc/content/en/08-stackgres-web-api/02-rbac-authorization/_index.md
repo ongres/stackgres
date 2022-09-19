@@ -129,6 +129,8 @@ rules:
     - sgdistributedlogs
     - sginstanceprofiles
     - sgpoolconfigs
+    - sgobjectstorages
+    - sgscripts
   verbs: ["get", "list"]
 ```
 
@@ -171,10 +173,13 @@ The following is a table with the resources of StackGres that can be used for de
 | sgbackupconfigs           | stackgres.io         | get, list, create, update, patch, delete      |
 | sgdistributedlogs         | stackgres.io         | get, list, create, update, patch, delete      |
 | sgpoolconfigs             | stackgres.io         | get, list, create, update, patch, delete      |
+| sgobjectstorages          | stackgres.io         | get, list, create, update, patch, delete      |
+| sgscripts                 | stackgres.io         | get, list, create, update, patch, delete      |
 | customresourcedefinitions | apiextensions.k8s.io | get, list                                     |
 | namespaces                |                      | get, list                                     |
 | pods                      |                      | get, list                                     |
-| secrets                   |                      | get, list                                     |
+| secrets                   |                      | get, list, create, update, patch              |
+| configmaps                |                      | get, list, create, update, patch              |
 | storageclasses            | storage.k8s.io       | get, list                                     |
 
 This is not an exhaustive list, but it should help to get started.
