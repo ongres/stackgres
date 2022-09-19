@@ -102,4 +102,4 @@ fi
 
 export LC_ALL=C.UTF-8
 
-exec-with-env "${PATRONI_ENV}" -- /usr/bin/patroni "$PATRONI_CONFIG_PATH/postgres.yml"
+exec exec-with-env "${PATRONI_ENV}" -- /usr/bin/patroni "$PATRONI_CONFIG_PATH/postgres.yml"
