@@ -46,41 +46,55 @@ kubectl create secret generic eks-backup-bucket-secret --from-literal="accessKey
 secret/sg-demo-jira-arm-secret created
 ```
 
-Having the credentials secret created, we just need to create now a backup configuration. It is governed by the CRD
-[SGBackupConfig]({{% relref "06-crd-reference/05-sgbackupconfig" %}}). This CRD allows to specify, among others, the
-retention window for the automated backups, when base backups are performed, performance parameters of the backup
-process, the object storage technology and parameters required and a reference to the above secret.
+Having the credentials secret created, we just need to create the object storage configuration and set the backup configuration.
+ The object storage configuration it is governed by the CRD
+ [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}). This CRD allows to specify the object storage technology
+ and parameters required and a reference to the above secret.
 
-Create the file `sgbackupconfig-backupconfig1.yaml`:
+Create the file `sgobjectstorage-backupconfig1.yaml`:
 
 ```yaml
-apiVersion: stackgres.io/v1
-kind: SGBackupConfig
+apiVersion: stackgres.io/v1beta1
+kind: SGObjectStorage
 metadata:
   name: backup-config-stackgres-demo
 spec:
-  baseBackups:
-    cronSchedule: "*/5 * * * *"
-    retention: 3
-  storage:
-    type: s3
-    s3:
-      bucket: backup-demo-of-stackgres-io
-      awsCredentials:
-        secretKeySelectors:
-          accessKeyId:
-            name: eks-backup-bucket-secret
-            key: accessKeyId
-          secretAccessKey:
-            name: eks-backup-bucket-secret
-            key: secretAccessKey
+  type: s3
+  s3:
+    bucket: backup-demo-of-stackgres-io
+    awsCredentials:
+      secretKeySelectors:
+        accessKeyId:
+          name: eks-backup-bucket-secret
+          key: accessKeyId
+        secretAccessKey:
+          name: eks-backup-bucket-secret
+          key: secretAccessKey
 ```
 
 and deploy to Kubernetes:
 
 ```bash
-kubectl apply -f sgbackupconfig-backupconfig1.yaml
+kubectl apply -f sgobjectstorage-backupconfig1.yaml
+```
+
+The backup configuration can be set unser the section `.spec.configurations.backups` of the CRD
+ [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}), among others, the retention window for the automated backups,
+ when base backups are performed and performance parameters of the backup process.
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGCluster
+spec:
+  configurations:
+    backups:
+    - sgObjectStorage: backupconfig1
+      cronSchedule: '*/5 * * * *'
+      retention: 6
 ```
 
 Note that for this tutorial and demo purposes, backups are created every 5 minutes. Modify the
-`.spec.baseBackups.cronSchedule` parameter above to adjust to your own needs.
+`.spec.backups[0].cronSchedule` parameter above to adjust to your own needs.
+
+The above configuration will be applied when creating the SGCluster resource.
+

@@ -40,15 +40,15 @@ No resources found in default namespace.
 
 The `SGCluster` depends on other objects to work properly, such as [instance profiles]({{% relref "/06-crd-reference/02-sginstanceprofile" %}}),
  [postgres configurations]({{% relref "/06-crd-reference/03-sgpostgresconfig" %}}), [connection pooling]({{% relref "/06-crd-reference/04-sgpoolingconfig/" %}}),
- [backup configurations]({{% relref "/06-crd-reference/05-sgbackupconfig/" %}}), [backups]({{% relref "/06-crd-reference/06-sgbackup/" %}}),
+ [object storage]({{% relref "/06-crd-reference/10-sgobjectstorage/" %}}), [backups]({{% relref "/06-crd-reference/06-sgbackup/" %}}),
  [distributed logs]({{% relref "/06-crd-reference/07-sgdistributedlogs" %}}), .
  Execute the commands below to find and delete those objects:
 
 ```bash
 ## List all sg* objects:
-❯ kubectl get sgbackupconfigs,sgbackups,sgdistributedlogs,sginstanceprofiles,sgpgconfigs,sgpoolconfigs -n default
+❯ kubectl get sgobjectstorages,sgbackups,sgdistributedlogs,sginstanceprofiles,sgpgconfigs,sgpoolconfigs -n default
 NAME                                                      AGE
-sgbackupconfig.stackgres.io/backup-config-minio-backend   162m
+sgobjectstorage.stackgres.io/backup-config-minio-backend   162m
 
 NAME                          AGE
 sgbackup.stackgres.io/teste   14m
@@ -80,8 +80,8 @@ sgpoolingconfig.stackgres.io/generated-from-default-1609864616550   8m6s
 ## To delete them all:
 ## IMPORTANT: this WILL remove the backups too!
 ## PROCEED WITH CARE.
-❯ kubectl get sgbackupconfigs,sgbackups,sgclusters,sgdistributedlogs,sginstanceprofiles,sgpgconfigs,sgpoolconfigs -n default -o name | xargs kubectl delete
-sgbackupconfig.stackgres.io "backup-config-minio-backend" deleted
+❯ kubectl get sgobjectstorages,sgbackups,sgclusters,sgdistributedlogs,sginstanceprofiles,sgpgconfigs,sgpoolconfigs -n default -o name | xargs kubectl delete
+sgobjectstorage.stackgres.io "backup-config-minio-backend" deleted
 sgbackup.stackgres.io "teste" deleted
 sginstanceprofile.stackgres.io "instance-profile-medium" deleted
 sginstanceprofile.stackgres.io "instance-profile-nano" deleted
@@ -167,7 +167,7 @@ Execute the commands below to find and remove the Custom Resource Definitions (C
 ## list all *.stackgres.io CRDs
 ❯ kubectl get crds  | egrep stackgres.io\|NAME
 NAME                                        CREATED AT
-sgbackupconfigs.stackgres.io                2021-01-05T13:55:07Z
+sgobjectstorages.stackgres.io               2021-01-05T13:55:07Z
 sgbackups.stackgres.io                      2021-01-05T13:55:07Z
 sgclusters.stackgres.io                     2021-01-05T13:55:07Z
 sgdistributedlogs.stackgres.io              2021-01-05T13:55:07Z
@@ -177,7 +177,7 @@ sgpoolconfigs.stackgres.io                  2021-01-05T13:55:07Z
 
 ## delete the CRDs
 ❯ kubectl get crds -o name | egrep stackgres.io | xargs kubectl delete
-customresourcedefinition.apiextensions.k8s.io "sgbackupconfigs.stackgres.io" deleted
+customresourcedefinition.apiextensions.k8s.io "sgobjectstorages.stackgres.io" deleted
 customresourcedefinition.apiextensions.k8s.io "sgbackups.stackgres.io" deleted
 customresourcedefinition.apiextensions.k8s.io "sgclusters.stackgres.io" deleted
 customresourcedefinition.apiextensions.k8s.io "sgdistributedlogs.stackgres.io" deleted
