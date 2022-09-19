@@ -233,7 +233,7 @@ transform_to_1_1() {
     BACKUP_UID="$(kubectl get sgbackup -n "$NAMESPACE" "${1#*=}" --template '{{ .metadata.uid }}')"
     printf "%s=%s" "cluster.initialData.restore.fromBackup.uid" "$BACKUP_UID"
   else
-    dont_transform "$1"
+    transform_to_1_2 "$1"
   fi
 }
 
@@ -261,7 +261,7 @@ transform_to_0_9() {
   then
     printf "%s=%s" "cluster.initialData.restore.fromBackup" "${1#*=}"
   else
-    dont_transform "$1"
+    transform_to_1_1 "$1"
   fi
 }
 

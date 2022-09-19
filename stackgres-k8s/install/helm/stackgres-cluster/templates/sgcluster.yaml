@@ -77,7 +77,6 @@ spec:
         port: {{ .Values.cluster.replicateFrom.instance.external.port }}
       {{- end }}
     {{- end }}
-    {{- if .Values.cluster.users }}
     users:
       superuser:
         username:
@@ -100,7 +99,6 @@ spec:
         password:
           name: {{ .Values.cluster.replicateFrom.users.authenticator.password.name }}
           key: {{ .Values.cluster.replicateFrom.users.authenticator.password.key }}
-    {{- end }}
   {{- end }}
   configurations: 
     sgPostgresConfig: '{{ .Values.cluster.configurations.sgPostgresConfig }}'
