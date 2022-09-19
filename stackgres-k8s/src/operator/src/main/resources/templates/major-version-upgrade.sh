@@ -15,20 +15,27 @@ then
       | cut -d ' ' -f 3 | tr -d "'" \
       | while read FILE
         do
-          rm -rfv "$FILE"
+	  if [ -f "$FILE" ]
+          then
+            chmod a+rw "$FILE"
+            rm -rfv "$FILE"
+	  fi
         done
   fi
-  if [ -d "$PG_UPGRADE_PATH/$TARGET_VERSION/data" ]
+  if [ -d "$PG_UPGRADE_PATH/$TARGET_VERSION" ]
   then
-    rm -rf "$PG_UPGRADE_PATH/$TARGET_VERSION/data"
+    rm -rf "$PG_UPGRADE_PATH/$TARGET_VERSION"
   fi
+  rm -f "$PG_UPGRADE_PATH/.upgrade-from-$SOURCE_VERSION-to-$TARGET_VERSION.done"
   if [ -d "$PG_RELOCATED_BASE_PATH/$TARGET_VERSION" ]
   then
+    chmod -R a+rw "$PG_RELOCATED_BASE_PATH/$TARGET_VERSION"
     rm -rf "$PG_RELOCATED_BASE_PATH/$TARGET_VERSION"
   fi
-  if [ -d "$PG_EXTENSIONS_BASE_PATH/$TARGET_VERSION" ]
+  if [ -d "$PG_EXTENSIONS_BASE_PATH/${TARGET_VERSION%.*}" ]
   then
-    rm -rf "$PG_EXTENSIONS_BASE_PATH/$TARGET_VERSION"
+    chmod -R a+rw "$PG_EXTENSIONS_BASE_PATH/${TARGET_VERSION%.*}"
+    rm -rf "$PG_EXTENSIONS_BASE_PATH/${TARGET_VERSION%.*}"
   fi
   exit 0
 fi
@@ -74,34 +81,43 @@ then
   } > "$PG_UPGRADE_PATH/$TARGET_VERSION/data/postgresql.conf"
   (
   cd "$PG_UPGRADE_PATH/$TARGET_VERSION"
-  if [ ! -f .copy-missing-lib64.done ]
+  if [ ! -f "$PG_UPGRADE_PATH/$TARGET_VERSION/.copy-missing-lib64.done" ]
   then
-    cp -aunv "$SOURCE_PG_LIB64_PATH" "${TARGET_PG_LIB64_PATH%/*}" > copied-missing-lib64
-    if [ -s copied-missing-lib64 ]
+    cp -aunv "$SOURCE_PG_LIB64_PATH" "${TARGET_PG_LIB64_PATH%/*}" > "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64"
+    if [ -s "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" ]
     then
       echo "Following files where copied from $SOURCE_PG_LIB64_PATH to $TARGET_PG_LIB64_PATH"
       echo
-      cat copied-missing-lib64
+      cat "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64"
       echo
     fi
-    touch .copy-missing-lib64.done
+    touch "$PG_UPGRADE_PATH/$TARGET_VERSION/.copy-missing-lib64.done"
+  fi
+  if [ "$PG_DATA_PATH/postmaster.pid" ]
+  then
+    echo "Removing stale $PG_DATA_PATH/postmaster.pid"
+    rm  "$PG_DATA_PATH/postmaster.pid"
   fi
   if [ "$CHECK" = true ]
   then
     echo "Checking major version upgrade"
-    if ! pg_upgrade -c \
+    if ! pg_upgrade -c -r \
       -b "/usr/lib/postgresql/$SOURCE_VERSION/bin" \
       -B "/usr/lib/postgresql/$TARGET_VERSION/bin" \
       -d "$PG_DATA_PATH" \
       -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
+      -s "$PG_UPGRADE_PATH/$TARGET_VERSION" \
       -o "-c 'dynamic_library_path=$SOURCE_PG_LIB_PATH:$SOURCE_PG_EXTRA_LIB_PATH'" \
       -O "-c 'dynamic_library_path=$TARGET_PG_LIB_PATH:$TARGET_PG_EXTRA_LIB_PATH'" \
       $("$LINK" && printf %s "-k" || true) \
       $("$CLONE" && printf %s "--clone" || true)
     then
       echo "Major version upgrade check failed"
-      grep . *.txt *.log 2>/dev/null | cat >&2
     fi
+    
+    echo
+    grep . *.txt *.log 2>/dev/null | cat >&2
+    echo
     
     echo "Major version upgrade check performed"
     
@@ -114,19 +130,25 @@ then
     exit 0
   fi
   echo "Performing major version upgrade"
-  if ! pg_upgrade \
+  if ! pg_upgrade -r \
     -b "/usr/lib/postgresql/$SOURCE_VERSION/bin" \
     -B "/usr/lib/postgresql/$TARGET_VERSION/bin" \
     -d "$PG_DATA_PATH" \
     -D "$PG_UPGRADE_PATH/$TARGET_VERSION/data" \
+    -s "$PG_UPGRADE_PATH/$TARGET_VERSION" \
     -o "-c 'dynamic_library_path=$SOURCE_PG_LIB_PATH:$SOURCE_PG_EXTRA_LIB_PATH'" \
     -O "-c 'dynamic_library_path=$TARGET_PG_LIB_PATH:$TARGET_PG_EXTRA_LIB_PATH'" \
     $("$LINK" && printf %s "-k" || true) \
     $("$CLONE" && printf %s "--clone" || true)
   then
+    echo
     grep . *.txt *.log 2>/dev/null | cat >&2
+    echo
     exit 1
   fi
+  echo
+  grep . *.txt *.log 2>/dev/null | cat >&2
+  echo
   touch "$PG_UPGRADE_PATH/$TARGET_VERSION/data/.pg_upgrade-from-$SOURCE_VERSION-to-$TARGET_VERSION.done"
   )
 fi
@@ -150,7 +172,11 @@ cat "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" \
   | cut -d ' ' -f 3 | tr -d "'" \
   | while read FILE
     do
-      rm -rfv "$FILE"
+      if [ -f "$FILE" ]
+      then
+        chmod a+rw "$FILE"
+        rm -rfv "$FILE"
+     fi
     done
 touch "$PG_UPGRADE_PATH/.upgrade-from-$SOURCE_VERSION-to-$TARGET_VERSION.done"
 echo "Major version upgrade performed"
