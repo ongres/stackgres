@@ -1,1 +1,2 @@
-ongres/kubectl:v1.23.3-build-6.10
+ongres/kubectl:v1.23.5-build-6.13
+ongres/kubectl:v1.24.3-build-6.16

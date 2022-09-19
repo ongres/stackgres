@@ -488,6 +488,8 @@ wait_for_major_version_upgrade() {
     then
       echo "FAILURE=$NORMALIZED_OP_NAME failed. Please check pod $PRIMARY_INSTANCE logs for more info" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
       echo
+      kubectl logs -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" --all-containers --prefix --timestamp || true
+      echo
       rollback_major_version_upgrade "$PRIMARY_INSTANCE"
       return 1
     fi
