@@ -43,7 +43,7 @@ public interface PatroniUtil {
   String FALSE_TAG_VALUE = "false";
 
   String SUFFIX = "-patroni";
-  String READ_WRITE_SERVICE = "-primary";
+  String DEPRECATED_READ_WRITE_SERVICE = "-primary";
   String READ_ONLY_SERVICE = "-replicas";
   String FAILOVER_SERVICE = "-failover";
   String REST_SERVICE = "-rest";
@@ -54,20 +54,20 @@ public interface PatroniUtil {
 
   static String name(StackGresCluster cluster) {
     String name = cluster.getMetadata().getName();
-    return name(name);
-  }
-
-  static String name(@NotNull String clusterName) {
-    return ResourceUtil.nameIsValidService(clusterName);
-  }
-
-  static String readWriteName(StackGresCluster cluster) {
-    String name = cluster.getMetadata().getName();
     return readWriteName(name);
   }
 
   static String readWriteName(@NotNull String clusterName) {
-    return ResourceUtil.nameIsValidService(clusterName + READ_WRITE_SERVICE);
+    return ResourceUtil.nameIsValidService(clusterName);
+  }
+
+  static String deprecatedReadWriteName(StackGresCluster cluster) {
+    String name = cluster.getMetadata().getName();
+    return deprecatedReadWriteName(name);
+  }
+
+  static String deprecatedReadWriteName(@NotNull String clusterName) {
+    return ResourceUtil.nameIsValidService(clusterName + DEPRECATED_READ_WRITE_SERVICE);
   }
 
   static String readOnlyName(StackGresCluster cluster) {
@@ -89,7 +89,7 @@ public interface PatroniUtil {
 
   static String restName(StackGresCluster cluster) {
     String name = cluster.getMetadata().getName();
-    return name(name + REST_SERVICE);
+    return readWriteName(name + REST_SERVICE);
   }
 
   static String configName(ClusterContext context) {

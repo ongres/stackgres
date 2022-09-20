@@ -85,7 +85,7 @@ public class KubernetessMockResourceGenerationUtil {
             .endSpec().build(),
         new ServiceBuilder()
             .withNewMetadata()
-            .withName(cluster + "-" + PatroniUtil.READ_WRITE_SERVICE)
+            .withName(cluster + "-" + PatroniUtil.DEPRECATED_READ_WRITE_SERVICE)
             .withLabels(ImmutableMap.of(generateRandom(), generateRandom()))
             .withNamespace(namespace)
             .endMetadata()

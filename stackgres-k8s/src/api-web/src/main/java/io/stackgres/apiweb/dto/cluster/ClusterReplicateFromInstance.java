@@ -18,8 +18,19 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class ClusterReplicateFromInstance {
 
+  @JsonProperty("sgCluster")
+  private String sgCluster;
+
   @JsonProperty("external")
   private ClusterReplicateFromExternal external;
+
+  public String getSgCluster() {
+    return sgCluster;
+  }
+
+  public void setSgCluster(String sgCluster) {
+    this.sgCluster = sgCluster;
+  }
 
   public ClusterReplicateFromExternal getExternal() {
     return external;
@@ -31,7 +42,7 @@ public class ClusterReplicateFromInstance {
 
   @Override
   public int hashCode() {
-    return Objects.hash(external);
+    return Objects.hash(external, sgCluster);
   }
 
   @Override
@@ -43,7 +54,7 @@ public class ClusterReplicateFromInstance {
       return false;
     }
     ClusterReplicateFromInstance other = (ClusterReplicateFromInstance) obj;
-    return Objects.equals(external, other.external);
+    return Objects.equals(external, other.external) && Objects.equals(sgCluster, other.sgCluster);
   }
 
   @Override

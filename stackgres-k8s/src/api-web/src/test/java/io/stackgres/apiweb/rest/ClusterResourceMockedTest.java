@@ -171,7 +171,7 @@ class ClusterResourceMockedTest extends
     servicePrimary = new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(getResourceNamespace())
-        .withName(PatroniUtil.readWriteName(getResourceName()))
+        .withName(PatroniUtil.deprecatedReadWriteName(getResourceName()))
         .endMetadata()
         .withNewSpec()
         .withType("ClusterIP")
@@ -643,7 +643,7 @@ class ClusterResourceMockedTest extends
   private void clusterMocks() {
     when(configContext.get(WebApiProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
-    when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.name(getResourceName())),
+    when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(getResourceName())),
         anyString()))
         .thenReturn(Optional.of(servicePrimary));
     when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.readOnlyName(getResourceName())),
@@ -838,7 +838,7 @@ class ClusterResourceMockedTest extends
     if (dto.getInfo() != null) {
       String appendDns = "." + resource.getMetadata().getNamespace();
       String expectedPrimaryDns =
-          PatroniUtil.readWriteName(resource.getMetadata().getName()) + appendDns;
+          PatroniUtil.deprecatedReadWriteName(resource.getMetadata().getName()) + appendDns;
       String expectedReplicasDns = "f4611c56942064ed5a468d8ce0a894ec.us-east-1.elb.amazonaws.com";
       assertEquals(expectedPrimaryDns, dto.getInfo().getPrimaryDns());
       assertEquals(expectedReplicasDns, dto.getInfo().getReplicasDns());

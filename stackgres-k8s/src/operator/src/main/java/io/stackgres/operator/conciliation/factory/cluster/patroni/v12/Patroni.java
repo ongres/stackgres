@@ -156,11 +156,13 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
             new ContainerPortBuilder()
                 .withName(EnvoyUtil.POSTGRES_PORT_NAME)
                 .withProtocol("TCP")
-                .withContainerPort(EnvoyUtil.PG_ENTRY_PORT).build(),
+                .withContainerPort(EnvoyUtil.PG_ENTRY_PORT)
+                .build(),
             new ContainerPortBuilder()
                 .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
                 .withProtocol("TCP")
-                .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT).build(),
+                .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT)
+                .build(),
             new ContainerPortBuilder()
                 .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
                 .withProtocol("TCP")

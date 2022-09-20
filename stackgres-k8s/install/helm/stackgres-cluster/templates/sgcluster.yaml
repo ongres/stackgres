@@ -71,6 +71,9 @@ spec:
   replicateFrom:
     {{- if .Values.cluster.replicateFrom.instance }}
     instance:
+      {{- if .Values.cluster.replicateFrom.instance.sgCluster }}
+      sgCluster: {{ .Values.cluster.replicateFrom.instance.sgCluster }}
+      {{- end }}
       {{- if .Values.cluster.replicateFrom.instance.external }}
       external:
         host: {{ .Values.cluster.replicateFrom.instance.external.host }}

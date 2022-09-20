@@ -69,17 +69,17 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   Set<String> getClusterBackupNamespaces();
 
-  Optional<Secret> getExternalSuperuserUsernameSecret();
+  Optional<String> getSuperuserUsername();
 
-  Optional<Secret> getExternalSuperuserPasswordSecret();
+  Optional<String> getSuperuserPassword();
 
-  Optional<Secret> getExternalReplicationUsernameSecret();
+  Optional<String> getReplicationUsername();
 
-  Optional<Secret> getExternalReplicationPasswordSecret();
+  Optional<String> getReplicationPassword();
 
-  Optional<Secret> getExternalAuthenticatorUsernameSecret();
+  Optional<String> getAuthenticatorUsername();
 
-  Optional<Secret> getExternalAuthenticatorPasswordSecret();
+  Optional<String> getAuthenticatorPassword();
 
   default Optional<String> getBackupPath() {
     Optional<@NotNull StackGresClusterConfiguration> config = Optional.of(getCluster())

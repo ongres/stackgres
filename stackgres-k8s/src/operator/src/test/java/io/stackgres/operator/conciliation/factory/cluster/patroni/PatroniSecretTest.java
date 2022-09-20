@@ -23,7 +23,6 @@ import static io.stackgres.common.patroni.StackGresPasswordKeys.RESTAPI_USERNAME
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME_ENV;
-import static org.junit.Assert.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -220,18 +219,18 @@ class PatroniSecretTest {
         .getAuthenticator().setUsername(new SecretKeySelector(AUTHENTICATOR_USERNAME_ENV, "test"));
     cluster.getSpec().getReplicateFrom().getUsers()
         .getAuthenticator().setPassword(new SecretKeySelector(AUTHENTICATOR_PASSWORD_KEY, "test"));
-    when(generatorContext.getExternalSuperuserUsernameSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalSuperuserPasswordSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalReplicationUsernameSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalReplicationPasswordSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalAuthenticatorUsernameSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalAuthenticatorPasswordSecret())
-        .thenReturn(Optional.of(existentSecret));
+    when(generatorContext.getSuperuserUsername())
+        .thenReturn(Optional.of(decodedExistentSecretData.get(SUPERUSER_USERNAME_ENV)));
+    when(generatorContext.getSuperuserPassword())
+        .thenReturn(Optional.of(decodedExistentSecretData.get(SUPERUSER_PASSWORD_KEY)));
+    when(generatorContext.getReplicationUsername())
+        .thenReturn(Optional.of(decodedExistentSecretData.get(REPLICATION_USERNAME_ENV)));
+    when(generatorContext.getReplicationPassword())
+        .thenReturn(Optional.of(decodedExistentSecretData.get(REPLICATION_PASSWORD_KEY)));
+    when(generatorContext.getAuthenticatorUsername())
+        .thenReturn(Optional.of(decodedExistentSecretData.get(AUTHENTICATOR_USERNAME_ENV)));
+    when(generatorContext.getAuthenticatorPassword())
+        .thenReturn(Optional.of(decodedExistentSecretData.get(AUTHENTICATOR_PASSWORD_KEY)));
     Secret secret = patroniSecret.buildSource(generatorContext);
 
     final Map<String, String> data = ResourceUtil.decodeSecret(secret.getData());
@@ -275,246 +274,6 @@ class PatroniSecretTest {
         data.get(PGBOUNCER_STATS_PASSWORD_KEY));
     assertNotEquals(existentData.get(RESTAPI_PASSWORD_KEY), data.get(RESTAPI_PASSWORD_ENV));
     assertNotEquals(existentData.get(RESTAPI_PASSWORD_KEY), data.get(RESTAPI_PASSWORD_KEY));
-  }
-
-  @Test
-  void generateResourcesWithReplicateFromSecretAndNoSuperuserUsername_shouldThrowAnException() {
-    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
-    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
-    cluster.getSpec().getReplicateFrom().getInstance()
-        .setExternal(new StackGresClusterReplicateFromExternal());
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setHost("test");
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setPort(5433);
-    cluster.getSpec().getReplicateFrom()
-        .setUsers(new StackGresClusterReplicateFromUsers());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setSuperuser(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setUsername(new SecretKeySelector(SUPERUSER_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setPassword(new SecretKeySelector(SUPERUSER_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setReplication(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setUsername(new SecretKeySelector(REPLICATION_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setPassword(new SecretKeySelector(REPLICATION_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setAuthenticator(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setUsername(new SecretKeySelector(AUTHENTICATOR_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setPassword(new SecretKeySelector(AUTHENTICATOR_PASSWORD_KEY, "test"));
-
-    assertThrows(IllegalArgumentException.class,
-        () -> patroniSecret.buildSource(generatorContext));
-  }
-
-  @Test
-  void generateResourcesWithReplicateFromSecretAndNoSuperuserPassword_shouldThrowAnException() {
-    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
-    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
-    cluster.getSpec().getReplicateFrom().getInstance()
-        .setExternal(new StackGresClusterReplicateFromExternal());
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setHost("test");
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setPort(5433);
-    cluster.getSpec().getReplicateFrom()
-        .setUsers(new StackGresClusterReplicateFromUsers());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setSuperuser(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setUsername(new SecretKeySelector(SUPERUSER_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setPassword(new SecretKeySelector(SUPERUSER_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setReplication(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setUsername(new SecretKeySelector(REPLICATION_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setPassword(new SecretKeySelector(REPLICATION_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setAuthenticator(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setUsername(new SecretKeySelector(AUTHENTICATOR_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setPassword(new SecretKeySelector(AUTHENTICATOR_PASSWORD_KEY, "test"));
-    when(generatorContext.getExternalSuperuserUsernameSecret())
-        .thenReturn(Optional.of(existentSecret));
-
-    assertThrows(IllegalArgumentException.class,
-        () -> patroniSecret.buildSource(generatorContext));
-  }
-
-  @Test
-  void generateResourcesWithReplicateFromSecretAndNoReplicationUsername_shouldThrowAnException() {
-    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
-    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
-    cluster.getSpec().getReplicateFrom().getInstance()
-        .setExternal(new StackGresClusterReplicateFromExternal());
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setHost("test");
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setPort(5433);
-    cluster.getSpec().getReplicateFrom()
-        .setUsers(new StackGresClusterReplicateFromUsers());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setSuperuser(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setUsername(new SecretKeySelector(SUPERUSER_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setPassword(new SecretKeySelector(SUPERUSER_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setReplication(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setUsername(new SecretKeySelector(REPLICATION_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setPassword(new SecretKeySelector(REPLICATION_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setAuthenticator(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setUsername(new SecretKeySelector(AUTHENTICATOR_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setPassword(new SecretKeySelector(AUTHENTICATOR_PASSWORD_KEY, "test"));
-    when(generatorContext.getExternalSuperuserUsernameSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalSuperuserPasswordSecret())
-        .thenReturn(Optional.of(existentSecret));
-
-    assertThrows(IllegalArgumentException.class,
-        () -> patroniSecret.buildSource(generatorContext));
-  }
-
-  @Test
-  void generateResourcesWithReplicateFromSecretAndNoReplicationPassword_shouldThrowAnException() {
-    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
-    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
-    cluster.getSpec().getReplicateFrom().getInstance()
-        .setExternal(new StackGresClusterReplicateFromExternal());
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setHost("test");
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setPort(5433);
-    cluster.getSpec().getReplicateFrom()
-        .setUsers(new StackGresClusterReplicateFromUsers());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setSuperuser(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setUsername(new SecretKeySelector(SUPERUSER_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setPassword(new SecretKeySelector(SUPERUSER_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setReplication(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setUsername(new SecretKeySelector(REPLICATION_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setPassword(new SecretKeySelector(REPLICATION_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setAuthenticator(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setUsername(new SecretKeySelector(AUTHENTICATOR_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setPassword(new SecretKeySelector(AUTHENTICATOR_PASSWORD_KEY, "test"));
-    when(generatorContext.getExternalSuperuserUsernameSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalSuperuserPasswordSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalReplicationUsernameSecret())
-        .thenReturn(Optional.of(existentSecret));
-
-    assertThrows(IllegalArgumentException.class,
-        () -> patroniSecret.buildSource(generatorContext));
-  }
-
-  @Test
-  void generateResourcesWithReplicateFromSecretAndNoAuthenticatorUsername_shouldThrowAnException() {
-    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
-    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
-    cluster.getSpec().getReplicateFrom().getInstance()
-        .setExternal(new StackGresClusterReplicateFromExternal());
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setHost("test");
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setPort(5433);
-    cluster.getSpec().getReplicateFrom()
-        .setUsers(new StackGresClusterReplicateFromUsers());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setSuperuser(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setUsername(new SecretKeySelector(SUPERUSER_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setPassword(new SecretKeySelector(SUPERUSER_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setReplication(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setUsername(new SecretKeySelector(REPLICATION_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setPassword(new SecretKeySelector(REPLICATION_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setAuthenticator(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setUsername(new SecretKeySelector(AUTHENTICATOR_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setPassword(new SecretKeySelector(AUTHENTICATOR_PASSWORD_KEY, "test"));
-    when(generatorContext.getExternalSuperuserUsernameSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalSuperuserPasswordSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalReplicationUsernameSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalReplicationPasswordSecret())
-        .thenReturn(Optional.of(existentSecret));
-
-    assertThrows(IllegalArgumentException.class,
-        () -> patroniSecret.buildSource(generatorContext));
-  }
-
-  @Test
-  void generateResourcesWithReplicateFromSecretAndNoAuthenticatorPassword_shouldThrowAnException() {
-    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
-    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
-    cluster.getSpec().getReplicateFrom().getInstance()
-        .setExternal(new StackGresClusterReplicateFromExternal());
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setHost("test");
-    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
-        .setPort(5433);
-    cluster.getSpec().getReplicateFrom()
-        .setUsers(new StackGresClusterReplicateFromUsers());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setSuperuser(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setUsername(new SecretKeySelector(SUPERUSER_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setPassword(new SecretKeySelector(SUPERUSER_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setReplication(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setUsername(new SecretKeySelector(REPLICATION_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setPassword(new SecretKeySelector(REPLICATION_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setAuthenticator(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setUsername(new SecretKeySelector(AUTHENTICATOR_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setPassword(new SecretKeySelector(AUTHENTICATOR_PASSWORD_KEY, "test"));
-    when(generatorContext.getExternalSuperuserUsernameSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalSuperuserPasswordSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalReplicationUsernameSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalReplicationPasswordSecret())
-        .thenReturn(Optional.of(existentSecret));
-    when(generatorContext.getExternalAuthenticatorUsernameSecret())
-        .thenReturn(Optional.of(existentSecret));
-
-    assertThrows(IllegalArgumentException.class,
-        () -> patroniSecret.buildSource(generatorContext));
   }
 
   @Test

@@ -982,12 +982,20 @@ spec:
                   type: object
                   description: |
                     Make the cluster a read-only standby replica allowing to replicate from another PostgreSQL instance and acting as a rely.
+                    
+                    Changing this section is allowed to fix issues or to change the replication source.
+                    
+                    Removing this section convert the cluster in a normal cluster where the standby leader is converted into the a primary instance.
                   properties:
                     instance:
                       type: object
                       description: |
                         Configure replication from a PostgreSQL instance.
                       properties:
+                        sgCluster:
+                          type: string
+                          description: |
+                            Configure replication from an SGCluster.
                         external:
                           type: object
                           description: |

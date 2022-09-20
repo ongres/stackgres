@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -145,6 +146,22 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .withCommand("/bin/sh", "-ex",
             ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
         .withImagePullPolicy("IfNotPresent")
+        .withPorts(
+            new ContainerPortBuilder()
+                .withName(EnvoyUtil.POSTGRES_PORT_NAME)
+                .withProtocol("TCP")
+                .withContainerPort(EnvoyUtil.PG_ENTRY_PORT)
+                .build(),
+            new ContainerPortBuilder()
+                .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
+                .withProtocol("TCP")
+                .withContainerPort(EnvoyUtil.PG_REPL_ENTRY_PORT)
+                .build(),
+            new ContainerPortBuilder()
+                .withName(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME)
+                .withProtocol("TCP")
+                .withContainerPort(EnvoyUtil.PATRONI_ENTRY_PORT)
+                .build())
         .withVolumeMounts(volumeMounts.build())
         .withEnv(getEnvVars(context))
         .withEnvFrom(new EnvFromSourceBuilder()

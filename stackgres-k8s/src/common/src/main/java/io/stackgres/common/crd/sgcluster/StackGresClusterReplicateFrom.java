@@ -8,13 +8,17 @@ package io.stackgres.common.crd.sgcluster;
 import java.util.Objects;
 
 import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -30,8 +34,24 @@ public class StackGresClusterReplicateFrom {
 
   @JsonProperty("users")
   @Valid
-  @NotNull(message = "users section is required")
   private StackGresClusterReplicateFromUsers users;
+
+  @ReferencedField("users")
+  interface Users extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "Users is required when replicating from external instance",
+      payload = { Users.class })
+  public boolean isUsersNotNullWithExternal() {
+    return instance == null || instance.getExternal() == null || users != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "Users is forbidden when replicating from an SGCluster",
+      payload = { Users.class })
+  public boolean isUsersNullWithSgCluster() {
+    return instance == null || instance.getSgCluster() == null || users == null;
+  }
 
   public StackGresClusterReplicateFromInstance getInstance() {
     return instance;

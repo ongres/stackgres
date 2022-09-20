@@ -85,7 +85,7 @@ class PatroniServicesTest {
 
     long primaryServicesCount = services
         .filter(s -> s.getKind().equals("Service"))
-        .filter(s -> s.getMetadata().getName().endsWith(PatroniUtil.READ_WRITE_SERVICE))
+        .filter(s -> s.getMetadata().getName().endsWith(PatroniUtil.DEPRECATED_READ_WRITE_SERVICE))
         .count();
 
     assertEquals(1, primaryServicesCount);
@@ -113,7 +113,7 @@ class PatroniServicesTest {
 
     long primaryServicesCount = services
         .filter(s -> s.getKind().equals("Service"))
-        .filter(s -> s.getMetadata().getName().endsWith(PatroniUtil.READ_WRITE_SERVICE))
+        .filter(s -> s.getMetadata().getName().endsWith(PatroniUtil.DEPRECATED_READ_WRITE_SERVICE))
         .count();
 
     assertEquals(1, primaryServicesCount);
@@ -127,7 +127,7 @@ class PatroniServicesTest {
 
     long primaryServicesCount = services
         .filter(s -> s.getKind().equals("Service"))
-        .filter(s -> s.getMetadata().getName().endsWith(PatroniUtil.READ_WRITE_SERVICE))
+        .filter(s -> s.getMetadata().getName().endsWith(PatroniUtil.DEPRECATED_READ_WRITE_SERVICE))
         .count();
 
     assertEquals(0, primaryServicesCount);
@@ -361,7 +361,7 @@ class PatroniServicesTest {
     return services
         .filter(Service.class::isInstance)
         .filter(s -> s.getMetadata().getName()
-            .equals(PatroniUtil.readWriteName(defaultCluster.getMetadata().getName())))
+            .equals(PatroniUtil.deprecatedReadWriteName(defaultCluster.getMetadata().getName())))
         .map(Service.class::cast)
         .findFirst().orElseGet(() -> fail("No postgres primary service found"));
   }

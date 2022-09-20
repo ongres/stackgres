@@ -8,13 +8,16 @@ package io.stackgres.common.crd.sgcluster;
 import java.util.Objects;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.AssertTrue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -23,10 +26,44 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public class StackGresClusterReplicateFromInstance {
 
+  @JsonProperty("sgCluster")
+  @Valid
+  private String sgCluster;
+
   @JsonProperty("external")
   @Valid
-  @NotNull(message = "external section is required")
   private StackGresClusterReplicateFromExternal external;
+
+  @ReferencedField("sgCluster")
+  interface SgCluster extends FieldReference { }
+
+  @ReferencedField("external")
+  interface External extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "One of sgCluster or external is required",
+      payload = { SgCluster.class, External.class })
+  public boolean isSgClusterOrExternalNotNull() {
+    return !(sgCluster == null
+        && external == null);
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "sgCluster and external are mutually exclusive",
+      payload = { SgCluster.class, External.class })
+  public boolean isSgClusterOrExternalMutuallyExclusive() {
+    return (external == null && sgCluster == null)
+        || (external == null && sgCluster != null)
+        || (external != null && sgCluster == null);
+  }
+
+  public String getSgCluster() {
+    return sgCluster;
+  }
+
+  public void setSgCluster(String sgCluster) {
+    this.sgCluster = sgCluster;
+  }
 
   public StackGresClusterReplicateFromExternal getExternal() {
     return external;
@@ -38,7 +75,7 @@ public class StackGresClusterReplicateFromInstance {
 
   @Override
   public int hashCode() {
-    return Objects.hash(external);
+    return Objects.hash(external, sgCluster);
   }
 
   @Override
@@ -50,7 +87,7 @@ public class StackGresClusterReplicateFromInstance {
       return false;
     }
     StackGresClusterReplicateFromInstance other = (StackGresClusterReplicateFromInstance) obj;
-    return Objects.equals(external, other.external);
+    return Objects.equals(external, other.external) && Objects.equals(sgCluster, other.sgCluster);
   }
 
   @Override
