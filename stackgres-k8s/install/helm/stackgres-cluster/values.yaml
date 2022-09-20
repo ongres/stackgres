@@ -33,6 +33,7 @@ cluster:
     #   instances: 1
   # replicateFrom:
   #   instance:
+  #     sgCluster:
   #     external:
   #       host:
   #       port:

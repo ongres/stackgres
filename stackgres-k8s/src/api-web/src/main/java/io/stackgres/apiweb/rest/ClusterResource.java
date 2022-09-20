@@ -167,7 +167,7 @@ public class ClusterResource
     final String clusterName = resource.getMetadata().getName();
     final ClusterInfoDto info = new ClusterInfoDto();
 
-    serviceFinder.findByNameAndNamespace(PatroniUtil.name(clusterName), namespace)
+    serviceFinder.findByNameAndNamespace(PatroniUtil.readWriteName(clusterName), namespace)
         .ifPresent(service -> info.setPrimaryDns(StackGresUtil.getServiceDnsName(service)));
     serviceFinder.findByNameAndNamespace(PatroniUtil.readOnlyName(clusterName), namespace)
         .ifPresent(service -> info.setReplicasDns(StackGresUtil.getServiceDnsName(service)));

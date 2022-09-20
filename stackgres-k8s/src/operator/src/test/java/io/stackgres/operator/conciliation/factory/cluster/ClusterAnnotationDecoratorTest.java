@@ -159,7 +159,7 @@ class ClusterAnnotationDecoratorTest {
 
     resources.stream()
         .filter(r -> r.getKind().equals("Service"))
-        .filter(r -> r.getMetadata().getName().endsWith(PatroniUtil.READ_WRITE_SERVICE))
+        .filter(r -> r.getMetadata().getName().endsWith(PatroniUtil.DEPRECATED_READ_WRITE_SERVICE))
         .forEach(resource -> checkResourceAnnotations(resource, expected));
   }
 

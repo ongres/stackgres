@@ -9,7 +9,6 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -25,10 +24,6 @@ import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUserSecretKeyRef;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUsers;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -51,7 +46,11 @@ public class PatroniSecret
   }
 
   public static String name(StackGresCluster cluster) {
-    return ResourceUtil.resourceName(cluster.getMetadata().getName());
+    return name(cluster.getMetadata().getName());
+  }
+
+  public static String name(String clusterName) {
+    return ResourceUtil.resourceName(clusterName);
   }
 
   private static String generatePassword() {
@@ -86,8 +85,6 @@ public class PatroniSecret
     final String name = cluster.getMetadata().getName();
     final String namespace = cluster.getMetadata().getNamespace();
     final Map<String, String> labels = factoryFactory.genericLabels(cluster);
-    final var replicateFrom = Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getReplicateFrom);
 
     final Map<String, String> previousSecretData = context.getDatabaseSecret()
         .map(Secret::getData)
@@ -96,11 +93,11 @@ public class PatroniSecret
 
     final Map<String, String> data = new HashMap<>();
 
-    setSuperuserCredentials(context, replicateFrom, previousSecretData, data);
+    setSuperuserCredentials(context, previousSecretData, data);
 
-    setReplicationCredentials(context, replicateFrom, previousSecretData, data);
+    setReplicationCredentials(context, previousSecretData, data);
 
-    setAuthenticatorCredentials(context, replicateFrom, previousSecretData, data);
+    setAuthenticatorCredentials(context, previousSecretData, data);
 
     if (getPostgresFlavorComponent(context.getSource()) == StackGresComponent.BABELFISH) {
       setBabelfishCredentials(previousSecretData, data);
@@ -122,173 +119,47 @@ public class PatroniSecret
   }
 
   private void setSuperuserCredentials(StackGresClusterContext context,
-      final Optional<StackGresClusterReplicateFrom> replicateFrom,
       Map<String, String> previousSecretData, Map<String, String> data) {
-    data.put(SUPERUSER_USERNAME_ENV, previousSecretData
-        .getOrDefault(SUPERUSER_USERNAME_ENV, SUPERUSER_USERNAME));
-    setReplicateFromExternalInstanceForSuperuserUsername(context, data, replicateFrom);
-    data.put(SUPERUSER_PASSWORD_KEY, previousSecretData
-        .getOrDefault(SUPERUSER_PASSWORD_KEY, previousSecretData
-            .getOrDefault(SUPERUSER_PASSWORD_ENV, generatePassword())));
-    data.put(SUPERUSER_PASSWORD_ENV, data.get(SUPERUSER_PASSWORD_KEY));
-    setReplicateFromExternalInstanceForSuperuserPassword(context, data, replicateFrom);
-  }
-
-  private void setReplicateFromExternalInstanceForSuperuserUsername(StackGresClusterContext context,
-      Map<String, String> data, Optional<StackGresClusterReplicateFrom> replicateFrom) {
-    replicateFrom
-        .map(StackGresClusterReplicateFrom::getUsers)
-        .map(StackGresClusterReplicateFromUsers::getSuperuser)
-        .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
-        .map(secretKeyRef -> context
-            .getExternalSuperuserUsernameSecret()
-            .map(Secret::getData)
-            .map(secretData -> secretData.get(secretKeyRef.getKey()))
-            .map(ResourceUtil::decodeSecret)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Could not find secret " + secretKeyRef.getName()
-                + " with key " + secretKeyRef.getKey()
-                + " for superuser username")))
-        .ifPresent(username -> data
-            .put(SUPERUSER_USERNAME_ENV, username));
-  }
-
-  private void setReplicateFromExternalInstanceForSuperuserPassword(StackGresClusterContext context,
-      Map<String, String> data, Optional<StackGresClusterReplicateFrom> replicateFrom) {
-    replicateFrom
-        .map(StackGresClusterReplicateFrom::getUsers)
-        .map(StackGresClusterReplicateFromUsers::getSuperuser)
-        .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
-        .map(secretKeyRef -> context
-            .getExternalSuperuserPasswordSecret()
-            .map(Secret::getData)
-            .map(secretData -> secretData.get(secretKeyRef.getKey()))
-            .map(ResourceUtil::decodeSecret)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Could not find secret " + secretKeyRef.getName()
-                + " with key " + secretKeyRef.getKey()
-                + " for superuser password")))
-        .ifPresent(password -> {
-          data.put(SUPERUSER_PASSWORD_ENV, password);
-          data.put(SUPERUSER_PASSWORD_KEY, password);
-        });
+    data.put(SUPERUSER_USERNAME_ENV, context.getSuperuserUsername()
+        .orElse(previousSecretData
+            .getOrDefault(SUPERUSER_USERNAME_ENV, SUPERUSER_USERNAME)));
+    data.put(SUPERUSER_PASSWORD_KEY, context.getSuperuserPassword()
+        .orElse(previousSecretData
+            .getOrDefault(SUPERUSER_PASSWORD_KEY, previousSecretData
+                .getOrDefault(SUPERUSER_PASSWORD_ENV, generatePassword()))));
+    data.put(SUPERUSER_PASSWORD_ENV, context.getSuperuserPassword()
+        .orElse(data.get(SUPERUSER_PASSWORD_KEY)));
   }
 
   private void setReplicationCredentials(StackGresClusterContext context,
-      final Optional<StackGresClusterReplicateFrom> replicateFrom,
       Map<String, String> previousSecretData, Map<String, String> data) {
-    data.put(REPLICATION_USERNAME_ENV, previousSecretData
-        .getOrDefault(REPLICATION_USERNAME_ENV, REPLICATION_USERNAME));
-    setReplicateFromExternalInstanceForReplicationUsername(context, data, replicateFrom);
-    data.put(REPLICATION_PASSWORD_KEY, previousSecretData
-        .getOrDefault(REPLICATION_PASSWORD_KEY, previousSecretData
-            .getOrDefault(REPLICATION_PASSWORD_ENV, generatePassword())));
-    data.put(REPLICATION_PASSWORD_ENV, data.get(REPLICATION_PASSWORD_KEY));
-    setReplicateFromExternalInstanceForReplicationPassword(context, data, replicateFrom);
-  }
-
-  private void setReplicateFromExternalInstanceForReplicationUsername(
-      StackGresClusterContext context, Map<String, String> data,
-      Optional<StackGresClusterReplicateFrom> replicateFrom) {
-    replicateFrom
-        .map(StackGresClusterReplicateFrom::getUsers)
-        .map(StackGresClusterReplicateFromUsers::getReplication)
-        .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
-        .map(secretKeyRef -> context
-            .getExternalReplicationUsernameSecret()
-            .map(Secret::getData)
-            .map(secretData -> secretData.get(secretKeyRef.getKey()))
-            .map(ResourceUtil::decodeSecret)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Could not find secret " + secretKeyRef.getName()
-                + " with key " + secretKeyRef.getKey()
-                + " for replication username")))
-        .ifPresent(username -> data
-            .put(REPLICATION_USERNAME_ENV, username));
-  }
-
-  private void setReplicateFromExternalInstanceForReplicationPassword(
-      StackGresClusterContext context, Map<String, String> data,
-      Optional<StackGresClusterReplicateFrom> replicateFrom) {
-    replicateFrom
-        .map(StackGresClusterReplicateFrom::getUsers)
-        .map(StackGresClusterReplicateFromUsers::getReplication)
-        .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
-        .map(secretKeyRef -> context
-            .getExternalReplicationPasswordSecret()
-            .map(Secret::getData)
-            .map(secretData -> secretData.get(secretKeyRef.getKey()))
-            .map(ResourceUtil::decodeSecret)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Could not find secret " + secretKeyRef.getName()
-                + " with key " + secretKeyRef.getKey()
-                + " for replication password")))
-        .ifPresent(password -> {
-          data.put(REPLICATION_PASSWORD_ENV, password);
-          data.put(REPLICATION_PASSWORD_KEY, password);
-        });
+    data.put(REPLICATION_USERNAME_ENV, context.getReplicationUsername()
+        .orElse(previousSecretData
+            .getOrDefault(REPLICATION_USERNAME_ENV, REPLICATION_USERNAME)));
+    data.put(REPLICATION_PASSWORD_KEY, context.getReplicationPassword()
+        .orElse(previousSecretData
+            .getOrDefault(REPLICATION_PASSWORD_KEY, previousSecretData
+                .getOrDefault(REPLICATION_PASSWORD_ENV, generatePassword()))));
+    data.put(REPLICATION_PASSWORD_ENV, context.getReplicationPassword()
+        .orElse(data.get(REPLICATION_PASSWORD_KEY)));
   }
 
   private void setAuthenticatorCredentials(StackGresClusterContext context,
-      final Optional<StackGresClusterReplicateFrom> replicateFrom,
       Map<String, String> previousSecretData, Map<String, String> data) {
-    data.put(AUTHENTICATOR_USERNAME_ENV, previousSecretData
-        .getOrDefault(AUTHENTICATOR_USERNAME_ENV, AUTHENTICATOR_USERNAME));
-    setReplicateFromExternalInstanceForAuthenticatorUsername(context, data, replicateFrom);
+    data.put(AUTHENTICATOR_USERNAME_ENV, context.getAuthenticatorUsername()
+        .orElse(previousSecretData
+            .getOrDefault(AUTHENTICATOR_USERNAME_ENV, AUTHENTICATOR_USERNAME)));
     final String authenticatorPasswordEnv = AUTHENTICATOR_PASSWORD_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV));
     final String authenticatorOptionsEnv = AUTHENTICATOR_OPTIONS_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV));
-    data.put(AUTHENTICATOR_PASSWORD_KEY, previousSecretData
-        .getOrDefault(AUTHENTICATOR_PASSWORD_KEY, previousSecretData
-            .getOrDefault(authenticatorPasswordEnv, generatePassword())));
-    data.put(authenticatorPasswordEnv, data.get(AUTHENTICATOR_PASSWORD_KEY));
-    setReplicateFromExternalInstanceForAuthenticatorPassword(context, data, replicateFrom);
+    data.put(AUTHENTICATOR_PASSWORD_KEY, context.getAuthenticatorPassword()
+        .orElse(previousSecretData
+            .getOrDefault(AUTHENTICATOR_PASSWORD_KEY, previousSecretData
+                .getOrDefault(authenticatorPasswordEnv, generatePassword()))));
+    data.put(authenticatorPasswordEnv, context.getAuthenticatorPassword()
+        .orElse(data.get(AUTHENTICATOR_PASSWORD_KEY)));
     data.put(authenticatorOptionsEnv, "superuser");
-  }
-
-  private void setReplicateFromExternalInstanceForAuthenticatorUsername(
-      StackGresClusterContext context, Map<String, String> data,
-      Optional<StackGresClusterReplicateFrom> replicateFrom) {
-    replicateFrom
-        .map(StackGresClusterReplicateFrom::getUsers)
-        .map(StackGresClusterReplicateFromUsers::getAuthenticator)
-        .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
-        .map(secretKeyRef -> context
-            .getExternalAuthenticatorUsernameSecret()
-            .map(Secret::getData)
-            .map(secretData -> secretData.get(secretKeyRef.getKey()))
-            .map(ResourceUtil::decodeSecret)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Could not find secret " + secretKeyRef.getName()
-                + " with key " + secretKeyRef.getKey()
-                + " for authenticator username")))
-        .ifPresent(username -> data
-            .put(AUTHENTICATOR_USERNAME_ENV, username));
-  }
-
-  private void setReplicateFromExternalInstanceForAuthenticatorPassword(
-      StackGresClusterContext context, Map<String, String> data,
-      Optional<StackGresClusterReplicateFrom> replicateFrom) {
-    final String authenticatorPasswordEnv = AUTHENTICATOR_PASSWORD_ENV
-        .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV));
-    replicateFrom
-        .map(StackGresClusterReplicateFrom::getUsers)
-        .map(StackGresClusterReplicateFromUsers::getAuthenticator)
-        .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
-        .map(secretKeyRef -> context
-            .getExternalAuthenticatorPasswordSecret()
-            .map(Secret::getData)
-            .map(secretData -> secretData.get(secretKeyRef.getKey()))
-            .map(ResourceUtil::decodeSecret)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Could not find secret " + secretKeyRef.getName()
-                + " with key " + secretKeyRef.getKey()
-                + " for authenticator password")))
-        .ifPresent(password -> {
-          data.put(authenticatorPasswordEnv, password);
-          data.put(AUTHENTICATOR_PASSWORD_KEY, password);
-        });
   }
 
   private void setBabelfishCredentials(final Map<String, String> previousSecretData,

@@ -56,7 +56,7 @@ public class PatroniServices implements
   }
 
   public static String readWriteName(ClusterContext clusterContext) {
-    return PatroniUtil.readWriteName(clusterContext.getCluster());
+    return PatroniUtil.deprecatedReadWriteName(clusterContext.getCluster());
   }
 
   public static String readOnlyName(ClusterContext clusterContext) {

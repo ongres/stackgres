@@ -16,6 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -23,18 +24,24 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUserSecretKeyRef;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUsers;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -42,6 +49,7 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.prometheus.PodMonitor;
 import io.stackgres.common.prometheus.PrometheusConfig;
 import io.stackgres.common.resource.BackupConfigFinder;
@@ -53,6 +61,7 @@ import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 import io.stackgres.operator.resource.PrometheusScanner;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -133,26 +142,24 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
   }
@@ -162,20 +169,15 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     List<HasMetadata> resources = generator.getRequiredResources(cluster);
 
@@ -195,9 +197,12 @@ class ClusterRequiredResourcesGeneratorTest {
                   .equals(Boolean.FALSE)));
     });
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
   }
@@ -207,25 +212,23 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    clusterConfiguration.setBackupConfig(null);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    cluster.getSpec().getConfiguration().setBackupConfig(null);
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
     verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
   }
@@ -235,25 +238,23 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    clusterConfiguration.setConnectionPoolingConfig(null);
+    cluster.getSpec().getConfiguration().setConnectionPoolingConfig(null);
 
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
@@ -267,24 +268,22 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder, never()).findByNameAndNamespace(any(), any());
   }
@@ -300,39 +299,26 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
-  }
-
-  private void mockPoolingConfig(String clusterNamespace, String connectionPoolingConfig) {
-    when(poolingConfigFinder.findByNameAndNamespace(connectionPoolingConfig, clusterNamespace))
-        .thenReturn(Optional.of(poolingConfig));
-  }
-
-  private void mockPgConfig(String clusterNamespace, String postgresConfigName) {
-    when(postgresConfigFinder.findByNameAndNamespace(postgresConfigName, clusterNamespace))
-        .thenReturn(Optional.of(this.postgresConfig));
   }
 
   @Test
@@ -341,16 +327,16 @@ class ClusterRequiredResourcesGeneratorTest {
     final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    when(postgresConfigFinder.findByNameAndNamespace(postgresConfigName, clusterNamespace))
+    when(postgresConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace))
         .thenReturn(Optional.empty());
 
     assertException("SGCluster " + clusterNamespace + "." + clusterName
-        + " have a non existent SGPostgresConfig " + postgresConfigName);
+        + " have a non existent SGPostgresConfig "
+        + cluster.getSpec().getConfiguration().getPostgresConfig());
 
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
     verify(profileConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
@@ -363,18 +349,16 @@ class ClusterRequiredResourcesGeneratorTest {
     final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockPgConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.empty());
 
     assertException("SGCluster " + clusterNamespace + "."
         + clusterName + " have a non existent SGInstanceProfile " + resourceProfile);
 
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
@@ -386,27 +370,26 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    when(backupConfigFinder.findByNameAndNamespace(backupConfigName, clusterNamespace))
+    when(backupConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace))
         .thenReturn(Optional.empty());
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
   }
@@ -416,27 +399,26 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    when(poolingConfigFinder.findByNameAndNamespace(connectionPoolingConfig, clusterNamespace))
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
         .thenReturn(Optional.empty());
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
   }
@@ -447,20 +429,15 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(
         Fixtures.prometheusList().loadDefault().get().getItems()));
@@ -482,20 +459,15 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     List<PrometheusConfig> listPrometheus = Fixtures.prometheusList().loadDefault().get()
             .getItems()
@@ -515,20 +487,974 @@ class ClusterRequiredResourcesGeneratorTest {
     System.clearProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName());
   }
 
-  private void mockSecrets(String clusterNamespace) {
-    when(secretFinder.findByNameAndNamespace("minio", clusterNamespace))
-        .thenReturn(Optional.of(minioSecret));
+  @Test
+  void givenClusterWithReplicateFromExternal_shouldReadUsersSecrets() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternal();
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    generator.getRequiredResources(cluster);
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
   }
 
-  private void mockBackupConfig(String clusterNamespace, String backupConfigName) {
-    when(backupConfigFinder.findByNameAndNamespace(backupConfigName, clusterNamespace))
-        .thenReturn(Optional.of(this.backupConfig));
+  @Test
+  void givenClusterWithReplicateFromExternalWithoutSecretForSuperuserUsername_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternalWithoutSecret(StackGresPasswordKeys.SUPERUSER_USERNAME_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Superuser username secret missing-test-secret was not found");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromExternalWithoutSecretForSuperuserPassword_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternalWithoutSecret(StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Superuser password secret missing-test-secret was not found");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromExternalWithoutSecretForReplicationUsername_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternalWithoutSecret(StackGresPasswordKeys.REPLICATION_USERNAME_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Replication username secret missing-test-secret was not found");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromExternalWithoutSecretForReplicationPassword_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternalWithoutSecret(StackGresPasswordKeys.REPLICATION_PASSWORD_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Replication password secret missing-test-secret was not found");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromExternalWithoutSecretForAuthenticatorUsername_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternalWithoutSecret(StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Authenticator username secret missing-test-secret was not found");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromExternalWithoutSecretForAuthenticatorpassword_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternalWithoutSecret(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Authenticator password secret missing-test-secret was not found");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromExternalWithoutKeyForSuperuserUsername_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternalWithoutKey(StackGresPasswordKeys.SUPERUSER_USERNAME_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Superuser username key PATRONI_SUPERUSER_USERNAME"
+        + " was not found in secret test-secret");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromExternalWithoutKeyForSuperuserPassword_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternalWithoutKey(StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Superuser password key PATRONI_SUPERUSER_PASSWORD"
+        + " was not found in secret test-secret");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromExternalWithoutKeyForReplicationUsername_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternalWithoutKey(StackGresPasswordKeys.REPLICATION_USERNAME_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Replication username key PATRONI_REPLICATION_USERNAME"
+        + " was not found in secret test-secret");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromExternalWithoutKeyForReplicationPassword_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternalWithoutKey(StackGresPasswordKeys.REPLICATION_PASSWORD_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Replication password key PATRONI_REPLICATION_PASSWORD"
+        + " was not found in secret test-secret");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromExternalWithoutKeyForAuthenticatorUsername_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternalWithoutKey(StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Authenticator username key PATRONI_authenticator_USERNAME"
+        + " was not found in secret test-secret");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromExternalWithoutKeyForAuthenticatorpassword_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromExternalWithoutKey(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Authenticator password key PATRONI_authenticator_PASSWORD"
+        + " was not found in secret test-secret");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromCluster_shouldReadUsersSecrets() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromCluster();
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    generator.getRequiredResources(cluster);
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromClusterWithoutSecret_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromClusterWithoutSecret();
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Can not find secret test"
+        + " for SGCluster test"
+        + " to replicate from");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromClusterWithoutSecretForSuperuserUsername_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromClusterWithoutKey(StackGresPasswordKeys.SUPERUSER_USERNAME_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Superuser username key PATRONI_SUPERUSER_USERNAME"
+        + " was not found in secret test");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromClusterWithoutSecretForSuperuserPassword_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromClusterWithoutKey(StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Superuser password key PATRONI_SUPERUSER_PASSWORD"
+        + " was not found in secret test");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromClusterWithoutSecretForReplicationUsername_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromClusterWithoutKey(StackGresPasswordKeys.REPLICATION_USERNAME_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Replication username key PATRONI_REPLICATION_USERNAME"
+        + " was not found in secret test");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromClusterWithoutSecretForReplicationPassword_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromClusterWithoutKey(StackGresPasswordKeys.REPLICATION_PASSWORD_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Replication password key PATRONI_REPLICATION_PASSWORD"
+        + " was not found in secret test");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromClusterWithoutSecretForAuthenticatorUsername_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromClusterWithoutKey(StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Authenticator username key PATRONI_authenticator_USERNAME"
+        + " was not found in secret test");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenClusterWithReplicateFromClusterWithoutSecretForAuthenticatorpassword_shouldFail() {
+    final ObjectMeta metadata = cluster.getMetadata();
+    final String clusterNamespace = metadata.getNamespace();
+
+    mockReplicateFromClusterWithoutKey(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV);
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(cluster.getSpec()
+        .getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
+        .thenReturn(Optional.empty());
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace))
+        .thenReturn(Optional.of(instanceProfile));
+    when(backupFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backup));
+    mockSecrets();
+
+    assertException("Authenticator password key PATRONI_authenticator_PASSWORD"
+        + " was not found in secret test");
+
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
+    verify(profileConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(), clusterNamespace);
+    verify(backupFinder).findByNameAndNamespace(any(), any());
   }
 
   private void assertException(String message) {
     var ex =
         assertThrows(IllegalArgumentException.class, () -> generator.getRequiredResources(cluster));
     assertEquals(message, ex.getMessage());
+  }
+
+  private void mockPoolingConfig() {
+    when(poolingConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(poolingConfig));
+  }
+
+  private void mockPgConfig() {
+    when(postgresConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(this.postgresConfig));
+  }
+
+  private void mockBackupConfig() {
+    when(backupConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(this.backupConfig));
+  }
+
+  private void mockSecrets() {
+    when(secretFinder.findByNameAndNamespace(
+        "minio",
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(minioSecret));
+  }
+
+  private void mockReplicateFromExternal() {
+    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
+    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
+    cluster.getSpec().getReplicateFrom().getInstance()
+        .setExternal(new StackGresClusterReplicateFromExternal());
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal().setHost("test");
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal().setPort(5433);
+    cluster.getSpec().getReplicateFrom().setUsers(new StackGresClusterReplicateFromUsers());
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .setSuperuser(new StackGresClusterReplicateFromUserSecretKeyRef());
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getSuperuser().setUsername(new SecretKeySelector(
+            StackGresPasswordKeys.SUPERUSER_USERNAME_ENV, "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getSuperuser().setPassword(new SecretKeySelector(
+            StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV, "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .setReplication(new StackGresClusterReplicateFromUserSecretKeyRef());
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getReplication().setUsername(new SecretKeySelector(
+            StackGresPasswordKeys.REPLICATION_USERNAME_ENV, "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getReplication().setPassword(new SecretKeySelector(
+            StackGresPasswordKeys.REPLICATION_PASSWORD_ENV, "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .setAuthenticator(new StackGresClusterReplicateFromUserSecretKeyRef());
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getAuthenticator().setUsername(new SecretKeySelector(
+            StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV, "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getAuthenticator().setPassword(new SecretKeySelector(
+            StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV, "test-secret"));
+    when(secretFinder.findByNameAndNamespace(
+        "test-secret",
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(new SecretBuilder()
+            .withData(Map.ofEntries(
+                Map.entry(
+                    StackGresPasswordKeys.SUPERUSER_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("postgres")),
+                Map.entry(
+                    StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("postgres")),
+                Map.entry(
+                    StackGresPasswordKeys.REPLICATION_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("replicator")),
+                Map.entry(
+                    StackGresPasswordKeys.REPLICATION_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("replicator")),
+                Map.entry(
+                    StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("authenticator")),
+                Map.entry(
+                    StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("authenticator"))))
+            .build()));
+  }
+
+  private void mockReplicateFromExternalWithoutSecret(String key) {
+    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
+    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
+    cluster.getSpec().getReplicateFrom().getInstance()
+        .setExternal(new StackGresClusterReplicateFromExternal());
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal().setHost("test");
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal().setPort(5433);
+    cluster.getSpec().getReplicateFrom().setUsers(new StackGresClusterReplicateFromUsers());
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .setSuperuser(new StackGresClusterReplicateFromUserSecretKeyRef());
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getSuperuser().setUsername(new SecretKeySelector(
+            StackGresPasswordKeys.SUPERUSER_USERNAME_ENV,
+            key.equals(StackGresPasswordKeys.SUPERUSER_USERNAME_ENV)
+            ? "missing-test-secret" : "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getSuperuser().setPassword(new SecretKeySelector(
+            StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV,
+            key.equals(StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV)
+            ? "missing-test-secret" : "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .setReplication(new StackGresClusterReplicateFromUserSecretKeyRef());
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getReplication().setUsername(new SecretKeySelector(
+            StackGresPasswordKeys.REPLICATION_USERNAME_ENV,
+            key.equals(StackGresPasswordKeys.REPLICATION_USERNAME_ENV)
+            ? "missing-test-secret" : "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getReplication().setPassword(new SecretKeySelector(
+            StackGresPasswordKeys.REPLICATION_PASSWORD_ENV,
+            key.equals(StackGresPasswordKeys.REPLICATION_PASSWORD_ENV)
+            ? "missing-test-secret" : "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .setAuthenticator(new StackGresClusterReplicateFromUserSecretKeyRef());
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getAuthenticator().setUsername(new SecretKeySelector(
+            StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV,
+            key.equals(StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV)
+            ? "missing-test-secret" : "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getAuthenticator().setPassword(new SecretKeySelector(
+            StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV,
+            key.equals(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV)
+            ? "missing-test-secret" : "test-secret"));
+    when(secretFinder.findByNameAndNamespace(
+        "test-secret",
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(new SecretBuilder()
+            .withData(Map.ofEntries(
+                Map.entry(
+                    StackGresPasswordKeys.SUPERUSER_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("postgres")),
+                Map.entry(
+                    StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("postgres")),
+                Map.entry(
+                    StackGresPasswordKeys.REPLICATION_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("replicator")),
+                Map.entry(
+                    StackGresPasswordKeys.REPLICATION_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("replicator")),
+                Map.entry(
+                    StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("authenticator")),
+                Map.entry(
+                    StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("authenticator"))))
+            .build()));
+  }
+
+  private void mockReplicateFromExternalWithoutKey(String key) {
+    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
+    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
+    cluster.getSpec().getReplicateFrom().getInstance()
+        .setExternal(new StackGresClusterReplicateFromExternal());
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal().setHost("test");
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal().setPort(5433);
+    cluster.getSpec().getReplicateFrom().setUsers(new StackGresClusterReplicateFromUsers());
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .setSuperuser(new StackGresClusterReplicateFromUserSecretKeyRef());
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getSuperuser().setUsername(new SecretKeySelector(
+            StackGresPasswordKeys.SUPERUSER_USERNAME_ENV, "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getSuperuser().setPassword(new SecretKeySelector(
+            StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV, "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .setReplication(new StackGresClusterReplicateFromUserSecretKeyRef());
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getReplication().setUsername(new SecretKeySelector(
+            StackGresPasswordKeys.REPLICATION_USERNAME_ENV, "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getReplication().setPassword(new SecretKeySelector(
+            StackGresPasswordKeys.REPLICATION_PASSWORD_ENV, "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .setAuthenticator(new StackGresClusterReplicateFromUserSecretKeyRef());
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getAuthenticator().setUsername(new SecretKeySelector(
+            StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV, "test-secret"));
+    cluster.getSpec().getReplicateFrom().getUsers()
+        .getAuthenticator().setPassword(new SecretKeySelector(
+            StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV, "test-secret"));
+    when(secretFinder.findByNameAndNamespace(
+        "test-secret",
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(new SecretBuilder()
+            .withData(Map.ofEntries(
+                Map.entry(
+                    key.equals(StackGresPasswordKeys.SUPERUSER_USERNAME_ENV)
+                    ? "missing-key" : StackGresPasswordKeys.SUPERUSER_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("postgres")),
+                Map.entry(
+                    key.equals(StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV)
+                    ? "missing-key" : StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("postgres")),
+                Map.entry(
+                    key.equals(StackGresPasswordKeys.REPLICATION_USERNAME_ENV)
+                    ? "missing-key" : StackGresPasswordKeys.REPLICATION_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("replicator")),
+                Map.entry(
+                    key.equals(StackGresPasswordKeys.REPLICATION_PASSWORD_ENV)
+                    ? "missing-key" : StackGresPasswordKeys.REPLICATION_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("replicator")),
+                Map.entry(
+                    key.equals(StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV)
+                    ? "missing-key" : StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("authenticator")),
+                Map.entry(
+                    key.equals(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV)
+                    ? "missing-key" : StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("authenticator"))))
+            .build()));
+  }
+
+  private void mockReplicateFromCluster() {
+    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
+    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
+    cluster.getSpec().getReplicateFrom().getInstance()
+        .setSgCluster("test");
+    when(secretFinder.findByNameAndNamespace(
+        PatroniUtil.readWriteName("test"),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(new SecretBuilder()
+            .withData(Map.ofEntries(
+                Map.entry(
+                    StackGresPasswordKeys.SUPERUSER_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("postgres")),
+                Map.entry(
+                    StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("postgres")),
+                Map.entry(
+                    StackGresPasswordKeys.REPLICATION_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("replicator")),
+                Map.entry(
+                    StackGresPasswordKeys.REPLICATION_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("replicator")),
+                Map.entry(
+                    StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("authenticator")),
+                Map.entry(
+                    StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("authenticator"))))
+            .build()));
+  }
+
+  private void mockReplicateFromClusterWithoutSecret() {
+    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
+    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
+    cluster.getSpec().getReplicateFrom().getInstance()
+        .setSgCluster("test");
+    when(secretFinder.findByNameAndNamespace(
+        PatroniUtil.readWriteName("test"),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.empty());
+  }
+
+  private void mockReplicateFromClusterWithoutKey(String key) {
+    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
+    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
+    cluster.getSpec().getReplicateFrom().getInstance()
+        .setSgCluster("test");
+    when(secretFinder.findByNameAndNamespace(
+        PatroniUtil.readWriteName("test"),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(new SecretBuilder()
+            .withData(Map.ofEntries(
+                Map.entry(
+                    key.equals(StackGresPasswordKeys.SUPERUSER_USERNAME_ENV)
+                    ? "missing-key" : StackGresPasswordKeys.SUPERUSER_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("postgres")),
+                Map.entry(
+                    key.equals(StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV)
+                    ? "missing-key" : StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("postgres")),
+                Map.entry(
+                    key.equals(StackGresPasswordKeys.REPLICATION_USERNAME_ENV)
+                    ? "missing-key" : StackGresPasswordKeys.REPLICATION_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("replicator")),
+                Map.entry(
+                    key.equals(StackGresPasswordKeys.REPLICATION_PASSWORD_ENV)
+                    ? "missing-key" : StackGresPasswordKeys.REPLICATION_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("replicator")),
+                Map.entry(
+                    key.equals(StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV)
+                    ? "missing-key" : StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV,
+                    ResourceUtil.encodeSecret("authenticator")),
+                Map.entry(
+                    key.equals(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV)
+                    ? "missing-key" : StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV,
+                    ResourceUtil.encodeSecret("authenticator"))))
+            .build()));
   }
 
 }

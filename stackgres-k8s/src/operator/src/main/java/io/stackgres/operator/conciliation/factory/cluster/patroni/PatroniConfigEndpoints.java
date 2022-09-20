@@ -20,6 +20,7 @@ import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -66,6 +67,17 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
         cluster.getSpec().getReplication().isStrictSynchronousMode());
     patroniConf.setSynchronousNodeCount(
         cluster.getSpec().getReplication().getSyncInstances());
+
+    Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getReplicateFrom)
+        .map(StackGresClusterReplicateFrom::getInstance)
+        .map(StackGresClusterReplicateFromInstance::getSgCluster)
+        .ifPresent(sgCluster -> {
+          patroniConf.setStandbyCluster(new StandbyCluster());
+          patroniConf.getStandbyCluster().setHost(PatroniUtil.readWriteName(sgCluster));
+          patroniConf.getStandbyCluster().setPort(
+              String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT));
+        });
 
     Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getReplicateFrom)

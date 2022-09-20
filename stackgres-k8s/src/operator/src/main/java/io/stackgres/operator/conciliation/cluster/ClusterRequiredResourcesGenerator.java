@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -33,6 +32,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUsers;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
@@ -42,15 +42,18 @@ import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.prometheus.PrometheusConfig;
 import io.stackgres.common.prometheus.PrometheusConfigSpec;
 import io.stackgres.common.prometheus.PrometheusInstallation;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,10 +168,185 @@ public class ClusterRequiredResourcesGenerator
 
     final Optional<StackGresBackup> restoreBackup = findRestoreBackup(config, clusterNamespace);
 
-    final var replicateFromUsers =
-        Optional.ofNullable(spec)
+    final Optional<String> superuserUsername;
+    final Optional<String> superuserPassword;
+    final Optional<String> replicationUsername;
+    final Optional<String> replicationPassword;
+    final Optional<String> authenticatorUsername;
+    final Optional<String> authenticatorPassword;
+
+    if (Optional.ofNullable(spec)
         .map(StackGresClusterSpec::getReplicateFrom)
-        .map(StackGresClusterReplicateFrom::getUsers);
+        .map(StackGresClusterReplicateFrom::getInstance)
+        .map(StackGresClusterReplicateFromInstance::getSgCluster)
+        .isPresent()) {
+      final String replicateFromCluster = Optional.ofNullable(spec)
+          .map(StackGresClusterSpec::getReplicateFrom)
+          .map(StackGresClusterReplicateFrom::getInstance)
+          .map(StackGresClusterReplicateFromInstance::getSgCluster)
+          .orElseThrow();
+      final String secretName = PatroniSecret.name(replicateFromCluster);
+      final Secret replicateFromClusterSecret = secretFinder
+          .findByNameAndNamespace(secretName, clusterNamespace)
+          .orElseThrow(() -> new IllegalArgumentException(
+              "Can not find secret " + secretName
+              + " for SGCluster " + replicateFromCluster
+              + " to replicate from"));
+
+      superuserUsername = Optional.of(
+          Optional.of(replicateFromClusterSecret)
+          .map(Secret::getData)
+          .map(data -> data.get(StackGresPasswordKeys.SUPERUSER_USERNAME_ENV))
+          .map(ResourceUtil::decodeSecret)
+          .orElseThrow(() -> new IllegalArgumentException(
+              "Superuser username key " + StackGresPasswordKeys.SUPERUSER_USERNAME_ENV
+              + " was not found in secret " + secretName)));
+      superuserPassword = Optional.of(
+          Optional.of(replicateFromClusterSecret)
+          .map(Secret::getData)
+          .map(data -> data.get(StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV))
+          .map(ResourceUtil::decodeSecret)
+          .orElseThrow(() -> new IllegalArgumentException(
+              "Superuser password key " + StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV
+              + " was not found in secret " + secretName)));
+
+      replicationUsername = Optional.of(
+          Optional.of(replicateFromClusterSecret)
+          .map(Secret::getData)
+          .map(data -> data.get(StackGresPasswordKeys.REPLICATION_USERNAME_ENV))
+          .map(ResourceUtil::decodeSecret)
+          .orElseThrow(() -> new IllegalArgumentException(
+              "Replication username key " + StackGresPasswordKeys.REPLICATION_USERNAME_ENV
+              + " was not found in secret " + secretName)));
+      replicationPassword = Optional.of(
+          Optional.of(replicateFromClusterSecret)
+          .map(Secret::getData)
+          .map(data -> data.get(StackGresPasswordKeys.REPLICATION_PASSWORD_ENV))
+          .map(ResourceUtil::decodeSecret)
+          .orElseThrow(() -> new IllegalArgumentException(
+              "Replication password key " + StackGresPasswordKeys.REPLICATION_PASSWORD_ENV
+              + " was not found in secret " + secretName)));
+
+      authenticatorUsername = Optional.of(
+          Optional.of(replicateFromClusterSecret)
+          .map(Secret::getData)
+          .map(data -> data.get(StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV))
+          .map(ResourceUtil::decodeSecret)
+          .orElseThrow(() -> new IllegalArgumentException(
+              "Authenticator username key " + StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV
+              + " was not found in secret " + secretName)));
+      authenticatorPassword = Optional.of(
+          Optional.of(replicateFromClusterSecret)
+          .map(Secret::getData)
+          .map(data -> data.get(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV))
+          .map(ResourceUtil::decodeSecret)
+          .orElseThrow(() -> new IllegalArgumentException(
+              "Authenticator password key " + StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV
+              + " was not found in secret " + secretName)));
+    } else if (Optional.ofNullable(spec)
+        .map(StackGresClusterSpec::getReplicateFrom)
+        .map(StackGresClusterReplicateFrom::getInstance)
+        .map(StackGresClusterReplicateFromInstance::getExternal)
+        .isPresent()) {
+      final var replicateFromUsers =
+          Optional.ofNullable(spec)
+          .map(StackGresClusterSpec::getReplicateFrom)
+          .map(StackGresClusterReplicateFrom::getUsers);
+
+      superuserUsername = replicateFromUsers
+          .map(StackGresClusterReplicateFromUsers::getSuperuser)
+          .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
+          .map(secretKeySelector -> secretFinder
+              .findByNameAndNamespace(secretKeySelector.getName(), clusterNamespace)
+              .map(secret -> Optional.ofNullable(secret.getData())
+                  .map(data -> data.get(secretKeySelector.getKey()))
+                  .map(ResourceUtil::decodeSecret)
+                  .orElseThrow(() -> new IllegalArgumentException(
+                      "Superuser username key " + secretKeySelector.getKey()
+                      + " was not found in secret " + secretKeySelector.getName())))
+              .orElseThrow(() -> new IllegalArgumentException(
+                  "Superuser username secret " + secretKeySelector.getName()
+                  + " was not found")));
+      superuserPassword = replicateFromUsers
+          .map(StackGresClusterReplicateFromUsers::getSuperuser)
+          .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
+          .map(secretKeySelector -> secretFinder
+              .findByNameAndNamespace(secretKeySelector.getName(), clusterNamespace)
+              .map(secret -> Optional.ofNullable(secret.getData())
+                  .map(data -> data.get(secretKeySelector.getKey()))
+                  .map(ResourceUtil::decodeSecret)
+                  .orElseThrow(() -> new IllegalArgumentException(
+                      "Superuser password key " + secretKeySelector.getKey()
+                      + " was not found in secret " + secretKeySelector.getName())))
+              .orElseThrow(() -> new IllegalArgumentException(
+                  "Superuser password secret " + secretKeySelector.getName()
+                  + " was not found")));
+
+      replicationUsername = replicateFromUsers
+          .map(StackGresClusterReplicateFromUsers::getReplication)
+          .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
+          .map(secretKeySelector -> secretFinder
+              .findByNameAndNamespace(secretKeySelector.getName(), clusterNamespace)
+              .map(secret -> Optional.ofNullable(secret.getData())
+                  .map(data -> data.get(secretKeySelector.getKey()))
+                  .map(ResourceUtil::decodeSecret)
+                  .orElseThrow(() -> new IllegalArgumentException(
+                      "Replication username key " + secretKeySelector.getKey()
+                      + " was not found in secret " + secretKeySelector.getName())))
+              .orElseThrow(() -> new IllegalArgumentException(
+                  "Replication username secret " + secretKeySelector.getName()
+                  + " was not found")));
+      replicationPassword = replicateFromUsers
+          .map(StackGresClusterReplicateFromUsers::getReplication)
+          .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
+          .map(secretKeySelector -> secretFinder
+              .findByNameAndNamespace(secretKeySelector.getName(), clusterNamespace)
+              .map(secret -> Optional.ofNullable(secret.getData())
+                  .map(data -> data.get(secretKeySelector.getKey()))
+                  .map(ResourceUtil::decodeSecret)
+                  .orElseThrow(() -> new IllegalArgumentException(
+                      "Replication password key " + secretKeySelector.getKey()
+                      + " was not found in secret " + secretKeySelector.getName())))
+              .orElseThrow(() -> new IllegalArgumentException(
+                  "Replication password secret " + secretKeySelector.getName()
+                  + " was not found")));
+
+      authenticatorUsername = replicateFromUsers
+          .map(StackGresClusterReplicateFromUsers::getAuthenticator)
+          .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
+          .map(secretKeySelector -> secretFinder
+              .findByNameAndNamespace(secretKeySelector.getName(), clusterNamespace)
+              .map(secret -> Optional.ofNullable(secret.getData())
+                  .map(data -> data.get(secretKeySelector.getKey()))
+                  .map(ResourceUtil::decodeSecret)
+                  .orElseThrow(() -> new IllegalArgumentException(
+                      "Authenticator username key " + secretKeySelector.getKey()
+                      + " was not found in secret " + secretKeySelector.getName())))
+              .orElseThrow(() -> new IllegalArgumentException(
+                  "Authenticator username secret " + secretKeySelector.getName()
+                  + " was not found")));
+      authenticatorPassword = replicateFromUsers
+          .map(StackGresClusterReplicateFromUsers::getAuthenticator)
+          .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
+          .map(secretKeySelector -> secretFinder
+              .findByNameAndNamespace(secretKeySelector.getName(), clusterNamespace)
+              .map(secret -> Optional.ofNullable(secret.getData())
+                  .map(data -> data.get(secretKeySelector.getKey()))
+                  .map(ResourceUtil::decodeSecret)
+                  .orElseThrow(() -> new IllegalArgumentException(
+                      "Authenticator password key " + secretKeySelector.getKey()
+                      + " was not found in secret " + secretKeySelector.getName())))
+              .orElseThrow(() -> new IllegalArgumentException(
+                  "Authenticator password secret " + secretKeySelector.getName()
+                  + " was not found")));
+    } else {
+      superuserUsername = Optional.empty();
+      superuserPassword = Optional.empty();
+      replicationUsername = Optional.empty();
+      replicationPassword = Optional.empty();
+      authenticatorUsername = Optional.empty();
+      authenticatorPassword = Optional.empty();
+    }
 
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .source(config)
@@ -181,48 +359,12 @@ public class ClusterRequiredResourcesGenerator
         .prometheus(getPrometheus(config))
         .clusterBackupNamespaces(clusterBackupNamespaces)
         .databaseSecret(secretFinder.findByNameAndNamespace(clusterName, clusterNamespace))
-        .externalSuperuserUsernameSecret(
-            replicateFromUsers
-            .map(StackGresClusterReplicateFromUsers::getSuperuser)
-            .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
-            .map(SecretKeySelector::getName)
-            .flatMap(secretName -> secretFinder
-                .findByNameAndNamespace(secretName, clusterNamespace)))
-        .externalSuperuserPasswordSecret(
-            replicateFromUsers
-            .map(StackGresClusterReplicateFromUsers::getSuperuser)
-            .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
-            .map(SecretKeySelector::getName)
-            .flatMap(secretName -> secretFinder
-                .findByNameAndNamespace(secretName, clusterNamespace)))
-        .externalReplicationUsernameSecret(
-            replicateFromUsers
-            .map(StackGresClusterReplicateFromUsers::getReplication)
-            .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
-            .map(SecretKeySelector::getName)
-            .flatMap(secretName -> secretFinder
-                .findByNameAndNamespace(secretName, clusterNamespace)))
-        .externalReplicationPasswordSecret(
-            replicateFromUsers
-            .map(StackGresClusterReplicateFromUsers::getReplication)
-            .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
-            .map(SecretKeySelector::getName)
-            .flatMap(secretName -> secretFinder
-                .findByNameAndNamespace(secretName, clusterNamespace)))
-        .externalAuthenticatorUsernameSecret(
-            replicateFromUsers
-            .map(StackGresClusterReplicateFromUsers::getAuthenticator)
-            .map(StackGresClusterReplicateFromUserSecretKeyRef::getUsername)
-            .map(SecretKeySelector::getName)
-            .flatMap(secretName -> secretFinder
-                .findByNameAndNamespace(secretName, clusterNamespace)))
-        .externalAuthenticatorPasswordSecret(
-            replicateFromUsers
-            .map(StackGresClusterReplicateFromUsers::getAuthenticator)
-            .map(StackGresClusterReplicateFromUserSecretKeyRef::getPassword)
-            .map(SecretKeySelector::getName)
-            .flatMap(secretName -> secretFinder
-                .findByNameAndNamespace(secretName, clusterNamespace)))
+        .superuserUsername(superuserUsername)
+        .superuserPassword(superuserPassword)
+        .replicationUsername(replicationUsername)
+        .replicationPassword(replicationPassword)
+        .authenticatorUsername(authenticatorUsername)
+        .authenticatorPassword(authenticatorPassword)
         .build();
 
     return decorator.decorateResources(context);

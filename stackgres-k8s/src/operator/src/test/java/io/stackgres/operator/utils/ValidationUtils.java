@@ -94,10 +94,15 @@ public class ValidationUtils {
       String reason) {
     final StatusDetails details = status.getDetails();
     assertNotNull(details);
-    assertEquals(fields.length, details.getCauses().size(), "details was:\n"
-        + details.getCauses().stream()
-        .map(cause -> cause.getField() + ": " + cause.getMessage())
-        .collect(Collectors.joining("\n")));
+    assertEquals(fields.length,
+        details.getCauses().stream()
+        .filter(cause -> cause.getMessage().equals(message))
+        .count(),
+        "details was:\n"
+            + details.getCauses().stream()
+            .filter(cause -> cause.getMessage().equals(message))
+            .map(cause -> cause.getField() + ": " + cause.getMessage())
+            .collect(Collectors.joining("\n")));
     if (details.getCauses().size() == 1) {
       assertEquals(fields[0], details.getName());
     }
