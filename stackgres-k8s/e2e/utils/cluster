@@ -167,14 +167,14 @@ create_or_replace_cluster_for_version_only() {
   VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
   VERSION_1_0_0_ALPHA1_AS_NUMBER="$(get_version_as_number 1.0.0-alpha1)"
   VERSION_1_2_0_RC1_AS_NUMBER="$(get_version_as_number 1.2.0-RC1)"
-  VERSION_1_3_0_BETA1_AS_NUMBER="$(get_version_as_number 1.3.0-beta1)"
+  VERSION_1_3_0_AS_NUMBER="$(get_version_as_number 1.3.0)"
   if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA1_AS_NUMBER" ]
   then
     TRANSFORMER="transform_to_0_9"
   elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_2_0_RC1_AS_NUMBER" ]
   then
     TRANSFORMER="transform_to_1_1"
-  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_3_0_BETA1_AS_NUMBER" ]
+  elif [ "$VERSION_AS_NUMBER" -le "$VERSION_1_3_0_AS_NUMBER" ]
   then
     TRANSFORMER="transform_to_1_2"
   fi
