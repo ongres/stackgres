@@ -8,7 +8,7 @@ e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set configurations.create=false \
     --set instanceProfiles=null \
-    --set-string cluster.replicateFrom.instance.sgClusgter="$PRIMARY_CLUSTER_NAME"
+    --set-string cluster.replicateFrom.instance.sgCluster="$PRIMARY_CLUSTER_NAME"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
