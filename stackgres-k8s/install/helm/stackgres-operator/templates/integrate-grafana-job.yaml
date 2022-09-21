@@ -77,9 +77,9 @@ spec:
             cat << EOF > /tmp/grafana-dashboard-import.json
             {
               {{- if .Values.grafana.dashboardId }}
-              "dashboard": $(cat /tmp/grafana-dashboard.json | jq .),
+              "dashboard": $(sed "s/\${DS_PROMETHEUS}/$GRAFANA_PROMETHEUS_DATASOURCE_NAME/g" /tmp/grafana-dashboard.json | jq 'del()'),
               {{- else }}
-              "dashboard": $(cat /etc/grafana/grafana-dashboard.json | jq .),
+              "dashboard": $(sed "s/\${DS_PROMETHEUS}/$GRAFANA_PROMETHEUS_DATASOURCE_NAME/g" /etc/grafana/grafana-dashboard.json | jq .),
               {{- end }}
               "overwrite": true,
               "inputs": [{
@@ -88,11 +88,12 @@ spec:
                 "pluginId": "prometheus",
                 "value": "$GRAFANA_PROMETHEUS_DATASOURCE_NAME"
               }],
-              "folderId": -1
+              "folderId": null
             }
             EOF
-            GRAFANA_DASHBOARD_URL="$(curl_grafana_api -d "@/tmp/grafana-dashboard-import.json" "$GRAFANA_HOST/api/dashboards/import" | jq -M -r .importedUrl)"
+            GRAFANA_DASHBOARD_URL="$(curl_grafana_api -d "@/tmp/grafana-dashboard-import.json" "$GRAFANA_HOST/api/dashboards/db" | jq -M -r .url)"
             [ -n "$GRAFANA_DASHBOARD_URL" ]
+            [ "$GRAFANA_DASHBOARD_URL" != null ]
             GRAFANA_API_KEY_ID="$(curl_grafana_api "$GRAFANA_HOST/api/auth/keys" | jq -r '.[]|select(.name == "stackgres")|.id|select(.!=null)')"
             [ -z "$GRAFANA_API_KEY_ID" ] || curl_grafana_api -X DELETE "$GRAFANA_HOST/api/auth/keys/$GRAFANA_API_KEY_ID" > /dev/null
             GRAFANA_API_KEY_TOKEN="$(curl_grafana_api -d '{"name":"stackgres", "role": "Viewer"}' "$GRAFANA_HOST/api/auth/keys" | jq -r .key)"
