@@ -48,6 +48,14 @@ public class ClusterPatroniEnvVarFactory
         .ifPresent(additionalEnvVars::add);
 
     Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getReplicateFrom)
+        .map(fromBackup -> new EnvVarBuilder()
+            .withName("REPLICATE_FROM_BACKUP")
+            .withValue(Boolean.TRUE.toString())
+            .build())
+        .ifPresent(additionalEnvVars::add);
+
+    Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getInitData)
         .map(StackGresClusterInitData::getRestore)
         .map(StackGresClusterRestore::getFromBackup)

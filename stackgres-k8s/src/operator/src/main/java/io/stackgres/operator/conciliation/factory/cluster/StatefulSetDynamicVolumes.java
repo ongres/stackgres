@@ -18,6 +18,8 @@ public enum StatefulSetDynamicVolumes {
   BACKUP_ENV("backup-env", "%s-backup"),
   RESTORE_CREDENTIALS("restore-secret", "%s-restore"),
   RESTORE_ENV("restore-env", "%s-restore"),
+  REPLICATE_CREDENTIALS("replicate-secret", "%s-replicate"),
+  REPLICATE_ENV("replicate-env", "%s-replicate"),
   ENVOY("envoy", "%s-envoy-config"),
   EXPORTER_QUERIES("queries", "%s-prometheus-postgres-exporter-config"),
   EXPORTER_INIT("postgres-exporter-init", "%s-prometheus-postgres"),

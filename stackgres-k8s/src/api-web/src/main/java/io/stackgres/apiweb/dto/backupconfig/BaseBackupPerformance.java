@@ -25,6 +25,12 @@ public class BaseBackupPerformance {
   @JsonProperty("uploadDiskConcurrency")
   private Integer uploadDiskConcurrency;
 
+  @JsonProperty("uploadConcurrency")
+  private Integer uploadConcurrency;
+
+  @JsonProperty("downloadConcurrency")
+  private Integer downloadConcurrency;
+
   public Long getMaxNetworkBandwidth() {
     return maxNetworkBandwidth;
   }
@@ -49,27 +55,46 @@ public class BaseBackupPerformance {
     this.uploadDiskConcurrency = uploadDiskConcurrency;
   }
 
+  public Integer getUploadConcurrency() {
+    return uploadConcurrency;
+  }
+
+  public void setUploadConcurrency(Integer uploadConcurrency) {
+    this.uploadConcurrency = uploadConcurrency;
+  }
+
+  public Integer getDownloadConcurrency() {
+    return downloadConcurrency;
+  }
+
+  public void setDownloadConcurrency(Integer downloadConcurrency) {
+    this.downloadConcurrency = downloadConcurrency;
+  }
+
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof BaseBackupPerformance)) {
       return false;
     }
-    BaseBackupPerformance that = (BaseBackupPerformance) o;
-    return Objects.equals(maxNetworkBandwidth, that.maxNetworkBandwidth)
-        && Objects.equals(maxDiskBandwidth, that.maxDiskBandwidth)
-        && Objects.equals(uploadDiskConcurrency, that.uploadDiskConcurrency);
+    BaseBackupPerformance other = (BaseBackupPerformance) obj;
+    return Objects.equals(downloadConcurrency, other.downloadConcurrency)
+        && Objects.equals(maxDiskBandwidth, other.maxDiskBandwidth)
+        && Objects.equals(maxNetworkBandwidth, other.maxNetworkBandwidth)
+        && Objects.equals(uploadConcurrency, other.uploadConcurrency)
+        && Objects.equals(uploadDiskConcurrency, other.uploadDiskConcurrency);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(maxNetworkBandwidth, maxDiskBandwidth, uploadDiskConcurrency);
+    return Objects.hash(downloadConcurrency, maxDiskBandwidth, maxNetworkBandwidth,
+        uploadConcurrency, uploadDiskConcurrency);
   }
 }

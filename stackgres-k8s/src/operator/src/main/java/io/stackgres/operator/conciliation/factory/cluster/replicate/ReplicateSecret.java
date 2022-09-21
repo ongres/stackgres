@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.backup;
+package io.stackgres.operator.conciliation.factory.cluster.replicate;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,8 +12,9 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
@@ -26,74 +27,59 @@ import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
+import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFactory;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
-public class BackupConfigMap extends AbstractBackupConfigMap
+public class ReplicateSecret
     implements VolumeFactory<StackGresClusterContext> {
 
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  public static String name(ClusterContext clusterContext) {
-    final String clusterName = clusterContext.getCluster().getMetadata().getName();
-    return StatefulSetDynamicVolumes.BACKUP_ENV.getResourceName(clusterName);
+  private BackupEnvVarFactory envVarFactory;
+
+  public static String name(ClusterContext context) {
+    final String clusterName = context.getCluster().getMetadata().getName();
+    return StatefulSetDynamicVolumes.REPLICATE_CREDENTIALS.getResourceName(clusterName);
   }
 
   @Override
   public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
-            .source(buildSource(context))
             .volume(buildVolume(context))
-            .build()
-    );
+            .source(buildSource(context))
+            .build());
   }
 
   private Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.BACKUP_ENV.getVolumeName())
-        .withNewConfigMap()
-        .withName(name(context))
-        .withDefaultMode(444)
-        .endConfigMap()
+        .withName(StatefulSetDynamicVolumes.REPLICATE_CREDENTIALS.getVolumeName())
+        .withSecret(new SecretVolumeSourceBuilder()
+            .withSecretName(name(context))
+            .build())
         .build();
   }
 
-  private HasMetadata buildSource(StackGresClusterContext context) {
-    final Map<String, String> data = new HashMap<>();
+  private Secret buildSource(StackGresClusterContext context) {
+    Map<String, String> data = new HashMap<>();
+    StackGresCluster cluster = context.getSource();
+    final String namespace = cluster.getMetadata().getNamespace();
 
-    final StackGresCluster cluster = context.getCluster();
-    context.getBackupConfigurationResourceVersion()
-        .ifPresent(resourceVersion -> data.put(
-                "BACKUP_CONFIG_RESOURCE_VERSION", resourceVersion
-            )
-        );
+    context.getReplicateStorage().ifPresent(
+        backupStorage -> data.putAll(
+            envVarFactory.getSecretEnvVar(namespace, backupStorage)
+        ));
 
-    context.getBackupStorage()
-        .ifPresent(storage -> data.putAll(
-                getBackupEnvVars(
-                    context,
-                    context.getBackupPath().orElseThrow(),
-                    storage
-                )
-            )
-        );
-
-    context.getBackupConfiguration()
-        .ifPresent(config -> data.putAll(
-                getBackupEnvVars(
-                    config
-                )
-            )
-        );
-    return new ConfigMapBuilder()
+    return new SecretBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))
         .withLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
-        .withData(StackGresUtil.addMd5Sum(data))
+        .withType("Opaque")
+        .withStringData(StackGresUtil.addMd5Sum(data))
         .build();
   }
 
@@ -102,4 +88,8 @@ public class BackupConfigMap extends AbstractBackupConfigMap
     this.labelFactory = labelFactory;
   }
 
+  @Inject
+  public void setEnvVarFactory(BackupEnvVarFactory envVarFactory) {
+    this.envVarFactory = envVarFactory;
+  }
 }

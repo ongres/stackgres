@@ -41,6 +41,12 @@ public class StackGresBaseBackupPerformance {
   @JsonProperty("uploadDiskConcurrency")
   private Integer uploadDiskConcurrency;
 
+  @JsonProperty("uploadConcurrency")
+  private Integer uploadConcurrency;
+
+  @JsonProperty("downloadConcurrency")
+  private Integer downloadConcurrency;
+
   @Deprecated(forRemoval = true)
   public Long getMaxNetworkBandwitdh() {
     return maxNetworkBandwitdh;
@@ -85,9 +91,26 @@ public class StackGresBaseBackupPerformance {
     this.uploadDiskConcurrency = uploadDiskConcurrency;
   }
 
+  public Integer getUploadConcurrency() {
+    return uploadConcurrency;
+  }
+
+  public void setUploadConcurrency(Integer uploadConcurrency) {
+    this.uploadConcurrency = uploadConcurrency;
+  }
+
+  public Integer getDownloadConcurrency() {
+    return downloadConcurrency;
+  }
+
+  public void setDownloadConcurrency(Integer downloadConcurrency) {
+    this.downloadConcurrency = downloadConcurrency;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(maxDiskBandwidth, maxNetworkBandwidth, uploadDiskConcurrency);
+    return Objects.hash(downloadConcurrency, maxDiskBandwidth, maxDiskBandwitdh,
+        maxNetworkBandwidth, maxNetworkBandwitdh, uploadConcurrency, uploadDiskConcurrency);
   }
 
   @Override
@@ -99,8 +122,12 @@ public class StackGresBaseBackupPerformance {
       return false;
     }
     StackGresBaseBackupPerformance other = (StackGresBaseBackupPerformance) obj;
-    return Objects.equals(maxDiskBandwidth, other.maxDiskBandwidth)
+    return Objects.equals(downloadConcurrency, other.downloadConcurrency)
+        && Objects.equals(maxDiskBandwidth, other.maxDiskBandwidth)
+        && Objects.equals(maxDiskBandwitdh, other.maxDiskBandwitdh)
         && Objects.equals(maxNetworkBandwidth, other.maxNetworkBandwidth)
+        && Objects.equals(maxNetworkBandwitdh, other.maxNetworkBandwitdh)
+        && Objects.equals(uploadConcurrency, other.uploadConcurrency)
         && Objects.equals(uploadDiskConcurrency, other.uploadDiskConcurrency);
   }
 

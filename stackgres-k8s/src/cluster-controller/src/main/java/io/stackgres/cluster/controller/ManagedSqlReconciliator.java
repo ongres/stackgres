@@ -198,7 +198,7 @@ public class ManagedSqlReconciliator {
 
   private boolean isBootstrappedLeader(StackGresClusterContext context) {
     Optional<Endpoints> patroniEndpoints = endpointsFinder
-        .findByNameAndNamespace(PatroniUtil.name(context.getCluster()),
+        .findByNameAndNamespace(PatroniUtil.readWriteName(context.getCluster()),
             context.getCluster().getMetadata().getNamespace());
     Optional<Endpoints> patroniConfigEndpoints = endpointsFinder
         .findByNameAndNamespace(PatroniUtil.configName(context.getCluster()),

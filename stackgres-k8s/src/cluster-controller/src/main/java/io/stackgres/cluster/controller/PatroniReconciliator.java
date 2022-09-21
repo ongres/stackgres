@@ -56,8 +56,8 @@ public class PatroniReconciliator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PatroniReconciliator.class);
 
-  private static final Path PATRONI_CONF_PATH = Paths.get("/etc/patroni/postgres.yml");
-  private static final Path LAST_PATRONI_CONF_PATH = Paths.get("/etc/patroni/last-postgres.yml");
+  private static final Path PATRONI_CONF_PATH = Paths.get("/etc/patroni/config.yml");
+  private static final Path LAST_PATRONI_CONF_PATH = Paths.get("/etc/patroni/last-config.yml");
 
   private static final Pattern TAGS_LINE_PATTERN = Pattern.compile("^tags:.*$");
   private static final Pattern PATRONI_COMMAND_PATTERN =
@@ -107,7 +107,7 @@ public class PatroniReconciliator {
    * <p>
    * Implementation of replication groups is based on Patroni tags and Service
    *  labels. Depending on the role assigned Patroni tags are changed accordingly
-   *  in the Patroni config file (`/etc/patroni/postgres.yml`) and the
+   *  in the Patroni config file (`/etc/patroni/config.yml`) and the
    *  configuration is reloaded by sending signal `HUP` to the Patroni process.
    *  The same tags are also used to label the Pod and the label
    *  `noloadbalance: "false"` is added to the Service selector for replicas.

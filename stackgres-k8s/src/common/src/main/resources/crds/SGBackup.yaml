@@ -359,7 +359,12 @@ spec:
                               type: integer
                               minimum: 1
                               description: |
-                                Backup storage may use several concurrent streams to store the data. This parameter configures the number of parallel streams to use. By default, it will use 1 (one stream).
+                                Backup storage may use several concurrent streams to store the data. This parameter configures the number of parallel streams to use to reading from disk. By default, it's set to 1 (use one stream).
+                            uploadConcurrency:
+                              type: integer
+                              minimum: 1
+                              description: |
+                                Backup storage may use several concurrent streams to store the data. This parameter configures the number of parallel streams to use. By default, it's set to 1 (use one stream).
                     compression:
                       type: string
                       description: |

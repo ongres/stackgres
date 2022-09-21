@@ -333,6 +333,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     clusterBackupsConfiguration.getPerformance().setMaxDiskBandwidth(10L);
     clusterBackupsConfiguration.getPerformance().setMaxNetworkBandwidth(10L);
     clusterBackupsConfiguration.getPerformance().setUploadDiskConcurrency(10);
+    clusterBackupsConfiguration.getPerformance().setUploadConcurrency(10);
 
     spec.getConfiguration().getBackups().add(clusterBackupsConfiguration);
 
@@ -361,7 +362,8 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
             "spec.configurations.backups[0].sgObjectStorage", equalTo("backupconf"),
             "spec.configurations.backups[0].performance.maxNetworkBandwidth", equalTo(10),
             "spec.configurations.backups[0].performance.maxDiskBandwidth", equalTo(10),
-            "spec.configurations.backups[0].performance.uploadDiskConcurrency", equalTo(10))
+            "spec.configurations.backups[0].performance.uploadDiskConcurrency", equalTo(10),
+            "spec.configurations.backups[0].performance.uploadConcurrency", equalTo(10))
         .statusCode(200);
   }
 

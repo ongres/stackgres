@@ -119,7 +119,7 @@ release_lock() {
 }
 
 to_json_string() {
-  sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/\(["\\\t]\)/\\\1/g' | tr '\t' 't'
+  jq -s -R .
 }
 
 date_iso8601() {

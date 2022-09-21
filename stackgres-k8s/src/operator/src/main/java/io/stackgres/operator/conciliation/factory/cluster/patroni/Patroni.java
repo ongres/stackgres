@@ -51,6 +51,7 @@ import io.stackgres.operator.conciliation.factory.cluster.BackupVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
+import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
@@ -67,6 +68,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
   private final LocalBinMounts localBinMounts;
   private final RestoreVolumeMounts restoreMounts;
   private final BackupVolumeMounts backupMounts;
+  private final ReplicateVolumeMounts replicateMounts;
   private final PatroniVolumeMounts patroniMounts;
   private final HugePagesMounts hugePagesMounts;
   private final VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
@@ -80,6 +82,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
       LocalBinMounts localBinMounts,
       RestoreVolumeMounts restoreMounts,
       BackupVolumeMounts backupMounts,
+      ReplicateVolumeMounts replicateMounts,
       PatroniVolumeMounts patroniMounts,
       HugePagesMounts hugePagesMounts,
       VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer) {
@@ -91,6 +94,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
     this.localBinMounts = localBinMounts;
     this.restoreMounts = restoreMounts;
     this.backupMounts = backupMounts;
+    this.replicateMounts = replicateMounts;
     this.patroniMounts = patroniMounts;
     this.hugePagesMounts = hugePagesMounts;
     this.volumeDiscoverer = volumeDiscoverer;
@@ -130,6 +134,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .addAll(localBinMounts.getVolumeMounts(context))
         .addAll(patroniMounts.getVolumeMounts(context))
         .addAll(backupMounts.getVolumeMounts(context))
+        .addAll(replicateMounts.getVolumeMounts(context))
         .addAll(postgresExtensions.getVolumeMounts(context))
         .addAll(hugePagesMounts.getVolumeMounts(context));
 
@@ -209,6 +214,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .addAll(patroniEnvironmentVariables.createResource(clusterContext))
         .addAll(patroniMounts.getDerivedEnvVars(context))
         .addAll(backupMounts.getDerivedEnvVars(context))
+        .addAll(replicateMounts.getDerivedEnvVars(context))
         .addAll(restoreMounts.getDerivedEnvVars(context))
         .addAll(hugePagesMounts.getDerivedEnvVars(context))
         .build();

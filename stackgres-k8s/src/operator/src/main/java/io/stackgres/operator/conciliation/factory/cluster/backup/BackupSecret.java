@@ -53,7 +53,7 @@ public class BackupSecret
     );
   }
 
-  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+  private Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
         .withName(StatefulSetDynamicVolumes.BACKUP_CREDENTIALS.getVolumeName())
         .withNewSecret()
@@ -63,7 +63,7 @@ public class BackupSecret
         .build();
   }
 
-  public @NotNull Optional<HasMetadata> buildSource(StackGresClusterContext context) {
+  private Optional<HasMetadata> buildSource(StackGresClusterContext context) {
     Map<String, String> data = new HashMap<>();
 
     context.getBackupConfigurationResourceVersion()

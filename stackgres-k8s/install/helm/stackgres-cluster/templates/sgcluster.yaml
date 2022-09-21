@@ -80,6 +80,26 @@ spec:
         port: {{ .Values.cluster.replicateFrom.instance.external.port }}
       {{- end }}
     {{- end }}
+    {{- if .Values.cluster.replicateFrom.storage }}
+    storage:
+      {{- if .Values.cluster.replicateFrom.storage.compression }}
+      compression: '{{ .Values.cluster.replicateFrom.storage.compression }}'
+      {{- end }}
+      {{- if .Values.cluster.replicateFrom.storage.performance }}
+      performance: 
+        {{- if .Values.cluster.replicateFrom.storage.performance.downloadConcurrency }}
+        downloadConcurrency: {{ .Values.cluster.replicateFrom.storage.performance.downloadConcurrency }}
+        {{- end }}
+        {{- if .Values.cluster.replicateFrom.storage.performance.maxNetworkBandwidth }}
+        maxNetworkBandwidth: {{ .Values.cluster.replicateFrom.storage.performance.maxNetworkBandwidth }}
+        {{- end }}
+        {{- if .Values.cluster.replicateFrom.storage.performance.maxDiskBandwidth }}
+        maxDiskBandwidth: {{ .Values.cluster.replicateFrom.storage.performance.maxDiskBandwidth }}
+        {{- end }}
+      {{- end }}
+      sgObjectStorage: '{{ .Values.cluster.replicateFrom.storage.sgObjectStorage }}'
+      path: '{{ .Values.cluster.replicateFrom.storage.path }}'
+    {{- end }}
     {{- if .Values.cluster.replicateFrom.users }}
     users:
       superuser:
@@ -115,6 +135,7 @@ spec:
       compression: '{{ .Values.cluster.configurations.backups.compression }}'
       performance: 
         uploadDiskConcurrency: {{ .Values.cluster.configurations.backups.performance.uploadDiskConcurrency }}
+        uploadConcurrency: {{ .Values.cluster.configurations.backups.performance.uploadConcurrency }}
         {{- if .Values.cluster.configurations.backups.performance.maxNetworkBandwidth }}
         maxNetworkBandwidth: {{ .Values.cluster.configurations.backups.performance.maxNetworkBandwidth }}
         {{- end }}

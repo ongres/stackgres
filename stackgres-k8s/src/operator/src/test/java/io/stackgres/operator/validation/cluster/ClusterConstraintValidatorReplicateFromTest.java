@@ -11,6 +11,7 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUsers;
 import io.stackgres.operator.common.StackGresClusterReview;
@@ -20,7 +21,7 @@ import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.Test;
 
-class ClusterReplicateFromConstraintValidatorTest
+class ClusterConstraintValidatorReplicateFromTest
     extends ConstraintValidationTest<StackGresClusterReview> {
 
   @Override
@@ -82,6 +83,34 @@ class ClusterReplicateFromConstraintValidatorTest
   }
 
   @Test
+  void validReplicateFromExternalAndStorage_shouldPass() throws ValidationFailed {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setStorage(new StackGresClusterReplicateFromStorage());
+    review.getRequest().getObject().getSpec().getReplicateFrom().getStorage()
+        .setSgObjectStorage("test");
+    review.getRequest().getObject().getSpec().getReplicateFrom().getStorage()
+        .setPath("test");
+
+    validator.validate(review);
+  }
+
+  @Test
+  void validReplicateFromStorage_shouldPass() throws ValidationFailed {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setInstance(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setStorage(new StackGresClusterReplicateFromStorage());
+    review.getRequest().getObject().getSpec().getReplicateFrom().getStorage()
+        .setSgObjectStorage("test");
+    review.getRequest().getObject().getSpec().getReplicateFrom().getStorage()
+        .setPath("test");
+
+    validator.validate(review);
+  }
+
+  @Test
   void validReplicateFromSgCluster_shouldPass() throws ValidationFailed {
     StackGresClusterReview review = getValidReview();
 
@@ -96,13 +125,17 @@ class ClusterReplicateFromConstraintValidatorTest
   }
 
   @Test
-  void nullInstance_shouldFail() {
+  void nullInstanceAndStorage_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
     review.getRequest().getObject().getSpec().getReplicateFrom().setInstance(null);
 
-    checkNotNullErrorCause(StackGresClusterReplicateFrom.class,
-        "spec.replicateFrom.instance", review);
+    checkErrorCause(StackGresClusterReplicateFrom.class,
+        new String[] {
+            "spec.replicateFrom.instance",
+            "spec.replicateFrom.storage"
+        },
+        "isInstanceOrStoragePresent", review, AssertTrue.class);
   }
 
   @Test
@@ -121,6 +154,22 @@ class ClusterReplicateFromConstraintValidatorTest
   }
 
   @Test
+  void storageAndSgCluster_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+
+    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
+        .setExternal(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
+        .setSgCluster("test");
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setStorage(new StackGresClusterReplicateFromStorage());
+
+    checkErrorCause(StackGresClusterReplicateFrom.class,
+        "spec.replicateFrom.storage",
+        "isStorageNullWithSgCluster", review, AssertTrue.class);
+  }
+
+  @Test
   void externalAndSgCluster_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
@@ -136,7 +185,24 @@ class ClusterReplicateFromConstraintValidatorTest
   }
 
   @Test
-  void nullHost_shouldFail() {
+  void nullSgClusterAndStorage_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+
+    review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
+        .setExternal(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setStorage(new StackGresClusterReplicateFromStorage());
+
+    checkErrorCause(StackGresClusterReplicateFromInstance.class,
+        new String[] {
+            "spec.replicateFrom.instance.sgCluster",
+            "spec.replicateFrom.instance.external"
+        },
+        "isSgClusterOrExternalNotNull", review, AssertTrue.class);
+  }
+
+  @Test
+  void nullExternalHost_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
     review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
@@ -147,7 +213,7 @@ class ClusterReplicateFromConstraintValidatorTest
   }
 
   @Test
-  void nullPort_shouldFail() {
+  void nullExternalPort_shouldFail() {
     StackGresClusterReview review = getValidReview();
 
     review.getRequest().getObject().getSpec().getReplicateFrom().getInstance()
@@ -155,6 +221,32 @@ class ClusterReplicateFromConstraintValidatorTest
 
     checkNotNullErrorCause(StackGresClusterReplicateFromExternal.class,
         "spec.replicateFrom.instance.external.port", review);
+  }
+
+  @Test
+  void nullStorageSgObjectStorage_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setStorage(new StackGresClusterReplicateFromStorage());
+    review.getRequest().getObject().getSpec().getReplicateFrom().getStorage()
+        .setPath("test");
+
+    checkNotNullErrorCause(StackGresClusterReplicateFromStorage.class,
+        "spec.replicateFrom.storage.sgObjectStorage", review);
+  }
+
+  @Test
+  void nullStoragePath_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setStorage(new StackGresClusterReplicateFromStorage());
+    review.getRequest().getObject().getSpec().getReplicateFrom().getStorage()
+        .setSgObjectStorage("test");
+
+    checkNotNullErrorCause(StackGresClusterReplicateFromStorage.class,
+        "spec.replicateFrom.storage.path", review);
   }
 
   @Test
@@ -180,7 +272,39 @@ class ClusterReplicateFromConstraintValidatorTest
 
     checkErrorCause(StackGresClusterReplicateFrom.class,
         "spec.replicateFrom.users",
-        "isUsersNotNullWithExternal", review, AssertTrue.class);
+        "isUsersNotNullWithExternalOrStorage", review, AssertTrue.class);
+  }
+
+  @Test
+  void nullUsersWithStorage_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setInstance(null);
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setStorage(new StackGresClusterReplicateFromStorage());
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setUsers(null);
+
+    checkErrorCause(StackGresClusterReplicateFrom.class,
+        "spec.replicateFrom.users",
+        "isUsersNotNullWithExternalOrStorage", review, AssertTrue.class);
+  }
+
+  @Test
+  void nullUsersWithStorageAndInternal_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .getInstance().setExternal(null);;
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setStorage(new StackGresClusterReplicateFromStorage());
+    review.getRequest().getObject().getSpec().getReplicateFrom()
+        .setUsers(null);
+
+    checkErrorCause(StackGresClusterReplicateFrom.class,
+        "spec.replicateFrom.users",
+        "isUsersNotNullWithExternalOrStorage", review, AssertTrue.class);
   }
 
   @Test

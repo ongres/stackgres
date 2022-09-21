@@ -16,6 +16,7 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
@@ -96,8 +97,22 @@ class ClusterPatroniEnvVarFactoryTest {
   }
 
   @Test
+  void patroniReplicateFromBackupEnvVar_shouldNotBeReturned() {
+    assertNotPresent("REPLICATE_FROM_BACKUP");
+  }
+
+  @Test
   void patroniRecoveryFromBackupEnvVar_shouldBeReturned() {
     EnvVar envVar = getEnvVar("RECOVERY_FROM_BACKUP");
+    assertValue(envVar, "true");
+  }
+
+  @Test
+  void patroniReplicateFromBackupEnvVar_shouldBeReturned() {
+    cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
+        .withReplicateFrom(new StackGresClusterReplicateFrom())
+        .build());
+    EnvVar envVar = getEnvVar("REPLICATE_FROM_BACKUP");
     assertValue(envVar, "true");
   }
 

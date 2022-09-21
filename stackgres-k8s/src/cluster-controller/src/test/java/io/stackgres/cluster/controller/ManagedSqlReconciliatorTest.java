@@ -173,7 +173,7 @@ public class ManagedSqlReconciliatorTest {
     final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
         .thenReturn(Optional.of(patroniEndpoints));
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));
@@ -303,7 +303,7 @@ public class ManagedSqlReconciliatorTest {
     cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0).setVersion(0);
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
         .thenReturn(Optional.of(patroniEndpoints));
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));
@@ -406,7 +406,7 @@ public class ManagedSqlReconciliatorTest {
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     script.getSpec().getScripts().get(0).setVersion(1);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
         .thenReturn(Optional.of(patroniEndpoints));
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));
@@ -531,7 +531,7 @@ public class ManagedSqlReconciliatorTest {
     final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
         .thenReturn(Optional.of(patroniEndpoints));
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));
@@ -632,7 +632,7 @@ public class ManagedSqlReconciliatorTest {
     final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     script.getStatus().getScripts().get(0).setHash("wrong");
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
         .thenReturn(Optional.of(patroniEndpoints));
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));
@@ -657,7 +657,7 @@ public class ManagedSqlReconciliatorTest {
     script.getSpec().getScripts().get(0).setRetryOnError(true);
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
         .thenReturn(Optional.of(patroniEndpoints));
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));
@@ -800,7 +800,7 @@ public class ManagedSqlReconciliatorTest {
     cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
         .setFailure("test");
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
         .thenReturn(Optional.of(patroniEndpoints));
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));
@@ -833,7 +833,7 @@ public class ManagedSqlReconciliatorTest {
     cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
         .setIntents(1);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
         .thenReturn(Optional.of(patroniEndpoints));
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));
@@ -871,7 +871,7 @@ public class ManagedSqlReconciliatorTest {
         .setFailure("test");
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
         .thenReturn(Optional.of(patroniEndpoints));
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));
@@ -1013,7 +1013,7 @@ public class ManagedSqlReconciliatorTest {
         .setFailure("test");
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
         .thenReturn(Optional.of(patroniEndpoints));
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));
@@ -1099,7 +1099,7 @@ public class ManagedSqlReconciliatorTest {
         .setIntents(1);
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
         .thenReturn(Optional.of(patroniEndpoints));
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));
@@ -1233,7 +1233,7 @@ public class ManagedSqlReconciliatorTest {
     cluster.getStatus().getManagedSql().getScripts().get(0).setId(1);
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.name(cluster)), any()))
+    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
         .thenReturn(Optional.of(patroniEndpoints));
     when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
         .thenReturn(Optional.of(patroniConfigEndpoints));

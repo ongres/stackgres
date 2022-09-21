@@ -449,7 +449,7 @@ install_operator_only() {
     --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
     --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
     --set-string developer.extraOpts[3]='-Dquarkus.log.category."io.stackgres.backup".level=TRACE' \
-    --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.wal-g".level=TRACE' \
+    --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.wal-g".level=INFO' \
     --set-string developer.extraOpts[5]='-Dquarkus.log.category."io.stackgres.patroni".level=TRACE' \
     --set-string developer.extraOpts[6]='-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE' \
     --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \
@@ -555,7 +555,7 @@ upgrade_operator() {
     --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
     --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
     --set-string developer.extraOpts[3]='-Dquarkus.log.category."io.stackgres.backup".level=TRACE' \
-    --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.wal-g".level=TRACE' \
+    --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.wal-g".level=INFO' \
     --set-string developer.extraOpts[5]='-Dquarkus.log.category."io.stackgres.patroni".level=TRACE' \
     --set-string developer.extraOpts[6]='-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE' \
     --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \
@@ -614,7 +614,7 @@ upgrade_operator_from_private_repository() {
       --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
       --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
       --set-string developer.extraOpts[3]='-Dquarkus.log.category."io.stackgres.backup".level=TRACE' \
-      --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.wal-g".level=TRACE' \
+      --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.wal-g".level=INFO' \
       --set-string developer.extraOpts[5]='-Dquarkus.log.category."io.stackgres.patroni".level=TRACE' \
       --set-string developer.extraOpts[6]='-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE' \
       --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \

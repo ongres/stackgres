@@ -22,6 +22,8 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -54,6 +56,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   Optional<StackGresBackupConfig> getBackupConfig();
 
   Optional<StackGresObjectStorage> getObjectStorageConfig();
+
+  Optional<StackGresObjectStorage> getReplicateObjectStorageConfig();
 
   StackGresPostgresConfig getPostgresConfig();
 
@@ -112,7 +116,9 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
                   .map(bp -> new BackupPerformance(
                       bp.getMaxNetworkBandwidth(),
                       bp.getMaxDiskBandwidth(),
-                      bp.getUploadDiskConcurrency()))
+                      bp.getUploadDiskConcurrency(),
+                      bp.getUploadConcurrency(),
+                      bp.getDownloadConcurrency()))
                   .orElse(null)));
     } else {
       return getBackupConfig()
@@ -131,7 +137,9 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
                   .map(bp -> new BackupPerformance(
                       bp.getMaxNetworkBandwidth(),
                       bp.getMaxDiskBandwidth(),
-                      bp.getUploadDiskConcurrency()))
+                      bp.getUploadDiskConcurrency(),
+                      bp.getUploadConcurrency(),
+                      bp.getDownloadConcurrency()))
                   .orElse(null)));
     }
   }
@@ -164,6 +172,39 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   default Optional<String> getBackupConfigurationResourceVersion() {
     return getBackupConfigurationMetadata()
         .map(ObjectMeta::getResourceVersion);
+  }
+
+  default Optional<String> getReplicatePath() {
+    return Optional.of(getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getReplicateFrom)
+        .map(StackGresClusterReplicateFrom::getStorage)
+        .map(StackGresClusterReplicateFromStorage::getPath);
+  }
+
+  default Optional<BackupStorage> getReplicateStorage() {
+    return getReplicateObjectStorageConfig()
+        .map(CustomResource::getSpec);
+  }
+
+  default Optional<BackupConfiguration> getReplicateConfiguration() {
+    return Optional.of(getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getReplicateFrom)
+        .map(StackGresClusterReplicateFrom::getStorage)
+        .map(bc -> new BackupConfiguration(
+            null,
+            null,
+            null,
+            bc.getPath(),
+            Optional.ofNullable(bc.getPerformance())
+                .map(bp -> new BackupPerformance(
+                    bp.getMaxNetworkBandwidth(),
+                    bp.getMaxDiskBandwidth(),
+                    bp.getUploadDiskConcurrency(),
+                    bp.getUploadConcurrency(),
+                    bp.getDownloadConcurrency()))
+                .orElse(null)));
   }
 
 }

@@ -50,25 +50,26 @@ public class ClusterRestoreFromBackup {
   }
 
   @Override
-  public String toString() {
-    return StackGresUtil.toPrettyYaml(this);
+  public int hashCode() {
+    return Objects.hash(name, pointInTimeRecovery, uid);
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof ClusterRestoreFromBackup)) {
       return false;
     }
-    ClusterRestoreFromBackup that = (ClusterRestoreFromBackup) o;
-    return Objects.equals(uid, that.uid)
-        && Objects.equals(pointInTimeRecovery, that.pointInTimeRecovery);
+    ClusterRestoreFromBackup other = (ClusterRestoreFromBackup) obj;
+    return Objects.equals(name, other.name)
+        && Objects.equals(pointInTimeRecovery, other.pointInTimeRecovery)
+        && Objects.equals(uid, other.uid);
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(uid, pointInTimeRecovery);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

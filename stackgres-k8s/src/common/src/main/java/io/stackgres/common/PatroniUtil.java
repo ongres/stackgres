@@ -52,7 +52,7 @@ public interface PatroniUtil {
   int REPLICATION_SERVICE_PORT = 5433;
   int BABELFISH_SERVICE_PORT = 1433;
 
-  static String name(StackGresCluster cluster) {
+  static String readWriteName(StackGresCluster cluster) {
     String name = cluster.getMetadata().getName();
     return readWriteName(name);
   }

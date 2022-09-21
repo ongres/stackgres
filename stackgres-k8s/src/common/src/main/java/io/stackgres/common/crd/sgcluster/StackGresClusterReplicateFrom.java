@@ -9,7 +9,6 @@ import java.util.Objects;
 
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -29,25 +28,49 @@ public class StackGresClusterReplicateFrom {
 
   @JsonProperty("instance")
   @Valid
-  @NotNull(message = "instance section is required")
   private StackGresClusterReplicateFromInstance instance;
+
+  @JsonProperty("storage")
+  @Valid
+  private StackGresClusterReplicateFromStorage storage;
 
   @JsonProperty("users")
   @Valid
   private StackGresClusterReplicateFromUsers users;
 
+  @ReferencedField("instance")
+  interface Instance extends FieldReference { }
+
+  @ReferencedField("storage")
+  interface Storage extends FieldReference { }
+
   @ReferencedField("users")
   interface Users extends FieldReference { }
 
   @JsonIgnore
-  @AssertTrue(message = "Users is required when replicating from external instance",
-      payload = { Users.class })
-  public boolean isUsersNotNullWithExternal() {
-    return instance == null || instance.getExternal() == null || users != null;
+  @AssertTrue(message = "One of internal or storage is required",
+      payload = { Instance.class, Storage.class })
+  public boolean isInstanceOrStoragePresent() {
+    return instance != null || storage != null;
   }
 
   @JsonIgnore
-  @AssertTrue(message = "Users is forbidden when replicating from an SGCluster",
+  @AssertTrue(message = "storage is forbidden when replicating from an SGCluster",
+      payload = { Storage.class })
+  public boolean isStorageNullWithSgCluster() {
+    return instance == null || instance.getSgCluster() == null || storage == null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "users is required when replicating from external instance or storage",
+      payload = { Users.class })
+  public boolean isUsersNotNullWithExternalOrStorage() {
+    return ((instance == null || instance.getExternal() == null) && storage == null)
+        || users != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "users is forbidden when replicating from an SGCluster",
       payload = { Users.class })
   public boolean isUsersNullWithSgCluster() {
     return instance == null || instance.getSgCluster() == null || users == null;
@@ -61,6 +84,14 @@ public class StackGresClusterReplicateFrom {
     this.instance = instance;
   }
 
+  public StackGresClusterReplicateFromStorage getStorage() {
+    return storage;
+  }
+
+  public void setStorage(StackGresClusterReplicateFromStorage storage) {
+    this.storage = storage;
+  }
+
   public StackGresClusterReplicateFromUsers getUsers() {
     return users;
   }
@@ -71,7 +102,7 @@ public class StackGresClusterReplicateFrom {
 
   @Override
   public int hashCode() {
-    return Objects.hash(instance, users);
+    return Objects.hash(instance, storage, users);
   }
 
   @Override
@@ -83,7 +114,8 @@ public class StackGresClusterReplicateFrom {
       return false;
     }
     StackGresClusterReplicateFrom other = (StackGresClusterReplicateFrom) obj;
-    return Objects.equals(instance, other.instance) && Objects.equals(users, other.users);
+    return Objects.equals(instance, other.instance) && Objects.equals(storage, other.storage)
+        && Objects.equals(users, other.users);
   }
 
   @Override

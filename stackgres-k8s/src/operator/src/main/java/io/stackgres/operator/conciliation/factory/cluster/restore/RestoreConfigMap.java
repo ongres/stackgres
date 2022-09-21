@@ -66,7 +66,7 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
             .build());
   }
 
-  private @NotNull Volume buildVolume(StackGresClusterContext context) {
+  private Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
         .withName(StatefulSetDynamicVolumes.RESTORE_ENV.getVolumeName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
@@ -75,7 +75,7 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
         .build();
   }
 
-  private @NotNull ConfigMap buildSource(StackGresClusterContext context) {
+  private ConfigMap buildSource(StackGresClusterContext context) {
     final Optional<StackGresBackup> restoreBackup = context.getRestoreBackup();
     final Map<String, String> data = new HashMap<>();
     final StackGresCluster cluster = context.getSource();
@@ -146,7 +146,9 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
                   .map(p -> new BackupPerformance(
                       p.getMaxNetworkBandwidth(),
                       p.getMaxDiskBandwidth(),
-                      p.getUploadDiskConcurrency()
+                      p.getUploadDiskConcurrency(),
+                      p.getUploadConcurrency(),
+                      p.getDownloadConcurrency()
                   )).orElse(null)
           ))
       );

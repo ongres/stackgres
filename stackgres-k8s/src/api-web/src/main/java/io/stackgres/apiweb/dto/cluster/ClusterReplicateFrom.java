@@ -21,6 +21,9 @@ public class ClusterReplicateFrom {
   @JsonProperty("instance")
   private ClusterReplicateFromInstance instance;
 
+  @JsonProperty("storage")
+  private ClusterReplicateFromStorage storage;
+
   @JsonProperty("users")
   private ClusterReplicateFromUsers user;
 
@@ -30,6 +33,14 @@ public class ClusterReplicateFrom {
 
   public void setInstance(ClusterReplicateFromInstance instance) {
     this.instance = instance;
+  }
+
+  public ClusterReplicateFromStorage getStorage() {
+    return storage;
+  }
+
+  public void setStorage(ClusterReplicateFromStorage storage) {
+    this.storage = storage;
   }
 
   public ClusterReplicateFromUsers getUser() {
@@ -42,7 +53,7 @@ public class ClusterReplicateFrom {
 
   @Override
   public int hashCode() {
-    return Objects.hash(instance, user);
+    return Objects.hash(instance, storage, user);
   }
 
   @Override
@@ -54,7 +65,8 @@ public class ClusterReplicateFrom {
       return false;
     }
     ClusterReplicateFrom other = (ClusterReplicateFrom) obj;
-    return Objects.equals(instance, other.instance) && Objects.equals(user, other.user);
+    return Objects.equals(instance, other.instance) && Objects.equals(storage, other.storage)
+        && Objects.equals(user, other.user);
   }
 
   @Override
