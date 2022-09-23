@@ -5,7 +5,7 @@ metadata:
   name: demo-db
 spec:
   postgres:
-    version: '14.1'
+    version: '14.4'
     extensions:
     - name: 'pg_repack'
     - name: 'pg_trgm'
@@ -27,13 +27,16 @@ spec:
     - sgObjectStorage: 'backupconfig'
       cronSchedule: '30 02 */4 * *'
       retention: 4
+      compression: lz4
+      performance:
+        maxDiskBandwidth: 26214400 #25 MB per seceod
+        maxNetworkBandwidth: 52428800 #50 MB per second
+        uploadDiskConcurrency: 2
   distributedLogs:
     sgDistributedLogs: 'distributedlogs'
-  initialData:
+  managedSql:
     scripts:
-    - name: create-demo-database
-      script: |
-        create database demo owner postgres;
+      - sgScript: create-db-script
   postgresServices:
     primary:
       type: ClusterIP
