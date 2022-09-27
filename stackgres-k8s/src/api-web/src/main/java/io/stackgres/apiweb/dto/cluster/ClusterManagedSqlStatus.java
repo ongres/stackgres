@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -37,23 +36,6 @@ public class ClusterManagedSqlStatus {
 
   public void setScripts(List<ClusterManagedScriptEntryStatus> scripts) {
     this.scripts = scripts;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(lastId, scripts);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterManagedSqlStatus)) {
-      return false;
-    }
-    ClusterManagedSqlStatus other = (ClusterManagedSqlStatus) obj;
-    return Objects.equals(lastId, other.lastId) && Objects.equals(scripts, other.scripts);
   }
 
   @Override

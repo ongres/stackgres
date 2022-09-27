@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -69,25 +67,6 @@ public class ClusterManagedScriptEntryScriptsStatus {
 
   public void setFailure(String failure) {
     this.failure = failure;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(failure, failureCode, id, intents, version);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterManagedScriptEntryScriptsStatus)) {
-      return false;
-    }
-    ClusterManagedScriptEntryScriptsStatus other = (ClusterManagedScriptEntryScriptsStatus) obj;
-    return Objects.equals(failure, other.failure) && Objects.equals(failureCode, other.failureCode)
-        && Objects.equals(id, other.id) && Objects.equals(intents, other.intents)
-        && Objects.equals(version, other.version);
   }
 
   @Override

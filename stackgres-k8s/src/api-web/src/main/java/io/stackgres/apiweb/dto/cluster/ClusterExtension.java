@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -65,23 +63,4 @@ public class ClusterExtension {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterExtension that = (ClusterExtension) o;
-    return Objects.equals(name, that.name)
-        && Objects.equals(publisher, that.publisher)
-        && Objects.equals(version, that.version)
-        && Objects.equals(repository, that.repository);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(name, publisher, version, repository);
-  }
 }

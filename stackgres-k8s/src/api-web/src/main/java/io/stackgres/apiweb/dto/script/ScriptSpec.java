@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.script;
 
 import java.util.List;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -48,25 +47,6 @@ public class ScriptSpec {
 
   public void setScripts(List<ScriptEntry> scripts) {
     this.scripts = scripts;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(continueOnError, managedVersions, scripts);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ScriptSpec)) {
-      return false;
-    }
-    ScriptSpec other = (ScriptSpec) obj;
-    return Objects.equals(continueOnError, other.continueOnError)
-        && Objects.equals(managedVersions, other.managedVersions)
-        && Objects.equals(scripts, other.scripts);
   }
 
   @Override

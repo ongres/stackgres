@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.profile;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -36,24 +34,6 @@ public class ProfileHugePages {
 
   public void setHugepages1Gi(String hugepages1Gi) {
     this.hugepages1Gi = hugepages1Gi;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(hugepages1Gi, hugepages2Mi);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ProfileHugePages)) {
-      return false;
-    }
-    ProfileHugePages other = (ProfileHugePages) obj;
-    return Objects.equals(hugepages1Gi, other.hugepages1Gi)
-        && Objects.equals(hugepages2Mi, other.hugepages2Mi);
   }
 
   @Override

@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -89,23 +88,4 @@ public class ClusterDto extends ResourceDto {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterDto that = (ClusterDto) o;
-    return grafanaEmbedded == that.grafanaEmbedded && Objects.equals(spec, that.spec)
-        && Objects.equals(status, that.status) && Objects.equals(pods, that.pods)
-        && Objects.equals(podsReady, that.podsReady)
-        && Objects.equals(info, that.info);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(spec, status, pods, podsReady, grafanaEmbedded, info);
-  }
 }

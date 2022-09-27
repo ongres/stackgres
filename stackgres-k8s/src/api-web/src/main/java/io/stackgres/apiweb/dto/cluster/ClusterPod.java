@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -132,32 +131,6 @@ public class ClusterPod {
 
   public void setCustomInitContainers(List<CustomInitContainer> customInitContainers) {
     this.customInitContainers = customInitContainers;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterPod)) {
-      return false;
-    }
-    ClusterPod other = (ClusterPod) obj;
-    return Objects.equals(customContainers, other.customContainers)
-        && Objects.equals(customInitContainers, other.customInitContainers)
-        && Objects.equals(customVolumes, other.customVolumes)
-        && Objects.equals(disableConnectionPooling, other.disableConnectionPooling)
-        && Objects.equals(disableMetricsExporter, other.disableMetricsExporter)
-        && Objects.equals(disablePostgresUtil, other.disablePostgresUtil)
-        && Objects.equals(persistentVolume, other.persistentVolume)
-        && Objects.equals(scheduling, other.scheduling);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(customContainers, customInitContainers, customVolumes,
-        disableConnectionPooling, disableMetricsExporter, disablePostgresUtil, persistentVolume,
-        scheduling);
   }
 
   @Override

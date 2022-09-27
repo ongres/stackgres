@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.objectstorage;
 
 import java.util.List;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,20 +32,4 @@ public class ObjectStorageStatus {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ObjectStorageStatus that = (ObjectStorageStatus) o;
-    return Objects.equals(clusters, that.clusters);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(clusters);
-  }
 }

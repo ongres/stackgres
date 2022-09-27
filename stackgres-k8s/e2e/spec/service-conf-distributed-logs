@@ -103,24 +103,23 @@ distributedlogs_services_full_enabled(){
 }
 
 services_annotations(){
-  local PRIMARY_KEY_ANNOTATION="primary-annotation"
-  local REPLICA_KEY_ANNOTATION="replica-annotation"
-  local PRIMARY_ANNOTATION_VALUE="$(random_string)"
-  local REPLICA_ANNOTATION_VALUE="$(random_string)"
+  local PRIMARY_RANDOM_VALUE="$(random_string)"
+  local REPLICA_RANDOM_VALUE="$(random_string)"
   
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set-string cluster.distributedLogs.sgDistributedLogs=distributedlogs \
     --set distributedLogs.enabled=true \
     --set distributedLogs.postgresServices.replicas.enabled="true" \
-    --set cluster.metadata.annotations.primaryService.primaryService."$PRIMARY_KEY_ANNOTATION"="$PRIMARY_ANNOTATION_VALUE" \
-    --set cluster.metadata.annotations.replicasService.replicasService."$REPLICA_KEY_ANNOTATION"="$REPLICA_ANNOTATION_VALUE"
+    --set-string "distributedLogs.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
+    --set cluster.metadata.annotations.primaryService.primary-annotation="$PRIMARY_RANDOM_VALUE" \
+    --set cluster.metadata.annotations.replicasService.replica-annotation="$REPLICA_RANDOM_VALUE"
 
-  SERVICE_ANNOTATION="$PRIMARY_KEY_ANNOTATION"
+  SERVICE_ANNOTATION="primary-annotation"
   wait_until check_service_annotation "" "$PRIMARY_RANDOM_VALUE"
 
-  SERVICE_ANNOTATION="$REPLICA_KEY_ANNOTATION"
-  wait_until check_service_annotation "replicas" "$REPLICA_RANDOM_VALUE"    
+  SERVICE_ANNOTATION="replica-annotation"
+  wait_until check_service_annotation "replicas" "$REPLICA_RANDOM_VALUE"
 
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }

@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
@@ -40,6 +41,8 @@ public class DefaultPostgresServicesMutator implements ClusterMutator {
   }
 
   @Override
+  @SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
+      justification = "False positive")
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
     final StackGresClusterPostgresServices postgresServices =
         review.getRequest().getObject().getSpec().getPostgresServices();

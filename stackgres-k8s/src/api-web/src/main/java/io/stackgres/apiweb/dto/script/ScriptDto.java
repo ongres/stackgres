@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.script;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -37,23 +35,6 @@ public class ScriptDto extends ResourceDto {
 
   public void setStatus(ScriptStatus status) {
     this.status = status;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(spec, status);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ScriptDto)) {
-      return false;
-    }
-    ScriptDto other = (ScriptDto) obj;
-    return Objects.equals(spec, other.spec) && Objects.equals(status, other.status);
   }
 
   @Override

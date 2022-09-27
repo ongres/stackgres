@@ -222,7 +222,8 @@ Specifies the service configuration for the cluster:
 | enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGCluster.spec.postgresServices.primary.enabled >}}  |
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
 | externalIPs                     |          | ✓         | array    |           | {{< crd-field-description SGCluster.spec.postgresServices.primary.externalIPs >}}  |
-| loadBalancerIP                     |          | ✓         | string    |           | {{< crd-field-description SGCluster.spec.postgresServices.primary.loadBalancerIP >}}  |
+| loadBalancerIP                  |          | ✓         | string   |           | {{< crd-field-description SGCluster.spec.postgresServices.primary.loadBalancerIP >}}  |
+| customPorts                     |          | ✓         | array    |           | {{< crd-field-description SGCluster.spec.postgresServices.primary.customPorts >}}  |
 
 ### Replicas service type
 
@@ -231,7 +232,8 @@ Specifies the service configuration for the cluster:
 | enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGCluster.spec.postgresServices.replicas.enabled >}}  |
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.replicas.type >}}  |
 | externalIPs                     |          | ✓         | array    |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas.externalIPs >}}  |
-| loadBalancerIP                     |          | ✓         | string    |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas.loadBalancerIP >}}  |
+| loadBalancerIP                  |          | ✓         | string   |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas.loadBalancerIP >}}  |
+| customPorts                     |          | ✓         | array    |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas.customPorts >}}  |
 
 ## Pods
 
@@ -245,6 +247,9 @@ Cluster's pod configuration
 | disablePostgresUtil                    |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} |
 | [scheduling](#scheduling)              |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods.scheduling >}} |
 | managementPolicy                       |          | ✓         | string   | OrderedReady                        | {{< crd-field-description SGCluster.spec.pods.managementPolicy >}} |
+| customVolumes                          |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.pods.customVolumes >}}  |
+| customInitContainers                   |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.pods.customInitContainers >}}  |
+| customContainers                       |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.pods.customContainers >}}  |
 
 ### Sidecar containers
 
@@ -382,11 +387,13 @@ spec:
 
 #### Backups Performance
 
-| Property                               | Required | Updatable |Type     | Default   | Description |
-|:---------------------------------------|----------|-----------|:--------|:----------|:------------|
-| maxDiskBandwidth                       |          | ✓         | integer | unlimited | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxDiskBandwidth >}} |
-| maxNetworkBandwidth                    |          | ✓         | integer | unlimited | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxNetworkBandwidth >}} |
-| uploadDiskConcurrency                  |          | ✓         | integer | 1         | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.uploadDiskConcurrency >}} |
+| Property                               | Required | Updatable |Type     | Default                           | Description |
+|:---------------------------------------|----------|-----------|:--------|:----------------------------------|:------------|
+| maxDiskBandwidth                       |          | ✓         | integer | unlimited                         | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxDiskBandwidth >}} |
+| maxNetworkBandwidth                    |          | ✓         | integer | unlimited                         | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxNetworkBandwidth >}} |
+| uploadDiskConcurrency                  |          | ✓         | integer | 1                                 | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.uploadDiskConcurrency >}} |
+| uploadConcurrency                      |          | ✓         | integer | 16                                | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.uploadConcurrency >}} |
+| downloadConcurrency                    |          | ✓         | integer | min(10, # of objects to download) | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.downloadConcurrency >}} |
 
 ## Initial Data Configuration
 

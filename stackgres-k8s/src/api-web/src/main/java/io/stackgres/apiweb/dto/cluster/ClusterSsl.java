@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -55,22 +53,4 @@ public class ClusterSsl {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterSsl that = (ClusterSsl) o;
-    return Objects.equals(enabled, that.enabled)
-        && Objects.equals(certificateSecretKeySelector, that.certificateSecretKeySelector)
-        && Objects.equals(privateKeySecretKeySelector, that.privateKeySecretKeySelector);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(enabled, certificateSecretKeySelector, privateKeySecretKeySelector);
-  }
 }

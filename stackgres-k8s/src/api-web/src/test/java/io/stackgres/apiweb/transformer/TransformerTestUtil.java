@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.transformer;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import java.lang.reflect.Field;
@@ -23,8 +22,10 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.ResourceDto;
@@ -42,21 +43,22 @@ public class TransformerTestUtil {
     var target = transformerTuple.target();
     var source = transformerTuple.source();
 
-    var actualSource = transformer.toSource(target);
-
-    assertEquals(source, actualSource, "Transformation from DTO to CRD doesn't "
-        + "return the expected output. Which means that the transformer is not accurately "
-        + "transforming CRDs to DTOs. "
-        + "It could also mean that the transformed classes doesn't have implemented the "
-        + "equals method");
-
     var actualTarget = transformer.toTarget(source);
 
-    assertEquals(target, actualTarget, "Transformation from CRD to DTO doesn't return the "
-        + "expected output. Which means that the "
-        + "transformer is not accurately transforming CRDs to DTOs. "
-        + "It could also mean that the transformed classes doesn't have implemented the "
-        + "equals method");
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(target), JsonUtil.toJson(actualTarget),
+        "Transformation from CRD to DTO doesn't "
+            + "return the expected output. Which means that the transformer is not accurately "
+            + "transforming CRDs to DTOs.");
+
+    var actualSource = transformer.toSource(target);
+
+    assertNotSame(source, actualSource,
+        "The original CRD is being returned which can lead to side effects errors");
+
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(source), JsonUtil.toJson(actualSource),
+        "Transformation from DTO to CRD doesn't return the "
+            + "expected output. Which means that the "
+            + "transformer is not accurately transforming DTOs to CRDs.");
   }
 
   public static <T extends ResourceDto, S extends CustomResource<?, ?>> void assertTransformation(
@@ -71,21 +73,17 @@ public class TransformerTestUtil {
     JsonUtil.assertJsonEquals(JsonUtil.toJson(target), JsonUtil.toJson(actualTarget),
         "Transformation from CRD to DTO doesn't "
             + "return the expected output. Which means that the transformer is not accurately "
-            + "transforming CRDs to DTOs. "
-            + "It could also mean that the transformed classes doesn't have implemented the "
-            + "equals method");
+            + "transforming CRDs to DTOs.");
 
     var actualSource = transformer.toCustomResource(target, source);
 
     assertNotSame(source, actualSource,
         "The original CRD is being returned which can lead to side effects errors");
 
-    JsonUtil.assertJsonEquals(JsonUtil.toJson(target), JsonUtil.toJson(actualTarget),
+    JsonUtil.assertJsonEquals(JsonUtil.toJson(source), JsonUtil.toJson(actualSource),
         "Transformation from DTO to CRD doesn't return the "
             + "expected output. Which means that the "
-            + "transformer is not accurately transforming DTOs to CRDs. "
-            + "It could also mean that the transformed classes doesn't have implemented the "
-            + "equals method");
+            + "transformer is not accurately transforming DTOs to CRDs.");
   }
 
   public static <T extends ResourceDto, S extends CustomResource<?, ?>> void assertTransformation(
@@ -186,6 +184,10 @@ public class TransformerTestUtil {
     }
   }
 
+  static final String[] QUANTITY_UNITS = new String[] {
+      "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "n",
+      "u", "m", "k", "M", "G", "T", "P", "E", "" };
+
   private static Object generateRandomValue(Class<?> valueClass) {
     if (valueClass.isPrimitive()) {
       switch (valueClass.getName()) {
@@ -204,6 +206,11 @@ public class TransformerTestUtil {
         default:
           throw new RuntimeException("Unsupported primitive type " + valueClass.getName());
       }
+    } else if (Quantity.class.isAssignableFrom(valueClass)) {
+      return new Quantity(String.valueOf(RANDOM.nextInt()),
+          QUANTITY_UNITS[RANDOM.nextInt(QUANTITY_UNITS.length)]);
+    } else if (IntOrString.class.isAssignableFrom(valueClass)) {
+      return new IntOrString(RANDOM.nextInt());
     } else if (valueClass == String.class || valueClass == Object.class) {
       return StringUtils.getRandomString(10);
     } else if (valueClass == Boolean.class) {
@@ -374,7 +381,9 @@ public class TransformerTestUtil {
   }
 
   private static boolean isValueType(Class<?> type) {
-    return String.class == type
+    return Quantity.class.isAssignableFrom(type)
+        || IntOrString.class.isAssignableFrom(type)
+        || String.class == type
         || Number.class.isAssignableFrom(type)
         || Boolean.class == type
         || type.isPrimitive()

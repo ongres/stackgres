@@ -142,8 +142,8 @@ spec:
         maxDiskBandwidth: {{ . }}
         {{- end }}
       sgObjectStorage: '{{ .Values.cluster.configurations.backups.sgObjectStorage }}'
-      {{- if .Values.cluster.configurations.backups.path }}
-      path: '{{ .Values.cluster.configurations.backups.path }}'
+      {{- with .Values.cluster.configurations.backups.path }}
+      path: '{{ . }}'
       {{- end }}
     {{- end }}
   sgInstanceProfile: '{{ .Values.cluster.sgInstanceProfile }}'
@@ -156,12 +156,11 @@ spec:
         name: {{ .Values.cluster.initialData.restore.fromBackup.name }}
         {{- with .Values.cluster.initialData.restore.fromBackup.pointInTimeRecovery }}
         pointInTimeRecovery:
-          restoreToTimestamp: {{ . }}
+          restoreToTimestamp: {{ .restoreToTimestamp }}
         {{- end }}
       {{- end }}
       {{- with .Values.cluster.initialData.restore.downloadDiskConcurrency }}
       downloadDiskConcurrency: {{ . }}
-      {{- end }}
       {{- end }}
     {{- end }}
   {{- end }}
@@ -226,7 +225,7 @@ spec:
       allResources: 
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{-with .Values.cluster.metadata.annotations.clusterPods }}
+      {{- with .Values.cluster.metadata.annotations.clusterPods }}
       clusterPods:
         {{- toYaml . | nindent 8 }}
       {{- end }}

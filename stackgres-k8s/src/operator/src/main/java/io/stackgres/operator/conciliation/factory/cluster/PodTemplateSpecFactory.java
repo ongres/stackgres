@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
 import io.fabric8.kubernetes.api.model.NodeAffinity;
@@ -32,11 +33,11 @@ import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresPort;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -208,19 +209,19 @@ public class PodTemplateSpecFactory
             .map(ContainerBuilder::new)
             .map(builder -> builder.withName(
                 StackGresContainer.CUSTOM.formatted(builder.getName())))
-            .map(builder -> builder.withVolumeMounts(
-                Optional.ofNullable(builder.buildVolumeMounts())
+            .map(builder -> builder.withPorts(
+                Optional.ofNullable(builder.buildPorts())
                 .stream()
                 .flatMap(List::stream)
-                .map(VolumeMountBuilder::new)
-                .map(volumeMountBuilder -> volumeMountBuilder.withName(
-                    StackGresVolume.CUSTOM.getName(volumeMountBuilder.getName())))
-                .map(VolumeMountBuilder::build)
+                .map(ContainerPortBuilder::new)
+                .map(containerPortBuilder -> containerPortBuilder.withName(
+                    StackGresPort.CUSTOM.getName(containerPortBuilder.getName())))
+                .map(ContainerPortBuilder::build)
                 .toList()))
             .map(ContainerBuilder::build)
             .toList())
         .withInitContainers(initContainers)
-        .addAllToContainers(Optional.of(cluster)
+        .addAllToInitContainers(Optional.of(cluster)
             .map(StackGresCluster::getSpec)
             .map(StackGresClusterSpec::getPod)
             .map(StackGresClusterPod::getCustomInitContainers)
@@ -229,14 +230,14 @@ public class PodTemplateSpecFactory
             .map(ContainerBuilder::new)
             .map(builder -> builder.withName(
                 StackGresInitContainer.CUSTOM.formatted(builder.getName())))
-            .map(builder -> builder.withVolumeMounts(
-                Optional.ofNullable(builder.buildVolumeMounts())
+            .map(builder -> builder.withPorts(
+                Optional.ofNullable(builder.buildPorts())
                 .stream()
                 .flatMap(List::stream)
-                .map(VolumeMountBuilder::new)
-                .map(volumeMountBuilder -> volumeMountBuilder.withName(
-                    StackGresVolume.CUSTOM.getName(volumeMountBuilder.getName())))
-                .map(VolumeMountBuilder::build)
+                .map(ContainerPortBuilder::new)
+                .map(containerPortBuilder -> containerPortBuilder.withName(
+                    StackGresPort.CUSTOM.getName(containerPortBuilder.getName())))
+                .map(ContainerPortBuilder::build)
                 .toList()))
             .map(ContainerBuilder::build)
             .toList())
