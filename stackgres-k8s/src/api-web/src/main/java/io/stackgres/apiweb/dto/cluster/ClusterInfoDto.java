@@ -5,11 +5,10 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -71,25 +70,8 @@ public final class ClusterInfoDto {
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(primaryDns, replicasDns, superuserPasswordKey, superuserSecretName,
-        superuserUsername);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterInfoDto)) {
-      return false;
-    }
-    ClusterInfoDto other = (ClusterInfoDto) obj;
-    return Objects.equals(primaryDns, other.primaryDns)
-        && Objects.equals(replicasDns, other.replicasDns)
-        && Objects.equals(superuserPasswordKey, other.superuserPasswordKey)
-        && Objects.equals(superuserSecretName, other.superuserSecretName)
-        && Objects.equals(superuserUsername, other.superuserUsername);
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

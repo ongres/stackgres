@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.distributedlogs;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -91,34 +89,6 @@ public class DistributedLogsNonProduction {
 
   public void setEnableSetClusterMemoryRequests(Boolean enableSetClusterMemoryRequests) {
     this.enableSetClusterMemoryRequests = enableSetClusterMemoryRequests;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(disableClusterPodAntiAffinity, disableClusterResourceRequirements,
-        disablePatroniResourceRequirements, enableSetClusterCpuRequests,
-        enableSetClusterMemoryRequests, enableSetPatroniCpuRequests,
-        enableSetPatroniMemoryRequests);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof DistributedLogsNonProduction)) {
-      return false;
-    }
-    DistributedLogsNonProduction other = (DistributedLogsNonProduction) obj;
-    return Objects.equals(disableClusterPodAntiAffinity, other.disableClusterPodAntiAffinity)
-        && Objects.equals(disableClusterResourceRequirements,
-            other.disableClusterResourceRequirements)
-        && Objects.equals(disablePatroniResourceRequirements,
-            other.disablePatroniResourceRequirements)
-        && Objects.equals(enableSetClusterCpuRequests, other.enableSetClusterCpuRequests)
-        && Objects.equals(enableSetClusterMemoryRequests, other.enableSetClusterMemoryRequests)
-        && Objects.equals(enableSetPatroniCpuRequests, other.enableSetPatroniCpuRequests)
-        && Objects.equals(enableSetPatroniMemoryRequests, other.enableSetPatroniMemoryRequests);
   }
 
   @Override

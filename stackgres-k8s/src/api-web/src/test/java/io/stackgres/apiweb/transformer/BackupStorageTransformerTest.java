@@ -101,7 +101,6 @@ class BackupStorageTransformerTest {
   }
 
   private static TransformerTuple<AzureBlobStorageDto, AzureBlobStorage> createAzureBlobStorage() {
-
     AzureBlobStorageDto azureBlobStorageDto = new AzureBlobStorageDto();
     AzureBlobStorage azureBlobStorage = new AzureBlobStorage();
 
@@ -238,7 +237,6 @@ class BackupStorageTransformerTest {
 
   public static TransformerTuple<
       AzureBlobStorageCredentialsDto, AzureBlobStorageCredentials> createAzureCredentials() {
-
     AzureBlobSecretKeySelector secretKeySelector = new AzureBlobSecretKeySelector();
     AzureBlobSecretKeySelectorDto secretKeySelectorDto = new AzureBlobSecretKeySelectorDto();
 
@@ -259,7 +257,6 @@ class BackupStorageTransformerTest {
   }
 
   private static SecretKeySelector generateSecretKeySelector() {
-
     final SecretKeySelector secretKeySelector = new SecretKeySelector();
     secretKeySelector.setKey(StringUtils.getRandomString());
     secretKeySelector.setName(StringUtils.getRandomString());
@@ -269,7 +266,6 @@ class BackupStorageTransformerTest {
   private static TransformerTuple<
       GoogleCloudSecretKeySelectorDto,
       GoogleCloudSecretKeySelector> createGoogleCloudSecretKeySelector() {
-
     var dto = new GoogleCloudSecretKeySelectorDto();
     var crd = new GoogleCloudSecretKeySelector();
 
@@ -282,30 +278,24 @@ class BackupStorageTransformerTest {
 
   @Test
   void testS3Transformation() {
-
     var tuple = createS3BackupStorage();
     TransformerTestUtil.assertTransformation(storageTransformer, tuple);
   }
 
   @Test
   void testS3CompatibleTransformation() {
-
     var tuple = createS3CompatibleBackupStorage();
     TransformerTestUtil.assertTransformation(storageTransformer, tuple);
-
   }
 
   @Test
   void testGcsTransformation() {
-
     var tuple = createGcsBackupStorage();
     TransformerTestUtil.assertTransformation(storageTransformer, tuple);
-
   }
 
   @Test
   void testAzureTransformation() {
-
     var tuple = createAzureBackupStorage();
     TransformerTestUtil.assertTransformation(storageTransformer, tuple);
   }

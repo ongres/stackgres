@@ -101,8 +101,6 @@ check_backup_can_be_copied_from_another_namespace() {
     | jq ".metadata.namespace = \"$CLUSTER_NAMESPACE\" | .metadata.name = \"$BACKUP_NAME\"" \
     | jq ".spec.sgCluster = \"$BACKUP_CLUSTER_NAMESPACE.\" + .spec.sgCluster")
 
-  echo "$TMP_BACKUP" > tmp-backup.yaml
-
   echo "$TMP_BACKUP" | kubectl create -f -
 }
 

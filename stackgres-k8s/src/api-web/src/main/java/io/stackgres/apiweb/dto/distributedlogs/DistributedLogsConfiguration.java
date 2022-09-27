@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.distributedlogs;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -25,23 +23,6 @@ public class DistributedLogsConfiguration {
 
   public void setSgPostgresConfig(String sgPostgresConfig) {
     this.sgPostgresConfig = sgPostgresConfig;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof DistributedLogsConfiguration)) {
-      return false;
-    }
-    DistributedLogsConfiguration other = (DistributedLogsConfiguration) obj;
-    return Objects.equals(sgPostgresConfig, other.sgPostgresConfig);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(sgPostgresConfig);
   }
 
   @Override

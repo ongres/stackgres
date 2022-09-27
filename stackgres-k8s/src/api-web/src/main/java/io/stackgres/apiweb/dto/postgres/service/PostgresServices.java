@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.postgres.service;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -33,24 +31,6 @@ public class PostgresServices<P extends PostgresService, R extends PostgresServi
 
   public void setReplicas(R replicas) {
     this.replicas = replicas;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    PostgresServices<?, ?> that = (PostgresServices<?, ?>) o;
-    return Objects.equals(primary, that.primary)
-        && Objects.equals(replicas, that.replicas);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(primary, replicas);
   }
 
   @Override

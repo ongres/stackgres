@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -81,28 +79,6 @@ public class ClusterBackupsConfiguration {
 
   public void setPath(String path) {
     this.path = path;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterBackupsConfiguration)) {
-      return false;
-    }
-    ClusterBackupsConfiguration other = (ClusterBackupsConfiguration) obj;
-    return Objects.equals(compressionMethod, other.compressionMethod)
-        && Objects.equals(cronSchedule, other.cronSchedule)
-        && Objects.equals(objectStorage, other.objectStorage) && Objects.equals(path, other.path)
-        && Objects.equals(performance, other.performance)
-        && Objects.equals(retention, other.retention);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(compressionMethod, cronSchedule, objectStorage, path, performance,
-        retention);
   }
 
   @Override

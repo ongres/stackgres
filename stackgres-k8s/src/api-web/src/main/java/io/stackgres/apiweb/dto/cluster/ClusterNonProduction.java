@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -103,35 +102,6 @@ public class ClusterNonProduction {
 
   public void setEnabledFeatureGates(List<String> enabledFeatureGates) {
     this.enabledFeatureGates = enabledFeatureGates;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(disableClusterPodAntiAffinity, disableClusterResourceRequirements,
-        disablePatroniResourceRequirements, enableSetClusterCpuRequests,
-        enableSetClusterMemoryRequests, enableSetPatroniCpuRequests, enableSetPatroniMemoryRequests,
-        enabledFeatureGates);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterNonProduction)) {
-      return false;
-    }
-    ClusterNonProduction other = (ClusterNonProduction) obj;
-    return Objects.equals(disableClusterPodAntiAffinity, other.disableClusterPodAntiAffinity)
-        && Objects.equals(disableClusterResourceRequirements,
-            other.disableClusterResourceRequirements)
-        && Objects.equals(disablePatroniResourceRequirements,
-            other.disablePatroniResourceRequirements)
-        && Objects.equals(enableSetClusterCpuRequests, other.enableSetClusterCpuRequests)
-        && Objects.equals(enableSetClusterMemoryRequests, other.enableSetClusterMemoryRequests)
-        && Objects.equals(enableSetPatroniCpuRequests, other.enableSetPatroniCpuRequests)
-        && Objects.equals(enableSetPatroniMemoryRequests, other.enableSetPatroniMemoryRequests)
-        && Objects.equals(enabledFeatureGates, other.enabledFeatureGates);
   }
 
   @Override

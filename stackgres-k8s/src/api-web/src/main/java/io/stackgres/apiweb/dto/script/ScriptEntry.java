@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.script;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -117,29 +115,6 @@ public class ScriptEntry {
 
   public void setScriptFrom(ScriptFrom scriptFrom) {
     this.scriptFrom = scriptFrom;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(database, id, name, retryOnError, script, scriptFrom, storeStatusInDatabase,
-        user, version, wrapInTransaction);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ScriptEntry)) {
-      return false;
-    }
-    ScriptEntry other = (ScriptEntry) obj;
-    return Objects.equals(database, other.database) && Objects.equals(id, other.id)
-        && Objects.equals(name, other.name) && Objects.equals(retryOnError, other.retryOnError)
-        && Objects.equals(script, other.script) && Objects.equals(scriptFrom, other.scriptFrom)
-        && Objects.equals(storeStatusInDatabase, other.storeStatusInDatabase)
-        && Objects.equals(user, other.user) && Objects.equals(version, other.version)
-        && Objects.equals(wrapInTransaction, other.wrapInTransaction);
   }
 
   @Override

@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -43,21 +41,4 @@ public class ClusterPodPersistentVolume {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterPodPersistentVolume that = (ClusterPodPersistentVolume) o;
-    return Objects.equals(size, that.size)
-        && Objects.equals(storageClass, that.storageClass);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(size, storageClass);
-  }
 }

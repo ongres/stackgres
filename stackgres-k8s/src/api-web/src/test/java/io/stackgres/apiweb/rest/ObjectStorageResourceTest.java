@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.rest;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
@@ -31,6 +30,7 @@ import io.stackgres.common.resource.ClusterScanner;
 import io.stackgres.common.resource.ObjectStorageFinder;
 import io.stackgres.common.resource.ObjectStorageScanner;
 import io.stackgres.common.resource.ObjectStorageScheduler;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -89,9 +89,9 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
         .extract()
         .as(ObjectStorageDto[].class);
 
-    assertEquals(
-        List.of(objectStorageTuple.target()),
-        Arrays.asList(response)
+    JsonUtil.assertJsonEquals(
+        JsonUtil.toJson(List.of(objectStorageTuple.target())),
+        JsonUtil.toJson(Arrays.asList(response))
     );
 
   }

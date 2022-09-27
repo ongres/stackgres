@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.script;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -55,26 +53,6 @@ public class ScriptFrom {
 
   public void setConfigMapKeyRef(ConfigMapKeySelector configMapKeyRef) {
     this.configMapKeyRef = configMapKeyRef;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(configMapKeyRef, configMapScript, secretKeyRef, secretScript);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ScriptFrom)) {
-      return false;
-    }
-    ScriptFrom other = (ScriptFrom) obj;
-    return Objects.equals(configMapKeyRef, other.configMapKeyRef)
-        && Objects.equals(configMapScript, other.configMapScript)
-        && Objects.equals(secretKeyRef, other.secretKeyRef)
-        && Objects.equals(secretScript, other.secretScript);
   }
 
   @Override

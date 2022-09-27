@@ -11,13 +11,13 @@ e2e_test_install() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
-    --set-string "cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.0.matchExpressions.0.key=$NODE_AFFINITY_KEY" \
-    --set-string "cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.0.matchExpressions.0.operator=$NODE_AFFINITY_OPERATOR" \
-    --set-string "cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.0.matchExpressions.0.values.0=$NODE_AFFINITY_VALUE" \
-    --set-string "cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.0.weight=1"\
-    --set-string "cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.0.preference.matchExpressions.0.key=$NODE_AFFINITY_KEY" \
-    --set-string "cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.0.preference.matchExpressions.0.operator=$NODE_AFFINITY_OPERATOR" \
-    --set-string "cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.0.preference.matchExpressions.0.values.0=$NODE_AFFINITY_VALUE"
+    --set-string "cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key=$NODE_AFFINITY_KEY" \
+    --set-string "cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator=$NODE_AFFINITY_OPERATOR" \
+    --set-string "cluster.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]=$NODE_AFFINITY_VALUE" \
+    --set "cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight=1"\
+    --set-string "cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key=$NODE_AFFINITY_KEY" \
+    --set-string "cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].operator=$NODE_AFFINITY_OPERATOR" \
+    --set-string "cluster.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].values[0]=$NODE_AFFINITY_VALUE"
 }
 
 e2e_test_uninstall() {

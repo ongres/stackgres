@@ -5,12 +5,10 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -73,32 +71,7 @@ public class ClusterCondition {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("type", getType())
-        .add("status", getStatus())
-        .add("reason", getReason())
-        .add("lastTransitionTime", getLastTransitionTime())
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterCondition that = (ClusterCondition) o;
-    return Objects.equals(lastTransitionTime, that.lastTransitionTime)
-        && Objects.equals(message, that.message)
-        && Objects.equals(reason, that.reason)
-        && Objects.equals(status, that.status) && Objects.equals(type, that.type);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(lastTransitionTime, message, reason, status, type);
-  }
 }

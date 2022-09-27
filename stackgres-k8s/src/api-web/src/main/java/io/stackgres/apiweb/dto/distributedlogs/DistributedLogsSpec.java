@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.distributedlogs;
 
 import java.util.List;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -117,30 +116,6 @@ public class DistributedLogsSpec {
 
   public void setPostgresServices(DistributedLogsPostgresServices postgresServices) {
     this.postgresServices = postgresServices;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(metadata, nonProduction, persistentVolume, postgresServices, scheduling,
-        sgInstanceProfile, toInstallPostgresExtensions);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof DistributedLogsSpec)) {
-      return false;
-    }
-    DistributedLogsSpec other = (DistributedLogsSpec) obj;
-    return Objects.equals(metadata, other.metadata)
-        && Objects.equals(nonProduction, other.nonProduction)
-        && Objects.equals(persistentVolume, other.persistentVolume)
-        && Objects.equals(postgresServices, other.postgresServices)
-        && Objects.equals(scheduling, other.scheduling)
-        && Objects.equals(sgInstanceProfile, other.sgInstanceProfile)
-        && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }
 
   @Override

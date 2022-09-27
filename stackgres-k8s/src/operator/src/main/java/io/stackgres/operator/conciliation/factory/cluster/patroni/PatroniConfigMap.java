@@ -7,9 +7,11 @@ package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -21,6 +23,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.ContainerPort;
+import io.fabric8.kubernetes.api.model.EndpointPort;
+import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
@@ -29,11 +35,18 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresPort;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
+import io.stackgres.common.crd.CustomContainer;
+import io.stackgres.common.crd.CustomServicePort;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -66,30 +79,76 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .getResourceName(clusterContext.getCluster().getMetadata().getName());
   }
 
-  public static String getKubernetesPorts(final StackGresCluster cluster,
+  public String getKubernetesPorts(final StackGresCluster cluster,
       final int pgPort, final int pgRawPort, final int babelfishPort) {
+    List<EndpointPort> patroniEndpointPorts = new ArrayList<>();
+    patroniEndpointPorts.add(new EndpointPortBuilder()
+        .withName(EnvoyUtil.POSTGRES_PORT_NAME)
+        .withPort(pgPort)
+        .withProtocol("TCP")
+        .build());
+    patroniEndpointPorts.add(new EndpointPortBuilder()
+        .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
+        .withPort(pgRawPort)
+        .withProtocol("TCP")
+        .build());
     if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
-      return "["
-          + "{\"protocol\":\"TCP\","
-          + "\"name\":\"" + EnvoyUtil.POSTGRES_PORT_NAME + "\","
-          + "\"port\":" + pgPort + "},"
-          + "{\"protocol\":\"TCP\","
-          + "\"name\":\"" + EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME + "\","
-          + "\"port\":" + pgRawPort + "},"
-          + "{\"protocol\":\"TCP\","
-          + "\"name\":\"" + EnvoyUtil.BABELFISH_PORT_NAME + "\","
-          + "\"port\":" + babelfishPort + "}"
-          + "]";
-    } else {
-      return "["
-          + "{\"protocol\":\"TCP\","
-          + "\"name\":\"" + EnvoyUtil.POSTGRES_PORT_NAME + "\","
-          + "\"port\":" + pgPort + "},"
-          + "{\"protocol\":\"TCP\","
-          + "\"name\":\"" + EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME + "\","
-          + "\"port\":" + pgRawPort + "}"
-          + "]";
+      patroniEndpointPorts.add(new EndpointPortBuilder()
+          .withName(EnvoyUtil.BABELFISH_PORT_NAME)
+          .withPort(babelfishPort)
+          .withProtocol("TCP")
+          .build());
     }
+    Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPostgresServices)
+        .map(StackGresClusterPostgresServices::getPrimary)
+        .map(StackGresClusterPostgresService::getCustomPorts)
+        .stream()
+        .flatMap(List::stream)
+        .map(customPort -> getEndpointPortFromCustomPort(cluster, customPort))
+        .forEach(patroniEndpointPorts::add);
+    try {
+      return jsonMapper.writeValueAsString(patroniEndpointPorts);
+    } catch (JsonProcessingException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  private EndpointPort getEndpointPortFromCustomPort(final StackGresCluster cluster,
+      CustomServicePort customPort) {
+    return new EndpointPortBuilder()
+        .withName(StackGresPort.CUSTOM.getName(customPort.getName()))
+        .withPort(getPortForCustomTargetPort(cluster, customPort.getTargetPort()))
+        .withProtocol(customPort.getProtocol())
+        .withAppProtocol(customPort.getAppProtocol())
+        .build();
+  }
+
+  private Integer getPortForCustomTargetPort(final StackGresCluster cluster,
+      IntOrString targetPort) {
+    if (targetPort.getIntVal() != null) {
+      return targetPort.getIntVal();
+    }
+    return findContainerPortForCustomPort(cluster, targetPort)
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Can not find any custom container with port named "
+                + targetPort.getStrVal()));
+  }
+
+  private Optional<Integer> findContainerPortForCustomPort(final StackGresCluster cluster,
+      IntOrString targetPort) {
+    return Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPod)
+        .map(StackGresClusterPod::getCustomContainers)
+        .stream()
+        .flatMap(List::stream)
+        .map(CustomContainer::getPorts)
+        .flatMap(List::stream)
+        .filter(port -> Objects.equals(targetPort.getStrVal(), port.getName()))
+        .findFirst()
+        .map(ContainerPort::getContainerPort);
   }
 
   @Override

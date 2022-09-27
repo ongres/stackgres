@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.Map;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -40,24 +39,6 @@ public class ClusterPodSchedulingBackup {
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterPodSchedulingBackup that = (ClusterPodSchedulingBackup) o;
-    return Objects.equals(nodeAffinity, that.nodeAffinity)
-        && Objects.equals(nodeSelector, that.nodeSelector);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(nodeSelector, nodeAffinity);
   }
 
 }

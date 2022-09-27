@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -43,21 +41,4 @@ public class ClusterDistributedLogs {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterDistributedLogs that = (ClusterDistributedLogs) o;
-    return Objects.equals(distributedLogs, that.distributedLogs)
-        && Objects.equals(retention, that.retention);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(distributedLogs, retention);
-  }
 }

@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -76,21 +75,6 @@ public class ClusterConfiguration {
 
   public void setBackups(List<ClusterBackupsConfiguration> backups) {
     this.backups = backups;
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    return obj instanceof ClusterConfiguration other
-        && Objects.equals(backupPath, other.backupPath)
-        && Objects.equals(backups, other.backups)
-        && Objects.equals(sgBackupConfig, other.sgBackupConfig)
-        && Objects.equals(sgPoolingConfig, other.sgPoolingConfig)
-        && Objects.equals(sgPostgresConfig, other.sgPostgresConfig);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(backupPath, backups, sgBackupConfig, sgPoolingConfig, sgPostgresConfig);
   }
 
   @Override

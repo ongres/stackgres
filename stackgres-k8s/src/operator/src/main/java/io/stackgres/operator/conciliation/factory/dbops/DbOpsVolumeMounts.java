@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.dbops;
 
+import static io.stackgres.operator.conciliation.factory.AbstractPatroniTemplatesConfigMap.TEMPLATE_PATHS;
+
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -16,6 +18,7 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class DbOpsVolumeMounts
@@ -23,17 +26,18 @@ public class DbOpsVolumeMounts
 
   @Override
   public List<VolumeMount> getVolumeMounts(StackGresDbOpsContext context) {
-    return List.of(
-        new VolumeMountBuilder()
+    return Seq.seq(TEMPLATE_PATHS)
+        .map(templatePath -> new VolumeMountBuilder()
             .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
-            .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_PATH.path())
+            .withMountPath(templatePath.path())
+            .withSubPath(templatePath.filename())
             .withReadOnly(true)
-            .build(),
-        new VolumeMountBuilder()
+            .build())
+        .append(new VolumeMountBuilder()
             .withName(StackGresVolume.SHARED.getName())
             .withMountPath(ClusterStatefulSetPath.SHARED_PATH.path())
-            .build()
-    );
+            .build())
+        .toList();
   }
 
   @Override
