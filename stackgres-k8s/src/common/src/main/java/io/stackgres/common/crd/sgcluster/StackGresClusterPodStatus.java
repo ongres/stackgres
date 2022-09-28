@@ -32,6 +32,9 @@ public class StackGresClusterPodStatus {
   @JsonProperty("replicationGroup")
   private Integer replicationGroup;
 
+  @JsonProperty("primary")
+  private Boolean primary;
+
   @JsonProperty("pendingRestart")
   private Boolean pendingRestart;
 
@@ -63,6 +66,14 @@ public class StackGresClusterPodStatus {
     this.replicationGroup = replicationGroup;
   }
 
+  public Boolean getPrimary() {
+    return primary;
+  }
+
+  public void setPrimary(Boolean primary) {
+    this.primary = primary;
+  }
+
   public Boolean getPendingRestart() {
     return pendingRestart;
   }
@@ -82,7 +93,8 @@ public class StackGresClusterPodStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hash(installedPostgresExtensions, name, pendingRestart, replicationGroup);
+    return Objects.hash(installedPostgresExtensions, name, pendingRestart, primary,
+        replicationGroup);
   }
 
   @Override
@@ -96,6 +108,7 @@ public class StackGresClusterPodStatus {
     StackGresClusterPodStatus other = (StackGresClusterPodStatus) obj;
     return Objects.equals(installedPostgresExtensions, other.installedPostgresExtensions)
         && Objects.equals(name, other.name) && Objects.equals(pendingRestart, other.pendingRestart)
+        && Objects.equals(primary, other.primary)
         && Objects.equals(replicationGroup, other.replicationGroup);
   }
 

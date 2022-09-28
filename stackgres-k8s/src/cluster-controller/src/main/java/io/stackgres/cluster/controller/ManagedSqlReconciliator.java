@@ -14,9 +14,9 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
@@ -58,6 +58,7 @@ public class ManagedSqlReconciliator {
   private final CustomResourceFinder<StackGresScript> scriptFinder;
   private final ResourceFinder<Secret> secretFinder;
   private final ResourceFinder<ConfigMap> configMapFinder;
+  private final ObjectMapper objectMapper;
   private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
   private final String podName;
   private final EventController eventController;
@@ -70,6 +71,7 @@ public class ManagedSqlReconciliator {
     @Inject CustomResourceFinder<StackGresScript> scriptFinder;
     @Inject ResourceFinder<Secret> secretFinder;
     @Inject ResourceFinder<ConfigMap> configMapFinder;
+    @Inject ObjectMapper objectMapper;
     @Inject CustomResourceScheduler<StackGresCluster> clusterScheduler;
     @Inject EventController eventController;
   }
@@ -83,6 +85,7 @@ public class ManagedSqlReconciliator {
     this.scriptFinder = parameters.scriptFinder;
     this.secretFinder = parameters.secretFinder;
     this.configMapFinder = parameters.configMapFinder;
+    this.objectMapper = parameters.objectMapper;
     this.clusterScheduler = parameters.clusterScheduler;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
@@ -203,14 +206,11 @@ public class ManagedSqlReconciliator {
     Optional<Endpoints> patroniConfigEndpoints = endpointsFinder
         .findByNameAndNamespace(PatroniUtil.configName(context.getCluster()),
             context.getCluster().getMetadata().getNamespace());
-    return patroniEndpoints.map(Endpoints::getMetadata)
-        .map(ObjectMeta::getAnnotations)
-        .map(annotations -> annotations.get(PatroniUtil.LEADER_KEY))
-        .map(this.podName::equals).orElse(false)
-        && patroniConfigEndpoints.map(Endpoints::getMetadata)
-        .map(ObjectMeta::getAnnotations)
-        .map(annotations -> annotations.get(PatroniUtil.INITIALIZE_KEY))
-        .isPresent();
+    final boolean isBootstrapped = PatroniUtil.isBootstrapped(patroniConfigEndpoints);
+    final boolean isPodPrimary = PatroniUtil.isPrimary(podName, patroniEndpoints);
+    final boolean isStandbyCluster =
+        PatroniUtil.isStandbyCluster(patroniConfigEndpoints, objectMapper);
+    return isPodPrimary && isBootstrapped && !isStandbyCluster;
   }
 
   private StackGresScript findScript(StackGresClusterContext context,

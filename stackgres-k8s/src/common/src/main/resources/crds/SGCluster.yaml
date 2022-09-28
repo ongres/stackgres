@@ -1308,10 +1308,13 @@ spec:
                         description: The name of the pod.
                       replicationGroup:
                         type: integer
-                        description: Indicate the replication group this Pod belongs to.
+                        description: Indicates the replication group this Pod belongs to.
+                      primary:
+                        type: boolean
+                        description: Indicates if the pod is the elected primary
                       pendingRestart:
                         type: boolean
-                        description: Indicate if the pod requires restart
+                        description: Indicates if the pod requires restart
                       installedPostgresExtensions:
                         type: array
                         description: The list of Postgres extensions currently installed.
@@ -1391,7 +1394,7 @@ spec:
                         dataChecksum:
                           type: boolean
                           description: |
-                            Indicate if PostgreSQL data checksum is enabled
+                            Indicates if PostgreSQL data checksum is enabled
                         link:
                           type: boolean
                           description: |

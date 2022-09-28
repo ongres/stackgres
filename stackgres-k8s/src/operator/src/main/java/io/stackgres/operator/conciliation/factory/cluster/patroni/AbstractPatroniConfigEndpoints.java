@@ -25,8 +25,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 public abstract class AbstractPatroniConfigEndpoints
     implements ResourceGenerator<StackGresClusterContext> {
 
-  public static final String PATRONI_CONFIG_KEY = "config";
-
   private final ObjectMapper objectMapper;
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
@@ -51,7 +49,7 @@ public abstract class AbstractPatroniConfigEndpoints
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(PatroniUtil.configName(context))
         .withLabels(labels)
-        .withAnnotations(Map.of(PATRONI_CONFIG_KEY, patroniConfigJson))
+        .withAnnotations(Map.of(PatroniUtil.CONFIG_KEY, patroniConfigJson))
         .endMetadata()
         .build());
   }

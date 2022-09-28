@@ -187,10 +187,10 @@ class PatroniConfigEndpointsTest {
     Endpoints endpoints = generateEndpoint();
 
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
-    assertTrue(annotations.containsKey(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY));
+    assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
     PatroniConfig patroniConfig = JSON_MAPPER
-        .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY),
+        .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
     PostgresDefaultValues.getDefaultValues(version).forEach(
@@ -218,10 +218,10 @@ class PatroniConfigEndpointsTest {
     Endpoints endpoints = generateEndpoint();
 
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
-    assertTrue(annotations.containsKey(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY));
+    assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
     PatroniConfig patroniConfig = JSON_MAPPER
-        .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY),
+        .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
     PostgresDefaultValues.getDefaultValues(version).forEach(
@@ -252,10 +252,10 @@ class PatroniConfigEndpointsTest {
     Endpoints endpoints = generateEndpoint();
 
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
-    assertTrue(annotations.containsKey(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY));
+    assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
     PatroniConfig patroniConfig = JSON_MAPPER
-        .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY),
+        .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
     PostgresDefaultValues.getDefaultValues(version).forEach(
@@ -291,10 +291,10 @@ class PatroniConfigEndpointsTest {
     Endpoints endpoints = generateEndpoint();
 
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
-    assertTrue(annotations.containsKey(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY));
+    assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
     PatroniConfig patroniConfig = JSON_MAPPER
-        .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY),
+        .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
     PostgresDefaultValues.getDefaultValues(version).forEach(
@@ -333,10 +333,10 @@ class PatroniConfigEndpointsTest {
     Endpoints endpoints = generateEndpoint();
 
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
-    assertTrue(annotations.containsKey(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY));
+    assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
     PatroniConfig patroniConfig = JSON_MAPPER
-        .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY),
+        .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
     PostgresDefaultValues.getDefaultValues(version).forEach(
@@ -377,10 +377,10 @@ class PatroniConfigEndpointsTest {
     Endpoints endpoints = generateEndpoint();
 
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
-    assertTrue(annotations.containsKey(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY));
+    assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
     PatroniConfig patroniConfig = JSON_MAPPER
-        .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY),
+        .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
     PostgresDefaultValues.getDefaultValues(version).forEach(
