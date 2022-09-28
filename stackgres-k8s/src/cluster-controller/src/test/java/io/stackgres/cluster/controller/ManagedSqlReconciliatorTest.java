@@ -130,6 +130,7 @@ public class ManagedSqlReconciliatorTest {
     parameters.configMapFinder = configMapFinder;
     parameters.clusterScheduler = clusterScheduler;
     parameters.eventController = eventController;
+    parameters.objectMapper = JsonUtil.jsonMapper();
 
     reconciliator = new ManagedSqlReconciliator(parameters);
   }
@@ -141,11 +142,70 @@ public class ManagedSqlReconciliatorTest {
     reset(propertyContext);
     when(propertyContext.getBoolean(
         ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL)).thenReturn(false);
-    reconciliator = new ManagedSqlReconciliator(parameters);
 
+    reconciliator = new ManagedSqlReconciliator(parameters);
     reconciliator.reconcile(client, context);
 
     verify(endpointsFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(clusterScheduler, times(0)).update(any(), any());
+    verify(eventController, times(0)).sendEvent(any(), any(), any(), any());
+  }
+
+  @Test
+  void testReconciliationWhenNotBootstrapped_doesNothing() throws Exception {
+    patroniConfigEndpoints = Fixtures.endpoints().loadPatroniConfig()
+        .getBuilder()
+        .editMetadata()
+        .addToAnnotations(Map.of(PatroniUtil.INITIALIZE_KEY, ""))
+        .endMetadata()
+        .build();
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
+    when(context.getCluster()).thenReturn(cluster);
+
+    reconciliator.reconcile(client, context);
+
+    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(clusterScheduler, times(0)).update(any(), any());
+    verify(eventController, times(0)).sendEvent(any(), any(), any(), any());
+  }
+
+  @Test
+  void testReconciliationWhenNotLeader_doesNothing() throws Exception {
+    reset(propertyContext);
+    when(propertyContext
+        .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME)).thenReturn(
+            patroniEndpoints.getMetadata().getAnnotations().get(PatroniUtil.LEADER_KEY) + "0");
+    when(propertyContext.getBoolean(
+        ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL)).thenReturn(true);
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
+    when(context.getCluster()).thenReturn(cluster);
+
+    reconciliator = new ManagedSqlReconciliator(parameters);
+    reconciliator.reconcile(client, context);
+
+    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(clusterScheduler, times(0)).update(any(), any());
+    verify(eventController, times(0)).sendEvent(any(), any(), any(), any());
+  }
+
+  @Test
+  void testReconciliationWhenStandbyLeader_doesNothing() throws Exception {
+    patroniConfigEndpoints = Fixtures.endpoints().loadPatroniConfigWithStandbyCluster().get();
+    final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
+    when(context.getCluster()).thenReturn(cluster);
+
+    reconciliator.reconcile(client, context);
+
+    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());

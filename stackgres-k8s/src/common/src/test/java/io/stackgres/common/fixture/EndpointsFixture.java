@@ -21,6 +21,11 @@ public class EndpointsFixture extends Fixture<Endpoints> {
     return this;
   }
 
+  public EndpointsFixture loadPatroniConfigWithStandbyCluster() {
+    fixture = readFromJson(ENDPOINTS_PATRONI_CONFIG_WITH_STANDBY_CLUSTER_JSON);
+    return this;
+  }
+
   public EndpointsFixture loadDeployed() {
     fixture = readFromJson(ENDPOINTS_DEPLOYED_JSON);
     return this;

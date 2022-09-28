@@ -80,7 +80,7 @@ public abstract class PostgresBootstrapReconciliator {
         LOGGER.info("Setting pod as {}", isPodPrimary ? "primary" : "non primary");
         result = true;
       }
-      if (isPodPrimary && isBootstrapped) {
+      if (isPodPrimary) {
         if (context.getCluster().getStatus() == null) {
           context.getCluster().setStatus(new StackGresClusterStatus());
         }
