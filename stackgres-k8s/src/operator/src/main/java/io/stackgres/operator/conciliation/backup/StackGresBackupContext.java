@@ -79,7 +79,9 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
                   .map(bp -> new BackupPerformance(
                       bp.getMaxNetworkBandwidth(),
                       bp.getMaxDiskBandwidth(),
-                      bp.getUploadDiskConcurrency()))
+                      bp.getUploadDiskConcurrency(),
+                      bp.getUploadConcurrency(),
+                      bp.getDownloadConcurrency()))
                   .orElse(null)
           )).orElseThrow();
     } else {
@@ -96,7 +98,9 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
                   .map(bp -> new BackupPerformance(
                       bp.getMaxNetworkBandwidth(),
                       bp.getMaxDiskBandwidth(),
-                      bp.getUploadDiskConcurrency()
+                      bp.getUploadDiskConcurrency(),
+                      bp.getUploadConcurrency(),
+                      bp.getDownloadConcurrency()
                   )).orElse(null)
           )).orElseThrow();
     }

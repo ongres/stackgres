@@ -63,6 +63,16 @@ public abstract class AbstractBackupConfigMap {
             "WALG_UPLOAD_DISK_CONCURRENCY",
             BackupStorageUtil.convertEnvValue(uploadDiskConcurrency)));
 
+    performance.map(BackupPerformance::uploadConcurrency)
+        .ifPresent(uploadDiskConcurrency -> backupEnvVars.put(
+            "WALG_UPLOAD_CONCURRENCY",
+            BackupStorageUtil.convertEnvValue(uploadDiskConcurrency)));
+
+    performance.map(BackupPerformance::downloadConcurrency)
+        .ifPresent(uploadDiskConcurrency -> backupEnvVars.put(
+            "WALG_DOWNLOAD_CONCURRENCY",
+            BackupStorageUtil.convertEnvValue(uploadDiskConcurrency)));
+
     if (WAL_G_LOGGER.isTraceEnabled()) {
       backupEnvVars.put("WALG_LOG_LEVEL", "DEVEL");
     }

@@ -67,6 +67,64 @@ spec:
       {{- end }}
     {{- end }}
     {{- end }}
+  {{- if .Values.cluster.replicateFrom }}
+  replicateFrom:
+    {{- if .Values.cluster.replicateFrom.instance }}
+    instance:
+      {{- if .Values.cluster.replicateFrom.instance.sgCluster }}
+      sgCluster: {{ .Values.cluster.replicateFrom.instance.sgCluster }}
+      {{- end }}
+      {{- if .Values.cluster.replicateFrom.instance.external }}
+      external:
+        host: {{ .Values.cluster.replicateFrom.instance.external.host }}
+        port: {{ .Values.cluster.replicateFrom.instance.external.port }}
+      {{- end }}
+    {{- end }}
+    {{- if .Values.cluster.replicateFrom.storage }}
+    storage:
+      {{- if .Values.cluster.replicateFrom.storage.compression }}
+      compression: '{{ .Values.cluster.replicateFrom.storage.compression }}'
+      {{- end }}
+      {{- if .Values.cluster.replicateFrom.storage.performance }}
+      performance: 
+        {{- if .Values.cluster.replicateFrom.storage.performance.downloadConcurrency }}
+        downloadConcurrency: {{ .Values.cluster.replicateFrom.storage.performance.downloadConcurrency }}
+        {{- end }}
+        {{- if .Values.cluster.replicateFrom.storage.performance.maxNetworkBandwidth }}
+        maxNetworkBandwidth: {{ .Values.cluster.replicateFrom.storage.performance.maxNetworkBandwidth }}
+        {{- end }}
+        {{- if .Values.cluster.replicateFrom.storage.performance.maxDiskBandwidth }}
+        maxDiskBandwidth: {{ .Values.cluster.replicateFrom.storage.performance.maxDiskBandwidth }}
+        {{- end }}
+      {{- end }}
+      sgObjectStorage: '{{ .Values.cluster.replicateFrom.storage.sgObjectStorage }}'
+      path: '{{ .Values.cluster.replicateFrom.storage.path }}'
+    {{- end }}
+    {{- if .Values.cluster.replicateFrom.users }}
+    users:
+      superuser:
+        username:
+          name: {{ .Values.cluster.replicateFrom.users.superuser.username.name }}
+          key: {{ .Values.cluster.replicateFrom.users.superuser.username.key }}
+        password:
+          name: {{ .Values.cluster.replicateFrom.users.superuser.password.name }}
+          key: {{ .Values.cluster.replicateFrom.users.superuser.password.key }}
+      replication:
+        username:
+          name: {{ .Values.cluster.replicateFrom.users.replication.username.name }}
+          key: {{ .Values.cluster.replicateFrom.users.replication.username.key }}
+        password:
+          name: {{ .Values.cluster.replicateFrom.users.replication.password.name }}
+          key: {{ .Values.cluster.replicateFrom.users.replication.password.key }}
+      authenticator:
+        username:
+          name: {{ .Values.cluster.replicateFrom.users.authenticator.username.name }}
+          key: {{ .Values.cluster.replicateFrom.users.authenticator.username.key }}
+        password:
+          name: {{ .Values.cluster.replicateFrom.users.authenticator.password.name }}
+          key: {{ .Values.cluster.replicateFrom.users.authenticator.password.key }}
+    {{- end }}
+  {{- end }}
   configurations: 
     sgPostgresConfig: '{{ .Values.cluster.configurations.sgPostgresConfig }}'
     sgPoolingConfig: '{{ .Values.cluster.configurations.sgPoolingConfig }}'
@@ -77,6 +135,7 @@ spec:
       compression: '{{ .Values.cluster.configurations.backups.compression }}'
       performance: 
         uploadDiskConcurrency: {{ .Values.cluster.configurations.backups.performance.uploadDiskConcurrency }}
+        uploadConcurrency: {{ .Values.cluster.configurations.backups.performance.uploadConcurrency }}
         {{- if .Values.cluster.configurations.backups.performance.maxNetworkBandwidth }}
         maxNetworkBandwidth: {{ .Values.cluster.configurations.backups.performance.maxNetworkBandwidth }}
         {{- end }}

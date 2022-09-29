@@ -835,6 +835,11 @@ spec:
                                 type: integer
                                 minimum: 1
                                 description: |
+                                  Backup storage may use several concurrent streams to store the data. This parameter configures the number of parallel streams to use to reading from disk. By default, it's set to 1 (use one stream).
+                              uploadConcurrency:
+                                type: integer
+                                minimum: 1
+                                description: |
                                   Backup storage may use several concurrent streams to store the data. This parameter configures the number of parallel streams to use. By default, it's set to 1 (use one stream).
                           retention:
                             type: integer
@@ -900,6 +905,20 @@ spec:
                               type: string
                               description: |
                                 When set to the name of an existing [SGBackup](https://stackgres.io/doc/latest/reference/crd/sgbackup), the cluster is initialized by restoring the backup data to it. If not set, the cluster is initialized empty. The selected backup must be in the same namespace.
+                            target:
+                              type: string
+                              description: |
+                                Specify the [recovery_target](https://postgresqlco.nf/doc/en/param/recovery_target/) that specifies that recovery should end as soon as a consistent
+                                 state is reached, i.e., as early as possible. When restoring from an online backup, this means the point where taking the backup ended.
+
+                                Technically, this is a string parameter, but 'immediate' is currently the only allowed value.
+                            targetTimeline:
+                              type: string
+                              description: |
+                                Specify the [recovery_target_timeline](https://postgresqlco.nf/doc/en/param/recovery_target_timeline/) to recover into a particular timeline.
+                                 The default is to recover along the same timeline that was current when the base backup was taken. Setting this to latest recovers to the latest
+                                 timeline found in the archive, which is useful in a standby server. Other than that you only need to set this parameter in complex re-recovery
+                                 situations, where you need to return to a state that itself was reached after a point-in-time recovery.
                             pointInTimeRecovery:
                               type: object
                               description: |
@@ -978,6 +997,165 @@ spec:
                                     type: string
                                     description: |
                                       The key name within the ConfigMap that contains the SQL script to execute.
+                replicateFrom:
+                  type: object
+                  description: |
+                    Make the cluster a read-only standby replica allowing to replicate from another PostgreSQL instance and acting as a rely.
+                    
+                    Changing this section is allowed to fix issues or to change the replication source.
+                    
+                    Removing this section convert the cluster in a normal cluster where the standby leader is converted into the a primary instance.
+                  properties:
+                    instance:
+                      type: object
+                      description: |
+                        Configure replication from a PostgreSQL instance.
+                      properties:
+                        sgCluster:
+                          type: string
+                          description: |
+                            Configure replication from an SGCluster.
+                        external:
+                          type: object
+                          description: |
+                            Configure replication from an external PostgreSQL instance.
+                          properties:
+                            host:
+                              type: string
+                              description: The host of the PostgreSQL to replicate from.
+                            port:
+                              type: integer
+                              description: The port of the PostgreSQL to replicate from.
+                          required: ["host", "port"]
+                    storage:
+                      type: object
+                      description: |
+                        Configure replication from an SGObjectStorage using WAL shipping.
+
+                        The file structure of the object storage must follow the
+                         [WAL-G](https://github.com/wal-g/wal-g) file structure.
+                      properties:
+                        performance:
+                          type: object
+                          description: |
+                            Configuration that affects the backup network and disk usage performance.
+                          properties:
+                            maxNetworkBandwidth:
+                              type: integer
+                              description: |
+                                Maximum storage upload bandwidth used when storing a backup. In bytes (per second).
+                            maxDiskBandwidth:
+                              type: integer
+                              description: |
+                                Maximum disk read I/O when performing a backup. In bytes (per second).
+                            downloadConcurrency:
+                              type: integer
+                              minimum: 1
+                              description: |
+                                Backup storage may use several concurrent streams to retrieve the data. This parameter configures the number of parallel streams to use. By default, it's set to 1 (use one stream).
+                        sgObjectStorage:
+                          type: string
+                          description: The SGObjectStorage name to replicate from.
+                        path:
+                          type: string
+                          description: The path in the SGObjectStorage to replicate from.
+                      required: ["sgObjectStorage", "path"]
+                    users:
+                      type: object
+                      description: |
+                        A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the credentials of the users.
+                      properties:
+                        superuser:
+                          type: object
+                          description: |
+                            A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the credentials of the superuser (usually the postgres user).
+                          properties:
+                            username:
+                              type: object
+                              description: |
+                                A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the username of the user.
+                              properties:
+                                name:
+                                  type: string
+                                  description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                key:
+                                  type: string
+                                  description: The key of the secret to select from. Must be a valid secret key.
+                              required: ["name", "key"]
+                            password:
+                              type: object
+                              description: |
+                                A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the password of the user.
+                              properties:
+                                name:
+                                  type: string
+                                  description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                key:
+                                  type: string
+                                  description: The key of the secret to select from. Must be a valid secret key.
+                              required: ["name", "key"]
+                          required: ["username", "password"]
+                        replication:
+                          type: object
+                          description: |
+                            A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the credentials of the replication user used to replicate from the primary cluster and from replicas of this cluster.
+                          properties:
+                            username:
+                              type: object
+                              description: |
+                                A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the username of the user.
+                              properties:
+                                name:
+                                  type: string
+                                  description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                key:
+                                  type: string
+                                  description: The key of the secret to select from. Must be a valid secret key.
+                              required: ["name", "key"]
+                            password:
+                              type: object
+                              description: |
+                                A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the password of the user.
+                              properties:
+                                name:
+                                  type: string
+                                  description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                key:
+                                  type: string
+                                  description: The key of the secret to select from. Must be a valid secret key.
+                              required: ["name", "key"]
+                          required: ["username", "password"]
+                        authenticator:
+                          type: object
+                          description: |
+                            A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the credentials of the authenticator user used by pgbouncer to authenticate other users.
+                          properties:
+                            username:
+                              type: object
+                              description: |
+                                A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the username of the user.
+                              properties:
+                                name:
+                                  type: string
+                                  description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                key:
+                                  type: string
+                                  description: The key of the secret to select from. Must be a valid secret key.
+                              required: ["name", "key"]
+                            password:
+                              type: object
+                              description: |
+                                A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) that contains the password of the user.
+                              properties:
+                                name:
+                                  type: string
+                                  description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                key:
+                                  type: string
+                                  description: The key of the secret to select from. Must be a valid secret key.
+                              required: ["name", "key"]
+                          required: ["username", "password"]
+                      required: ["superuser", "replication", "authenticator"]
                 prometheusAutobind:
                   type: boolean
                   description: |
@@ -1130,10 +1308,13 @@ spec:
                         description: The name of the pod.
                       replicationGroup:
                         type: integer
-                        description: Indicate the replication group this Pod belongs to.
+                        description: Indicates the replication group this Pod belongs to.
+                      primary:
+                        type: boolean
+                        description: Indicates if the pod is the elected primary
                       pendingRestart:
                         type: boolean
-                        description: Indicate if the pod requires restart
+                        description: Indicates if the pod requires restart
                       installedPostgresExtensions:
                         type: array
                         description: The list of Postgres extensions currently installed.
@@ -1213,7 +1394,7 @@ spec:
                         dataChecksum:
                           type: boolean
                           description: |
-                            Indicate if PostgreSQL data checksum is enabled
+                            Indicates if PostgreSQL data checksum is enabled
                         link:
                           type: boolean
                           description: |

@@ -50,7 +50,7 @@ public class BackupConfigMap extends AbstractBackupConfigMap
     );
   }
 
-  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+  private Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
         .withName(StatefulSetDynamicVolumes.BACKUP_ENV.getVolumeName())
         .withNewConfigMap()
@@ -60,7 +60,7 @@ public class BackupConfigMap extends AbstractBackupConfigMap
         .build();
   }
 
-  public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
+  private HasMetadata buildSource(StackGresClusterContext context) {
     final Map<String, String> data = new HashMap<>();
 
     final StackGresCluster cluster = context.getCluster();

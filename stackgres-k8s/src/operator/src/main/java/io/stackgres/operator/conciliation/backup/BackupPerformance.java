@@ -8,4 +8,6 @@ package io.stackgres.operator.conciliation.backup;
 public record BackupPerformance(
     Long maxNetworkBandwidth,
     Long maxDiskBandwidth,
-    Integer uploadDiskConcurrency) {}
+    Integer uploadDiskConcurrency,
+    Integer uploadConcurrency,
+    Integer downloadConcurrency) {}

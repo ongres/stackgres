@@ -19,7 +19,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.DistributedLogsControllerProperty;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -37,7 +39,7 @@ public class DistributedLogsControllerReconciliator
   private final DistributedLogsExtensionReconciliator extensionReconciliator;
   private final DistributedLogsClusterReconciliator clusterReconciliator;
   private final CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
-  private final DistributedLogsControllerPropertyContext propertyContext;
+  private final String podName;
 
   @Dependent
   public static class Parameters {
@@ -54,7 +56,8 @@ public class DistributedLogsControllerReconciliator
     this.extensionReconciliator = parameters.extensionReconciliator;
     this.clusterReconciliator = parameters.clusterReconciliator;
     this.distributedLogsScheduler = parameters.distributedLogsScheduler;
-    this.propertyContext = parameters.propertyContext;
+    this.podName = parameters.propertyContext
+        .getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME);
   }
 
   public DistributedLogsControllerReconciliator() {
@@ -64,7 +67,7 @@ public class DistributedLogsControllerReconciliator
     this.extensionReconciliator = null;
     this.clusterReconciliator = null;
     this.distributedLogsScheduler = null;
-    this.propertyContext = null;
+    this.podName = null;
   }
 
   public static DistributedLogsControllerReconciliator create(Consumer<Parameters> consumer) {
@@ -77,26 +80,53 @@ public class DistributedLogsControllerReconciliator
   @Override
   protected ReconciliationResult<Void> reconcile(KubernetesClient client,
       StackGresDistributedLogsContext context) throws Exception {
+    final StackGresCluster cluster = context.getCluster();
+    final boolean podStatusMissing = Optional.ofNullable(cluster.getStatus())
+        .map(StackGresClusterStatus::getPodStatuses)
+        .stream()
+        .flatMap(List::stream)
+        .map(StackGresClusterPodStatus::getName)
+        .noneMatch(podName::equals);
+    if (podStatusMissing) {
+      if (cluster.getStatus() == null) {
+        cluster.setStatus(new StackGresClusterStatus());
+      }
+      if (cluster.getStatus().getPodStatuses() == null) {
+        cluster.getStatus().setPodStatuses(new ArrayList<>());
+      }
+      StackGresClusterPodStatus podStatus = new StackGresClusterPodStatus();
+      podStatus.setName(podName);
+      podStatus.setPrimary(false);
+      podStatus.setPendingRestart(false);
+      cluster.getStatus().getPodStatuses().add(podStatus);
+    }
+
     ReconciliationResult<Boolean> postgresBootstrapReconciliationResult =
         postgresBootstrapReconciliator.reconcile(client, context);
     ReconciliationResult<Boolean> extensionReconciliationResult =
         extensionReconciliator.reconcile(client, context);
-    if (extensionReconciliationResult.result().orElse(false)
-        && context.getCluster().getStatus() != null
-        && context.getCluster().getStatus().getPodStatuses() != null) {
-      if (context.getDistributedLogs().getStatus() == null) {
-        context.getDistributedLogs().setStatus(new StackGresDistributedLogsStatus());
+    if (context.getCluster().getStatus() != null) {
+      if (context.getCluster().getStatus().getPodStatuses() != null) {
+        if (context.getDistributedLogs().getStatus() == null) {
+          context.getDistributedLogs().setStatus(new StackGresDistributedLogsStatus());
+        }
+        context.getDistributedLogs().getStatus().setPodStatuses(
+            context.getCluster().getStatus().getPodStatuses());
       }
-      context.getDistributedLogs().getStatus().setPodStatuses(
-          context.getCluster().getStatus().getPodStatuses());
+      if (context.getCluster().getStatus().getOs() != null) {
+        context.getDistributedLogs().getStatus().setOs(
+            context.getCluster().getStatus().getOs());
+      }
+      if (context.getCluster().getStatus().getArch() != null) {
+        context.getDistributedLogs().getStatus().setArch(
+            context.getCluster().getStatus().getArch());
+      }
     }
     ReconciliationResult<Boolean> clusterReconciliationResult =
         clusterReconciliator.reconcile(client, context);
     if (postgresBootstrapReconciliationResult.result().orElse(false)
         || extensionReconciliationResult.result().orElse(false)
         || clusterReconciliationResult.result().orElse(false)) {
-      final String podName = propertyContext.getString(
-          DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME);
       distributedLogsScheduler.update(context.getDistributedLogs(),
           (targetDistributedLogs, distributedLogsWithStatus) -> {
             var podStatus = Optional.ofNullable(distributedLogsWithStatus.getStatus())

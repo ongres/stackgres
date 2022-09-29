@@ -35,7 +35,7 @@ public abstract class AbstractPatroniTemplatesConfigMap<T>
         ClusterStatefulSetPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_SH_PATH.filename(),
-        ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_WITH_RESTORE_SH_PATH.filename(),
+        ClusterStatefulSetPath.LOCAL_BIN_PATRONICTL_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_POST_INIT_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_EXEC_WITH_ENV_PATH.filename(),

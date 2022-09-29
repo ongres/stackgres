@@ -103,7 +103,7 @@ public class ScriptStatusManager {
           source.getMetadata().getNamespace())
           .map(Secret::getData)
           .map(data -> data.get(scriptEntry.getScriptFrom().getSecretKeyRef().getKey()))
-          .map(ResourceUtil::dencodeSecret)
+          .map(ResourceUtil::decodeSecret)
           .map(script -> generateScriptEntryHash(scriptEntry, script));
     } else {
       LOGGER.warn("Misconfigured script entry {}", getScriptId(source));

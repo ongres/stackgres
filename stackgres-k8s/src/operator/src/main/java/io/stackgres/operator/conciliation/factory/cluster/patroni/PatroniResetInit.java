@@ -55,7 +55,7 @@ public class PatroniResetInit implements ContainerFactory<ClusterContainerContex
   @Inject
   public PatroniResetInit(
       @OperatorVersionBinder
-          PatroniServices patroniServices,
+      PatroniServices patroniServices,
       PostgresDataMounts postgresDataMounts,
       ScriptTemplatesVolumeMounts templateMounts,
       ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables) {

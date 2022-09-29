@@ -60,14 +60,18 @@ e2e_test_install() {
     fi
   fi
 
-  local VERSION_AS_NUMBER VERSIONAS_NUMBER_0_9_5
+  local VERSION_AS_NUMBER VERSIONAS_NUMBER_0_9_5 VERSION_AS_NUMBER_1_3_1
   VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
   VERSION_AS_NUMBER_0_9_5="$(get_version_as_number 0.9.5)"
-  if [ "$VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_0_9_5" ]
+  VERSION_AS_NUMBER_1_3_1="$(get_version_as_number 1.3.1)"
+  if [ "$VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_1_3_1" ]
   then
     install_prometheus_operator
+  elif [ "$VERSION_AS_NUMBER" -gt "$VERSION_AS_NUMBER_0_9_5" ]
+  then
+    E2E_GRAFANA_VERSION=8.5.13 install_prometheus_operator
   else
-    install_prometheus_operator_for_version 12.8.0
+    E2E_GRAFANA_VERSION=8.5.13 install_prometheus_operator_for_version 12.8.0
   fi
   install_operator_previous_version \
     --set grafana.autoEmbed=true \
@@ -214,7 +218,7 @@ EOF
   PREVIOUS_PATRONI_1_CONFIG_PATH="$LOG_PATH/previous-patroni-1-config.json"
   kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-config" \
     --template '{{ .metadata.annotations.config }}' > "$PREVIOUS_PATRONI_1_CONFIG_PATH"
-  PREVIOUS_PGBOUNCER_1_CONFIG_PATH="$LOG_PATH/previous-pgbouncer-1-config.json"
+  PREVIOUS_PGBOUNCER_1_CONFIG_PATH="$LOG_PATH/previous-pgbouncer-1-config.ini"
   kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-connection-pooling-config" \
     --template '{{ index .data "pgbouncer.ini" }}' > "$PREVIOUS_PGBOUNCER_1_CONFIG_PATH"
   if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
@@ -222,13 +226,13 @@ EOF
     PREVIOUS_PATRONI_2_CONFIG_PATH="$LOG_PATH/previous-patroni-2-config.json"
     kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_2_NAME-config" \
       --template '{{ .metadata.annotations.config }}' > "$PREVIOUS_PATRONI_2_CONFIG_PATH"
-    PREVIOUS_PGBOUNCER_2_CONFIG_PATH="$LOG_PATH/previous-pgbouncer-2-config.json"
+    PREVIOUS_PGBOUNCER_2_CONFIG_PATH="$LOG_PATH/previous-pgbouncer-2-config.ini"
     kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_2_NAME-connection-pooling-config" \
       --template '{{ index .data "pgbouncer.ini" }}' > "$PREVIOUS_PGBOUNCER_2_CONFIG_PATH"
     PREVIOUS_PATRONI_3_CONFIG_PATH="$LOG_PATH/previous-patroni-3-config.json"
     kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_3_NAME-config" \
       --template '{{ .metadata.annotations.config }}' > "$PREVIOUS_PATRONI_3_CONFIG_PATH"
-    PREVIOUS_PGBOUNCER_3_CONFIG_PATH="$LOG_PATH/previous-pgbouncer-3-config.json"
+    PREVIOUS_PGBOUNCER_3_CONFIG_PATH="$LOG_PATH/previous-pgbouncer-3-config.ini"
     kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_3_NAME-connection-pooling-config" \
       --template '{{ index .data "pgbouncer.ini" }}' > "$PREVIOUS_PGBOUNCER_3_CONFIG_PATH"
   fi
@@ -542,8 +546,8 @@ check_cluster_before_security_upgrade() {
   if [ -n "$PREVIOUS_PATRONI_CONFIG_PATH" ]
   then
     PATRONI_CONFIG="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-config" --template '{{ .metadata.annotations.config }}')"
-    PATRONI_CONFIG="$(printf '%s' "$PATRONI_CONFIG" | jq -c .)"
-    jq -c '.
+    PATRONI_CONFIG="$(printf '%s' "$PATRONI_CONFIG" | jq -Sc .)"
+    jq -Sc '.
       | .postgresql.parameters = (.postgresql.parameters
         | if .autovacuum_vacuum_cost_delay == "2" then .autovacuum_vacuum_cost_delay = "2ms" else . end
         | if .checkpoint_timeout == "30" then .checkpoint_timeout = "30s" else . end
@@ -556,7 +560,10 @@ check_cluster_before_security_upgrade() {
         | if .restore_command != null then .restore_command = null else . end)
       | .postgresql.recovery_conf = (if .postgresql.recovery_conf == null
         then { restore_command: "exec-with-env '"'backup'"' -- wal-g wal-fetch %f %p" }
-        else .postgresql.recovery_conf end)
+	else .postgresql.recovery_conf end)
+      | if (.postgresql | has("use_slots"))
+        then .
+        else .postgresql.use_slots = true end
       ' "$PREVIOUS_PATRONI_CONFIG_PATH" > "$LOG_PATH/previous-patroni-config.json"
     PREVIOUS_PATRONI_CONFIG="$(cat "$LOG_PATH/previous-patroni-config.json")"
 
@@ -565,8 +572,8 @@ check_cluster_before_security_upgrade() {
       echo "SUCCESS. Cluster $CLUSTER_NAME patroni config did not changed after operator upgrade"
     else
       printf '%s' "$PATRONI_CONFIG" > "$LOG_PATH/patroni-config.json"
-      yq -y . "$LOG_PATH/patroni-config.json" > "$LOG_PATH/patroni-config.yaml"
-      yq -y . "$LOG_PATH/previous-patroni-config.json" > "$LOG_PATH/previous-patroni-config.yaml"
+      yq -S -y . "$LOG_PATH/patroni-config.json" > "$LOG_PATH/patroni-config.yaml"
+      yq -S -y . "$LOG_PATH/previous-patroni-config.json" > "$LOG_PATH/previous-patroni-config.yaml"
       echo "FAIL. Cluster $CLUSTER_NAME patroni config changed after operator upgrade"
       echo
       diff "$LOG_PATH/previous-patroni-config.yaml" "$LOG_PATH/patroni-config.yaml"
@@ -577,18 +584,18 @@ check_cluster_before_security_upgrade() {
   if [ -n "$PREVIOUS_PGBOUNCER_CONFIG_PATH" ]
   then
     PGBOUNCER_CONFIG="$(kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-connection-pooling-config" --template '{{ index .data "pgbouncer.ini" }}')"
+    PGBOUNCER_CONFIG="$(printf '%s' "$PGBOUNCER_CONFIG")"
     PREVIOUS_PGBOUNCER_CONFIG="$(cat "$PREVIOUS_PGBOUNCER_CONFIG_PATH")"
 
     if [ "$PGBOUNCER_CONFIG" = "$PREVIOUS_PGBOUNCER_CONFIG" ]
     then
       echo "SUCCESS. Cluster $CLUSTER_NAME pgbouncer config did not changed after operator upgrade"
     else
-      printf '%s' "$PGBOUNCER_CONFIG" > "$LOG_PATH/pgbouncer-config.json"
-      yq -y . "$LOG_PATH/pgbouncer-config.json" > "$LOG_PATH/pgbouncer-config.yaml"
-      yq -y . "$PREVIOUS_PATRONI_CONFIG" > "$LOG_PATH/previous-pgbouncer-config.yaml"
+      printf '%s' "$PGBOUNCER_CONFIG" > "$LOG_PATH/pgbouncer-config.ini"
+      echo "$PREVIOUS_PATRONI_CONFIG" > "$LOG_PATH/previous-pgbouncer-config.ini"
       echo "FAIL. Cluster $CLUSTER_NAME pgbouncer config changed after operator upgrade"
       echo
-      diff "$LOG_PATH/previous-pgbouncer-config.yaml" "$LOG_PATH/pgbouncer-config.yaml"
+      diff "$LOG_PATH/previous-pgbouncer-config.ini" "$LOG_PATH/pgbouncer-config.ini"
       return 1
     fi
   fi

@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import static io.stackgres.common.PatroniUtil.REPLICATION_SERVICE_PORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -27,11 +28,17 @@ import io.stackgres.common.ClusterLabelFactory;
 import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.fixture.Fixtures;
@@ -180,10 +187,10 @@ class PatroniConfigEndpointsTest {
     Endpoints endpoints = generateEndpoint();
 
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
-    assertTrue(annotations.containsKey(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY));
+    assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
     PatroniConfig patroniConfig = JSON_MAPPER
-        .readValue(annotations.get(AbstractPatroniConfigEndpoints.PATRONI_CONFIG_KEY),
+        .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
     PostgresDefaultValues.getDefaultValues(version).forEach(
@@ -193,7 +200,207 @@ class PatroniConfigEndpointsTest {
     assertEquals(10, patroniConfig.getLoopWait());
     assertEquals(10, patroniConfig.getRetryTimeout());
     assertTrue(patroniConfig.getPostgresql().getUsePgRewind());
-    assertNull(patroniConfig.getPostgresql().getUseSlots());
+    assertTrue(patroniConfig.getPostgresql().getUseSlots());
+    assertNull(patroniConfig.getStandbyCluster());
+  }
+
+  @Test
+  void generatedEndpointWithReplicateFromExternal_shouldBeConfiguredAccordingly()
+      throws JsonProcessingException {
+    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
+    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
+    cluster.getSpec().getReplicateFrom().getInstance()
+        .setExternal(new StackGresClusterReplicateFromExternal());
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
+        .setHost("test");
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
+        .setPort(5433);
+    Endpoints endpoints = generateEndpoint();
+
+    final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
+    assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
+
+    PatroniConfig patroniConfig = JSON_MAPPER
+        .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
+            PatroniConfig.class);
+    final String version = postgresConfig.getSpec().getPostgresVersion();
+    PostgresDefaultValues.getDefaultValues(version).forEach(
+        (key, value) -> assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key),
+            "Patroni config for postgres does not contain parameter " + key));
+    assertEquals(30, patroniConfig.getTtl());
+    assertEquals(10, patroniConfig.getLoopWait());
+    assertEquals(10, patroniConfig.getRetryTimeout());
+    assertTrue(patroniConfig.getPostgresql().getUsePgRewind());
+    assertTrue(patroniConfig.getPostgresql().getUseSlots());
+    assertNotNull(patroniConfig.getStandbyCluster());
+    assertEquals("test", patroniConfig.getStandbyCluster().getHost());
+    assertEquals("5433", patroniConfig.getStandbyCluster().getPort());
+    assertNull(patroniConfig.getStandbyCluster().getCreateReplicaMethods());
+    assertNull(patroniConfig.getStandbyCluster().getArchiveCleanupCommand());
+    assertNull(patroniConfig.getStandbyCluster().getPrimarySlotName());
+    assertNull(patroniConfig.getStandbyCluster().getRecoveryMinApplyDelay());
+    assertNull(patroniConfig.getStandbyCluster().getRestoreCommand());
+  }
+
+  @Test
+  void generatedEndpointWithReplicateFromSgCluster_shouldBeConfiguredAccordingly()
+      throws JsonProcessingException {
+    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
+    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
+    cluster.getSpec().getReplicateFrom().getInstance()
+        .setSgCluster("test");
+    Endpoints endpoints = generateEndpoint();
+
+    final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
+    assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
+
+    PatroniConfig patroniConfig = JSON_MAPPER
+        .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
+            PatroniConfig.class);
+    final String version = postgresConfig.getSpec().getPostgresVersion();
+    PostgresDefaultValues.getDefaultValues(version).forEach(
+        (key, value) -> assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key),
+            "Patroni config for postgres does not contain parameter " + key));
+    assertEquals(30, patroniConfig.getTtl());
+    assertEquals(10, patroniConfig.getLoopWait());
+    assertEquals(10, patroniConfig.getRetryTimeout());
+    assertTrue(patroniConfig.getPostgresql().getUsePgRewind());
+    assertTrue(patroniConfig.getPostgresql().getUseSlots());
+    assertNotNull(patroniConfig.getStandbyCluster());
+    assertEquals("test", patroniConfig.getStandbyCluster().getHost());
+    assertEquals(String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT),
+        patroniConfig.getStandbyCluster().getPort());
+    assertEquals(List.of("replicate", "basebackup"),
+        patroniConfig.getStandbyCluster().getCreateReplicaMethods());
+    assertNull(patroniConfig.getStandbyCluster().getArchiveCleanupCommand());
+    assertNull(patroniConfig.getStandbyCluster().getPrimarySlotName());
+    assertNull(patroniConfig.getStandbyCluster().getRecoveryMinApplyDelay());
+    assertEquals("exec-with-env 'replicate' -- wal-g wal-fetch %f %p",
+        patroniConfig.getStandbyCluster().getRestoreCommand());
+  }
+
+  @Test
+  void generatedEndpointWithReplicateFromStorage_shouldBeConfiguredAccordingly()
+      throws JsonProcessingException {
+    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
+    cluster.getSpec().getReplicateFrom().setStorage(new StackGresClusterReplicateFromStorage());
+    cluster.getSpec().getReplicateFrom().getStorage()
+        .setSgObjectStorage("test");
+    cluster.getSpec().getReplicateFrom().getStorage()
+        .setPath("test");
+    Endpoints endpoints = generateEndpoint();
+
+    final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
+    assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
+
+    PatroniConfig patroniConfig = JSON_MAPPER
+        .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
+            PatroniConfig.class);
+    final String version = postgresConfig.getSpec().getPostgresVersion();
+    PostgresDefaultValues.getDefaultValues(version).forEach(
+        (key, value) -> assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key),
+            "Patroni config for postgres does not contain parameter " + key));
+    assertEquals(30, patroniConfig.getTtl());
+    assertEquals(10, patroniConfig.getLoopWait());
+    assertEquals(10, patroniConfig.getRetryTimeout());
+    assertTrue(patroniConfig.getPostgresql().getUsePgRewind());
+    assertTrue(patroniConfig.getPostgresql().getUseSlots());
+    assertNotNull(patroniConfig.getStandbyCluster());
+    assertEquals(PatroniServices.readWriteName(context),
+        patroniConfig.getStandbyCluster().getHost());
+    assertEquals(String.valueOf(String.valueOf(REPLICATION_SERVICE_PORT)),
+        patroniConfig.getStandbyCluster().getPort());
+    assertEquals(List.of("replicate"), patroniConfig.getStandbyCluster().getCreateReplicaMethods());
+    assertNull(patroniConfig.getStandbyCluster().getArchiveCleanupCommand());
+    assertNull(patroniConfig.getStandbyCluster().getPrimarySlotName());
+    assertNull(patroniConfig.getStandbyCluster().getRecoveryMinApplyDelay());
+    assertEquals("exec-with-env 'replicate' -- wal-g wal-fetch %f %p",
+        patroniConfig.getStandbyCluster().getRestoreCommand());
+  }
+
+  @Test
+  void generatedEndpointWithReplicateFromStorageAfterBootstrap_shouldBeConfiguredAccordingly()
+      throws JsonProcessingException {
+    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
+    cluster.getSpec().getReplicateFrom().setStorage(new StackGresClusterReplicateFromStorage());
+    cluster.getSpec().getReplicateFrom().getStorage()
+        .setSgObjectStorage("test");
+    cluster.getSpec().getReplicateFrom().getStorage()
+        .setPath("test");
+    cluster.setStatus(new StackGresClusterStatus());
+    cluster.getStatus().setOs("linux");
+    cluster.getStatus().setArch("x86_64");
+    Endpoints endpoints = generateEndpoint();
+
+    final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
+    assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
+
+    PatroniConfig patroniConfig = JSON_MAPPER
+        .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
+            PatroniConfig.class);
+    final String version = postgresConfig.getSpec().getPostgresVersion();
+    PostgresDefaultValues.getDefaultValues(version).forEach(
+        (key, value) -> assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key),
+            "Patroni config for postgres does not contain parameter " + key));
+    assertEquals(30, patroniConfig.getTtl());
+    assertEquals(10, patroniConfig.getLoopWait());
+    assertEquals(10, patroniConfig.getRetryTimeout());
+    assertTrue(patroniConfig.getPostgresql().getUsePgRewind());
+    assertTrue(patroniConfig.getPostgresql().getUseSlots());
+    assertNotNull(patroniConfig.getStandbyCluster());
+    assertNull(patroniConfig.getStandbyCluster().getHost());
+    assertNull(patroniConfig.getStandbyCluster().getPort());
+    assertEquals(List.of("replicate"), patroniConfig.getStandbyCluster().getCreateReplicaMethods());
+    assertNull(patroniConfig.getStandbyCluster().getArchiveCleanupCommand());
+    assertNull(patroniConfig.getStandbyCluster().getPrimarySlotName());
+    assertNull(patroniConfig.getStandbyCluster().getRecoveryMinApplyDelay());
+    assertEquals("exec-with-env 'replicate' -- wal-g wal-fetch %f %p",
+        patroniConfig.getStandbyCluster().getRestoreCommand());
+  }
+
+  @Test
+  void generatedEndpointWithReplicateFromExternalAndStorage_shouldBeConfiguredAccordingly()
+      throws JsonProcessingException {
+    cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
+    cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
+    cluster.getSpec().getReplicateFrom().getInstance()
+        .setExternal(new StackGresClusterReplicateFromExternal());
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
+        .setHost("test");
+    cluster.getSpec().getReplicateFrom().getInstance().getExternal()
+        .setPort(5433);
+    cluster.getSpec().getReplicateFrom().setStorage(new StackGresClusterReplicateFromStorage());
+    cluster.getSpec().getReplicateFrom().getStorage()
+        .setSgObjectStorage("test");
+    cluster.getSpec().getReplicateFrom().getStorage()
+        .setPath("test");
+    Endpoints endpoints = generateEndpoint();
+
+    final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
+    assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
+
+    PatroniConfig patroniConfig = JSON_MAPPER
+        .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
+            PatroniConfig.class);
+    final String version = postgresConfig.getSpec().getPostgresVersion();
+    PostgresDefaultValues.getDefaultValues(version).forEach(
+        (key, value) -> assertTrue(patroniConfig.getPostgresql().getParameters().containsKey(key),
+            "Patroni config for postgres does not contain parameter " + key));
+    assertEquals(30, patroniConfig.getTtl());
+    assertEquals(10, patroniConfig.getLoopWait());
+    assertEquals(10, patroniConfig.getRetryTimeout());
+    assertTrue(patroniConfig.getPostgresql().getUsePgRewind());
+    assertTrue(patroniConfig.getPostgresql().getUseSlots());
+    assertNotNull(patroniConfig.getStandbyCluster());
+    assertEquals("test", patroniConfig.getStandbyCluster().getHost());
+    assertEquals("5433", patroniConfig.getStandbyCluster().getPort());
+    assertEquals(List.of("replicate", "basebackup"),
+        patroniConfig.getStandbyCluster().getCreateReplicaMethods());
+    assertNull(patroniConfig.getStandbyCluster().getArchiveCleanupCommand());
+    assertNull(patroniConfig.getStandbyCluster().getPrimarySlotName());
+    assertNull(patroniConfig.getStandbyCluster().getRecoveryMinApplyDelay());
+    assertEquals("exec-with-env 'replicate' -- wal-g wal-fetch %f %p",
+        patroniConfig.getStandbyCluster().getRestoreCommand());
   }
 
   private Endpoints generateEndpoint() {

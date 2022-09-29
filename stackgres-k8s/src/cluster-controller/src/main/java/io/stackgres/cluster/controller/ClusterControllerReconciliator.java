@@ -88,6 +88,7 @@ public class ClusterControllerReconciliator
       }
       StackGresClusterPodStatus podStatus = new StackGresClusterPodStatus();
       podStatus.setName(podName);
+      podStatus.setPrimary(false);
       podStatus.setPendingRestart(false);
       cluster.getStatus().getPodStatuses().add(podStatus);
     }

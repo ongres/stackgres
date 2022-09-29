@@ -85,6 +85,12 @@ public enum ClusterStatefulSetVolumeConfig {
           .map(StackGresClusterSpec::getInitData)
           .map(StackGresClusterInitData::getRestore)
           .map(StackGresClusterRestore::getFromBackup).isPresent())),
+  REPLICATE_ENV(VolumeConfig.configMap(
+      "replicate-env", ClusterStatefulSetPath.REPLICATE_ENV_PATH,
+      BackupConfigMap::name)),
+  REPLICATE_SECRET(VolumeConfig.secret(
+      "replicate-secret", ClusterStatefulSetPath.REPLICATE_SECRET_PATH,
+      BackupSecret::name)),
   TEMPLATES(VolumeConfig.configMap(
       "templates", ClusterStatefulSetPath.TEMPLATES_PATH,
       TemplatesConfigMap::name));

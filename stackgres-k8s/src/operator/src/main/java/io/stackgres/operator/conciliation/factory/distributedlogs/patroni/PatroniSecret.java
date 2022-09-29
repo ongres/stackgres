@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.patroni.StackGresRandomPasswordKeys;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
@@ -27,7 +27,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 @Singleton
 @OperatorVersionBinder
 public class PatroniSecret implements
-    ResourceGenerator<StackGresDistributedLogsContext>, StackGresRandomPasswordKeys {
+    ResourceGenerator<StackGresDistributedLogsContext>, StackGresPasswordKeys {
 
   private LabelFactoryForCluster<StackGresDistributedLogs> factoryFactory;
 

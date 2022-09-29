@@ -350,9 +350,9 @@ pull_image_k8s() {
     | grep -F "${1%%/*}" | head -n 1 | cut -d '|' -f 2)"
   if [ -n "$AUTH" ]
   then
-    docker exec "${KIND_NAME}-control-plane" crictl pull --auth "$AUTH" "$1"
+    docker exec "${KIND_NAME}-control-plane" ctr -n k8s.io i pull --user "$(printf %s "$AUTH" | base64 -d)" "$1" > /dev/null
   else
-    docker exec "${KIND_NAME}-control-plane" crictl pull "$1"
+    docker exec "${KIND_NAME}-control-plane" ctr -n k8s.io i pull "$1" > /dev/null
   fi
 
   echo "Pulled image $1 in kind environemnt $KIND_NAME"

@@ -16,6 +16,9 @@ public interface JsonFixtureWithPaths {
 
   String ENDPOINTS_PATRONI_CONFIG_JSON = "endpoints/patroni_config.json";
 
+  String ENDPOINTS_PATRONI_CONFIG_WITH_STANDBY_CLUSTER_JSON =
+      "endpoints/patroni_config_with_standby_cluster.json";
+
   String ENDPOINTS_PATRONI_JSON = "endpoints/patroni.json";
 
   String ENDPOINTS_REQUIRED_JSON = "endpoints/required.json";

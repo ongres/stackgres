@@ -49,7 +49,7 @@ class PostgresExporterTest {
     assertFalse(postgresExporter.isActivated(context));
   }
 
-  private ImmutableClusterContainerContext getClusterContainerContext() {
+  private ClusterContainerContext getClusterContainerContext() {
     return ImmutableClusterContainerContext.builder()
         .clusterContext(ImmutableStackGresClusterContext.builder()
             .source(getDefaultCluster())

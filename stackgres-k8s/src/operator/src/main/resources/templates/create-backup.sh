@@ -327,7 +327,7 @@ EOF
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
-      {"op":"replace","path":"/status/process/failure","value":"Backup failed: '"$(cat /tmp/backup-push | to_json_string)"'"}
+      {"op":"replace","path":"/status/process/failure","value":"Backup failed:\n\n'"$(cat /tmp/backup-push | to_json_string)"'"}
       ]'
     exit 1
   fi

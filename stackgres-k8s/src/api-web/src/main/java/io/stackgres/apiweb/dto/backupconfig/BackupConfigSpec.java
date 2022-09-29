@@ -33,7 +33,7 @@ public class BackupConfigSpec {
     return baseBackups;
   }
 
-  public void setBaseBackup(BaseBackupConfig baseBackups) {
+  public void setBaseBackups(BaseBackupConfig baseBackups) {
     this.baseBackups = baseBackups;
   }
 

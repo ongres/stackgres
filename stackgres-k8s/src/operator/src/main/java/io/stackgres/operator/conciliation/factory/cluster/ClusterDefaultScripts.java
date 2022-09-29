@@ -23,7 +23,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterScriptFrom;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptFrom;
-import io.stackgres.common.patroni.StackGresRandomPasswordKeys;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.v12.PatroniScriptsConfigMap;
 import org.jooq.lambda.Seq;
@@ -62,7 +62,7 @@ public class ClusterDefaultScripts {
     script.setRetryOnError(true);
     script.setScriptFrom(new StackGresScriptFrom());
     script.getScriptFrom().setSecretKeyRef(new SecretKeySelector(
-        StackGresRandomPasswordKeys.BABELFISH_CREATE_USER_SQL_KEY, PatroniSecret.name(cluster)));
+        StackGresPasswordKeys.BABELFISH_CREATE_USER_SQL_KEY, PatroniSecret.name(cluster)));
     return script;
   }
 

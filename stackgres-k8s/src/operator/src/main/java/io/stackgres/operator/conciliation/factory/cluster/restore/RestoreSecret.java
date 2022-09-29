@@ -59,7 +59,7 @@ public class RestoreSecret
             .build());
   }
 
-  private @NotNull Volume buildVolume(StackGresClusterContext context) {
+  private Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
         .withName(StatefulSetDynamicVolumes.RESTORE_CREDENTIALS.getVolumeName())
         .withSecret(new SecretVolumeSourceBuilder()
@@ -68,7 +68,7 @@ public class RestoreSecret
         .build();
   }
 
-  private @NotNull Secret buildSource(StackGresClusterContext context) {
+  private Secret buildSource(StackGresClusterContext context) {
     final Optional<StackGresBackup> restoreBackup = context.getRestoreBackup();
     final Map<String, String> data = new HashMap<>();
     final StackGresCluster cluster = context.getSource();

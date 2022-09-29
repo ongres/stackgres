@@ -25,6 +25,7 @@ public enum ClusterStatefulSetEnvVars {
   PATRONI_ENV("patroni"),
   BACKUP_ENV("backup"),
   RESTORE_ENV("restore"),
+  REPLICATE_ENV("replicate"),
   POSTGRES_ENTRY_PORT(String.valueOf(EnvoyUtil.PG_ENTRY_PORT)),
   POSTGRES_REPL_ENTRY_PORT(String.valueOf(EnvoyUtil.PG_REPL_ENTRY_PORT)),
   POSTGRES_POOL_PORT(String.valueOf(EnvoyUtil.PG_POOL_PORT)),

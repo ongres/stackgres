@@ -7,7 +7,6 @@ package io.stackgres.operator.conciliation.cluster;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -18,141 +17,43 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresVersion;
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
-import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.prometheus.PodMonitor;
 import io.stackgres.common.prometheus.PrometheusConfig;
-import io.stackgres.common.resource.BackupConfigFinder;
-import io.stackgres.common.resource.BackupFinder;
-import io.stackgres.common.resource.PoolingConfigFinder;
-import io.stackgres.common.resource.PostgresConfigFinder;
-import io.stackgres.common.resource.ProfileConfigFinder;
-import io.stackgres.common.resource.SecretFinder;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
-import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
-import io.stackgres.operator.resource.PrometheusScanner;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class ClusterRequiredResourcesGeneratorTest {
-
-  @InjectMock
-  BackupConfigFinder backupConfigFinder;
-
-  @InjectMock
-  PostgresConfigFinder postgresConfigFinder;
-
-  @InjectMock
-  ProfileConfigFinder profileConfigFinder;
-
-  @InjectMock
-  PoolingConfigFinder poolingConfigFinder;
-
-  @InjectMock
-  BackupFinder backupFinder;
-
-  @InjectMock
-  PrometheusScanner prometheusScanner;
-
-  @InjectMock
-  SecretFinder secretFinder;
-
-  @Inject
-  ClusterRequiredResourcesGenerator generator;
-
-  private StackGresCluster cluster;
-  private StackGresBackupConfig backupConfig;
-  private StackGresPostgresConfig postgresConfig;
-  private StackGresPoolingConfig poolingConfig;
-  private StackGresProfile instanceProfile;
-  private StackGresBackup backup;
-  private Secret minioSecret;
-
-  @BeforeEach
-  void setUp() {
-    cluster = Fixtures.cluster().loadDefault().get();
-    cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
-        .getLatest().getLatestVersion());
-    cluster.getMetadata().getAnnotations().put(
-        StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
-    final String namespace = cluster.getMetadata().getNamespace();
-    backupConfig = Fixtures.backupConfig().loadDefault().get();
-    setNamespace(backupConfig);
-    postgresConfig = Fixtures.postgresConfig().loadDefault().get();
-    postgresConfig.getSpec()
-        .setPostgresVersion(StackGresComponent.POSTGRESQL.getLatest()
-            .getLatestMajorVersion());
-    setNamespace(postgresConfig);
-    postgresConfig.setStatus(new StackGresPostgresConfigStatus());
-    final String version = postgresConfig.getSpec().getPostgresVersion();
-    postgresConfig.getStatus()
-        .setDefaultParameters(PostgresDefaultValues.getDefaultValues(version));
-    poolingConfig = Fixtures.poolingConfig().loadDefault().get();
-    setNamespace(poolingConfig);
-    poolingConfig.setStatus(new StackGresPoolingConfigStatus());
-    poolingConfig.getStatus().setPgBouncer(new StackGresPoolingConfigPgBouncerStatus());
-    poolingConfig.getStatus().getPgBouncer()
-        .setDefaultParameters(PgBouncerDefaultValues.getDefaultValues());
-    instanceProfile = Fixtures.instanceProfile().loadSizeS().get();
-    instanceProfile.getMetadata().setNamespace(namespace);
-    setNamespace(instanceProfile);
-    backup = Fixtures.backup().loadDefault().get();
-    setNamespace(backup);
-    minioSecret = Fixtures.secret().loadMinio().get();
-  }
-
-  private void setNamespace(HasMetadata resource) {
-    resource.getMetadata().setNamespace(cluster.getMetadata().getNamespace());
-  }
+class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResourcesGeneratorTest {
 
   @Test
   void givenValidCluster_getRequiredResourcesShouldNotFail() {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
   }
@@ -162,20 +63,15 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     List<HasMetadata> resources = generator.getRequiredResources(cluster);
 
@@ -195,9 +91,12 @@ class ClusterRequiredResourcesGeneratorTest {
                   .equals(Boolean.FALSE)));
     });
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
   }
@@ -207,25 +106,23 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    clusterConfiguration.setBackupConfig(null);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    cluster.getSpec().getConfiguration().setBackupConfig(null);
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
     verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
   }
@@ -235,25 +132,23 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    clusterConfiguration.setConnectionPoolingConfig(null);
+    cluster.getSpec().getConfiguration().setConnectionPoolingConfig(null);
 
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
@@ -267,24 +162,22 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder, never()).findByNameAndNamespace(any(), any());
   }
@@ -300,39 +193,26 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
-  }
-
-  private void mockPoolingConfig(String clusterNamespace, String connectionPoolingConfig) {
-    when(poolingConfigFinder.findByNameAndNamespace(connectionPoolingConfig, clusterNamespace))
-        .thenReturn(Optional.of(poolingConfig));
-  }
-
-  private void mockPgConfig(String clusterNamespace, String postgresConfigName) {
-    when(postgresConfigFinder.findByNameAndNamespace(postgresConfigName, clusterNamespace))
-        .thenReturn(Optional.of(this.postgresConfig));
   }
 
   @Test
@@ -341,16 +221,16 @@ class ClusterRequiredResourcesGeneratorTest {
     final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    when(postgresConfigFinder.findByNameAndNamespace(postgresConfigName, clusterNamespace))
+    when(postgresConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace))
         .thenReturn(Optional.empty());
 
     assertException("SGCluster " + clusterNamespace + "." + clusterName
-        + " have a non existent SGPostgresConfig " + postgresConfigName);
+        + " have a non existent SGPostgresConfig "
+        + cluster.getSpec().getConfiguration().getPostgresConfig());
 
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
     verify(profileConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
@@ -363,18 +243,16 @@ class ClusterRequiredResourcesGeneratorTest {
     final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockPgConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.empty());
 
     assertException("SGCluster " + clusterNamespace + "."
         + clusterName + " have a non existent SGInstanceProfile " + resourceProfile);
 
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
@@ -386,27 +264,26 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    when(backupConfigFinder.findByNameAndNamespace(backupConfigName, clusterNamespace))
+    when(backupConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace))
         .thenReturn(Optional.empty());
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
   }
@@ -416,27 +293,26 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    when(poolingConfigFinder.findByNameAndNamespace(connectionPoolingConfig, clusterNamespace))
+    mockBackupConfig();
+    mockPgConfig();
+    when(poolingConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace))
         .thenReturn(Optional.empty());
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(backupConfigName, clusterNamespace);
-    verify(postgresConfigFinder).findByNameAndNamespace(postgresConfigName, clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(connectionPoolingConfig, clusterNamespace);
+    verify(backupConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getBackupConfig(), clusterNamespace);
+    verify(postgresConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getPostgresConfig(), clusterNamespace);
+    verify(poolingConfigFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
     verify(backupFinder).findByNameAndNamespace(any(), any());
   }
@@ -447,20 +323,15 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     when(prometheusScanner.findResources()).thenReturn(Optional.of(
         Fixtures.prometheusList().loadDefault().get().getItems()));
@@ -482,20 +353,15 @@ class ClusterRequiredResourcesGeneratorTest {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
-    mockBackupConfig(clusterNamespace, backupConfigName);
-    final String postgresConfigName = clusterConfiguration.getPostgresConfig();
-    mockPgConfig(clusterNamespace, postgresConfigName);
-    final String connectionPoolingConfig = clusterConfiguration.getConnectionPoolingConfig();
-    mockPoolingConfig(clusterNamespace, connectionPoolingConfig);
-    final String resourceProfile = clusterSpec.getResourceProfile();
+    mockBackupConfig();
+    mockPgConfig();
+    mockPoolingConfig();
+    final String resourceProfile = cluster.getSpec().getResourceProfile();
     when(profileConfigFinder.findByNameAndNamespace(resourceProfile, clusterNamespace))
         .thenReturn(Optional.of(instanceProfile));
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
-    mockSecrets(clusterNamespace);
+    mockSecrets();
 
     List<PrometheusConfig> listPrometheus = Fixtures.prometheusList().loadDefault().get()
             .getItems()
@@ -513,22 +379,6 @@ class ClusterRequiredResourcesGeneratorTest {
 
     assertEquals(2, podMonitors);
     System.clearProperty(OperatorProperty.PROMETHEUS_AUTOBIND.getPropertyName());
-  }
-
-  private void mockSecrets(String clusterNamespace) {
-    when(secretFinder.findByNameAndNamespace("minio", clusterNamespace))
-        .thenReturn(Optional.of(minioSecret));
-  }
-
-  private void mockBackupConfig(String clusterNamespace, String backupConfigName) {
-    when(backupConfigFinder.findByNameAndNamespace(backupConfigName, clusterNamespace))
-        .thenReturn(Optional.of(this.backupConfig));
-  }
-
-  private void assertException(String message) {
-    var ex =
-        assertThrows(IllegalArgumentException.class, () -> generator.getRequiredResources(cluster));
-    assertEquals(message, ex.getMessage());
   }
 
 }

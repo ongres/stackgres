@@ -10,6 +10,7 @@ import static io.stackgres.operatorframework.resource.ResourceUtil.getIndexPatte
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,6 +20,7 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
@@ -28,6 +30,7 @@ public interface PatroniUtil {
 
   String LEADER_KEY = "leader";
   String INITIALIZE_KEY = "initialize";
+  String CONFIG_KEY = "config";
   String ROLE_KEY = "role";
   String PRIMARY_ROLE = "master";
   String REPLICA_ROLE = "replica";
@@ -43,7 +46,7 @@ public interface PatroniUtil {
   String FALSE_TAG_VALUE = "false";
 
   String SUFFIX = "-patroni";
-  String READ_WRITE_SERVICE = "-primary";
+  String DEPRECATED_READ_WRITE_SERVICE = "-primary";
   String READ_ONLY_SERVICE = "-replicas";
   String FAILOVER_SERVICE = "-failover";
   String REST_SERVICE = "-rest";
@@ -52,22 +55,22 @@ public interface PatroniUtil {
   int REPLICATION_SERVICE_PORT = 5433;
   int BABELFISH_SERVICE_PORT = 1433;
 
-  static String name(StackGresCluster cluster) {
-    String name = cluster.getMetadata().getName();
-    return name(name);
-  }
-
-  static String name(@NotNull String clusterName) {
-    return ResourceUtil.nameIsValidService(clusterName);
-  }
-
   static String readWriteName(StackGresCluster cluster) {
     String name = cluster.getMetadata().getName();
     return readWriteName(name);
   }
 
   static String readWriteName(@NotNull String clusterName) {
-    return ResourceUtil.nameIsValidService(clusterName + READ_WRITE_SERVICE);
+    return ResourceUtil.nameIsValidService(clusterName);
+  }
+
+  static String deprecatedReadWriteName(StackGresCluster cluster) {
+    String name = cluster.getMetadata().getName();
+    return deprecatedReadWriteName(name);
+  }
+
+  static String deprecatedReadWriteName(@NotNull String clusterName) {
+    return ResourceUtil.nameIsValidService(clusterName + DEPRECATED_READ_WRITE_SERVICE);
   }
 
   static String readOnlyName(StackGresCluster cluster) {
@@ -89,7 +92,7 @@ public interface PatroniUtil {
 
   static String restName(StackGresCluster cluster) {
     String name = cluster.getMetadata().getName();
-    return name(name + REST_SERVICE);
+    return readWriteName(name + REST_SERVICE);
   }
 
   static String configName(ClusterContext context) {
@@ -110,6 +113,32 @@ public interface PatroniUtil {
    */
   static boolean isPrimary(Map<String, String> labels) {
     return Objects.equals(labels.get(ROLE_KEY), PRIMARY_ROLE);
+  }
+
+  static Boolean isPrimary(final String podName, final Optional<Endpoints> patroniEndpoints) {
+    return patroniEndpoints.map(Endpoints::getMetadata)
+        .map(ObjectMeta::getAnnotations)
+        .map(annotations -> annotations.get(LEADER_KEY))
+        .map(podName::equals).orElse(false);
+  }
+
+  static boolean isBootstrapped(final Optional<Endpoints> patroniConfigEndpoints) {
+    return patroniConfigEndpoints.map(Endpoints::getMetadata)
+        .map(ObjectMeta::getAnnotations)
+        .map(annotations -> annotations.get(INITIALIZE_KEY))
+        .filter(Predicate.not(String::isEmpty))
+        .isPresent();
+  }
+
+  static boolean isStandbyCluster(Optional<Endpoints> patroniConfigEndpoints,
+      ObjectMapper objectMapper) {
+    return patroniConfigEndpoints
+    .map(Endpoints::getMetadata)
+    .map(ObjectMeta::getAnnotations)
+    .map(annotations -> annotations.get(PatroniUtil.CONFIG_KEY))
+    .map(Unchecked.function(config -> objectMapper.readValue(config, PatroniConfig.class)))
+    .map(PatroniConfig::getStandbyCluster)
+    .isPresent();
   }
 
   static int getLatestPrimaryIndexFromPatroni(Optional<Endpoints> patroniConfigEndpoints,

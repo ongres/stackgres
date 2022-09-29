@@ -31,16 +31,52 @@ cluster:
     # - name: group-1
     #   role: HA_READ
     #   instances: 1
+  # replicateFrom:
+  #   instance:
+  #     sgCluster:
+  #     external:
+  #       host:
+  #       port:
+  #   storage:
+  #     compression: lz4
+  #     performance:
+  #       downloadConcurrency: 1
+  #       maxNetworkBandwidth:
+  #       maxDiskBandwidth:
+  #     sgObjectStorage:
+  #     path:
+  #   users:
+  #     superuser:
+  #       username:
+  #         name:
+  #         key:
+  #       password:
+  #         name:
+  #         key:
+  #     replication:
+  #       username:
+  #         name:
+  #         key:
+  #       password:
+  #         name:
+  #         key:
+  #     authenticator:
+  #       username:
+  #         name:
+  #         key:
+  #       password:
+  #         name:
+  #         key:
   sgInstanceProfile: size-xs
   postgresServices:
     primary:
       enabled: true
       type: ClusterIP
-#      loadBalancerIP:
+      # loadBalancerIP:
     replicas:
       enabled: true
       type: ClusterIP
-#      loadBalancerIP:
+      # loadBalancerIP:
   # metadata:
   #   annotations:
   #     allResources:
@@ -102,6 +138,7 @@ cluster:
       compression: lz4
       performance:
         uploadDiskConcurrency: 1
+        uploadConcurrency: 1
         #maxNetworkBandwidth:
         #maxDiskBandwidth:
     # sgObjectStorage: objectstorage
@@ -111,11 +148,12 @@ cluster:
     retention: 7 days
   #restore:
   #  initialData:
-  #    fromBackup:
-  #      name:
-  #      pointInTimeRecovery:
-  #        restoreToTimestamp:
-  #    downloadDiskConcurrency:
+  #    restore:
+  #      fromBackup:
+  #        name:
+  #        pointInTimeRecovery:
+  #          restoreToTimestamp:
+  #      downloadDiskConcurrency:
   #managedSql:
   #  continueOnSGScriptError:
   #  continueOnError:

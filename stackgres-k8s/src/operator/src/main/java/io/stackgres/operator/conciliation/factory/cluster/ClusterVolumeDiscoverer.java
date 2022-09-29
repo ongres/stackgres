@@ -37,6 +37,6 @@ public class ClusterVolumeDiscoverer
     return resourceHub.get(context.getVersion())
         .stream().flatMap(vf -> vf.buildVolumes(context))
         .collect(Collectors.toMap(vp -> vp.getVolume().getName(), Function.identity()));
-
   }
+
 }

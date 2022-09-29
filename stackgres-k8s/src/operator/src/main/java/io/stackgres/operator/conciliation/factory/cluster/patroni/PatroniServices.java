@@ -47,16 +47,16 @@ public class PatroniServices implements
 
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  public static String name(ClusterContext clusterContext) {
-    return PatroniUtil.name(clusterContext.getCluster());
+  public static String readWriteName(ClusterContext clusterContext) {
+    return PatroniUtil.readWriteName(clusterContext.getCluster());
   }
 
   public static String restName(ClusterContext clusterContext) {
     return PatroniUtil.restName(clusterContext.getCluster());
   }
 
-  public static String readWriteName(ClusterContext clusterContext) {
-    return PatroniUtil.readWriteName(clusterContext.getCluster());
+  public static String deprecatedReadWriteName(ClusterContext clusterContext) {
+    return PatroniUtil.deprecatedReadWriteName(clusterContext.getCluster());
   }
 
   public static String readOnlyName(ClusterContext clusterContext) {
@@ -153,7 +153,7 @@ public class PatroniServices implements
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(name(context))
+        .withName(readWriteName(context))
         .withLabels(labelFactory.patroniPrimaryLabels(cluster))
         .withAnnotations(getPrimaryServiceAnnotations(cluster))
         .endMetadata()
@@ -219,13 +219,13 @@ public class PatroniServices implements
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(readWriteName(context))
+        .withName(deprecatedReadWriteName(context))
         .withLabels(labels)
         .endMetadata()
         .withNewSpec()
         .withType("ExternalName")
         .withLoadBalancerIP(getPrimaryLoadBalancerIP(cluster))
-        .withExternalName(name(context) + "." + cluster.getMetadata().getNamespace()
+        .withExternalName(readWriteName(context) + "." + cluster.getMetadata().getNamespace()
             + StackGresUtil.domainSearchPath())
         .endSpec()
         .build();

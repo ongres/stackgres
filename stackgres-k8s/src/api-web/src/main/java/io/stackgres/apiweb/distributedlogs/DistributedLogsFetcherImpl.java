@@ -5,8 +5,8 @@
 
 package io.stackgres.apiweb.distributedlogs;
 
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_PASSWORD_KEY;
-import static io.stackgres.common.patroni.StackGresRandomPasswordKeys.SUPERUSER_USER_NAME;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -123,7 +123,7 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
     String namespace = StackGresUtil.getNamespaceFromRelativeId(
         distributedLogs, cluster.getMetadata().getNamespace());
     String name = StackGresUtil.getNameFromRelativeId(distributedLogs);
-    String serviceName = PatroniUtil.name(name);
+    String serviceName = PatroniUtil.readWriteName(name);
     Secret secret = secretFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(() -> new NotFoundException(
             "Secret with username and password for user postgres can not be found."));
@@ -132,7 +132,7 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
         FluentdUtil.databaseName(
             cluster.getMetadata().getNamespace(),
             cluster.getMetadata().getName()),
-        SUPERUSER_USER_NAME,
+        SUPERUSER_USERNAME,
         ResourceUtil.decodeSecret(secret.getData()
             .get(SUPERUSER_PASSWORD_KEY)));
   }

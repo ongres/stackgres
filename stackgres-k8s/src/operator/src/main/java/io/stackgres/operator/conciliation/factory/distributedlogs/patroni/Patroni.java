@@ -87,12 +87,11 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
     ResourceRequirements podResources = requirementsFactory
         .createResource(context.getDistributedLogsContext());
 
-    final String startScript = "/start-patroni.sh";
     return new ContainerBuilder()
         .withName(StackGresContainer.PATRONI.getName())
         .withImage(StackGresUtil.getPatroniImageName(cluster))
         .withCommand("/bin/sh", "-ex",
-            PatroniEnvPaths.LOCAL_BIN_PATH.getPath() + startScript)
+            ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
         .withResources(podResources)
         .withImagePullPolicy("IfNotPresent")
         .withPorts(

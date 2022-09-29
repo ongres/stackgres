@@ -76,7 +76,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
     Service primary = new ServiceBuilder()
         .withNewMetadata()
-        .withName(PatroniUtil.name(cluster.getMetadata().getName()))
+        .withName(PatroniUtil.readWriteName(cluster.getMetadata().getName()))
         .withNamespace(cluster.getMetadata().getNamespace())
         .endMetadata()
         .withNewSpec()
@@ -161,7 +161,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
             "info.superuserSecretName", equalTo(cluster.getMetadata().getName()),
             "info.superuserPasswordKey", equalTo("superuser-password"),
             "info.primaryDns",
-            equalTo(PatroniUtil.name(cluster.getMetadata().getName())
+            equalTo(PatroniUtil.readWriteName(cluster.getMetadata().getName())
                 + ".test"),
             "info.replicasDns",
             equalTo(PatroniUtil.readOnlyName(cluster.getMetadata().getName())
@@ -185,7 +185,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
             "[0].info.superuserSecretName", equalTo(cluster.getMetadata().getName()),
             "[0].info.superuserPasswordKey", equalTo("superuser-password"),
             "[0].info.primaryDns",
-            equalTo(PatroniUtil.name(cluster.getMetadata().getName())
+            equalTo(PatroniUtil.readWriteName(cluster.getMetadata().getName())
                 + ".test"),
             "[0].info.replicasDns",
             equalTo(PatroniUtil.readOnlyName(cluster.getMetadata().getName())
@@ -321,8 +321,8 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     clusterDto.getMetadata().setName(StringUtils.getRandomClusterName());
     ClusterSpec spec = clusterDto.getSpec();
     spec.setInitData(null);
-    spec.setConfigurations(new ClusterConfiguration());
-    spec.getConfigurations().setBackups(new ArrayList<>());
+    spec.setConfiguration(new ClusterConfiguration());
+    spec.getConfiguration().setBackups(new ArrayList<>());
 
     ClusterBackupsConfiguration clusterBackupsConfiguration = new ClusterBackupsConfiguration();
     clusterBackupsConfiguration.setCompressionMethod("brotli");
@@ -333,8 +333,9 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     clusterBackupsConfiguration.getPerformance().setMaxDiskBandwidth(10L);
     clusterBackupsConfiguration.getPerformance().setMaxNetworkBandwidth(10L);
     clusterBackupsConfiguration.getPerformance().setUploadDiskConcurrency(10);
+    clusterBackupsConfiguration.getPerformance().setUploadConcurrency(10);
 
-    spec.getConfigurations().getBackups().add(clusterBackupsConfiguration);
+    spec.getConfiguration().getBackups().add(clusterBackupsConfiguration);
 
     given()
         .header(AUTHENTICATION_HEADER)
@@ -361,7 +362,8 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
             "spec.configurations.backups[0].sgObjectStorage", equalTo("backupconf"),
             "spec.configurations.backups[0].performance.maxNetworkBandwidth", equalTo(10),
             "spec.configurations.backups[0].performance.maxDiskBandwidth", equalTo(10),
-            "spec.configurations.backups[0].performance.uploadDiskConcurrency", equalTo(10))
+            "spec.configurations.backups[0].performance.uploadDiskConcurrency", equalTo(10),
+            "spec.configurations.backups[0].performance.uploadConcurrency", equalTo(10))
         .statusCode(200);
   }
 
