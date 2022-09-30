@@ -12,7 +12,7 @@
                 <div class="col">
                     <label for="metadata.name">Configuration Name <span class="req">*</span></label>
                     <input v-model="name" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
-                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.metadata.name')"></span>                    
+                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.metadata.name')"></span>
                 </div>
             </div>
             
@@ -255,7 +255,7 @@
     import {mixin} from '../mixins/mixin'
     import router from '../../router'
     import store from '../../store'
-    import axios from 'axios'
+    import sgApi from '../../api/sgApi'
     import CRDSummary from './summary/CRDSummary.vue'
 
     export default {
@@ -327,7 +327,6 @@
                 if( vm.editMode && !vm.editReady ) {
                     store.state.sgobjectstorages.forEach(function( config ){
                         if( (config.data.metadata.name === vm.$route.params.name) && (config.data.metadata.namespace === vm.$route.params.namespace) ) {
-        
                             vm.type = config.data.spec.type;
         
                             //s3
@@ -383,134 +382,145 @@
         methods: {
 
             
-            createObjectStorage(preview = false) {
+            createObjectStorage(preview = false, previous) {
                 const vc = this;
-                
 
-                if(vc.checkRequired()) {
-                    let config = { 
-                        "metadata": {
-                            "name": this.name,
-                            "namespace": this.namespace
-                        },
-                        "spec": {
-                            "type": this.type
+                if(!vc.checkRequired()) {
+                    return;
+                }
+
+                if (!previous) {
+                    sgApi
+                    .getResourceDetails('sgobjectstorages', this.namespace, this.name)
+                    .then(function (response) {
+                        vc.createObjectStorage(preview, response.data);
+                    })
+                    .catch(function (error) {
+                        if (error.response.status != 404) {
+                          console.log(error.response);
+                          vc.notify(error.response.data,'error', 'sgobjectstorages');
+                          return;
                         }
+                        vc.createObjectStorage(preview, {});
+                    });
+                    return;
+                }
+
+                let config = { 
+                    "metadata": {
+                        ...(this.hasProp(previous, 'metadata') && previous.metadata),
+                        "name": this.name,
+                        "namespace": this.namespace
+                    },
+                    "spec": {
+                        "type": this.type
                     }
+                }
 
-                    switch(this.type) {
-                        
-                        case 's3':
-                            config.spec['s3'] = {
-                                "bucket": this.s3Bucket,
-                                ...( ((typeof this.s3Region !== 'undefined') && this.s3Region.length ) && ( {"region": this.s3Region }) ),
-                                ...( ((typeof this.s3StorageClass !== 'undefined') && this.s3StorageClass.length ) && ( {"storageClass": this.s3StorageClass }) ),
-                                "awsCredentials": {
-                                    ...( ( (this.editMode && (this.s3AccessKeyId != '******')) || (!this.editMode) ) && ( { "accessKeyId": this.s3AccessKeyId }) ),
-                                    ...( ( (this.editMode && (this.s3SecretAccessKey != '******')) || (!this.editMode) ) && ( { "secretAccessKey": this.s3SecretAccessKey}) ),
-                                    ...( ( this.editMode && (this.s3AccessKeyId == '******') && (this.s3SecretAccessKey == '******') ) && ( { "secretKeySelectors": this.secretKeySelectors } ) )
-                                }
-                            };
-                            break;
-                        
-                        case 's3Compatible':
-                            config.spec['s3Compatible'] = {
-                                "bucket": this.s3CompatibleBucket,
-                                ...( ((typeof this.s3CompatibleEnablePathStyleAddressing !== 'undefined') && this.s3CompatibleEnablePathStyleAddressing ) && ( {"enablePathStyleAddressing": this.s3CompatibleEnablePathStyleAddressing }) ),
-                                ...( ((typeof this.s3CompatibleEndpoint !== 'undefined') && this.s3CompatibleEndpoint.length ) && ( {"endpoint": this.s3CompatibleEndpoint }) ),
-                                ...( ((typeof this.s3CompatibleRegion !== 'undefined') && this.s3CompatibleRegion.length ) && ( {"region": this.s3CompatibleRegion }) ),
-                                ...( ((typeof this.s3CompatibleStorageClass !== 'undefined') && this.s3CompatibleStorageClass.length ) && ( {"storageClass": this.s3CompatibleStorageClass }) ),
-                                "awsCredentials": {
-                                    ...( ( (this.editMode && (this.s3CompatibleAccessKeyId != '******')) || (!this.editMode)) && ( { "accessKeyId": this.s3CompatibleAccessKeyId }) ),
-                                    ...( ( (this.editMode && (this.s3CompatibleSecretAccessKey != '******')) || (!this.editMode)) && ( { "secretAccessKey": this.s3CompatibleSecretAccessKey}) ),
-                                    ...( (this.editMode && (this.s3CompatibleAccessKeyId == '******') && (this.s3CompatibleSecretAccessKey == '******') ) && ( { "secretKeySelectors": this.secretKeySelectors } ) )
-                                },
-                            };
-                            break;
-
-                        case 'gcs':
-                            config.spec['gcs'] = {
-                                "bucket": this.gcsBucket,
-                                "gcpCredentials": {
-                                    ...( this.fetchGCSCredentials && {
-                                        "fetchCredentialsFromMetadataService": true
-                                    }),
-                                    ...( !this.fetchGCSCredentials && {
-                                        ...( ( (this.editMode && (this.gcsServiceAccountJSON != '******') ) || (!this.editMode)) && {
-                                            "serviceAccountJSON": this.gcsServiceAccountJSON
-                                        } ),
-                                        ...( (this.editMode && (this.gcsServiceAccountJSON == '******') ) && {
-                                            "secretKeySelectors": this.secretKeySelectors
-                                        } )
-                                    })
-                                },                            
+                switch(this.type) {
+                    
+                    case 's3':
+                        config.spec['s3'] = {
+                            "bucket": this.s3Bucket,
+                            ...( ((typeof this.s3Region !== 'undefined') && this.s3Region.length ) && ( {"region": this.s3Region }) ),
+                            ...( ((typeof this.s3StorageClass !== 'undefined') && this.s3StorageClass.length ) && ( {"storageClass": this.s3StorageClass }) ),
+                            "awsCredentials": {
+                                ...( ( (this.editMode && (this.s3AccessKeyId != '******')) || (!this.editMode) ) && ( { "accessKeyId": this.s3AccessKeyId }) ),
+                                ...( ( (this.editMode && (this.s3SecretAccessKey != '******')) || (!this.editMode) ) && ( { "secretAccessKey": this.s3SecretAccessKey}) ),
+                                ...( ( this.editMode && (this.s3AccessKeyId == '******') && (this.s3SecretAccessKey == '******') ) && ( { "secretKeySelectors": this.secretKeySelectors } ) )
                             }
-                            break;
+                        };
+                        break;
+                    
+                    case 's3Compatible':
+                        config.spec['s3Compatible'] = {
+                            "bucket": this.s3CompatibleBucket,
+                            ...( ((typeof this.s3CompatibleEnablePathStyleAddressing !== 'undefined') && this.s3CompatibleEnablePathStyleAddressing ) && ( {"enablePathStyleAddressing": this.s3CompatibleEnablePathStyleAddressing }) ),
+                            ...( ((typeof this.s3CompatibleEndpoint !== 'undefined') && this.s3CompatibleEndpoint.length ) && ( {"endpoint": this.s3CompatibleEndpoint }) ),
+                            ...( ((typeof this.s3CompatibleRegion !== 'undefined') && this.s3CompatibleRegion.length ) && ( {"region": this.s3CompatibleRegion }) ),
+                            ...( ((typeof this.s3CompatibleStorageClass !== 'undefined') && this.s3CompatibleStorageClass.length ) && ( {"storageClass": this.s3CompatibleStorageClass }) ),
+                            "awsCredentials": {
+                                ...( ( (this.editMode && (this.s3CompatibleAccessKeyId != '******')) || (!this.editMode)) && ( { "accessKeyId": this.s3CompatibleAccessKeyId }) ),
+                                ...( ( (this.editMode && (this.s3CompatibleSecretAccessKey != '******')) || (!this.editMode)) && ( { "secretAccessKey": this.s3CompatibleSecretAccessKey}) ),
+                                ...( (this.editMode && (this.s3CompatibleAccessKeyId == '******') && (this.s3CompatibleSecretAccessKey == '******') ) && ( { "secretKeySelectors": this.secretKeySelectors } ) )
+                            },
+                        };
+                        break;
 
-                        case 'azureBlob':
-                            config.spec['azureBlob'] = {
-                                "bucket": this.azureBucket,
-                                "azureCredentials": {
-                                    ...( ( (this.editMode && (this.azureAccount != '******')) || (!this.editMode) ) && ( { "storageAccount": this.azureAccount}) ),
-                                    ...( ( (this.editMode && (this.azureAccessKey != '******')) || (!this.editMode) ) && ( { "accessKey": this.azureAccessKey}) ),
-                                    ...( (this.editMode && (this.azureAccessKey == '******') && (this.azureAccount == '******') ) && ( { "secretKeySelectors": this.secretKeySelectors } ) )
-                                }
+                    case 'gcs':
+                        config.spec['gcs'] = {
+                            "bucket": this.gcsBucket,
+                            "gcpCredentials": {
+                                ...( this.fetchGCSCredentials && {
+                                    "fetchCredentialsFromMetadataService": true
+                                }),
+                                ...( !this.fetchGCSCredentials && {
+                                    ...( ( (this.editMode && (this.gcsServiceAccountJSON != '******') ) || (!this.editMode)) && {
+                                        "serviceAccountJSON": this.gcsServiceAccountJSON
+                                    } ),
+                                    ...( (this.editMode && (this.gcsServiceAccountJSON == '******') ) && {
+                                        "secretKeySelectors": this.secretKeySelectors
+                                    } )
+                                })
+                            },
+                        }
+                        break;
+
+                    case 'azureBlob':
+                        config.spec['azureBlob'] = {
+                            "bucket": this.azureBucket,
+                            "azureCredentials": {
+                                ...( ( (this.editMode && (this.azureAccount != '******')) || (!this.editMode) ) && ( { "storageAccount": this.azureAccount}) ),
+                                ...( ( (this.editMode && (this.azureAccessKey != '******')) || (!this.editMode) ) && ( { "accessKey": this.azureAccessKey}) ),
+                                ...( (this.editMode && (this.azureAccessKey == '******') && (this.azureAccount == '******') ) && ( { "secretKeySelectors": this.secretKeySelectors } ) )
                             }
-                            break;
-                    }
+                        }
+                        break;
+                }
 
-                    if(preview) {
+                if(preview) {
 
-                        vc.previewCRD = {};
-                        vc.previewCRD['data'] = config;
-                        vc.showSummary = true;
+                    vc.previewCRD = {};
+                    vc.previewCRD['data'] = config;
+                    vc.showSummary = true;
+
+                } else {
+
+                    if(this.editMode) {
+                        sgApi
+                        .update('sgobjectstorages', config)
+                        .then(function (response) {
+                            vc.notify('Object storage configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgobjectstorages');
+
+                            vc.fetchAPI('sgobjectstorage');
+                            router.push('/' + config.metadata.namespace + '/sgobjectstorage/' + config.metadata.name);
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error','sgobjectstorages');
+                        });
 
                     } else {
-
-                        if(this.editMode) {
+                        sgApi
+                        .create('sgobjectstorages', config)
+                        .then(function (response) {
                             
-                            const res = axios
-                            .put(
-                                '/stackgres/sgobjectstorages', 
-                                config 
-                            )
-                            .then(function (response) {
-                                vc.notify('Object storage configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgobjectstorages');
+                            var urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.has('newtab')) {
+                                opener.fetchParentAPI('sgobjectstorages');
+                                vc.notify('Object storage configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgobjectstorages');
+                            } else {
+                                vc.notify('Object storage configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgobjectstorages');
+                            }
 
-                                vc.fetchAPI('sgobjectstorage');
-                                router.push('/' + config.metadata.namespace + '/sgobjectstorage/' + config.metadata.name);
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error','sgobjectstorages');
-                            });
-
-                        } else {
-                            const res = axios
-                            .post(
-                                '/stackgres/sgobjectstorages', 
-                                config 
-                            )
-                            .then(function (response) {
-                                
-                                var urlParams = new URLSearchParams(window.location.search);
-                                if(urlParams.has('newtab')) {
-                                    opener.fetchParentAPI('sgobjectstorages');
-                                    vc.notify('Object storage configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgobjectstorages');
-                                } else {
-                                    vc.notify('Object storage configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgobjectstorages');
-                                }
-
-                                vc.fetchAPI('sgobjectstorage');
-                                router.push('/' + config.metadata.namespace + '/sgobjectstorages');
-                                
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error','sgobjectstorages');
-                            });
-                        }
-
+                            vc.fetchAPI('sgobjectstorage');
+                            router.push('/' + config.metadata.namespace + '/sgobjectstorages');
+                            
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error','sgobjectstorages');
+                        });
                     }
 
                 }

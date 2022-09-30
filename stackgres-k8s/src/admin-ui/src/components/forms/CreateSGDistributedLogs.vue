@@ -562,7 +562,6 @@
                     vm.advancedMode = true;
                     store.state.sgdistributedlogs.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
-                        
                             let volumeSize = c.data.spec.persistentVolume.size.match(/\d+/g);
                             let volumeUnit = c.data.spec.persistentVolume.size.match(/[a-zA-Z]+/g);
 
@@ -612,126 +611,143 @@
 
         methods: {
 
-            createCluster(preview = false) {
+            createCluster(preview = false, previous) {
                 const vc = this;
 
-                if(vc.checkRequired()) {
-                    
-                    var cluster = { 
-                        "metadata": {
-                            "name": this.name,
-                            "namespace": this.namespace
-                        },
-                        "spec": {
-                            "persistentVolume": {
-                                "size": this.volumeSize+this.volumeUnit,
-                                ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) )
-                            },
-                            ...(this.resourceProfile.length && ( {"sgInstanceProfile": this.resourceProfile }) ),
-                            ...(this.pgConfig.length && ({
-                                "configurations": {
-                                    "sgPostgresConfig": this.pgConfig
-                                }
-                            }) ),
-                            ...((!this.enableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
-                                "nonProductionOptions": { 
-                                    ...(!this.enableClusterPodAntiAffinity && ({"disableClusterPodAntiAffinity": !this.enableClusterPodAntiAffinity}) ),
-                                    ...((this.flavor == 'babelfish' && this.babelfishFeatureGates) && ({ "enabledFeatureGates": ['babelfish-flavor'] }))
-                                    } 
-                                }) ),
-                            ...( (!$.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) || this.hasTolerations() ) && ({
-                                "scheduling": {
-                                    ...(!$.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) && ({"nodeSelector": this.parseProps(this.nodeSelector, 'label')})),
-                                    ...(this.hasTolerations() && ({"tolerations": this.tolerations}))
-                                }
-                            }) ),
-                             ...( ( (this.postgresServicesPrimaryType != 'ClusterIP') || (!this.postgresServicesReplicas || (this.postgresServicesReplicasType != 'ClusterIP')) ) && {
-                                "postgresServices": {
-                                    ...( (this.postgresServicesPrimaryType != 'ClusterIP') && {
-                                        "primary": {
-                                            "type": this.postgresServicesPrimaryType,
-                                            /*
-                                                TO-DO: Once services annotations are implemented on the backend
-                                                -
-                                                ...(!$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) && ( {"annotations": this.parseProps(this.postgresServicesPrimaryAnnotations) }) ),
-                                            */
-                                        }
-                                    }),
-                                    ...( (!this.postgresServicesReplicas || (this.postgresServicesReplicasType != 'ClusterIP')) && {
-                                        "replicas": {
-                                            "enabled": this.postgresServicesReplicas,
-                                            "type": this.postgresServicesReplicasType,
-                                            /*
-                                                TO-DO: Once services annotations are implemented on the backend
-                                                -
-                                                ...(!$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) && ( {"annotations": this.parseProps(this.postgresServicesReplicasAnnotations) }) ),
-                                            */
-                                        }
-                                    }),
-                                }
-                            }),
-                            ...( (!$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices))) && ({
-                                "metadata": {
-                                    "annotations": {
-                                        ...(!$.isEmptyObject(this.parseProps(this.annotationsAll)) && ( {"allResources": this.parseProps(this.annotationsAll) }) ),
-                                        ...(!$.isEmptyObject(this.parseProps(this.annotationsPods)) && ( {"pods": this.parseProps(this.annotationsPods) }) ),
-                                        ...(!$.isEmptyObject(this.parseProps(this.annotationsServices)) && ( {"services": this.parseProps(this.annotationsServices) }) ),
-                                    }
-                                }
-                            }) ),
+                if(!vc.checkRequired()) {
+                    return
+                }
 
-                        },
-                    }
-                    
-                    if(preview) {                  
-
-                        vc.previewCRD = {};
-                        vc.previewCRD['data'] = cluster;
-                        vc.showSummary = true;
-
-                    } else {
-                    
-                        if(this.editMode) {
-                            sgApi
-                            .update('sgdistributedlogs', cluster)
-                            .then(function (response) {
-                                vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgdistributedlogs');
-
-                                vc.fetchAPI('sgdistributedlogs');
-                                router.push('/' + cluster.metadata.namespace + '/sgdistributedlog/' + cluster.metadata.name);
-                                
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error', 'sgdistributedlogs');
-
-                                vc.checkValidSteps(vc._data, 'submit')
-                            });
-                        } else {
-                            sgApi
-                            .create('sgdistributedlogs', cluster)
-                            .then(function (response) {
-                                
-                                var urlParams = new URLSearchParams(window.location.search);
-                                if(urlParams.has('newtab')) {
-                                    opener.fetchParentAPI('sgdistributedlogs');
-                                    vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your server from the list.', 'message','sgdistributedlogs');
-                                } else {
-                                    vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgdistributedlogs');
-                                }
-
-                                vc.fetchAPI('sgdistributedlogs');
-                                router.push('/' + cluster.metadata.namespace + '/sgdistributedlogs')
-                                
-                            })
-                            .catch(function (error) {
-                                console.log(error);
-                                vc.notify(error.response.data,'error','sgdistributedlogs');
-
-                                vc.checkValidSteps(vc._data, 'submit')
-                            });
+                if (!previous) {
+                    sgApi
+                    .getResourceDetails('sgdistributedlogs', this.namespace, this.name)
+                    .then(function (response) {
+                        vc.createCluster(preview, response.data);
+                    })
+                    .catch(function (error) {
+                        if (error.response.status != 404) {
+                          console.log(error.response);
+                          vc.notify(error.response.data,'error', 'sgdistributedlogs');
+                          return;
                         }
+                        vc.createCluster(preview, {});
+                    });
+                    return;
+                }
 
+                var cluster = {
+                    "metadata": {
+                        ...(this.hasProp(previous, 'metadata') && previous.metadata),
+                        "name": this.name,
+                        "namespace": this.namespace
+                    },
+                    "spec": {
+                        ...(this.hasProp(previous, 'spec') && previous.spec),
+                        "persistentVolume": {
+                            "size": this.volumeSize+this.volumeUnit,
+                            ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) )
+                        },
+                        ...(this.resourceProfile.length && {"sgInstanceProfile": this.resourceProfile } || {"sgInstanceProfile": null} ),
+                        ...((this.hasProp(previous, 'spec.configurations') || this.pgConfig.length) && ({
+                            "configurations": {
+                                ...(this.hasProp(previous, 'spec.configurations') && previous.spec.configurations),
+                                ...(this.pgConfig.length && { "sgPostgresConfig": this.pgConfig } || { "sgPostgresConfig": null } )
+                            }
+                        }) ),
+                        ...((this.hasProp(previous, 'spec.nonProductionOptions') || !this.enableClusterPodAntiAffinity) && ( {
+                            "nonProductionOptions": { 
+                                ...(this.hasProp(previous, 'spec.nonProductionOptions') && previous.spec.nonProductionOptions),
+                                ...(!this.enableClusterPodAntiAffinity && {"disableClusterPodAntiAffinity": !this.enableClusterPodAntiAffinity} || {"disableClusterPodAntiAffinity": null} )
+                                } 
+                            }) ),
+                        ...( (this.hasProp(previous, 'spec.scheduling') || !$.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) || this.hasTolerations() ) && ({
+                            "scheduling": {
+                                ...(this.hasProp(previous, 'spec.scheduling') && previous.spec.scheduling),
+                                ...(!$.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) && {"nodeSelector": this.parseProps(this.nodeSelector, 'label')} || {"nodeSelector": null} ),
+                                ...(this.hasTolerations() && {"tolerations": this.tolerations} || {"tolerations": null} )
+                            }
+                        }) ),
+                        "postgresServices": {
+                            "primary": {
+                                ...(this.hasProp(previous, 'spec.postgresServices.primary') && previous.spec.postgresServices.primary),
+                                "type": this.postgresServicesPrimaryType,
+                                /*
+                                    TO-DO: Once services annotations are implemented on the backend
+                                    -
+                                    ...(!$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) && {"annotations": this.parseProps(this.postgresServicesPrimaryAnnotations) } || {"annotations": null} ),
+                                */
+                            },
+                            "replicas": {
+                                ...(this.hasProp(previous, 'spec.postgresServices.replicas') && previous.spec.postgresServices.replicas),
+                                "enabled": this.postgresServicesReplicas,
+                                "type": this.postgresServicesReplicasType,
+                                /*
+                                    TO-DO: Once services annotations are implemented on the backend
+                                    -
+                                    ...(!$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) && {"annotations": this.parseProps(this.postgresServicesReplicasAnnotations) } || {"annotations": null} ),
+                                */
+                            }
+                        },
+                        ...( (!$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices))) && {
+                            "metadata": {
+                                "annotations": {
+                                    ...(!$.isEmptyObject(this.parseProps(this.annotationsAll)) && ( {"allResources": this.parseProps(this.annotationsAll) }) ),
+                                    ...(!$.isEmptyObject(this.parseProps(this.annotationsPods)) && ( {"pods": this.parseProps(this.annotationsPods) }) ),
+                                    ...(!$.isEmptyObject(this.parseProps(this.annotationsServices)) && ( {"services": this.parseProps(this.annotationsServices) }) ),
+                                }
+                            }
+                        } || {"metadata": null} ),
+
+                    },
+                }
+                
+                if(preview) {
+
+                    vc.previewCRD = {};
+                    vc.previewCRD['data'] = cluster;
+                    vc.showSummary = true;
+
+                } else {
+                
+                    if(this.editMode) {
+                        sgApi
+                        .update('sgdistributedlogs', cluster)
+                        .then(function (response) {
+                            vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgdistributedlogs');
+
+                            vc.fetchAPI('sgdistributedlogs');
+                            router.push('/' + cluster.metadata.namespace + '/sgdistributedlog/' + cluster.metadata.name);
+                            
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error', 'sgdistributedlogs');
+
+                            vc.checkValidSteps(vc._data, 'submit')
+                        });
+                    } else {
+                        sgApi
+                        .create('sgdistributedlogs', cluster)
+                        .then(function (response) {
+                            
+                            var urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.has('newtab')) {
+                                opener.fetchParentAPI('sgdistributedlogs');
+                                vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your server from the list.', 'message','sgdistributedlogs');
+                            } else {
+                                vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgdistributedlogs');
+                            }
+
+                            vc.fetchAPI('sgdistributedlogs');
+                            router.push('/' + cluster.metadata.namespace + '/sgdistributedlogs')
+                            
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                            vc.notify(error.response.data,'error','sgdistributedlogs');
+
+                            vc.checkValidSteps(vc._data, 'submit')
+                        });
                     }
 
                 }
@@ -746,12 +762,12 @@
                 const vc = this
                 var jsonString = '{';
                 props.forEach(function(p, i){
-                    if(p[key].length && p.value.length) {                    
+                    if(p[key].length && p.value.length) {
                         if(i)
                             jsonString += ','
                         
                         jsonString += '"' + vc.sanitizeString(p[key]) + '":"' + vc.sanitizeString(p.value) + '"'
-                    }                
+                    }
                 })
                 jsonString += '}'
 

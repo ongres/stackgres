@@ -1615,9 +1615,9 @@
 
         mixins: [mixin],
 
-		components: {
-			ClusterSummary
-		},
+        components: {
+          ClusterSummary
+        },
 
         data: function() {
 
@@ -1830,7 +1830,6 @@
                 if( vm.editMode && !vm.editReady ) {
                     store.state.sgclusters.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
-
                             let volumeSize = c.data.spec.pods.persistentVolume.size.match(/\d+/g);
                             let volumeUnit = c.data.spec.pods.persistentVolume.size.match(/[a-zA-Z]+/g);
 
@@ -1842,7 +1841,7 @@
                             vm.instances = c.data.spec.instances;
                             vm.resourceProfile = c.data.spec.sgInstanceProfile;
                             vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
-                            vm.storageClass = c.data.spec.pods.persistentVolume.hasOwnProperty('storageClass') ? c.data.spec.pods.persistentVolume.storageClass : '';                            
+                            vm.storageClass = c.data.spec.pods.persistentVolume.hasOwnProperty('storageClass') ? c.data.spec.pods.persistentVolume.storageClass : '';
                             vm.volumeSize = volumeSize;
                             vm.volumeUnit = ''+volumeUnit;
                             vm.connPooling = !c.data.spec.pods.disableConnectionPooling,
@@ -2113,11 +2112,11 @@
                                 }
                             })
 
-                            if ( 
+                            if (
                                 ( (vc.scriptSource[baseIndex].entries[index] == 'raw') && script.hasOwnProperty('script') && script.script.length) || 
                                 (baseScript.hasOwnProperty('sgScript') && !baseScript.sgScript.endsWith('-default') ) ||
                                 ( (vc.scriptSource[baseIndex].entries[index] != 'raw') && script.scriptFrom[vc.scriptSource[baseIndex].entries[index]].key.length && script.scriptFrom[vc.scriptSource[baseIndex].entries[index]].name.length )
-                            ) {                        
+                            ) {
                                 scripts.push(baseScript)
                             }
                         })
@@ -2144,199 +2143,227 @@
                 this.tolerations.push({ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null })
             },
 
-            createCluster( preview = false) {
+            createCluster(preview = false, previous) {
                 const vc = this;
 
-                if(vc.checkRequired()) {
+                if(!vc.checkRequired()) {
+                  return;
+                }
 
-                    let requiredAffinity = vc.cleanNodeAffinity(this.requiredAffinity);
-                    let preferredAffinity = vc.cleanNodeAffinity(this.preferredAffinity);
-                    let managedSql = vc.cleanupScripts($.extend(true,{},this.managedSql));
-                    
-                    var cluster = { 
-                        "metadata": {
-                            "name": this.name,
-                            "namespace": this.namespace
-                        },
-                        "spec": {
-                            "instances": this.instances,
-                            ...(this.resourceProfile.length && ( {"sgInstanceProfile": this.resourceProfile }) ),
-                            "pods": {
-                                "persistentVolume": {
-                                    "size": this.volumeSize+this.volumeUnit,
-                                    ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) )
-                                },
-                                ...(!this.connPooling && { "disableConnectionPooling": !this.connPooling }),
-                                ...(!this.metricsExporter && { "disableMetricsExporter": !this.metricsExporter }),
-                                ...(!this.postgresUtil && { "disablePostgresUtil": !this.postgresUtil }),
-                                ...(!$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) && ({
-                                    "metadata": {
-                                        "labels": this.parseProps(this.podsMetadata, 'label')
-                                    }
-                                }) ),
-                                ...( ( this.hasNodeSelectors() || this.hasTolerations() || requiredAffinity.length || preferredAffinity.length ) && ({
-                                    "scheduling": {
-                                        ...(this.hasNodeSelectors() && ({"nodeSelector": this.parseProps(this.nodeSelector, 'label')})),
-                                        ...(this.hasTolerations() && ({"tolerations": this.tolerations})),
-                                        ...(requiredAffinity.length || preferredAffinity.length ) && {
-                                            "nodeAffinity": {
-                                                ...(requiredAffinity.length && {
-                                                    "requiredDuringSchedulingIgnoredDuringExecution": {
-                                                        "nodeSelectorTerms": requiredAffinity
-                                                    },
-                                                }),
-                                                ...(preferredAffinity.length && {
-                                                    "preferredDuringSchedulingIgnoredDuringExecution": preferredAffinity
-                                                })
-                                            }
-                                        }
-                                    }
-                                }) )                    
+                if (!previous) {
+                    sgApi
+                    .getResourceDetails('sgclusters', this.namespace, this.name)
+                    .then(function (response) {
+                        vc.createCluster(preview, response.data);
+                    })
+                    .catch(function (error) {
+                        if (error.response.status != 404) {
+                          console.log(error.response);
+                          vc.notify(error.response.data,'error', 'sgclusters');
+                          return;
+                        }
+                        vc.createCluster(preview, {});
+                    });
+                    return;
+                }
+
+                let requiredAffinity = vc.cleanNodeAffinity(this.requiredAffinity);
+                let preferredAffinity = vc.cleanNodeAffinity(this.preferredAffinity);
+                let managedSql = vc.cleanupScripts($.extend(true,{},this.managedSql));
+                
+                var cluster = {
+                    "metadata": {
+                        ...(this.hasProp(previous, 'metadata') && previous.metadata),
+                        "name": this.name,
+                        "namespace": this.namespace
+                    },
+                    "spec": {
+                        ...(this.hasProp(previous, 'spec') && previous.spec),
+                        "instances": this.instances,
+                        ...(this.resourceProfile.length && {"sgInstanceProfile": this.resourceProfile } || {"sgInstanceProfile": null} ),
+                        "pods": {
+                            ...(this.hasProp(previous, 'spec.pods') && previous.spec.pods),
+                            "persistentVolume": {
+                                "size": this.volumeSize+this.volumeUnit,
+                                ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) )
                             },
-                            ...( (this.pgConfig.length || this.managedBackups || this.connectionPoolingConfig.length) && ({
-                                "configurations": {
-                                    ...(this.pgConfig.length && ( {"sgPostgresConfig": this.pgConfig }) ),
-                                    ...(this.managedBackups && ( {
-                                        "backups": this.backups
-                                    }) ),
-                                    ...(this.connectionPoolingConfig.length && ( {"sgPoolingConfig": this.connectionPoolingConfig }) ),
-                                }
-                            }) ),
-                            ...(this.distributedLogs.length && ({
-                                "distributedLogs": {
-                                    "sgDistributedLogs": this.distributedLogs,
-                                    ...(this.retention.length && ({
-                                        "retention": this.retention
-                                    }))
-                                }
-                            })),
-                            ...( this.restoreBackup.length && ({
-                                    "initialData": {
-                                        ...( this.restoreBackup.length && ({
-                                            "restore": { 
-                                                "fromBackup": {
-                                                    "name": this.restoreBackup, 
-                                                    ...(this.pitr.length  && ({
-                                                        "pointInTimeRecovery": {
-                                                            "restoreToTimestamp": this.pitr
-                                                        }
-                                                        })  
-                                                    )
-                                                },
-                                                ...(this.downloadDiskConcurrency.toString().length && ({
-                                                    "downloadDiskConcurrency": this.downloadDiskConcurrency 
-                                                }) )
-                                            },
-                                        }) ),
-                                    }
-                                }) 
-                            ),
-                            ...( vc.hasScripts(vc.managedSql.scripts) && ({
-                                "managedSql": managedSql
-                            }) ),
-                            "replication": {
-                                "role": this.replication.role,
-                                "mode": this.replication.mode,
-                                ...(['sync', 'strict-sync'].includes(this.replication.mode) && ({
-                                    "syncInstances": this.replication.syncInstances
-                                }) ),
-                                ...( ( this.replication.hasOwnProperty('groups') && (typeof this.replication.groups.find( g => (g.instances > 0) ) != 'undefined') ) && ({
-                                    "groups": (this.replication.groups.filter( g => (g.instances > 0) ))
-                                }) )
-                            },
-                            ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
-                            ...((!this.enableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
-                                "nonProductionOptions": { 
-                                    ...(!this.enableClusterPodAntiAffinity && ({"disableClusterPodAntiAffinity": !this.enableClusterPodAntiAffinity}) ),
-                                    ...((this.flavor == 'babelfish' && this.babelfishFeatureGates) && ({ "enabledFeatureGates": ['babelfish-flavor'] }))
-                                    } 
-                                }) ),
-                            ...( (!$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices)) || !$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) || !$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) || !$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) ) && ({
+                            ...(!this.connPooling && { "disableConnectionPooling": !this.connPooling } || { "disableConnectionPooling": null} ),
+                            ...(!this.metricsExporter && { "disableMetricsExporter": !this.metricsExporter } || { "disableMetricsExporter": null} ),
+                            ...(!this.postgresUtil && { "disablePostgresUtil": !this.postgresUtil } || { "disablePostgresUtil": null} ),
+                            ...(!$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) && {
                                 "metadata": {
-                                    "annotations": {
-                                        ...(!$.isEmptyObject(this.parseProps(this.annotationsAll)) && ( {"allResources": this.parseProps(this.annotationsAll) }) ),
-                                        ...(!$.isEmptyObject(this.parseProps(this.annotationsPods)) && ( {"clusterPods": this.parseProps(this.annotationsPods) }) ),
-                                        ...(!$.isEmptyObject(this.parseProps(this.annotationsServices)) && ( {"services": this.parseProps(this.annotationsServices) }) ),
-                                        ...(!$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) && ( {"primaryService": this.parseProps(this.postgresServicesPrimaryAnnotations) }) ),
-                                        ...(!$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) && ( {"replicasService": this.parseProps(this.postgresServicesReplicasAnnotations) }) ),
-                                    },
-                                    ...(!$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) && ({
-                                        "labels": {
-                                            "clusterPods": this.parseProps(this.podsMetadata, 'label')
+                                    "labels": this.parseProps(this.podsMetadata, 'label')
+                                }
+                            } || { "metadata": null} ),
+                            ...( ( this.hasProp(previous, 'spec.pods.scheduling') || this.hasNodeSelectors() || this.hasTolerations() || requiredAffinity.length || preferredAffinity.length ) && {
+                                "scheduling": {
+                                    ...(this.hasProp(previous, 'spec.pods.scheduling') && previous.spec.pods.scheduling),
+                                    ...(this.hasNodeSelectors() && {"nodeSelector": this.parseProps(this.nodeSelector, 'label')} || {"nodeSelector": null} ),
+                                    ...(this.hasTolerations() && {"tolerations": this.tolerations} || {"tolerations": null} ),
+                                    ...(requiredAffinity.length || preferredAffinity.length ) && {
+                                        "nodeAffinity": {
+                                            ...(requiredAffinity.length && {
+                                                "requiredDuringSchedulingIgnoredDuringExecution": {
+                                                    "nodeSelectorTerms": requiredAffinity
+                                                },
+                                            }),
+                                            ...(preferredAffinity.length && {
+                                                "preferredDuringSchedulingIgnoredDuringExecution": preferredAffinity
+                                            })
                                         }
-                                    }) )
+                                    } || { "nodeAffinity": null }
                                 }
-                            }) ),
-                            "postgresServices": {
-                                "primary": {
-                                    "enabled": this.postgresServicesPrimary,
-                                    "type": this.postgresServicesPrimaryType,
-                                },
-                                "replicas": {
-                                    "enabled": this.postgresServicesReplicas,
-                                    "type": this.postgresServicesReplicasType,
-                                }
-                            },
-                            "postgres": {
-                                "version": this.postgresVersion,
-                                ...(this.selectedExtensions.length && ({
-                                    "extensions": this.selectedExtensions
-                                })),
-                                "flavor": this.flavor
+                            } )
+                        },
+                        ...( (this.hasProp(previous, 'spec.configurations') || this.pgConfig.length || this.managedBackups || this.connectionPoolingConfig.length) && ({
+                            "configurations": {
+                                ...(this.hasProp(previous, 'spec.configurations') && previous.spec.configurations),
+                                ...(this.pgConfig.length && {"sgPostgresConfig": this.pgConfig } || {"sgPostgresConfig": null} ),
+                                ...(this.managedBackups && {
+                                    "backups": this.backups
+                                } || { "backups": null }),
+                                ...(this.connectionPoolingConfig.length && {"sgPoolingConfig": this.connectionPoolingConfig } || {"sgPoolingConfig": null} ),
                             }
-
+                        }) ),
+                        ...(this.distributedLogs.length && {
+                            "distributedLogs": {
+                                "sgDistributedLogs": this.distributedLogs,
+                                ...(this.retention.length && ({
+                                    "retention": this.retention
+                                }))
+                            }
+                        } || {"distributedLogs": null} ),
+                        ...( this.restoreBackup.length && {
+                                "initialData": {
+                                    ...( this.restoreBackup.length && {
+                                        "restore": { 
+                                            "fromBackup": {
+                                                ...(this.hasProp(previous, 'spec.initialData.restore.fromBackup') && previous.spec.initialData.restore.fromBackup),
+                                                "name": this.restoreBackup, 
+                                                ...(this.pitr.length  && {
+                                                    "pointInTimeRecovery": {
+                                                        "restoreToTimestamp": this.pitr
+                                                    }
+                                                    } || {"pointInTimeRecovery": null}
+                                                )
+                                            },
+                                            ...(this.downloadDiskConcurrency.toString().length && {
+                                                "downloadDiskConcurrency": this.downloadDiskConcurrency 
+                                            } || {"downloadDiskConcurrency": null} )
+                                        },
+                                    } || {"restore": null} ),
+                                }
+                            } || {"initialData": null}
+                        ),
+                        ...( vc.hasScripts(vc.managedSql.scripts) && {
+                            "managedSql": managedSql
+                        } || {"managedSql": null} ),
+                        "replication": {
+                            "role": this.replication.role,
+                            "mode": this.replication.mode,
+                            ...(['sync', 'strict-sync'].includes(this.replication.mode) && ({
+                                "syncInstances": this.replication.syncInstances
+                            }) ),
+                            ...( ( this.replication.hasOwnProperty('groups') && (typeof this.replication.groups.find( g => (g.instances > 0) ) != 'undefined') ) && ({
+                                "groups": (this.replication.groups.filter( g => (g.instances > 0) ))
+                            }) )
+                        },
+                        ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
+                        ...((this.hasProp(previous, 'spec.nonProductionOptions') || !this.enableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
+                            "nonProductionOptions": { 
+                                ...(this.hasProp(previous, 'spec.nonProductionOptions') && previous.spec.nonProductionOptions),
+                                ...(!this.enableClusterPodAntiAffinity && {"disableClusterPodAntiAffinity": !this.enableClusterPodAntiAffinity} || {"disableClusterPodAntiAffinity": null} ),
+                                ...((this.flavor == 'babelfish' && this.babelfishFeatureGates) && {"enabledFeatureGates": ['babelfish-flavor'] } || {"enabledFeatureGates": null} )
+                                } 
+                            }) ),
+                        ...( (!$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices))
+                            || !$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) || !$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) || !$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) ) && ({
+                            "metadata": {
+                                "annotations": {
+                                    ...(!$.isEmptyObject(this.parseProps(this.annotationsAll)) && ( {"allResources": this.parseProps(this.annotationsAll) }) ),
+                                    ...(!$.isEmptyObject(this.parseProps(this.annotationsPods)) && ( {"clusterPods": this.parseProps(this.annotationsPods) }) ),
+                                    ...(!$.isEmptyObject(this.parseProps(this.annotationsServices)) && ( {"services": this.parseProps(this.annotationsServices) }) ),
+                                    ...(!$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) && ( {"primaryService": this.parseProps(this.postgresServicesPrimaryAnnotations) }) ),
+                                    ...(!$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) && ( {"replicasService": this.parseProps(this.postgresServicesReplicasAnnotations) }) ),
+                                },
+                                ...(!$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) && ({
+                                    "labels": {
+                                        "clusterPods": this.parseProps(this.podsMetadata, 'label')
+                                    }
+                                }) )
+                            }
+                        }) ),
+                        "postgresServices": {
+                            "primary": {
+                                ...(this.hasProp(previous, 'spec.postgresServices.primary') && previous.spec.postgresServices.primary),
+                                "enabled": this.postgresServicesPrimary,
+                                "type": this.postgresServicesPrimaryType,
+                            },
+                            "replicas": {
+                                ...(this.hasProp(previous, 'spec.postgresServices.replicas') && previous.spec.postgresServices.replicas),
+                                "enabled": this.postgresServicesReplicas,
+                                "type": this.postgresServicesReplicasType,
+                            }
+                        },
+                        "postgres": {
+                            ...(this.hasProp(previous, 'spec.postgres') && previous.spec.postgres),
+                            "version": this.postgresVersion,
+                            ...(this.selectedExtensions.length && {
+                                "extensions": this.selectedExtensions
+                            } || {"extensions": null} ),
+                            "flavor": this.flavor
                         }
+
                     }
+                }
 
-                    // If there's a managed backup config set, convert cronSchedule from array to string
-                    if( vc.hasProp(cluster, 'spec.configurations.backups') ) {
-                        cluster.spec.configurations.backups[0].cronSchedule = vc.tzCrontab(vc.backups[0].cronSchedule, false);
-                    }
+                // If there's a managed backup config set, convert cronSchedule from array to string
+                if( vc.hasProp(cluster, 'spec.configurations.backups') ) {
+                    cluster.spec.configurations.backups[0].cronSchedule = vc.tzCrontab(vc.backups[0].cronSchedule, false);
+                }
 
-                    if(preview) {                  
+                if(preview) {
 
-                        vc.previewCRD = {};
-                        vc.previewCRD['data'] = cluster;
-                        vc.showSummary = true;
+                    vc.previewCRD = {};
+                    vc.previewCRD['data'] = cluster;
+                    vc.showSummary = true;
 
+                } else {
+
+                    if(this.editMode) {
+                        sgApi
+                        .update('sgclusters', cluster)
+                        .then(function (response) {
+                            vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgclusters');
+
+                            vc.fetchAPI('sgclusters');
+                            router.push('/' + cluster.metadata.namespace + '/sgcluster/' + cluster.metadata.name);
+                            
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error', 'sgclusters');
+
+                            vc.checkValidSteps(vc._data, 'submit')
+                        });
                     } else {
+                        sgApi
+                        .create('sgclusters', cluster)
+                        .then(function (response) {
+                            vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgclusters');
 
-                        if(this.editMode) {
-                            sgApi
-                            .update('sgclusters', cluster)
-                            .then(function (response) {
-                                vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgclusters');
+                            vc.fetchAPI('sgclusters');
+                            router.push('/' + cluster.metadata.namespace + '/sgclusters');
+                            
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error','sgclusters');
 
-                                vc.fetchAPI('sgclusters');
-                                router.push('/' + cluster.metadata.namespace + '/sgcluster/' + cluster.metadata.name);
-                                
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error', 'sgclusters');
-
-                                vc.checkValidSteps(vc._data, 'submit')
-                            });
-                        } else {
-                            sgApi
-                            .create('sgclusters', cluster)
-                            .then(function (response) {
-                                vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgclusters');
-
-                                vc.fetchAPI('sgclusters');
-                                router.push('/' + cluster.metadata.namespace + '/sgclusters');
-                                
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error','sgclusters');
-
-                                vc.checkValidSteps(vc._data, 'submit')
-                            });
-                        }
-                        
+                            vc.checkValidSteps(vc._data, 'submit')
+                        });
                     }
-
+                    
                 }
 
             }, 
@@ -2356,7 +2383,6 @@
             setVersion( version = 'latest') {
                 const vc = this
 
-                
                 if(version != 'latest') {
                     vc.postgresVersion = version.includes('.') ? version : vc.postgresVersionsList[vc.flavor][version][0]; 
                 } else {
@@ -2377,7 +2403,7 @@
                 const vc = this
                 var jsonString = '{';
                 props.forEach(function(p, i){
-                    if(p[key].length && p.value.length) {                    
+                    if(p[key].length && p.value.length) {
                         if(i)
                             jsonString += ','
                         
@@ -2507,8 +2533,8 @@
                 ext.forEach(function(ext){
                     ext['selectedVersion'] = ext.versions.length ? ext.versions[0] : ''
                 })
-				return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
-			},
+            return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
+        },
 
             initDatepicker() {
                 const vc = this;
@@ -2538,7 +2564,7 @@
                     maxDate = new Date(new Date().getTime());
 
                 // Load datepicker
-			    require('daterangepicker');
+                require('daterangepicker');
 
                 $('.daterangepicker').remove();
                 vc.pitr = '';
@@ -2592,7 +2618,6 @@
             },
 
             cleanNodeAffinity (affinity) {
-                
                 if( !['[{"matchExpressions":[{"key":"","operator":"","values":[""]}],"matchFields":[{"key":"","operator":"","values":[""]}]}]','[{"preference":{"matchExpressions":[{"key":"","operator":"","values":[""]}],"matchFields":[{"key":"","operator":"","values":[""]}]},"weight":1}]'].includes(JSON.stringify(affinity))) {
                     let aff = JSON.parse(JSON.stringify(affinity));
 
@@ -2757,8 +2782,8 @@
                     vc.babelfishFeatureGates = false;
                 }
 
-                if( (vc.postgresVersion != 'latest') && (!Object.keys(vc.postgresVersionsList[vc.flavor]).includes(vc.shortPostgresVersion) || !vc.postgresVersionsList[vc.flavor][vc.shortPostgresVersion].includes(vc.postgresVersion)) ) {                    
-                    vc.notify('The <strong>postgres version</strong> you selected is not available for this <strong>postgres flavor</strong>. Please choose a new version or your cluster will be created with the latest version available', 'message', 'sgclusters');                    
+                if( (vc.postgresVersion != 'latest') && (!Object.keys(vc.postgresVersionsList[vc.flavor]).includes(vc.shortPostgresVersion) || !vc.postgresVersionsList[vc.flavor][vc.shortPostgresVersion].includes(vc.postgresVersion)) ) {
+                    vc.notify('The <strong>postgres version</strong> you selected is not available for this <strong>postgres flavor</strong>. Please choose a new version or your cluster will be created with the latest version available', 'message', 'sgclusters');
                     vc.postgresVersion = 'latest';
                 }
             },
