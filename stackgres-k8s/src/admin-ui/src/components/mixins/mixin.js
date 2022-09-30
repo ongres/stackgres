@@ -113,7 +113,7 @@ export const mixin = {
             .then(function(response) {
               vc.fetchAPI();
               $('#signup').fadeOut();
-              store.commit('setLoginToken', 'OIDC');						  
+              store.commit('setLoginToken', 'OIDC');
             })
             .catch(function(err) {
               $('#signup').addClass('login').fadeIn();
@@ -211,7 +211,7 @@ export const mixin = {
                   });
     
                   // Set as current cluster if no other cluster has already been set
-                  if(!store.state.currentCluster)              
+                  if(!store.state.currentCluster)
                     store.commit('setCurrentCluster', cluster);
     
                 });
@@ -1000,7 +1000,7 @@ export const mixin = {
             }
         }
       
-        return true;
+        return obj != null;
       },
 
       goTo(path) {

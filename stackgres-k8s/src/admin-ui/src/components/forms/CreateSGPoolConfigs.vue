@@ -120,71 +120,91 @@
         },
         methods: {
 
-            createPoolConfig(preview = false) {
+            createPoolConfig(preview = false, previous) {
                 const vc = this;
 
-                if(vc.checkRequired()) {
+                if(!vc.checkRequired()) {
+                    return;
+                }
 
-                    var config = { 
-                        "kind": "StackGresConnectionPoolingConfig",
-                        "metadata": {
-                            "name": this.poolConfigName,
-                            "namespace": this.poolConfigNamespace
-                        },
-                        "spec": {
-                            "pgBouncer": {
-                                "pgbouncer.ini": this.poolConfigParams
-                            }
+                if (!previous) {
+                    sgApi
+                    .getResourceDetails('sgpoolconfigs', this.poolConfigNamespace, this.poolConfigName)
+                    .then(function (response) {
+                        vc.createPoolConfig(preview, response.data);
+                    })
+                    .catch(function (error) {
+                        if (error.response.status != 404) {
+                          console.log(error.response);
+                          vc.notify(error.response.data,'error', 'sgpoolconfigs');
+                          return;
                         }
-                    }
+                        vc.createPoolConfig(preview, {});
+                    });
+                    return;
+                }
 
-                    if(preview) {                  
-
-                        vc.previewCRD = {};
-                        vc.previewCRD['data'] = config;
-                        vc.showSummary = true;
-
-                    } else {
-
-                        if(this.editMode) {
-                            sgApi
-                            .update('sgpoolconfigs', config)
-                            .then(function (response) {
-                                vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgpoolconfigs');
-
-                                vc.fetchAPI('sgpoolconfig');
-                                router.push('/' + config.metadata.namespace + '/sgpoolconfig/' + config.metadata.name);
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error','sgpoolconfigs');
-                            });
-
-                        } else {
-                            sgApi
-                            .create('sgpoolconfigs', config)
-                            .then(function (response) {
-                                
-                                var urlParams = new URLSearchParams(window.location.search);
-                                if(urlParams.has('newtab')) {
-                                    opener.fetchParentAPI('sgpoolconfig');
-                                    vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgpoolconfigs');
-                                } else {
-                                    vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgpoolconfigs');
-                                }
-
-                                vc.fetchAPI('sgpoolconfig');
-                                router.push('/' + config.metadata.namespace + '/sgpoolconfigs');
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error','sgpoolconfigs');
-                            });
+                var config = {
+                    "kind": "StackGresConnectionPoolingConfig",
+                    "metadata": {
+                        ...(this.hasProp(previous, 'metadata') && previous.metadata),
+                        "name": this.poolConfigName,
+                        "namespace": this.poolConfigNamespace
+                    },
+                    "spec": {
+                        ...(this.hasProp(previous, 'spec') && previous.spec),
+                        "pgBouncer": {
+                            "pgbouncer.ini": this.poolConfigParams
                         }
                     }
                 }
 
+                if(preview) {
+
+                    vc.previewCRD = {};
+                    vc.previewCRD['data'] = config;
+                    vc.showSummary = true;
+
+                } else {
+
+                    if(this.editMode) {
+                        sgApi
+                        .update('sgpoolconfigs', config)
+                        .then(function (response) {
+                            vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message','sgpoolconfigs');
+
+                            vc.fetchAPI('sgpoolconfig');
+                            router.push('/' + config.metadata.namespace + '/sgpoolconfig/' + config.metadata.name);
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error','sgpoolconfigs');
+                        });
+
+                    } else {
+                        sgApi
+                        .create('sgpoolconfigs', config)
+                        .then(function (response) {
+                            
+                            var urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.has('newtab')) {
+                                opener.fetchParentAPI('sgpoolconfig');
+                                vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgpoolconfigs');
+                            } else {
+                                vc.notify('Connection pooling configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message','sgpoolconfigs');
+                            }
+
+                            vc.fetchAPI('sgpoolconfig');
+                            router.push('/' + config.metadata.namespace + '/sgpoolconfigs');
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error','sgpoolconfigs');
+                        });
+                    }
+                }
             }
+
         }
 
     }
