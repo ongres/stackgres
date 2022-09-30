@@ -6,7 +6,7 @@
         <form id="createScripts" class="form" @submit.prevent>
             <div class="header">
                 <h2>
-                    <span>{{ editMode ? 'Edit' : 'Create' }} Script Configuration</span>   
+                    <span>{{ editMode ? 'Edit' : 'Create' }} Script Configuration</span>
                 </h2>
             </div>
 
@@ -297,7 +297,7 @@
 
                     vc.sgscript.spec.scripts = vc.cleanupScripts([...vc.sgscript.spec.scripts]);
 
-                    if(preview) {                  
+                    if(preview) {
 
                         vc.previewCRD = {};
                         vc.previewCRD['data'] = vc.sgscript;

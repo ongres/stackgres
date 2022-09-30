@@ -124,7 +124,7 @@
                             vm.editReady = true;
                             return false;
                         }
-                    });    
+                    });
                 }
 
                 return backup
@@ -150,7 +150,7 @@
                         "status": {}
                     };
 
-                    if(preview) {                  
+                    if(preview) {
 
                         vc.previewCRD = {};
                         vc.previewCRD['data'] = backup;
