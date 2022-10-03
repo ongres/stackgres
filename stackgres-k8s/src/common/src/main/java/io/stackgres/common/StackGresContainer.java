@@ -28,7 +28,7 @@ public enum StackGresContainer implements StackGresContainerProfile {
       ),
   POSTGRES_EXPORTER(StackGresKind.CLUSTER, "prometheus-postgres-exporter",
       cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
-      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
+      memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES)
       ),
   POSTGRES_UTIL(StackGresKind.CLUSTER, "postgres-util",
       cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
@@ -55,15 +55,15 @@ public enum StackGresContainer implements StackGresContainerProfile {
       ),
   DBOPS_RUN_DBOPS(StackGresKind.DBOPS, "run-dbops",
       cpu -> BigDecimal.ONE,
-      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
+      memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES)
       ),
   DBOPS_SET_DBOPS_RESULT(StackGresKind.DBOPS, "set-dbops-result",
       cpu -> BigDecimal.ONE,
-      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
+      memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES)
       ),
   BACKUP_CREATE_BACKUP(StackGresKind.BACKUP, "create-backup",
       cpu -> BigDecimal.ONE,
-      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
+      memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES)
       );
 
   private final StackGresKind kind;
