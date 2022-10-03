@@ -42,7 +42,7 @@ public enum StackGresInitContainer implements StackGresContainerProfile {
       memory -> memory),
   DBOPS_SET_DBOPS_RUNNING(StackGresKind.DBOPS, "set-dbops-running",
       cpu -> BigDecimal.ONE,
-      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES));
+      memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES));
 
   private final StackGresKind kind;
   private final String name;
