@@ -33,6 +33,9 @@ public class ClusterPod {
   @JsonProperty("disablePostgresUtil")
   private Boolean disablePostgresUtil;
 
+  @JsonProperty("managementPolicy")
+  private String managementPolicy;
+
   @JsonProperty("scheduling")
   private ClusterPodScheduling scheduling;
 
@@ -66,6 +69,14 @@ public class ClusterPod {
 
   public void setDisablePostgresUtil(Boolean disablePostgresUtil) {
     this.disablePostgresUtil = disablePostgresUtil;
+  }
+
+  public String getManagementPolicy() {
+    return managementPolicy;
+  }
+
+  public void setManagementPolicy(String managementPolicy) {
+    this.managementPolicy = managementPolicy;
   }
 
   public ClusterPodScheduling getScheduling() {
