@@ -1,3 +1,53 @@
+# :rocket: Release 1.3.2 (2022-10-14)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.3.2 brings some security improvements and fixes. In particular it comes to fix an issue related to how SGInstanceProfile custom resource works for version 1.3 by applying resource requirements and limits to all the StackGres generated Pods. Due to some default settings that were too conservative for containers some functionalities were broken for some users (in particular for backups and postgres exporter memory was set too low making some Pods getting killed by the OOM killer).
+Also a bug in the Web Console that, when editing a StackGres custom resource (and other resources), changed some fields that are not yet implemented there. In particular, the latter bug removed a non production option flag set during operator upgrade that prevented existing cluster from from avoiding following the new behavior of resources requirements for the StackGres Pod's that apply to sidecars increasing the actual requirements of a Pod following the new `.spec.containers` and `.spec.initContainers` section of the SGInstanceProfile resource. If you had upgraded to 1.3.0 or 1.3.1 and your SGCluster's Pods can not restart due to resources not being available consider setting to `true` the field `.spec.nonProductionOptions.disableClusterResourceRequirements` to revert to the same behavior prior version 1.3 where resource requirements only affect the patroni container.
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Increased default memory limits and requests requirements for some Pod and sidecars
+* Lower the resource requirements for containers other than patroni to only set resource requests and not limits by default (resource limits can still be set for those containers by configuration)
+
+### Web Console
+
+Nothing new here! :eyes: 
+
+## :bug: FIXES
+
+* Default SGScript is not created for SGCluster with version previous to 1.3
+* Event of missing SGBackupConfig is sent even if backup is working as expected
+* Avoid errors for old versions of a SGBackup, SGDbOps and SGScript
+* Field `.spec.pods.managementPolicy` is not implemented in the REST API
+* Cluster crash-Loop due to permission change in data dir
+
+### Web Console
+
+*  Babelfish Compass had a cross site script issue that prevent it from functioning
+*  When editing a resource unknown fields values are not preserved
+
+## :construction: KNOWN ISSUES
+
+* Installation fails in EKS 1.22+ due to CSR not returning the certificate ([#1732](https://gitlab.com/ongresinc/stackgres/-/issues/1732)). Use cert-manager as a workaround. 
+* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.3.2/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.3.2)
+
 # :rocket: Release 1.3.1 (2022-09-07)
 
 ## :notepad_spiral: NOTES
