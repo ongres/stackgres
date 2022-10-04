@@ -39,7 +39,8 @@ e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
 
-  if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
+  if [ "$E2E_FORCE_IMAGE_PULL" = "true" ] \
+    && [ "$E2E_SECURITY_UPGRADE_SKIP_IMAGE_PULL" != true ]
   then
     if [ "$E2E_SKIP_LOAD_OPERATOR" != true ]
     then
