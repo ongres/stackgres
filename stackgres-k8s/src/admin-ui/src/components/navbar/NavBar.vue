@@ -1,5 +1,7 @@
 <template>
+  <!-- Vue reactivity hack -->
 	<aside id="nav" class="disabled">
+    <template v-if="Object.keys(navbar).length > 0"></template>
 		<div id="topMenu" v-if="!$route.name.includes('GlobalDashboard')" @click="toggleViewMode()">
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><path fill="#FFF" opacity=".75" d="M0 16h24v-2.7H0V16zm0-6.7h24V6.7H0v2.6zM0 0v2.7h24V0H0z"/></svg>
 		</div>
@@ -180,7 +182,7 @@
 
 		data: function() {
 			return {
-				pooling: '',
+				polling: '',
 				sgVersion: '',
 				loginUser: '',
 				loginPassword: '',
@@ -288,7 +290,22 @@
 
 			restartCluster() {
 				return store.state.restartCluster
-			}
+			},
+
+      navbar() {
+        const vc = this;
+
+        if (!vc.initialized && store.state.interval && store.state.interval > 0) {
+            vc.polling = setInterval( function(){
+              if(store.state.loginToken.length > 0)
+                vc.fetchAPI();
+            }.bind(this), store.state.interval * 10000);
+        }
+
+        vc.initialized = true;
+
+        return {"initialized": true};
+      }
 			
 		},
 
@@ -525,11 +542,6 @@
 			);
 
 			vc.fetchAPI();
-
-			vc.pooling = setInterval( function(){
-				if(store.state.loginToken.length > 0)
-					vc.fetchAPI();
-			}.bind(this), 10000);
 	
 			$(document).click(function(event) { 
 				var $target = $(event.target);
@@ -593,8 +605,6 @@
 				return Promise.reject(error);
 			});
 		}
-
-
 	}
 </script>
 

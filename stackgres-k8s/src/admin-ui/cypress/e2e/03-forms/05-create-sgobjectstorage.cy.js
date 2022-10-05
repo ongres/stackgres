@@ -1,4 +1,7 @@
 describe('Create SGObjectStorage', () => {
+    Cypress.on('uncaught:exception', (err, runnable) => {
+      return false
+    });
 
     const namespace = Cypress.env('k8s_namespace')
     let resourceName;
@@ -10,11 +13,16 @@ describe('Create SGObjectStorage', () => {
     });
 
     beforeEach( () => {
-        Cypress.Cookies.preserveOnce('sgToken')
-        cy.visit(namespace + '/sgobjectstorages/new')
+      cy.gc()
+      cy.login()
+      cy.setCookie('sgReload', '0')
+      cy.setCookie('sgTimezone', 'utc')
+      cy.visit(namespace + '/sgobjectstorages/new')
     });
 
     after( () => {
+        cy.login()
+
         cy.deleteCRD('sgobjectstorages', {
             metadata: {
                 name: 's3-' + resourceName,

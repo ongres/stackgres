@@ -1,4 +1,7 @@
 describe('Delete StackGres Resources', () => {
+    Cypress.on('uncaught:exception', (err, runnable) => {
+      return false
+    });
 
     const namespace = Cypress.env('k8s_namespace')
     let resourceName;
@@ -137,8 +140,11 @@ describe('Delete StackGres Resources', () => {
     });
 
     beforeEach( () => {
-        Cypress.Cookies.preserveOnce('sgToken')
-    });
+      cy.gc()
+      cy.login()
+      cy.setCookie('sgReload', '0')
+      cy.setCookie('sgTimezone', 'utc')
+  });
     
     it( 'Deleting an SGDbOp should be possible', () => {
         cy.testDelete('sgdbop', resourceName)

@@ -236,10 +236,10 @@ spec:
               $GRAFANA_SCHEMA
               $GRAFANA_WEB_HOST
               $GRAFANA_TOKEN' \
-              < /etc/nginx/template.d/stackgres-operator.template \
-              > /etc/nginx/conf.d/stackgres-operator.conf
+              < /etc/nginx/template.d/stackgres-restapi.template \
+              > /etc/nginx/conf.d/stackgres-restapi.conf
             {{- if .Values.developer.showDebug }}
-            cat /etc/nginx/conf.d/stackgres-operator.conf
+            cat /etc/nginx/conf.d/stackgres-restapi.conf
             {{- end }}
             exec nginx -g 'daemon off;'
         ports:
@@ -276,10 +276,6 @@ spec:
             subPath: var/run
             mountPath: /var/run
             readOnly: false
-          - name: operator-nginx-etc
-            subPath: var/log/nginx
-            mountPath: /var/log/nginx
-            readOnly: false
       volumes:
         - name: web-certs
           secret:
@@ -301,8 +297,8 @@ spec:
             items:
               - key: nginx.conf
                 path: nginx.conf
-              - key: stackgres-operator.template
-                path: stackgres-operator.template
+              - key: stackgres-restapi.template
+                path: stackgres-restapi.template
         - name: operator-nginx-etc
           emptyDir: {}
       {{- with .Values.restapi.tolerations }}

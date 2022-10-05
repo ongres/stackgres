@@ -1,4 +1,7 @@
 describe('StackGres Login', () => {
+    Cypress.on('uncaught:exception', (err, runnable) => {
+      return false
+    });
 
     const username = Cypress.env('username')
     const password = Cypress.env('password')
@@ -37,7 +40,7 @@ describe('StackGres Login', () => {
         cy.get('#logout > a')
           .should('be.visible')
 
-         cy.get('#login > h2')
+         cy.get('#login')
           .should('not.be.visible')
     }); 
     

@@ -12,6 +12,33 @@ Cypress.Commands.add('login', () => {
     })
 });
 
+Cypress.Commands.add('gc', () => {
+  cy.window().then((win) => {
+    win.location.href = 'about:blank'
+  })
+  if (Cypress.isBrowser('firefox')) {
+      // run gc multiple times in an attempt to force a major GC between tests
+      Cypress.backend('firefox:force:gc')
+      Cypress.backend('firefox:force:gc')
+      Cypress.backend('firefox:force:gc')
+      Cypress.backend('firefox:force:gc')
+      Cypress.backend('firefox:force:gc')
+  }
+  if (Cypress.isBrowser('chrome')) {
+      cy.window().then(win => {
+        // window.gc is enabled with --js-flags=--expose-gc chrome flag
+        if (typeof win.gc === 'function') {
+          // run gc multiple times in an attempt to force a major GC between tests
+          win.gc();
+          win.gc();
+          win.gc();
+          win.gc();
+          win.gc();
+        }
+      });
+  }
+});
+
 Cypress.Commands.add('createCRD', (kind, crd) => {
     cy.getCookie('sgToken').then((cookie) => {
         cy.request({
@@ -63,7 +90,7 @@ Cypress.Commands.add('getResources', getResources);
 Cypress.Commands.add('deleteCluster', (namespace, clusterName) => {
     cy.getResources('sgclusters').then(resp => {
         let cluster = resp.find(el => (el.metadata.namespace === namespace) && (el.metadata.name === clusterName))
-        
+
         cy.deleteCRD('sgclusters', {
             metadata: {
                 name: cluster.metadata.name,

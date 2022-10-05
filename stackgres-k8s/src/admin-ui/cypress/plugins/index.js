@@ -16,6 +16,12 @@
  * @type {Cypress.PluginConfig}
  */
 module.exports = (on, config) => {
-  // `on` is used to hook into various events Cypress emits
-  // `config` is the resolved Cypress config
-}
+	on('before:browser:launch', (browser, launchOptions) => {
+		if (browser.name === 'chrome') {
+			// exposes window.gc() function that will manually force garbage collection
+			launchOptions.args.push('--js-flags=--expose-gc');
+		}
+
+		return launchOptions;
+	});
+};
