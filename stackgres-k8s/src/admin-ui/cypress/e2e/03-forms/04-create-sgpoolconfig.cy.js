@@ -1,5 +1,8 @@
 describe('Create SGPoolingConfig', () => {
-    
+    Cypress.on('uncaught:exception', (err, runnable) => {
+      return false
+    });
+  
     const namespace = Cypress.env('k8s_namespace')
     let resourceName;
 
@@ -10,11 +13,16 @@ describe('Create SGPoolingConfig', () => {
     });
 
     beforeEach( () => {
-        Cypress.Cookies.preserveOnce('sgToken')
-        cy.visit(namespace + '/sgpoolconfigs/new')
+      cy.gc()
+      cy.login()
+      cy.setCookie('sgReload', '0')
+      cy.setCookie('sgTimezone', 'utc')
+      cy.visit(namespace + '/sgpoolconfigs/new')
     });
 
     after( () => {
+        cy.login()
+
         cy.deleteCRD('sgpoolconfigs', {
             metadata: {
                 name: 'poolconfig-' + resourceName,

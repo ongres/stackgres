@@ -1835,7 +1835,10 @@
 
                             vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
                             vm.babelfishFeatureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
-                            vm.postgresVersion = c.data.spec.postgres.version;
+                            if (vm.postgresVersion != c.data.spec.postgres.version) {
+                                vm.postgresVersion = c.data.spec.postgres.version;
+                                vm.getFlavorExtensions()
+                            }
                             vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
                             vm.featureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
                             vm.instances = c.data.spec.instances;
@@ -1847,18 +1850,22 @@
                             vm.connPooling = !c.data.spec.pods.disableConnectionPooling,
                             vm.connectionPoolingConfig = (typeof c.data.spec.configurations.sgPoolingConfig !== 'undefined') ? c.data.spec.configurations.sgPoolingConfig : '';
                             vm.managedBackups = vm.hasProp(c, 'data.spec.configurations.backups') && c.data.spec.configurations.backups.length;
-                            vm.backups = (typeof c.data.spec.configurations.backups !== 'undefined') ? c.data.spec.configurations.backups : [{
-                                path: '',
-                                compression: 'lz4',
-                                cronSchedule: '0 5 * * *',
-                                retention: 5,
-                                performance: {
-                                    maxNetworkBandwidth: '',
-                                    maxDiskBandwidth: '',
-                                    uploadDiskConcurrency: 1
-                                },
-                                sgObjectStorage: ''
-                            }];
+                            if (typeof c.data.spec.configurations.backups !== 'undefined') {
+                              vm.backups = c.data.spec.configurations.backups;
+                              let cronScheduleSplit = vm.tzCrontab(vm.backups[0].cronSchedule, true).split(' ');
+                              vm.cronSchedule[0].ref = {};
+                              vm.cronSchedule[0].ref.value = vm.backups[0].cronSchedule;
+                              vm.cronSchedule[0].ref.min = cronScheduleSplit[0];
+                              vm.cronSchedule[0].ref.hour = cronScheduleSplit[1];
+                              vm.cronSchedule[0].ref.dom = cronScheduleSplit[2];
+                              vm.cronSchedule[0].ref.month = cronScheduleSplit[3];
+                              vm.cronSchedule[0].ref.dow = cronScheduleSplit[4];
+                              vm.cronSchedule[0].min = cronScheduleSplit[0];
+                              vm.cronSchedule[0].hour = cronScheduleSplit[1];
+                              vm.cronSchedule[0].dom = cronScheduleSplit[2];
+                              vm.cronSchedule[0].month = cronScheduleSplit[3];
+                              vm.cronSchedule[0].dow = cronScheduleSplit[4];
+                            }
                             if(vm.managedBackups && !c.data.spec.configurations.backups[0].hasOwnProperty('performance')) {
                                 vm.backups[0].performance = {
                                     maxNetworkBandwidth: '',
@@ -1888,16 +1895,18 @@
                                     
                                     vm.scriptSource.push({ base: baseScript.sgScript, entries: [] })
 
-                                    baseScript.scriptSpec.scripts.forEach(function(script, index){
-                                        if(script.hasOwnProperty('script')) {
-                                            vm.scriptSource[baseIndex].entries.push('raw');
-                                        } else if(script.scriptFrom.hasOwnProperty('secretKeyRef')) {
-                                            vm.scriptSource[baseIndex].entries.push('secretKeyRef');
-                                        } else if(script.scriptFrom.hasOwnProperty('configMapScript')) {
-                                            vm.scriptSource[baseIndex].entries.push('configMapKeyRef');
-                                            script['script'] = script.scriptFrom.configMapScript;
-                                        }
-                                    })
+                                    if(vm.hasProp(baseScript, 'scriptSpec.scripts')) {
+                                        baseScript.scriptSpec.scripts.forEach(function(script, index){
+                                            if(script.hasOwnProperty('script')) {
+                                                vm.scriptSource[baseIndex].entries.push('raw');
+                                            } else if(script.scriptFrom.hasOwnProperty('secretKeyRef')) {
+                                                vm.scriptSource[baseIndex].entries.push('secretKeyRef');
+                                            } else if(script.scriptFrom.hasOwnProperty('configMapScript')) {
+                                                vm.scriptSource[baseIndex].entries.push('configMapKeyRef');
+                                                script['script'] = script.scriptFrom.configMapScript;
+                                            }
+                                        })
+                                    }
                                 })
                                 
                                 vm.managedSql = c.data.spec.managedSql;
@@ -2225,33 +2234,40 @@
                                 ...(this.connectionPoolingConfig.length && {"sgPoolingConfig": this.connectionPoolingConfig } || {"sgPoolingConfig": null} ),
                             }
                         }) ),
-                        ...(this.distributedLogs.length && {
+                        ...( (this.hasProp(previous, 'spec.distributedLogs') || this.distributedLogs.length) && {
                             "distributedLogs": {
-                                "sgDistributedLogs": this.distributedLogs,
-                                ...(this.retention.length && ({
+                                ...(this.hasProp(previous, 'spec.distributedLogs') && previous.spec.distributedLogs),
+                                ...(this.distributedLogs.length && { "sgDistributedLogs": this.distributedLogs }),
+                                ...(this.retention.length && {
                                     "retention": this.retention
-                                }))
+                                })
                             }
                         } || {"distributedLogs": null} ),
-                        ...( this.restoreBackup.length && {
+                        ...( (this.hasProp(previous, 'spec.initialData') || this.restoreBackup.length) && {
                                 "initialData": {
-                                    ...( this.restoreBackup.length && {
+                                    ...(this.hasProp(previous, 'spec.initialData') && previous.spec.initialData),
+                                    ...((this.hasProp(previous, 'spec.initialData.restore') || this.restoreBackup.length) && {
                                         "restore": { 
-                                            "fromBackup": {
-                                                ...(this.hasProp(previous, 'spec.initialData.restore.fromBackup') && previous.spec.initialData.restore.fromBackup),
-                                                "name": this.restoreBackup, 
-                                                ...(this.pitr.length  && {
-                                                    "pointInTimeRecovery": {
-                                                        "restoreToTimestamp": this.pitr
-                                                    }
-                                                    } || {"pointInTimeRecovery": null}
-                                                )
-                                            },
+                                            ...(this.hasProp(previous, 'spec.initialData.restore') && previous.spec.initialData.restore),
+                                            ...(this.restoreBackup.length && {
+                                                "fromBackup": {
+                                                    ...(this.hasProp(previous, 'spec.initialData.restore.fromBackup') && previous.spec.initialData.restore.fromBackup),
+                                                    "name": this.restoreBackup, 
+                                                    ...((this.hasProp(previous, 'spec.initialData.restore.fromBackup.pointInTimeRecovery') || this.pitr.length) && {
+                                                        "pointInTimeRecovery": {
+                                                            ...(this.hasProp(previous, 'spec.initialData.restore.fromBackup.pointInTimeRecovery') && previous.spec.initialData.restore.fromBackup.pointInTimeRecovery),
+                                                            ...(this.pitr.length  && {
+                                                                "restoreToTimestamp": this.pitr
+                                                            } || {"restoreToTimestamp": null})
+                                                        }
+                                                    } || {"pointInTimeRecovery": null})
+                                                }
+                                            } || {"fromBackup": null}),
                                             ...(this.downloadDiskConcurrency.toString().length && {
                                                 "downloadDiskConcurrency": this.downloadDiskConcurrency 
                                             } || {"downloadDiskConcurrency": null} )
                                         },
-                                    } || {"restore": null} ),
+                                    } || {"restore": null}),
                                 }
                             } || {"initialData": null}
                         ),
@@ -2276,24 +2292,33 @@
                                 ...((this.flavor == 'babelfish' && this.babelfishFeatureGates) && {"enabledFeatureGates": ['babelfish-flavor'] } || {"enabledFeatureGates": null} )
                                 } 
                             }) ),
-                        ...( (!$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices))
+                        ...( (this.hasProp(previous, 'spec.metadata') || !$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices))
                             || !$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) || !$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) || !$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) ) && ({
                             "metadata": {
-                                "annotations": {
-                                    ...(!$.isEmptyObject(this.parseProps(this.annotationsAll)) && ( {"allResources": this.parseProps(this.annotationsAll) }) ),
-                                    ...(!$.isEmptyObject(this.parseProps(this.annotationsPods)) && ( {"clusterPods": this.parseProps(this.annotationsPods) }) ),
-                                    ...(!$.isEmptyObject(this.parseProps(this.annotationsServices)) && ( {"services": this.parseProps(this.annotationsServices) }) ),
-                                    ...(!$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) && ( {"primaryService": this.parseProps(this.postgresServicesPrimaryAnnotations) }) ),
-                                    ...(!$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) && ( {"replicasService": this.parseProps(this.postgresServicesReplicasAnnotations) }) ),
-                                },
-                                ...(!$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) && ({
-                                    "labels": {
-                                        "clusterPods": this.parseProps(this.podsMetadata, 'label')
+                                ...(this.hasProp(previous, 'spec.metadata') && previous.spec.metadata),
+                                ...( (this.hasProp(previous, 'spec.metadata') || !$.isEmptyObject(this.parseProps(this.annotationsAll)) || !$.isEmptyObject(this.parseProps(this.annotationsPods)) || !$.isEmptyObject(this.parseProps(this.annotationsServices))
+                                || !$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) || !$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations))) && {
+                                    "annotations": {
+                                        ...(this.hasProp(previous, 'spec.metadata.annotations') && previous.spec.metadata.annotations),
+                                        ...(!$.isEmptyObject(this.parseProps(this.annotationsAll)) && ( {"allResources": this.parseProps(this.annotationsAll) }) ),
+                                        ...(!$.isEmptyObject(this.parseProps(this.annotationsPods)) && ( {"clusterPods": this.parseProps(this.annotationsPods) }) ),
+                                        ...(!$.isEmptyObject(this.parseProps(this.annotationsServices)) && ( {"services": this.parseProps(this.annotationsServices) }) ),
+                                        ...(!$.isEmptyObject(this.parseProps(this.postgresServicesPrimaryAnnotations)) && ( {"primaryService": this.parseProps(this.postgresServicesPrimaryAnnotations) }) ),
+                                        ...(!$.isEmptyObject(this.parseProps(this.postgresServicesReplicasAnnotations)) && ( {"replicasService": this.parseProps(this.postgresServicesReplicasAnnotations) }) ),
                                     }
-                                }) )
+                                } || {"annotations": null}),
+                                ...( (this.hasProp(previous, 'spec.metadata.labels') || !$.isEmptyObject(this.parseProps(this.podsMetadata, 'label'))) && {
+                                    "labels": {
+                                        ...(this.hasProp(previous, 'spec.metadata.labels') && previous.spec.metadata.labels),
+                                        ...(!$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) && {
+                                            "clusterPods": this.parseProps(this.podsMetadata, 'label')
+                                        })
+                                    }
+                                } || {"labels": null})
                             }
                         }) ),
                         "postgresServices": {
+                            ...(this.hasProp(previous, 'spec.postgresServices') && previous.spec.postgresServices),
                             "primary": {
                                 ...(this.hasProp(previous, 'spec.postgresServices.primary') && previous.spec.postgresServices.primary),
                                 "enabled": this.postgresServicesPrimary,
@@ -2315,11 +2340,6 @@
                         }
 
                     }
-                }
-
-                // If there's a managed backup config set, convert cronSchedule from array to string
-                if( vc.hasProp(cluster, 'spec.configurations.backups') ) {
-                    cluster.spec.configurations.backups[0].cronSchedule = vc.tzCrontab(vc.backups[0].cronSchedule, false);
                 }
 
                 if(preview) {
@@ -2842,7 +2862,20 @@
             },
 
             updateCronSchedule(index) {
-                this.backups[index].cronSchedule = this.cronSchedule[index].min + ' ' + this.cronSchedule[index].hour + ' ' + this.cronSchedule[index].dom + ' ' + this.cronSchedule[index].month + ' ' + this.cronSchedule[index].dow;
+                if (this.cronSchedule[index].ref
+                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.min
+                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.hour
+                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.dom
+                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.month
+                    && this.cronSchedule[index].min == this.cronSchedule[index].ref.dow) {
+                  return;
+                }
+                this.backups[index].cronSchedule = this.tzCrontab(
+                    this.cronSchedule[index].min
+                        + ' ' + this.cronSchedule[index].hour
+                        + ' ' + this.cronSchedule[index].dom
+                        + ' ' + this.cronSchedule[index].month
+                        + ' ' + this.cronSchedule[index].dow, false);
             },
         
         },

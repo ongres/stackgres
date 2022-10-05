@@ -9,8 +9,11 @@ describe('Not Found', () => {
     });
 
     beforeEach( () => {
-        Cypress.Cookies.preserveOnce('sgToken')
-        cy.visit(namespace + '/sgcluster/' + resourceName)
+      cy.gc()
+      cy.login()
+      cy.setCookie('sgReload', '0')
+      cy.setCookie('sgTimezone', 'utc')
+      cy.visit(namespace + '/sgcluster/' + resourceName)
     });
     
     it( 'Not Found message should appear when resource doesn\'t exist', () => {
@@ -18,9 +21,9 @@ describe('Not Found', () => {
             .should('be.visible')
     })
 
-    it( 'Header should never appear when resource is not foudn', () => {
-        cy.get('#header')
-            .should('not.be.visible')
-    })
+    //it( 'Header should never appear when resource is not found', () => {
+    //    cy.get('#header')
+    //        .should('not.be.visible')
+    //})
 
 })

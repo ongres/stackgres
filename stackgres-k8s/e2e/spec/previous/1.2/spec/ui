@@ -47,7 +47,7 @@ e2e_test_install() {
   spec:
     containers:
     - name: $CYPRESS_POD
-      image: cypress/included:4.8.0
+      image: cypress/included:10.9.0
       command: [ "sh", "-c", "while true; do sleep 300; done" ]
       imagePullPolicy: IfNotPresent
       env:
@@ -73,7 +73,7 @@ EOF
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
-  kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress.json" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
+  kubectl cp "$UI_TESTS_RESOURCES_PATH/cypress.config.js" "$CLUSTER_NAMESPACE/$CYPRESS_POD":/
 
   BACKUP_NAME=ui-0
 
