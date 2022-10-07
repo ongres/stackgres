@@ -13,6 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 
 @JsonDeserialize
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -35,6 +36,9 @@ public class ClusterPod {
 
   @JsonProperty("managementPolicy")
   private String managementPolicy;
+
+  @JsonProperty("resources")
+  private StackGresClusterResources resources;
 
   @JsonProperty("scheduling")
   private ClusterPodScheduling scheduling;
@@ -77,6 +81,14 @@ public class ClusterPod {
 
   public void setManagementPolicy(String managementPolicy) {
     this.managementPolicy = managementPolicy;
+  }
+
+  public StackGresClusterResources getResources() {
+    return resources;
+  }
+
+  public void setResources(StackGresClusterResources resources) {
+    this.resources = resources;
   }
 
   public ClusterPodScheduling getScheduling() {

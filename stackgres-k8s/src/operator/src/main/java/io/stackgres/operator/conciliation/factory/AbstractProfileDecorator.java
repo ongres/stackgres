@@ -38,6 +38,7 @@ public abstract class AbstractProfileDecorator {
 
   protected void setProfileContainers(StackGresProfile profile,
       Supplier<Optional<PodSpec>> podSpecSupplier,
+      boolean enableCpuAndMemoryLimits,
       boolean enableCpuRequests, boolean enableMemoryRequests) {
     podSpecSupplier.get()
         .map(PodSpec::getContainers)
@@ -45,18 +46,19 @@ public abstract class AbstractProfileDecorator {
         .flatMap(List::stream)
         .forEach(container -> setProfileForContainer(
             profile, podSpecSupplier, container,
-            enableCpuRequests, enableMemoryRequests));
+            enableCpuAndMemoryLimits, enableCpuRequests, enableMemoryRequests));
     podSpecSupplier.get()
         .map(PodSpec::getInitContainers)
         .stream()
         .flatMap(List::stream)
         .forEach(container -> setProfileForInitContainer(
             profile, podSpecSupplier, container,
-            enableCpuRequests, enableMemoryRequests));
+            enableCpuAndMemoryLimits, enableCpuRequests, enableMemoryRequests));
   }
 
   protected void setProfileForContainer(StackGresProfile profile,
       Supplier<Optional<PodSpec>> podSpecSupplier, Container container,
+      boolean enableCpuAndMemoryLimits,
       boolean enableCpuRequests, boolean enableMemoryRequests) {
     var containerRequests = Optional.of(profile.getSpec())
         .map(StackGresProfileSpec::getRequests)
@@ -72,11 +74,12 @@ public abstract class AbstractProfileDecorator {
             getKind().getName(entry.getKey())))
         .forEach(entry -> setContainerResources(
             podSpecSupplier, container, containerRequests, entry,
-            enableCpuRequests, enableMemoryRequests));
+            enableCpuAndMemoryLimits, enableCpuRequests, enableMemoryRequests));
   }
 
   protected void setProfileForInitContainer(StackGresProfile profile,
       Supplier<Optional<PodSpec>> podSpecSupplier, Container container,
+      boolean enableCpuAndMemoryLimits,
       boolean enableCpuRequests, boolean enableMemoryRequests) {
     var containerRequests = Optional.of(profile.getSpec())
         .map(StackGresProfileSpec::getRequests)
@@ -92,12 +95,13 @@ public abstract class AbstractProfileDecorator {
             getKind().getName(entry.getKey())))
         .forEach(entry -> setContainerResources(
             podSpecSupplier, container, containerRequests, entry,
-            enableCpuRequests, enableMemoryRequests));
+            enableCpuAndMemoryLimits, enableCpuRequests, enableMemoryRequests));
   }
 
   private void setContainerResources(Supplier<Optional<PodSpec>> podSpecSupplier,
       Container container, Optional<Map<String, StackGresProfileContainer>> containerRequests,
       Entry<String, StackGresProfileContainer> entry,
+      boolean enableCpuAndMemoryLimits,
       boolean enableCpuRequests, boolean enableMemoryRequests) {
     final ResourceRequirements containerResources = new ResourceRequirements();
     final Quantity cpuLimit = new Quantity(Optional.of(entry)
@@ -112,9 +116,6 @@ public abstract class AbstractProfileDecorator {
         .orElseThrow(() -> new IllegalArgumentException(
             "Can not find memory profile configuration for container "
                 + entry.getKey())));
-    final var limits = new HashMap<String, Quantity>();
-    limits.put("cpu", cpuLimit);
-    limits.put("memory", memoryLimit);
     final Quantity cpuRequest = containerRequests
         .stream()
         .map(Map::entrySet)
@@ -142,20 +143,28 @@ public abstract class AbstractProfileDecorator {
     final var requests = new HashMap<String, Quantity>();
     requests.put("cpu", cpuRequest);
     requests.put("memory", memoryRequest);
-    Optional.of(entry.getValue())
-        .map(StackGresProfileContainer::getHugePages)
-        .map(StackGresProfileHugePages::getHugepages2Mi)
-        .map(Quantity::new)
-        .ifPresent(quantity -> setHugePages2Mi(
-            podSpecSupplier, entry, container, requests, limits, quantity));
-    Optional.of(entry.getValue())
-        .map(StackGresProfileContainer::getHugePages)
-        .map(StackGresProfileHugePages::getHugepages1Gi)
-        .map(Quantity::new)
-        .ifPresent(quantity -> setHugePages1Gi(
-            podSpecSupplier, entry, container, requests, limits, quantity));
+
+    if (enableCpuAndMemoryLimits) {
+      final var limits = new HashMap<String, Quantity>();
+      limits.put("cpu", cpuLimit);
+      limits.put("memory", memoryLimit);
+      Optional.of(entry.getValue())
+          .map(StackGresProfileContainer::getHugePages)
+          .map(StackGresProfileHugePages::getHugepages2Mi)
+          .map(Quantity::new)
+          .ifPresent(quantity -> setHugePages2Mi(
+              podSpecSupplier, entry, container, requests, limits, quantity));
+      Optional.of(entry.getValue())
+          .map(StackGresProfileContainer::getHugePages)
+          .map(StackGresProfileHugePages::getHugepages1Gi)
+          .map(Quantity::new)
+          .ifPresent(quantity -> setHugePages1Gi(
+              podSpecSupplier, entry, container, requests, limits, quantity));
+      containerResources.setLimits(Map.copyOf(limits));
+    }
+
     containerResources.setRequests(Map.copyOf(requests));
-    containerResources.setLimits(Map.copyOf(limits));
+
     container.setResources(containerResources);
   }
 

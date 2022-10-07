@@ -41,6 +41,9 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
   @Valid
   private StackGresDistributedLogsNonProduction nonProduction;
 
+  @JsonProperty("resources")
+  private StackGresDistributedLogsResources resources;
+
   @JsonProperty("scheduling")
   @Valid
   private StackGresDistributedLogsPodScheduling scheduling;
@@ -77,6 +80,14 @@ public class StackGresDistributedLogsSpec implements KubernetesResource {
 
   public void setNonProductionOptions(StackGresDistributedLogsNonProduction nonProduction) {
     this.nonProduction = nonProduction;
+  }
+
+  public StackGresDistributedLogsResources getResources() {
+    return resources;
+  }
+
+  public void setResources(StackGresDistributedLogsResources resources) {
+    this.resources = resources;
   }
 
   public StackGresDistributedLogsPodScheduling getScheduling() {
