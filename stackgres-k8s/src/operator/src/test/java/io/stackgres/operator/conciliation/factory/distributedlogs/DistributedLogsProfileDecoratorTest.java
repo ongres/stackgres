@@ -24,6 +24,7 @@ import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsResources;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.fixture.Fixtures;
@@ -137,6 +138,12 @@ class DistributedLogsProfileDecoratorTest extends AbstractProfileDecoratorTestCa
     distributedLogs.getSpec().setNonProductionOptions(new StackGresDistributedLogsNonProduction());
     distributedLogs.getSpec().getNonProductionOptions().setEnableSetClusterCpuRequests(true);
     distributedLogs.getSpec().getNonProductionOptions().setEnableSetClusterMemoryRequests(true);
+  }
+
+  @Override
+  protected void enableLimits() {
+    distributedLogs.getSpec().setResources(new StackGresDistributedLogsResources());
+    distributedLogs.getSpec().getResources().setEnableClusterLimitsRequirements(true);
   }
 
 }

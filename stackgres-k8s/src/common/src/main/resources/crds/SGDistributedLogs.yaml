@@ -96,6 +96,13 @@ spec:
                         loadBalancerIP:
                           type: string
                           description: Specify loadBalancer IP of Postgres replica service for Distributed Log
+                resources:
+                  type: object
+                  description: Pod custom resources configuration.
+                  properties:
+                    enableClusterLimitsRequirements:
+                      type: boolean
+                      description: When enabled resource limits for containers other than the patroni container wil be set just like for patroni contianer as specified in the SGInstanceProfile.
                 scheduling:
                   type: object
                   description: Pod custom scheduling configuration.

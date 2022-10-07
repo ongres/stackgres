@@ -22,6 +22,7 @@ import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.fixture.Fixtures;
@@ -133,6 +134,12 @@ class BackupProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
     cluster.getSpec().setNonProductionOptions(new StackGresClusterNonProduction());
     cluster.getSpec().getNonProductionOptions().setEnableSetClusterCpuRequests(true);
     cluster.getSpec().getNonProductionOptions().setEnableSetClusterMemoryRequests(true);
+  }
+
+  @Override
+  protected void enableLimits() {
+    cluster.getSpec().getPod().setResources(new StackGresClusterResources());
+    cluster.getSpec().getPod().getResources().setEnableClusterLimitsRequirements(true);
   }
 
 }
