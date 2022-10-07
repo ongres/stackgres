@@ -862,6 +862,17 @@ check_managed_sql_mutation() {
     echo "FAIL. Managed SQL was not added to cluster configuration after operator upgrade"
     return 1
   fi
+  local EXIT_CODE RESULT
+  try_function wait_until eval \
+    '[ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-default" -o name | wc -l)" \
+      = "1" ]'
+  if "$RESULT"
+  then
+    echo "SUCCESS. Default SGScript was created after operator upgrade"
+  else
+    echo "FAIL. Default SGScript was not created after operator upgrade"
+    return 1
+  fi
   if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-inital-data" -o name | wc -l)" \
     = "1" ]
   then
