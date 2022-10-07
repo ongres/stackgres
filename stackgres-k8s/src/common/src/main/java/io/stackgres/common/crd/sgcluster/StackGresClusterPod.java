@@ -43,6 +43,11 @@ public class StackGresClusterPod {
       message = "managementPolicy must be OrderedReady or Parallel")
   private String managementPolicy;
 
+  @JsonProperty("resources")
+  @Valid
+  private StackGresClusterResources resources;
+
+  @JsonProperty("scheduling")
   @Valid
   private StackGresClusterPodScheduling scheduling;
 
@@ -78,6 +83,14 @@ public class StackGresClusterPod {
     this.disablePostgresUtil = disablePostgresUtil;
   }
 
+  public StackGresClusterResources getResources() {
+    return resources;
+  }
+
+  public void setResources(StackGresClusterResources resources) {
+    this.resources = resources;
+  }
+
   public StackGresClusterPodScheduling getScheduling() {
     return scheduling;
   }
@@ -97,7 +110,7 @@ public class StackGresClusterPod {
   @Override
   public int hashCode() {
     return Objects.hash(disableConnectionPooling, disableMetricsExporter, disablePostgresUtil,
-        managementPolicy, persistentVolume, scheduling);
+        managementPolicy, persistentVolume, resources, scheduling);
   }
 
   @Override
@@ -114,6 +127,7 @@ public class StackGresClusterPod {
         && Objects.equals(disablePostgresUtil, other.disablePostgresUtil)
         && Objects.equals(managementPolicy, other.managementPolicy)
         && Objects.equals(persistentVolume, other.persistentVolume)
+        && Objects.equals(resources, other.resources)
         && Objects.equals(scheduling, other.scheduling);
   }
 

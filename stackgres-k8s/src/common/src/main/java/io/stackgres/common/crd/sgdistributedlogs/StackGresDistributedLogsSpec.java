@@ -38,6 +38,9 @@ public class StackGresDistributedLogsSpec {
   @Valid
   private StackGresDistributedLogsNonProduction nonProductionOptions;
 
+  @JsonProperty("resources")
+  private StackGresDistributedLogsResources resources;
+
   @JsonProperty("scheduling")
   @Valid
   private StackGresDistributedLogsPodScheduling scheduling;
@@ -74,6 +77,14 @@ public class StackGresDistributedLogsSpec {
 
   public void setNonProductionOptions(StackGresDistributedLogsNonProduction nonProductionOptions) {
     this.nonProductionOptions = nonProductionOptions;
+  }
+
+  public StackGresDistributedLogsResources getResources() {
+    return resources;
+  }
+
+  public void setResources(StackGresDistributedLogsResources resources) {
+    this.resources = resources;
   }
 
   public StackGresDistributedLogsPodScheduling getScheduling() {
