@@ -60,7 +60,7 @@ public class DefaultBackupPathMutator implements BackupMutator {
       return operations.build();
     }
 
-    return ImmutableList.of();
+    return List.of();
   }
 
   private String getBackupPathPre_1_2(final StackGresBackup backup) {

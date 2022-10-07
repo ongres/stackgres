@@ -132,6 +132,10 @@ public enum StackGresVersion {
     return getStackGresVersionFromResourceAsNumber(dbOps);
   }
 
+  public static long getStackGresVersionAsNumber(StackGresScript script) {
+    return getStackGresVersionFromResourceAsNumber(script);
+  }
+
   public static long getStackGresVersionAsNumber(
       StackGresDistributedLogs distributedLogs) {
     return getStackGresVersionFromResourceAsNumber(distributedLogs);
