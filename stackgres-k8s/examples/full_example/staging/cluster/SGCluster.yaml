@@ -29,11 +29,9 @@ spec:
       retention: 4
   distributedLogs:
     sgDistributedLogs: 'distributedlogs'
-  initialData:
+  managedSql:
     scripts:
-    - name: create-demo-database
-      script: |
-        create database demo owner postgres;
+      - sgScript: create-db-script
   postgresServices:
     primary:
       type: ClusterIP
