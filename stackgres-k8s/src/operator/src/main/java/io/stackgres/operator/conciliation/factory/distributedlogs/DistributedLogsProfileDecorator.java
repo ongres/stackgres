@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresKind;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsResources;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -56,6 +57,9 @@ public class DistributedLogsProfileDecorator extends AbstractProfileDecorator
             .map(StatefulSet::getSpec)
             .map(StatefulSetSpec::getTemplate)
             .map(PodTemplateSpec::getSpec),
+            Optional.ofNullable(context.getSource().getSpec().getResources())
+            .map(StackGresDistributedLogsResources::getEnableClusterLimitsRequirements)
+            .orElse(false),
             Optional.ofNullable(context.getSource().getSpec().getNonProductionOptions())
             .map(StackGresDistributedLogsNonProduction::getEnableSetClusterCpuRequests)
             .orElse(false),
@@ -67,6 +71,7 @@ public class DistributedLogsProfileDecorator extends AbstractProfileDecorator
   @Override
   protected void setProfileContainers(StackGresProfile profile,
       Supplier<Optional<PodSpec>> podSpecSupplier,
+      boolean enableCpuAndMemoryLimits,
       boolean enableCpuRequests, boolean enableMemoryRequests) {
     podSpecSupplier.get()
         .map(PodSpec::getContainers)
@@ -75,13 +80,13 @@ public class DistributedLogsProfileDecorator extends AbstractProfileDecorator
         .filter(container -> !Objects.equals(
             container.getName(), StackGresContainer.PATRONI.getName()))
         .forEach(container -> setProfileForContainer(profile, podSpecSupplier, container,
-            enableCpuRequests, enableMemoryRequests));
+            enableCpuAndMemoryLimits, enableCpuRequests, enableMemoryRequests));
     podSpecSupplier.get()
         .map(PodSpec::getInitContainers)
         .stream()
         .flatMap(List::stream)
         .forEach(container -> setProfileForInitContainer(profile, podSpecSupplier, container,
-            enableCpuRequests, enableMemoryRequests));
+            enableCpuAndMemoryLimits, enableCpuRequests, enableMemoryRequests));
   }
 
 }

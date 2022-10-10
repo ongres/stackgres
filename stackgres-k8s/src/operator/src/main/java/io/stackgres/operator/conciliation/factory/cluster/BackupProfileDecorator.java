@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpec;
 import io.stackgres.common.StackGresKind;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -53,6 +54,9 @@ public class BackupProfileDecorator extends AbstractProfileDecorator
             .map(JobTemplateSpec::getSpec)
             .map(JobSpec::getTemplate)
             .map(PodTemplateSpec::getSpec),
+            Optional.ofNullable(context.getSource().getSpec().getPod().getResources())
+            .map(StackGresClusterResources::getEnableClusterLimitsRequirements)
+            .orElse(false),
             Optional.ofNullable(context.getSource().getSpec().getNonProductionOptions())
             .map(StackGresClusterNonProduction::getEnableSetClusterCpuRequests)
             .orElse(false),

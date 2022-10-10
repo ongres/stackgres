@@ -45,6 +45,8 @@ public abstract class AbstractProfileDecoratorTestCase {
 
   protected abstract void enableRequests();
 
+  protected abstract void enableLimits();
+
   protected boolean filterContainers(Container container) {
     return true;
   }
@@ -54,7 +56,49 @@ public abstract class AbstractProfileDecoratorTestCase {
   }
 
   @Test
-  void withCpuAndMemoryForAllContainers_shouldBeAppliedToAllExceptFilteredOut() {
+  void withCpuAndMemoryForAllContainers_onlyRequestsToAllExceptFilteredOut() {
+    decorate();
+
+    assertTrue(getPodSpec()
+        .getVolumes().isEmpty());
+
+    getPodSpec().getContainers().stream()
+        .filter(this::filterContainers)
+        .forEach(container -> {
+          getProfile().getSpec().getContainers().entrySet().stream()
+              .filter(entry -> Objects.equals(
+                  entry.getKey(), getKind().getContainerPrefix() + container.getName()))
+              .findAny()
+              .ifPresentOrElse(
+                  entry -> assertContainerOnlyRequestsCpuAndMemory(entry, container),
+                  () -> fail("Container profile " + container.getName() + " not found"));
+        });
+
+    getPodSpec().getContainers().stream()
+        .filter(Predicates.not(this::filterContainers))
+        .forEach(container -> assertContainerCpuAndMemoryNotSet(container));
+
+    getPodSpec().getInitContainers().stream()
+        .filter(this::filterInitContainers)
+        .forEach(container -> {
+          getProfile().getSpec().getInitContainers().entrySet().stream()
+              .filter(entry -> Objects.equals(
+                  entry.getKey(), getKind().getContainerPrefix() + container.getName()))
+              .findAny()
+              .ifPresentOrElse(
+                  entry -> assertContainerOnlyRequestsCpuAndMemory(entry, container),
+                  () -> fail("Container profile " + container.getName() + " not found"));
+        });
+
+    getPodSpec().getInitContainers().stream()
+        .filter(Predicates.not(this::filterInitContainers))
+        .forEach(container -> assertContainerCpuAndMemoryNotSet(container));
+  }
+
+  @Test
+  void withCpuAndMemoryWithLimitsForAllContainers_shouldBeAppliedToAllExceptFilteredOut() {
+    enableLimits();
+
     decorate();
 
     assertTrue(getPodSpec()
@@ -112,6 +156,87 @@ public abstract class AbstractProfileDecoratorTestCase {
   @Test
   void withRequestsCpuAndMemoryForAllContainers_shouldBeAppliedToAllExceptFilteredOut() {
     enableRequests();
+
+    getProfile().getSpec().setRequests(new StackGresProfileRequests());
+    getProfile().getSpec().getRequests().setCpu(new Random().nextInt(32000) + "m");
+    getProfile().getSpec().getRequests().setMemory(new Random().nextInt(32) + "Gi");
+    getProfile().getSpec().getRequests().setContainers(new HashMap<>());
+    getProfile().getSpec().getRequests().setInitContainers(new HashMap<>());
+    Seq.seq(getPodSpec().getContainers())
+        .forEach(container -> {
+          StackGresProfileContainer containerProfile = new StackGresProfileContainer();
+          containerProfile.setCpu(new Random().nextInt(32000) + "m");
+          containerProfile.setMemory(new Random().nextInt(32) + "Gi");
+          getProfile().getSpec().getRequests().getContainers().put(
+              getKind().getContainerPrefix() + container.getName(), containerProfile);
+        });
+    Seq.seq(getPodSpec().getInitContainers())
+        .forEach(container -> {
+          StackGresProfileContainer containerProfile = new StackGresProfileContainer();
+          containerProfile.setCpu(new Random().nextInt(32000) + "m");
+          containerProfile.setMemory(new Random().nextInt(32) + "Gi");
+          getProfile().getSpec().getRequests().getInitContainers().put(
+              getKind().getContainerPrefix() + container.getName(), containerProfile);
+        });
+    StackGresProfileContainer containerProfile = new StackGresProfileContainer();
+    containerProfile.setCpu(new Random().nextInt(32000) + "m");
+    containerProfile.setMemory(new Random().nextInt(32) + "Gi");
+    getProfile().getSpec().getRequests().getContainers().put(
+        getKind().getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
+    getProfile().getSpec().getRequests().getInitContainers().put(
+        getKind().getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
+
+    decorate();
+
+    assertTrue(getPodSpec()
+        .getVolumes().isEmpty());
+
+    getPodSpec().getContainers().stream()
+        .filter(this::filterContainers)
+        .forEach(container -> {
+          getProfile().getSpec().getContainers().entrySet().stream()
+              .filter(entry -> Objects.equals(
+                  entry.getKey(), getKind().getContainerPrefix() + container.getName()))
+              .findAny()
+              .ifPresentOrElse(
+                  entry -> assertContainerOnlyRequestsCpuAndMemory(
+                      getProfile().getSpec().getRequests().getContainers().entrySet().stream()
+                      .filter(requestEntry -> Objects.equals(
+                          requestEntry.getKey(),
+                          getKind().getContainerPrefix() + container.getName()))
+                      .findAny()
+                      .orElseThrow(() -> new AssertionFailedError(
+                          "Container request profile " + container.getName() + " not found")),
+                      container),
+                  () -> fail("Container profile " + container.getName() + " not found"));
+        });
+
+    getPodSpec().getInitContainers().stream()
+        .filter(this::filterInitContainers)
+        .forEach(container -> {
+          getProfile().getSpec().getInitContainers().entrySet().stream()
+              .filter(entry -> Objects.equals(
+                  entry.getKey(), getKind().getContainerPrefix() + container.getName()))
+              .findAny()
+              .ifPresentOrElse(
+                  entry -> assertContainerOnlyRequestsCpuAndMemory(
+                      getProfile().getSpec().getRequests().getInitContainers().entrySet().stream()
+                      .filter(requestEntry -> Objects.equals(
+                          requestEntry.getKey(),
+                          getKind().getContainerPrefix() + container.getName()))
+                      .findAny()
+                      .orElseThrow(() -> new AssertionFailedError(
+                          "Container request profile " + container.getName() + " not found")),
+                      container),
+                  () -> fail("Container profile " + container.getName() + " not found"));
+        });
+  }
+
+  @Test
+  void withLimitsAndRequestsCpuAndMemoryForAllContainers_shouldBeAppliedToAllExceptFilteredOut() {
+    enableLimits();
+    enableRequests();
+
     getProfile().getSpec().setRequests(new StackGresProfileRequests());
     getProfile().getSpec().getRequests().setCpu(new Random().nextInt(32000) + "m");
     getProfile().getSpec().getRequests().setMemory(new Random().nextInt(32) + "Gi");
@@ -190,7 +315,50 @@ public abstract class AbstractProfileDecoratorTestCase {
   }
 
   @Test
-  void withCpuAndMemoryAndHegePagesForAllContainers_shouldBeAppliedToAllExceptPatroni() {
+  void withCpuAndMemoryAndHugePagesForAllContainers_onlyRequestsAppliedToAllExceptPatroni() {
+    Seq.seq(getProfile().getSpec().getContainers().values())
+        .append(getProfile().getSpec().getInitContainers().values())
+        .forEach(containerProfile -> {
+          var hugePages = new StackGresProfileHugePages();
+          hugePages.setHugepages2Mi(new Random().nextInt(32) + "Gi");
+          hugePages.setHugepages1Gi(new Random().nextInt(32) + "Gi");
+          containerProfile.setHugePages(hugePages);
+        });
+
+    decorate();
+
+    assertTrue(getPodSpec()
+        .getVolumes().isEmpty());
+
+    getPodSpec().getContainers().stream()
+        .filter(this::filterContainers)
+        .forEach(container -> {
+          getProfile().getSpec().getContainers().entrySet().stream()
+              .filter(entry -> Objects.equals(
+                  entry.getKey(), getKind().getContainerPrefix() + container.getName()))
+              .findAny()
+              .ifPresentOrElse(
+                  entry -> assertContainerCpuAndMemoryRequestsWithoutHugePages(entry, container),
+                  () -> fail("Container profile " + container.getName() + " not found"));
+        });
+
+    getPodSpec().getInitContainers().stream()
+        .filter(this::filterInitContainers)
+        .forEach(container -> {
+          getProfile().getSpec().getInitContainers().entrySet().stream()
+              .filter(entry -> Objects.equals(
+                  entry.getKey(), getKind().getContainerPrefix() + container.getName()))
+              .findAny()
+              .ifPresentOrElse(
+                  entry -> assertContainerCpuAndMemoryRequestsWithoutHugePages(entry, container),
+                  () -> fail("Container profile " + container.getName() + " not found"));
+        });
+  }
+
+  @Test
+  void withCpuAndMemoryWithLimitsAndHugePagesForAllContainers_shouldBeAppliedToAllExceptPatroni() {
+    enableLimits();
+
     Seq.seq(getProfile().getSpec().getContainers().values())
         .append(getProfile().getSpec().getInitContainers().values())
         .forEach(containerProfile -> {
@@ -240,6 +408,19 @@ public abstract class AbstractProfileDecoratorTestCase {
 
   private void assertContainerCpuAndMemoryNotSet(Container container) {
     assertNull(container.getResources());
+    assertTrue(container.getVolumeMounts().isEmpty());
+  }
+
+  private void assertContainerOnlyRequestsCpuAndMemory(
+      Entry<String, StackGresProfileContainer> entry, Container container) {
+    assertNotNull(container.getResources());
+    assertNull(container.getResources().getLimits());
+    assertEquals(
+        Map.of(
+            "cpu", new Quantity(entry.getValue().getCpu()),
+            "memory", new Quantity(entry.getValue().getMemory())
+            ),
+        container.getResources().getRequests());
     assertTrue(container.getVolumeMounts().isEmpty());
   }
 
@@ -306,6 +487,20 @@ public abstract class AbstractProfileDecoratorTestCase {
     assertTrue(container.getVolumeMounts().stream().anyMatch(volumeMount -> Objects.equals(
         PatroniStaticVolume.HUGEPAGES_1G.getVolumeName() + "-" + entry.getKey(),
         volumeMount.getName())));
+  }
+
+  private void assertContainerCpuAndMemoryRequestsWithoutHugePages(
+      Entry<String, StackGresProfileContainer> entry, Container container) {
+    assertNotNull(container.getResources());
+    assertNull(
+        container.getResources().getLimits());
+    assertEquals(
+        Map.of(
+            "cpu", new Quantity(entry.getValue().getCpu()),
+            "memory", new Quantity(entry.getValue().getMemory())
+            ),
+        container.getResources().getRequests());
+    assertTrue(container.getVolumeMounts().isEmpty());
   }
 
 }
