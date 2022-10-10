@@ -1010,7 +1010,7 @@
                             break;
                     }
 
-                    if(preview) {                  
+                    if(preview) {
 
                         vc.previewCRD = {};
                         vc.previewCRD['data'] = dbOps;
@@ -1104,7 +1104,7 @@
         mounted: function() {
             
             // Load datepicker
-			require('daterangepicker');
+            require('daterangepicker');
 
             const vc = this
             

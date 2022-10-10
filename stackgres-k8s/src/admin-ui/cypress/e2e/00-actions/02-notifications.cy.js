@@ -1,4 +1,7 @@
 describe('Notifications Area', () => {
+    Cypress.on('uncaught:exception', (err, runnable) => {
+      return false
+    });
 
     const namespace = Cypress.env('k8s_namespace')
     

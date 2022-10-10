@@ -23,3 +23,4 @@ pnpm-debug.log*
 
 # Cypress local tests
 /cypress/screenshots
+/cypress/downloads

@@ -15,6 +15,7 @@ data:
     pid        /tmp/nginx.pid;
     events{
     }
+    error_log  /dev/stderr  warn;
     http {
         client_body_temp_path /tmp/client_temp;
         proxy_temp_path       /tmp/proxy_temp_path;
@@ -30,8 +31,7 @@ data:
         log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
                         '$status $body_bytes_sent "$http_referer" '
                         '"$http_user_agent" "$http_x_forwarded_for"';
-
-        access_log  /var/log/nginx/access.log  main;
+        access_log  /dev/stdout  main;
 
         sendfile        on;
 
@@ -39,7 +39,7 @@ data:
 
         include /etc/nginx/conf.d/*.conf;
     }
-  stackgres-operator.template: |
+  stackgres-restapi.template: |
     map $http_host $my_forwarded_port {
       default $server_port;
       "~^[^\:]+:(?<p>\d+)$" $p;

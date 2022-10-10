@@ -113,7 +113,7 @@ export const mixin = {
             .then(function(response) {
               vc.fetchAPI();
               $('#signup').fadeOut();
-              store.commit('setLoginToken', 'OIDC');						  
+              store.commit('setLoginToken', 'OIDC');
             })
             .catch(function(err) {
               $('#signup').addClass('login').fadeIn();
@@ -211,7 +211,7 @@ export const mixin = {
                   });
     
                   // Set as current cluster if no other cluster has already been set
-                  if(!store.state.currentCluster)              
+                  if(!store.state.currentCluster)
                     store.commit('setCurrentCluster', cluster);
     
                 });
@@ -1000,7 +1000,7 @@ export const mixin = {
             }
         }
       
-        return true;
+        return obj != null;
       },
 
       goTo(path) {
@@ -1047,114 +1047,113 @@ export const mixin = {
 
       tzCrontab( baseCrontab, toLocal = true ) {
 
-        if( !!moment().utcOffset() && (store.state.timezone == 'local') ) {    
+        if( !!!moment().utcOffset() || (store.state.timezone != 'local') ) {    
+          return baseCrontab;
+        }
 
-          let crontab = baseCrontab.split(' ');
+        let crontab = baseCrontab.split(' ');
+        
+        const isParsable = function(n) {
+          try {
+            var t = parseInt(n);
+            return Number.isInteger(t)
+          } catch(err) {
+              return false
+          }
+        }
+
+        if(!isParsable(crontab[1])) {
+          return baseCrontab;
+        }
+        
+        let tzOffset = (moment().utcOffset() / 60);      
+        let dom = crontab[2];
+        let dow = crontab[4];
+        let modifier = 0;
+
+        crontab[1] = parseInt( crontab[1] ) + ( tzOffset * ( toLocal ? 1 : -1 ) ); // Set opposite offset if converting to UTC
+
+        if(!crontab[1].isInteger) {
           
-          const isParsable = function(n) {
-            try {
-              var t = parseInt(n);
-              return Number.isInteger(t)
-            } catch(err) {
-                return false
+          // Fix minutes offset if in timezone with 30/45min offsets
+          if (isParsable(crontab[0])) {
+            let minOffset = crontab[1] % 1;
+
+            if(crontab[0].includes('-')) {
+              crontab[0] = (parseInt(crontab[0].split('-')[0]) + (minOffset * 60)) + '-' + (parseInt(crontab[0].split('-')[1]) + (minOffset * 60) );
+            } else if(crontab[0].includes('/')) {
+              crontab[0] = (parseInt(crontab[0].split('/')[0]) + (minOffset * 60)) + '/' + (parseInt(crontab[0].split('/')[1]) + (minOffset * 60) );
+            } else  {
+              crontab[0] = (parseInt(crontab[0] + (minOffset * 60)) );
             }
           }
 
-          if(isParsable(crontab[1])) {
+          crontab[1] = parseInt( crontab[1] )
+        }
+
+        // Fix hour offset on 24h edges
+        if(crontab[1] < 0) {
+          modifier = -1
+          crontab[1] = crontab[1] + 24
+        } else if(crontab[1] >= 24) {
+          modifier = 1
+          crontab[1] = crontab[1] - 24
+        }
+        
+        if(dom.includes('-')) {
+          crontab[2] = (parseInt(dom.split('-')[0]) + modifier) + '-' + (parseInt(dom.split('-')[1]) + modifier )
+        } else if (dom.includes('/')) {
+          crontab[2] = (parseInt(dom.split('/')[0]) + modifier) + '/' + (parseInt(dom.split('/')[1]) + modifier )
+        } else if (isParsable(dom)) {
+          crontab[2] = (parseInt(dom) + modifier)
+  
+          // Fix DOM offset on month edges
+          if(crontab[2] < 1) {
+
+            var month = crontab[3];
+            // Offset month 
+            if(isParsable(month) && parseInt(month) > 1) { 
+              crontab[3] = (parseInt(crontab[3]) - 1)
+            } else { // Jan > Dec
+              crontab[3] = 12
+            }
+  
+            // Offset day of month
+            if( [1,3,5,7,8,10,12].includes(crontab[3]) ) { // Jan, Mar, May, Jul, Aug, Oct, Dec
+              crontab[2] = 31
+            } else if ([4,6,9,11].includes(crontab[3])) { // Apr, Jun, Sept, Nov
+              crontab[2] = 30
+            } else if (crontab[3] == 2) { // Feb
+              crontab[2] = 28
+            }
+  
+          } else if (
+            (crontab[2] > 31) || 
+            ((crontab[2] > 30) && (['4','6','9','11'].includes(crontab[3]))) ||
+            ((crontab[2] > 28) && (crontab[3] == '2')) ) {
             
-            let tzOffset = (moment().utcOffset() / 60);      
-            let dom = crontab[2];
-            let dow = crontab[4];
-            let modifier = 0;
-
-            crontab[1] = parseInt( crontab[1] ) + ( tzOffset * ( toLocal ? 1 : -1 ) ); // Set opposite offset if converting to UTC
-
-            if(!crontab[1].isInteger) {
-              
-              // Fix minutes offset if in timezone with 30/45min offsets
-              if (isParsable(crontab[0])) {
-                let minOffset = crontab[1] % 1;
-
-                if(crontab[0].includes('-')) {
-                  crontab[0] = (parseInt(crontab[0].split('-')[0]) + (minOffset * 60)) + '-' + (parseInt(crontab[0].split('-')[1]) + (minOffset * 60) );
-                } else if(crontab[0].includes('/')) {
-                  crontab[0] = (parseInt(crontab[0].split('/')[0]) + (minOffset * 60)) + '/' + (parseInt(crontab[0].split('/')[1]) + (minOffset * 60) );
-                } else  {
-                  crontab[0] = (parseInt(crontab[0] + (minOffset * 60)) );
-                }
+              // Offset month 
+              if(parseInt(crontab[3]) < 12) { 
+                crontab[3] = (parseInt(crontab[3]) + 1);
+              } else { // Dec > Jan
+                crontab[3] = 1
               }
-
-              crontab[1] = parseInt( crontab[1] )
-            }
-
-            // Fix hour offset on 24h edges
-            if(crontab[1] < 0) {
-              modifier = -1
-              crontab[1] = crontab[1] + 24
-            } else if(crontab[1] >= 24) {
-              modifier = 1
-              crontab[1] = crontab[1] - 24
-            }
-            
-            if(dom.includes('-')) {
-              crontab[2] = (parseInt(dom.split('-')[0]) + modifier) + '-' + (parseInt(dom.split('-')[1]) + modifier )
-            } else if (dom.includes('/')) {
-              crontab[2] = (parseInt(dom.split('/')[0]) + modifier) + '/' + (parseInt(dom.split('/')[1]) + modifier )
-            } else if (isParsable(dom)) {
-              crontab[2] = (parseInt(dom) + modifier)
-      
-              // Fix DOM offset on month edges
-              if(crontab[2] < 1) {
-
-                var month = crontab[3];
-                // Offset month 
-                if(isParsable(month) && parseInt(month) > 1) { 
-                  crontab[3] = (parseInt(crontab[3]) - 1)
-                } else { // Jan > Dec
-                  crontab[3] = 12
-                }
-      
-                // Offset day of month
-                if( [1,3,5,7,8,10,12].includes(crontab[3]) ) { // Jan, Mar, May, Jul, Aug, Oct, Dec
-                  crontab[2] = 31
-                } else if ([4,6,9,11].includes(crontab[3])) { // Apr, Jun, Sept, Nov
-                  crontab[2] = 30
-                } else if (crontab[3] == 2) { // Feb
-                  crontab[2] = 28
-                }
-      
-              } else if (
-                (crontab[2] > 31) || 
-                ((crontab[2] > 30) && (['4','6','9','11'].includes(crontab[3]))) ||
-                ((crontab[2] > 28) && (crontab[3] == '2')) ) {
-                
-                  // Offset month 
-                  if(parseInt(crontab[3]) < 12) { 
-                    crontab[3] = (parseInt(crontab[3]) + 1);
-                  } else { // Dec > Jan
-                    crontab[3] = 1
-                  }
-                  
-                  crontab[2] = 1;
-      
-              }
-      
-            }
-      
-            if(!isParsable(dow) && dow.includes('-')) {
-              crontab[4] = (parseInt(dow.split('-')[0]) + modifier) + '-' + (parseInt(dow.split('-')[1]) + modifier )
-            } else if (dow.includes('/')) {
-              crontab[4] = (parseInt(dow.split('/')[0]) + modifier) + '/' + (parseInt(dow.split('/')[1]) + modifier )
-            } else if (dow !== '*') {
-              crontab[4] = (parseInt(dow) + modifier)
-            }
               
-            baseCrontab = crontab.join(' ')
+              crontab[2] = 1;
+  
           }
-      
-        } 
-
-        return baseCrontab
+  
+        }
+  
+        if(!isParsable(dow) && dow.includes('-')) {
+          crontab[4] = (parseInt(dow.split('-')[0]) + modifier) + '-' + (parseInt(dow.split('-')[1]) + modifier )
+        } else if (dow.includes('/')) {
+          crontab[4] = (parseInt(dow.split('/')[0]) + modifier) + '/' + (parseInt(dow.split('/')[1]) + modifier )
+        } else if (dow !== '*') {
+          crontab[4] = (parseInt(dow) + modifier)
+        }
+          
+        return crontab.join(' ')
       },
 
       showTzOffset() {

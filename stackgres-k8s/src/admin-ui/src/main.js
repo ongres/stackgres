@@ -158,6 +158,12 @@ if ( getCookie('sgView') === 'collapsed' ) {
   store.commit('toggleView');
 }
 
+// Check reload preferences
+if ( getCookie('sgReload') != 'undefined' ) {
+  console.log('Setting reload interval to ' + getCookie('sgReload'));
+  store.commit('setReloadInterval', getCookie('sgReload'));
+}
+
 const vm = new Vue({
   router,
   store,
