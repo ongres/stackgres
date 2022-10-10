@@ -39,7 +39,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgbackup.BackupPhase;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -186,15 +186,15 @@ public class BackupCronJob
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_PHASE_RUNNING")
-                            .withValue(BackupPhase.RUNNING.label())
+                            .withValue(BackupStatus.RUNNING.status())
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_PHASE_COMPLETED")
-                            .withValue(BackupPhase.COMPLETED.label())
+                            .withValue(BackupStatus.COMPLETED.status())
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_PHASE_FAILED")
-                            .withValue(BackupPhase.FAILED.label())
+                            .withValue(BackupStatus.FAILED.status())
                             .build(),
                         new EnvVarBuilder()
                             .withName("PATRONI_ROLE_KEY")

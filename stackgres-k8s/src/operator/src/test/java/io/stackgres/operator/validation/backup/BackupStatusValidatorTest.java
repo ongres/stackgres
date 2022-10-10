@@ -8,7 +8,7 @@ package io.stackgres.operator.validation.backup;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import io.stackgres.common.crd.sgbackup.BackupPhase;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
@@ -82,7 +82,7 @@ class BackupStatusValidatorTest {
   void updateBackupProcess_shouldPass() throws ValidationFailed {
     BackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
     backupReview.getRequest().getObject().getStatus().getProcess()
-        .setStatus(BackupPhase.COMPLETED.label());
+        .setStatus(BackupStatus.COMPLETED.status());
 
     validator.validate(backupReview);
   }

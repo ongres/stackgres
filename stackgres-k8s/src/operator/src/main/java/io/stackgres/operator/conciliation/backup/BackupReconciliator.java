@@ -14,12 +14,17 @@ import javax.inject.Inject;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgbackup.BackupEventReason;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
+import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -48,6 +53,8 @@ public class BackupReconciliator
 
   private CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
+  private CustomResourceFinder<StackGresObjectStorage> objectStorageFinder;
+
   private BackupStatusManager statusManager;
 
   void onStart(@Observes StartupEvent ev) {
@@ -65,11 +72,32 @@ public class BackupReconciliator
           statusManager.refreshCondition(targetBackup);
         });
 
+    if (Optional.ofNullable(config.getStatus())
+        .map(StackGresBackupStatus::getProcess)
+        .map(StackGresBackupProcess::getStatus)
+        .map(BackupStatus::fromStatus)
+        .filter(backupStatus -> backupStatus.equals(BackupStatus.COMPLETED)
+            || backupStatus.equals(BackupStatus.FAILED))
+        .isPresent()) {
+      return;
+    }
     Optional<StackGresCluster> cluster = getCluster(config);
     if (cluster.isPresent()) {
-      if (getBackupConfig(cluster.get()).isEmpty()) {
+      if (isBackupConfig(cluster.get()) && !hasBackupConfig(cluster.get())) {
         eventController.sendEvent(BackupEventReason.BACKUP_CONFIG_ERROR,
             "Missing " + StackGresBackupConfig.KIND + " for cluster "
+                + cluster.get().getMetadata().getNamespace() + "."
+                + cluster.get().getMetadata().getName() + " ", config);
+      }
+      if (isObjectStorage(cluster.get()) && !hasObjectStorage(cluster.get())) {
+        eventController.sendEvent(BackupEventReason.BACKUP_CONFIG_ERROR,
+            "Missing " + StackGresObjectStorage.KIND + " for cluster "
+                + cluster.get().getMetadata().getNamespace() + "."
+                + cluster.get().getMetadata().getName() + " ", config);
+      }
+      if (!isBackupConfig(cluster.get()) && !isObjectStorage(cluster.get())) {
+        eventController.sendEvent(BackupEventReason.BACKUP_CONFIG_ERROR,
+            "Missing backup configration for cluster "
                 + cluster.get().getMetadata().getNamespace() + "."
                 + cluster.get().getMetadata().getName() + " ", config);
       }
@@ -88,12 +116,42 @@ public class BackupReconciliator
             .findByNameAndNamespace(clusterName, backup.getMetadata().getNamespace()));
   }
 
-  private Optional<StackGresBackupConfig> getBackupConfig(StackGresCluster cluster) {
+  private boolean isBackupConfig(StackGresCluster cluster) {
+    return Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getConfiguration)
+        .map(StackGresClusterConfiguration::getBackupConfig)
+        .isPresent();
+  }
+
+  private boolean hasBackupConfig(StackGresCluster cluster) {
     return Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getConfiguration)
         .map(StackGresClusterConfiguration::getBackupConfig)
         .flatMap(backupConfigName -> backupConfigFinder
-            .findByNameAndNamespace(backupConfigName, cluster.getMetadata().getNamespace()));
+            .findByNameAndNamespace(backupConfigName, cluster.getMetadata().getNamespace()))
+        .isPresent();
+  }
+
+  private boolean isObjectStorage(StackGresCluster cluster) {
+    return Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getConfiguration)
+        .map(StackGresClusterConfiguration::getBackups)
+        .filter(list -> !list.isEmpty())
+        .map(list -> list.get(0))
+        .map(StackGresClusterBackupConfiguration::getObjectStorage)
+        .isPresent();
+  }
+
+  private boolean hasObjectStorage(StackGresCluster cluster) {
+    return Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getConfiguration)
+        .map(StackGresClusterConfiguration::getBackups)
+        .filter(list -> !list.isEmpty())
+        .map(list -> list.get(0))
+        .map(StackGresClusterBackupConfiguration::getObjectStorage)
+        .flatMap(objectStorageName -> objectStorageFinder
+            .findByNameAndNamespace(objectStorageName, cluster.getMetadata().getNamespace()))
+        .isPresent();
   }
 
   @Override
@@ -145,6 +203,12 @@ public class BackupReconciliator
   public void setBackupConfigFinder(
       CustomResourceFinder<StackGresBackupConfig> backupConfigFinder) {
     this.backupConfigFinder = backupConfigFinder;
+  }
+
+  @Inject
+  public void setObjectStorageFinder(
+      CustomResourceFinder<StackGresObjectStorage> objectStorageFinder) {
+    this.objectStorageFinder = objectStorageFinder;
   }
 
   @Inject
