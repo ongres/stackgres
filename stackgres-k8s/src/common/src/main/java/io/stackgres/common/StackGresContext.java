@@ -22,6 +22,7 @@ public interface StackGresContext {
   String BACKUP_KEY = "backup";
   String DB_OPS_KEY = "db-ops";
   String SCHEDULED_BACKUP_KEY = "scheduled-backup";
+  String SCHEDULED_BACKUP_JOB_NAME_KEY = "scheduled-backup-job-name";
   String DISRUPTIBLE_KEY = "disruptible";
   String DISTRIBUTED_LOGS_APP_NAME = "StackGresDistributedLogs";
   String DISTRIBUTED_LOGS_CLUSTER_NAME_KEY = "distributed-logs-name";

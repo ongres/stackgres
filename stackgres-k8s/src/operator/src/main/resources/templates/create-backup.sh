@@ -246,7 +246,6 @@ BACKUP_STATUS_YAML=$(cat << BACKUP_STATUS_YAML_EOF
 status:
   backupPath: "$CLUSTER_BACKUP_PATH"
   process:
-    status: "$BACKUP_PHASE_RUNNING"
     jobPod: "$POD_NAME"
   sgBackupConfig:
 $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template="$BACKUP_CONFIG_YAML")
@@ -264,6 +263,9 @@ metadata:
   name: "$BACKUP_NAME"
   annotations:
     $SCHEDULED_BACKUP_KEY: "$RIGHT_VALUE"
+  labels:
+    $SCHEDULED_BACKUP_KEY: "$RIGHT_VALUE"
+    $SCHEDULED_BACKUP_JOB_NAME_KEY: "$SCHEDULED_BACKUP_JOB_NAME"
 spec:
   sgCluster: "$CLUSTER_NAME"
   managedLifecycle: true

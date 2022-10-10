@@ -8,8 +8,9 @@ package io.stackgres.operator.resource;
 import java.util.List;
 
 import io.stackgres.operator.common.StackGresClusterSidecarResourceFactory;
+import io.stackgres.operator.conciliation.AnnotationFinder;
 
-public interface SidecarFinder {
+public interface SidecarFinder extends AnnotationFinder {
 
   StackGresClusterSidecarResourceFactory<?> getSidecarTransformer(String name);
 

@@ -21,8 +21,11 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
+import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
@@ -81,36 +84,27 @@ public class BackupRequiredResourcesGenerator
     final String clusterNamespace = StackGresUtil.getNamespaceFromRelativeId(
         spec.getSgCluster(), backupNamespace);
 
-    final StackGresCluster cluster = clusterFinder
-        .findByNameAndNamespace(clusterName, clusterNamespace)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "SGBackup " + backupNamespace + "." + backupName
-                + " target a non existent SGCluster " + clusterNamespace + "." + clusterName));
-    final StackGresProfile profile = Optional.of(cluster)
+    final Optional<StackGresCluster> cluster = clusterFinder
+        .findByNameAndNamespace(clusterName, clusterNamespace);
+    final Optional<StackGresProfile> profile = cluster
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getResourceProfile)
-        .map(profileName -> profileFinder
-            .findByNameAndNamespace(profileName, clusterNamespace)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "SGBackup " + backupNamespace + "." + backupName
-                    + " target SGCluster " + clusterNamespace + "." + clusterName
-                    + " with a non existent SGInstanceProfile "
-                    + clusterNamespace + "." + profileName)))
-        .orElseThrow(() -> new IllegalArgumentException(
-            "SGBackup " + backupNamespace + "." + backupName
-                + " target SGCluster " + clusterNamespace + "." + clusterName
-                + " is missing an SGInstanceProfile"));
+        .flatMap(profileName -> profileFinder
+            .findByNameAndNamespace(profileName, clusterNamespace));
 
     final Set<String> clusterBackupNamespaces = getClusterBackupNamespaces(backupNamespace);
 
     var contextBuilder = ImmutableStackGresBackupContext.builder()
         .source(config)
-        .cluster(cluster)
-        .profile(profile)
+        .foundCluster(cluster)
+        .foundProfile(profile)
         .clusterBackupNamespaces(clusterBackupNamespaces);
 
-    if (isBackupInTheSameSgClusterNamespace(config, clusterNamespace)) {
-      final var specConfiguration = Optional.of(cluster.getSpec())
+    if (cluster.isPresent()
+        && isBackupInTheSameSgClusterNamespace(config, clusterNamespace)
+        && !isBackupFinished(config)) {
+      final var specConfiguration = cluster
+          .map(StackGresCluster::getSpec)
           .map(StackGresClusterSpec::getConfiguration);
 
       final Optional<String> sgBackupConfigurationName = specConfiguration
@@ -152,6 +146,16 @@ public class BackupRequiredResourcesGenerator
   private boolean isBackupInTheSameSgClusterNamespace(
       StackGresBackup backup, String clusterNamespace) {
     return Objects.equals(backup.getMetadata().getNamespace(), clusterNamespace);
+  }
+
+  private boolean isBackupFinished(StackGresBackup backup) {
+    return Optional.of(backup)
+        .map(StackGresBackup::getStatus)
+        .map(StackGresBackupStatus::getProcess)
+        .map(StackGresBackupProcess::getStatus)
+        .map(BackupStatus::fromStatus)
+        .filter(List.of(BackupStatus.COMPLETED, BackupStatus.FAILED)::contains)
+        .isPresent();
   }
 
   private Set<String> getClusterBackupNamespaces(final String backupNamespace) {

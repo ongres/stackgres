@@ -55,8 +55,8 @@ abstract class DbOpsJobTestCase {
   void givenAContextWithASingleDbOpsWithoutRunAt_itShouldGenerateAJob() {
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
         .source(dbOps)
-        .cluster(cluster)
-        .profile(clusterProfile)
+        .foundCluster(cluster)
+        .foundProfile(clusterProfile)
         .build();
 
     dbOps.getSpec().setRunAt(null);
@@ -71,8 +71,8 @@ abstract class DbOpsJobTestCase {
   void givenAContextWithADbOpsWithAPastRunAt_shouldGenerateAJob() {
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
         .source(dbOps)
-        .cluster(cluster)
-        .profile(clusterProfile)
+        .foundCluster(cluster)
+        .foundProfile(clusterProfile)
         .build();
 
     dbOps.getSpec().setRunAt(Instant.now().minusMillis(1000).toString());
@@ -87,8 +87,8 @@ abstract class DbOpsJobTestCase {
   void givenAContextWithADbOpsWithAFutureRunAt_shouldNotGenerateAJob() {
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
         .source(dbOps)
-        .cluster(cluster)
-        .profile(clusterProfile)
+        .foundCluster(cluster)
+        .foundProfile(clusterProfile)
         .build();
 
     dbOps.getSpec().setRunAt(Instant.now().plusMillis(1000).toString());
@@ -106,8 +106,8 @@ abstract class DbOpsJobTestCase {
 
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
         .source(dbOps)
-        .cluster(cluster)
-        .profile(clusterProfile)
+        .foundCluster(cluster)
+        .foundProfile(clusterProfile)
         .build();
 
     var generatedResources = dbOpsJobsGenerator.generateResource(context)
@@ -124,8 +124,8 @@ abstract class DbOpsJobTestCase {
 
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
         .source(dbOps)
-        .cluster(cluster)
-        .profile(clusterProfile)
+        .foundCluster(cluster)
+        .foundProfile(clusterProfile)
         .build();
 
     var generatedResources = dbOpsJobsGenerator.generateResource(context)

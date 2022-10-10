@@ -30,7 +30,35 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface StackGresBackupContext extends GenerationContext<StackGresBackup>, ClusterContext {
 
-  StackGresProfile getProfile();
+  Optional<StackGresCluster> getFoundCluster();
+
+  Optional<StackGresProfile> getFoundProfile();
+
+  @Override
+  @Value.Derived
+  default StackGresCluster getCluster() {
+    return getFoundCluster()
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGBackup " + getSource().getMetadata().getNamespace() + "."
+                + getSource().getMetadata().getName()
+                + " target a non existent SGCluster "
+                + getSource().getSpec().getSgCluster()));
+  }
+
+  @Value.Derived
+  default StackGresProfile getProfile() {
+    return getFoundProfile()
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGBackup " + getSource().getMetadata().getNamespace() + "."
+                + getSource().getMetadata().getName()
+                + " target SGCluster "
+                + getSource().getSpec().getSgCluster()
+                + " with a non existent SGInstanceProfile "
+                + getFoundCluster()
+                    .map(StackGresCluster::getSpec)
+                    .map(StackGresClusterSpec::getResourceProfile)
+                    .orElse("<unknown>")));
+  }
 
   Optional<StackGresBackupConfig> getBackupConfig();
 

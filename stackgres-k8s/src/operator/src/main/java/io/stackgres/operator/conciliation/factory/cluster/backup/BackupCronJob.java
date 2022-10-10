@@ -33,6 +33,7 @@ import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpecBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.JobUtil;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
@@ -244,6 +245,22 @@ public class BackupCronJob
                                     .withFieldRef(
                                         new ObjectFieldSelectorBuilder()
                                             .withFieldPath("metadata.name")
+                                            .build())
+                                    .build())
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("SCHEDULED_BACKUP_JOB_NAME_KEY")
+                            .withValue(labelFactory.labelMapper().scheduledBackupJobNameKey(
+                                cluster))
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("SCHEDULED_BACKUP_JOB_NAME")
+                            .withValueFrom(
+                                new EnvVarSourceBuilder()
+                                    .withFieldRef(
+                                        new ObjectFieldSelectorBuilder()
+                                            .withFieldPath(
+                                                "metadata.labels['" + JobUtil.JOB_NAME_KEY + "']")
                                             .build())
                                     .build())
                             .build(),

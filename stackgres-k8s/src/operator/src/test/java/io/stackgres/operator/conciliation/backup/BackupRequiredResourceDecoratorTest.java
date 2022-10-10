@@ -66,8 +66,8 @@ public class BackupRequiredResourceDecoratorTest
   protected StackGresBackupContext getResourceContext() {
     return ImmutableStackGresBackupContext.builder()
         .source(resource)
-        .cluster(cluster)
-        .profile(profile)
+        .foundCluster(cluster)
+        .foundProfile(profile)
         .backupConfig(backupConfig)
         .build();
   }

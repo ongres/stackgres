@@ -69,8 +69,8 @@ class DbOpsRequiredResourceDecoratorTest
     resource.getSpec().setMaxRetries(10);
     return ImmutableStackGresDbOpsContext.builder()
         .source(resource)
-        .cluster(cluster)
-        .profile(profile)
+        .foundCluster(cluster)
+        .foundProfile(profile)
         .build();
   }
 

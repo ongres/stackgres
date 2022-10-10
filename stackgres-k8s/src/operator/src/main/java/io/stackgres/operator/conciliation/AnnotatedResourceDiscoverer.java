@@ -15,7 +15,7 @@ public abstract class AnnotatedResourceDiscoverer<T, A extends Annotation>
   @Override
   protected void init(Instance<T> instance) {
     instance.select(new OperatorVersionBinderLiteral()).stream()
-        .filter(f -> f.getClass().isAnnotationPresent(getAnnotationClass()))
+        .filter(f -> findAnnotation(f, getAnnotationClass()).isPresent())
         .forEach(this::appendResourceFactory);
   }
 

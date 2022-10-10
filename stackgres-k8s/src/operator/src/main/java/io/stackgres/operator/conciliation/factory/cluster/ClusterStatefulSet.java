@@ -158,10 +158,10 @@ public class ClusterStatefulSet
         .filter(Objects::nonNull)
         .map(VolumePair::getSource)
         .filter(Optional::isPresent)
-        .map(Optional::get);
+        .map(Optional::get)
+        .toList();
 
-    return Stream.concat(Stream.of(clusterStatefulSet), volumeDependencies);
-
+    return Stream.concat(Stream.of(clusterStatefulSet), volumeDependencies.stream());
   }
 
 }
