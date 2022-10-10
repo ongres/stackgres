@@ -22,7 +22,7 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public class StackGresBackupProcess {
 
-  @ValidEnum(enumClass = BackupPhase.class,
+  @ValidEnum(enumClass = BackupStatus.class,
       message = "status must be one of Pending, Running, Completed or Failed")
   private String status;
   private String jobPod;

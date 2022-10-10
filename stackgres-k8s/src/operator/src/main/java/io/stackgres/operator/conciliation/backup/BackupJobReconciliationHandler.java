@@ -14,7 +14,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactoryForBackup;
-import io.stackgres.common.crd.sgbackup.BackupPhase;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
@@ -50,8 +50,8 @@ public class BackupJobReconciliationHandler
         .map(StackGresBackup::getStatus)
         .map(StackGresBackupStatus::getProcess)
         .map(StackGresBackupProcess::getStatus)
-        .filter(status -> BackupPhase.COMPLETED.label().equals(status)
-            || BackupPhase.FAILED.label().equals(status))
+        .filter(status -> BackupStatus.COMPLETED.status().equals(status)
+            || BackupStatus.FAILED.status().equals(status))
         .isPresent();
   }
 
