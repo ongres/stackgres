@@ -51,6 +51,9 @@ public class CronJobComparator extends AbstractComparator {
           "add"),
       new SimpleIgnorePatch("/status",
           "add"),
+      new PatchPattern(Pattern
+          .compile("/spec/jobTemplate/spec/template/spec/containers/0/env/[0-9]+"),
+          "move"),
   };
 
   @Override

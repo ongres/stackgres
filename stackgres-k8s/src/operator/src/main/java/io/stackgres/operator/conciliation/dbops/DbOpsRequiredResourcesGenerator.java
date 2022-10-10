@@ -16,9 +16,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
@@ -52,44 +50,22 @@ public class DbOpsRequiredResourcesGenerator
   @Override
   public List<HasMetadata> getRequiredResources(StackGresDbOps config) {
     final ObjectMeta metadata = config.getMetadata();
-    final String dbOpsName = metadata.getName();
     final String dbOpsNamespace = metadata.getNamespace();
 
     final StackGresDbOpsSpec spec = config.getSpec();
-    final StackGresCluster cluster = clusterFinder
-        .findByNameAndNamespace(spec.getSgCluster(), dbOpsNamespace)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "SGDbOps " + dbOpsNamespace + "." + dbOpsName
-                + " have a non existent SGCluster " + spec.getSgCluster()));
+    final Optional<StackGresCluster> cluster = clusterFinder
+        .findByNameAndNamespace(spec.getSgCluster(), dbOpsNamespace);
 
-    final StackGresProfile profile = Optional.of(cluster)
+    final Optional<StackGresProfile> profile = cluster
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getResourceProfile)
-        .map(profileName -> profileFinder
-            .findByNameAndNamespace(profileName, dbOpsNamespace)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "SGDbOps " + dbOpsNamespace + "." + dbOpsName
-                    + " target SGCluster " + spec.getSgCluster()
-                    + " with a non existent SGInstanceProfile "
-                    + profileName)))
-        .orElseThrow(() -> new IllegalArgumentException(
-            "SGDbOps " + dbOpsNamespace + "." + dbOpsName
-                + " target SGCluster " + spec.getSgCluster()
-                + " is missing an SGInstanceProfile"));
-
-    if (config.getSpec().isOpMajorVersionUpgrade()
-        && config.getSpec().isMajorVersionUpgradeSectionProvided()) {
-      Optional.ofNullable(config.getStatus())
-          .map(StackGresDbOpsStatus::getMajorVersionUpgrade)
-          .map(StackGresDbOpsMajorVersionUpgradeStatus::getSourcePostgresVersion)
-          .ifPresent(postgresVersion -> cluster.getSpec().getPostgres()
-              .setVersion(postgresVersion));
-    }
+        .flatMap(profileName -> profileFinder
+            .findByNameAndNamespace(profileName, dbOpsNamespace));
 
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
         .source(config)
-        .cluster(cluster)
-        .profile(profile)
+        .foundCluster(cluster)
+        .foundProfile(profile)
         .build();
 
     return decorator.decorateResources(context);

@@ -28,7 +28,7 @@ public class BenchmarkJobDiscovererImpl extends ResourceDiscoverer<JobFactory>
   @Override
   public Map<String, JobFactory> discoverFactories(StackGresDbOpsContext context) {
     return resourceHub.get(context.getVersion()).stream().collect(Collectors
-        .toMap(dbop -> dbop.getClass().getAnnotation(BenchmarkJob.class).value(),
+        .toMap(dbop -> getAnnotation(dbop, BenchmarkJob.class).value(),
             Function.identity()));
   }
 }

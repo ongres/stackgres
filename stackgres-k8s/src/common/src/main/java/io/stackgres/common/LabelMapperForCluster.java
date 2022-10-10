@@ -23,6 +23,10 @@ public interface LabelMapperForCluster<T extends CustomResource<?, ?>>
     return getKeyPrefix(resource) + StackGresContext.SCHEDULED_BACKUP_KEY;
   }
 
+  default String scheduledBackupJobNameKey(T resource) {
+    return getKeyPrefix(resource) + StackGresContext.SCHEDULED_BACKUP_JOB_NAME_KEY;
+  }
+
   default String clusterScopeKey(T resource) {
     return ResourceUtil.labelKey(resourceNameKey(resource));
   }

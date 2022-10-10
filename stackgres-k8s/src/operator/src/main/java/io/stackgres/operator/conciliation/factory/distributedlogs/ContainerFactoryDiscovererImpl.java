@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
@@ -31,9 +30,9 @@ public class ContainerFactoryDiscovererImpl
     init(instance);
     resourceHub.forEach((key, value) -> {
       value.sort((f1, f2) -> {
-        int f1Order = f1.getClass().getAnnotation(RunningContainer.class)
+        int f1Order = getAnnotation(f1, RunningContainer.class)
             .value().ordinal();
-        int f2Order = f2.getClass().getAnnotation(RunningContainer.class)
+        int f2Order = getAnnotation(f2, RunningContainer.class)
             .value().ordinal();
         return Integer.compare(f1Order, f2Order);
       });
@@ -51,6 +50,6 @@ public class ContainerFactoryDiscovererImpl
     return resourceHub.get(context.getDistributedLogsContext().getVersion())
         .stream()
         .filter(f -> f.isActivated(context))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 }

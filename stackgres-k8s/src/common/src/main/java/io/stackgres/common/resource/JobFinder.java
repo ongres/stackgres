@@ -6,6 +6,7 @@
 package io.stackgres.common.resource;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -51,6 +52,15 @@ public class JobFinder implements
   public List<Job> findResourcesInNamespace(String namespace) {
     return client.batch().v1().jobs()
         .inNamespace(namespace)
+        .list()
+        .getItems();
+  }
+
+  @Override
+  public List<Job> findByLabelsAndNamespace(String namespace, Map<String, String> labels) {
+    return client.batch().v1().jobs()
+        .inNamespace(namespace)
+        .withLabels(labels)
         .list()
         .getItems();
   }

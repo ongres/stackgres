@@ -77,8 +77,6 @@ class BackupReconciliatorTest {
     reconciliator.setHandlerDelegator(handlerDelegator);
     reconciliator.setEventController(eventController);
     reconciliator.setBackupScheduler(backupScheduler);
-    reconciliator.setClusterFinder(clusterFinder);
-    reconciliator.setBackupConfigFinder(backupConfigFinder);
     reconciliator.setResourceComparator(resourceComparator);
   }
 
