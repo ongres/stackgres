@@ -196,7 +196,7 @@
                 })
 
                 sgApi
-                .createCustomResource('applications/com.ongres/babelfish-compass', formData)
+                .createCustomResource('/applications/com.ongres/babelfish-compass', formData)
                 .then( function(response){
                     let parser = new DOMParser();
                     let htmlDoc = parser.parseFromString(response.data.report, 'text/html');
