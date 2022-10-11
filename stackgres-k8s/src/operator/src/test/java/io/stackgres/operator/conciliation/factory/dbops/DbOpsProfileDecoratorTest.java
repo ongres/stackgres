@@ -99,6 +99,7 @@ class DbOpsProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
     profile.getSpec().getInitContainers().put(
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
 
+    lenient().when(context.getSource()).thenReturn(dbOps);
     lenient().when(context.getCluster()).thenReturn(cluster);
     lenient().when(context.getProfile()).thenReturn(profile);
   }

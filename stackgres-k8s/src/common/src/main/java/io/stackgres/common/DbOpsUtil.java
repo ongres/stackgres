@@ -15,6 +15,8 @@ import java.util.regex.Pattern;
 import com.google.common.base.Predicates;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
+import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition.Status;
+import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition.Type;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
@@ -53,6 +55,17 @@ public interface DbOpsUtil {
         .anyMatch(Predicates.and(
             DbOpsStatusCondition.Type.FAILED::isCondition,
             DbOpsStatusCondition.Status.TRUE::isCondition));
+  }
+
+  static boolean isAlreadyCompleted(StackGresDbOps dbOps) {
+    return Optional.of(dbOps)
+        .map(StackGresDbOps::getStatus)
+        .map(StackGresDbOpsStatus::getConditions)
+        .stream()
+        .flatMap(List::stream)
+        .filter(condition -> Status.TRUE.getStatus().equals(condition.getStatus()))
+        .anyMatch(condition -> Type.COMPLETED.getType().equals(condition.getType())
+            || Type.FAILED.getType().equals(condition.getType()));
   }
 
   static String jobName(StackGresDbOps dbOps) {

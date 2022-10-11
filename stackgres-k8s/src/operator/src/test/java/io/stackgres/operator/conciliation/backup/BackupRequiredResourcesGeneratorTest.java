@@ -58,9 +58,6 @@ class BackupRequiredResourcesGeneratorTest {
   @InjectMock
   ObjectStorageFinder objectStorageFinder;
 
-  @InjectMock
-  BackupRequiredResourceDecorator decorator;
-
   @Inject
   BackupRequiredResourcesGenerator generator;
 
@@ -221,14 +218,12 @@ class BackupRequiredResourcesGeneratorTest {
   @DisplayName("Given a backup with invalid SGCluster should fail")
   void testBackupInvalidSgCluster() {
     final String backupNamespace = backup.getMetadata().getNamespace();
-    final String backupName = backup.getMetadata().getName();
     final String clusterName = backup.getSpec().getSgCluster();
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
 
-    assertException("SGBackup " + backupNamespace + "." + backupName
-        + " target a non existent SGCluster " + clusterName);
+    generator.getRequiredResources(backup);
 
     verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(backupNamespace));
