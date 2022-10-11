@@ -45,6 +45,7 @@
                                 name="sqlFiles"
                                 :id="item"
                                 :ref="item"
+                                :required="(!index)"
                                 @change="uploadFile" 
                             >
                         </template>
@@ -57,6 +58,7 @@
             <hr/>
             <button
                 class="btn"
+                type="submit"
                 @click="sendFiles()"
                 :disabled="processingFile"
                 >
@@ -185,6 +187,10 @@
 
             sendFiles() {
                 let vc = this;
+
+                if(!vc.checkRequired()) {
+                    return;
+                }
 
                 vc.processingFile = true;
                 vc.result = {};
