@@ -159,7 +159,7 @@ if ( getCookie('sgView') === 'collapsed' ) {
 }
 
 // Check reload preferences
-if ( getCookie('sgReload') != 'undefined' ) {
+if ( getCookie('sgReload').length ) {
   console.log('Setting reload interval to ' + getCookie('sgReload'));
   store.commit('setReloadInterval', getCookie('sgReload'));
 }

@@ -639,8 +639,9 @@ router.beforeResolve((to, from, next) => {
       store.commit('setPermissions', response.data);
     })
     .then( function() {
+      
       /* First check if Namespace exist */
-      if(to.params.hasOwnProperty('namespace')) {
+      if(to.params.hasOwnProperty('namespace') && (kind != 'BabelfishCompass')) {
 
         let namespaceName = to.params.namespace;
         
