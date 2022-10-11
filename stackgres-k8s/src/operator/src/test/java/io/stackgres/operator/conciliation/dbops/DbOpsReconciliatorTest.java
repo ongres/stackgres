@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsCondition;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -30,7 +29,6 @@ import io.stackgres.operator.conciliation.ComparisonDelegator;
 import io.stackgres.operator.conciliation.Conciliator;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
-import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import org.hamcrest.MatcherAssert;
 import org.jooq.lambda.tuple.Tuple;
@@ -54,7 +52,7 @@ class DbOpsReconciliatorTest {
   @Mock
   HandlerDelegator<StackGresDbOps> handlerDelegator;
   @Mock
-  StatusManager<StackGresDbOps, StackGresDbOpsCondition> statusManager;
+  DbOpsStatusManager statusManager;
   @Mock
   EventEmitter<StackGresDbOps> eventController;
   @Mock

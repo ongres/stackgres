@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import io.stackgres.common.OperatorProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,10 @@ public abstract class AbstractReconciliationClock implements ReconciliationClock
   protected abstract void reconcile();
 
   protected int getPeriod() {
-    return 10;
+    return OperatorProperty.RECONCILIATION_PERIOD
+        .get()
+        .map(Integer::valueOf)
+        .orElse(10);
   }
 
   protected TimeUnit getTimeUnit() {

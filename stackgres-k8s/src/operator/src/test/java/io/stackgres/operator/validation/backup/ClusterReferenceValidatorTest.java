@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgbackup.BackupPhase;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
@@ -110,7 +110,7 @@ class ClusterReferenceValidatorTest {
             cluster.getMetadata().getNamespace(),
             review.getRequest().getObject().getMetadata().getNamespace()));
     review.getRequest().getObject().getStatus().getProcess()
-        .setStatus(BackupPhase.COMPLETED.label());
+        .setStatus(BackupStatus.COMPLETED.status());
     review.getRequest().getObject().getStatus()
         .setBackupInformation(new StackGresBackupInformation());
     review.getRequest().getObject().getStatus()

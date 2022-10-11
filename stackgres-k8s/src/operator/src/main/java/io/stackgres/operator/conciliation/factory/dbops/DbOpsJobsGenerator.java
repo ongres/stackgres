@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.DbOpsUtil;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -46,6 +47,7 @@ public class DbOpsJobsGenerator implements ResourceGenerator<StackGresDbOpsConte
     Instant now = Instant.now();
     Map<String, JobFactory> factories = jobsDiscoverer.discoverFactories(config);
     return Seq.of(config.getSource())
+        .filter(dbOp -> !DbOpsUtil.isAlreadyCompleted(dbOp))
         .filter(dbOp -> !isToRunAfter(dbOp, now))
         .map(dbOp -> {
           JobFactory jobFactory = factories.get(dbOp.getSpec().getOp());

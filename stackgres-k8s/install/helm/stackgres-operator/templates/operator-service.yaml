@@ -1,4 +1,4 @@
-{{ if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}
+{{ if and .Values.deploy.operator (not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort)) }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -24,30 +24,15 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}
 spec:
-  type: ClusterIP
-  selector:
-    app: {{ .Release.Name }}
   ports:
-    - name: https
-      protocol: TCP
-      port: 443
-      targetPort: proxyhttps
----
-kind: Service
-apiVersion: v1
-metadata:
-  namespace: {{ .Release.Namespace }}
-  name: {{ .Release.Name }}-api
-spec:
-  ports:
-   - port: 8080
+   - port: 443
      targetPort: {{ .Values.developer.externalOperatorPort }}
 ---
 kind: Endpoints
 apiVersion: v1
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: {{ .Release.Name }}-api
+  name: {{ .Release.Name }}
 subsets:
  - addresses:
     - ip: "{{ .Values.developer.externalOperatorIp }}"

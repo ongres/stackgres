@@ -75,11 +75,12 @@ public class ResourceUtil {
 
   private static String resourceName(String name, int maxLength) {
     Preconditions.checkArgument(name.length() <= maxLength,
-        format("Valid name must be %s characters or less", maxLength));
+        format("Valid name must be %s characters or less. But was %d (%s)",
+            maxLength, name.length(), name));
     Preconditions.checkArgument(DNS_LABEL_NAME.matcher(name).matches(),
-        "Name must consist of lower case alphanumeric "
+        format("Name must consist of lower case alphanumeric "
             + "characters or '-', start with an alphabetic character, "
-            + "and end with an alphanumeric character");
+            + "and end with an alphanumeric character. But was %s", name));
     return name;
   }
 
@@ -113,7 +114,8 @@ public class ResourceUtil {
     if (name.indexOf('/') != -1) {
       Preconditions.checkArgument(
           !name.startsWith("kubernetes.io/") && !name.startsWith("k8s.io/"),
-          "The kubernetes.io/ and k8s.io/ prefixes are reserved for Kubernetes core components");
+          format("The kubernetes.io/ and k8s.io/ prefixes are reserved"
+              + " for Kubernetes core components. But was %s", name));
 
       final String[] split = name.split("/");
       Preconditions.checkArgument(split.length == 2, "name part must be non-empty");
@@ -121,9 +123,9 @@ public class ResourceUtil {
       String prefix = split[0];
 
       Preconditions.checkArgument(PREFIX_PART.matcher(prefix).matches(),
-          "prefix part a lowercase RFC 1123 subdomain must consist of lower case "
+          format("Prefix part a lowercase RFC 1123 subdomain must consist of lower case "
               + "alphanumeric characters, '-' or '.', and must start and end "
-              + "with an alphanumeric character");
+              + "with an alphanumeric character. But was %s", prefix));
 
       InternetDomainName.from(prefix);
 
@@ -132,11 +134,11 @@ public class ResourceUtil {
 
     if (!label.isBlank()) {
       Preconditions.checkArgument(VALID_VALUE.matcher(label).matches(),
-          "Not a valid label value");
+          "Label key not compliant with pattern %s, was %s", VALID_VALUE.pattern(), name);
     }
 
     Preconditions.checkArgument(label.length() <= 63,
-        "Valid label must be 63 characters or less");
+        format("Label key must be 63 characters or less but was %d (%s)", name.length(), name));
 
     return name;
   }
@@ -144,10 +146,10 @@ public class ResourceUtil {
   public static @NotNull String labelValue(@NotNull String name) {
     if (!name.isBlank()) {
       Preconditions.checkArgument(VALID_VALUE.matcher(name).matches(),
-          "Not a valid label value");
+          "Label value not compliant with pattern %s, was %s", VALID_VALUE.pattern(), name);
     }
     Preconditions.checkArgument(name.length() <= 63,
-        "Valid name must be 63 characters or less");
+        format("Label value must be 63 characters or less but was %d (%s)", name.length(), name));
     return name;
   }
 

@@ -30,6 +30,6 @@ public class DbOpsJobsDiscovererImpl extends ResourceDiscoverer<JobFactory>
   @Override
   public Map<String, JobFactory> discoverFactories(StackGresDbOpsContext context) {
     return resourceHub.get(context.getVersion()).stream().collect(Collectors
-        .toMap(dbop -> dbop.getClass().getAnnotation(OpJob.class).value(), Function.identity()));
+        .toMap(dbop -> getAnnotation(dbop, OpJob.class).value(), Function.identity()));
   }
 }

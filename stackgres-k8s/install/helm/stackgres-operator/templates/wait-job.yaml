@@ -53,13 +53,17 @@ spec:
           - "/bin/bash"
           - "-ecx"
           - |
+            {{- if .Values.deploy.operator }}
             kubectl set env -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}' DISABLE_RECONCILIATION-
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
-            {{- if and .Values.deploy.restapi }}
+            {{- end }}
+            {{- if .Values.deploy.restapi }}
             kubectl scale --timeout 1h --replicas 1 -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
             {{- end }}
+            {{- if .Values.deploy.operator }}
             kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Release.Name }}'
-            {{- if and .Values.deploy.restapi }}
+            {{- end }}
+            {{- if .Values.deploy.restapi }}
             kubectl rollout status -n '{{ .Release.Namespace }}' 'deployment/{{ .Values.restapi.name }}'
             {{- end }}
             {{- if .Values.extensions.cache.enabled }}

@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.factory.backup;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,7 +39,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgbackup.BackupPhase;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
@@ -104,45 +103,50 @@ public class BackupJob
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresBackupContext context) {
-    if (isBackupCopy(context)) {
-      return Stream.of();
-    }
-    if (isBackupConfigNotConfigured(context)
-        && !isBackupJobCompleted(context)) {
-      return Stream.of();
-    }
-    if (isScheduledBackupJob(context)) {
+    if (skipBackupJobCreation(context)) {
       return Stream.of();
     }
     return Stream.of(createBackupJob(context));
   }
 
-  private boolean isBackupCopy(StackGresBackupContext context) {
-    return !Objects.equals(
-        context.getSource().getSpec().getSgCluster(),
-        context.getCluster().getMetadata().getName());
+  public static boolean skipBackupJobCreation(StackGresBackupContext context) {
+    return isBackupCopy(context)
+        || isScheduledBackupJob(context)
+        || (!isBackupJobFinished(context)
+        && isBackupConfigNotConfigured(context));
   }
 
-  private boolean isBackupConfigNotConfigured(StackGresBackupContext context) {
+  private static boolean isBackupCopy(StackGresBackupContext context) {
+    return StackGresUtil.isRelativeIdNotInSameNamespace(
+        context.getSource().getSpec().getSgCluster());
+  }
+
+  private static boolean isBackupConfigNotConfigured(StackGresBackupContext context) {
     return context.getObjectStorage().isEmpty()
         && context.getBackupConfig().isEmpty();
   }
 
-  private boolean isBackupJobCompleted(StackGresBackupContext context) {
+  private static boolean isBackupJobFinished(StackGresBackupContext context) {
     return Optional.ofNullable(context.getSource().getStatus())
         .map(StackGresBackupStatus::getProcess)
         .map(StackGresBackupProcess::getStatus)
-        .filter(status -> status.equals(BackupPhase.COMPLETED.label())
-            || status.equals(BackupPhase.FAILED.label()))
+        .filter(status -> status.equals(BackupStatus.COMPLETED.status())
+            || status.equals(BackupStatus.FAILED.status()))
         .isPresent();
   }
 
-  private boolean isScheduledBackupJob(StackGresBackupContext context) {
+  private static boolean isScheduledBackupJob(StackGresBackupContext context) {
     return Optional.ofNullable(context.getSource().getMetadata().getAnnotations())
         .stream()
         .flatMap(Seq::seq)
         .anyMatch(Tuple.tuple(
-            labelFactoryForCluster.labelMapper().scheduledBackupKey(context.getCluster()),
+            StackGresContext.SCHEDULED_BACKUP_KEY,
+            StackGresContext.RIGHT_VALUE)::equals)
+        || Optional.ofNullable(context.getSource().getMetadata().getAnnotations())
+        .stream()
+        .flatMap(Seq::seq)
+        .anyMatch(Tuple.tuple(
+            StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SCHEDULED_BACKUP_KEY,
             StackGresContext.RIGHT_VALUE)::equals);
   }
 
@@ -249,15 +253,15 @@ public class BackupJob
                         .build(),
                     new EnvVarBuilder()
                         .withName("BACKUP_PHASE_RUNNING")
-                        .withValue(BackupPhase.RUNNING.label())
+                        .withValue(BackupStatus.RUNNING.status())
                         .build(),
                     new EnvVarBuilder()
                         .withName("BACKUP_PHASE_COMPLETED")
-                        .withValue(BackupPhase.COMPLETED.label())
+                        .withValue(BackupStatus.COMPLETED.status())
                         .build(),
                     new EnvVarBuilder()
                         .withName("BACKUP_PHASE_FAILED")
-                        .withValue(BackupPhase.FAILED.label())
+                        .withValue(BackupStatus.FAILED.status())
                         .build(),
                     new EnvVarBuilder()
                         .withName("PATRONI_ROLE_KEY")

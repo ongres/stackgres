@@ -85,6 +85,7 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
     implements StackGresKubernetesClient {
 
   static {
+    Handlers.unregister(Secret.class);
     Handlers.register(Secret.class, SecretOperationsImpl::new);
   }
 
