@@ -35,7 +35,7 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
   Optional<StackGresProfile> getFoundProfile();
 
   @Override
-  @Value.Derived
+  @Value.Lazy
   default StackGresCluster getCluster() {
     return getFoundCluster()
         .orElseThrow(() -> new IllegalArgumentException(
@@ -45,7 +45,7 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
                 + getSource().getSpec().getSgCluster()));
   }
 
-  @Value.Derived
+  @Value.Lazy
   default StackGresProfile getProfile() {
     return getFoundProfile()
         .orElseThrow(() -> new IllegalArgumentException(

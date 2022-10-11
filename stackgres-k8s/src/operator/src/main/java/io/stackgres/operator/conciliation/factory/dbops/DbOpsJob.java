@@ -91,11 +91,11 @@ public abstract class DbOpsJob implements JobFactory {
   }
 
   protected List<EnvVar> getRunEnvVars(StackGresDbOpsContext context) {
-    return ImmutableList.of();
+    return List.of();
   }
 
   protected List<EnvVar> getSetResultEnvVars(StackGresDbOpsContext context) {
-    return ImmutableList.of();
+    return List.of();
   }
 
   protected String getRunImage(StackGresDbOpsContext context) {
