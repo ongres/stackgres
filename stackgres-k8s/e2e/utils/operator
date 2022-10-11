@@ -33,6 +33,10 @@ export E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
 
 export E2E_INCLUDE_ONLY_POSTGRES_VERSIONS="12.9 13.4 13.5 14.1"
 
+export E2E_LOCAL_OPERATOR_IP="${E2E_LOCAL_OPERATOR_IP:-172.20.0.1}"
+export E2E_LOCAL_OPERATOR_PORT="${E2E_LOCAL_OPERATOR_PORT:-9080}"
+export E2E_LOCAL_OPERATOR_SSL_PORT="${E2E_LOCAL_OPERATOR_SSL_PORT:-9443}"
+
 generate_operator_namespace() {
   echo "stackgres-$(printf '%x' "$(date +%s)")"
 }
@@ -139,8 +143,8 @@ create_operator_certificate() {
   kubectl delete csr --ignore-not-found 'stackgres-operator'
   rm -f \
     "$TARGET_PATH/csr.conf" \
-    "$TARGET_PATH/server-key.pem" \
-    "$TARGET_PATH/server-pub.pem" \
+    "$TARGET_PATH/operator.key" \
+    "$TARGET_PATH/operator.pub" \
     "$TARGET_PATH/server.csr" \
     "$TARGET_PATH/server.crt"
   cat << EOF > "$TARGET_PATH/csr.conf"
@@ -160,14 +164,35 @@ DNS.3 = stackgres-operator.$OPERATOR_NAMESPACE.svc
 DNS.4 = stackgres-operator.$OPERATOR_NAMESPACE.svc.cluster.local
 EOF
 
-  openssl req -new -nodes -text -keyout "$TARGET_PATH/server-key.pem" \
-      -subj "/CN=stackgres-operator.$OPERATOR_NAMESPACE.svc" \
-      -out "$TARGET_PATH/server.csr" \
-      -config "$TARGET_PATH/csr.conf"
-  openssl rsa -in "$TARGET_PATH/server-key.pem" -pubout -out "$TARGET_PATH/server-pub.pem"
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' \
+      | while read NUMBER; do printf '%05d' "$NUMBER"; done)" \
+    -ge "$(echo "1.22.0" | tr . '\n' \
+      | while read NUMBER; do printf '%05d' "$NUMBER"; done)" ]
+  then
+    openssl req -new -nodes -text -keyout "$TARGET_PATH/operator.key" \
+        -subj "/CN=system:node:stackgres-operator.$OPERATOR_NAMESPACE;/O=system:nodes" \
+        -out "$TARGET_PATH/server.csr" \
+        -config "$TARGET_PATH/csr.conf"
+  else
+    openssl req -new -nodes -text -keyout "$TARGET_PATH/operator.key" \
+        -subj "/CN=stackgres-operator.$OPERATOR_NAMESPACE" \
+        -out "$TARGET_PATH/server.csr" \
+        -config "$TARGET_PATH/csr.conf"
+  fi
+  openssl rsa -in "$TARGET_PATH/operator.key" -pubout -out "$TARGET_PATH/operator.pub"
 
   cat << EOF | kubectl create -f -
-apiVersion: certificates.k8s.io/v1
+$(
+if [ "$(echo "$K8S_VERSION" | tr . '\n' \
+    | while read NUMBER; do printf '%05d' "$NUMBER"; done)" \
+  -ge "$(echo "1.22.0" | tr . '\n' \
+    | while read NUMBER; do printf '%05d' "$NUMBER"; done)" ]
+then
+  echo "apiVersion: certificates.k8s.io/v1"
+else
+  echo "apiVersion: certificates.k8s.io/v1beta1"
+fi
+)
 kind: CertificateSigningRequest
 metadata:
   name: stackgres-operator
@@ -177,10 +202,44 @@ spec:
   - digital signature
   - key encipherment
   - server auth
+$(
+if [ "$(echo "$K8S_VERSION" | tr . '\n' \
+    | while read NUMBER; do printf '%05d' "$NUMBER"; done)" \
+  -ge "$(echo "1.22.0" | tr . '\n' \
+    | while read NUMBER; do printf '%05d' "$NUMBER"; done)" ]
+then
+  echo "  signerName: kubernetes.io/kubelet-serving"
+fi
+)
 EOF
 
   kubectl certificate approve 'stackgres-operator'
-  kubectl get csr 'stackgres-operator' -o jsonpath='{.status.certificate}' | base64 -d > "$TARGET_PATH/server.crt"
+  echo "Wait for operator certificate to be generated"
+  while true
+  do
+    OPERATOR_CERTIFICATE="$(kubectl get csr 'stackgres-operator' -o jsonpath='{.status.certificate}')"
+    if [ -n "$OPERATOR_CERTIFICATE" ]
+    then
+      break
+    else
+      echo -n .
+      sleep 1
+    fi
+  done
+  echo "done"
+  printf %s "$OPERATOR_CERTIFICATE" | base64 -d > "$TARGET_PATH/operator.crt"
+  kubectl delete --ignore-not-found secret stackgres-operator-certs
+  cat << EOF | kubectl create -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: stackgres-operator-certs
+  namespace: $OPERATOR_NAMESPACE
+type: kubernetes.io/tls
+data:
+  tls.key: $(base64 "$TARGET_PATH/operator.key" -w 0)
+  tls.crt: $(base64 "$TARGET_PATH/operator.crt" -w 0)
+EOF
 }
 
 setup_operator() {
@@ -581,8 +640,57 @@ upgrade_operator() {
 
 upgrade_operator_vanilla() {
   before_operator_install_or_upgrade
-  helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_VERSION_HELM_URL" "$@"
+  if [ "$E2E_USE_LOCAL_OPERATOR" = true ]
+  then
+    create_operator_certificate
+    run_local_operator
+    helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_VERSION_HELM_URL" \
+      --set deploy.operator=false \
+      --set cert.createForOperator=false \
+      --set developer.externalOperatorIp="$E2E_LOCAL_OPERATOR_IP" \
+      --set developer.externalOperatorPort="$E2E_LOCAL_OPERATOR_SSL_PORT" \
+      "$@"
+  else
+    helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_VERSION_HELM_URL" "$@"
+  fi
   after_operator_install_or_upgrade
+}
+
+run_local_operator() {
+  if kill -0 "$(cat "$TARGET_PATH/operator.pid")" > /dev/null 2>&1
+  then
+    kill "$(cat "$TARGET_PATH/operator.pid")"
+    while kill -0 "$(cat "$TARGET_PATH/operator.pid")" > /dev/null 2>&1
+    do
+      sleep 2
+    done
+  fi
+  stackgres-k8s/src/mvnw \
+    -f stackgres-k8s/src/pom.xml \
+    $([ "$E2E_LOCAL_OPERATOR_CLEAN" = true ] && printf clean || true) \
+    install \
+    -DskipTests \
+    -Denforcer.skip=true \
+    -pl .,operator-framework,test-util,common,operator
+  stackgres-k8s/src/mvnw \
+    -f stackgres-k8s/src/pom.xml \
+    quarkus:dev \
+    -DskipTests \
+    -Denforcer.skip=true \
+    -pl operator \
+    -Ddebug=8000 \
+    -Djvm.args="$(cat << EOF | tr '\n' ' '
+        -Dquarkus.arc.dev-mode.monitoring-enabled=false
+        -Dquarkus.http.host=0.0.0.0
+        -Dquarkus.http.ssl.certificate.files=$TARGET_PATH/operator.crt
+        -Dquarkus.http.ssl.certificate.key-files=$TARGET_PATH/operator.key
+        -Dquarkus.http.port=$E2E_LOCAL_OPERATOR_PORT
+        -Dquarkus.http.ssl-port=$E2E_LOCAL_OPERATOR_SSL_PORT
+        -Dkubernetes.impersonate.username=system:serviceaccount:$OPERATOR_NAMESPACE:stackgres-operator
+        -Dkubernetes.impersonate.group=system:serviceaccount:$OPERATOR_NAMESPACE:stackgres-operator
+EOF
+    )" > "$TARGET_PATH/operator.log" &
+  echo "$!" > "$TARGET_PATH/operator.pid"
 }
 
 upgrade_operator_from_private_repository() {
