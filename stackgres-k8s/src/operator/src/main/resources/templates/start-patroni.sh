@@ -37,10 +37,19 @@ postgresql:
     dynamic_library_path: '${PG_LIB_PATH}:${PG_EXTRA_LIB_PATH}'
   basebackup:
     checkpoint: 'fast'
+  callbacks:
+    on_restart: '${PATRONI_CONFIG_PATH}/setup-data-path.sh'
+    on_start: '${PATRONI_CONFIG_PATH}/setup-data-path.sh'
 watchdog:
   mode: off
 tags: {}
 EOF
+
+cat << EOF > '${PATRONI_CONFIG_PATH}/setup-data-path.sh'
+mkdir -p "$PG_DATA_PATH"
+chmod -R 700 "$PG_DATA_PATH"
+EOF
+chmod 755 '${PATRONI_CONFIG_PATH}/setup-data-path.sh'
 
 export LC_ALL=C.UTF-8
 
