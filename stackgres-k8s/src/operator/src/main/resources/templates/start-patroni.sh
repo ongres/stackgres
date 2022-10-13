@@ -45,7 +45,7 @@ watchdog:
 tags: {}
 EOF
 
-cat << EOF > '${PATRONI_CONFIG_PATH}/setup-data-path.sh'
+cat << EOF > "${PATRONI_CONFIG_PATH}/setup-data-path.sh"
 mkdir -p "$PG_DATA_PATH"
 chmod -R 700 "$PG_DATA_PATH"
 EOF
