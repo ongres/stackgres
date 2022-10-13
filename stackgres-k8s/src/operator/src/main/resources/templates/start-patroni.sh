@@ -120,7 +120,7 @@ EOF
 PATRONI_CONFIG_EOF
 chmod 600 "$PATRONI_CONFIG_PATH/config.yml"
 
-cat << EOF > '${PATRONI_CONFIG_PATH}/setup-data-path.sh'
+cat << EOF > "${PATRONI_CONFIG_PATH}/setup-data-path.sh"
 mkdir -p "$PG_DATA_PATH"
 chmod -R 700 "$PG_DATA_PATH"
 EOF
