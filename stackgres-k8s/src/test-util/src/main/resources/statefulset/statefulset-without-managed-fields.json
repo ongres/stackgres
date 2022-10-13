@@ -848,60 +848,6 @@
             "command": [
               "/bin/sh",
               "-ex",
-              "/templates/setup-data-paths.sh"
-            ],
-            "env": [
-              {
-                "name": "PG_BASE_PATH",
-                "value": "/var/lib/postgresql"
-              },
-              {
-                "name": "PG_DATA_PATH",
-                "value": "/var/lib/postgresql/data"
-              }
-            ],
-            "image": "docker.io/ongres/kubectl:v1.19.14-build-6.6",
-            "imagePullPolicy": "IfNotPresent",
-            "name": "setup-data-paths",
-            "volumeMounts": [
-              {
-                "mountPath": "/etc/passwd",
-                "name": "user",
-                "readOnly": true,
-                "subPath": "etc/passwd"
-              },
-              {
-                "mountPath": "/etc/group",
-                "name": "user",
-                "readOnly": true,
-                "subPath": "etc/group"
-              },
-              {
-                "mountPath": "/etc/shadow",
-                "name": "user",
-                "readOnly": true,
-                "subPath": "etc/shadow"
-              },
-              {
-                "mountPath": "/etc/gshadow",
-                "name": "user",
-                "readOnly": true,
-                "subPath": "etc/gshadow"
-              },
-              {
-                "mountPath": "/templates",
-                "name": "templates"
-              },
-              {
-                "mountPath": "/var/lib/postgresql",
-                "name": "test-data"
-              }
-            ]
-          },
-          {
-            "command": [
-              "/bin/sh",
-              "-ex",
               "/templates/relocate-binaries.sh"
             ],
             "env": [

@@ -1240,65 +1240,6 @@
                       }
                     }
                   },
-                  "k:{\"name\":\"setup-data-paths\"}" : {
-                    "." : { },
-                    "f:command" : { },
-                    "f:env" : {
-                      "k:{\"name\":\"PG_BASE_PATH\"}" : {
-                        "." : { },
-                        "f:name" : { },
-                        "f:value" : { }
-                      },
-                      "k:{\"name\":\"PG_DATA_PATH\"}" : {
-                        "." : { },
-                        "f:name" : { },
-                        "f:value" : { }
-                      }
-                    },
-                    "f:image" : { },
-                    "f:imagePullPolicy" : { },
-                    "f:name" : { },
-                    "f:volumeMounts" : {
-                      "k:{\"mountPath\":\"/etc/group\"}" : {
-                        "." : { },
-                        "f:mountPath" : { },
-                        "f:name" : { },
-                        "f:readOnly" : { },
-                        "f:subPath" : { }
-                      },
-                      "k:{\"mountPath\":\"/etc/gshadow\"}" : {
-                        "." : { },
-                        "f:mountPath" : { },
-                        "f:name" : { },
-                        "f:readOnly" : { },
-                        "f:subPath" : { }
-                      },
-                      "k:{\"mountPath\":\"/etc/passwd\"}" : {
-                        "." : { },
-                        "f:mountPath" : { },
-                        "f:name" : { },
-                        "f:readOnly" : { },
-                        "f:subPath" : { }
-                      },
-                      "k:{\"mountPath\":\"/etc/shadow\"}" : {
-                        "." : { },
-                        "f:mountPath" : { },
-                        "f:name" : { },
-                        "f:readOnly" : { },
-                        "f:subPath" : { }
-                      },
-                      "k:{\"mountPath\":\"/templates\"}" : {
-                        "." : { },
-                        "f:mountPath" : { },
-                        "f:name" : { }
-                      },
-                      "k:{\"mountPath\":\"/var/lib/postgresql\"}" : {
-                        "." : { },
-                        "f:mountPath" : { },
-                        "f:name" : { }
-                      }
-                    }
-                  },
                   "k:{\"name\":\"setup-scripts\"}" : {
                     "." : { },
                     "f:command" : { },
@@ -1666,48 +1607,6 @@
               "name" : "user",
               "mountPath" : "/local/etc",
               "subPath" : "etc"
-            } ],
-            "terminationMessagePath" : "/dev/termination-log",
-            "terminationMessagePolicy" : "File",
-            "imagePullPolicy" : "IfNotPresent"
-          }, {
-            "name" : "setup-data-paths",
-            "image" : "docker.io/ongres/kubectl:v1.19.14-build-6.6",
-            "command" : [ "/bin/sh", "-ex", "/templates/setup-data-paths.sh" ],
-            "env" : [ {
-              "name" : "PG_BASE_PATH",
-              "value" : "/var/lib/postgresql"
-            }, {
-              "name" : "PG_DATA_PATH",
-              "value" : "/var/lib/postgresql/data"
-            } ],
-            "resources" : { },
-            "volumeMounts" : [ {
-              "name" : "user",
-              "readOnly" : true,
-              "mountPath" : "/etc/passwd",
-              "subPath" : "etc/passwd"
-            }, {
-              "name" : "user",
-              "readOnly" : true,
-              "mountPath" : "/etc/group",
-              "subPath" : "etc/group"
-            }, {
-              "name" : "user",
-              "readOnly" : true,
-              "mountPath" : "/etc/shadow",
-              "subPath" : "etc/shadow"
-            }, {
-              "name" : "user",
-              "readOnly" : true,
-              "mountPath" : "/etc/gshadow",
-              "subPath" : "etc/gshadow"
-            }, {
-              "name" : "templates",
-              "mountPath" : "/templates"
-            }, {
-              "name" : "test-data",
-              "mountPath" : "/var/lib/postgresql"
             } ],
             "terminationMessagePath" : "/dev/termination-log",
             "terminationMessagePolicy" : "File",

@@ -93,6 +93,7 @@ then
     fi
     touch "$PG_UPGRADE_PATH/$TARGET_VERSION/.copy-missing-lib64.done"
   fi
+  chmod 700 "$PG_DATA_PATH"
   if [ "$CHECK" = true ]
   then
     echo "Checking major version upgrade"
