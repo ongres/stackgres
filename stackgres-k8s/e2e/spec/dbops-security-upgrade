@@ -840,7 +840,7 @@ check_profile_mutation() {
     return 1
   fi
   if [ "$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "size-xs" --template '{{ .spec.initContainers | len }}')" \
-    = "10" ]
+    = "9" ]
   then
     echo "SUCCESS. Init containers section was added to instance profiles after operator upgrade"
   else
