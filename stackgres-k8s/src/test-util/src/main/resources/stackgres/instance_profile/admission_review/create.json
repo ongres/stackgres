@@ -119,10 +119,6 @@
             "cpu": "500m",
             "memory": "512Mi"
           },
-          "setup-data-paths": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
           "setup-scripts": {
             "cpu": "500m",
             "memory": "512Mi"

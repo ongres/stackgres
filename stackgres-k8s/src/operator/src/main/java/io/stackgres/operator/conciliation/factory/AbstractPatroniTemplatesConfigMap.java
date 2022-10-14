@@ -30,7 +30,6 @@ public abstract class AbstractPatroniTemplatesConfigMap<T>
 
     for (String resource : new String[]{
         ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename(),
-        ClusterStatefulSetPath.LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename(),
         ClusterStatefulSetPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename(),
