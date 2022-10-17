@@ -1,39 +1,7 @@
 #!/bin/sh
 
 export E2E_DISABLE_RESOURCE_REQUIREMENTS="${E2E_DISABLE_RESOURCE_REQUIREMENTS:-true}"
-
-remove_cluster() {
-  local RELEASE="$1"
-  local NAMESPACE="$2"
-
-  echo "Deleting release $RELEASE" 
-  helm get manifest "$RELEASE" --namespace "$NAMESPACE" \
-    | yq 'select(.kind == "SGCluster")' \
-    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
-  helm get manifest "$RELEASE" --namespace "$NAMESPACE" \
-    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
-  helm get hooks "$RELEASE" --namespace "$NAMESPACE" \
-    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
-  helm uninstall "$RELEASE" --namespace "$NAMESPACE"
-  kubectl wait sts --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
-  kubectl wait pvc --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
-  kubectl wait pod --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
-  kubectl delete endpoints --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --ignore-not-found 2>/dev/null || true
-  kubectl wait sts --namespace "$NAMESPACE" -l "stackgres.io/cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
-  kubectl wait pvc --namespace "$NAMESPACE" -l "stackgres.io/cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
-  kubectl wait pod --namespace "$NAMESPACE" -l "stackgres.io/cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
-  kubectl delete endpoints --namespace "$NAMESPACE" -l "stackgres.io/cluster-name=$RELEASE" --ignore-not-found 2>/dev/null || true
-}
-
-remove_cluster_if_exists() {
-  local RELEASE="$1"
-  local NAMESPACE="$2"
-
-  if helm get values "$RELEASE"  --namespace "$NAMESPACE" > /dev/null 2>&1
-  then
-    remove_cluster "$RELEASE" "$NAMESPACE"
-  fi
-}
+export E2E_POSTGRES_VERSION="${E2E_POSTGRES_VERSION:-14.4}"
 
 create_or_replace_cluster_without_defaults() {
   local RELEASE="$1"
@@ -51,7 +19,8 @@ create_or_replace_cluster() {
   local INSTANCES="$3"
   shift 3
 
-  create_or_replace_cluster_only "$RELEASE" "$NAMESPACE" "$INSTANCES" -f "$SPEC_VALUES_FILE" \
+  create_or_replace_cluster_only "$RELEASE" "$NAMESPACE" "$INSTANCES" \
+    -f "$SPEC_VALUES_FILE" --set cluster.postgres.version="$E2E_POSTGRES_VERSION" \
     "$@"
 }
 
@@ -267,4 +236,37 @@ transform_to_0_9() {
 
 dont_transform() {
   printf "%s" "$1"
+}
+
+remove_cluster() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+
+  echo "Deleting release $RELEASE" 
+  helm get manifest "$RELEASE" --namespace "$NAMESPACE" \
+    | yq 'select(.kind == "SGCluster")' \
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+  helm get manifest "$RELEASE" --namespace "$NAMESPACE" \
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+  helm get hooks "$RELEASE" --namespace "$NAMESPACE" \
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+  helm uninstall "$RELEASE" --namespace "$NAMESPACE"
+  kubectl wait sts --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl wait pvc --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl wait pod --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl delete endpoints --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --ignore-not-found 2>/dev/null || true
+  kubectl wait sts --namespace "$NAMESPACE" -l "stackgres.io/cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl wait pvc --namespace "$NAMESPACE" -l "stackgres.io/cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl wait pod --namespace "$NAMESPACE" -l "stackgres.io/cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl delete endpoints --namespace "$NAMESPACE" -l "stackgres.io/cluster-name=$RELEASE" --ignore-not-found 2>/dev/null || true
+}
+
+remove_cluster_if_exists() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+
+  if helm get values "$RELEASE"  --namespace "$NAMESPACE" > /dev/null 2>&1
+  then
+    remove_cluster "$RELEASE" "$NAMESPACE"
+  fi
 }

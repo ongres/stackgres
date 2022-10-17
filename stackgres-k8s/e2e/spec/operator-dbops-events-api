@@ -7,6 +7,7 @@ e2e_test_install() {
   NODE_LABEL_VALUE="$(random_string)"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string "cluster.postgres.version=$E2E_MINOR_SOURCE_POSTGRES_VERSION" \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
