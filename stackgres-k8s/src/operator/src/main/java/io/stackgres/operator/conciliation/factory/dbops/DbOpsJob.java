@@ -14,13 +14,13 @@ import java.util.regex.Pattern;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EmptyDirVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
+import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -144,12 +144,40 @@ public abstract class DbOpsJob implements JobFactory {
         .withLabels(labels)
         .endMetadata()
         .withNewSpec()
-        .withTolerations(getSchedulingTolerations(dbOps))
+        .withServiceAccountName(DbOpsRole.roleName(context))
         .withSecurityContext(podSecurityFactory.createResource(context))
         .withRestartPolicy("Never")
-        .withNodeSelector(getNodeSelectors(dbOps))
-        .withAffinity(getAffinity(dbOps))
-        .withServiceAccountName(DbOpsRole.roleName(context))
+        .withNodeSelector(Optional.ofNullable(dbOps)
+            .map(StackGresDbOps::getSpec)
+            .map(StackGresDbOpsSpec::getScheduling)
+            .map(StackGresDbOpsSpecScheduling::getNodeSelector)
+            .orElse(null))
+        .withTolerations(Optional.ofNullable(dbOps)
+            .map(StackGresDbOps::getSpec)
+            .map(StackGresDbOpsSpec::getScheduling)
+            .map(StackGresDbOpsSpecScheduling::getTolerations)
+            .map(tolerations -> Seq.seq(tolerations)
+                .map(TolerationBuilder::new)
+                .map(TolerationBuilder::build)
+                .toList())
+            .orElse(null))
+        .withAffinity(new AffinityBuilder()
+            .withNodeAffinity(Optional.of(dbOps)
+                .map(StackGresDbOps::getSpec)
+                .map(StackGresDbOpsSpec::getScheduling)
+                .map(StackGresDbOpsSpecScheduling::getNodeAffinity)
+                .orElse(null))
+            .withPodAffinity(Optional.of(dbOps)
+                .map(StackGresDbOps::getSpec)
+                .map(StackGresDbOpsSpec::getScheduling)
+                .map(StackGresDbOpsSpecScheduling::getPodAffinity)
+                .orElse(null))
+            .withPodAntiAffinity(Optional.of(dbOps)
+                .map(StackGresDbOps::getSpec)
+                .map(StackGresDbOpsSpec::getScheduling)
+                .map(StackGresDbOpsSpecScheduling::getPodAntiAffinity)
+                .orElse(null))
+            .build())
         .withInitContainers(new ContainerBuilder()
             .withName("set-dbops-running")
             .withImage(getSetResultImage(context))
@@ -329,41 +357,6 @@ public abstract class DbOpsJob implements JobFactory {
         .endTemplate()
         .endSpec()
         .build();
-  }
-
-  private List<io.fabric8.kubernetes.api.model.Toleration> getSchedulingTolerations(
-      final StackGresDbOps dbOps) {
-
-    if (dbOps.getSpec().getScheduling() == null
-        || dbOps.getSpec().getScheduling().getTolerations() == null) {
-      return List.of();
-    }
-
-    return dbOps.getSpec().getScheduling().getTolerations().stream()
-        .map(t -> new io.fabric8.kubernetes.api.model.Toleration(t.getEffect(), t.getKey(),
-            t.getOperator(), t.getTolerationSeconds(), t.getValue()))
-        .toList();
-
-  }
-
-  private Affinity getAffinity(StackGresDbOps dbOps) {
-    return Optional.of(new AffinityBuilder())
-        .map(builder -> builder.withNodeAffinity(
-            Optional.of(dbOps)
-                .map(StackGresDbOps::getSpec)
-                .map(StackGresDbOpsSpec::getScheduling)
-                .map(StackGresDbOpsSpecScheduling::getNodeAffinity)
-                .orElse(null)))
-        .map(AffinityBuilder::build)
-        .orElse(null);
-  }
-
-  private Map<String, String> getNodeSelectors(StackGresDbOps dbOps) {
-    return Optional.ofNullable(dbOps)
-        .map(StackGresDbOps::getSpec)
-        .map(StackGresDbOpsSpec::getScheduling)
-        .map(StackGresDbOpsSpecScheduling::getNodeSelector)
-        .orElse(null);
   }
 
   private Volume buildSharedVolume() {

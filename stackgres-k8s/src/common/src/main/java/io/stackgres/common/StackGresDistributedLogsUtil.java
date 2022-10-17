@@ -97,6 +97,12 @@ public interface StackGresDistributedLogsUtil {
               distributedLogsScheduling.getNodeSelector());
           distributedLogsCluster.getSpec().getPod().getScheduling().setTolerations(
               distributedLogsScheduling.getTolerations());
+          distributedLogsCluster.getSpec().getPod().getScheduling().setNodeAffinity(
+              distributedLogsScheduling.getNodeAffinity());
+          distributedLogsCluster.getSpec().getPod().getScheduling().setPodAffinity(
+              distributedLogsScheduling.getPodAffinity());
+          distributedLogsCluster.getSpec().getPod().getScheduling().setPodAntiAffinity(
+              distributedLogsScheduling.getPodAntiAffinity());
         });
     distributedLogsCluster.getSpec().setInitData(new StackGresClusterInitData());
     distributedLogsCluster.getSpec().getInitData().setScripts(
