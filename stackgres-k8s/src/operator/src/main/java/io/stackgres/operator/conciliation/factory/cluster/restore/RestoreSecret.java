@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgbackup.BackupPhase;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
@@ -78,9 +78,9 @@ public class RestoreSecret
           .map(StackGresBackup::getStatus)
           .map(StackGresBackupStatus::getProcess)
           .map(StackGresBackupProcess::getStatus)
-          .orElse(BackupPhase.PENDING.label());
+          .orElse(BackupStatus.PENDING.status());
 
-      if (!BackupPhase.COMPLETED.label().equals(status)) {
+      if (!BackupStatus.COMPLETED.status().equals(status)) {
         data.put("RESTORE_BACKUP_ERROR", "Backup is " + status);
       } else {
         final StackGresBackup backup = restoreBackup.get();

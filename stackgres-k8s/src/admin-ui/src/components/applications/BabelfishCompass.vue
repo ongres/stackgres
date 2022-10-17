@@ -45,6 +45,7 @@
                                 name="sqlFiles"
                                 :id="item"
                                 :ref="item"
+                                :required="(!index)"
                                 @change="uploadFile" 
                             >
                         </template>
@@ -57,6 +58,7 @@
             <hr/>
             <button
                 class="btn"
+                type="submit"
                 @click="sendFiles()"
                 :disabled="processingFile"
                 >
@@ -186,6 +188,10 @@
             sendFiles() {
                 let vc = this;
 
+                if(!vc.checkRequired()) {
+                    return;
+                }
+
                 vc.processingFile = true;
                 vc.result = {};
 
@@ -196,7 +202,7 @@
                 })
 
                 sgApi
-                .createCustomResource('applications/com.ongres/babelfish-compass', formData)
+                .createCustomResource('/applications/com.ongres/babelfish-compass', formData)
                 .then( function(response){
                     let parser = new DOMParser();
                     let htmlDoc = parser.parseFromString(response.data.report, 'text/html');

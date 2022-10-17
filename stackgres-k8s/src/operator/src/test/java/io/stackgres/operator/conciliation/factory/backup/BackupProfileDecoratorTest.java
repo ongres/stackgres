@@ -9,6 +9,7 @@ import static org.mockito.Mockito.lenient;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -22,6 +23,8 @@ import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
 import io.stackgres.common.fixture.Fixtures;
@@ -97,7 +100,11 @@ class BackupProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
     profile.getSpec().getInitContainers().put(
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
+    backup.setStatus(null);
 
+    lenient().when(context.getObjectStorage()).thenReturn(
+        Optional.of(new StackGresObjectStorage()));
+    lenient().when(context.getSource()).thenReturn(backup);
     lenient().when(context.getCluster()).thenReturn(cluster);
     lenient().when(context.getProfile()).thenReturn(profile);
   }
@@ -133,6 +140,12 @@ class BackupProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
     cluster.getSpec().setNonProductionOptions(new StackGresClusterNonProduction());
     cluster.getSpec().getNonProductionOptions().setEnableSetClusterCpuRequests(true);
     cluster.getSpec().getNonProductionOptions().setEnableSetClusterMemoryRequests(true);
+  }
+
+  @Override
+  protected void enableLimits() {
+    cluster.getSpec().getPod().setResources(new StackGresClusterResources());
+    cluster.getSpec().getPod().getResources().setEnableClusterLimitsRequirements(true);
   }
 
 }

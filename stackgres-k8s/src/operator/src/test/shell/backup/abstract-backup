@@ -15,6 +15,8 @@ BACKUP_PHASE_COMPLETED=Completed
 BACKUP_PHASE_FAILED=Failed
 SCHEDULED_BACKUP_KEY=scheduled-backup
 RIGHT_VALUE=true
+JOB_NAME_KEY=job-name
+JOB_NAME=test
 BACKUP_CONFIG=test
 PATRONI_CLUSTER_LABELS=app=StackGresCluster,cluster-uid=test,cluster-namespace=test,cluster-name=test
 PATRONI_CONTAINER_NAME=patroni

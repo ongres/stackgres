@@ -29,7 +29,6 @@ run() {
   then
     kill_with_childs "$PID"
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
       {"op":"replace","path":"/status/process/failure","value":"Lock lost:\n'"$(cat /tmp/try-lock | to_json_string)"'"}
       ]'
     cat /tmp/try-lock
@@ -106,7 +105,6 @@ reconcile_backups() {
   if [ "$?" != 0 ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
       {"op":"replace","path":"/status/process/failure","value":"Backup can not be listed after creation '"$(cat /tmp/backup-list | to_json_string)"'"}
       ]'
     cat /tmp/backup-list
@@ -118,7 +116,6 @@ reconcile_backups() {
   if [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template='{{ .metadata.resourceVersion }}')" ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
       {"op":"replace","path":"/status/process/failure","value":"Backup configuration '"$BACKUP_CONFIG"' changed during backup"}
       ]'
     cat /tmp/backup-list
@@ -128,7 +125,6 @@ reconcile_backups() {
       --template="{{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ else }}{{ (index .spec.configurations.backups 0).path }}{{ end }}")" ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
       {"op":"replace","path":"/status/process/failure","value":"Backup path '"$CLUSTER_BACKUP_PATH"' changed during backup"}
       ]'
     cat /tmp/backup-list
@@ -137,7 +133,6 @@ reconcile_backups() {
   elif ! grep -q "^backup_name:${CURRENT_BACKUP_NAME}$" /tmp/current-backup
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
       {"op":"replace","path":"/status/process/failure","value":"Backup '"$CURRENT_BACKUP_NAME"' was not found after creation"}
       ]'
     cat /tmp/backup-list
@@ -251,7 +246,6 @@ BACKUP_STATUS_YAML=$(cat << BACKUP_STATUS_YAML_EOF
 status:
   backupPath: "$CLUSTER_BACKUP_PATH"
   process:
-    status: "$BACKUP_PHASE_RUNNING"
     jobPod: "$POD_NAME"
   sgBackupConfig:
 $(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template="$BACKUP_CONFIG_YAML")
@@ -269,6 +263,9 @@ metadata:
   name: "$BACKUP_NAME"
   annotations:
     $SCHEDULED_BACKUP_KEY: "$RIGHT_VALUE"
+  labels:
+    $SCHEDULED_BACKUP_KEY: "$RIGHT_VALUE"
+    $SCHEDULED_BACKUP_JOB_NAME_KEY: "$SCHEDULED_BACKUP_JOB_NAME"
 spec:
   sgCluster: "$CLUSTER_NAME"
   managedLifecycle: true
@@ -297,7 +294,6 @@ get_primary_and_replica_pods() {
   if [ ! -s /tmp/current-primary ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
       {"op":"replace","path":"/status/process/failure","value":"Unable to find primary, backup aborted"}
       ]'
     kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${PATRONI_CLUSTER_LABELS}" >&2
@@ -326,7 +322,6 @@ EOF
   if [ "$?" != 0 ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
       {"op":"replace","path":"/status/process/failure","value":"Backup failed:\n\n'"$(cat /tmp/backup-push | to_json_string)"'"}
       ]'
     exit 1
@@ -339,7 +334,6 @@ EOF
   if [ -z "$CURRENT_BACKUP_NAME" ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_FAILED"'"},
       {"op":"replace","path":"/status/process/failure","value":"Backup name not found in backup-push log:\n'"$(cat /tmp/backup-push | to_json_string)"'"}
       ]'
     cat /tmp/backup-push
@@ -491,7 +485,6 @@ set_backup_completed() {
 
   BACKUP_PATCH='[
     {"op":"replace","path":"/status/internalName","value":"'"$CURRENT_BACKUP_NAME"'"},
-    {"op":"replace","path":"/status/process/status","value":"'"$BACKUP_PHASE_COMPLETED"'"},
     {"op":"replace","path":"/status/process/failure","value":""},
     {"op":"replace","path":"/status/process/managedLifecycle","value":'$IS_BACKUP_SUBJECT_TO_RETENTION_POLICY'},
     {"op":"replace","path":"/status/process/timing","value":{

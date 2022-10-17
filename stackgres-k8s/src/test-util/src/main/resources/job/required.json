@@ -55,9 +55,6 @@
             "name" : "LOCAL_BIN_PATH",
             "value" : "/usr/local/bin"
           }, {
-            "name" : "LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH",
-            "value" : "/usr/local/bin/setup-data-paths.sh"
-          }, {
             "name" : "LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH",
             "value" : "/usr/local/bin/setup-arbitrary-user.sh"
           }, {
@@ -252,9 +249,6 @@
             "name" : "LOCAL_BIN_PATH",
             "value" : "/usr/local/bin"
           }, {
-            "name" : "LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH",
-            "value" : "/usr/local/bin/setup-data-paths.sh"
-          }, {
             "name" : "LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH",
             "value" : "/usr/local/bin/setup-arbitrary-user.sh"
           }, {
@@ -444,9 +438,6 @@
           }, {
             "name" : "LOCAL_BIN_PATH",
             "value" : "/usr/local/bin"
-          }, {
-            "name" : "LOCAL_BIN_SETUP_DATA_PATHS_SH_PATH",
-            "value" : "/usr/local/bin/setup-data-paths.sh"
           }, {
             "name" : "LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH",
             "value" : "/usr/local/bin/setup-arbitrary-user.sh"

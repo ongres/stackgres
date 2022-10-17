@@ -126,8 +126,8 @@ modules:
       - export HOME=/project
       - npm install
       - |
-        ! test -f node_modules/prettycron/node_modules/later/index.js \
-          || sed -i 's/later-cov/later/' node_modules/prettycron/node_modules/later/index.js
+        ! grep -q 'later-cov' node_modules/prettycron/node_modules/later/index.js \
+          || sed -i 's/^require\(.*\);$/require(".\/later");/' node_modules/prettycron/node_modules/later/index.js
       - npm run build
       - sh $SHELL_XTRACE build.sh
     cache:

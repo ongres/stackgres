@@ -38,6 +38,7 @@ export default new Vuex.Store({
     cloneCRD: {},
     timezone: 'local',
     view: 'normal',
+    interval: 1,
     permissions: {
       allowed: {
         namespaced: [],
@@ -313,6 +314,10 @@ export default new Vuex.Store({
       state.view = (state.view == 'normal') ? 'collapsed' : 'normal';
       $('body').toggleClass('collapsed')
       document.cookie = "sgView=" + state.view + "; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict;";
+    },
+
+    setReloadInterval (state, interval) {
+      state.interval = interval;
     },
 
     setRestartCluster (state, cluster) {

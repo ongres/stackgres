@@ -1,5 +1,8 @@
 describe('Create SGScripts', () => {
-    
+    Cypress.on('uncaught:exception', (err, runnable) => {
+      return false
+    });
+  
     const namespace = Cypress.env('k8s_namespace')
     let resourceName;
 
@@ -10,11 +13,16 @@ describe('Create SGScripts', () => {
     });
 
     beforeEach( () => {
-        Cypress.Cookies.preserveOnce('sgToken')
-        cy.visit(namespace + '/sgscripts/new')
+      cy.gc()
+      cy.login()
+      cy.setCookie('sgReload', '0')
+      cy.setCookie('sgTimezone', 'utc')
+      cy.visit(namespace + '/sgscripts/new')
     });
 
     after( () => {
+        cy.login()
+
         cy.deleteCRD('sgscripts', {
             metadata: {
                 name: 'script-' + resourceName,
@@ -80,7 +88,7 @@ describe('Create SGScripts', () => {
         
         // Test new entry visibility
         cy.get('[data-field="spec.scripts[0].name"]')
-            .should('not.be.visible')
+            .should('not.exist')
             
     }); 
  

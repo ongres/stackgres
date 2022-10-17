@@ -113,9 +113,9 @@
         mixins: [mixin],
 
         components: {
-			CRDSummary
-		},
-        
+            CRDSummary
+        },
+
         data: function() {
 
             const vm = this;
@@ -190,83 +190,103 @@
         },
         methods: {
 
-            createProfile(preview = false) {
+            createProfile(preview = false, previous) {
                 const vc = this;
 
-                if(vc.checkRequired()) {
+                if(!vc.checkRequired()) {
+                    return;
+                }
 
-                    var profile = { 
-                        "metadata": {
-                            "name": this.profileName,
-                            "namespace": this.profileNamespace
-                        },
-                        "spec": {
-                            "cpu": (this.profileCPUUnit !== 'CPU')? this.profileCPU+this.profileCPUUnit : this.profileCPU,
-                            "memory": this.profileRAM+this.profileRAMUnit,
-                            ...( (this.hugePages1Gi.length || this.hugePages2Mi.length) && {
-                                "hugePages": {
-                                    ...( this.hugePages2Mi.length && {
-                                        "hugepages-2Mi": this.hugePages2Mi + this.hugePages2MiUnit
-                                    }),
-                                    ...( this.hugePages1Gi.length && {
-                                        "hugepages-1Gi": this.hugePages1Gi + this.hugePages1GiUnit
-                                    }),
-                                }
-                            })
+                if (!previous) {
+                    sgApi
+                    .getResourceDetails('sginstanceprofiles', this.profileNamespace, this.profileName)
+                    .then(function (response) {
+                        vc.createProfile(preview, response.data);
+                    })
+                    .catch(function (error) {
+                        if (error.response.status != 404) {
+                          console.log(error.response);
+                          vc.notify(error.response.data,'error', 'sginstanceprofiles');
+                          return;
                         }
+                        vc.createProfile(preview, {});
+                    });
+                    return;
+                }
+
+                var profile = {
+                    "metadata": {
+                        ...(this.hasProp(previous, 'metadata') && previous.metadata),
+                        "name": this.profileName,
+                        "namespace": this.profileNamespace
+                    },
+                    "spec": {
+                        ...(this.hasProp(previous, 'spec') && previous.spec),
+                        "cpu": (this.profileCPUUnit !== 'CPU')? this.profileCPU+this.profileCPUUnit : this.profileCPU,
+                        "memory": this.profileRAM+this.profileRAMUnit,
+                        ...( (this.hugePages1Gi.length || this.hugePages2Mi.length) && {
+                            "hugePages": {
+                                ...( this.hugePages2Mi.length && {
+                                    "hugepages-2Mi": this.hugePages2Mi + this.hugePages2MiUnit
+                                }),
+                                ...( this.hugePages1Gi.length && {
+                                    "hugepages-1Gi": this.hugePages1Gi + this.hugePages1GiUnit
+                                }),
+                            }
+                        } || {"hugePages": null} )
                     }
+                }
 
-                    if(preview) {                  
+                if(preview) {
 
-                        vc.previewCRD = {};
-                        vc.previewCRD['data'] = profile;
-                        vc.showSummary = true;
+                    vc.previewCRD = {};
+                    vc.previewCRD['data'] = profile;
+                    vc.showSummary = true;
+
+                } else {
+
+                    if(this.editMode) {
+                        sgApi
+                        .update('sginstanceprofiles', profile)
+                        .then(function (response) {
+                            vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> updated successfully', 'message','sginstanceprofiles');
+
+                            vc.fetchAPI('sginstanceprofile');
+                            router.push('/' + profile.metadata.namespace + '/sginstanceprofile/' + profile.metadata.name);
+
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error','sginstanceprofiles');
+                        });
 
                     } else {
+                        sgApi
+                        .create('sginstanceprofiles', profile)
+                        .then(function (response) {
 
-                        if(this.editMode) {
-                            sgApi
-                            .update('sginstanceprofiles', profile)
-                            .then(function (response) {
-                                vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> updated successfully', 'message','sginstanceprofiles');
+                            var urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.has('newtab')) {
+                                opener.fetchParentAPI('sginstanceprofile');
+                                vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your profile from the list.', 'message','sginstanceprofiles');
+                            } else {
+                                vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message','sginstanceprofiles');
+                            }
 
-                                vc.fetchAPI('sginstanceprofile');
-                                router.push('/' + profile.metadata.namespace + '/sginstanceprofile/' + profile.metadata.name);
+                            vc.fetchAPI('sginstanceprofiles');
+                            router.push('/' + profile.metadata.namespace + '/sginstanceprofiles');
+            
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error','sginstanceprofiles');
+                        });
 
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error','sginstanceprofiles');
-                            });
-
-                        } else {
-                            sgApi
-                            .create('sginstanceprofiles', profile)
-                            .then(function (response) {
-
-                                var urlParams = new URLSearchParams(window.location.search);
-                                if(urlParams.has('newtab')) {
-                                    opener.fetchParentAPI('sginstanceprofile');
-                                    vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your profile from the list.', 'message','sginstanceprofiles');
-                                } else {
-                                    vc.notify('Profile <strong>"'+profile.metadata.name+'"</strong> created successfully', 'message','sginstanceprofiles');
-                                }
-
-                                vc.fetchAPI('sginstanceprofiles');
-                                router.push('/' + profile.metadata.namespace + '/sginstanceprofiles');
-                
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error','sginstanceprofiles');
-                            });
-
-                        }
-                    }        
-                    
+                    }
                 }
 
             }
+
         }
 
     }

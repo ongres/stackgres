@@ -21,6 +21,7 @@ import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
@@ -98,6 +99,7 @@ class DbOpsProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
     profile.getSpec().getInitContainers().put(
         KIND.getContainerPrefix() + StringUtil.generateRandom(), containerProfile);
 
+    lenient().when(context.getSource()).thenReturn(dbOps);
     lenient().when(context.getCluster()).thenReturn(cluster);
     lenient().when(context.getProfile()).thenReturn(profile);
   }
@@ -133,6 +135,12 @@ class DbOpsProfileDecoratorTest extends AbstractProfileDecoratorTestCase {
     cluster.getSpec().setNonProductionOptions(new StackGresClusterNonProduction());
     cluster.getSpec().getNonProductionOptions().setEnableSetClusterCpuRequests(true);
     cluster.getSpec().getNonProductionOptions().setEnableSetClusterMemoryRequests(true);
+  }
+
+  @Override
+  protected void enableLimits() {
+    cluster.getSpec().getPod().setResources(new StackGresClusterResources());
+    cluster.getSpec().getPod().getResources().setEnableClusterLimitsRequirements(true);
   }
 
 }

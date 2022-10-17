@@ -33,13 +33,14 @@ import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpecBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.JobUtil;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgbackup.BackupPhase;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -186,15 +187,15 @@ public class BackupCronJob
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_PHASE_RUNNING")
-                            .withValue(BackupPhase.RUNNING.label())
+                            .withValue(BackupStatus.RUNNING.status())
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_PHASE_COMPLETED")
-                            .withValue(BackupPhase.COMPLETED.label())
+                            .withValue(BackupStatus.COMPLETED.status())
                             .build(),
                         new EnvVarBuilder()
                             .withName("BACKUP_PHASE_FAILED")
-                            .withValue(BackupPhase.FAILED.label())
+                            .withValue(BackupStatus.FAILED.status())
                             .build(),
                         new EnvVarBuilder()
                             .withName("PATRONI_ROLE_KEY")
@@ -244,6 +245,22 @@ public class BackupCronJob
                                     .withFieldRef(
                                         new ObjectFieldSelectorBuilder()
                                             .withFieldPath("metadata.name")
+                                            .build())
+                                    .build())
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("SCHEDULED_BACKUP_JOB_NAME_KEY")
+                            .withValue(labelFactory.labelMapper().scheduledBackupJobNameKey(
+                                cluster))
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("SCHEDULED_BACKUP_JOB_NAME")
+                            .withValueFrom(
+                                new EnvVarSourceBuilder()
+                                    .withFieldRef(
+                                        new ObjectFieldSelectorBuilder()
+                                            .withFieldPath(
+                                                "metadata.labels['" + JobUtil.JOB_NAME_KEY + "']")
                                             .build())
                                     .build())
                             .build(),

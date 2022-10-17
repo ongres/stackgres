@@ -18,7 +18,7 @@ import javax.enterprise.inject.Instance;
 import com.google.common.base.Predicates;
 import io.stackgres.common.StackGresVersion;
 
-public abstract class ResourceDiscoverer<T> {
+public abstract class ResourceDiscoverer<T> implements AnnotationFinder {
 
   protected final Map<StackGresVersion, List<T>> resourceHub =
       Arrays.stream(StackGresVersion.values())
@@ -31,8 +31,8 @@ public abstract class ResourceDiscoverer<T> {
   }
 
   protected void appendResourceFactory(T resourceFactory) {
-    OperatorVersionBinder operatorVersionTarget = resourceFactory.getClass()
-        .getAnnotation(OperatorVersionBinder.class);
+    OperatorVersionBinder operatorVersionTarget = getAnnotation(
+        resourceFactory, OperatorVersionBinder.class);
     final StackGresVersion startAt = Optional.of(operatorVersionTarget.startAt())
         .filter(Predicates.not(StackGresVersion.UNDEFINED::equals))
         .orElse(StackGresVersion.OLDEST);

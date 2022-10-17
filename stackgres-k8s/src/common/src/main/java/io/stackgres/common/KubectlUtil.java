@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.component.Component;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -61,6 +62,10 @@ public class KubectlUtil {
 
   public String getImageName(@NotNull StackGresCluster cluster) {
     return getImageName(StackGresVersion.getStackGresVersion(cluster));
+  }
+
+  public String getImageName(@NotNull StackGresDbOps dbOps) {
+    return getImageName(StackGresVersion.getStackGresVersion(dbOps));
   }
 
   public String getImageName(@NotNull StackGresDistributedLogs distributedLogs) {

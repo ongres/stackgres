@@ -376,6 +376,13 @@ spec:
                     disablePostgresUtil:
                       type: boolean
                       description: If set to `true`, avoids creating the `postgres-util` sidecar. This sidecar contains usual Postgres administration utilities *that are not present in the main (`patroni`) container*, like `psql`. Only disable if you know what you are doing.
+                    resources:
+                      type: object
+                      description: Pod custom resources configuration.
+                      properties:
+                        enableClusterLimitsRequirements:
+                          type: boolean
+                          description: When enabled resource limits for containers other than the patroni container wil be set just like for patroni contianer as specified in the SGInstanceProfile.
                     scheduling:
                       type: object
                       description: Pod custom scheduling configuration.

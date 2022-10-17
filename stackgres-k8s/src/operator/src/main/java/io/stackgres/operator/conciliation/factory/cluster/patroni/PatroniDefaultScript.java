@@ -15,7 +15,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.ManagedSqlUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
@@ -25,7 +24,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_3)
+@OperatorVersionBinder
 public class PatroniDefaultScript implements ResourceGenerator<StackGresClusterContext> {
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;

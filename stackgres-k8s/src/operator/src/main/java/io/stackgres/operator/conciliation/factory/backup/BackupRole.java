@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.factory.backup;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -21,6 +20,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.stackgres.common.LabelFactoryForBackup;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -60,9 +60,8 @@ public class BackupRole implements ResourceGenerator<StackGresBackupContext> {
   }
 
   private boolean isNotBackupCopy(StackGresBackupContext context) {
-    return Objects.equals(
-        context.getSource().getSpec().getSgCluster(),
-        context.getCluster().getMetadata().getName());
+    return !StackGresUtil.isRelativeIdNotInSameNamespace(
+        context.getSource().getSpec().getSgCluster());
   }
 
   private Role createRole(StackGresBackupContext context) {

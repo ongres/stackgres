@@ -135,69 +135,87 @@
         },
         methods: {
 
-            createPGConfig(preview = false) {
+            createPGConfig(preview = false, previous) {
                 const vc = this;
 
-                let isValid = vc.checkRequired();
-                
-                if(isValid) {
-                    var config = { 
-                        "metadata": {
-                            "name": this.pgConfigName,
-                            "namespace": this.pgConfigNamespace
-                        },
-                        "spec": {
-                            "postgresVersion": this.pgConfigVersion,
-                            "postgresql.conf": this.pgConfigParams
+                if (!vc.checkRequired()) {
+                    return;
+                }
+
+                if (!previous) {
+                    sgApi
+                    .getResourceDetails('sgpgconfigs', this.pgConfigNamespace, this.pgConfigName)
+                    .then(function (response) {
+                        vc.createPGConfig(preview, response.data);
+                    })
+                    .catch(function (error) {
+                        if (error.response.status != 404) {
+                          console.log(error.response);
+                          vc.notify(error.response.data,'error', 'sgpgconfigs');
+                          return;
                         }
-                    }
+                        vc.createPGConfig(preview, {});
+                    });
+                    return;
+                }
 
-                    if(preview) {                  
-
-                        vc.previewConfig = {};
-                        vc.previewConfig['data'] = config;
-                        vc.showSummary = true;
-
-                    } else {
-
-                        if(this.editMode) {
-                            sgApi
-                            .update('sgpgconfigs', config)
-                            .then(function (response) {
-                                vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'sgpgconfigs');
-
-                                vc.fetchAPI('sgpgconfig');
-                                router.push('/' + config.metadata.namespace + '/sgpgconfig/' + config.metadata.name);
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error', 'sgpgconfigs');
-                            });
-                        } else {
-                            sgApi
-                            .create('sgpgconfigs', config)
-                            .then(function (response) {
-                                
-                                var urlParams = new URLSearchParams(window.location.search);
-                                if(urlParams.has('newtab')) {
-                                    opener.fetchParentAPI('sgpgconfigs');
-                                    vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgpgconfigs');
-                                } else {
-                                    vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfigs');
-                                }
-                
-                                vc.fetchAPI('sgpgconfigs');
-                                router.push('/' + config.metadata.namespace + '/sgpgconfigs');                    
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error', 'sgpgconfigs');
-                            });
-                        }
+                var config = {
+                    "metadata": {
+                        ...(this.hasProp(previous, 'metadata') && previous.metadata),
+                        "name": this.pgConfigName,
+                        "namespace": this.pgConfigNamespace
+                    },
+                    "spec": {
+                        ...(this.hasProp(previous, 'spec') && previous.spec),
+                        "postgresVersion": this.pgConfigVersion,
+                        "postgresql.conf": this.pgConfigParams
                     }
                 }
 
+                if(preview) {
+
+                    vc.previewConfig = {};
+                    vc.previewConfig['data'] = config;
+                    vc.showSummary = true;
+
+                } else {
+
+                    if(this.editMode) {
+                        sgApi
+                        .update('sgpgconfigs', config)
+                        .then(function (response) {
+                            vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'sgpgconfigs');
+
+                            vc.fetchAPI('sgpgconfig');
+                            router.push('/' + config.metadata.namespace + '/sgpgconfig/' + config.metadata.name);
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error', 'sgpgconfigs');
+                        });
+                    } else {
+                        sgApi
+                        .create('sgpgconfigs', config)
+                        .then(function (response) {
+                            var urlParams = new URLSearchParams(window.location.search);
+                            if(urlParams.has('newtab')) {
+                                opener.fetchParentAPI('sgpgconfigs');
+                                vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgpgconfigs');
+                            } else {
+                                vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfigs');
+                            }
+
+                            vc.fetchAPI('sgpgconfigs');
+                            router.push('/' + config.metadata.namespace + '/sgpgconfigs');
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error', 'sgpgconfigs');
+                        });
+                    }
+                }
             }
+
         }
 
     }

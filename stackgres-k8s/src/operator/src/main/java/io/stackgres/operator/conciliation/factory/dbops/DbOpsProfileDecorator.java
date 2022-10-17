@@ -13,8 +13,10 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
+import io.stackgres.common.DbOpsUtil;
 import io.stackgres.common.StackGresKind;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
@@ -34,7 +36,8 @@ public class DbOpsProfileDecorator extends AbstractProfileDecorator
 
   @Override
   public void decorate(StackGresDbOpsContext context, Iterable<? extends HasMetadata> resources) {
-    if (Optional.of(context.getCluster().getSpec())
+    if (DbOpsUtil.isAlreadyCompleted(context.getSource())
+        || Optional.of(context.getCluster().getSpec())
         .map(StackGresClusterSpec::getNonProductionOptions)
         .map(StackGresClusterNonProduction::getDisableClusterResourceRequirements)
         .orElse(false)) {
@@ -49,6 +52,9 @@ public class DbOpsProfileDecorator extends AbstractProfileDecorator
             .map(Job::getSpec)
             .map(JobSpec::getTemplate)
             .map(PodTemplateSpec::getSpec),
+            Optional.ofNullable(context.getCluster().getSpec().getPod().getResources())
+            .map(StackGresClusterResources::getEnableClusterLimitsRequirements)
+            .orElse(false),
             Optional.ofNullable(context.getCluster().getSpec().getNonProductionOptions())
             .map(StackGresClusterNonProduction::getEnableSetClusterCpuRequests)
             .orElse(false),

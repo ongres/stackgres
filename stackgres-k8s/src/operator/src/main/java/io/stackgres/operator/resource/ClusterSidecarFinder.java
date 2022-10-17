@@ -6,13 +6,13 @@
 package io.stackgres.operator.resource;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.common.SidecarLiteral;
@@ -34,15 +34,17 @@ public class ClusterSidecarFinder implements SidecarFinder {
     this.transformers = transformers;
 
     allSidecars = transformers.stream()
-        .filter(t -> t.getClass().isAnnotationPresent(Sidecar.class))
-        .map(t -> t.getClass().getAnnotation(Sidecar.class).value().getName())
-        .collect(ImmutableList.toImmutableList());
+        .map(t -> findAnnotation(t, Sidecar.class))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .map(Sidecar::value)
+        .map(StackGresContainer::getName)
+        .toList();
 
     String envoySidecarName = Envoy.class.getAnnotation(Sidecar.class).value().getName();
 
     optionalSidecars = allSidecars.stream().filter(s -> !s.equals(envoySidecarName))
-        .collect(ImmutableList.toImmutableList());
-
+        .toList();
   }
 
   @Override

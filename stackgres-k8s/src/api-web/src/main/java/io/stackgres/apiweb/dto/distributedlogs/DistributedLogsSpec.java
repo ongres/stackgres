@@ -27,6 +27,9 @@ public class DistributedLogsSpec {
   @JsonProperty("nonProductionOptions")
   private DistributedLogsNonProduction nonProduction;
 
+  @JsonProperty("resources")
+  private DistributedLogsResources resources;
+
   @JsonProperty("scheduling")
   private DistributedLogsPodScheduling scheduling;
 
@@ -57,6 +60,14 @@ public class DistributedLogsSpec {
 
   public void setNonProduction(DistributedLogsNonProduction nonProduction) {
     this.nonProduction = nonProduction;
+  }
+
+  public DistributedLogsResources getResources() {
+    return resources;
+  }
+
+  public void setResources(DistributedLogsResources resources) {
+    this.resources = resources;
   }
 
   public DistributedLogsPodScheduling getScheduling() {

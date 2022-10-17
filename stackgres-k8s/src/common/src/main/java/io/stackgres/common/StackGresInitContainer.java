@@ -15,9 +15,6 @@ public enum StackGresInitContainer implements StackGresContainerProfile {
   SETUP_ARBITRARY_USER(StackGresKind.CLUSTER, "setup-arbitrary-user",
       cpu -> cpu,
       memory -> memory),
-  SETUP_DATA_PATHS(StackGresKind.CLUSTER, "setup-data-paths",
-      cpu -> cpu,
-      memory -> memory),
   SETUP_SCRIPTS(StackGresKind.CLUSTER, "setup-scripts",
       cpu -> cpu,
       memory -> memory),
@@ -42,7 +39,7 @@ public enum StackGresInitContainer implements StackGresContainerProfile {
       memory -> memory),
   DBOPS_SET_DBOPS_RUNNING(StackGresKind.DBOPS, "set-dbops-running",
       cpu -> BigDecimal.ONE,
-      memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES));
+      memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES));
 
   private final StackGresKind kind;
   private final String name;

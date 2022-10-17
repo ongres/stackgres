@@ -5,8 +5,13 @@
 
 package io.stackgres.operator.mutation.script;
 
+import java.util.Map;
+import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operator.common.StackGresScriptReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
@@ -15,4 +20,16 @@ import io.stackgres.operator.mutation.AbstractAnnotationMutator;
 public class ScriptAnnotationMutator
     extends AbstractAnnotationMutator<StackGresScript, StackGresScriptReview>
     implements ScriptMutator {
+
+  private static final long VERSION_1_2 = StackGresVersion.V_1_2.getVersionAsNumber();
+
+  @Override
+  public Optional<Map<String, String>> getAnnotationsToOverwrite(StackGresScript resource) {
+    final long version = StackGresVersion.getStackGresVersionAsNumber(resource);
+    if (VERSION_1_2 > version) {
+      return Optional.of(Map.of(StackGresContext.VERSION_KEY, StackGresVersion.V_1_2.getVersion()));
+    }
+    return Optional.empty();
+  }
+
 }

@@ -69,7 +69,7 @@ public class DbOpsAnnotationDecorator extends AnnotationDecorator<StackGresDbOps
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getPrimaryService)
-        .orElse(ImmutableMap.of());
+        .orElse(Map.of());
 
     return ImmutableMap.<String, String>builder()
         .putAll(getServiceAnnotations(context))
@@ -84,7 +84,7 @@ public class DbOpsAnnotationDecorator extends AnnotationDecorator<StackGresDbOps
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getReplicasService)
-        .orElse(ImmutableMap.of());
+        .orElse(Map.of());
 
     return ImmutableMap.<String, String>builder()
         .putAll(getServiceAnnotations(context))

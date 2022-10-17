@@ -5,8 +5,9 @@
     "annotations": {
       "stackgres.io/operatorVersion": "1.2.0"
     },
-    "name": "backup-with-default-storage-bded7e9a-3939-11ea-be74-0242ac110002",
+    "name": "backup-with-default-storage",
     "namespace": "backup-with-default-storage",
+    "uid": "bded7e9a-3939-11ea-be74-0242ac110002",
     "ownerReferences": [
       {
         "apiVersion": "batch/v1",

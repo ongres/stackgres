@@ -92,6 +92,12 @@ public abstract class AbstractJobReconciliationHandler<T extends CustomResource<
 
   @Override
   public void delete(T context, HasMetadata resource) {
+    if (isAlreadyCompleted(context)) {
+      LOGGER.debug("Skipping deleting Job {}.{}",
+          resource.getMetadata().getNamespace(),
+          resource.getMetadata().getName());
+      return;
+    }
     jobWriter.delete(safeCast(resource));
   }
 

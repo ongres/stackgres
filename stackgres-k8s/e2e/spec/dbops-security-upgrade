@@ -39,7 +39,8 @@ e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
 
-  if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
+  if [ "$E2E_FORCE_IMAGE_PULL" = "true" ] \
+    && [ "$E2E_SECURITY_UPGRADE_SKIP_IMAGE_PULL" != true ]
   then
     if [ "$E2E_SKIP_LOAD_OPERATOR" != true ]
     then
@@ -839,7 +840,7 @@ check_profile_mutation() {
     return 1
   fi
   if [ "$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "size-xs" --template '{{ .spec.initContainers | len }}')" \
-    = "10" ]
+    = "9" ]
   then
     echo "SUCCESS. Init containers section was added to instance profiles after operator upgrade"
   else
@@ -893,6 +894,17 @@ check_managed_sql_mutation() {
     echo "SUCCESS. Managed SQL was added to cluster configuration after operator upgrade"
   else
     echo "FAIL. Managed SQL was not added to cluster configuration after operator upgrade"
+    return 1
+  fi
+  local EXIT_CODE RESULT
+  try_function wait_until eval \
+    '[ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-default" -o name | wc -l)" \
+      = "1" ]'
+  if "$RESULT"
+  then
+    echo "SUCCESS. Default SGScript was created after operator upgrade"
+  else
+    echo "FAIL. Default SGScript was not created after operator upgrade"
     return 1
   fi
   if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME-inital-data" -o name | wc -l)" \

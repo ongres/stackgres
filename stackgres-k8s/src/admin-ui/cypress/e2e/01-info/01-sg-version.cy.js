@@ -1,4 +1,7 @@
 describe('Load StackGres version', () => {
+    Cypress.on('uncaught:exception', (err, runnable) => {
+      return false
+    });
 
     it('StackGres version should be read from info json', () => {
       cy.visit('/');

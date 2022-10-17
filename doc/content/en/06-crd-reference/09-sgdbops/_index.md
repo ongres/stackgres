@@ -49,7 +49,7 @@ ___
 | [minorVersionUpgrade](#minor-version-upgrade-status)   |          |           |         | object  | {{< crd-field-description SGDbOps.status.minorVersionUpgrade >}} |
 | [securityUpgrade](#security-upgrade-status)            |          |           |         | object  | {{< crd-field-description SGDbOps.status.securityUpgrade >}} |
 
-#### Scheduling
+## Scheduling
 
 Holds scheduling configuration for StackGres pods to have.
 
@@ -59,7 +59,7 @@ Holds scheduling configuration for StackGres pods to have.
 | [nodeAffinity](#nodeAffinity)|           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity >}} |
 | [tolerations](#tolerations)  |           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations >}}  |
 
-#### Node Affinity
+### Node Affinity
 
 Sets the SGDBOps pod's affinity to restrict it to run only on a certain set of node(s)
 
@@ -72,7 +72,7 @@ See Kubernetes pod node affinity [definition](https://kubernetes.io/docs/concept
 <br>
 <br>
 
-#### Tolerations
+### Tolerations
 
 Holds scheduling configuration for StackGres pods to have.
 
@@ -133,7 +133,7 @@ Holds scheduling configuration for StackGres pods to have.
 | excludeExtension                           |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.excludeExtension >}} |
 | [databases](#repack-database)              |          |           | array    |                              | {{< crd-field-description SGDbOps.spec.repack.databases >}} |
 
-## Repack database
+### Repack database
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
@@ -144,10 +144,24 @@ Holds scheduling configuration for StackGres pods to have.
 | noAnalyze                                  |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.databases.items.noAnalyze >}} |
 | excludeExtension                           |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.repack.databases.items.excludeExtension >}} |
 
+## Restart
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.restart.method >}} |
+
+## Security Upgrade
+
+| Property                                   | Required | Updatable | Type     | Default                      | Description |
+|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.restart.method >}} |
+| onlyPendingRestart                         |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.restart.onlyPendingRestart >}} |
+
 ## Major Version Upgrade
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
+| method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.minorVersionUpgrade.method >}} |
 | link                                       |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.link >}} |
 | clone                                      |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.clone >}} |
 | check                                      |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.check >}} |
@@ -155,25 +169,11 @@ Holds scheduling configuration for StackGres pods to have.
 | sgPostgresConfig                           |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.sgPostgresConfig >}} |
 | backupPath                                 |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.backupPath >}} |
 
-## Restart
-
-| Property                                   | Required | Updatable | Type     | Default                      | Description |
-|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
-| method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.restart.method >}} |
-| onlyPendingRestart                         |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.restart.onlyPendingRestart >}} |
-
 ## Minor Version Upgrade
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.minorVersionUpgrade.method >}} |
-| postgresVersion                            |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.minorVersionUpgrade.postgresVersion >}} |
-
-## Security Upgrade
-
-| Property                                   | Required | Updatable | Type     | Default                      | Description |
-|:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
-| method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.securityUpgrade.method >}} |
 
 ## Conditions
 
@@ -191,7 +191,7 @@ Holds scheduling configuration for StackGres pods to have.
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | [pgbench](#pgbench-status)                 |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench >}} |
 
-## Pgbench Status
+### Pgbench Status
 
 | Property                                     | Required | Updatable | Type     | Default                      | Description |
 |:---------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
@@ -200,42 +200,42 @@ Holds scheduling configuration for StackGres pods to have.
 | [latency](#pgbench-status-latency)           |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency >}} |
 | [transactionsPerSecond](#pgbench-status-tps) |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond >}} |
 
-## Pgbench Status Latency
+#### Pgbench Status Latency
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | [average](#pgbench-status-latency-average)                                    |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.average >}} |
 | [standartDeviation](#pgbench-status-latency-standard-deviation)                          |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.standardDeviation >}} |
 
-## Pgbench Status Latency Average
+##### Pgbench Status Latency Average
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | value                                      |          |           | number   |        0.00                  | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.average.value >}} |
 | unit                                       |          |           | string   |        ms                    | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.average.unit >}} |
 
-## Pgbench Status Latency Standard Deviation
+###### Pgbench Status Latency Standard Deviation
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | value                                      |          |           | number   |        0.00                  | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.standardDeviation.value >}} |
 | unit                                       |          |           | string   |        ms                    | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.standardDeviation.unit >}} |
 
-## Pgbench Status TPS
+#### Pgbench Status TPS
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | [includingConnectionsEstablishing](#pgbench-status-tps-including-connections-establishing)                                    |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing >}} |
 | [excludingConnectionsEstablishing](#pgbench-status-tps-excluding-connections-establishing)                                    |          |           | object   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing >}} |
 
-## Pgbench Status TPS Including Connections Establishing
+##### Pgbench Status TPS Including Connections Establishing
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | value                                      |          |           | number   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.value >}} |
 | unit                                       |          |           | string   |                              | {{< crd-field-description SGDbOps.status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.unit >}} |
 
-## Pgbench Status TPS Excluding Connections Establishing
+##### Pgbench Status TPS Excluding Connections Establishing
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
