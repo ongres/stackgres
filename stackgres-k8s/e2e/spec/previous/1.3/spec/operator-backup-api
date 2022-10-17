@@ -66,9 +66,6 @@ e2e_test() {
   run_test "Constraint violations should be detected" test_constraint_violation_api_error
 
   run_test "User with wrong credentials should not be authenticated" test_authentication_api_error
-
-  run_test "Backup created for cluster without backup config get error message" check_backup_without_config_get_error_message
-
 }
 
 check_backup_in_list() {
@@ -329,36 +326,3 @@ check_authentication_error() {
   fi
 }
 
-check_backup_without_config_get_error_message() {
-  create_or_replace_cluster "$CLUSTER_NAME-no-backup" "$CLUSTER_NAMESPACE" 1 \
-    --set configurations.create=false --set instanceProfiles=false \
-    --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
-
-  local BACKUP_NAME
-  BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-pending-$(shuf -i 0-65535 -n 1)")"
-
-  set +e
-
-  RESULT_BACKUP_CREATION="$(cat << EOF | kubectl create -f - 2>&1
-  apiVersion: stackgres.io/v1
-  kind: SGBackup
-  metadata:
-    namespace: "$CLUSTER_NAMESPACE"
-    name: "$BACKUP_NAME"
-  spec:
-    sgCluster: "$CLUSTER_NAME-no-backup"
-    managedLifecycle: false
-EOF
-)"
-
-  local RESULT_SGBACKUP="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME")"
-  set -e
-
-  if [ -z "$RESULT_SGBACKUP" ]
-  then
-      echo "SUCCESS: no backup created due invalid SGCluster backup config."
-  else
-      echo "FAILED: backup should not be created!"
-  fi
-
-}

@@ -35,6 +35,8 @@ check_user_on_replica() {
 check_user() {
   local HOST="$1"
   local FROM_HOST_INDEX="$2"
+  wait_until eval 'run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" \
+    -q "SELECT usename FROM pg_user;" -d "postgres" | grep -q "^sakila$"'
   if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT usename FROM pg_user;" -d "postgres" \
     | grep -q "^sakila$"
   then

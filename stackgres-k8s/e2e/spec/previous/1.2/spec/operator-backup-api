@@ -66,9 +66,6 @@ e2e_test() {
   run_test "Constraint violations should be detected" test_constraint_violation_api_error
 
   run_test "User with wrong credentials should not be authenticated" test_authentication_api_error
-
-  run_test "Backup created for cluster without backup config get pending state" check_backup_without_config_is_pending
-
 }
 
 check_backup_in_list() {
@@ -329,40 +326,3 @@ check_authentication_error() {
   fi
 }
 
-check_backup_without_config_is_pending() {
-  create_or_replace_cluster "$CLUSTER_NAME-no-backup" "$CLUSTER_NAMESPACE" 1 \
-    --set configurations.create=false --set instanceProfiles=false \
-    --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
-
-  local BACKUP_NAME
-  BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-pending-$(shuf -i 0-65535 -n 1)")"
-
-  cat << EOF | kubectl create -f -
-  apiVersion: stackgres.io/v1
-  kind: SGBackup
-  metadata:
-    namespace: "$CLUSTER_NAMESPACE"
-    name: "$BACKUP_NAME"
-  spec:
-    sgCluster: "$CLUSTER_NAME-no-backup"
-    managedLifecycle: false
-EOF
-
-  if wait_until eval '[ "$(run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgbackups/$BACKUP_NAME" \
-    | jq -r ".status.process.status")" = "Pending" ]'
-  then
-    echo "SUCCESS: backup without configuration get state Pending"
-  else
-    echo "FAIL: backup without configuration didn't get state Pending"
-    return 1
-  fi
-
-  if wait_until eval 'kubectl get event -n "$CLUSTER_NAMESPACE" -o json \
-    | jq -r ".items[] | select(.reason == \"BackupConfigFailed\") | .message" | grep -q "^Missing SGBackupConfig "'
-  then
-    echo "SUCCESS: backup without configuration emit missing SGBackupConfig event"
-  else
-    echo "FAIL: backup without configuration didn't emit missing SGBackupConfig event"
-    return 1
-  fi
-}

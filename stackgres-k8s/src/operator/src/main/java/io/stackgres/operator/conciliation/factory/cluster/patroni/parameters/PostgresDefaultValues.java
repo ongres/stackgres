@@ -17,12 +17,13 @@ import org.jetbrains.annotations.NotNull;
 public interface PostgresDefaultValues {
 
   enum PostgresDefaulValuesProperties {
-    PG_DEFAULT_VALUES("/postgresql-default-values.properties"),
+    PG_14_VALUES("/postgresql-default-values-pg14.properties"),
     PG_13_VALUES("/postgresql-default-values-pg13.properties"),
-    PG_DEFAULT_VALUES_V_1_3("/v1.3/postgresql-default-values-v1.3.properties"),
+    PG_12_VALUES("/postgresql-default-values-pg12.properties"),
     PG_13_VALUES_V_1_3("/v1.3/postgresql-default-values-pg13-v1.3.properties"),
-    PG_DEFAULT_VALUES_V_1_2("/v1.2/postgresql-default-values-v1.2.properties"),
-    PG_13_VALUES_V_1_2("/v1.2/postgresql-default-values-pg13-v1.2.properties");
+    PG_12_VALUES_V_1_3("/v1.3/postgresql-default-values-pg12-v1.3.properties"),
+    PG_13_VALUES_V_1_2("/v1.2/postgresql-default-values-pg13-v1.2.properties"),
+    PG_12_VALUES_V_1_2("/v1.2/postgresql-default-values-pg12-v1.2.properties");
 
     private final @NotNull Properties properties;
 
@@ -44,23 +45,26 @@ public interface PostgresDefaultValues {
     int majorVersion = Integer.parseInt(pgVersion.split("\\.")[0]);
 
     if (version.getVersionAsNumber() <= StackGresVersion.V_1_2.getVersionAsNumber()) {
-      if (majorVersion >= 13) {
-        return PostgresDefaulValuesProperties.PG_13_VALUES_V_1_2.properties;
+      if (majorVersion <= 12) {
+        return PostgresDefaulValuesProperties.PG_12_VALUES_V_1_2.properties;
       }
-      return PostgresDefaulValuesProperties.PG_DEFAULT_VALUES_V_1_2.properties;
+      return PostgresDefaulValuesProperties.PG_13_VALUES_V_1_2.properties;
     }
 
     if (version.getVersionAsNumber() <= StackGresVersion.V_1_3.getVersionAsNumber()) {
-      if (majorVersion >= 13) {
-        return PostgresDefaulValuesProperties.PG_13_VALUES_V_1_3.properties;
+      if (majorVersion <= 12) {
+        return PostgresDefaulValuesProperties.PG_12_VALUES_V_1_3.properties;
       }
-      return PostgresDefaulValuesProperties.PG_DEFAULT_VALUES_V_1_3.properties;
+      return PostgresDefaulValuesProperties.PG_13_VALUES_V_1_3.properties;
     }
 
-    if (majorVersion >= 13) {
+    if (majorVersion <= 12) {
+      return PostgresDefaulValuesProperties.PG_12_VALUES.properties;
+    }
+    if (majorVersion <= 13) {
       return PostgresDefaulValuesProperties.PG_13_VALUES.properties;
     }
-    return PostgresDefaulValuesProperties.PG_DEFAULT_VALUES.properties;
+    return PostgresDefaulValuesProperties.PG_14_VALUES.properties;
   }
 
   static @NotNull Map<String, String> getDefaultValues(

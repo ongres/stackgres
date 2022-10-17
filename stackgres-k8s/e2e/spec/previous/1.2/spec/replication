@@ -48,7 +48,7 @@ check_replication_is_working() {
     echo "FAIL: It's possible to create a table in the replica node"
     return 1
   else
-    echo "SUCCESS: Good it should be possible to create a table in the replica node" 
+    echo "SUCCESS: Good it is not possible to create a table in the replica node" 
   fi
 
   run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test
