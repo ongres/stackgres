@@ -1,0 +1,30 @@
+#!/bin/sh
+
+DEBUG="${DEBUG:-false}"
+
+if [ "$DEBUG" = true ]
+then
+  set -x
+fi
+
+cd "$(dirname "$0")"
+mkdir -p target
+
+if [ -z "$K8S_VERSION" ]
+then
+  echo "You must set K8S_VERSION" >&2
+  return 1
+fi
+
+SWAGGER_FILE="target/swagger-$K8S_VERSION.json"
+REMOVED_PATHS_SWAGGER_FILE="target/removed-paths-swagger-$K8S_VERSION.json"
+MERGED_DEFINITIONS_SWAGGER_FILE="target/merged-definitions-swagger-$K8S_VERSION.json"
+
+get_k8s_object_as_yaml() {
+ jq ".definitions[\"$1\"]" "$MERGED_DEFINITIONS_SWAGGER_FILE" | yq -y . | sed "s/^/$(seq 1 "${2:-0}" | xargs -I % printf ' ')/"
+}
+
+if [ "$#" -gt 0 ]
+then
+  "$@"
+fi
