@@ -102,32 +102,10 @@ Holds scheduling configuration for StackGres pods to have.
 | Property                      | Required | Updatable | Type     | Default        | Description |
 |:------------------------------|----------|-----------|:---------|:---------------|:------------|
 | nodeSelector                  |          | ✓         | object   |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeSelector >}} |
-| [nodeAffinity](#nodeAffinity) |          | ✓         | object    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity >}} |
-| [tolerations](#tolerations)   |          | ✓         | array    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
-
-#### Node Affinity
-
-Sets the pod's affinity to restrict it to run only on a certain set of node(s)
-
-| Property                                        | Required | Updatable | Type     | Default                 | Description |
-|:------------------------------------------------|----------|-----------|:---------|:------------------------|:------------|
-| requiredDuringSchedulingIgnoredDuringExecution  |          | ✓         | object   |                         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution >}} |
-| preferredDuringSchedulingIgnoredDuringExecution |          | ✓         | array    |                         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution >}} |
-
-See Kubernetes pod node affinity [definition](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity{}) for more details.
-<br>
-<br>
-
-#### Tolerations
-
-Holds scheduling configuration for StackGres pods to have.
-
-| Property  | Required | Updatable | Type     | Default                 | Description |
-|:----------|----------|-----------|:---------|:------------------------|:------------|
-| key       |          | ✓         | string   |                         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeSelector >}} |
-| operator  |          | ✓         | string   | Equal                   | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
-| value     |          | ✓         | string   |                         | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
-| effect    |          | ✓         | string   | match all taint effects | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
+| tolerations                   |          | ✓         | array    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
+| nodeAffinity                  |          | ✓         | object    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity >}} |
+| podAffinity                   |          | ✓         | object    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.podAffinity >}} |
+| podAntiAffinity               |          | ✓         | object    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.podAntiAffinity >}} |
 
 ### Configurations
 

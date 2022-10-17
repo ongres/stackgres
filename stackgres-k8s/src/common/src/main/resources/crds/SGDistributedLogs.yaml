@@ -104,9 +104,13 @@ spec:
                       type: object
                       additionalProperties:
                         type: string
-                      description: nodeSelector lists labels that must be present on nodes that support this RuntimeClass. Pods using this RuntimeClass can only be scheduled to a node matched by this selector. The RuntimeClass nodeSelector is merged with a pod's existing nodeSelector. Any conflicts will cause the pod to be rejected in admission.
+                      description: |
+                        NodeSelector is a selector which must be true for the pod to fit on a node. Selector which must match a node's labels for the pod to be scheduled on that node. More info: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
                     tolerations:
-                      description: Tolerations are appended (excluding duplicates) to pods running with this RuntimeClass during admission, effectively unioning the set of nodes tolerated by the pod and the RuntimeClass.
+                      description: |
+                        If specified, the pod's tolerations.
+                        
+                        See: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#toleration-v1-core
                       type: array
                       items:
                         description: |

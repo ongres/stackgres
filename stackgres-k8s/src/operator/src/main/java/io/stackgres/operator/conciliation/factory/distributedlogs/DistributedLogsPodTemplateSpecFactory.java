@@ -9,19 +9,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
+import io.fabric8.kubernetes.api.model.PodAntiAffinity;
 import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
@@ -80,20 +79,20 @@ public class DistributedLogsPodTemplateSpecFactory
         containerDiscoverer.discoverContainers(context);
 
     List<Container> containers = containerFactories.stream()
-        .map(f -> f.getContainer(context)).collect(Collectors.toUnmodifiableList());
+        .map(f -> f.getContainer(context)).toList();
 
     final List<ContainerFactory<DistributedLogsContainerContext>> initContainerFactories =
         initContDiscoverer.discoverContainers(context);
 
     List<Container> initContainers = initContainerFactories
         .stream().map(f -> f.getContainer(context))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     final List<String> claimedVolumes = Stream.concat(containers.stream(), initContainers.stream())
         .flatMap(container -> container.getVolumeMounts().stream())
         .map(VolumeMount::getName)
         .distinct()
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     claimedVolumes.forEach(rv -> {
       if (!context.availableVolumes().containsKey(rv) && !context.getDataVolumeName().equals(rv)) {
@@ -104,7 +103,13 @@ public class DistributedLogsPodTemplateSpecFactory
     List<Volume> volumes = claimedVolumes.stream()
         .map(volumeName -> context.availableVolumes().get(volumeName))
         .filter(Objects::nonNull)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
+
+    final boolean isEnabledClusterPodAntiAffinity = Optional.ofNullable(
+        cluster.getSpec().getNonProductionOptions())
+        .map(StackGresDistributedLogsNonProduction::getDisableClusterPodAntiAffinity)
+        .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
+        .orElse(true);
 
     var podTemplateSpec = new PodTemplateSpecBuilder()
         .withMetadata(new ObjectMetaBuilder()
@@ -114,40 +119,16 @@ public class DistributedLogsPodTemplateSpecFactory
                     StackGresProperty.OPERATOR_VERSION.getString()))
             .build())
         .withNewSpec()
-        .withAffinity(Optional.of(new AffinityBuilder()
-            .withPodAntiAffinity(new PodAntiAffinityBuilder()
-                .addAllToRequiredDuringSchedulingIgnoredDuringExecution(ImmutableList.of(
-                    new PodAffinityTermBuilder()
-                        .withLabelSelector(new LabelSelectorBuilder()
-                            .withMatchExpressions(new LabelSelectorRequirementBuilder()
-                                .withKey(StackGresContext.APP_KEY)
-                                .withOperator("In")
-                                .withValues(labelFactory.labelMapper().appName())
-                                .build(),
-                                new LabelSelectorRequirementBuilder()
-                                    .withKey("cluster")
-                                    .withOperator("In")
-                                    .withValues("true")
-                                    .build())
-                            .build())
-                        .withTopologyKey("kubernetes.io/hostname")
-                        .build()))
-                .build())
-            .withNodeAffinity(Optional.ofNullable(cluster.getSpec())
-                .map(StackGresDistributedLogsSpec::getScheduling)
-                .map(StackGresDistributedLogsPodScheduling::getNodeAffinity)
-                .orElse(null))
-            .build())
-            .filter(affinity -> Optional.ofNullable(
-                cluster.getSpec().getNonProductionOptions())
-                .map(StackGresDistributedLogsNonProduction::getDisableClusterPodAntiAffinity)
-                .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
-                .orElse(true))
-            .orElse(null))
+        .withShareProcessNamespace(Boolean.TRUE)
+        .withServiceAccountName(PatroniRole.roleName(context.getDistributedLogsContext()))
+        .withSecurityContext(podSecContext.createResource(context.getDistributedLogsContext()))
+        .withVolumes(volumes)
+        .withContainers(containers)
+        .withInitContainers(initContainers)
+        .withTerminationGracePeriodSeconds(60L)
         .withNodeSelector(Optional.ofNullable(cluster.getSpec())
             .map(StackGresDistributedLogsSpec::getScheduling)
-            .map(
-                StackGresDistributedLogsPodScheduling::getNodeSelector)
+            .map(StackGresDistributedLogsPodScheduling::getNodeSelector)
             .orElse(null))
         .withTolerations(Optional.ofNullable(cluster.getSpec())
             .map(StackGresDistributedLogsSpec::getScheduling)
@@ -157,13 +138,46 @@ public class DistributedLogsPodTemplateSpecFactory
                 .map(TolerationBuilder::build)
                 .toList())
             .orElse(null))
-        .withShareProcessNamespace(Boolean.TRUE)
-        .withServiceAccountName(PatroniRole.roleName(context.getDistributedLogsContext()))
-        .withSecurityContext(podSecContext.createResource(context.getDistributedLogsContext()))
-        .withVolumes(volumes)
-        .withContainers(containers)
-        .withInitContainers(initContainers)
-        .withTerminationGracePeriodSeconds(60L)
+        .withAffinity(new AffinityBuilder()
+            .withNodeAffinity(Optional.ofNullable(cluster.getSpec())
+                .map(StackGresDistributedLogsSpec::getScheduling)
+                .map(StackGresDistributedLogsPodScheduling::getNodeAffinity)
+                .orElse(null))
+            .withPodAffinity(Optional.ofNullable(cluster.getSpec())
+                .map(StackGresDistributedLogsSpec::getScheduling)
+                .map(StackGresDistributedLogsPodScheduling::getPodAffinity)
+                .orElse(null))
+            .withPodAntiAffinity(Optional.ofNullable(cluster.getSpec())
+                .map(StackGresDistributedLogsSpec::getScheduling)
+                .map(StackGresDistributedLogsPodScheduling::getPodAntiAffinity)
+                .map(PodAntiAffinityBuilder::new)
+                .orElseGet(PodAntiAffinityBuilder::new)
+                .addAllToRequiredDuringSchedulingIgnoredDuringExecution(Seq.of(
+                    new PodAffinityTermBuilder()
+                        .withLabelSelector(new LabelSelectorBuilder()
+                            .withMatchExpressions(new LabelSelectorRequirementBuilder()
+                                .withKey(labelFactory.labelMapper().appKey())
+                                .withOperator("In")
+                                .withValues(labelFactory.labelMapper().appName())
+                                .build(),
+                                new LabelSelectorRequirementBuilder()
+                                    .withKey(labelFactory.labelMapper().clusterKey(cluster))
+                                    .withOperator("In")
+                                    .withValues(StackGresContext.RIGHT_VALUE)
+                                    .build())
+                            .build())
+                        .withTopologyKey("kubernetes.io/hostname")
+                        .build())
+                    .filter(affinity -> isEnabledClusterPodAntiAffinity)
+                    .append(Optional.ofNullable(cluster.getSpec())
+                        .map(StackGresDistributedLogsSpec::getScheduling)
+                        .map(StackGresDistributedLogsPodScheduling::getPodAntiAffinity)
+                        .map(PodAntiAffinity::getRequiredDuringSchedulingIgnoredDuringExecution)
+                        .stream()
+                        .flatMap(List::stream))
+                    .toList())
+                .build())
+            .build())
         .endSpec()
         .build();
 

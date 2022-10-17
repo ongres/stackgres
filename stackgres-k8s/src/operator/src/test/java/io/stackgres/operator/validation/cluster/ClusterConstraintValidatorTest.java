@@ -115,18 +115,6 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   }
 
   @Test
-  void invalidNodeSelector_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPod()
-        .setScheduling(new StackGresClusterPodScheduling());
-    review.getRequest().getObject().getSpec().getPod().getScheduling()
-        .setNodeSelector(new HashMap<>());
-
-    checkErrorCause(StackGresClusterPodScheduling.class, "spec.pods.scheduling.nodeSelector",
-        "isNodeSelectorNotEmpty", review, AssertTrue.class);
-  }
-
-  @Test
   void validToleration_shouldPass() throws ValidationFailed {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPod()

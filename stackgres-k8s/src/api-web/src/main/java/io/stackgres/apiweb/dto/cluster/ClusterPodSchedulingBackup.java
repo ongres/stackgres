@@ -5,13 +5,16 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.NodeAffinity;
+import io.stackgres.common.crd.PodAffinity;
+import io.stackgres.common.crd.PodAntiAffinity;
+import io.stackgres.common.crd.Toleration;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -19,15 +22,13 @@ public class ClusterPodSchedulingBackup {
 
   private Map<String, String> nodeSelector;
 
+  private List<Toleration> tolerations;
+
   private NodeAffinity nodeAffinity;
 
-  public NodeAffinity getNodeAffinity() {
-    return nodeAffinity;
-  }
+  private PodAffinity podAffinity;
 
-  public void setNodeAffinity(NodeAffinity nodeAffinity) {
-    this.nodeAffinity = nodeAffinity;
-  }
+  private PodAntiAffinity podAntiAffinity;
 
   public Map<String, String> getNodeSelector() {
     return nodeSelector;
@@ -37,27 +38,41 @@ public class ClusterPodSchedulingBackup {
     this.nodeSelector = nodeSelector;
   }
 
+  public List<Toleration> getTolerations() {
+    return tolerations;
+  }
+
+  public void setTolerations(List<Toleration> tolerations) {
+    this.tolerations = tolerations;
+  }
+
+  public NodeAffinity getNodeAffinity() {
+    return nodeAffinity;
+  }
+
+  public void setNodeAffinity(NodeAffinity nodeAffinity) {
+    this.nodeAffinity = nodeAffinity;
+  }
+
+  public PodAffinity getPodAffinity() {
+    return podAffinity;
+  }
+
+  public void setPodAffinity(PodAffinity podAffinity) {
+    this.podAffinity = podAffinity;
+  }
+
+  public PodAntiAffinity getPodAntiAffinity() {
+    return podAntiAffinity;
+  }
+
+  public void setPodAntiAffinity(PodAntiAffinity podAntiAffinity) {
+    this.podAntiAffinity = podAntiAffinity;
+  }
+
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ClusterPodSchedulingBackup that = (ClusterPodSchedulingBackup) o;
-    return Objects.equals(nodeAffinity, that.nodeAffinity)
-        && Objects.equals(nodeSelector, that.nodeSelector);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(nodeSelector, nodeAffinity);
   }
 
 }

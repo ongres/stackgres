@@ -10,18 +10,17 @@ import java.util.Map;
 import java.util.Objects;
 
 import javax.validation.Valid;
-import javax.validation.constraints.AssertTrue;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.NodeAffinity;
+import io.stackgres.common.crd.PodAffinity;
+import io.stackgres.common.crd.PodAntiAffinity;
 import io.stackgres.common.crd.Toleration;
-import io.stackgres.common.validation.FieldReference;
-import io.stackgres.common.validation.FieldReference.ReferencedField;
+import io.stackgres.common.crd.TopologySpreadConstraint;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -33,36 +32,29 @@ public class StackGresClusterPodScheduling {
   @JsonProperty("nodeSelector")
   private Map<String, String> nodeSelector;
 
-  @JsonProperty("nodeAffinity")
-  @Valid
-  private NodeAffinity nodeAffinity;
-
   @JsonProperty("tolerations")
   @Valid
   private List<Toleration> tolerations;
 
+  @JsonProperty("nodeAffinity")
+  @Valid
+  private NodeAffinity nodeAffinity;
+
+  @JsonProperty("podAffinity")
+  @Valid
+  private PodAffinity podAffinity;
+
+  @JsonProperty("podAntiAffinity")
+  @Valid
+  private PodAntiAffinity podAntiAffinity;
+
+  @JsonProperty("topologySpreadConstraints")
+  @Valid
+  private List<TopologySpreadConstraint> topologySpreadConstraints;
+
   @JsonProperty("backup")
   @Valid
   private StackGresClusterPodSchedulingBackup backup;
-
-  @ReferencedField("nodeSelector")
-  interface NodeSelector extends FieldReference {
-  }
-
-  @ReferencedField("nodeSelector")
-  interface NodeAffinityField extends FieldReference {
-  }
-
-  @ReferencedField("tolerations")
-  interface TolerationField extends FieldReference {
-  }
-
-  @JsonIgnore
-  @AssertTrue(message = "nodeSelector can not be empty.",
-      payload = NodeSelector.class)
-  public boolean isNodeSelectorNotEmpty() {
-    return nodeSelector == null || !nodeSelector.isEmpty();
-  }
 
   public Map<String, String> getNodeSelector() {
     return nodeSelector;
@@ -70,6 +62,14 @@ public class StackGresClusterPodScheduling {
 
   public void setNodeSelector(Map<String, String> nodeSelector) {
     this.nodeSelector = nodeSelector;
+  }
+
+  public List<Toleration> getTolerations() {
+    return tolerations;
+  }
+
+  public void setTolerations(List<Toleration> tolerations) {
+    this.tolerations = tolerations;
   }
 
   public NodeAffinity getNodeAffinity() {
@@ -80,12 +80,29 @@ public class StackGresClusterPodScheduling {
     this.nodeAffinity = nodeAffinity;
   }
 
-  public List<Toleration> getTolerations() {
-    return tolerations;
+  public PodAffinity getPodAffinity() {
+    return podAffinity;
   }
 
-  public void setTolerations(List<Toleration> tolerations) {
-    this.tolerations = tolerations;
+  public void setPodAffinity(PodAffinity podAffinity) {
+    this.podAffinity = podAffinity;
+  }
+
+  public PodAntiAffinity getPodAntiAffinity() {
+    return podAntiAffinity;
+  }
+
+  public void setPodAntiAffinity(PodAntiAffinity podAntiAffinity) {
+    this.podAntiAffinity = podAntiAffinity;
+  }
+
+  public List<TopologySpreadConstraint> getTopologySpreadConstraints() {
+    return topologySpreadConstraints;
+  }
+
+  public void setTopologySpreadConstraints(
+      List<TopologySpreadConstraint> topologySpreadConstraints) {
+    this.topologySpreadConstraints = topologySpreadConstraints;
   }
 
   public StackGresClusterPodSchedulingBackup getBackup() {
@@ -105,15 +122,18 @@ public class StackGresClusterPodScheduling {
       return false;
     }
     StackGresClusterPodScheduling other = (StackGresClusterPodScheduling) obj;
-    return Objects.equals(nodeSelector, other.nodeSelector)
+    return Objects.equals(backup, other.backup) && Objects.equals(nodeAffinity, other.nodeAffinity)
+        && Objects.equals(nodeSelector, other.nodeSelector)
+        && Objects.equals(podAffinity, other.podAffinity)
+        && Objects.equals(podAntiAffinity, other.podAntiAffinity)
         && Objects.equals(tolerations, other.tolerations)
-        && Objects.equals(backup, other.backup)
-        && Objects.equals(nodeAffinity, other.nodeAffinity);
+        && Objects.equals(topologySpreadConstraints, other.topologySpreadConstraints);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(nodeSelector, tolerations, nodeAffinity, backup);
+    return Objects.hash(backup, nodeAffinity, nodeSelector, podAffinity, podAntiAffinity,
+        tolerations, topologySpreadConstraints);
   }
 
   @Override
