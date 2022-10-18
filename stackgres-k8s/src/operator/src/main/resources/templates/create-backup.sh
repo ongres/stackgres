@@ -2,6 +2,7 @@
 
 LOCK_RESOURCE="cronjob.batch"
 LOCK_RESOURCE_NAME="$CRONJOB_NAME"
+RETRY_DELAY="${RETRY_DELAY:-1000}"
 
 . "$LOCAL_BIN_SHELL_UTILS_PATH"
 
@@ -513,7 +514,16 @@ set_backup_completed() {
       }
     }
   ]'
-  kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch "$BACKUP_PATCH"
+  RETRY=0
+  until kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch "$BACKUP_PATCH"
+  do
+    if [ "$RETRY" -gt 10 ]
+    then
+      exit 1
+    fi
+    sleep "$((RETRY_DELAY << RETRY > 60 * 1000 ? 60 * 1000 : RETRY_DELAY << RETRY))"
+    RETRY="$((RETRY + 1))"
+  done
 }
 
 reconcile_backup_crs() {
