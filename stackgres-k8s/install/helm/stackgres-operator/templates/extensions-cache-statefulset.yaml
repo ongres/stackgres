@@ -35,7 +35,7 @@ spec:
       restartPolicy: Always
       containers:
       - name: http
-        image: "registry.access.redhat.com/ubi8/nginx-118:1-42"
+        image: "registry.access.redhat.com/ubi8/nginx-120:1-60.1665590917"
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         securityContext:
           {{- if and (or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser) (not .Values.extensions.cache.hostPath) }}
