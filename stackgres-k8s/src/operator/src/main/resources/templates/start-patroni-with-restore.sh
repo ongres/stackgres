@@ -66,19 +66,10 @@ postgresql:
     dynamic_library_path: '${PG_LIB_PATH}:${PG_EXTRA_LIB_PATH}'
   basebackup:
     checkpoint: 'fast'
-  callbacks:
-    on_restart: '${PATRONI_CONFIG_PATH}/setup-data-path.sh'
-    on_start: '${PATRONI_CONFIG_PATH}/setup-data-path.sh'
 watchdog:
   mode: off
 tags: {}
 EOF
-
-cat << EOF > "${PATRONI_CONFIG_PATH}/setup-data-path.sh"
-mkdir -p "$PG_DATA_PATH"
-chmod -R 700 "$PG_DATA_PATH"
-EOF
-chmod 755 "${PATRONI_CONFIG_PATH}/setup-data-path.sh"
 
 cat << EOF > "$PATRONI_CONFIG_PATH/bootstrap"
 #!/bin/sh
@@ -91,8 +82,23 @@ exec-with-env "$RESTORE_ENV" \\
 EOF
 chmod a+x "$PATRONI_CONFIG_PATH/bootstrap"
 
+cat << EOF > "${LOCAL_BIN_PATH}/postgres"
+#!/bin/sh
+chmod -R 700 "$PG_DATA_PATH"
+exec "$PG_BIN_PATH/postgres" "\$@"
+EOF
+chmod 755 "${LOCAL_BIN_PATH}/postgres"
+
+for POSTGRES_BIN_FILE in "${PG_BIN_PATH}"/*
+do
+  if [ ! -f "${LOCAL_BIN_PATH}/${POSTGRES_BIN_FILE##*/}" ]
+  then
+    ln -s "${POSTGRES_BIN_FILE}" "${LOCAL_BIN_PATH}/${POSTGRES_BIN_FILE##*/}"
+  fi
+done
+
 export LC_ALL=C.UTF-8
 
 unset PATRONI_SUPERUSER_PASSWORD PATRONI_REPLICATION_PASSWORD
 
-exec /usr/bin/patroni "$PATRONI_CONFIG_PATH/postgres.yml"
+PATRONI_POSTGRESQL_BIN_DIR="${LOCAL_BIN_PATH}" exec /usr/bin/patroni "$PATRONI_CONFIG_PATH/postgres.yml"
