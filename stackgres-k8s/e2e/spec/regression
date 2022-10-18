@@ -3,14 +3,16 @@
 e2e_test_install() {
   init_expandable_storage_class
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$(e2e_test_install_pods)" \
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set cluster.pods.persistentVolume.storageClass="$EXPANDABLE_STORAGE_CLASSNAME"
 
-  wait_pods_running "$CLUSTER_NAMESPACE" "$(e2e_test_install_pods)"
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
+  run_test "Checking that data dir permissions are set correctly" check_data_dir_permissions_are_set_correctly
+
   run_test "If the configured volume size is 128Mi the persistent volume claim capacity should 128Mi" check_persistent_volume_claim_size
 
   run_test "Checking that pods shared memory is bigger than 64M" check_shared_memory
@@ -18,6 +20,14 @@ e2e_test() {
   run_test "Checking that JIT is working" check_jit
 
   run_test "Checking that PVC is updated in the StatefulSet" check_persistent_volume_claim_is_updated
+}
+
+check_data_dir_permissions_are_set_correctly() {
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- chmod 777 /var/lib/postgresql/data
+  kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni -- chmod 777 /var/lib/postgresql/data
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" "$CLUSTER_NAME-1"
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 check_persistent_volume_claim_size() {
