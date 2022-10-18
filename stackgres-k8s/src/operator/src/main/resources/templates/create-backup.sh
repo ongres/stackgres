@@ -513,7 +513,10 @@ set_backup_completed() {
       }
     }
   ]'
-  kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch "$BACKUP_PATCH"
+  if ! kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch "$BACKUP_PATCH"
+  then
+    exit 1
+  fi
 }
 
 reconcile_backup_crs() {

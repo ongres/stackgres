@@ -1,0 +1,21 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/backup/abstract-backup"
+
+shell_unit_test() {
+  ! shell_unit_test_backup
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("patch $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME --type json --patch "*)
+    return 1
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

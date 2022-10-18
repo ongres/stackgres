@@ -1,0 +1,31 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/backup/abstract-backup"
+
+shell_unit_test() {
+  shell_unit_test_backup
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("exec -i -n $CLUSTER_NAMESPACE pod/test-0 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
+    STDIN="$(cat)"
+    case "$STDIN" in
+      (*" wal-g backup-push "*)
+      cat << EOF
+ Wrote backup with name test
+EOF
+      ;;
+      ("pg_controldata "*)
+      return 1
+      ;;
+    esac
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}
