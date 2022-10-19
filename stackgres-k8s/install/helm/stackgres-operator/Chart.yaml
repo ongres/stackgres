@@ -13,6 +13,8 @@ keywords:
 home: https://stackgres.io
 sources:
   - https://gitlab.com/ongresinc/stackgres
+annotations:
+  charts.openshift.io/name: "stackgres-operator"
 maintainers:
   - name: OnGres Inc.
     email: info@ongres.com
