@@ -19,6 +19,6 @@ FROM "$BASE_IMAGE"
   EXPOSE 8080
   EXPOSE 8443
 
-  RUN JAVA_CDS_GENERATION=true /app/stackgres-operator.sh
+  RUN if uname -m | grep -q x86_64; then JAVA_CDS_GENERATION=true /app/stackgres-operator.sh; fi
 
   CMD '/app/stackgres-operator.sh'
