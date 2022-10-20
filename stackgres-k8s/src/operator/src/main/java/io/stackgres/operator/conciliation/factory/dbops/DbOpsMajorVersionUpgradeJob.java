@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.OperatorProperty;
@@ -33,7 +34,6 @@ import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgrade;
-import io.stackgres.operator.cluster.factory.DbOpsEnvironmentVariables;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
@@ -49,13 +49,16 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
       DbOpsEnvironmentVariables clusterStatefulSetEnvironmentVariables,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       LabelFactoryForDbOps dbOpsLabelFactory,
-      ObjectMapper jsonMapper) {
+      ObjectMapper jsonMapper,
+      KubectlUtil kubectl,
+      DbOpsVolumeMounts dbOpsVolumeMounts,
+      DbOpsTemplatesVolumeFactory dbOpsTemplatesVolumeFactory) {
     super(podSecurityFactory, clusterStatefulSetEnvironmentVariables, labelFactory,
-        dbOpsLabelFactory, jsonMapper);
+        dbOpsLabelFactory, jsonMapper, kubectl, dbOpsVolumeMounts, dbOpsTemplatesVolumeFactory);
   }
 
   public DbOpsMajorVersionUpgradeJob() {
-    super(null, null, null, null, null);
+    super(null, null, null, null, null, null, null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 

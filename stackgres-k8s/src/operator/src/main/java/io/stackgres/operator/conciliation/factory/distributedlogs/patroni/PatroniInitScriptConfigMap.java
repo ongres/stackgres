@@ -19,13 +19,13 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
 
@@ -43,7 +43,7 @@ public class PatroniInitScriptConfigMap implements
 
   public static String name(StackGresDistributedLogs distributedLogs) {
     final String clusterName = distributedLogs.getMetadata().getName();
-    return StatefulSetDynamicVolumes.INIT_SCRIPT.getResourceName(clusterName);
+    return StackGresVolume.INIT_SCRIPT.getResourceName(clusterName);
   }
 
   @Override
@@ -59,7 +59,7 @@ public class PatroniInitScriptConfigMap implements
   public @NotNull Volume buildVolume(StackGresDistributedLogsContext context) {
     return
         new VolumeBuilder()
-            .withName(StatefulSetDynamicVolumes.INIT_SCRIPT.getVolumeName())
+            .withName(StackGresVolume.INIT_SCRIPT.getName())
             .withConfigMap(new ConfigMapVolumeSourceBuilder()
                 .withName(name(context.getSource()))
                 .withDefaultMode(420)

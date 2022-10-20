@@ -10,18 +10,16 @@ import java.util.Map;
 import java.util.Objects;
 
 import javax.validation.Valid;
-import javax.validation.constraints.AssertTrue;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.NodeAffinity;
+import io.stackgres.common.crd.PodAffinity;
+import io.stackgres.common.crd.PodAntiAffinity;
 import io.stackgres.common.crd.Toleration;
-import io.stackgres.common.validation.FieldReference;
-import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -41,24 +39,13 @@ public class StackGresDistributedLogsPodScheduling {
   @Valid
   private NodeAffinity nodeAffinity;
 
-  @ReferencedField("nodeSelector")
-  interface NodeSelector extends FieldReference {
-  }
+  @JsonProperty("podAffinity")
+  @Valid
+  private PodAffinity podAffinity;
 
-  @ReferencedField("nodeAffinity")
-  interface NodeAffinityField extends FieldReference {
-  }
-
-  @ReferencedField("tolerations")
-  interface TolerationField extends FieldReference {
-  }
-
-  @JsonIgnore
-  @AssertTrue(message = "nodeSelector can not be empty.",
-      payload = NodeSelector.class)
-  public boolean isNodeSelectorNotEmpty() {
-    return nodeSelector == null || !nodeSelector.isEmpty();
-  }
+  @JsonProperty("podAntiAffinity")
+  @Valid
+  private PodAntiAffinity podAntiAffinity;
 
   public Map<String, String> getNodeSelector() {
     return nodeSelector;
@@ -84,6 +71,22 @@ public class StackGresDistributedLogsPodScheduling {
     this.nodeAffinity = nodeAffinity;
   }
 
+  public PodAffinity getPodAffinity() {
+    return podAffinity;
+  }
+
+  public void setPodAffinity(PodAffinity podAffinity) {
+    this.podAffinity = podAffinity;
+  }
+
+  public PodAntiAffinity getPodAntiAffinity() {
+    return podAntiAffinity;
+  }
+
+  public void setPodAntiAffinity(PodAntiAffinity podAntiAffinity) {
+    this.podAntiAffinity = podAntiAffinity;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
@@ -93,20 +96,20 @@ public class StackGresDistributedLogsPodScheduling {
       return false;
     }
     StackGresDistributedLogsPodScheduling other = (StackGresDistributedLogsPodScheduling) obj;
-    return Objects.equals(nodeSelector, other.nodeSelector)
+    return Objects.equals(nodeAffinity, other.nodeAffinity)
+        && Objects.equals(nodeSelector, other.nodeSelector)
+        && Objects.equals(podAffinity, other.podAffinity)
+        && Objects.equals(podAntiAffinity, other.podAntiAffinity)
         && Objects.equals(tolerations, other.tolerations);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(nodeSelector, tolerations);
+    return Objects.hash(nodeAffinity, nodeSelector, podAffinity, podAntiAffinity, tolerations);
   }
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("nodeSelector", nodeSelector)
-        .add("tolerations", tolerations)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 }

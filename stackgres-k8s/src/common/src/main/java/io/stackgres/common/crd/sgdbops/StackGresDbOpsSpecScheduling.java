@@ -17,6 +17,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.NodeAffinity;
+import io.stackgres.common.crd.PodAffinity;
+import io.stackgres.common.crd.PodAntiAffinity;
 import io.stackgres.common.crd.Toleration;
 import io.sundr.builder.annotations.Buildable;
 
@@ -26,23 +28,24 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public class StackGresDbOpsSpecScheduling {
 
-  @JsonProperty("tolerations")
-  private List<Toleration> tolerations;
-
   @JsonProperty("nodeSelector")
   private Map<String, String> nodeSelector;
+
+  @JsonProperty("tolerations")
+  @Valid
+  private List<Toleration> tolerations;
 
   @JsonProperty("nodeAffinity")
   @Valid
   private NodeAffinity nodeAffinity;
 
-  public List<Toleration> getTolerations() {
-    return tolerations;
-  }
+  @JsonProperty("podAffinity")
+  @Valid
+  private PodAffinity podAffinity;
 
-  public void setTolerations(List<Toleration> tolerations) {
-    this.tolerations = tolerations;
-  }
+  @JsonProperty("podAntiAffinity")
+  @Valid
+  private PodAntiAffinity podAntiAffinity;
 
   public Map<String, String> getNodeSelector() {
     return nodeSelector;
@@ -50,6 +53,14 @@ public class StackGresDbOpsSpecScheduling {
 
   public void setNodeSelector(Map<String, String> nodeSelector) {
     this.nodeSelector = nodeSelector;
+  }
+
+  public List<Toleration> getTolerations() {
+    return tolerations;
+  }
+
+  public void setTolerations(List<Toleration> tolerations) {
+    this.tolerations = tolerations;
   }
 
   public NodeAffinity getNodeAffinity() {
@@ -60,9 +71,25 @@ public class StackGresDbOpsSpecScheduling {
     this.nodeAffinity = nodeAffinity;
   }
 
+  public PodAffinity getPodAffinity() {
+    return podAffinity;
+  }
+
+  public void setPodAffinity(PodAffinity podAffinity) {
+    this.podAffinity = podAffinity;
+  }
+
+  public PodAntiAffinity getPodAntiAffinity() {
+    return podAntiAffinity;
+  }
+
+  public void setPodAntiAffinity(PodAntiAffinity podAntiAffinity) {
+    this.podAntiAffinity = podAntiAffinity;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(tolerations);
+    return Objects.hash(nodeAffinity, nodeSelector, podAffinity, podAntiAffinity, tolerations);
   }
 
   @Override
@@ -74,9 +101,11 @@ public class StackGresDbOpsSpecScheduling {
       return false;
     }
     StackGresDbOpsSpecScheduling other = (StackGresDbOpsSpecScheduling) obj;
-    return Objects.equals(tolerations, other.tolerations)
-        && Objects.equals(nodeAffinity, other.nodeAffinity)
-        && Objects.equals(nodeSelector, other.nodeSelector);
+    return Objects.equals(nodeAffinity, other.nodeAffinity)
+        && Objects.equals(nodeSelector, other.nodeSelector)
+        && Objects.equals(podAffinity, other.podAffinity)
+        && Objects.equals(podAntiAffinity, other.podAntiAffinity)
+        && Objects.equals(tolerations, other.tolerations);
   }
 
   @Override

@@ -19,11 +19,11 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
 @OperatorVersionBinder
@@ -66,18 +66,18 @@ public class InitPgBouncerAuthFile implements ContainerFactory<ClusterContainerC
         .withImagePullPolicy("IfNotPresent")
         .addToVolumeMounts(
             new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.PGBOUNCER_AUTH_FILE.getVolumeName())
+            .withName(StackGresVolume.PGBOUNCER_AUTH_FILE.getName())
             .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path())
             .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath())
             .build(),
             new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.PGBOUNCER_SECRETS.getVolumeName())
+            .withName(StackGresVolume.PGBOUNCER_SECRETS.getName())
             .withMountPath(PGBOUNCER_ADMIN_PASSWORD_PATH)
             .withSubPath(PGBOUNCER_ADMIN_PASSWORD_KEY)
             .withReadOnly(true)
             .build(),
             new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.PGBOUNCER_SECRETS.getVolumeName())
+            .withName(StackGresVolume.PGBOUNCER_SECRETS.getName())
             .withMountPath(PGBOUNCER_STATS_PASSWORD_PATH)
             .withSubPath(PGBOUNCER_STATS_PASSWORD_KEY)
             .withReadOnly(true)

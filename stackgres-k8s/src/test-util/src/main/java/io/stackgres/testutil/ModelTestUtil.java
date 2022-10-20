@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import io.fabric8.kubernetes.api.model.Quantity;
 
 public class ModelTestUtil {
 
@@ -152,6 +153,10 @@ public class ModelTestUtil {
       return (T) generateRandomValue(clazz);
     }
 
+    static final String[] QUANTITY_UNITS = new String[] {
+        "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "n",
+        "u", "m", "k", "M", "G", "T", "P", "E", "" };
+
     private Object generateRandomValue(Class<?> valueClass) {
       if (valueClass.isPrimitive()) {
         switch (valueClass.getName()) {
@@ -170,6 +175,9 @@ public class ModelTestUtil {
           default:
             throw new RuntimeException("Unsupported primitive type " + valueClass.getName());
         }
+      } else if (Quantity.class.isAssignableFrom(valueClass)) {
+        return new Quantity(String.valueOf(RANDOM.nextInt()),
+            QUANTITY_UNITS[RANDOM.nextInt(QUANTITY_UNITS.length)]);
       } else if (valueClass == String.class || valueClass == Object.class) {
         return StringUtils.getRandomString(10);
       } else if (valueClass == Boolean.class) {
@@ -239,7 +247,8 @@ public class ModelTestUtil {
   }
 
   private static boolean isValueType(Class<?> type) {
-    return String.class == type
+    return Quantity.class.isAssignableFrom(type)
+        || String.class == type
         || Number.class.isAssignableFrom(type)
         || Boolean.class == type
         || type.isPrimitive()

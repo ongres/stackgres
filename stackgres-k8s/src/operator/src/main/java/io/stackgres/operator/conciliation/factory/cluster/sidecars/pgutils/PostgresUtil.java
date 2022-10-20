@@ -13,10 +13,10 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 
@@ -43,7 +43,7 @@ public class PostgresUtil extends AbstractPostgresUtil {
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.EMPTY_BASE.getVolumeName())
+                .withName(StackGresVolume.EMPTY_BASE.getName())
                 .withMountPath("/var/lib/postgresql")
                 .build()
         )

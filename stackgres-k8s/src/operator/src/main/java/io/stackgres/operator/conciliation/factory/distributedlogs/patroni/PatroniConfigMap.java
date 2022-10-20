@@ -24,13 +24,13 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
 
   public static String name(StackGresDistributedLogsContext clusterContext) {
     final String name = clusterContext.getSource().getMetadata().getName();
-    return StatefulSetDynamicVolumes.PATRONI_ENV.getResourceName(name);
+    return StackGresVolume.PATRONI_ENV.getResourceName(name);
   }
 
   public static String getKubernetesPorts(final int pgPort, final int pgRawPort) {
@@ -84,7 +84,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
 
   public @NotNull Volume buildVolume(StackGresDistributedLogsContext context) {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.PATRONI_ENV.getVolumeName())
+        .withName(StackGresVolume.PATRONI_ENV.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withDefaultMode(444)
             .withName(name(context))

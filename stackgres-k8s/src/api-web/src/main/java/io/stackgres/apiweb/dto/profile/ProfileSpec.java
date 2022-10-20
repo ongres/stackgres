@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.profile;
 
 import java.util.Map;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -81,26 +80,6 @@ public class ProfileSpec {
 
   public void setRequests(ProfileRequests requests) {
     this.requests = requests;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(containers, cpu, hugePages, initContainers, memory, requests);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ProfileSpec)) {
-      return false;
-    }
-    ProfileSpec other = (ProfileSpec) obj;
-    return Objects.equals(containers, other.containers) && Objects.equals(cpu, other.cpu)
-        && Objects.equals(hugePages, other.hugePages)
-        && Objects.equals(initContainers, other.initContainers)
-        && Objects.equals(memory, other.memory) && Objects.equals(requests, other.requests);
   }
 
   @Override

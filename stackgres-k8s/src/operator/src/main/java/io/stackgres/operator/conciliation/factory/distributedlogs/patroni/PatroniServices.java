@@ -25,6 +25,7 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -81,7 +82,7 @@ public class PatroniServices implements
     boolean isReplicasServiceEnabled = Optional.of(cluster)
         .map(StackGresDistributedLogs::getSpec)
         .map(StackGresDistributedLogsSpec::getPostgresServices)
-        .map(StackGresPostgresServices::getReplicas)
+        .map(StackGresDistributedLogsPostgresServices::getReplicas)
         .map(StackGresPostgresService::getEnabled)
         .orElse(true);
 

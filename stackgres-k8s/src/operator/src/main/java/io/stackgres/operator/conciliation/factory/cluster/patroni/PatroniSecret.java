@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -30,7 +31,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -69,7 +69,7 @@ public class PatroniSecret
 
   public @NotNull Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.PATRONI_CREDENTIALS.getVolumeName())
+        .withName(StackGresVolume.PATRONI_CREDENTIALS.getName())
         .withSecret(new SecretVolumeSourceBuilder()
             .withSecretName(name(context))
             .withDefaultMode(400)

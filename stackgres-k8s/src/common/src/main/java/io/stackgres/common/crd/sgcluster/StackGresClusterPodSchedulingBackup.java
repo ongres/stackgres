@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -16,6 +17,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.NodeAffinity;
+import io.stackgres.common.crd.PodAffinity;
+import io.stackgres.common.crd.PodAntiAffinity;
+import io.stackgres.common.crd.Toleration;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -27,9 +31,21 @@ public class StackGresClusterPodSchedulingBackup {
   @JsonProperty("nodeSelector")
   private Map<String, String> nodeSelector;
 
+  @JsonProperty("tolerations")
+  @Valid
+  private List<Toleration> tolerations;
+
   @JsonProperty("nodeAffinity")
   @Valid
   private NodeAffinity nodeAffinity;
+
+  @JsonProperty("podAffinity")
+  @Valid
+  private PodAffinity podAffinity;
+
+  @JsonProperty("podAntiAffinity")
+  @Valid
+  private PodAntiAffinity podAntiAffinity;
 
   public Map<String, String> getNodeSelector() {
     return nodeSelector;
@@ -39,12 +55,36 @@ public class StackGresClusterPodSchedulingBackup {
     this.nodeSelector = nodeSelector;
   }
 
+  public List<Toleration> getTolerations() {
+    return tolerations;
+  }
+
+  public void setTolerations(List<Toleration> tolerations) {
+    this.tolerations = tolerations;
+  }
+
   public NodeAffinity getNodeAffinity() {
     return nodeAffinity;
   }
 
   public void setNodeAffinity(NodeAffinity nodeAffinity) {
     this.nodeAffinity = nodeAffinity;
+  }
+
+  public PodAffinity getPodAffinity() {
+    return podAffinity;
+  }
+
+  public void setPodAffinity(PodAffinity podAffinity) {
+    this.podAffinity = podAffinity;
+  }
+
+  public PodAntiAffinity getPodAntiAffinity() {
+    return podAntiAffinity;
+  }
+
+  public void setPodAntiAffinity(PodAntiAffinity podAntiAffinity) {
+    this.podAntiAffinity = podAntiAffinity;
   }
 
   @Override
@@ -56,13 +96,16 @@ public class StackGresClusterPodSchedulingBackup {
       return false;
     }
     StackGresClusterPodSchedulingBackup other = (StackGresClusterPodSchedulingBackup) obj;
-    return Objects.equals(nodeSelector, other.nodeSelector)
-        && Objects.equals(nodeAffinity, other.nodeAffinity);
+    return Objects.equals(nodeAffinity, other.nodeAffinity)
+        && Objects.equals(nodeSelector, other.nodeSelector)
+        && Objects.equals(podAffinity, other.podAffinity)
+        && Objects.equals(podAntiAffinity, other.podAntiAffinity)
+        && Objects.equals(tolerations, other.tolerations);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(nodeSelector, nodeAffinity);
+    return Objects.hash(nodeAffinity, nodeSelector, podAffinity, podAntiAffinity, tolerations);
   }
 
   @Override

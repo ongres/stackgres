@@ -11,7 +11,6 @@ import static io.stackgres.common.crd.postgres.service.StackGresPostgresServiceT
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -27,6 +26,7 @@ import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceBuilder;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServicesBuilder;
@@ -164,11 +164,19 @@ class DefaultPostgresServicesMutatorTest {
 
   private StackGresPostgresService withPgPrimaryService(Boolean enabled, String serviceType,
       List<String> externalIPs) {
-    return new StackGresPostgresService(enabled, serviceType, externalIPs, EMPTY);
+    return new StackGresPostgresServiceBuilder()
+        .withEnabled(enabled)
+        .withType(serviceType)
+        .withExternalIPs(externalIPs)
+        .build();
   }
 
   private StackGresPostgresService withPgReplicasService(Boolean enabled, String serviceType) {
-    return new StackGresPostgresService(enabled, serviceType, asList(), EMPTY);
+    return new StackGresPostgresServiceBuilder()
+        .withEnabled(enabled)
+        .withType(serviceType)
+        .withExternalIPs(asList())
+        .build();
   }
 
   private void setupDistributedLogsPgServices(StackGresPostgresService primary,

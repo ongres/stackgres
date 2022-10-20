@@ -8,19 +8,19 @@ e2e_test_install() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
-    --set-string "cluster.pods.scheduling.tolerations.0.effect=NoExecute" \
-    --set-string "cluster.pods.scheduling.tolerations.0.key=$NODE_LABEL_KEY" \
-    --set-string "cluster.pods.scheduling.tolerations.0.operator=Equal" \
-    --set-string "cluster.pods.scheduling.tolerations.0.value=$NODE_LABEL_VALUE" \
-    --set "cluster.pods.scheduling.tolerations.0.tolerationSeconds=1" \
+    --set-string "cluster.pods.scheduling.tolerations[0].effect=NoExecute" \
+    --set-string "cluster.pods.scheduling.tolerations[0].key=$NODE_LABEL_KEY" \
+    --set-string "cluster.pods.scheduling.tolerations[0].operator=Equal" \
+    --set-string "cluster.pods.scheduling.tolerations[0].value=$NODE_LABEL_VALUE" \
+    --set "cluster.pods.scheduling.tolerations[0].tolerationSeconds=1" \
     --set-string cluster.distributedLogs.sgDistributedLogs=distributedlogs \
     --set distributedLogs.enabled=true \
     --set-string "distributedLogs.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
-    --set-string "distributedLogs.scheduling.tolerations.0.effect=NoExecute" \
-    --set-string "distributedLogs.scheduling.tolerations.0.key=$NODE_LABEL_KEY" \
-    --set-string "distributedLogs.scheduling.tolerations.0.operator=Equal" \
-    --set-string "distributedLogs.scheduling.tolerations.0.value=$NODE_LABEL_VALUE" \
-    --set "distributedLogs.scheduling.tolerations.0.tolerationSeconds=1"
+    --set-string "distributedLogs.scheduling.tolerations[0].effect=NoExecute" \
+    --set-string "distributedLogs.scheduling.tolerations[0].key=$NODE_LABEL_KEY" \
+    --set-string "distributedLogs.scheduling.tolerations[0].operator=Equal" \
+    --set-string "distributedLogs.scheduling.tolerations[0].value=$NODE_LABEL_VALUE" \
+    --set "distributedLogs.scheduling.tolerations[0].tolerationSeconds=1"
 
 }
 

@@ -222,7 +222,8 @@ Specifies the service configuration for the cluster:
 | enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGCluster.spec.postgresServices.primary.enabled >}}  |
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
 | externalIPs                     |          | ✓         | array    |           | {{< crd-field-description SGCluster.spec.postgresServices.primary.externalIPs >}}  |
-| loadBalancerIP                     |          | ✓         | string    |           | {{< crd-field-description SGCluster.spec.postgresServices.primary.loadBalancerIP >}}  |
+| loadBalancerIP                  |          | ✓         | string   |           | {{< crd-field-description SGCluster.spec.postgresServices.primary.loadBalancerIP >}}  |
+| customPorts                     |          | ✓         | array    |           | {{< crd-field-description SGCluster.spec.postgresServices.primary.customPorts >}}  |
 
 ### Replicas service type
 
@@ -231,7 +232,8 @@ Specifies the service configuration for the cluster:
 | enabled                         |          | ✓         | boolean  | true      | {{< crd-field-description SGCluster.spec.postgresServices.replicas.enabled >}}  |
 | type                            |          | ✓         | string   | ClusterIP | {{< crd-field-description SGCluster.spec.postgresServices.replicas.type >}}  |
 | externalIPs                     |          | ✓         | array    |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas.externalIPs >}}  |
-| loadBalancerIP                     |          | ✓         | string    |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas.loadBalancerIP >}}  |
+| loadBalancerIP                  |          | ✓         | string   |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas.loadBalancerIP >}}  |
+| customPorts                     |          | ✓         | array    |           | {{< crd-field-description SGCluster.spec.postgresServices.replicas.customPorts >}}  |
 
 ## Pods
 
@@ -245,13 +247,18 @@ Cluster's pod configuration
 | disablePostgresUtil                    |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} |
 | [scheduling](#scheduling)              |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods.scheduling >}} |
 | managementPolicy                       |          | ✓         | string   | OrderedReady                        | {{< crd-field-description SGCluster.spec.pods.managementPolicy >}} |
+| customVolumes                          |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.pods.customVolumes >}}  |
+| customInitContainers                   |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.pods.customInitContainers >}}  |
+| customContainers                       |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.pods.customContainers >}}  |
 
 ### Sidecar containers
 
 A sidecar container is a container that adds functionality to PostgreSQL or to the cluster
  infrastructure. Currently StackGres implement following sidecar containers:
 
-* `envoy`: this container is always present, and is not possible to disable it. It serve as
+* `cluster-controller`: this container is always present, and it is not possible to disable it. It serve to reconcile
+ local configurations, collect Pod status and perform local actions (like extensions installation, execution of SGScript entries and so on).
+* `envoy`: this container is always present, and it is not possible to disable it. It serve as
  a edge proxy from client to PostgreSQL instances or between PostgreSQL instances. It enables
  network metrics collection to provide connection statistics.
 * `pgbouncer`: a container with pgbouncer as the connection pooling for the PostgreSQL instances.
@@ -303,34 +310,12 @@ Holds scheduling configuration for StackGres pods to have.
 | Property                    | Required | Updatable | Type     | Default        | Description |
 |:----------------------------|----------|-----------|:---------|:---------------|:------------|
 | nodeSelector                |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} |
-| [nodeAffinity](#node-affinity) |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity >}} |
-| [tolerations](#tolerations) |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
+| tolerations                 |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
+| nodeAffinity                |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity >}} |
+| podAffinity                 |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.podAffinity >}} |
+| podAntiAffinity             |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.podAntiAffinity >}} |
+| topologySpreadConstraints   |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.podAntiAffinity >}} |
 | [backup](#backup)           |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup >}} |
-
-#### Node Affinity
-
-Sets the pod's affinity to restrict it to run only on a certain set of node(s)
-
-| Property          | Required | Updatable | Type     | Default                 | Description |
-|:------------------|----------|-----------|:---------|:------------------------|:------------|
-| requiredDuringSchedulingIgnoredDuringExecution  |          | ✓         | object   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution >}} |
-| preferredDuringSchedulingIgnoredDuringExecution |          | ✓         | array   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution >}} |
-
-See Kubernetes pod node affinity [definition](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity{}) for more details.
-<br>
-<br>
-
-#### Tolerations
-
-Holds scheduling configuration for StackGres pods to have.
-
-| Property          | Required | Updatable | Type     | Default                 | Description |
-|:------------------|----------|-----------|:---------|:------------------------|:------------|
-| key               |          | ✓         | string   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.key >}} |
-| operator          |          | ✓         | string   | Equal                   | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.operator >}} |
-| value             |          | ✓         | string   |                         | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.value >}} |
-| effect            |          | ✓         | string   | match all taint effects | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.effect >}} |
-| tolerationSeconds |          | ✓         | string   | 0                       | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations.items.tolerationSeconds >}} |
 
 #### Backup
 
@@ -339,7 +324,10 @@ Holds scheduling configuration for StackGres Backups pods to have.
 | Property                    | Required | Updatable | Type     | Default        | Description |
 |:----------------------------|----------|-----------|:---------|:---------------|:------------|
 | nodeSelector                |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.nodeSelector >}} |
-| [nodeAffinity](#node-affinity) |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.nodeAffinity >}} |
+| tolerations                 |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.tolerations >}} |
+| nodeAffinity                |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.nodeAffinity >}} |
+| podAffinity                 |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.podAffinity >}} |
+| podAntiAffinity             |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.podAntiAffinity >}} |
 
 ## Configurations
 
@@ -382,11 +370,13 @@ spec:
 
 #### Backups Performance
 
-| Property                               | Required | Updatable |Type     | Default   | Description |
-|:---------------------------------------|----------|-----------|:--------|:----------|:------------|
-| maxDiskBandwidth                       |          | ✓         | integer | unlimited | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxDiskBandwidth >}} |
-| maxNetworkBandwidth                    |          | ✓         | integer | unlimited | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxNetworkBandwidth >}} |
-| uploadDiskConcurrency                  |          | ✓         | integer | 1         | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.uploadDiskConcurrency >}} |
+| Property                               | Required | Updatable |Type     | Default                           | Description |
+|:---------------------------------------|----------|-----------|:--------|:----------------------------------|:------------|
+| maxDiskBandwidth                       |          | ✓         | integer | unlimited                         | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxDiskBandwidth >}} |
+| maxNetworkBandwidth                    |          | ✓         | integer | unlimited                         | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxNetworkBandwidth >}} |
+| uploadDiskConcurrency                  |          | ✓         | integer | 1                                 | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.uploadDiskConcurrency >}} |
+| uploadConcurrency                      |          | ✓         | integer | 16                                | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.uploadConcurrency >}} |
+| downloadConcurrency                    |          | ✓         | integer | min(10, # of objects to download) | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.downloadConcurrency >}} |
 
 ## Initial Data Configuration
 

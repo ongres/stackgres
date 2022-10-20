@@ -90,3 +90,28 @@ Integration tests requires docker to be installed (if not on Linux set the envir
 #### IDE plugins
 
 - [Immutables](https://immutables.github.io/getstarted.html)
+
+## Updating k8s objects in the CRDs
+
+To download the swagger of k8s 1.25:
+
+```shell
+sh stackgres-k8s/ci/utils/update-crds.sh 1.25
+```
+
+To update the definition of a k8s 1.25 object inside of a CRD:
+
+```shell
+K8S_VERSION=1.25 sh stackgres-k8s/ci/utils/utils get_k8s_object_as_yaml io.k8s.api.core.v1.NodeAffinity 26
+```
+
+Then copy and paste the YAML into the CRD YAML and update the root description to include a reference to the official reference documentation.
+ Following the example above would be:
+
+```yaml
+                    nodeAffinity:
+                      description: |
+                        Node affinity is a group of node affinity scheduling rules.
+                        
+                        See: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#nodeaffinity-v1-core
+```

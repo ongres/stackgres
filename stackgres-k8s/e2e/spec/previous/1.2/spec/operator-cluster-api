@@ -69,8 +69,6 @@ e2e_test() {
 
   run_test "Create cluster with secret and configmap scripts" check_create_cluster_with_secret_and_configmap_script
 
-  run_test "Failed cluster creation should delete all created secrets and configmaps" check_failed_cluster_creation_with_secret_and_configmap_script
-
   run_test "Check extension validation returns error correcly if extension does not exists" check_extension_validation
 }
 
@@ -87,6 +85,9 @@ check_cluster_in_list() {
   fi
 }
 
+get_cluster_from_api() {
+  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME"
+}
 get_cluster_http_status() {
   run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" -e "-LI -o /dev/null -w %{http_code}"
 }
@@ -499,42 +500,171 @@ check_create_cluster_with_inline_script() {
 
   OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
-    | jq '.spec.initialData={}' | jq '.spec.initialData.scripts=[]' \
-    | jq '.spec.initialData.scripts[0].name = "init"' \
-    | jq '.spec.initialData.scripts[0].script = "CREATE DATABASE test"' \
-    | jq '.spec.initialData.scripts[1].name = "table"' \
-    | jq '.spec.initialData.scripts[1].database = "test"' \
-    | jq '.spec.initialData.scripts[1].script = "CREATE TABLE fibonacci(num integer)"')"
+    | jq '.spec.managedSql={}' | jq '.spec.managedSql.scripts=[]' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[0].name = "init"' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[0].script = "CREATE DATABASE test"' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[1].name = "table"' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[1].database = "test"' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[1].script = "CREATE TABLE fibonacci(num integer)"')"
 
   echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/inline-scripts-cluster.json"
 
   create_cluster_with_api "$LOG_PATH/inline-scripts-cluster.json"
 
-  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[0].name}")" = "init" ] \
-    && [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[0].database}")" = "" ] \
-    && [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[0].script}")" = "CREATE DATABASE test" ]
+  if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[0].name}")" = "init" ] \
+    && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[0].database}")" = "" ] \
+    && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[0].script}")" = "CREATE DATABASE test" ]
   then
     echo "SUCCESS. Init inline script was added to cluster configuration"
   else
-    echo "SUCCESS. Init inline script was NOT added to cluster configuration"
+    echo "FAIL. Init inline script was NOT added to cluster configuration"
     return 1
   fi
 
-  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[1].name}")" = "table" ] \
-    && [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[1].database}")" = "test" ] \
-    && [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[1].script}")" = "CREATE TABLE fibonacci(num integer)" ]
+  if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[1].name}")" = "table" ] \
+    && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[1].database}")" = "test" ] \
+    && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[1].script}")" = "CREATE TABLE fibonacci(num integer)" ]
   then
     echo "SUCCESS. Table inline script was added to cluster configuration"
   else
-    echo "SUCCESS. Table inline script was NOT added to cluster configuration"
+    echo "FAIL. Table inline script was NOT added to cluster configuration"
     return 1
   fi
+
+  OPERATOR_CLUSTER="$(get_cluster_from_api)"
+
+  if [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[0].name')" = "init" ] \
+    && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[0].database')" = "null" ] \
+    && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[0].script')" = "CREATE DATABASE test" ]
+  then
+    echo "SUCCESS. Init inline script was added to cluster configuration"
+  else
+    echo "FAIL. Init inline script was NOT added to cluster configuration"
+    return 1
+  fi
+
+  if [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[1].name')" = "table" ] \
+    && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[1].database')" = "test" ] \
+    && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[1].script')" = "CREATE TABLE fibonacci(num integer)" ]
+  then
+    echo "SUCCESS. Table inline script was added to script configuration"
+  else
+    echo "FAIL. Table inline script was NOT added to script configuration"
+    return 1
+  fi
+}
+
+check_create_cluster_with_secret_and_configmap_script() {
+  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set configurations.objectstorage.create=true \
+    --set cluster.configurations.backups.sgObjectStorage="backupconf" \
+    --set-string 'cluster.postgres.version=13'
+
+  OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
+    | jq 'del(.status)' \
+    | jq '.spec.managedSql={}' | jq '.spec.managedSql.scripts=[]' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[0].name = "init"' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[0].scriptFrom={}' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[0].scriptFrom.secretScript = "CREATE DATABASE test"' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[0].scriptFrom.secretKeyRef = {}' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[0].scriptFrom.secretKeyRef.name = "init-script"' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[0].scriptFrom.secretKeyRef.key = "script"' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[1].name = "table"' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[1].database = "test"' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[1].scriptFrom={}' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[1].scriptFrom.configMapScript = "CREATE TABLE fibonacci(num integer)"' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[1].scriptFrom.configMapKeyRef = {}' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[1].scriptFrom.configMapKeyRef.name = "table-script"' \
+    | jq '.spec.managedSql.scripts[0].scriptSpec.scripts[1].scriptFrom.configMapKeyRef.key = "script"')"
+
+  echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/secret-and-configmap-scripts-cluster.json"
+
+  create_cluster_with_api "$LOG_PATH/secret-and-configmap-scripts-cluster.json"
+
+  if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[0].name}")" = "init" ] \
+    && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[0].database}")" = "" ] \
+    && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[0].scriptFrom.secretKeyRef.name}")" = "init-script" ] \
+    && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[0].scriptFrom.secretKeyRef.key}")" = "script" ]
+  then
+    echo "SUCCESS. Secret script was added to cluster configuration"
+  else
+    echo "FAIL. Secret script was NOT added to cluster configuration"
+    return 1
+  fi
+
+  if [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[1].name}")" = "table" ] \
+    && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[1].database}")" = "test" ] \
+    && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[1].scriptFrom.configMapKeyRef.name}")" = "table-script" ] \
+    && [ "$(kubectl get sgscript -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-managed-sql-0" \
+    -o jsonpath="{.spec.scripts[1].scriptFrom.configMapKeyRef.key}")" = "script" ]
+  then
+    echo "SUCCESS. ConfigMap script was added to cluster configuration"
+  else
+    echo "FAIL. ConfigMap script was NOT added to cluster configuration"
+    return 1
+  fi
+
+  OPERATOR_CLUSTER="$(get_cluster_from_api)"
+
+  if [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[0].name')" = "init" ] \
+    && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[0].database')" = "null" ] \
+    && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[0].scriptFrom.secretKeyRef.name')" = "init-script" ] \
+    && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[0].scriptFrom.secretKeyRef.key')" = "script" ] \
+    && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[0].scriptFrom.secretScript')" = "null" ]
+  then
+    echo "SUCCESS. Secret script was added to cluster configuration"
+  else
+    echo "FAIL. Secret script was NOT added to cluster configuration"
+    return 1
+  fi
+
+  if [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[1].name')" = "table" ] \
+    && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[1].database')" = "test" ] \
+    && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[1].scriptFrom.configMapKeyRef.name')" = "table-script" ] \
+    && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[1].scriptFrom.configMapKeyRef.key')" = "script" ] \
+    && [ "$(echo true | jq -r --arg cluster "$OPERATOR_CLUSTER" \
+        '$cluster | fromjson | .spec.managedSql.scripts[1].scriptSpec.scripts[1].scriptFrom.configMapScript')" = "CREATE TABLE fibonacci(num integer)" ]
+  then
+    echo "SUCCESS. ConfigMap script was added to script configuration"
+  else
+    echo "FAIL. ConfigMap script was NOT added to script configuration"
+    return 1
+  fi
+
+  kubectl delete secret -n "$CLUSTER_NAMESPACE" "init-script" > /dev/null
+
+  kubectl delete configmap -n "$CLUSTER_NAMESPACE" "table-script" > /dev/null
 }
 
 check_create_cluster_node_selectors_script() {
@@ -554,121 +684,6 @@ check_create_cluster_node_selectors_script() {
     -o jsonpath='{.spec.pods.scheduling.nodeSelector.'"$NODE_LABEL_KEY"'}')"
 
   assert_string_equal "$NODE_LABEL_VALUE" "$ACTUAL_NODE_VALUE"
-}
-
-check_create_cluster_with_secret_and_configmap_script() {
-  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set configurations.objectstorage.create=true \
-    --set cluster.configurations.backups.sgObjectStorage="backupconf" \
-    --set-string 'cluster.postgres.version=13'
-
-  OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
-    | jq 'del(.status)' \
-    | jq '.spec.initialData={}' | jq '.spec.initialData.scripts=[]' \
-    | jq '.spec.initialData.scripts[0].name = "init"' \
-    | jq '.spec.initialData.scripts[0].scriptFrom={}' \
-    | jq '.spec.initialData.scripts[0].scriptFrom.secretScript = "CREATE DATABASE test"' \
-    | jq '.spec.initialData.scripts[0].scriptFrom.secretKeyRef = {}' \
-    | jq '.spec.initialData.scripts[0].scriptFrom.secretKeyRef.name = "init-script"' \
-    | jq '.spec.initialData.scripts[0].scriptFrom.secretKeyRef.key = "script"' \
-    | jq '.spec.initialData.scripts[1].name = "table"' \
-    | jq '.spec.initialData.scripts[1].database = "test"' \
-    | jq '.spec.initialData.scripts[1].scriptFrom={}' \
-    | jq '.spec.initialData.scripts[1].scriptFrom.configMapScript = "CREATE TABLE fibonacci(num integer)"' \
-    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef = {}' \
-    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.name = "table-script"' \
-    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key = "script"')"
-
-  echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/secret-and-configmap-scripts-cluster.json"
-
-  create_cluster_with_api "$LOG_PATH/secret-and-configmap-scripts-cluster.json"
-
-  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[0].name}")" = "init" ] \
-    && [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[0].database}")" = "" ] \
-    && [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[0].scriptFrom.secretKeyRef.name}")" = "init-script" ] \
-    && [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[0].scriptFrom.secretKeyRef.key}")" = "script" ]
-  then
-    echo "SUCCESS. Secret was added to cluster configuration"
-  else
-    echo "SUCCESS. Secret was NOT added to cluster configuration"
-    return 1
-  fi
-
-  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[1].name}")" = "table" ] \
-    && [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[1].database}")" = "test" ] \
-    && [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.name}")" = "table-script" ] \
-    && [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    -o jsonpath="{.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key}")" = "script" ]
-  then
-    echo "SUCCESS. ConfigMap was added to cluster configuration"
-  else
-    echo "SUCCESS. ConfigMap was NOT added to cluster configuration"
-    return 1
-  fi
-
-  kubectl delete secret -n "$CLUSTER_NAMESPACE" "init-script" > /dev/null
-
-  kubectl delete configmap -n "$CLUSTER_NAMESPACE" "table-script" > /dev/null
-}
-
-check_failed_cluster_creation_with_secret_and_configmap_script() {
-  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set configurations.objectstorage.create=true \
-    --set cluster.configurations.backups.sgObjectStorage="backupconf" \
-    --set-string 'cluster.postgres.version=13'
-
-  OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
-    | jq 'del(.status)' \
-    | jq '.spec.instances = -1' \
-    | jq '.spec.initialData={}' | jq '.spec.initialData.scripts=[]' \
-    | jq '.spec.initialData.scripts[0].name = "init"' \
-    | jq '.spec.initialData.scripts[0].scriptFrom={}' \
-    | jq '.spec.initialData.scripts[0].scriptFrom.secretScript = "CREATE DATABASE test"' \
-    | jq '.spec.initialData.scripts[0].scriptFrom.secretKeyRef = {}' \
-    | jq '.spec.initialData.scripts[0].scriptFrom.secretKeyRef.name = "init-script"' \
-    | jq '.spec.initialData.scripts[0].scriptFrom.secretKeyRef.key = "script"' \
-    | jq '.spec.initialData.scripts[1].name = "table"' \
-    | jq '.spec.initialData.scripts[1].database = "test"' \
-    | jq '.spec.initialData.scripts[1].scriptFrom={}' \
-    | jq '.spec.initialData.scripts[1].scriptFrom.configMapScript = "CREATE TABLE fibonacci(num integer)"' \
-    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef = {}' \
-    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.name = "table-script"' \
-    | jq '.spec.initialData.scripts[1].scriptFrom.configMapKeyRef.key = "script"')"
-
-  echo_raw "$OPERATOR_CLUSTER_CR" > "$LOG_PATH/invalid-secret-and-configmap-scripts-cluster.json"
-
-  remove_cluster_cr_if_exists
-
-  run_curl -r "stackgres/sgclusters" -n "$CLUSTER_NAMESPACE" -d "$LOG_PATH/invalid-secret-and-configmap-scripts-cluster.json" -e '-X POST' > /dev/null
-
-  if wait_until eval '! kubectl get secrets -n "$CLUSTER_NAMESPACE" "init-script"'
-  then
-    echo "SUCCESS. Failed cluster creation is deleting all created secrets"
-  else
-    echo "FAIL. Failed cluster creation is not deleting all created secrets"
-    return 1
-  fi
-
-  if wait_until eval '! kubectl get configmaps -n "$CLUSTER_NAMESPACE" "table-script"'
-  then
-    echo "SUCCESS. Failed cluster creation is deleting all created configmaps"
-  else
-    echo "FAIL. Failed cluster creation is not deleting all created configmaps"
-    return 1
-  fi
 }
 
 check_extension_validation() {

@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.storages;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -44,21 +42,4 @@ public class AwsSecretKeySelector {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    AwsSecretKeySelector that = (AwsSecretKeySelector) o;
-    return Objects.equals(accessKeyId, that.accessKeyId)
-        && Objects.equals(secretAccessKey, that.secretAccessKey);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(accessKeyId, secretAccessKey);
-  }
 }

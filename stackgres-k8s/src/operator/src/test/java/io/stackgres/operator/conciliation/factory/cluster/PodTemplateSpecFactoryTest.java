@@ -18,13 +18,13 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -93,22 +93,22 @@ class PodTemplateSpecFactoryTest {
         .thenReturn(patroniContainer);
     when(patroniContainer.getVolumeMounts()).thenReturn(List.of(
         new VolumeMountBuilder()
-        .withName(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName())
+        .withName(StackGresVolume.HUGEPAGES_2M.getName())
         .build(),
         new VolumeMountBuilder()
-        .withName(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName())
+        .withName(StackGresVolume.HUGEPAGES_1G.getName())
         .build()));
     when(clusterContainerContext.availableVolumes()).thenReturn(Map.of(
-        PatroniStaticVolume.HUGEPAGES_2M.getVolumeName(),
+        StackGresVolume.HUGEPAGES_2M.getName(),
         new VolumeBuilder()
-        .withName(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName())
+        .withName(StackGresVolume.HUGEPAGES_2M.getName())
         .withNewEmptyDir()
         .withMedium("HugePages-2Mi")
         .endEmptyDir()
         .build(),
-        PatroniStaticVolume.HUGEPAGES_1G.getVolumeName(),
+        StackGresVolume.HUGEPAGES_1G.getName(),
         new VolumeBuilder()
-        .withName(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName())
+        .withName(StackGresVolume.HUGEPAGES_1G.getName())
         .withNewEmptyDir()
         .withMedium("HugePages-1Gi")
         .endEmptyDir()
@@ -116,25 +116,25 @@ class PodTemplateSpecFactoryTest {
     var podTemplateSpec = podTemplateSpecFactory.getPodTemplateSpec(clusterContainerContext);
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
         .anyMatch(volume -> volume.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName())));
+            .equals(StackGresVolume.HUGEPAGES_2M.getName())));
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
         .filter(volume -> volume.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName()))
+            .equals(StackGresVolume.HUGEPAGES_2M.getName()))
         .anyMatch(volume -> volume.getEmptyDir() != null));
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
         .filter(volume -> volume.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName()))
+            .equals(StackGresVolume.HUGEPAGES_2M.getName()))
         .anyMatch(volume -> volume.getEmptyDir().getMedium().equals("HugePages-2Mi")));
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
         .anyMatch(volume -> volume.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName())));
+            .equals(StackGresVolume.HUGEPAGES_1G.getName())));
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
         .filter(volume -> volume.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName()))
+            .equals(StackGresVolume.HUGEPAGES_1G.getName()))
         .anyMatch(volume -> volume.getEmptyDir() != null));
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
         .filter(volume -> volume.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName()))
+            .equals(StackGresVolume.HUGEPAGES_1G.getName()))
         .anyMatch(volume -> volume.getEmptyDir().getMedium().equals("HugePages-1Gi")));
   }
 

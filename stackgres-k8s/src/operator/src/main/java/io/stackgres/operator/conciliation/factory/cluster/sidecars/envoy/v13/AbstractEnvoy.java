@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -30,7 +30,6 @@ import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -107,10 +106,10 @@ public abstract class AbstractEnvoy implements ContainerFactory<ClusterContainer
   protected Volume buildVolume(StackGresClusterContext context) {
     final String clusterName = context.getSource().getMetadata().getName();
     return new VolumeBuilder()
-        .withName(StackGresContainer.ENVOY.getName())
+        .withName(StackGresVolume.ENVOY.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withDefaultMode(420)
-            .withName(StatefulSetDynamicVolumes.ENVOY.getResourceName(clusterName))
+            .withName(StackGresVolume.ENVOY.getResourceName(clusterName))
             .build())
         .build();
   }

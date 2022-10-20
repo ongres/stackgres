@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.script;
 
 import java.util.List;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,23 +25,6 @@ public class ScriptStatus {
 
   public void setClusters(List<String> clusters) {
     this.clusters = clusters;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(clusters);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ScriptStatus)) {
-      return false;
-    }
-    ScriptStatus other = (ScriptStatus) obj;
-    return Objects.equals(clusters, other.clusters);
   }
 
   @Override

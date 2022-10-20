@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 
 @ApplicationScoped
@@ -25,11 +26,11 @@ public class RestoreVolumeMounts implements VolumeMountsProvider<ClusterContaine
     final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
         new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.RESTORE_ENV.getVolumeName())
+            .withName(StackGresVolume.RESTORE_ENV.getName())
             .withMountPath(ClusterStatefulSetPath.RESTORE_ENV_PATH.path(clusterContext))
             .build(),
         new VolumeMountBuilder()
-            .withName(StatefulSetDynamicVolumes.RESTORE_CREDENTIALS.getVolumeName())
+            .withName(StackGresVolume.RESTORE_CREDENTIALS.getName())
             .withMountPath(ClusterStatefulSetPath.RESTORE_SECRET_PATH.path(clusterContext))
             .build()
     );

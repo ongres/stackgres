@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.objectstorage;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -38,23 +36,6 @@ public class ObjectStorageDto extends ResourceDto {
 
   public void setStatus(ObjectStorageStatus status) {
     this.status = status;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ObjectStorageDto that = (ObjectStorageDto) o;
-    return Objects.equals(spec, that.spec) && Objects.equals(status, that.status);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(spec, status);
   }
 
   @Override

@@ -120,12 +120,21 @@ EOF
 PATRONI_CONFIG_EOF
 chmod 600 "$PATRONI_CONFIG_PATH/config.yml"
 
-cat << EOF > "${PATRONI_CONFIG_PATH}/setup-data-path.sh"
-mkdir -p "$PG_DATA_PATH"
+cat << EOF > "${LOCAL_BIN_PATH}/postgres"
+#!/bin/sh
 chmod -R 700 "$PG_DATA_PATH"
+exec "$PG_BIN_PATH/postgres" "\$@"
 EOF
-chmod 755 "${PATRONI_CONFIG_PATH}/setup-data-path.sh"
+chmod 755 "${LOCAL_BIN_PATH}/postgres"
+
+for POSTGRES_BIN_FILE in "${PG_BIN_PATH}"/*
+do
+  if [ ! -f "${LOCAL_BIN_PATH}/${POSTGRES_BIN_FILE##*/}" ]
+  then
+    ln -s "${POSTGRES_BIN_FILE}" "${LOCAL_BIN_PATH}/${POSTGRES_BIN_FILE##*/}"
+  fi
+done
 
 export LC_ALL=C.UTF-8
 
-exec exec-with-env "${PATRONI_ENV}" -- /usr/bin/patroni "$PATRONI_CONFIG_PATH/config.yml"
+PATRONI_POSTGRESQL_BIN_DIR="${LOCAL_BIN_PATH}" exec exec-with-env "${PATRONI_ENV}" -- /usr/bin/patroni "$PATRONI_CONFIG_PATH/config.yml"

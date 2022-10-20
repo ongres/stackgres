@@ -25,6 +25,7 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
@@ -32,8 +33,6 @@ import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
-import io.stackgres.operator.conciliation.factory.distributedlogs.FluentdStaticVolume;
-import io.stackgres.operator.conciliation.factory.distributedlogs.StatefulSetDynamicVolumes;
 
 @Singleton
 @OperatorVersionBinder
@@ -145,12 +144,12 @@ public class DistributedLogsController
         .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
-                .withName(FluentdStaticVolume.FLUENTD.getVolumeName())
+                .withName(StackGresVolume.FLUENTD.getName())
                 .withMountPath("/fluentd")
                 .withReadOnly(Boolean.FALSE)
                 .build(),
             new VolumeMountBuilder()
-                .withName(StatefulSetDynamicVolumes.FLUENTD_CONFIG.getVolumeName())
+                .withName(StackGresVolume.FLUENTD_CONFIG.getName())
                 .withMountPath("/etc/fluentd")
                 .withReadOnly(Boolean.TRUE)
                 .build()

@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -19,21 +18,28 @@ import javax.inject.Singleton;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirementBuilder;
-import io.fabric8.kubernetes.api.model.NodeAffinity;
-import io.fabric8.kubernetes.api.model.NodeSelector;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodAffinityTermBuilder;
+import io.fabric8.kubernetes.api.model.PodAntiAffinity;
 import io.fabric8.kubernetes.api.model.PodAntiAffinityBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.TolerationBuilder;
+import io.fabric8.kubernetes.api.model.TopologySpreadConstraintBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresPort;
 import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
@@ -88,7 +94,7 @@ public class PodTemplateSpecFactory
         containerFactoryDiscoverer.discoverContainers(context);
 
     final List<Container> containers = containerFactories.stream()
-        .map(f -> f.getContainer(context)).collect(Collectors.toUnmodifiableList());
+        .map(f -> f.getContainer(context)).toList();
 
     Map<String, String> componentVersions = containerFactories.stream()
         .map(f -> f.getComponentVersions(context))
@@ -102,13 +108,13 @@ public class PodTemplateSpecFactory
 
     List<Container> initContainers = initContainerFactories
         .stream().map(f -> f.getContainer(context))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     final List<String> claimedVolumes = Stream.concat(containers.stream(), initContainers.stream())
         .flatMap(container -> container.getVolumeMounts().stream())
         .map(VolumeMount::getName)
         .distinct()
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     claimedVolumes.forEach(rv -> {
       if (!context.availableVolumes().containsKey(rv) && !context.getDataVolumeName().equals(rv)) {
@@ -119,11 +125,17 @@ public class PodTemplateSpecFactory
     List<Volume> volumes = claimedVolumes.stream()
         .map(volumeName -> context.availableVolumes().get(volumeName))
         .filter(Objects::nonNull)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     StackGresCluster cluster = context.getClusterContext().getSource();
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
     final Map<String, String> customPodLabels = podsCustomLabels(cluster);
+
+    final boolean isEnabledClusterPodAntiAffinity = Optional.ofNullable(
+        cluster.getSpec().getNonProductionOptions())
+        .map(StackGresClusterNonProduction::getDisableClusterPodAntiAffinity)
+        .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
+        .orElse(true);
 
     var podTemplate = new PodTemplateSpecBuilder()
         .withMetadata(new ObjectMetaBuilder()
@@ -134,37 +146,16 @@ public class PodTemplateSpecFactory
             .addToAnnotations(componentVersions)
             .build())
         .withNewSpec()
-        .withAffinity(Optional.of(new AffinityBuilder())
-            .filter(ignore -> isClusterPodAntiAffinityEnabled(cluster)
-                || hasNonEmptyPodNodeAffinity(cluster))
-            .map(builder -> builder.withNodeAffinity(
-                Optional.of(cluster.getSpec())
-                .map(StackGresClusterSpec::getPod)
-                .map(StackGresClusterPod::getScheduling)
-                .map(StackGresClusterPodScheduling::getNodeAffinity)
-                .orElse(null)))
-            .map(builder -> builder.withPodAntiAffinity(Optional.of(new PodAntiAffinityBuilder()
-                .addToRequiredDuringSchedulingIgnoredDuringExecution(
-                    new PodAffinityTermBuilder()
-                    .withLabelSelector(new LabelSelectorBuilder()
-                        .withMatchExpressions(new LabelSelectorRequirementBuilder()
-                            .withKey(StackGresContext.APP_KEY)
-                            .withOperator("In")
-                            .withValues(labelFactory.labelMapper().appName())
-                            .build(),
-                            new LabelSelectorRequirementBuilder()
-                            .withKey(labelFactory.labelMapper().clusterKey(cluster))
-                            .withOperator("In")
-                            .withValues("true")
-                            .build())
-                        .build())
-                    .withTopologyKey("kubernetes.io/hostname")
-                    .build())
-                .build())
-                .filter(ignore -> isClusterPodAntiAffinityEnabled(cluster))
-                .orElse(null)))
-            .map(builder -> builder.build())
-            .orElse(null))
+        .withShareProcessNamespace(Boolean.TRUE)
+        .withServiceAccountName(PatroniRoleGenerator.roleName(context.getClusterContext()))
+        .withSecurityContext(podSecurityContext.createResource(context.getClusterContext()))
+        .withVolumes(volumes)
+        .withContainers(containers)
+        .withInitContainers(initContainers)
+        .withTerminationGracePeriodSeconds(60L)
+        .withShareProcessNamespace(Boolean.TRUE)
+        .withServiceAccountName(PatroniRoleGenerator.roleName(context.getClusterContext()))
+        .withSecurityContext(podSecurityContext.createResource(context.getClusterContext()))
         .withNodeSelector(Optional.ofNullable(cluster.getSpec())
             .map(StackGresClusterSpec::getPod)
             .map(StackGresClusterPod::getScheduling)
@@ -179,13 +170,112 @@ public class PodTemplateSpecFactory
                 .map(TolerationBuilder::build)
                 .toList())
             .orElse(null))
-        .withShareProcessNamespace(Boolean.TRUE)
-        .withServiceAccountName(PatroniRoleGenerator.roleName(context.getClusterContext()))
-        .withSecurityContext(podSecurityContext.createResource(context.getClusterContext()))
-        .withVolumes(volumes)
+        .withAffinity(new AffinityBuilder()
+            .withNodeAffinity(Optional.ofNullable(cluster.getSpec())
+                .map(StackGresClusterSpec::getPod)
+                .map(StackGresClusterPod::getScheduling)
+                .map(StackGresClusterPodScheduling::getNodeAffinity)
+                .orElse(null))
+            .withPodAffinity(Optional.ofNullable(cluster.getSpec())
+                .map(StackGresClusterSpec::getPod)
+                .map(StackGresClusterPod::getScheduling)
+                .map(StackGresClusterPodScheduling::getPodAffinity)
+                .orElse(null))
+            .withPodAntiAffinity(Optional.ofNullable(cluster.getSpec())
+                .map(StackGresClusterSpec::getPod)
+                .map(StackGresClusterPod::getScheduling)
+                .map(StackGresClusterPodScheduling::getPodAntiAffinity)
+                .map(PodAntiAffinityBuilder::new)
+                .orElseGet(PodAntiAffinityBuilder::new)
+                .addAllToRequiredDuringSchedulingIgnoredDuringExecution(Seq.of(
+                    new PodAffinityTermBuilder()
+                        .withLabelSelector(new LabelSelectorBuilder()
+                            .withMatchExpressions(new LabelSelectorRequirementBuilder()
+                                .withKey(labelFactory.labelMapper().appKey())
+                                .withOperator("In")
+                                .withValues(labelFactory.labelMapper().appName())
+                                .build(),
+                                new LabelSelectorRequirementBuilder()
+                                    .withKey(labelFactory.labelMapper().clusterKey(cluster))
+                                    .withOperator("In")
+                                    .withValues(StackGresContext.RIGHT_VALUE)
+                                    .build())
+                            .build())
+                        .withTopologyKey("kubernetes.io/hostname")
+                        .build())
+                    .filter(affinity -> isEnabledClusterPodAntiAffinity)
+                    .append(Optional.ofNullable(cluster.getSpec())
+                        .map(StackGresClusterSpec::getPod)
+                        .map(StackGresClusterPod::getScheduling)
+                        .map(StackGresClusterPodScheduling::getPodAntiAffinity)
+                        .map(PodAntiAffinity::getRequiredDuringSchedulingIgnoredDuringExecution)
+                        .stream()
+                        .flatMap(List::stream))
+                    .toList())
+                .build())
+            .build())
+        .withTopologySpreadConstraints(Optional.ofNullable(cluster.getSpec())
+            .map(StackGresClusterSpec::getPod)
+            .map(StackGresClusterPod::getScheduling)
+            .map(StackGresClusterPodScheduling::getTopologySpreadConstraints)
+            .map(topologySpreadConstraints -> Seq.seq(topologySpreadConstraints)
+                .map(TopologySpreadConstraintBuilder::new)
+                .map(TopologySpreadConstraintBuilder::build)
+                .toList())
+            .orElse(null))
         .withContainers(containers)
+        .addAllToContainers(Optional.of(cluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPod)
+            .map(StackGresClusterPod::getCustomContainers)
+            .stream()
+            .flatMap(List::stream)
+            .map(ContainerBuilder::new)
+            .map(builder -> builder.withName(
+                StackGresContainer.CUSTOM.formatted(builder.getName())))
+            .map(builder -> builder.withPorts(
+                Optional.ofNullable(builder.buildPorts())
+                .stream()
+                .flatMap(List::stream)
+                .map(ContainerPortBuilder::new)
+                .map(containerPortBuilder -> containerPortBuilder.withName(
+                    StackGresPort.CUSTOM.getName(containerPortBuilder.getName())))
+                .map(ContainerPortBuilder::build)
+                .toList()))
+            .map(ContainerBuilder::build)
+            .toList())
         .withInitContainers(initContainers)
-        .withTerminationGracePeriodSeconds(60L)
+        .addAllToInitContainers(Optional.of(cluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPod)
+            .map(StackGresClusterPod::getCustomInitContainers)
+            .stream()
+            .flatMap(List::stream)
+            .map(ContainerBuilder::new)
+            .map(builder -> builder.withName(
+                StackGresInitContainer.CUSTOM.formatted(builder.getName())))
+            .map(builder -> builder.withPorts(
+                Optional.ofNullable(builder.buildPorts())
+                .stream()
+                .flatMap(List::stream)
+                .map(ContainerPortBuilder::new)
+                .map(containerPortBuilder -> containerPortBuilder.withName(
+                    StackGresPort.CUSTOM.getName(containerPortBuilder.getName())))
+                .map(ContainerPortBuilder::build)
+                .toList()))
+            .map(ContainerBuilder::build)
+            .toList())
+        .withVolumes(volumes)
+        .addAllToVolumes(Optional.of(cluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPod)
+            .map(StackGresClusterPod::getCustomVolumes)
+            .stream()
+            .flatMap(List::stream)
+            .map(VolumeBuilder::new)
+            .map(builder -> builder.withName(StackGresVolume.CUSTOM.getName(builder.getName())))
+            .map(VolumeBuilder::build)
+            .toList())
         .endSpec()
         .build();
 
@@ -193,33 +283,6 @@ public class PodTemplateSpecFactory
         .spec(podTemplate)
         .claimedVolumes(claimedVolumes)
         .build();
-  }
-
-  private Boolean isClusterPodAntiAffinityEnabled(StackGresCluster cluster) {
-    return Optional.ofNullable(
-        cluster.getSpec().getNonProductionOptions())
-        .map(StackGresClusterNonProduction::getDisableClusterPodAntiAffinity)
-        .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
-        .orElse(true);
-  }
-
-  private boolean hasNonEmptyPodNodeAffinity(StackGresCluster cluster) {
-    return Optional.of(cluster.getSpec())
-        .map(StackGresClusterSpec::getPod)
-        .map(StackGresClusterPod::getScheduling)
-        .map(StackGresClusterPodScheduling::getNodeAffinity)
-        .map(this::isNonEmptyNodeAffinity)
-        .orElse(false);
-  }
-
-  private boolean isNonEmptyNodeAffinity(NodeAffinity nodeAffinity) {
-    return Optional.ofNullable(nodeAffinity.getPreferredDuringSchedulingIgnoredDuringExecution())
-        .map(list -> !list.isEmpty())
-        .orElse(false)
-        || Optional.ofNullable(nodeAffinity.getRequiredDuringSchedulingIgnoredDuringExecution())
-        .map(NodeSelector::getNodeSelectorTerms)
-        .map(list -> !list.isEmpty())
-        .orElse(false);
   }
 
   public Map<String, String> podsCustomLabels(StackGresCluster cluster) {

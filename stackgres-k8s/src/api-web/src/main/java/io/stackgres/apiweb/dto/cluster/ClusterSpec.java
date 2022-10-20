@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -181,36 +180,6 @@ public class ClusterSpec {
 
   public void setMetadata(ClusterSpecMetadata metadata) {
     this.metadata = metadata;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(configuration, distributedLogs, initData, instances, managedSql, metadata,
-        nonProductionOptions, pods, postgres, postgresServices, prometheusAutobind, replicateFrom,
-        replication, sgInstanceProfile, toInstallPostgresExtensions);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterSpec)) {
-      return false;
-    }
-    ClusterSpec other = (ClusterSpec) obj;
-    return Objects.equals(configuration, other.configuration)
-        && Objects.equals(distributedLogs, other.distributedLogs)
-        && Objects.equals(initData, other.initData) && instances == other.instances
-        && Objects.equals(managedSql, other.managedSql) && Objects.equals(metadata, other.metadata)
-        && Objects.equals(nonProductionOptions, other.nonProductionOptions)
-        && Objects.equals(pods, other.pods) && Objects.equals(postgres, other.postgres)
-        && Objects.equals(postgresServices, other.postgresServices)
-        && Objects.equals(prometheusAutobind, other.prometheusAutobind)
-        && Objects.equals(replicateFrom, other.replicateFrom)
-        && Objects.equals(replication, other.replication)
-        && Objects.equals(sgInstanceProfile, other.sgInstanceProfile)
-        && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }
 
   @Override

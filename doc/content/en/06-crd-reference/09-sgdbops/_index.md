@@ -56,33 +56,10 @@ Holds scheduling configuration for StackGres pods to have.
 | Property          | Required | Updatable | Type     | Default                 | Description |
 |:------------------|----------|-----------|:---------|:------------------------|:------------|
 | nodeSelector      |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeSelector >}} |
-| [nodeAffinity](#nodeAffinity)|           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity >}} |
-| [tolerations](#tolerations)  |           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations >}}  |
-
-### Node Affinity
-
-Sets the SGDBOps pod's affinity to restrict it to run only on a certain set of node(s)
-
-| Property          | Required | Updatable | Type     | Default                 | Description |
-|:------------------|----------|-----------|:---------|:------------------------|:------------|
-| requiredDuringSchedulingIgnoredDuringExecution  |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution >}} |
-| preferredDuringSchedulingIgnoredDuringExecution |          | ✓         | array   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution >}} |
-
-See Kubernetes pod node affinity [definition](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity{}) for more details.
-<br>
-<br>
-
-### Tolerations
-
-Holds scheduling configuration for StackGres pods to have.
-
-| Property          | Required | Updatable | Type     | Default                 | Description |
-|:------------------|----------|-----------|:---------|:------------------------|:------------|
-| key               |          | ✓         | string   |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations.items.key >}} |
-| operator          |          | ✓         | string   | Equal                   | {{< crd-field-description SGDbOps.spec.scheduling.tolerations.items.operator >}} |
-| value             |          | ✓         | string   |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations.items.value >}} |
-| effect            |          | ✓         | string   | match all taint effects | {{< crd-field-description SGDbOps.spec.scheduling.tolerations.items.effect >}} |
-| tolerationSeconds |          | ✓         | string   | 0                       | {{< crd-field-description SGDbOps.spec.scheduling.tolerations.items.tolerationSeconds >}} |
+| tolerations       |           | ✓        | array    |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations >}}  |
+| nodeAffinity      |           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity >}} |
+| podAffinity       |           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.podAffinity >}} |
+| podAntiAffinity   |           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.podAntiAffinity >}} |
 
 ## Benchmark
 

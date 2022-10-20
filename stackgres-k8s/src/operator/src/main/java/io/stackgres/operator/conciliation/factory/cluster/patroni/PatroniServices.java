@@ -25,10 +25,12 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresPort;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
@@ -158,7 +160,7 @@ public class PatroniServices implements
         .withAnnotations(getPrimaryServiceAnnotations(cluster))
         .endMetadata()
         .withNewSpec()
-        .withPorts(
+        .addAllToPorts(List.of(
             new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_PORT_NAME)
@@ -170,7 +172,7 @@ public class PatroniServices implements
                 .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME))
-                .build())
+                .build()))
         .addAllToPorts(Seq.of(
             new ServicePortBuilder()
                 .withProtocol("TCP")
@@ -180,6 +182,18 @@ public class PatroniServices implements
                 .build())
             .filter(
                 servicePort -> getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH)
+            .toList())
+        .addAllToPorts(
+            Optional.of(cluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPostgresServices)
+            .map(StackGresClusterPostgresServices::getPrimary)
+            .map(StackGresClusterPostgresService::getCustomPorts)
+            .stream()
+            .flatMap(List::stream)
+            .map(ServicePortBuilder::new)
+            .map(this::setCustomPort)
+            .map(ServicePortBuilder::build)
             .toList())
         .withType(getPrimaryServiceType(cluster))
         .withExternalIPs(getPrimaryExternalIps(cluster))
@@ -260,18 +274,19 @@ public class PatroniServices implements
         .endMetadata()
         .withNewSpec()
         .withSelector(replicaLabels)
-        .withPorts(new ServicePortBuilder()
-            .withProtocol("TCP")
-            .withName(EnvoyUtil.POSTGRES_PORT_NAME)
-            .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
-            .withTargetPort(new IntOrString(EnvoyUtil.POSTGRES_PORT_NAME))
-            .build(),
+        .addAllToPorts(List.of(
+            new ServicePortBuilder()
+                .withProtocol("TCP")
+                .withName(EnvoyUtil.POSTGRES_PORT_NAME)
+                .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
+                .withTargetPort(new IntOrString(EnvoyUtil.POSTGRES_PORT_NAME))
+                .build(),
             new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME))
-                .build())
+                .build()))
         .addAllToPorts(Seq.of(
             new ServicePortBuilder()
                 .withProtocol("TCP")
@@ -282,11 +297,34 @@ public class PatroniServices implements
             .filter(
                 servicePort -> getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH)
             .toList())
+        .addAllToPorts(
+            Optional.of(cluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPostgresServices)
+            .map(StackGresClusterPostgresServices::getReplicas)
+            .map(StackGresClusterPostgresService::getCustomPorts)
+            .stream()
+            .flatMap(List::stream)
+            .map(ServicePortBuilder::new)
+            .map(this::setCustomPort)
+            .map(ServicePortBuilder::build)
+            .toList())
         .withType(getReplicasServiceType(cluster))
         .withLoadBalancerIP(getReplicaLoadBalancerIP(cluster))
         .withExternalIPs(getReplicasExternalIPs(cluster))
         .endSpec()
         .build();
+  }
+
+  private ServicePortBuilder setCustomPort(ServicePortBuilder builder) {
+    builder.withName(StackGresPort.CUSTOM.getName(builder.getName()));
+    var targetPort = builder.buildTargetPort();
+    if (targetPort.getStrVal() != null) {
+      return builder.withTargetPort(new IntOrString(
+          StackGresPort.CUSTOM.getName(
+              builder.buildTargetPort().getStrVal())));
+    }
+    return builder;
   }
 
   private Map<String, String> getReplicasServiceAnnotations(StackGresCluster cluster) {

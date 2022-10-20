@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.storages;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -98,26 +96,4 @@ public class AwsS3CompatibleStorageDto {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    AwsS3CompatibleStorageDto that = (AwsS3CompatibleStorageDto) o;
-    return Objects.equals(bucket, that.bucket) && Objects.equals(path, that.path)
-        && Objects.equals(credentials, that.credentials)
-        && Objects.equals(region, that.region)
-        && Objects.equals(endpoint, that.endpoint)
-        && Objects.equals(forcePathStyle, that.forcePathStyle)
-        && Objects.equals(storageClass, that.storageClass);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(bucket, path, credentials, region, endpoint,
-        forcePathStyle, storageClass);
-  }
 }

@@ -33,6 +33,7 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -47,7 +48,6 @@ import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
@@ -71,7 +71,7 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
 
   public static String configName(StackGresClusterContext clusterContext) {
     final String name = clusterContext.getSource().getMetadata().getName();
-    return StatefulSetDynamicVolumes.EXPORTER_QUERIES.getResourceName(name);
+    return StackGresVolume.EXPORTER_QUERIES.getResourceName(name);
   }
 
   @Override
@@ -145,7 +145,7 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
-                .withName(StatefulSetDynamicVolumes.EXPORTER_QUERIES.getVolumeName())
+                .withName(StackGresVolume.EXPORTER_QUERIES.getName())
                 .withMountPath("/var/opt/postgres-exporter/queries.yaml")
                 .withSubPath("queries.yaml")
                 .withReadOnly(true)
@@ -176,7 +176,7 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
 
   public @NotNull Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StatefulSetDynamicVolumes.EXPORTER_QUERIES.getVolumeName())
+        .withName(StackGresVolume.EXPORTER_QUERIES.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(configName(context))
             .build())

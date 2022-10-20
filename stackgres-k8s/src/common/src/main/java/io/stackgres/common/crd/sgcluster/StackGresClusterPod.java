@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
@@ -15,6 +16,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.CustomContainer;
+import io.stackgres.common.crd.CustomInitContainer;
+import io.stackgres.common.crd.CustomVolume;
 import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
 
@@ -50,6 +54,18 @@ public class StackGresClusterPod {
   @JsonProperty("scheduling")
   @Valid
   private StackGresClusterPodScheduling scheduling;
+
+  @JsonProperty("customVolumes")
+  @Valid
+  private List<CustomVolume> customVolumes;
+
+  @JsonProperty("customContainers")
+  @Valid
+  private List<CustomContainer> customContainers;
+
+  @JsonProperty("customInitContainers")
+  @Valid
+  private List<CustomInitContainer> customInitContainers;
 
   public StackGresPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -107,10 +123,35 @@ public class StackGresClusterPod {
     this.managementPolicy = managementPolicy;
   }
 
+  public List<CustomVolume> getCustomVolumes() {
+    return customVolumes;
+  }
+
+  public void setCustomVolumes(List<CustomVolume> customVolumes) {
+    this.customVolumes = customVolumes;
+  }
+
+  public List<CustomContainer> getCustomContainers() {
+    return customContainers;
+  }
+
+  public void setCustomContainers(List<CustomContainer> customContainers) {
+    this.customContainers = customContainers;
+  }
+
+  public List<CustomInitContainer> getCustomInitContainers() {
+    return customInitContainers;
+  }
+
+  public void setCustomInitContainers(List<CustomInitContainer> customInitContainers) {
+    this.customInitContainers = customInitContainers;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(disableConnectionPooling, disableMetricsExporter, disablePostgresUtil,
-        managementPolicy, persistentVolume, resources, scheduling);
+    return Objects.hash(customContainers, customInitContainers, customVolumes,
+        disableConnectionPooling, disableMetricsExporter, disablePostgresUtil, managementPolicy,
+        persistentVolume, resources, scheduling);
   }
 
   @Override
@@ -122,7 +163,10 @@ public class StackGresClusterPod {
       return false;
     }
     StackGresClusterPod other = (StackGresClusterPod) obj;
-    return Objects.equals(disableConnectionPooling, other.disableConnectionPooling)
+    return Objects.equals(customContainers, other.customContainers)
+        && Objects.equals(customInitContainers, other.customInitContainers)
+        && Objects.equals(customVolumes, other.customVolumes)
+        && Objects.equals(disableConnectionPooling, other.disableConnectionPooling)
         && Objects.equals(disableMetricsExporter, other.disableMetricsExporter)
         && Objects.equals(disablePostgresUtil, other.disablePostgresUtil)
         && Objects.equals(managementPolicy, other.managementPolicy)

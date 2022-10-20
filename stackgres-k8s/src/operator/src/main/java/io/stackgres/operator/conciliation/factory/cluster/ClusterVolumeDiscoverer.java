@@ -14,6 +14,7 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
@@ -35,7 +36,9 @@ public class ClusterVolumeDiscoverer
   public Map<String, VolumePair> discoverVolumes(
       StackGresClusterContext context) {
     return resourceHub.get(context.getVersion())
-        .stream().flatMap(vf -> vf.buildVolumes(context))
+        .stream()
+        .filter(vf -> vf.kind() == StackGresGroupKind.CLUSTER)
+        .flatMap(vf -> vf.buildVolumes(context))
         .collect(Collectors.toMap(vp -> vp.getVolume().getName(), Function.identity()));
   }
 

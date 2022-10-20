@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.storages;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -54,23 +52,4 @@ public class GoogleCloudCredentialsDto {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    GoogleCloudCredentialsDto that = (GoogleCloudCredentialsDto) o;
-    return fetchCredentialsFromMetadataService == that.fetchCredentialsFromMetadataService
-        && Objects.equals(serviceAccountJsonKey, that.serviceAccountJsonKey)
-        && Objects.equals(secretKeySelectors, that.secretKeySelectors);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(fetchCredentialsFromMetadataService, serviceAccountJsonKey,
-        secretKeySelectors);
-  }
 }

@@ -25,6 +25,7 @@ import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -32,7 +33,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.LogVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Sidecar(StackGresContainer.FLUENT_BIT)
 @Singleton
@@ -55,7 +55,7 @@ public class FluentBit extends AbstractFluentBit {
         .addAll(logMounts.getVolumeMounts(context))
         .add(
             new VolumeMountBuilder()
-                .withName(StatefulSetDynamicVolumes.FLUENT_BIT.getVolumeName())
+                .withName(StackGresVolume.FLUENT_BIT.getName())
                 .withMountPath("/etc/fluent-bit")
                 .withReadOnly(Boolean.TRUE)
                 .build())

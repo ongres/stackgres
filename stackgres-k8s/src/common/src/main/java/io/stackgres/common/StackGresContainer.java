@@ -13,65 +13,67 @@ import java.util.function.Function;
 
 public enum StackGresContainer implements StackGresContainerProfile {
 
-  PATRONI(StackGresKind.CLUSTER, "patroni",
+  PATRONI(StackGresGroupKind.CLUSTER, "patroni",
       cpu -> cpu,
       memory -> memory),
-  ENVOY(StackGresKind.CLUSTER, "envoy",
+  ENVOY(StackGresGroupKind.CLUSTER, "envoy",
       cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
           .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(4)))),
       memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
       ),
-  PGBOUNCER(StackGresKind.CLUSTER, "pgbouncer",
+  PGBOUNCER(StackGresGroupKind.CLUSTER, "pgbouncer",
       cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
           .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
       memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
       ),
-  POSTGRES_EXPORTER(StackGresKind.CLUSTER, "prometheus-postgres-exporter",
+  POSTGRES_EXPORTER(StackGresGroupKind.CLUSTER, "prometheus-postgres-exporter",
       cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
       memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES)
       ),
-  POSTGRES_UTIL(StackGresKind.CLUSTER, "postgres-util",
+  POSTGRES_UTIL(StackGresGroupKind.CLUSTER, "postgres-util",
       cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
       memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
       ),
-  FLUENT_BIT(StackGresKind.CLUSTER, "fluent-bit",
+  FLUENT_BIT(StackGresGroupKind.CLUSTER, "fluent-bit",
       cpu -> BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16))),
       memory -> BigDecimal.valueOf(64).multiply(MEBIBYTES)
       ),
-  FLUENTD(StackGresKind.CLUSTER, "fluentd",
+  FLUENTD(StackGresGroupKind.CLUSTER, "fluentd",
       cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
           .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(4)))),
       memory -> BigDecimal.valueOf(2).multiply(GIBIBYTES)
       ),
-  CLUSTER_CONTROLLER(StackGresKind.CLUSTER, "cluster-controller",
+  CLUSTER_CONTROLLER(StackGresGroupKind.CLUSTER, "cluster-controller",
       cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
           .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
       memory -> BigDecimal.valueOf(512).multiply(MEBIBYTES)
       ),
-  DISTRIBUTEDLOGS_CONTROLLER(StackGresKind.CLUSTER, "distributedlogs-controller",
+  DISTRIBUTEDLOGS_CONTROLLER(StackGresGroupKind.CLUSTER, "distributedlogs-controller",
       cpu -> BigDecimal.ONE.divide(BigDecimal.valueOf(4))
           .max(BigDecimal.ONE.min(cpu.divide(BigDecimal.valueOf(16)))),
       memory -> BigDecimal.valueOf(512).multiply(MEBIBYTES)
       ),
-  DBOPS_RUN_DBOPS(StackGresKind.DBOPS, "run-dbops",
+  DBOPS_RUN_DBOPS(StackGresGroupKind.DBOPS, "run-dbops",
       cpu -> BigDecimal.ONE,
       memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES)
       ),
-  DBOPS_SET_DBOPS_RESULT(StackGresKind.DBOPS, "set-dbops-result",
+  DBOPS_SET_DBOPS_RESULT(StackGresGroupKind.DBOPS, "set-dbops-result",
       cpu -> BigDecimal.ONE,
       memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES)
       ),
-  BACKUP_CREATE_BACKUP(StackGresKind.BACKUP, "create-backup",
+  BACKUP_CREATE_BACKUP(StackGresGroupKind.BACKUP, "create-backup",
       cpu -> BigDecimal.ONE,
       memory -> BigDecimal.valueOf(256).multiply(MEBIBYTES)
       );
 
-  private final StackGresKind kind;
+  public static final String CUSTOM = "custom-%s";
+
+  private final StackGresGroupKind kind;
   private final String name;
   private final Function<BigDecimal, BigDecimal> cpuFormula;
   private final Function<BigDecimal, BigDecimal> memoryFormula;
 
-  StackGresContainer(StackGresKind kind, String name,
+  StackGresContainer(StackGresGroupKind kind, String name,
       Function<BigDecimal, BigDecimal> cpuFormula,
       Function<BigDecimal, BigDecimal> memoryFormula) {
     this.kind = kind;
@@ -81,7 +83,7 @@ public enum StackGresContainer implements StackGresContainerProfile {
   }
 
   @Override
-  public StackGresKind getKind() {
+  public StackGresGroupKind getKind() {
     return kind;
   }
 

@@ -13,6 +13,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.StackGresVolume;
 
 @ApplicationScoped
 public class PostgresSocketMount implements VolumeMountsProvider<ContainerContext> {
@@ -21,7 +22,7 @@ public class PostgresSocketMount implements VolumeMountsProvider<ContainerContex
   public List<VolumeMount> getVolumeMounts(ContainerContext context) {
     return List.of(
         new VolumeMountBuilder()
-            .withName(PatroniStaticVolume.POSTGRES_SOCKET.getVolumeName())
+            .withName(StackGresVolume.POSTGRES_SOCKET.getName())
             .withMountPath(ClusterStatefulSetPath.PG_RUN_PATH.path())
             .build()
     );

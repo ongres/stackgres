@@ -17,7 +17,6 @@ import javax.inject.Singleton;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
-import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -26,7 +25,7 @@ import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpecBuilder;
@@ -52,10 +51,11 @@ import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterStatefulSetVolumeConfig;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,24 +68,27 @@ public class BackupCronJob
 
   private final
       ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> clusterEnvVarFactoryDiscoverer;
-
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
-
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory;
-
   private final KubectlUtil kubectl;
+  private final BackupScriptTemplatesVolumeMounts backupScriptTemplatesVolumeMounts;
+  private final BackupTemplatesVolumeFactory backupTemplatesVolumeFactory;
 
   @Inject
   public BackupCronJob(
       ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> clusterEnvVarFactoryDiscoverer,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory,
-      KubectlUtil kubectl) {
+      KubectlUtil kubectl,
+      BackupScriptTemplatesVolumeMounts backupScriptTemplatesVolumeMounts,
+      BackupTemplatesVolumeFactory backupTemplatesVolumeFactory) {
     super();
     this.clusterEnvVarFactoryDiscoverer = clusterEnvVarFactoryDiscoverer;
     this.labelFactory = labelFactory;
     this.podSecurityFactory = podSecurityFactory;
     this.kubectl = kubectl;
+    this.backupScriptTemplatesVolumeMounts = backupScriptTemplatesVolumeMounts;
+    this.backupTemplatesVolumeFactory = backupTemplatesVolumeFactory;
   }
 
   public static String backupName(StackGresClusterContext clusterContext) {
@@ -140,8 +143,47 @@ public class BackupCronJob
             .withSecurityContext(podSecurityFactory.createResource(context))
             .withRestartPolicy("OnFailure")
             .withServiceAccountName(BackupCronRole.roleName(context))
-            .withNodeSelector(getNodeSelectors(context))
-            .withAffinity(getAffinity(context))
+            .withNodeSelector(Optional.ofNullable(cluster)
+                .map(StackGresCluster::getSpec)
+                .map(StackGresClusterSpec::getPod)
+                .map(StackGresClusterPod::getScheduling)
+                .map(StackGresClusterPodScheduling::getBackup)
+                .map(StackGresClusterPodSchedulingBackup::getNodeSelector)
+                .orElse(null))
+            .withTolerations(Optional.ofNullable(cluster)
+                .map(StackGresCluster::getSpec)
+                .map(StackGresClusterSpec::getPod)
+                .map(StackGresClusterPod::getScheduling)
+                .map(StackGresClusterPodScheduling::getBackup)
+                .map(StackGresClusterPodSchedulingBackup::getTolerations)
+                .map(tolerations -> Seq.seq(tolerations)
+                    .map(TolerationBuilder::new)
+                    .map(TolerationBuilder::build)
+                    .toList())
+                .orElse(null))
+            .withAffinity(new AffinityBuilder()
+                .withNodeAffinity(Optional.of(cluster)
+                    .map(StackGresCluster::getSpec)
+                    .map(StackGresClusterSpec::getPod)
+                    .map(StackGresClusterPod::getScheduling)
+                    .map(StackGresClusterPodScheduling::getBackup)
+                    .map(StackGresClusterPodSchedulingBackup::getNodeAffinity)
+                    .orElse(null))
+                .withPodAffinity(Optional.of(cluster)
+                    .map(StackGresCluster::getSpec)
+                    .map(StackGresClusterSpec::getPod)
+                    .map(StackGresClusterPod::getScheduling)
+                    .map(StackGresClusterPodScheduling::getBackup)
+                    .map(StackGresClusterPodSchedulingBackup::getPodAffinity)
+                    .orElse(null))
+                .withPodAntiAffinity(Optional.of(cluster)
+                    .map(StackGresCluster::getSpec)
+                    .map(StackGresClusterSpec::getPod)
+                    .map(StackGresClusterPod::getScheduling)
+                    .map(StackGresClusterPodScheduling::getBackup)
+                    .map(StackGresClusterPodSchedulingBackup::getPodAntiAffinity)
+                    .orElse(null))
+                .build())
             .withContainers(new ContainerBuilder()
                 .withName("create-backup")
                 .withImage(kubectl.getImageName(cluster))
@@ -301,59 +343,17 @@ public class BackupCronJob
                     .build())
                 .withCommand("/bin/bash", "-e" + (BACKUP_LOGGER.isTraceEnabled() ? "x" : ""),
                     ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
-                .withVolumeMounts(ClusterStatefulSetVolumeConfig.TEMPLATES
-                    .volumeMount(context,
-                        volumeMountBuilder -> volumeMountBuilder
-                            .withSubPath(
-                                ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH
-                                    .filename())
-                            .withMountPath(
-                                ClusterStatefulSetPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
-                            .withReadOnly(true)),
-                    ClusterStatefulSetVolumeConfig.TEMPLATES
-                        .volumeMount(context,
-                            volumeMountBuilder -> volumeMountBuilder
-                                .withSubPath(
-                                    ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
-                                .withMountPath(
-                                    ClusterStatefulSetPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
-                                .withReadOnly(true)))
+                .withVolumeMounts(backupScriptTemplatesVolumeMounts.getVolumeMounts(context))
                 .build())
-            .withVolumes(new VolumeBuilder(ClusterStatefulSetVolumeConfig.TEMPLATES
-                .volume(context))
-                    .editConfigMap()
-                    .withDefaultMode(0555) // NOPMD
-                    .endConfigMap()
-                    .build())
+            .withVolumes(backupTemplatesVolumeFactory.buildVolumes(context)
+                .map(VolumePair::getVolume)
+                .toList())
             .endSpec()
             .endTemplate()
             .endSpec()
             .build())
         .endSpec()
         .build();
-  }
-
-  private Affinity getAffinity(StackGresClusterContext context) {
-    return Optional.of(new AffinityBuilder())
-        .map(builder -> builder.withNodeAffinity(
-            Optional.of(context.getSource())
-                .map(StackGresCluster::getSpec)
-                .map(StackGresClusterSpec::getPod)
-                .map(StackGresClusterPod::getScheduling)
-                .map(StackGresClusterPodScheduling::getBackup)
-                .map(StackGresClusterPodSchedulingBackup::getNodeAffinity)
-                .orElse(null)))
-        .map(builder -> builder.build())
-        .orElse(null);
-  }
-
-  private Map<String, String> getNodeSelectors(StackGresClusterContext context) {
-    return Optional.ofNullable(context.getSource().getSpec())
-        .map(StackGresClusterSpec::getPod)
-        .map(StackGresClusterPod::getScheduling)
-        .map(StackGresClusterPodScheduling::getBackup)
-        .map(StackGresClusterPodSchedulingBackup::getNodeSelector)
-        .orElse(null);
   }
 
   @NotNull

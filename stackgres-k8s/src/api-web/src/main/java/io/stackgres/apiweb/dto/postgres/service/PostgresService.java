@@ -7,7 +7,6 @@ package io.stackgres.apiweb.dto.postgres.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -65,23 +64,4 @@ public class PostgresService {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    PostgresService that = (PostgresService) o;
-    return Objects.equals(enabled, that.enabled)
-        && Objects.equals(type, that.type)
-        && Objects.equals(loadBalancerIP, that.loadBalancerIP)
-        && Objects.equals(externalIPs, that.externalIPs);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(enabled, type, externalIPs, loadBalancerIP);
-  }
 }

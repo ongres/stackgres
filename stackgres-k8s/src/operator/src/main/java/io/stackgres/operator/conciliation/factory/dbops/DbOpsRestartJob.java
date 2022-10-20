@@ -13,11 +13,11 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import io.fabric8.kubernetes.api.model.Affinity;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
+import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.stackgres.common.LabelFactoryForDbOps;
@@ -29,6 +29,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpecScheduling;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
@@ -70,9 +71,38 @@ public class DbOpsRestartJob implements JobFactory {
         .withNewSpec()
         .withSecurityContext(podSecurityFactory.createResource(context))
         .withRestartPolicy("Never")
-        .withNodeSelector(getNodeSelectors(dbOps))
-        .withAffinity(getAffinity(dbOps))
         .withServiceAccountName(DbOpsRole.roleName(context))
+        .withNodeSelector(Optional.ofNullable(dbOps)
+            .map(StackGresDbOps::getSpec)
+            .map(StackGresDbOpsSpec::getScheduling)
+            .map(StackGresDbOpsSpecScheduling::getNodeSelector)
+            .orElse(null))
+        .withTolerations(Optional.ofNullable(dbOps)
+            .map(StackGresDbOps::getSpec)
+            .map(StackGresDbOpsSpec::getScheduling)
+            .map(StackGresDbOpsSpecScheduling::getTolerations)
+            .map(tolerations -> Seq.seq(tolerations)
+                .map(TolerationBuilder::new)
+                .map(TolerationBuilder::build)
+                .toList())
+            .orElse(null))
+        .withAffinity(new AffinityBuilder()
+            .withNodeAffinity(Optional.of(dbOps)
+                .map(StackGresDbOps::getSpec)
+                .map(StackGresDbOpsSpec::getScheduling)
+                .map(StackGresDbOpsSpecScheduling::getNodeAffinity)
+                .orElse(null))
+            .withPodAffinity(Optional.of(dbOps)
+                .map(StackGresDbOps::getSpec)
+                .map(StackGresDbOpsSpec::getScheduling)
+                .map(StackGresDbOpsSpecScheduling::getPodAffinity)
+                .orElse(null))
+            .withPodAntiAffinity(Optional.of(dbOps)
+                .map(StackGresDbOps::getSpec)
+                .map(StackGresDbOpsSpec::getScheduling)
+                .map(StackGresDbOpsSpecScheduling::getPodAntiAffinity)
+                .orElse(null))
+            .build())
         .withContainers(new ContainerBuilder()
             .withName("restart")
             .withImagePullPolicy(getPullPolicy())
@@ -155,26 +185,6 @@ public class DbOpsRestartJob implements JobFactory {
         .endTemplate()
         .endSpec()
         .build();
-  }
-
-  private Affinity getAffinity(StackGresDbOps dbOps) {
-    return Optional.of(new AffinityBuilder())
-        .map(builder -> builder.withNodeAffinity(
-            Optional.of(dbOps)
-                .map(StackGresDbOps::getSpec)
-                .map(StackGresDbOpsSpec::getScheduling)
-                .map(StackGresDbOpsSpecScheduling::getNodeAffinity)
-                .orElse(null)))
-        .map(builder -> builder.build())
-        .orElse(null);
-  }
-
-  private Map<String, String> getNodeSelectors(StackGresDbOps dbOps) {
-    return Optional.ofNullable(dbOps)
-        .map(StackGresDbOps::getSpec)
-        .map(StackGresDbOpsSpec::getScheduling)
-        .map(StackGresDbOpsSpecScheduling::getNodeSelector)
-        .orElse(null);
   }
 
 }

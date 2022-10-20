@@ -11,12 +11,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,18 +60,18 @@ class HugePagesMountsTest {
 
     assertTrue(volumeMounts.stream()
         .anyMatch(volumeMount -> volumeMount.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName())));
+            .equals(StackGresVolume.HUGEPAGES_2M.getName())));
     assertTrue(volumeMounts.stream()
         .filter(volumeMount -> volumeMount.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName()))
+            .equals(StackGresVolume.HUGEPAGES_2M.getName()))
         .anyMatch(volumeMount -> volumeMount.getMountPath()
             .equals(ClusterStatefulSetPath.HUGEPAGES_2M_PATH.path())));
     assertTrue(volumeMounts.stream()
         .anyMatch(volumeMount -> volumeMount.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName())));
+            .equals(StackGresVolume.HUGEPAGES_1G.getName())));
     assertTrue(volumeMounts.stream()
         .filter(volumeMount -> volumeMount.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName()))
+            .equals(StackGresVolume.HUGEPAGES_1G.getName()))
         .anyMatch(volumeMount -> volumeMount.getMountPath()
             .equals(ClusterStatefulSetPath.HUGEPAGES_1G_PATH.path())));
 
@@ -94,18 +94,18 @@ class HugePagesMountsTest {
 
     assertFalse(volumeMounts.stream()
         .anyMatch(volumeMount -> volumeMount.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName())));
+            .equals(StackGresVolume.HUGEPAGES_2M.getName())));
     assertFalse(volumeMounts.stream()
         .filter(volumeMount -> volumeMount.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_2M.getVolumeName()))
+            .equals(StackGresVolume.HUGEPAGES_2M.getName()))
         .anyMatch(volumeMount -> volumeMount.getMountPath()
             .equals(ClusterStatefulSetPath.HUGEPAGES_2M_PATH.path())));
     assertFalse(volumeMounts.stream()
         .anyMatch(volumeMount -> volumeMount.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName())));
+            .equals(StackGresVolume.HUGEPAGES_1G.getName())));
     assertFalse(volumeMounts.stream()
         .filter(volumeMount -> volumeMount.getName()
-            .equals(PatroniStaticVolume.HUGEPAGES_1G.getVolumeName()))
+            .equals(StackGresVolume.HUGEPAGES_1G.getName()))
         .anyMatch(volumeMount -> volumeMount.getMountPath()
             .equals(ClusterStatefulSetPath.HUGEPAGES_1G_PATH.path())));
 

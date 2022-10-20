@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
@@ -30,11 +31,9 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.MajorVersionUpgradeMounts;
-import io.stackgres.operator.conciliation.factory.PatroniStaticVolume;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.ImmutableClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.StatefulSetDynamicVolumes;
 
 @Singleton
 @OperatorVersionBinder
@@ -164,15 +163,15 @@ public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContaine
                 majorVersionUpgradeMounts.getVolumeMounts(majorVersoinUpgradeContainerContext)
             )
             .addToVolumeMounts(new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.DSHM.getVolumeName())
+                .withName(StackGresVolume.DSHM.getName())
                 .withMountPath(ClusterStatefulSetPath.SHARED_MEMORY_PATH.path())
                 .build())
             .addToVolumeMounts(new VolumeMountBuilder()
-                .withName(PatroniStaticVolume.LOG.getVolumeName())
+                .withName(StackGresVolume.LOG.getName())
                 .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
                 .build())
             .addToVolumeMounts(new VolumeMountBuilder()
-                .withName(StatefulSetDynamicVolumes.POSTGRES_CONFIG.getVolumeName())
+                .withName(StackGresVolume.POSTGRES_CONFIG.getName())
                 .withMountPath(ClusterStatefulSetPath.ETC_POSTGRES_PATH.path())
                 .build())
             .build();

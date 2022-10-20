@@ -10,4 +10,5 @@ import java.util.Map;
 public interface VolumeDiscoverer<T> {
 
   Map<String, VolumePair> discoverVolumes(T context);
+
 }

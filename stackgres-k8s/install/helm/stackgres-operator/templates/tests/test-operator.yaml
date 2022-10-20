@@ -1,0 +1,48 @@
+---
+{{ if and .Values.deploy.operator (not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort)) }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ .Release.Name }}-test-connection"
+  labels:
+    app: "{{ .Release.Name }}"
+    group: helm-tests
+  annotations:
+    "helm.sh/hook": test
+spec:
+  {{- with .Values.jobs.affinity}}
+  affinity:
+    {{- toYaml . | nindent 8 }}
+  {{- end}}
+  {{- with .Values.jobs.nodeSelector}}
+  nodeSelector:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+  serviceAccountName: {{ .Release.Name }}
+  restartPolicy: OnFailure
+  terminationGracePeriodSeconds: 0
+  {{- with .Values.jobs.tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 8 }}
+  {{- end }}
+  securityContext:
+    {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    {{- end }}
+  containers:
+    - name: conn-check
+      image: '{{ template "kubectl.image" . }}'
+      imagePullPolicy: "IfNotPresent"
+      command:
+        - "bash"
+        - "-xe"
+        - "-c"
+        - |
+          POD_NAME=$(kubectl get pod -n {{ .Release.Namespace }} -o name | grep -v {{ .Release.Name }}-test-connection | grep {{ .Release.Name }})
+          POD_IP=$(kubectl get ${POD_NAME} -n {{ .Release.Namespace }} -o jsonpath="{ .status.podIP }")
+          curl -v ${POD_IP}:8080/q/health/live
+  restartPolicy: Never
+{{ end }}
