@@ -26,6 +26,7 @@ ___
 | instances                                                                                  | ✓        | ✓         | integer  |                                     | {{< crd-field-description SGCluster.spec.instances >}}             |
 | [postgres](#postgres)                                                                      |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.postgres >}}              |
 | [replication](#replication)                                                                |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.replication >}}           |
+| [replicateFrom](#replicate-from)                                                           |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.replication >}}           |
 | [sgInstanceProfile]({{% relref "/06-crd-reference/02-sginstanceprofile" %}})               |          | ✓         | string   | will be generated                   | {{< crd-field-description SGCluster.spec.sgInstanceProfile >}}     |
 | [metadata](#metadata)                                                                      |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.metadata >}}              |
 | [postgresServices](#postgres-services)                                                     |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.postgresServices >}}      |
@@ -148,6 +149,52 @@ spec:
 | name                                |          | ✓         | string   |          | {{< crd-field-description SGCluster.spec.replication.groups.items.name >}}       |
 | role                                |          | ✓         | string   |          | {{< crd-field-description SGCluster.spec.replication.groups.items.role >}}       |
 | instances                           |          | ✓         | integer  |          | {{< crd-field-description SGCluster.spec.replication.groups.items.instances >}}  |
+
+## Replicate From
+
+| Property                             | Required | Updatable | Type     | Default  | Description |
+|:-------------------------------------|----------|-----------|:---------|:---------|:------------|
+| [instance](#replicate-from-instance) |          | ✓         | object   |          | {{< crd-field-description SGCluster.spec.replicateFrom.instance >}}       |
+| [storage](#replicate-from-storage)   |          | ✓         | object   |          | {{< crd-field-description SGCluster.spec.replicateFrom.storage >}}       |
+| [users](#replicate-from-users)       |          | ✓         | object   |          | {{< crd-field-description SGCluster.spec.replicateFrom.users >}}       |
+
+### Replicate From Instance
+
+| Property                             | Required | Updatable | Type     | Default  | Description |
+|:-------------------------------------|----------|-----------|:---------|:---------|:------------|
+| sgCluster                            |          | ✓         | string   |          | {{< crd-field-description SGCluster.spec.replicateFrom.instance.sgCluster >}}       |
+| [external](#replicate-from-external) |          | ✓         | object   |          | {{< crd-field-description SGCluster.spec.replicateFrom.instance.external >}}       |
+
+### Replicate From External
+
+| Property                            | Required | Updatable | Type     | Default  | Description |
+|:------------------------------------|----------|-----------|:---------|:---------|:------------|
+| host                                | ✓        | ✓         | string   |          | {{< crd-field-description SGCluster.spec.replicateFrom.instance.external.host >}}       |
+| port                                | ✓        | ✓         | integer  |          | {{< crd-field-description SGCluster.spec.replicateFrom.instance.external.port >}}       |
+
+### Replicate From Storage
+
+| Property                                           | Required | Updatable | Type     | Default  | Description |
+|:---------------------------------------------------|----------|-----------|:---------|:---------|:------------|
+| path                                               | ✓        | ✓         | string   |          | {{< crd-field-description SGCluster.spec.replicateFrom.storage.path >}}       |
+| sgObjectStorage                                    | ✓        | ✓         | string   |          | {{< crd-field-description SGCluster.spec.replicateFrom.storage.sgObjectStorage >}}       |
+| [performance](#replicate-from-storage-performance) |          | ✓         | object   |          | {{< crd-field-description SGCluster.spec.replicateFrom.storage.performance >}}       |
+
+### Replicate From Storage Performance
+
+| Property            | Required | Updatable | Type     | Default  | Description |
+|:--------------------|----------|-----------|:---------|:---------|:------------|
+| downloadConcurrency |          | ✓         | integer  |          | {{< crd-field-description SGCluster.spec.replicateFrom.storage.performance.downloadConcurrency >}}       |
+| maxDiskBandwidth    |          | ✓         | integer  |          | {{< crd-field-description SGCluster.spec.replicateFrom.storage.performance.maxDiskBandwidth >}}       |
+| maxNetworkBandwidth |          | ✓         | integer  |          | {{< crd-field-description SGCluster.spec.replicateFrom.storage.performance.maxNetworkBandwidth >}}       |
+
+### Replicate From Users
+
+| Property      | Required | Updatable | Type     | Default  | Description |
+|:--------------|----------|-----------|:---------|:---------|:------------|
+| superuser     | ✓        | ✓         | object   |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.superuser >}}       |
+| replication   | ✓        | ✓         | object   |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.replication >}}       |
+| authenticator | ✓        | ✓         | object   |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.authenticator >}}       |
 
 ### Metadata
 
