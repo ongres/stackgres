@@ -36,6 +36,8 @@ check_backup_retention_after_switchover() {
 }
 
 check_backup_after_switchover() {
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true"
+
   check_backup 1
 }
 

@@ -41,5 +41,7 @@ EOF
   kubectl patch sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     --patch '[{"op":"add","path":"/spec/configurations/backups","value": [{"sgObjectStorage": "backupconf", "cronSchedule": "*/1 * * * *"}] }]'
 
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true"
+
   check_backup 0
 }

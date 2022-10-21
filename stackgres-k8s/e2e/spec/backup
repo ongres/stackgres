@@ -36,6 +36,8 @@ check_cron_job_security_context() {
 
 
 check_backup_is_working() {
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true"
+
   check_backup 0
 }
 
@@ -49,6 +51,8 @@ check_backup_after_kill_storage_provider_service() {
 
   kubectl wait --timeout="$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" \
     deployment/"$CLUSTER_NAME-minio" --for=condition=Available
+  
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true"
 
   check_backup 0
 }
