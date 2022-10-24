@@ -80,11 +80,11 @@ class PostgresVersionValidatorTest {
           .get(1).get();
   private static final String FIRST_PG_MINOR_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
-          .skipWhile(p -> p.startsWith("14"))
+          .skipWhile(p -> !p.startsWith("13"))
           .get(0).get();
   private static final String SECOND_PG_MINOR_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
-          .skipWhile(p -> p.startsWith("14"))
+          .skipWhile(p -> !p.startsWith("13"))
           .get(1).get();
   private static final String FIRST_BF_MINOR_VERSION =
       StackGresComponent.BABELFISH.getLatest().streamOrderedVersions()

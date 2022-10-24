@@ -7,6 +7,7 @@ e2e_exclusive_lock() {
 e2e_test_extra_hash() {
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "$(realpath --relative-to "$PROJECT_PATH" "$PROJECT_PATH/stackgres-k8s/src/admin-ui/cypress")"
+  echo "E2E_UI_POSTGRES_VERSOIN=$E2E_UI_POSTGRES_VERSOIN"
 }
 
 e2e_test_install() {
@@ -14,6 +15,8 @@ e2e_test_install() {
   then
     return
   fi
+
+  E2E_UI_POSTGRES_VERSOIN="${E2E_UI_POSTGRES_VERSION:-$E2E_POSTGRES_VERSION}"
 
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
@@ -31,7 +34,8 @@ e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
   install_minio
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string "cluster.postgres.version="$E2E_UI_POSTGRES_VERSION"
 
   SERVICE="stackgres-restapi"
   local PASSWORD
@@ -51,6 +55,10 @@ e2e_test_install() {
       command: [ "sh", "-c", "while true; do sleep 300; done" ]
       imagePullPolicy: IfNotPresent
       env:
+      - name: CYPRESS_BASE_URL
+        value: "https://$SERVICE.$OPERATOR_NAMESPACE/admin"
+      - name: CYPRESS_VIDEO
+        value: "false" 
       - name: CYPRESS_host
         value: "https://$SERVICE.$OPERATOR_NAMESPACE/admin"
       - name: CYPRESS_api
@@ -59,12 +67,10 @@ e2e_test_install() {
         value: "admin"
       - name: CYPRESS_password
         value: "$PASSWORD"
-      - name: CYPRESS_VIDEO
-        value: "false" 
       - name: CYPRESS_k8s_namespace
         value: $CLUSTER_NAMESPACE
-      - name: CYPRESS_BASE_URL
-        value: "https://$SERVICE.$OPERATOR_NAMESPACE/admin"
+      - name: CYPRESS_postgres_version
+        value: "$E2E_UI_POSTGRES_VERSION"
     restartPolicy: Always
     terminationGracePeriodSeconds: 0
 EOF

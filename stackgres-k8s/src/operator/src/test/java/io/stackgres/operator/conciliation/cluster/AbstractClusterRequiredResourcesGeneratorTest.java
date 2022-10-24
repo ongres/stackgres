@@ -86,7 +86,8 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
-        .getLatest().getLatestVersion());
+        .getLatest().streamOrderedVersions()
+        .skipWhile(version -> version.startsWith("15")).findFirst().orElseThrow());
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     final String namespace = cluster.getMetadata().getNamespace();
@@ -94,8 +95,9 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
     setNamespace(backupConfig);
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     postgresConfig.getSpec()
-        .setPostgresVersion(StackGresComponent.POSTGRESQL.getLatest()
-            .getLatestMajorVersion());
+        .setPostgresVersion(StackGresComponent.POSTGRESQL
+            .getLatest().streamOrderedMajorVersions()
+            .skipWhile(version -> version.startsWith("15")).findFirst().orElseThrow());
     setNamespace(postgresConfig);
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
     final String version = postgresConfig.getSpec().getPostgresVersion();

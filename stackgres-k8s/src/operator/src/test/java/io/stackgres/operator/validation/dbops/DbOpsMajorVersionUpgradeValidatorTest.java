@@ -57,19 +57,19 @@ class DbOpsMajorVersionUpgradeValidatorTest {
               .collect(ImmutableList.toImmutableList())));
   private static final String FIRST_PG_MAJOR_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
-          .skipWhile(p -> p.startsWith("14"))
+          .skipWhile(p -> !p.startsWith("13"))
           .get(0).get();
   private static final String SECOND_PG_MAJOR_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions()
-          .skipWhile(p -> p.startsWith("14"))
+          .skipWhile(p -> !p.startsWith("13"))
           .get(1).get();
   private static final String FIRST_PG_MINOR_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
-          .skipWhile(p -> p.startsWith("14"))
+          .skipWhile(p -> !p.startsWith("13"))
           .get(0).get();
   private static final String SECOND_PG_MINOR_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
-          .skipWhile(p -> p.startsWith("14"))
+          .skipWhile(p -> !p.startsWith("13"))
           .get(1).get();
 
   private DbOpsMajorVersionUpgradeValidator validator;

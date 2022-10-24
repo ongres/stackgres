@@ -132,6 +132,12 @@ describe('Create SGCluster', () => {
         cy.get('input[data-field="metadata.name"]')
             .type('advanced-' + resourceName)
         
+        // Test version
+        cy.get('ul[data-field="spec.postgres.version"] li').first()
+            .click()
+        cy.get('ul[data-field="spec.postgres.version"] a[data-val="' + Cypress.env('postgres_version') + '"]')
+            .click()
+        
         // Test instances
         cy.get('select[data-field="spec.instances"]')
             .select('4')
@@ -519,7 +525,7 @@ describe('Create SGCluster', () => {
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
             .should('be.disabled')
-        
+
         // Test instances
         cy.get('select[data-field="spec.instances"]')
             .should('have.value', '4')

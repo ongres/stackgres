@@ -1,7 +1,8 @@
 #!/bin/sh
 
 export E2E_DISABLE_RESOURCE_REQUIREMENTS="${E2E_DISABLE_RESOURCE_REQUIREMENTS:-true}"
-export E2E_POSTGRES_VERSION="${E2E_POSTGRES_VERSION:-14.4}"
+export E2E_POSTGRES_VERSION="${E2E_POSTGRES_VERSION:-15.0}"
+export E2E_POSTGRES_BABELFISH_VERSION="${E2E_POSTGRES_BABELFISH_VERSION:-14.3}"
 
 create_or_replace_cluster_without_defaults() {
   local RELEASE="$1"
@@ -243,14 +244,14 @@ remove_cluster() {
   local NAMESPACE="$2"
 
   echo "Deleting release $RELEASE" 
-  helm get manifest "$RELEASE" --namespace "$NAMESPACE" \
+  helm get manifest "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | yq 'select(.kind == "SGCluster")' \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
-  helm get manifest "$RELEASE" --namespace "$NAMESPACE" \
+  helm get manifest "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
-  helm get hooks "$RELEASE" --namespace "$NAMESPACE" \
+  helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
-  helm uninstall "$RELEASE" --namespace "$NAMESPACE"
+  helm uninstall "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null || true
   kubectl wait sts --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
   kubectl wait pvc --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
   kubectl wait pod --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true

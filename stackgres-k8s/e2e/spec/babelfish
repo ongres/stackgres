@@ -2,9 +2,13 @@
 
 . "$SPEC_PATH/abstract/patroni"
 
+e2e_test_extra_hash() {
+  echo "E2E_POSTGRES_BABELFISH_VERSOIN=$E2E_POSTGRES_BABELFISH_VERSOIN"
+}
+
 e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1" \
-    --set-string cluster.postgres.version=13.4 \
+    --set-string "cluster.postgres.version=$E2E_POSTGRES_BABELFISH_VERSION" \
     --set-string cluster.postgres.flavor=babelfish \
     --set-string 'nonProductionOptions.enabledFeatureGates[0]=babelfish-flavor'
 

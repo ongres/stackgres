@@ -10,6 +10,7 @@ e2e_test_install() {
   PG_REPACK_VERSION="$(get_latest_version_of_extension pg_repack 14)"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
+    --set-string "cluster.postgres.version=14" \
     --set-string cluster.postgres.extensions[0].version="$PG_REPACK_VERSION"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 1

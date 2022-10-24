@@ -110,9 +110,6 @@ RECOVERY_TARGET_TIME_EOF
 RECOVERY_EOF
 fi
 )
-  callbacks:
-    on_restart: '${PATRONI_CONFIG_PATH}/setup-data-path.sh'
-    on_start: '${PATRONI_CONFIG_PATH}/setup-data-path.sh'
 watchdog:
   mode: off
 tags: {}
