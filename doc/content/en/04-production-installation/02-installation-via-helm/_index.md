@@ -123,9 +123,10 @@ metadata:
 spec:
   pgBouncer:
     pgbouncer.ini:
-      pool_mode: transaction
-      max_client_conn: '1000'
-      default_pool_size: '80'
+      pgbouncer:
+        pool_mode: transaction
+        max_client_conn: '1000'
+        default_pool_size: '80'
 EOF
 ```
 
