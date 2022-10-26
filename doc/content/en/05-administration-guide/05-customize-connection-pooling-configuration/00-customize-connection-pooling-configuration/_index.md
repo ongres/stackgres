@@ -43,9 +43,10 @@ metadata:
 spec:
   pgBouncer:
     pgbouncer.ini:
-      pool_mode: transaction
-      max_client_conn: '1000'
-      default_pool_size: '80'
+      pgbouncer:
+        pool_mode: transaction
+        max_client_conn: '1000'
+        default_pool_size: '80'
 EOF
 ```
 
@@ -71,14 +72,15 @@ metadata:
 spec:
   pgBouncer:
     pgbouncer.ini:
-      pool_mode: session
-      max_client_conn: '1000'
-      default_pool_size: '80'
-      client_idle_timeout: '30s'
-      idle_transaction_timeout: '60s'
-      server_idle_timeout: '120s'
-      server_lifetime: '240s'
-      server_fast_close: '300s'
+      pgboucner:
+        pool_mode: session
+        max_client_conn: '1000'
+        default_pool_size: '80'
+        client_idle_timeout: '30s'
+        idle_transaction_timeout: '60s'
+        server_idle_timeout: '120s'
+        server_lifetime: '240s'
+        server_fast_close: '300s'
 EOF
 ```
 

@@ -1,7 +1,8 @@
 ---
-title: Cluster Restart Troubleshooting
+title: Cluster Manual Restart Troubleshooting
 weight: 4
-url: install/restart/troubleshooting
+url: install/manual-restart/troubleshooting
+alias: [ install/restart/troubleshooting ]
 ---
 
 This section is currently empty.

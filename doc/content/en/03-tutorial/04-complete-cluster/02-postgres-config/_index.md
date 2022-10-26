@@ -45,35 +45,54 @@ kubectl -n demo describe sgpgconfig pgconfig1
 Name:         pgconfig1
 Namespace:    demo
 Labels:       <none>
-Annotations:  stackgres.io/operatorVersion: 1.0.0-alpha1
+Annotations:  stackgres.io/operatorVersion: 1.3.3
 API Version:  stackgres.io/v1
 Kind:         SGPostgresConfig
 Metadata:
-  Creation Timestamp:  2021-03-01T10:07:10Z
+  Creation Timestamp:  2022-10-26T10:30:15Z
   Generation:          1
-  Resource Version:    152394
-  Self Link:           /apis/stackgres.io/v1/namespaces/demo/sgpgconfigs/pgconfig1
-  UID:                 46d3a5c8-6d96-4082-97f3-ae9a66c25237
+  Managed Fields:
+    API Version:  stackgres.io/v1
+    Fields Type:  FieldsV1
+    fieldsV1:
+      f:spec:
+        .:
+        f:postgresVersion:
+        f:postgresql.conf:
+          .:
+          f:jit:
+          f:log_checkpoints:
+          f:password_encryption:
+          f:random_page_cost:
+          f:shared_buffers:
+          f:work_mem:
+    Manager:         kubectl
+    Operation:       Update
+    Time:            2022-10-26T10:30:15Z
+  Resource Version:  1891
+  UID:               5d0e9cd4-891a-41e6-af45-0875867e62fd
 Spec:
-  Postgres Version:  12
+  Postgres Version:  14
   postgresql.conf:
     autovacuum_max_workers:            3
     autovacuum_vacuum_cost_delay:      2
+    autovacuum_work_mem:               512MB
     checkpoint_completion_target:      0.9
     checkpoint_timeout:                15min
     default_statistics_target:         200
     enable_partitionwise_aggregate:    on
     enable_partitionwise_join:         on
+    huge_pages:                        off
     Jit:                               off
     jit_inline_above_cost:             -1
-    log_autovacuum_min_duration:       0
+    log_autovacuum_min_duration:       0ms
     log_checkpoints:                   on
     log_connections:                   on
     log_disconnections:                on
     log_line_prefix:                   %t [%p]: db=%d,user=%u,app=%a,client=%h 
     log_lock_waits:                    on
     log_min_duration_statement:        1000
-    log_statement:                     ddl
+    log_statement:                     none
     log_temp_files:                    0
     maintenance_work_mem:              2GB
     max_locks_per_transaction:         128
@@ -92,42 +111,62 @@ Spec:
     track_activity_query_size:         4096
     track_functions:                   pl
     track_io_timing:                   on
-    wal_keep_segments:                 100
+    wal_keep_size:                     1536MB
     work_mem:                          16MB
 Status:
   Default Parameters:
-    enable_partitionwise_aggregate
-    min_wal_size
-    max_wal_senders
-    log_checkpoints
-    max_prepared_transactions
-    checkpoint_timeout
-    autovacuum_max_workers
-    jit_inline_above_cost
-    track_functions
-    wal_keep_segments
-    checkpoint_completion_target
-    enable_partitionwise_join
-    log_autovacuum_min_duration
-    superuser_reserved_connections
-    log_temp_files
-    log_lock_waits
-    random_page_cost
-    max_locks_per_transaction
-    log_disconnections
-    maintenance_work_mem
-    log_connections
-    shared_preload_libraries
-    pg_stat_statements.track_utility
-    track_activity_query_size
-    max_pred_locks_per_transaction
-    max_wal_size
-    autovacuum_vacuum_cost_delay
-    log_min_duration_statement
-    log_statement
-    max_replication_slots
-    default_statistics_target
-    log_line_prefix
-    track_io_timing
-Events:  <none>
+    archive_command:                   /bin/true
+    archive_mode:                      on
+    autovacuum_max_workers:            3
+    autovacuum_vacuum_cost_delay:      2
+    autovacuum_work_mem:               512MB
+    checkpoint_completion_target:      0.9
+    checkpoint_timeout:                15min
+    default_statistics_target:         200
+    enable_partitionwise_aggregate:    on
+    enable_partitionwise_join:         on
+    Fsync:                             on
+    hot_standby:                       on
+    huge_pages:                        off
+    jit_inline_above_cost:             -1
+    lc_messages:                       C
+    listen_addresses:                  localhost
+    log_autovacuum_min_duration:       0ms
+    log_checkpoints:                   on
+    log_connections:                   on
+    log_destination:                   stderr
+    log_directory:                     log
+    log_disconnections:                on
+    log_filename:                      postgres-%M.log
+    log_line_prefix:                   %t [%p]: db=%d,user=%u,app=%a,client=%h 
+    log_lock_waits:                    on
+    log_min_duration_statement:        1000
+    log_rotation_age:                  30min
+    log_rotation_size:                 0kB
+    log_statement:                     none
+    log_temp_files:                    0
+    log_truncate_on_rotation:          on
+    logging_collector:                 off
+    maintenance_work_mem:              2GB
+    max_locks_per_transaction:         128
+    max_pred_locks_per_transaction:    128
+    max_prepared_transactions:         32
+    max_replication_slots:             20
+    max_wal_senders:                   20
+    max_wal_size:                      2GB
+    min_wal_size:                      1GB
+    pg_stat_statements.track_utility:  off
+    random_page_cost:                  1.5
+    shared_preload_libraries:          pg_stat_statements, auto_explain
+    superuser_reserved_connections:    8
+    track_activity_query_size:         4096
+    track_commit_timestamp:            on
+    track_functions:                   pl
+    track_io_timing:                   on
+    wal_compression:                   on
+    wal_keep_size:                     1536MB
+    wal_level:                         logical
+    wal_log_hints:                     on
+    work_mem:                          10MB
+Events:                                <none>
 ```

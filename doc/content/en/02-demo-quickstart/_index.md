@@ -100,7 +100,7 @@ kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,cluster=true
 
 > **IMPORTANT:** Connecting directly trough the `postgres-util` sidecar will grant you access with the postgres user. It will work similar to `sudo -i postgres -c psql`.
 
-Please check [about the postgres-util side car]({{% relref "05-administration-guide/02-Connecting-to-the-cluster/03-postgres-util" %}}) and [how to connect to the postgres cluster]({{% relref "05-administration-guide/02-Connecting-to-the-cluster" %}}) for more details.
+Please check [about the postgres-util side car]({{% relref "05-administration-guide/02-connecting-to-the-cluster/03-postgres-util" %}}) and [how to connect to the postgres cluster]({{% relref "05-administration-guide/02-connecting-to-the-cluster" %}}) for more details.
 
 ## Cluster Management and Automated Failover
 
@@ -147,7 +147,7 @@ Please check [about the patroni-management]({{% relref "05-administration-guide/
 Now that you knows a little bit more about StackGres, you can easily manage all your clusters from the UI. It will ask for a username and a password. By default those are `admin` and a randomly generated password. You can run the command below to get the user and password auto-generated:
 
 ```bash
-kubectl get secret -n stackgres stackgres-restapi --template 'username = {{ printf "%s\n" (.data.k8sUsername | base64decode) }}password = {{ printf "%s\n" ( .data.clearPassword | base64decode) }}'
+kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "username = %s\npassword = %s\n" (.data.k8sUsername | base64decode) ( .data.clearPassword | base64decode) }}'
 ```
 
 With the credentials in hand, let's connect to the Web UI of the operator, for this you may forward port 443 of the operator pod:

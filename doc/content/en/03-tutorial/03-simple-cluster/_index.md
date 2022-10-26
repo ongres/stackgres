@@ -69,7 +69,6 @@ You should be able to see the resolved Postgres version and other details about 
 kubectl describe sgcluster simple -n stackgres 
 ```
 
-
 ## Accessing Postgres
 
 Now it's time to connect to Postgres. In its simplest form, we can do that by running the Postgres command line, `psql`, in one of the containers of the pod. StackGres creates within the pods a container called `postgres-util` with usual Postgres administration tools, including `psql`. Since this container runs in the same pod, it uses Unix Domain Sockets to connect to the Postgres instance, and leverages Postgres `peer` authentication method, that will authenticate the user via the operating system username, without requiring any password:
@@ -119,7 +118,6 @@ hol=# \dt+
  public | hol1 | table | postgres | 35 MB | 
 (1 row)
 ```
-
 
 ## Patroni and automated failover
 

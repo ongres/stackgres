@@ -1,6 +1,6 @@
 ---
 title: Init cluster from backup
-weight: 2
+weight: 1
 url: tutorial/using-initialdata/data-from-backup
 description: "Details about use initialData section to create a cluster from a backup"
 ---

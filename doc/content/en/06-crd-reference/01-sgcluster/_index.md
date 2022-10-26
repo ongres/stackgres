@@ -32,7 +32,7 @@ ___
 | [pods](#pods)                                                                              | ✓        | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.pods >}}                  |
 | [configurations](#configurations)                                                          |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.configurations >}}        |
 | prometheusAutobind                                                                         |          | ✓         | boolean  | false                               | {{< crd-field-description SGCluster.spec.prometheusAutobind >}}    |
-| [initialData](#initial-data-configuration)                                                 |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.initialData >}}           |
+| [initialData](#initial-data)                                                               |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.initialData >}}           |
 | [managedSql](#managed-sql)                                                                 |          |           | object   |                                     | {{< crd-field-description SGCluster.spec.managedSql >}}            |
 | [distributedLogs](#distributed-logs)                                                       |          | ✓         | object   |                                     | {{< crd-field-description SGCluster.spec.distributedLogs >}}       |
 | [nonProductionOptions](#non-production-options)                                            |          | ✓         | array    |                                     | {{< crd-field-description SGCluster.spec.nonProductionOptions >}}  |
@@ -388,16 +388,15 @@ spec:
 | maxNetworkBandwidth                    |          | ✓         | integer | unlimited | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.maxNetworkBandwidth >}} |
 | uploadDiskConcurrency                  |          | ✓         | integer | 1         | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.uploadDiskConcurrency >}} |
 
-## Initial Data Configuration
+## Initial Data
 
 Specifies the cluster initialization data configurations
 
 | Property                          | Required | Updatable | Type     | Default | Description |
 |:----------------------------------|----------|-----------|:---------|:--------|:------------|
-| [restore](#restore-configuration) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore >}} |
-| [scripts](#scripts-configuration) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.scripts >}} |
+| [restore](#restore) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore >}} |
 
-## Restore configuration
+## Restore
 
 By default, stackgres it's creates as an empty database. To create a cluster with data
  from an existent backup, we have the restore options. It works, by simply indicating the
@@ -405,17 +404,17 @@ By default, stackgres it's creates as an empty database. To create a cluster wit
 
 | Property                                 | Required | Updatable | Type     | Default | Description |
 |:-----------------------------------------|----------|-----------|:---------|:--------|:------------|
-| [fromBackup](#from-backup-configuration) | ✓        |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup >}} |
+| [fromBackup](#restore-from-backup) | ✓        |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup >}} |
 | downloadDiskConcurrency                  |          |           | integer  | 1       | {{< crd-field-description SGCluster.spec.initialData.restore.downloadDiskConcurrency >}} |
 
-### From backup configuration
+### Restore From Backup
 
-| Property                                   | Required | Updatable | Type     | Default | Description |
-|:-------------------------------------------|----------|-----------|:---------|:--------|:------------|
-| name                                       | ✓        |           | string   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.name >}} |
-| [pointInTimeRecovery](#pitr-configuration) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.pointInTimeRecovery >}} |
+| Property                                                 | Required | Updatable | Type     | Default | Description |
+|:---------------------------------------------------------|----------|-----------|:---------|:--------|:------------|
+| name                                                     | ✓        |           | string   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.name >}} |
+| [pointInTimeRecovery](#restore-from-backup-to-timestamp) |          |           | object   |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.pointInTimeRecovery >}} |
 
-### PITR configuration
+#### Restore From Backup To Timestamp
 
 | Property           | Required | Updatable | Type     | Default | Description |
 |:-------------------|----------|-----------|:---------|:--------|:------------|
@@ -432,69 +431,9 @@ spec:
   initialData:
     restore:
       fromBackup:
-        uid: d7e660a9-377c-11ea-b04b-0242ac110004
+        name: stackgres-backup
       downloadDiskConcurrency: 1
 ```
-
-## Scripts configuration
-
-By default, stackgres creates as an empty database. To execute some scripts, we have the scripts
- options where you can specify a script or reference a key in a ConfigMap or a Secret that contains
- the script to execute.
-
-| Property                   | Required | Updatable | Type     | Default  | Description |
-|:---------------------------|----------|-----------|:---------|:---------|:------------|
-| name                       |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.name >}} |
-| database                   |          |           | string   | postgres | {{< crd-field-description SGCluster.spec.initialData.scripts.items.database >}} |
-| script                     |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.script >}} |
-| [scriptFrom](#script-from) |          |           | object   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom >}} |
-
-Example:
-
-```yaml
-apiVersion: stackgres.io/v1
-kind: SGCluster
-metadata:
-  name: stackgres
-spec:
-  initialData:
-    scripts:
-    - name: create-stackgres-user
-      scriptFrom:
-        secretKeyRef: # read the user from a Secret to maintain credentials in a safe place
-          name: stackgres-secret-sqls-scripts
-          key: create-stackgres-user.sql
-    - name: create-stackgres-database
-      script: |
-        CREATE DATABASE stackgres WITH OWNER stackgres;
-    - name: create-stackgres-schema
-      database: stackgres
-      scriptFrom:
-        configMapKeyRef: # read long script from a ConfigMap to avoid have to much data in the helm releasea and the sgcluster CR
-          name: stackgres-sqls-scripts
-          key: create-stackgres-schema.sql
-```
-
-### Script from
-
-| Property                                  | Required | Updatable | Type     | Default  | Description |
-|:------------------------------------------|----------|-----------|:---------|:---------|:------------|
-| [configMapKeyRef](#script-from-configmap) |          |           | object   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.configMapKeyRef >}} |
-| [secretKeyRef](#script-from-configmap)    |          |           | object   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef >}} |
-
-#### Script from ConfigMap
-
-| Property  | Required | Updatable | Type     | Default  | Description |
-|:----------|----------|-----------|:---------|:---------|:------------|
-| name      |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.configMapKeyRef.name >}} |
-| key       |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.configMapKeyRef.key >}} |
-
-#### Script from Secret
-
-| Property  | Required | Updatable | Type     | Default  | Description |
-|:----------|----------|-----------|:---------|:---------|:------------|
-| name      |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef.name >}} |
-| key       |          |           | string   |          | {{< crd-field-description SGCluster.spec.initialData.scripts.items.scriptFrom.secretKeyRef.key >}} |
 
 ## Managed SQL
 
