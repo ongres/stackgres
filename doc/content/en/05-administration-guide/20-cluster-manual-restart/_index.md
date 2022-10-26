@@ -1,8 +1,9 @@
 ---
-title: Cluster Restart
+title: Cluster Manual Restart
 weight: 20
-url: install/restart
-description: Details about how to restart the database nodes.
+url: install/manual-restart
+alias: [ install/restart ]
+description: Details about how to restart manually the database nodes.
 showToc: true
 ---
 

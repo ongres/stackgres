@@ -28,18 +28,13 @@ This operation takes a bit more than 15 minutes.
 
 While this is an optional step, it is recommended and it will be followed for the lab. The purpose is to install Prometheus and Grafana (along with AlertManager), so that they can be integrated automatically with StackGres.
 
-Create a `monitoring` namespace:
-
-```
-kubectl create namespace monitoring
-```
 
 And install the Prometheus stack with Helm:
 
 ```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
-helm install --namespace monitoring prometheus-operator prometheus-community/kube-prometheus-stack
+helm install --create-namespace --namespace monitoring prometheus-operator prometheus-community/kube-prometheus-stack
 ```
 
 After some seconds / a minute you should have several pods including Prometheus, Grafana and AlertManager in the `monitoring` namespace.

@@ -42,12 +42,19 @@ adminui:
     nodePort: |
       The port used to expose the service on kubernetes nodes
 authentication:
+  type: |
+    Specify the authentication mechanism to use. By default is jwt, see https://stackgres.io/doc/latest/api/rbac#local-secret-mechanism.
+      If oidc is specified then see https://stackgres.io/doc/latest/api/rbac/#openid-connect-provider-mechanism.
   user: |
     Username that will be required to access the UI.
   password: |
     Password that will be required to access the UI.
   resetPassword: |
     Forces the password reset, updating the existing secret.
+  secretRef:
+    name: |
+      Allow to specify the secret name that will be used store the credentials to access the UI.
+        It simply prevent creating the secret automatically.
 grafana:
   autoEmbed: |
     Embed an existing grafana by setting `grafana.autoEmbed` to true
