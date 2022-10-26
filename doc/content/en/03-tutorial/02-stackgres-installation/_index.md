@@ -5,12 +5,6 @@ url: tutorial/stackgres-installation
 description: Details about the operator installation.
 ---
 
-StackGres (the operator and associated components) may be installed on any namespace. It is recommended to create a dedicated namespace for StackGres:
-
-```bash
-kubectl create namespace stackgres
-```
-
 StackGres recommended installation is performed from the published Helm chart. Some parameters may be passed to the default installation, which basically can be summarized as:
 * Username and password to access Grafana (this is used by StackGres to install StackGres specific dashboards as well as to embed Grafana into the Web Console). If you installed Prometheus following the previous step, they will be at their default values (username: `admin`, password: `prom-operator`). Also the Grafana host where it is running (by default, exposed as a service at `prometheus-grafana.namespace`, i.e. `prometheus-grafana.monitoring` here).
 * How to expose the Web Console. Select `LoadBalancer` if using a cloud Kubernetes cluster or your Kubernetes environment supports creating load balancers. Otherwise, select `ClusterIP` (in this case you will later need to do a port forward to access the Web Console).
@@ -25,8 +19,10 @@ helm repo add stackgres-charts https://stackgres.io/downloads/stackgres-k8s/stac
 
 - Install the Operator
 
+> StackGres (the operator and associated components) may be installed on any namespace but we recommended to create a dedicated namespace (`stackgres` in this case).
+
 ```bash
-helm install --namespace stackgres stackgres-operator \
+helm install --create-namespace --namespace stackgres stackgres-operator \
     --set grafana.autoEmbed=true \
     --set-string grafana.webHost=prometheus-operator-grafana.monitoring \
     --set-string grafana.secretNamespace=monitoring \
@@ -34,9 +30,9 @@ helm install --namespace stackgres stackgres-operator \
     --set-string grafana.secretUserKey=admin-user \
     --set-string grafana.secretPasswordKey=admin-password \
     --set-string adminui.service.type=LoadBalancer \
-stackgres-charts/stackgres-operator
+    stackgres-charts/stackgres-operator
 ```
-> You can specify the version adding `--version 1.0.0` to the Helm command. 
+> You can specify the version to the Helm command. For example you may add `--version 1.0.0` to install verion `1.0.0`.
 
 Note that using `adminui.service.type=LoadBalancer` will create a network load balancer, which may incur in additional costs. You may alternatively use `ClusterIP` if that's your preference.
 
@@ -98,7 +94,6 @@ Remember to remove the generated password hint from the secret to avoid security
     kubectl patch secrets --namespace stackgres stackgres-restapi --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
 ```
 
-
 ## Connecting to the Web Console
 
 Several useful commands are provided as part of the Helm installation output. Let's use them to connect to the StackGres
@@ -129,14 +124,13 @@ And then do the port-forward to your localhost on port 8443, which you can acces
 ```bash
 $ kubectl port-forward "$POD_NAME" 8443:9443 --namespace stackgres
 ```
-
 Once you open the Web Console in the browser, you will need to accept to continue to the page. StackGres Web Console uses by default a self-signed certificate, which is generated during the installation. You can customize it during the installation, or install the Web Console only via HTTP and expose it via an _Ingress_ controller. But for now, proceed. The default administrator's username is `admin`, and the password is generated automatically but can be obtained via the following command:
 
 ```bash
 $ kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "%s\n" (.data.clearPassword | base64decode) }}'
 ```
 
-You should see something like the following screenshot (where Dark Mode was activated!):
+You should see something like the following screenshot (where Dark Mode was dectivated!):
 
 ![StackGres Web Console](web-console-1.png)
 

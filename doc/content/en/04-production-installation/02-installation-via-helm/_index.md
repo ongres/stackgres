@@ -11,35 +11,39 @@ As you may expect, a Production environment will require to install and setup ad
 
 In this page, we are going through all the necessary steps to setup a Production like environment using Helm repositories and workflow.
 
-## Setting up namespaces
+## Set up StackGres Helm repository
 
-Each component of your infrastructure needs to be isolated in different namespaces as a standard practice for reusability and security. For a minimal setup, three namespaces will be created:
+Add the StackGres helm repo:
 
 ```bash
-kubectl create namespace stackgres
-kubectl create namespace monitoring # This should be already created if you followed pre-requisites steps.
-kubectl create namespace my-cluster
+helm repo add stackgres-charts https://stackgres.io/downloads/stackgres-k8s/stackgres/helm/
 ```
 
-`stackgres` will be the StackGres' **Operator** namespace, and `my-cluster` will be the namespace for the node resources that will contain the data and working backend.
-
-The `monitoring` namespace was created to deploy the Prometheus Operator, which will result in a running Grafana instance.
-
-> For advanced options to the monitoring installation, see the [Monitoring session]({{% relref "04-production-installation/01-pre-requisites/04-monitoring" %}}) in the [Production Installation]({{% relref "04-production-installation" %}}).
-
 ## StackGres Operator installation
+
+Now that we have configured a Backup storage place, as indicated in the pre-requisites, 
+we can proceed to the StackGres Operator itself!
+
+- Install the Operator: 
+
+```bash
+helm install --create-namespace --namespace stackgres stackgres-operator stackgres-charts/stackgres-operator
+```
+
+> You can specify the version adding `--version 1.0.0` to the Helm command. 
+
+For more installation options have a look at the
+ [Operator Parameters]({{% relref "04-production-installation/06-operator-parameters" %}}) section for a described list.
+
+If you want to enable StackGres integration with Prometheus and Grafana, please, read the next section. 
+
+## StackGres Operator installation with Monitoring
 
 Now that we have configured a Backup storage place, as indicated in the pre-requisites, 
 and a monitoring system already in place for proper observability, 
 we can proceed to the StackGres Operator itself!
 
 > The `grafana.webHost` value may change if the installation is not Prometheus' default, as well as `grafana.user` and `grafana.password`. Take note of above section's secret outputs and replace them accordingly.
-
-- Add the StackGres helm repo:
-
-```bash
-helm repo add stackgres-charts https://stackgres.io/downloads/stackgres-k8s/stackgres/helm/
-```
 
 - Install the Operator: 
 
@@ -52,14 +56,13 @@ helm install --namespace stackgres stackgres-operator \
     --set-string grafana.secretUserKey=admin-user \
     --set-string grafana.secretPasswordKey=admin-password \
     --set-string adminui.service.type=LoadBalancer \
-stackgres-charts/stackgres-operator
+    stackgres-charts/stackgres-operator
 ```
 
 > You can specify the version adding `--version 1.0.0` to the Helm command. 
 
 In the previous example StackGres have included several options to the installation, including the needed options to enable
 the monitoring. Follow the [Operator Parameters]({{% relref "04-production-installation/06-operator-parameters" %}}) section for a described list.
-
 
 ## Creating and customizing your Postgres Clusters 
 
