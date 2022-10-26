@@ -6,6 +6,12 @@ description: Details how to use helm to upgrade the operator.
 showToc: true
 ---
 
+## Upgrade StackGres Helm repository
+
+```bash
+helm repo update stackgres-charts
+```
+
 ## Upgrade Operator
 
 To upgrade the operator you may use the following command:
@@ -38,8 +44,6 @@ Existing clusters will work using the previous version of the operator. They wil
  Both methods are essentially the same but reduced-impact allow to minimize throughput reduction
  for read-only connections (draining will not be applied here) or for read-write connections when
  a single node clusters is used.
-
-For more details please see the [cluster restart section]({{% relref "05-administration-guide/20-cluster-restart" %}})
 
 ### Ugrade clusters YAMLs
 

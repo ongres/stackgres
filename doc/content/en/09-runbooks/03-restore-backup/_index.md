@@ -57,20 +57,6 @@ spec:
 
 > Note: The restore process needs to be done in the same namespace as the cluster to be restored.
 
-
-## Get the **UID** from the backups to be restore
-
-```
-kubectl get sgbackups --namespace ongres-db backup-demo-3 -o jsonpath="{.metadata.uid}"
-```
-
-This command will print the UID:
-
-```
-0a3bb287-6b3f-4309-87bf-8d7c4c9e1beb
-```
-
-
 ## Restore the backup
 
 To restore the backup you need to create a new `SGCluster` specifying the section `initialData` setting the param `fromBackup` with `UID` value from the previous step.
@@ -94,7 +80,7 @@ spec:
   initialData:
     restore:
       fromBackup:
-        uid: 0a3bb287-6b3f-4309-87bf-8d7c4c9e1beb
+        name: backup-demo-3
 ```
 
 Now you should have a new cluster called `demo-restore` with all the data restored:

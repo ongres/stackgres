@@ -29,19 +29,13 @@ helm repo add stable https://charts.helm.sh/stable
 helm repo update
 ```
 
-Create the `monitoring` namespace:
-
-```bash
-kubectl create namespace monitoring
-```
-
 Install the [Prometheus Server Operator](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus):
 
 ```bash
-helm install --namespace monitoring prometheus prometheus-community/kube-prometheus-stack --set grafana.enabled=true --version 12.10.6
+helm install --create-namespace --namespace monitoring prometheus prometheus-community/kube-prometheus-stack --set grafana.enabled=true --version 12.10.6
 ```
 
-> StackGres provides more and advanced options for monitoring installation, see [Operator installation with Helm]({{% relref "04-production-installation/02-installation-via-helm/#stackgres-operator-installation" %}}) in the [Production installation session]({{% relref "04-production-installation" %}}).
+> StackGres provides more and advanced options for monitoring installation, see [Operator installation with Helm]({{% relref "04-production-installation/02-installation-via-helm/#stackgres-operator-installation" %}}) in the [Production installation session]({{% relref "04-production-installation/#monitoring" %}}).
 
 Once the operator is installed, take note of the generated secrets as you they are need to be specified at StackGres operator installation. By default are `user=admin` and `password=prom-operator`:
 

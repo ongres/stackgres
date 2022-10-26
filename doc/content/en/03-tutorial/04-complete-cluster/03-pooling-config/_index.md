@@ -47,44 +47,57 @@ kubectl -n demo describe sgpoolconfig poolconfig1
 Name:         poolconfig1
 Namespace:    demo
 Labels:       <none>
-Annotations:  stackgres.io/operatorVersion: 1.0.0-alpha1
+Annotations:  stackgres.io/operatorVersion: 1.3.3
 API Version:  stackgres.io/v1
 Kind:         SGPoolingConfig
 Metadata:
-  Creation Timestamp:  2021-03-01T10:18:20Z
+  Creation Timestamp:  2022-10-26T10:37:57Z
   Generation:          1
-  Resource Version:    154323
-  Self Link:           /apis/stackgres.io/v1/namespaces/demo/sgpoolconfigs/poolconfig1
-  UID:                 2c4f5b08-041c-463d-a5ab-13dc8deabc93
+  Managed Fields:
+    API Version:  stackgres.io/v1
+    Fields Type:  FieldsV1
+    fieldsV1:
+      f:spec:
+        .:
+        f:pgBouncer:
+          .:
+          f:pgbouncer.ini:
+            .:
+            f:pgbouncer:
+              .:
+              f:default_pool_size:
+              f:max_client_conn:
+              f:pool_mode:
+    Manager:         kubectl
+    Operation:       Update
+    Time:            2022-10-26T10:37:57Z
+  Resource Version:  2707
+  UID:               78d1c69d-281d-4fac-9522-f024c8a2cea7
 Spec:
   Pg Bouncer:
     pgbouncer.ini:
-      admin_users:                postgres
+      Pgbouncer:
+        default_pool_size:          200
+        ignore_startup_parameters:  extra_float_digits
+        max_client_conn:            200
+        max_db_connections:         0
+        max_user_connections:       0
+        pool_mode:                  transaction
+Status:
+  Pg Bouncer:
+    Default Parameters:
+      admin_users:                pgbouncer_admin
       application_name_add_host:  1
       auth_query:                 SELECT usename, passwd FROM pg_shadow WHERE usename=$1
       auth_type:                  md5
       auth_user:                  authenticator
-      default_pool_size:          200
+      default_pool_size:          1000
       ignore_startup_parameters:  extra_float_digits
       listen_addr:                127.0.0.1
-      max_client_conn:            200
+      max_client_conn:            1000
       max_db_connections:         0
       max_user_connections:       0
       pool_mode:                  session
-      stats_users:                postgres
-Status:
-  Pg Bouncer:
-    Default Parameters:
-      stats_users
-      ignore_startup_parameters
-      auth_type
-      max_db_connections
-      pool_mode
-      auth_query
-      application_name_add_host
-      max_user_connections
-      auth_user
-      listen_addr
-      admin_users
-Events:  <none>
+      stats_users:                pgbouncer_stats
+Events:                           <none>
 ```

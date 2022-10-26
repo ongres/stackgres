@@ -6,7 +6,7 @@ weight: 5
 chapter: true
 ---
 
-The initialData section from [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}) allows you to initialize database objects from a valid `SQL` scripts or even initialize a cluster from an existing backups.
+The initialData section from [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}) allows you to initialize a cluster from an existing backup.
 
 To achieve this you have the next options:
 
