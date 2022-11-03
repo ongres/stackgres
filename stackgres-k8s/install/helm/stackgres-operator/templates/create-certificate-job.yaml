@@ -75,7 +75,9 @@ spec:
             EOF
             
             K8S_VERSION="$(kubectl get node --template '{{ "{{ (index .items 0).status.nodeInfo.kubeletVersion }}" }}')"
+            IS_EKS="$(printf %s "$K8S_VERSION" | grep -q -eks- && echo true || echo false)"
             K8S_VERSION="${K8S_VERSION#v}"
+            K8S_VERSION="${K8S_VERSION%-*}"
             
             if [ "$(echo "$K8S_VERSION" | tr . '\n' \
                 | while read NUMBER; do printf '%05d' "$NUMBER"; done)" \
@@ -121,7 +123,12 @@ spec:
               -ge "$(echo "1.22.0" | tr . '\n' \
                 | while read NUMBER; do printf '%05d' "$NUMBER"; done)" ]
             then
-              echo "  signerName: kubernetes.io/kubelet-serving"
+              if "$IS_EKS"
+              then
+                echo "  signerName: beta.eks.amazonaws.com/app-serving"
+              else
+                echo "  signerName: kubernetes.io/kubelet-serving"
+              fi
             fi
             )
             EOF
