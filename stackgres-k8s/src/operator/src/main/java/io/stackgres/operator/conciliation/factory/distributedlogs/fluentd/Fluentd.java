@@ -15,8 +15,6 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -79,7 +77,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
 
   @Override
   public Map<String, String> getComponentVersions(DistributedLogsContainerContext context) {
-    return ImmutableMap.of(
+    return Map.of(
         StackGresContext.FLUENTD_VERSION_KEY,
         StackGresComponent.FLUENTD.get(context.getDistributedLogsContext().getSource())
         .getLatestVersion());
@@ -94,10 +92,15 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
             .getLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-exc")
-        .withArgs(""
-            + "echo 'Wait for postgres to be up, running and initialized'\n"
-            + "until curl -s localhost:8008/read-only --fail > /dev/null; do sleep 1; done\n"
-            + "exec /usr/local/bin/fluentd -c /etc/fluentd/fluentd.conf\n")
+        .withArgs(
+            """
+            echo 'Wait for postgres to be up, running and initialized'
+            until curl -s localhost:8008/read-only --fail > /dev/null; do sleep 1; done
+            mkdir -p /tmp/fluentd
+            chmod 700 /tmp/fluentd
+            export TMPDIR=/tmp/fluentd
+            exec /usr/local/bin/fluentd -c /etc/fluentd/fluentd.conf
+            """)
         .withPorts(
             new ContainerPortBuilder()
                 .withProtocol("TCP")
@@ -159,11 +162,11 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
     final StackGresDistributedLogs cluster = context.getSource();
     final String namespace = cluster.getMetadata().getNamespace();
 
-    final Map<String, String> data = ImmutableMap.of(
+    final Map<String, String> data = Map.of(
         "fluentd.conf", getFluentdConfig(context));
 
     final Map<String, String> labels = labelFactory.genericLabels(cluster);
-    final ConfigMap configMap = new ConfigMapBuilder()
+    return new ConfigMapBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(FluentdUtil.configName(cluster))
@@ -171,7 +174,6 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
         .endMetadata()
         .withData(data)
         .build();
-    return configMap;
   }
 
   @Override

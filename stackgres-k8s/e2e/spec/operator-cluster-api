@@ -11,8 +11,7 @@ e2e_test_install() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.objectstorage.create=true \
-    --set cluster.configurations.backups.sgObjectStorage="backupconf" \
-    --set-string 'cluster.postgres.version=13'
+    --set cluster.configurations.backups.sgObjectStorage="backupconf"
 
   OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' )"
@@ -152,9 +151,7 @@ test_cluster_stats_are_loaded() {
 test_cluster_stats_pods_ready() {
   create_or_replace_cluster "$CLUSTER_NAME-stats" "$CLUSTER_NAMESPACE-stats" 1 \
     --set configurations.objectstorage.create=false \
-    --set cluster.configurations.backups.sgObjectStorage=null \
-    --set-string 'cluster.postgres.version=13' 
-    
+    --set cluster.configurations.backups.sgObjectStorage=null
 
   if ! wait_until -t 60 eval '[ "$(get_cluster_stats_pods_ready)" -eq 1 ]'
   then
@@ -171,7 +168,7 @@ test_cluster_component_versions_are_annotated() {
   local ENVOY_VERSION
   local PGBOUNCER_VERSION
   local PROMETHEUS_POSTGRES_EXPORTER_VERSION
-  POSTGRESQL_VERSION="$(get_component_versions "$STACKGRES_VERSION" "postgresql" | grep '^13\.' | tail -n 1)"
+  POSTGRESQL_VERSION="$(get_component_versions "$STACKGRES_VERSION" "postgresql" | grep -xF "E2E_POSTGRES_VERSION" | tail -n 1)"
   POSTGRESQL_VERSION="${POSTGRESQL_VERSION%-build-*}"
   PATRONI_VERSION="$(get_component_versions "$STACKGRES_VERSION" "patroni" | tail -n 1)"
   PATRONI_VERSION="${PATRONI_VERSION%-build-*}"
@@ -495,9 +492,7 @@ check_create_cluster_with_inline_script() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.objectstorage.create=true \
-    --set cluster.configurations.backups.sgObjectStorage="backupconf" \
-    --set-string 'cluster.postgres.version=13'
-    
+    --set cluster.configurations.backups.sgObjectStorage="backupconf"
 
   OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
@@ -572,8 +567,7 @@ check_create_cluster_with_secret_and_configmap_script() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set configurations.objectstorage.create=true \
-    --set cluster.configurations.backups.sgObjectStorage="backupconf" \
-    --set-string 'cluster.postgres.version=13'
+    --set cluster.configurations.backups.sgObjectStorage="backupconf"
 
   OPERATOR_CLUSTER_CR="$(kubectl get sgclusters.stackgres.io -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq 'del(.metadata.creationTimestamp) | del(.metadata.generation) | del(.metadata.resourceVersion) | del(.metadata.selfLink) | del(.metadata.uid)' \
