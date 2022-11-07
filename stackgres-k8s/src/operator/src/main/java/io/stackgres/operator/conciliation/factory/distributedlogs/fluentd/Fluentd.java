@@ -122,6 +122,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
             .withPeriodSeconds(10)
             .build())
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
+        .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.FLUENTD_CONFIG.getName())
@@ -132,7 +133,6 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
                 .withName(StackGresVolume.FLUENTD_BUFFER.getName())
                 .withMountPath("/var/log/fluentd")
                 .build())
-        .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
         .build();
 
   }

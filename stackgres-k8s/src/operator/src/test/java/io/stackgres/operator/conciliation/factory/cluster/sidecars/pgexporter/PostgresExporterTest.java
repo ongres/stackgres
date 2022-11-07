@@ -8,11 +8,17 @@ package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import javax.inject.Inject;
+
+import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
+import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
+import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.ImmutableClusterContainerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,12 +27,25 @@ import org.mockito.InjectMocks;
 
 class PostgresExporterTest {
 
+  @Inject
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+
+  @Inject
+  private ContainerUserOverrideMounts containerUserOverrideMounts;
+
+  @Inject
+  private PostgresSocketMount postgresSocket;
+
+  @Inject
+  private ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts;
+
   @InjectMocks
   private PostgresExporter postgresExporter;
 
   @BeforeEach
   public void setupClass() {
-    this.postgresExporter = new PostgresExporter();
+    this.postgresExporter = new PostgresExporter(labelFactory, containerUserOverrideMounts,
+        postgresSocket, scriptTemplatesVolumeMounts);
   }
 
   @Test

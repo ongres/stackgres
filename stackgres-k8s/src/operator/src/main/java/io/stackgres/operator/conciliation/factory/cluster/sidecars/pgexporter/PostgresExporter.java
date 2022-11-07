@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -45,6 +44,7 @@ import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
+import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
@@ -66,11 +66,21 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
   private static final Logger POSTGRES_EXPORTER_LOGGER = LoggerFactory.getLogger(
       "io.stackgres.prometheus-postgres-exporter");
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final ContainerUserOverrideMounts containerUserOverrideMounts;
+  private final PostgresSocketMount postgresSocket;
+  private final ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts;
 
-  private ContainerUserOverrideMounts containerUserOverrideMounts;
-
-  private PostgresSocketMount postgresSocket;
+  @Inject
+  public PostgresExporter(LabelFactoryForCluster<StackGresCluster> labelFactory,
+      ContainerUserOverrideMounts containerUserOverrideMounts, PostgresSocketMount postgresSocket,
+      ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts) {
+    super();
+    this.labelFactory = labelFactory;
+    this.containerUserOverrideMounts = containerUserOverrideMounts;
+    this.postgresSocket = postgresSocket;
+    this.scriptTemplatesVolumeMounts = scriptTemplatesVolumeMounts;
+  }
 
   public static String configName(StackGresClusterContext clusterContext) {
     final String name = clusterContext.getSource().getMetadata().getName();
@@ -95,32 +105,9 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
         .withImage(StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.get(cluster)
             .getLatestImageName())
         .withImagePullPolicy("IfNotPresent")
-        .withCommand("/bin/sh", "-exc")
-        .withArgs(""
-            + "run_postgres_exporter() {\n"
-            + "  set -x\n"
-            + "  exec /usr/local/bin/postgres_exporter \\\n"
-            + "    --log.level="
-            + (POSTGRES_EXPORTER_LOGGER.isTraceEnabled() ? "debug" : "info") + "\n"
-            + "}\n"
-            + "\n"
-            + "set +x\n"
-            + "while true\n"
-            + "do\n"
-            + "  if ( [ -z \"$PID\" ] || [ ! -d \"/proc/$PID\" ] ) \\\n"
-            + "    && [ -S '" + ClusterStatefulSetPath.PG_RUN_PATH.path()
-            + "/.s.PGSQL." + EnvoyUtil.PG_PORT + "' ]\n"
-            + "  then\n"
-            + "    if [ -n \"$PID\" ]\n"
-            + "    then\n"
-            + "      kill \"$PID\"\n"
-            + "      wait \"$PID\" || true\n"
-            + "    fi\n"
-            + "    run_postgres_exporter &\n"
-            + "    PID=\"$!\"\n"
-            + "  fi\n"
-            + "  sleep 5\n"
-            + "done\n")
+        .withCommand("/bin/sh", "-ex",
+            ClusterStatefulSetPath.TEMPLATES_PATH.path()
+                + "/" + ClusterStatefulSetPath.LOCAL_BIN_START_POSTGRES_EXPORTER_SH_PATH.filename())
         .withEnv(
             new EnvVarBuilder()
                 .withName("PGAPPNAME")
@@ -140,13 +127,24 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
                 .withName("PG_EXPORTER_CONSTANT_LABELS")
                 .withValue("cluster_name=" + cluster.getMetadata().getName()
                     + ", namespace=" + cluster.getMetadata().getNamespace())
+                .build(),
+            new EnvVarBuilder()
+                .withName("PG_EXPORTER_LOG_LEVEL")
+                .withValue(POSTGRES_EXPORTER_LOGGER.isTraceEnabled() ? "debug" : "info")
+                .build(),
+            new EnvVarBuilder()
+                .withName("PG_PORT")
+                .withValue(String.valueOf(EnvoyUtil.PG_PORT))
                 .build())
         .withPorts(new ContainerPortBuilder()
             .withProtocol("TCP")
             .withName(POSTGRES_EXPORTER_PORT_NAME)
             .withContainerPort(POSTGRES_EXPORTER_PORT)
             .build())
+        .addAllToEnv(postgresSocket.getDerivedEnvVars(context))
+        .addAllToEnv(scriptTemplatesVolumeMounts.getDerivedEnvVars(context))
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
+        .addAllToVolumeMounts(scriptTemplatesVolumeMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.EXPORTER_QUERIES.getName())
@@ -162,7 +160,7 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
 
   @Override
   public Map<String, String> getComponentVersions(ClusterContainerContext context) {
-    return ImmutableMap.of(
+    return Map.of(
         StackGresContext.PROMETHEUS_POSTGRES_EXPORTER_VERSION_KEY,
         StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER
         .get(context.getClusterContext().getCluster()).getLatestVersion());
@@ -178,7 +176,7 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
     );
   }
 
-  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+  private Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
         .withName(StackGresVolume.EXPORTER_QUERIES.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
@@ -187,7 +185,7 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
         .build();
   }
 
-  public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
+  private HasMetadata buildSource(StackGresClusterContext context) {
 
     return new ConfigMapBuilder()
         .withNewMetadata()
@@ -195,7 +193,7 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
         .withNamespace(context.getSource().getMetadata().getNamespace())
         .withLabels(labelFactory.genericLabels(context.getSource()))
         .endMetadata()
-        .withData(ImmutableMap.of("queries.yaml",
+        .withData(Map.of("queries.yaml",
             Unchecked.supplier(() -> Resources
                 .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
                     "/prometheus-postgres-exporter/queries.yaml")),
@@ -205,20 +203,4 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
 
   }
 
-  @Inject
-  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
-    this.labelFactory = labelFactory;
-  }
-
-  @Inject
-  public void setContainerUserOverrideMounts(
-      ContainerUserOverrideMounts containerUserOverrideMounts) {
-    this.containerUserOverrideMounts = containerUserOverrideMounts;
-  }
-
-  @Inject
-  public void setPostgresSocket(
-      PostgresSocketMount postgresSocket) {
-    this.postgresSocket = postgresSocket;
-  }
 }

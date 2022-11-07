@@ -50,6 +50,8 @@ public enum ClusterStatefulSetPath implements VolumePath {
       "dbops/major-version-upgrade/major-version-upgrade.sh"),
   LOCAL_BIN_RESET_PATRONI_SH_PATH(LOCAL_BIN_PATH,
       "dbops/major-version-upgrade/reset-patroni.sh"),
+  LOCAL_BIN_START_FLUENTBIT_SH_PATH(LOCAL_BIN_PATH, "start-fluentbit.sh"),
+  LOCAL_BIN_START_POSTGRES_EXPORTER_SH_PATH(LOCAL_BIN_PATH, "start-postgres-exporter.sh"),
   HUGEPAGES_2M_PATH("/hugepages-2Mi"),
   HUGEPAGES_1G_PATH("/hugepages-1Gi"),
   PG_BASE_PATH("/var/lib/postgresql"),
@@ -109,7 +111,8 @@ public enum ClusterStatefulSetPath implements VolumePath {
   PGBOUNCER_CONFIG_PATH("/etc/pgbouncer"),
   PGBOUNCER_CONFIG_FILE_PATH(PGBOUNCER_CONFIG_PATH, "pgbouncer.ini"),
   PGBOUNCER_AUTH_PATH(PGBOUNCER_CONFIG_PATH, "auth"),
-  PGBOUNCER_AUTH_FILE_PATH(PGBOUNCER_AUTH_PATH, "users.txt");
+  PGBOUNCER_AUTH_FILE_PATH(PGBOUNCER_AUTH_PATH, "users.txt"),
+  FLUENT_BIT_LAST_CONFIG_PATH("/tmp", "last-fluentbit-conf");
 
   private final String path;
 
