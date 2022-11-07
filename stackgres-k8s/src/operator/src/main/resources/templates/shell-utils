@@ -188,6 +188,11 @@ from_date_iso8601_to_unix_timestamp() {
   date -d "$1" +%s
 }
 
+is_child() {
+  local PID="$1"
+  grep -q "^PPid:[[:space:]]$$" "/proc/$PID/status" 2>/dev/null
+}
+
 kill_with_childs() {
   (
   set +e

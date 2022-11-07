@@ -79,7 +79,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
 
   @Override
   public Map<String, String> getComponentVersions(DistributedLogsContainerContext context) {
-    return ImmutableMap.of(
+    return Map.of(
         StackGresContext.FLUENTD_VERSION_KEY,
         StackGresComponent.FLUENTD.get(context.getDistributedLogsContext().getSource())
         .getLatestVersion());
@@ -119,6 +119,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
             .withPeriodSeconds(10)
             .build())
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
+        .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.FLUENTD_CONFIG.getName())
@@ -129,7 +130,6 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
                 .withName(StackGresVolume.FLUENTD_BUFFER.getName())
                 .withMountPath("/var/log/fluentd")
                 .build())
-        .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
         .build();
 
   }
