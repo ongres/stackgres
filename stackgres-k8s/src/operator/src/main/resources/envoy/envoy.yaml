@@ -36,7 +36,7 @@ static_resources:
     - filters:
       - name: envoy.filters.network.postgres_proxy
         typed_config:
-          "@type": type.googleapis.com/envoy.extensions.filters.network.postgres_proxy.v3alpha.PostgresProxy
+          "@type": type.googleapis.com/envoy.extensions.filters.network.postgres_proxy.v3.PostgresProxy
           stat_prefix: ingress_postgres
           enable_sql_parsing: false
           terminate_ssl: '$enable_ssl'

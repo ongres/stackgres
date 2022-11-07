@@ -97,6 +97,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
   PATRONI_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.PATRONI_ENV.substVar()),
   PATRONI_SECRET_ENV_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.PATRONI_ENV.substVar()),
   PATRONI_CONFIG_PATH("/etc/patroni"),
+  PATRONI_CONFIG_FILE_PATH("/etc/patroni/config.yml"),
   BACKUP_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.BACKUP_ENV.substVar()),
   BACKUP_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.BACKUP_ENV.substVar()),
   RESTORE_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.substVar()),

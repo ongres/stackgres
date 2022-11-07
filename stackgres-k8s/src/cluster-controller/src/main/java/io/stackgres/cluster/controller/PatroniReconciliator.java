@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,6 +35,7 @@ import io.stackgres.cluster.common.ClusterPatroniConfigEventReason;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationGroup;
@@ -45,6 +45,7 @@ import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,8 +57,11 @@ public class PatroniReconciliator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PatroniReconciliator.class);
 
-  private static final Path PATRONI_CONF_PATH = Paths.get("/etc/patroni/config.yml");
-  private static final Path LAST_PATRONI_CONF_PATH = Paths.get("/etc/patroni/last-config.yml");
+  private static final Path PATRONI_CONFIG_PATH =
+      Paths.get(ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.path());
+  private static final Path LAST_PATRONI_CONFIG_PATH =
+      Paths.get(ClusterStatefulSetPath.PATRONI_CONFIG_PATH.path()
+          + "/last-" + ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.filename());
 
   private static final Pattern TAGS_LINE_PATTERN = Pattern.compile("^tags:.*$");
   private static final Pattern PATRONI_COMMAND_PATTERN =
@@ -152,7 +156,7 @@ public class PatroniReconciliator {
     final Map<String, String> tagsMap =
         getPatroniTagsForReplicationRole(podReplicationRole.get().v1);
     final String tags = getTagsAsYamlString(tagsMap);
-    boolean needsUpdate = Seq.seq(Files.readAllLines(PATRONI_CONF_PATH))
+    boolean needsUpdate = Seq.seq(Files.readAllLines(PATRONI_CONFIG_PATH))
         .filter(line -> TAGS_LINE_PATTERN.matcher(line).matches())
         .noneMatch(tags::equals);
     if (needsUpdate) {
@@ -161,7 +165,7 @@ public class PatroniReconciliator {
     if (configChanged()) {
       reloadPatroniConfig();
       setPatroniTagsAsPodLabels(client, cluster, tagsMap);
-      Files.copy(PATRONI_CONF_PATH, LAST_PATRONI_CONF_PATH,
+      Files.copy(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH,
           StandardCopyOption.REPLACE_EXISTING);
       LOGGER.info("Patroni config updated");
       eventController.sendEvent(ClusterPatroniConfigEventReason.CLUSTER_PATRONI_CONFIG_UPDATED,
@@ -248,17 +252,17 @@ public class PatroniReconciliator {
   private void replacePatroniTags(final String tagsAsYamlString) {
     FluentProcess.start("sed", "-i",
         String.format("s/^tags:.*$/%s/", tagsAsYamlString),
-        PATRONI_CONF_PATH.toString()).join();
+        PATRONI_CONFIG_PATH.toString()).join();
   }
 
   private boolean configChanged() throws IOException {
-    final List<String> patroniConfigLines = Files.readAllLines(PATRONI_CONF_PATH);
-    return !Files.exists(LAST_PATRONI_CONF_PATH)
-        || !Seq.seq(Files.readAllLines(LAST_PATRONI_CONF_PATH))
+    return !Files.exists(LAST_PATRONI_CONFIG_PATH)
+        || !Seq.seq(Files.readAllLines(LAST_PATRONI_CONFIG_PATH))
         .zipWithIndex()
-        .allMatch(line -> Seq.seq(patroniConfigLines)
+        .allMatch(Unchecked.predicate(line -> Seq
+            .seq(Files.readAllLines(PATRONI_CONFIG_PATH))
             .zipWithIndex()
-            .anyMatch(line::equals));
+            .anyMatch(line::equals)));
   }
 
   private void reloadPatroniConfig() {
@@ -275,7 +279,8 @@ public class PatroniReconciliator {
         .map(ProcessHandle::pid)
         .map(String::valueOf)
         .findAny()
-        .orElseThrow(() -> new IllegalStateException("Patroni process not found"));
+        .orElseThrow(() -> new IllegalStateException(
+            "Process with pattern " + PATRONI_COMMAND_PATTERN + " not found"));
   }
 
   private void setPatroniTagsAsPodLabels(KubernetesClient client, final StackGresCluster cluster,

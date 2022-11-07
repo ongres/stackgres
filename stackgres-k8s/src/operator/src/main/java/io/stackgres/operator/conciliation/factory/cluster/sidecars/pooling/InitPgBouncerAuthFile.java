@@ -66,9 +66,10 @@ public class InitPgBouncerAuthFile implements ContainerFactory<ClusterContainerC
         .withImagePullPolicy("IfNotPresent")
         .addToVolumeMounts(
             new VolumeMountBuilder()
-            .withName(StackGresVolume.PGBOUNCER_AUTH_FILE.getName())
-            .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path())
-            .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath())
+            .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
+            .withMountPath(ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path())
+            .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath(
+                ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH))
             .build(),
             new VolumeMountBuilder()
             .withName(StackGresVolume.PGBOUNCER_SECRETS.getName())
