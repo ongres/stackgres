@@ -3,6 +3,8 @@ FROM "$BASE_IMAGE"
   USER root:root
   WORKDIR '/app/'
 
+  COPY 'src/main/docker/LICENCE' '/licenses/stackgres'
+
   COPY 'src/main/docker/stackgres-jobs.jvm.sh' '/app/stackgres-jobs.sh'
 
   COPY 'target/quarkus-app/lib/' '/app/lib/'

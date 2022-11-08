@@ -3,6 +3,8 @@ FROM "$BASE_IMAGE"
   USER root:root
   WORKDIR '/app/'
 
+  COPY 'src/main/docker/LICENCE' '/licenses/stackgres'
+
   RUN echo 'jboss:x:1000:' >> /etc/group && \
     echo 'jboss:!::' >> /etc/gshadow && \
     echo 'jboss:x:1000:1000::/app:/bin/bash' >> /etc/passwd && \

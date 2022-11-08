@@ -180,6 +180,7 @@ modules:
       seds:
         - "s#^\\( *COPY\\) \\+'#\\1 './$MODULE_PATH/#"
     artifacts:
+      - stackgres-k8s/src/operator/src/main/docker/LICENCE
       - stackgres-k8s/src/operator/src/main/docker/stackgres-operator.jvm.sh
       - stackgres-k8s/src/operator/target/quarkus-app
   restapi-jvm-image:
@@ -189,6 +190,7 @@ modules:
       <<: *jvm-image-args
       path: stackgres-k8s/src/api-web/src/main/docker/Dockerfile.jvm
     artifacts:
+      - stackgres-k8s/src/api-web/src/main/docker/LICENCE
       - stackgres-k8s/src/api-web/src/main/docker/stackgres-restapi.jvm.sh
       - stackgres-k8s/src/api-web/target/quarkus-app
   jobs-jvm-image:
@@ -198,6 +200,7 @@ modules:
       <<: *jvm-image-args
       path: stackgres-k8s/src/jobs/src/main/docker/Dockerfile.jvm
     artifacts:
+      - stackgres-k8s/src/jobs/src/main/docker/LICENCE
       - stackgres-k8s/src/jobs/src/main/docker/stackgres-jobs.jvm.sh
       - stackgres-k8s/src/jobs/target/quarkus-app
   cluster-controller-jvm-image:
@@ -207,6 +210,7 @@ modules:
       <<: *jvm-image-args
       path: stackgres-k8s/src/cluster-controller/src/main/docker/Dockerfile.jvm
     artifacts:
+      - stackgres-k8s/src/cluster-controller/src/main/docker/LICENCE
       - stackgres-k8s/src/cluster-controller/src/main/docker/stackgres-cluster-controller.jvm.sh
       - stackgres-k8s/src/cluster-controller/target/quarkus-app
   distributedlogs-controller-jvm-image:
@@ -216,6 +220,7 @@ modules:
       <<: *jvm-image-args
       path: stackgres-k8s/src/distributedlogs-controller/src/main/docker/Dockerfile.jvm
     artifacts:
+      - stackgres-k8s/src/distributedlogs-controller/src/main/docker/LICENCE
       - stackgres-k8s/src/distributedlogs-controller/src/main/docker/stackgres-distributedlogs-controller.jvm.sh
       - stackgres-k8s/src/distributedlogs-controller/target/quarkus-app
   admin-ui-image:
@@ -230,6 +235,7 @@ modules:
       seds:
         - "s#^\\( *COPY\\) \\+'#\\1 './$MODULE_PATH/#"
     artifacts:
+      - stackgres-k8s/src/admin-ui/docker/LICENCE
       - stackgres-k8s/src/admin-ui/target/public
   operator-native-image: &native-image
     type: native-image
@@ -243,6 +249,7 @@ modules:
       seds:
         - "s#^\\( *COPY\\) \\+'#\\1 './$MODULE_PATH/#"
     artifacts:
+      - stackgres-k8s/src/operator/src/main/docker/LICENCE
       - stackgres-k8s/src/operator/target/stackgres-operator-runner
       - stackgres-k8s/src/operator/src/main/docker/stackgres-operator.native.sh
   restapi-native-image:
@@ -252,6 +259,7 @@ modules:
       <<: *native-image-args
       path: stackgres-k8s/src/api-web/src/main/docker/Dockerfile.native
     artifacts:
+      - stackgres-k8s/src/api-web/src/main/docker/LICENCE
       - stackgres-k8s/src/api-web/target/stackgres-restapi-runner
       - stackgres-k8s/src/api-web/src/main/docker/stackgres-restapi.native.sh
   jobs-native-image:
@@ -261,6 +269,7 @@ modules:
       <<: *native-image-args
       path: stackgres-k8s/src/jobs/src/main/docker/Dockerfile.native
     artifacts:
+      - stackgres-k8s/src/jobs/src/main/docker/LICENCE
       - stackgres-k8s/src/jobs/target/stackgres-jobs-runner
       - stackgres-k8s/src/jobs/src/main/docker/stackgres-jobs.native.sh
   cluster-controller-native-image:
@@ -270,6 +279,7 @@ modules:
       <<: *native-image-args
       path: stackgres-k8s/src/cluster-controller/src/main/docker/Dockerfile.native
     artifacts:
+      - stackgres-k8s/src/cluster-controller/src/main/docker/LICENCE
       - stackgres-k8s/src/cluster-controller/target/stackgres-cluster-controller-runner
       - stackgres-k8s/src/cluster-controller/src/main/docker/stackgres-cluster-controller.native.sh
   distributedlogs-controller-native-image:
@@ -279,6 +289,7 @@ modules:
       <<: *native-image-args
       path: stackgres-k8s/src/distributedlogs-controller/src/main/docker/Dockerfile.native
     artifacts:
+      - stackgres-k8s/src/distributedlogs-controller/src/main/docker/LICENCE
       - stackgres-k8s/src/distributedlogs-controller/target/stackgres-distributedlogs-controller-runner
       - stackgres-k8s/src/distributedlogs-controller/src/main/docker/stackgres-distributedlogs-controller.native.sh
   helm-packages:
