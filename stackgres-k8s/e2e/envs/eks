@@ -48,7 +48,7 @@ reset_k8s() {
     --node-type "$K8S_EKS_NODE_TYPE" \
     --node-volume-size "$K8S_EKS_DISK_SIZE" \
     --nodes "$K8S_EKS_NODES" \
-    --version "${K8S_VERSION%.*}"
+    --version "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)"
   
   echo "...done"
 }
