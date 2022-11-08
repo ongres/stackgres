@@ -31,10 +31,10 @@ import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContex
 public class InitPgBouncerAuthFile implements ContainerFactory<ClusterContainerContext> {
 
   private static final String PGBOUNCER_ADMIN_PASSWORD_PATH =
-      ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path()
+      ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path()
       + "/" + PGBOUNCER_ADMIN_PASSWORD_KEY;
   private static final String PGBOUNCER_STATS_PASSWORD_PATH =
-      ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path()
+      ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path()
       + "/" + PGBOUNCER_STATS_PASSWORD_KEY;
 
   @Inject
@@ -47,29 +47,28 @@ public class InitPgBouncerAuthFile implements ContainerFactory<ClusterContainerC
         .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
         .withCommand("/bin/sh", "-exc",
             ""
-                + "test -f \"" + PGBOUNCER_ADMIN_PASSWORD_PATH + "\"\n"
-                + "test -f \"" + PGBOUNCER_STATS_PASSWORD_PATH + "\"\n"
+                + "mkdir -p '" + ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path() + "'\n"
+                + "test -f '" + PGBOUNCER_ADMIN_PASSWORD_PATH + "'\n"
+                + "test -f '" + PGBOUNCER_STATS_PASSWORD_PATH + "'\n"
                 + "PGBOUNCER_ADMIN_MD5=\"$({\n"
-                + "  cat \"" + PGBOUNCER_ADMIN_PASSWORD_PATH + "\"\n"
-                + "  printf '" + PGBOUNCER_ADMIN_USERNAME + "'\n"
+                + "  cat '" + PGBOUNCER_ADMIN_PASSWORD_PATH + "'\n"
+                + "  printf '%s\\n' '" + PGBOUNCER_ADMIN_USERNAME + "'\n"
                 + "  } | md5sum | cut -d ' ' -f 1)\"\n"
                 + "PGBOUNCER_STATS_MD5=\"$({\n"
-                + "  cat \"" + PGBOUNCER_STATS_PASSWORD_PATH + "\"\n"
-                + "  printf '" + PGBOUNCER_STATS_USERNAME + "'\n"
+                + "  cat '" + PGBOUNCER_STATS_PASSWORD_PATH + "'\n"
+                + "  printf '%s\\n' '" + PGBOUNCER_STATS_USERNAME + "'\n"
                 + "  } | md5sum | cut -d ' ' -f 1)\"\n"
                 + "(\n"
-                + "echo \"\\\"" + PGBOUNCER_ADMIN_USERNAME + "\\\""
+                + "printf '%s\\n' \"\\\"" + PGBOUNCER_ADMIN_USERNAME + "\\\""
                     + " \\\"md5$PGBOUNCER_ADMIN_MD5\\\"\"\n"
-                + "echo \"\\\"" + PGBOUNCER_STATS_USERNAME + "\\\""
+                + "printf '%s\\n' \"\\\"" + PGBOUNCER_STATS_USERNAME + "\\\""
                     + " \\\"md5$PGBOUNCER_STATS_MD5\\\"\"\n"
-                + ") > \"" + ClusterStatefulSetPath.PGBOUNCER_AUTH_FILE_PATH.path() + "\"")
+                + ") > '" + ClusterStatefulSetPath.PGBOUNCER_AUTH_FILE_PATH.path() + "'")
         .withImagePullPolicy("IfNotPresent")
         .addToVolumeMounts(
             new VolumeMountBuilder()
             .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
             .withMountPath(ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path())
-            .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath(
-                ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH))
             .build(),
             new VolumeMountBuilder()
             .withName(StackGresVolume.PGBOUNCER_SECRETS.getName())
