@@ -8,28 +8,29 @@
 ###
 
 FROM docker.io/docker:20.10
-   RUN apk add coreutils gnupg openssl jq curl bash zsh sed libc6-compat
-    RUN apk add attr-dev e2fsprogs-dev glib-dev libtirpc-dev openssl-dev util-linux-dev \
-      gcc libc-dev make automake autoconf libtool linux-headers
-    RUN uname -a | grep -qxF aarch64 \
-      || wget -q -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.0/yajsv.linux.amd64
-    RUN chmod a+x /bin/yajsv
-    RUN apk add py3-pip
-    RUN pip3 install yamllint yq
-    RUN mkdir -p "$HOME/.docker"; echo '{"experimental":"enabled"}' > "$HOME/.docker/config.json"
-    RUN apk add git
-    RUN apk add xz
-    RUN mkdir -p ~/.docker/cli-plugins
-    RUN wget -q -O ~/.docker/cli-plugins/docker-buildx "https://github.com/docker/buildx/releases/download/v0.8.2/buildx-v0.8.2.linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
-    RUN chmod a+x ~/.docker/cli-plugins/docker-buildx
-    RUN echo '{"experimental":"enabled"}' > ~/.docker/config.json
-    RUN wget -q -O /bin/kubectl "https://dl.k8s.io/release/v1.24.1/bin/linux/$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/kubectl"
-    RUN chmod a+x /bin/kubectl
-    RUN wget -q -O /bin/kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.15.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
-    RUN chmod a+x /bin/kind
-    RUN wget -q -O /bin/k3d "https://github.com/rancher/k3d/releases/download/v4.4.7/k3d-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
-    RUN chmod a+x /bin/k3d
-    RUN wget -q "https://get.helm.sh/helm-v3.9.0-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"
-    RUN wget -q -O /bin/k9s "https://github.com/derailed/k9s/releases/download/v0.25.18/k9s_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz"
-    RUN chmod a+x /bin/k9s
-    RUN apk add aws-cli
+RUN apk add coreutils gnupg openssl jq curl bash zsh sed libc6-compat
+RUN apk add attr-dev e2fsprogs-dev glib-dev libtirpc-dev openssl-dev util-linux-dev \
+  gcc libc-dev make automake autoconf libtool linux-headers
+RUN uname -a | grep -qxF aarch64 \
+  || wget -q -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.0/yajsv.linux.amd64
+RUN chmod a+x /bin/yajsv
+RUN apk add py3-pip
+RUN pip3 install yamllint yq
+RUN mkdir -p "$HOME/.docker"; echo '{"experimental":"enabled"}' > "$HOME/.docker/config.json"
+RUN apk add git
+RUN apk add xz
+RUN mkdir -p ~/.docker/cli-plugins
+RUN wget -q -O ~/.docker/cli-plugins/docker-buildx "https://github.com/docker/buildx/releases/download/v0.8.2/buildx-v0.8.2.linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+RUN chmod a+x ~/.docker/cli-plugins/docker-buildx
+RUN echo '{"experimental":"enabled"}' > ~/.docker/config.json
+RUN wget -q -O /bin/kubectl "https://dl.k8s.io/release/v1.24.1/bin/linux/$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/kubectl"
+RUN chmod a+x /bin/kubectl
+RUN wget -q -O /bin/kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.15.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+RUN chmod a+x /bin/kind
+RUN wget -q -O /bin/k3d "https://github.com/rancher/k3d/releases/download/v4.4.7/k3d-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+RUN chmod a+x /bin/k3d
+RUN wget -q "https://get.helm.sh/helm-v3.9.0-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"
+RUN helm plugin install --version 0.0.4 https://github.com/karuppiah7890/helm-schema-gen.git
+RUN wget -q -O /bin/k9s "https://github.com/derailed/k9s/releases/download/v0.25.18/k9s_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz"
+RUN chmod a+x /bin/k9s
+RUN apk add aws-cli

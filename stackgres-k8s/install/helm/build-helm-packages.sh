@@ -18,10 +18,14 @@ grep "^appVersion: \"$STACKGRES_VERSION\"$" stackgres-operator/Chart.yaml
 grep "^operator:$" -A 5 stackgres-operator/values.yaml | grep "^    tag: \"$IMAGE_TAG\"$"
 grep "^restapi:$" -A 5 stackgres-operator/values.yaml | grep "^    tag: \"$IMAGE_TAG\"$"
 grep "^adminui:$" -A 5 stackgres-operator/values.yaml | grep "^    tag: \"$ADMINUI_IMAGE_TAG\"$"
+
+helm schema-gen stackgres-operator/values.yaml > stackgres-operator/values.schema.json
 helm lint stackgres-operator
 
 grep "^version: \"$STACKGRES_VERSION\"$" stackgres-cluster/Chart.yaml
 grep "^appVersion: \"$STACKGRES_VERSION\"$" stackgres-cluster/Chart.yaml
+
+helm schema-gen stackgres-cluster/values.yaml > stackgres-cluster/values.schema.json
 helm lint stackgres-cluster
 
 rm -rf "target/packages"
