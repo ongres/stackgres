@@ -44,7 +44,7 @@ public class PgBouncerReconciliator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PgBouncerReconciliator.class);
   private static final Pattern PGBOUNCER_COMMAND_PATTERN =
-      Pattern.compile("^pgbouncer .*$");
+      Pattern.compile("^/usr/local/bin/pgbouncer .*$");
   private static final Path PGBOUNCER_AUTH_PATH =
       Paths.get(ClusterStatefulSetPath.PGBOUNCER_AUTH_FILE_PATH.path());
   private static final Path LAST_PGBOUNCER_AUTH_PATH =

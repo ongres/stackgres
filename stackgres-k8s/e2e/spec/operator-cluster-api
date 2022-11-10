@@ -168,7 +168,7 @@ test_cluster_component_versions_are_annotated() {
   local ENVOY_VERSION
   local PGBOUNCER_VERSION
   local PROMETHEUS_POSTGRES_EXPORTER_VERSION
-  POSTGRESQL_VERSION="$(get_component_versions "$STACKGRES_VERSION" "postgresql" | grep -xF "E2E_POSTGRES_VERSION" | tail -n 1)"
+  POSTGRESQL_VERSION="$(get_component_versions "$STACKGRES_VERSION" "postgresql" | grep -F "$E2E_POSTGRES_VERSION" | tail -n 1)"
   POSTGRESQL_VERSION="${POSTGRESQL_VERSION%-build-*}"
   PATRONI_VERSION="$(get_component_versions "$STACKGRES_VERSION" "patroni" | tail -n 1)"
   PATRONI_VERSION="${PATRONI_VERSION%-build-*}"
