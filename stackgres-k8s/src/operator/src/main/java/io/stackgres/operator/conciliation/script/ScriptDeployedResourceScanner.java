@@ -41,13 +41,6 @@ public class ScriptDeployedResourceScanner extends DeployedResourcesScanner<Stac
   @Override
   protected Map<Class<? extends HasMetadata>, Function<KubernetesClient,
       MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
-          ? extends Resource<? extends HasMetadata>>>> getAnyNamespaceResourceOperations() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  protected Map<Class<? extends HasMetadata>, Function<KubernetesClient,
-      MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
           ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations() {
     throw new UnsupportedOperationException();
   }

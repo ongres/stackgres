@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -18,10 +19,13 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
+import io.stackgres.operator.configuration.OperatorPropertyContext;
 
 @ApplicationScoped
 public class ClusterDeployedResourceScanner extends DeployedResourcesScanner<StackGresCluster>
@@ -29,19 +33,23 @@ public class ClusterDeployedResourceScanner extends DeployedResourcesScanner<Sta
 
   private final KubernetesClient client;
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final boolean prometheusAutobind;
 
   @Inject
   public ClusterDeployedResourceScanner(
       KubernetesClient client,
-      LabelFactoryForCluster<StackGresCluster> labelFactory) {
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      OperatorPropertyContext operatorContext) {
     this.client = client;
     this.labelFactory = labelFactory;
+    this.prometheusAutobind = operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND);
   }
 
   public ClusterDeployedResourceScanner() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
     this.client = null;
     this.labelFactory = null;
+    this.prometheusAutobind = false;
   }
 
   @Override
@@ -66,8 +74,15 @@ public class ClusterDeployedResourceScanner extends DeployedResourcesScanner<Sta
   protected Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>> getAnyNamespaceResourceOperations() {
-    return ANY_NAMESPACE_RESOURCE_OPERATIONS;
+              ? extends Resource<? extends HasMetadata>>>> getExtraResourceOperations(
+                  StackGresCluster cluster) {
+    if (prometheusAutobind && Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPrometheusAutobind)
+        .orElse(false)) {
+      return PROMETHEUS_RESOURCE_OPERATIONS;
+    }
+    return super.getExtraResourceOperations(cluster);
   }
 
 }
