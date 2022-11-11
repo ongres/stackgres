@@ -61,14 +61,6 @@ public class BackupDeployedResourceScanner extends DeployedResourcesScanner<Stac
     return IN_NAMESPACE_RESOURCE_OPERATIONS;
   }
 
-  @Override
-  protected Map<Class<? extends HasMetadata>,
-      Function<KubernetesClient, MixedOperation<? extends HasMetadata,
-          ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>> getAnyNamespaceResourceOperations() {
-    return Map.of();
-  }
-
   static final Map<
       Class<? extends HasMetadata>,
       Function<
