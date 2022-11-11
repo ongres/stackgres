@@ -70,8 +70,8 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
                 && !isPostgresVersionSupported(cluster, givenPgVersion)) {
               final String message = "Unsupported postgres version " + givenPgVersion
                   + ".  Supported postgres versions are: "
-                  + Seq.seq(supportedPostgresVersions.get(
-                      getPostgresFlavorComponent(cluster))).toString(", ");
+                  + Seq.seq(supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
+                      .get(StackGresVersion.getStackGresVersion(cluster))).toString(", ");
               fail(errorPostgresMismatchUri, message);
             }
 
@@ -89,7 +89,7 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
                 .filter(t -> t.v1.equals(givenMajorVersion))
                 .map(Tuple2::v2)
                 .findAny()
-                .get();
+                .orElseThrow();
             String oldPgVersion = cluster.getSpec().getPostgres().getVersion();
             String oldMajorVersion = getPostgresFlavorComponent(cluster)
                 .get(cluster)
@@ -101,7 +101,7 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
                 .filter(t -> t.v1.equals(oldMajorVersion))
                 .map(Tuple2::v2)
                 .findAny()
-                .get();
+                .orElseThrow();
 
             if (givenMajorVersionIndex != oldMajorVersionIndex) {
               fail(errorForbiddenUpdateUri,
