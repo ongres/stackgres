@@ -1,4 +1,4 @@
-{{ if .Values.configurations.create }}
+{{ if and .Values.configurations.create .Values.configurations.postgresconfig.create }}
 apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:

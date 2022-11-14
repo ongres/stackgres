@@ -174,7 +174,7 @@ public class ClusterRequiredResourcesGenerator
 
     final ReplicateFromUsers replicateFromUsers = getReplicatedFromUsers(clusterNamespace, spec);
 
-    final Optional<StackGresObjectStorage> replicateObjectStorageConfig =
+    final Optional<StackGresCluster> replicateCluster =
         Optional.of(spec)
         .map(StackGresClusterSpec::getReplicateFrom)
         .map(StackGresClusterReplicateFrom::getInstance)
@@ -182,15 +182,18 @@ public class ClusterRequiredResourcesGenerator
         .flatMap(sgCluster -> Optional.of(
             clusterFinder.findByNameAndNamespace(sgCluster, clusterNamespace)
             .orElseThrow(() -> new IllegalArgumentException("Can not find SGCluster "
-                + sgCluster + " to replicate from")))
-            .flatMap(replicateFromCluster -> Optional.of(replicateFromCluster)
-                .map(StackGresCluster::getSpec)
-                .map(StackGresClusterSpec::getConfiguration)
-                .map(StackGresClusterConfiguration::getBackups)
-                .stream()
-                .flatMap(List::stream)
-                .findFirst()
-                .map(StackGresClusterBackupConfiguration::getObjectStorage)))
+                + sgCluster + " to replicate from"))));
+
+    final Optional<StackGresObjectStorage> replicateObjectStorageConfig =
+        replicateCluster
+        .flatMap(replicateFromCluster -> Optional.of(replicateFromCluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getConfiguration)
+            .map(StackGresClusterConfiguration::getBackups)
+            .stream()
+            .flatMap(List::stream)
+            .findFirst()
+            .map(StackGresClusterBackupConfiguration::getObjectStorage))
         .or(() -> Optional.of(spec)
           .map(StackGresClusterSpec::getReplicateFrom)
           .map(StackGresClusterReplicateFrom::getStorage)
@@ -211,6 +214,7 @@ public class ClusterRequiredResourcesGenerator
         .prometheus(getPrometheus(config))
         .clusterBackupNamespaces(clusterBackupNamespaces)
         .databaseSecret(secretFinder.findByNameAndNamespace(clusterName, clusterNamespace))
+        .replicateCluster(replicateCluster)
         .replicateObjectStorageConfig(replicateObjectStorageConfig)
         .superuserUsername(replicateFromUsers.superuserUsername)
         .superuserPassword(replicateFromUsers.superuserPassword)
