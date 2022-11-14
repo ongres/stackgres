@@ -27,7 +27,7 @@ RECOVERY_FROM_BACKUP_EOF
 fi
 
 cat << 'PATRONI_CONFIG_EOF' | exec-with-env "${PATRONI_ENV}" -- sh -e $SHELL_XTRACE
-cat << EOF > "$PATRONI_CONFIG_PATH/config.yml"
+cat << EOF > "$PATRONI_CONFIG_FILE_PATH"
 scope: ${PATRONI_SCOPE}
 name: ${PATRONI_NAME}
 
@@ -110,15 +110,12 @@ RECOVERY_TARGET_TIME_EOF
 RECOVERY_EOF
 fi
 )
-  callbacks:
-    on_restart: '${PATRONI_CONFIG_PATH}/setup-data-path.sh'
-    on_start: '${PATRONI_CONFIG_PATH}/setup-data-path.sh'
 watchdog:
   mode: off
 tags: {}
 EOF
 PATRONI_CONFIG_EOF
-chmod 600 "$PATRONI_CONFIG_PATH/config.yml"
+chmod 600 "$PATRONI_CONFIG_FILE_PATH"
 
 cat << EOF > "${LOCAL_BIN_PATH}/postgres"
 #!/bin/sh
@@ -137,4 +134,4 @@ done
 
 export LC_ALL=C.UTF-8
 
-PATRONI_POSTGRESQL_BIN_DIR="${LOCAL_BIN_PATH}" exec exec-with-env "${PATRONI_ENV}" -- /usr/bin/patroni "$PATRONI_CONFIG_PATH/config.yml"
+PATRONI_POSTGRESQL_BIN_DIR="${LOCAL_BIN_PATH}" exec exec-with-env "${PATRONI_ENV}" -- /usr/bin/patroni "$PATRONI_CONFIG_FILE_PATH"

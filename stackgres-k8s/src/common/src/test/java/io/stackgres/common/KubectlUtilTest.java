@@ -34,7 +34,7 @@ class KubectlUtilTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"v1.21", "v1.22.2"})
+  @ValueSource(strings = {"v1.21", "v1.22.2", "v1.23.7"})
   void testImageName20(String version) {
     KubernetesClient mockClient = Mockito.mock(KubernetesClient.class);
 
@@ -52,7 +52,7 @@ class KubectlUtilTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"v1.23.7", "v1.24.9", "v1.25.3", "v1.26.0"})
+  @ValueSource(strings = {"v1.24.9", "v1.25.3", "v1.26.0"})
   void testImageName23(String version) {
     KubernetesClient mockClient = Mockito.mock(KubernetesClient.class);
 
@@ -61,7 +61,7 @@ class KubectlUtilTest {
     Mockito.when(mockClient.getKubernetesVersion()).thenReturn(versionInfo);
 
     String expected = StackGresComponent.KUBECTL.get(StackGresVersion.LATEST)
-        .map(c -> c.getImageName("1.24")) // Update to 1.25 when is released
+        .map(c -> c.getImageName("1.25"))
         .orElseThrow();
     String imageName = new KubectlUtil(mockClient)
         .getImageName(StackGresVersion.LATEST);

@@ -86,7 +86,7 @@ describe('GET requests', () => {
     });
 
     it('GET extensions', () => {
-        cy.getResources('extensions/latest');
+        cy.getResources('extensions/14');
     });
 
     it('GET namespaces', () => {

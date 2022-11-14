@@ -18,13 +18,13 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvFromSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
@@ -189,14 +189,12 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
         .addAll(localBinMountsEnvVars)
         .addAll(postgresExtensionsEnvVars)
         .addAll(resource)
-        .add(new EnvVarBuilder()
-                .withName("PATRONI_CONFIG_PATH")
-                .withValue("/etc/patroni")
-                .build(),
-            new EnvVarBuilder()
-                .withName("PATRONI_ENV_PATH")
-                .withValue("/etc/env/patroni")
-                .build())
+        .add(
+            ClusterStatefulSetPath.PATRONI_CONFIG_PATH.envVar(),
+            ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.envVar(),
+            ClusterStatefulSetPath.PATRONI_ENV_PATH.envVar(Map.of(
+                ClusterStatefulSetEnvVars.PATRONI_ENV.name(),
+                ClusterStatefulSetEnvVars.PATRONI_ENV.value())))
         .addAll(hugePagesMounts.getDerivedEnvVars(context))
         .build();
   }

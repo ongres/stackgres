@@ -13,15 +13,15 @@ metadata:
   {{- end }}
 spec:
   {{- if eq .Values.cluster.postgres.version "latest" }}
-  {{- if .Values.cluster.postgres.flavor }}
-  {{- if eq .Values.cluster.postgres.flavor "babelfish" }}
-  postgresVersion: "13"
-  {{- else }}
+    {{- if .Values.cluster.postgres.flavor }}
+      {{- if eq .Values.cluster.postgres.flavor "babelfish" }}
   postgresVersion: "14"
-  {{- end }}
-  {{- else }}
-  postgresVersion: "14"
-  {{- end }}
+      {{- else }}
+  postgresVersion: "15"
+      {{- end }}
+    {{- else }}
+  postgresVersion: "15"
+    {{- end }}
   {{- else }}
   postgresVersion: "{{ index (.Values.cluster.postgres.version | splitList ".") 0 }}"
   {{- end }}

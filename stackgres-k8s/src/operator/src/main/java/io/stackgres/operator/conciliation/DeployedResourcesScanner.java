@@ -37,7 +37,7 @@ public abstract class DeployedResourcesScanner<T extends CustomResource<?, ?>> {
             config.getMetadata().getNamespace())
             .stream());
 
-    Stream<HasMetadata> anyNamespace = getAnyNamespaceResourceOperations()
+    Stream<HasMetadata> extra = getExtraResourceOperations(config)
         .keySet()
         .stream()
         .flatMap(clazz -> stackGresClient.findManagedIntents(
@@ -47,7 +47,7 @@ public abstract class DeployedResourcesScanner<T extends CustomResource<?, ?>> {
             config.getMetadata().getNamespace())
             .stream());
 
-    List<HasMetadata> deployedResources = Stream.concat(inNamespace, anyNamespace)
+    List<HasMetadata> deployedResources = Stream.concat(inNamespace, extra)
         .filter(resource -> resource.getMetadata().getOwnerReferences()
             .stream().anyMatch(ownerReference -> ownerReference.getKind()
                 .equals(kind)
@@ -62,10 +62,12 @@ public abstract class DeployedResourcesScanner<T extends CustomResource<?, ?>> {
 
   protected abstract StackGresKubernetesClient getClient();
 
-  protected abstract Map<Class<? extends HasMetadata>,
+  protected Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>> getAnyNamespaceResourceOperations();
+              ? extends Resource<? extends HasMetadata>>>> getExtraResourceOperations(T config) {
+    return Map.of();
+  }
 
   protected abstract Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,

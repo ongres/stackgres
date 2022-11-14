@@ -25,7 +25,8 @@ static_resources:
                   cluster: patroni_cluster
           http_filters:
           - name: envoy.filters.http.router
-            typed_config: { }
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
   - name: postgres_entry_listener
     per_connection_buffer_limit_bytes: 1048576 # 1 MiB
     address:

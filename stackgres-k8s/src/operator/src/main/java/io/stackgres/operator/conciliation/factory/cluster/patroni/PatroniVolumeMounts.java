@@ -53,7 +53,8 @@ public class PatroniVolumeMounts implements VolumeMountsProvider<ClusterContaine
         ClusterStatefulSetPath.BASE_SECRET_PATH.envVar(context),
         ClusterStatefulSetPath.PATRONI_ENV_PATH.envVar(context),
         ClusterStatefulSetPath.PATRONI_SECRET_ENV_PATH.envVar(context),
-        ClusterStatefulSetPath.PATRONI_CONFIG_PATH.envVar(context)
+        ClusterStatefulSetPath.PATRONI_CONFIG_PATH.envVar(context),
+        ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.envVar(context)
     );
   }
 }

@@ -52,7 +52,7 @@ describe('Delete StackGres Resources', () => {
                     }
                 },
                 postgres: {
-                    version: "latest"
+                    version: "14"
                 }
             }  
         });

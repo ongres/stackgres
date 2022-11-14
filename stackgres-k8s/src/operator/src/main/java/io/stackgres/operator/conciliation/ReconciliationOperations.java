@@ -91,7 +91,7 @@ public interface ReconciliationOperations {
               ? extends HasMetadata,
               ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>>
-      ANY_NAMESPACE_RESOURCE_OPERATIONS =
+      PROMETHEUS_RESOURCE_OPERATIONS =
       Map.<Class<? extends HasMetadata>, Function<KubernetesClient,
           MixedOperation<? extends HasMetadata,
               ? extends KubernetesResourceList<? extends HasMetadata>,

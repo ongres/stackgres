@@ -11,7 +11,6 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -147,21 +146,20 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
-            .withName(StackGresVolume.PGBOUNCER_AUTH_FILE.getName())
-            .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path())
-            .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath())
+            .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
+            .withMountPath(ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path())
             .build())
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PATRONI_CONFIG.getName())
-                .withMountPath("/etc/patroni")
+                .withMountPath(ClusterStatefulSetPath.PATRONI_CONFIG_PATH.path())
                 .build())
         .build();
   }
 
   @Override
   public Map<String, String> getComponentVersions(ClusterContainerContext context) {
-    return ImmutableMap.of(
+    return Map.of(
         StackGresContext.CLUSTER_CONTROLLER_VERSION_KEY,
         StackGresController.CLUSTER_CONTROLLER.getVersion());
   }

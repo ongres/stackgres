@@ -31,7 +31,7 @@ export E2E_BUILD_IMAGES="${E2E_BUILD_IMAGES:-true}"
 export E2E_SKIP_OPERATOR_LOAD="${E2E_SKIP_OPERATOR_LOAD:-false}"
 export E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
 
-export E2E_INCLUDE_ONLY_POSTGRES_VERSIONS="12.9 13.4 13.5 14.1"
+export E2E_INCLUDE_ONLY_POSTGRES_VERSIONS="12.9 12.12 13.4 13.5 14.3 14.4"
 
 export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-1.2.1}"
 
@@ -892,15 +892,17 @@ load_component_images_from() {
   local IMAGE_PATH="${2:-$COMPONENT_PUBLIC_REGISTRY_PATH}"
   local VERSION="${3:-$STACKGRES_VERSION}"
   local COMPONENTS
+  local INCLUDE_ONLY_POSTGRES_VERSIONS="$E2E_INCLUDE_ONLY_POSTGRES_VERSIONS"
   COMPONENTS="$(get_component_images "$VERSION")"
-  if [ -n "$E2E_INCLUDE_ONLY_POSTGRES_VERSIONS" ]
+  if [ -n "$INCLUDE_ONLY_POSTGRES_VERSIONS" ]
   then
+    INCLUDE_ONLY_POSTGRES_VERSIONS="$INCLUDE_ONLY_POSTGRES_VERSIONS $E2E_POSTGRES_VERSION $E2E_UI_POSTGRES_VERSION"
     COMPONENTS="$(
       printf '%s' "$COMPONENTS" \
-        | grep "/patroni\(-ext\)\?:v[^-]\+-..\($(printf '%s' "$E2E_INCLUDE_ONLY_POSTGRES_VERSIONS" \
+        | grep "/patroni\(-ext\)\?:v[^-]\+-..\($(printf '%s' "$INCLUDE_ONLY_POSTGRES_VERSIONS" \
           | sed 's/ /\\|/g' | sed 's/\./\\./g')\)-"
       printf '%s' "$COMPONENTS" \
-        | grep "/postgres-util:v\($(printf '%s' "$E2E_INCLUDE_ONLY_POSTGRES_VERSIONS" \
+        | grep "/postgres-util:v\($(printf '%s' "$INCLUDE_ONLY_POSTGRES_VERSIONS" \
           | sed 's/ /\\|/g' | sed 's/\./\\./g')\)-"
       printf '%s' "$COMPONENTS" \
         | grep -v "\(/postgres-util:\|/patroni\(-ext\)\?:\)")"
@@ -971,6 +973,7 @@ get_component_images() {
   COMPONENT_FLUENTBIT_VERSIONS="$(get_component_versions "$VERSION" fluentbit)"
   COMPONENT_FLUENTD_VERSIONS="$(get_component_versions "$VERSION" fluentd)"
   COMPONENT_KUBECTL_VERSIONS="$(get_component_versions "$VERSION" kubectl)"
+  COMPONENT_BABELFISH_COMPASS_VERSIONS="$(get_component_versions "$VERSION" babelfish-compass)"
   local VERSION
   local SUBVERSION
   for VERSION in $COMPONENT_PATRONI_VERSIONS
@@ -1017,6 +1020,10 @@ get_component_images() {
   for VERSION in $COMPONENT_KUBECTL_VERSIONS
   do
     echo "docker.io/ongres/kubectl:v$VERSION"
+  done
+  for VERSION in $COMPONENT_BABELFISH_COMPASS_VERSIONS
+  do
+    echo "docker.io/ongres/babelfish-compass:v$VERSION"
   done
 }
 

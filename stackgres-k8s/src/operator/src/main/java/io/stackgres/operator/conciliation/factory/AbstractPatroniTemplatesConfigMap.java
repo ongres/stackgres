@@ -42,7 +42,9 @@ public abstract class AbstractPatroniTemplatesConfigMap<T>
       ClusterStatefulSetPath.LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH,
       ClusterStatefulSetPath.LOCAL_BIN_RUN_RESTART_SH_PATH,
       ClusterStatefulSetPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH,
-      ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_SH_PATH);
+      ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_SH_PATH,
+      ClusterStatefulSetPath.LOCAL_BIN_START_FLUENTBIT_SH_PATH,
+      ClusterStatefulSetPath.LOCAL_BIN_START_POSTGRES_EXPORTER_SH_PATH);
 
   protected Map<String, String> getPatroniTemplates() {
     Map<String, String> data = new HashMap<>();

@@ -118,7 +118,8 @@ public class PostgresConfigValidator implements ClusterValidator {
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
-        if (BUGGY_PG_VERSIONS.keySet().contains(givenPgVersion)) {
+        if (getPostgresFlavorComponent(cluster) != StackGresComponent.BABELFISH
+            && BUGGY_PG_VERSIONS.keySet().contains(givenPgVersion)) {
           fail(errorForbiddenUpdateUri, "Do not use PostgreSQL " + givenPgVersion + ". "
               + BUGGY_PG_VERSIONS.get(givenPgVersion));
         }
