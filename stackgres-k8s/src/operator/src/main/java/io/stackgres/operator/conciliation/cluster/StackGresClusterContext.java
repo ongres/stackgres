@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -56,6 +57,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   Optional<StackGresBackupConfig> getBackupConfig();
 
   Optional<StackGresObjectStorage> getObjectStorageConfig();
+
+  Optional<StackGresCluster> getReplicateCluster();
 
   Optional<StackGresObjectStorage> getReplicateObjectStorageConfig();
 
@@ -175,11 +178,19 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   }
 
   default Optional<String> getReplicatePath() {
-    return Optional.of(getCluster())
+    return getReplicateCluster()
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getReplicateFrom)
-        .map(StackGresClusterReplicateFrom::getStorage)
-        .map(StackGresClusterReplicateFromStorage::getPath);
+        .map(StackGresClusterSpec::getConfiguration)
+        .map(StackGresClusterConfiguration::getBackups)
+        .stream()
+        .flatMap(List::stream)
+        .findFirst()
+        .map(StackGresClusterBackupConfiguration::getPath)
+        .or(() -> Optional.of(getCluster())
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getReplicateFrom)
+            .map(StackGresClusterReplicateFrom::getStorage)
+            .map(StackGresClusterReplicateFromStorage::getPath));
   }
 
   default Optional<BackupStorage> getReplicateStorage() {

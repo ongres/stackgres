@@ -1,4 +1,4 @@
-{{ if .Values.configurations.create }}
+{{ if and .Values.configurations.create .Values.configurations.poolingconfig.create }}
 apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
 metadata:

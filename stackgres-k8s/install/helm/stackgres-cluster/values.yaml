@@ -223,12 +223,14 @@ instanceProfiles:
 configurations:
   create: true
   postgresconfig:
+    create: true
     postgresql.conf:
       shared_buffers: '256MB'
       random_page_cost: '1.5'
       password_encryption: 'scram-sha-256'
       checkpoint_timeout: '30'
   poolingconfig:
+    create: true
     pgBouncer:
       pgbouncer.ini:
         pool_mode: transaction
