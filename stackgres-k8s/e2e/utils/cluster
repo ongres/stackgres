@@ -144,7 +144,7 @@ create_or_replace_cluster_for_version_only() {
   elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_2_0_RC1_AS_NUMBER" ]
   then
     TRANSFORMER="transform_to_1_1"
-  elif [ "$VERSION_AS_NUMBER" -le "$VERSION_1_3_0_AS_NUMBER" ]
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_3_0_AS_NUMBER" ]
   then
     TRANSFORMER="transform_to_1_2"
   fi
