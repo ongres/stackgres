@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.fixture.Fixtures;
 import org.junit.jupiter.api.BeforeEach;

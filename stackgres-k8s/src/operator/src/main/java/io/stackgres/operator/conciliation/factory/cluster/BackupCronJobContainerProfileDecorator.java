@@ -11,10 +11,10 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobSpec;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpec;
+import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpec;
 import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;

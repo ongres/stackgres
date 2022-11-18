@@ -9,7 +9,7 @@ prometheus_service() {
 }
 
 install_prometheus_operator() {
-  install_prometheus_operator_for_version 18.0.6 "$@"
+  install_prometheus_operator_for_version 41.6.1 "$@"
 }
 
 install_prometheus_operator_for_version() {

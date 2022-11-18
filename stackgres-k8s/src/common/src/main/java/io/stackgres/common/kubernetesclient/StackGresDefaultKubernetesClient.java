@@ -45,8 +45,8 @@ import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceList;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.Config;
@@ -588,7 +588,7 @@ public class StackGresDefaultKubernetesClient extends DefaultKubernetesClient
           .put(Secret.class, KubernetesClient::secrets)
           .put(ConfigMap.class, KubernetesClient::configMaps)
           .put(Endpoints.class, KubernetesClient::endpoints)
-          .put(CronJob.class, client -> client.batch().v1beta1().cronjobs())
+          .put(CronJob.class, client -> client.batch().v1().cronjobs())
           .put(Pod.class, KubernetesClient::pods)
           .put(Job.class, client -> client.batch().v1().jobs())
           .put(PodMonitor.class, client -> client
