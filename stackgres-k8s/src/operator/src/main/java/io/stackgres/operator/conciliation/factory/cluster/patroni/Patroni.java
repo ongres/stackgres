@@ -55,7 +55,7 @@ import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_4)
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_3)
 @RunningContainer(StackGresContainer.PATRONI)
 public class Patroni implements ContainerFactory<ClusterContainerContext> {
 
