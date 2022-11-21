@@ -10,9 +10,7 @@ find "$(dirname "$0")/../stackgres-k8s/src/common/src/main/resources/crds" -name
       cp "$FILE" "$(dirname "$0")/data/crds"
     done
 
-STACKGRES_VERSION="${STACKGRES_VERSION:-$(
-  grep '<artifactId>stackgres-parent</artifactId>' "$(dirname "$0")/../stackgres-k8s/src/pom.xml" -A 2 -B 2 \
-    | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)}"
+STACKGRES_VERSION="${STACKGRES_VERSION:-$(sh stackgres-k8s/ci/build/version.sh)}"
 echo "current_version: \"$STACKGRES_VERSION\"" > "$(dirname "$0")/data/versions.yml"
 
 if [ ! -f "$(dirname "$0")/../stackgres-k8s/src/api-web/target/swagger-merged.yaml" ]
