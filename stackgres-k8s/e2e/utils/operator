@@ -536,10 +536,13 @@ install_operator_only() {
 
 can_install_operator_version() {
   local VERSION="${1:-$STACKGRES_PREVIOUS_VERSION}"
-  local VERSION_AS_NUMBER VERSION_0_9_5 VERSION_1_1_0_RC1
+  local VERSION_AS_NUMBER VERSION_0_9_5 VERSION_1_1_0_RC1 VERSION_1_2_0_RC1 VERSION_1_3_0_RC1
   VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
   VERSION_0_9_5="$(get_version_as_number 0.9.5)"
   VERSION_1_1_0_RC1="$(get_version_as_number 1.1.0-RC1)"
+  VERSION_1_2_0_RC1="$(get_version_as_number 1.2.0-RC1)"
+  VERSION_1_3_0_RC1="$(get_version_as_number 1.3.0-RC1)"
+  VERSION_1_4_0_RC1="$(get_version_as_number 1.4.0-RC1)"
   if [ "$VERSION_AS_NUMBER" -le "$VERSION_0_9_5" ]
   then
     if {
@@ -558,6 +561,30 @@ can_install_operator_version() {
         || [ "$KUBERNETES_VERSION_NUMBER" -lt 116 ]
       } \
       || [ "$(uname -m)" != x86_64 ]
+    then
+      return 1
+    fi
+  fi
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_2_0_RC1" ]
+  then
+    if [ "$KUBERNETES_VERSION_NUMBER" -gt 123 ] \
+      || [ "$KUBERNETES_VERSION_NUMBER" -lt 116 ]
+    then
+      return 1
+    fi
+  fi
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_3_0_RC1" ]
+  then
+    if [ "$KUBERNETES_VERSION_NUMBER" -gt 123 ] \
+      || [ "$KUBERNETES_VERSION_NUMBER" -lt 118 ]
+    then
+      return 1
+    fi
+  fi
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_4_0_RC1" ]
+  then
+    if [ "$KUBERNETES_VERSION_NUMBER" -gt 124 ] \
+      || [ "$KUBERNETES_VERSION_NUMBER" -lt 118 ]
     then
       return 1
     fi

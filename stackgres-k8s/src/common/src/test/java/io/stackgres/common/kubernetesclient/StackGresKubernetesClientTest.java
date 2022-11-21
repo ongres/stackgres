@@ -14,7 +14,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -72,7 +72,7 @@ class StackGresKubernetesClientTest {
     );
 
     var expectedUrl = new URL(stackGresKubernetesClient.getMasterUrl(),
-        "/apis/batch/v1beta1/namespaces/"
+        "/apis/batch/v1/namespaces/"
             + randomNamespace + "/cronjobs/" + randomName + getUrlOptions());
     assertEquals(expectedUrl, actual);
 

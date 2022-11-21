@@ -14,7 +14,7 @@ import java.util.Random;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodSpec;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.common.StackGresProperty;

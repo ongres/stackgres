@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
