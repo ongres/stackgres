@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,6 +23,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -67,6 +69,8 @@ public class ClusterRequiredResourcesGenerator
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(ClusterRequiredResourcesGenerator.class);
 
+  private final Supplier<VersionInfo> kubernetesVersionSupplier;
+
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
   private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
@@ -93,6 +97,7 @@ public class ClusterRequiredResourcesGenerator
 
   @Inject
   public ClusterRequiredResourcesGenerator(
+      Supplier<VersionInfo> kubernetesVersionSupplier,
       CustomResourceFinder<StackGresCluster> clusterFinder,
       CustomResourceFinder<StackGresBackupConfig> backupConfigFinder,
       CustomResourceFinder<StackGresObjectStorage> objectStorageFinder,
@@ -105,6 +110,7 @@ public class ClusterRequiredResourcesGenerator
       CustomResourceScanner<StackGresBackup> backupScanner,
       OperatorPropertyContext operatorContext,
       RequiredResourceDecorator<StackGresClusterContext> decorator) {
+    this.kubernetesVersionSupplier = kubernetesVersionSupplier;
     this.clusterFinder = clusterFinder;
     this.backupConfigFinder = backupConfigFinder;
     this.objectStorageFinder = objectStorageFinder;
@@ -136,6 +142,8 @@ public class ClusterRequiredResourcesGenerator
     final ObjectMeta metadata = config.getMetadata();
     final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
+
+    VersionInfo kubernetesVersion = kubernetesVersionSupplier.get();
 
     final StackGresClusterSpec spec = config.getSpec();
     final StackGresClusterConfiguration clusterConfiguration = spec.getConfiguration();
@@ -204,6 +212,7 @@ public class ClusterRequiredResourcesGenerator
                 + sgObjectStorage + " to replicate from")));
 
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
+        .kubernetesVersion(kubernetesVersion)
         .source(config)
         .postgresConfig(pgConfig)
         .profile(profile)

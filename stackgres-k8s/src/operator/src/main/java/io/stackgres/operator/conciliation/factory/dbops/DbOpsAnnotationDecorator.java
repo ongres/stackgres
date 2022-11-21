@@ -213,13 +213,60 @@ public class DbOpsAnnotationDecorator extends AnnotationDecorator<StackGresDbOps
     decorateResource(cronJob, getAllResourcesAnnotations(context));
   }
 
+  protected void decorateCronJobV1Beta1(@NotNull StackGresDbOpsContext context,
+      @NotNull HasMetadata resource) {
+    io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob cronJob =
+        (io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob) resource;
+
+    Map<String, String> jobTemplateAnnotations = Optional.ofNullable(cronJob.getSpec())
+        .map(io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobSpec::getJobTemplate)
+        .map(io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpec::getMetadata)
+        .map(ObjectMeta::getAnnotations)
+        .orElse(new HashMap<>());
+    jobTemplateAnnotations.putAll(getAllResourcesAnnotations(context));
+
+    Optional.ofNullable(cronJob.getSpec())
+        .map(io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobSpec::getJobTemplate)
+        .ifPresent(template -> {
+          final ObjectMeta metadata = Optional
+              .ofNullable(template.getMetadata())
+              .orElse(new ObjectMeta());
+          metadata.setAnnotations(jobTemplateAnnotations);
+          template.setMetadata(metadata);
+
+          Map<String, String> cronJobPodTemplateAnnotations = Optional
+              .ofNullable(cronJob.getSpec())
+              .map(io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobSpec::getJobTemplate)
+              .map(io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpec::getSpec)
+              .map(JobSpec::getTemplate)
+              .map(PodTemplateSpec::getMetadata)
+              .map(ObjectMeta::getAnnotations)
+              .orElse(new HashMap<>());
+
+          cronJobPodTemplateAnnotations.putAll(getPodAnnotations(context));
+
+          Optional.ofNullable(template.getSpec())
+              .map(JobSpec::getTemplate)
+              .ifPresent(podTemplate -> {
+                final ObjectMeta podTemplateMetadata = Optional
+                    .ofNullable(podTemplate.getMetadata())
+                    .orElse(new ObjectMeta());
+                podTemplateMetadata.setAnnotations(cronJobPodTemplateAnnotations);
+                podTemplate.setMetadata(podTemplateMetadata);
+              });
+        });
+    decorateResource(cronJob, getAllResourcesAnnotations(context));
+  }
+
   @Override
-  protected @NotNull Map<String, BiConsumer<StackGresDbOpsContext, HasMetadata>>
+  protected @NotNull Map<Class<?>, BiConsumer<StackGresDbOpsContext, HasMetadata>>
       getCustomDecorators() {
-    return ImmutableMap.<String, BiConsumer<StackGresDbOpsContext, HasMetadata>>builder()
+    return ImmutableMap.<Class<?>, BiConsumer<StackGresDbOpsContext, HasMetadata>>builder()
         .putAll(super.getCustomDecorators())
-        .put("Job", this::decorateJob)
-        .put("CronJob", this::decorateCronJob)
+        .put(Job.class, this::decorateJob)
+        .put(CronJob.class, this::decorateCronJob)
+        .put(io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob.class,
+            this::decorateCronJobV1Beta1)
         .build();
   }
 }

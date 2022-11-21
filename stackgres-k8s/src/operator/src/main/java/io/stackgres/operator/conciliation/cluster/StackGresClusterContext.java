@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -41,6 +42,8 @@ import org.jetbrains.annotations.NotNull;
 @Value.Immutable
 public interface StackGresClusterContext extends GenerationContext<StackGresCluster>,
     ClusterContext {
+
+  Optional<VersionInfo> getKubernetesVersion();
 
   @Override
   @Value.Derived
