@@ -26,9 +26,9 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelectorBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.TolerationBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
-import io.fabric8.kubernetes.api.model.batch.v1.CronJobBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpecBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
@@ -62,8 +62,8 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 @OperatorVersionBinder
-@KubernetesVersionBinder(from = "1.21")
-public class BackupCronJob
+@KubernetesVersionBinder(to = "1.20")
+public class BackupCronJobV1Beta1
     implements ResourceGenerator<StackGresClusterContext> {
 
   private static final Logger BACKUP_LOGGER = LoggerFactory.getLogger("io.stackgres.backup");
@@ -77,7 +77,7 @@ public class BackupCronJob
   private final BackupTemplatesVolumeFactory backupTemplatesVolumeFactory;
 
   @Inject
-  public BackupCronJob(
+  public BackupCronJobV1Beta1(
       ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> clusterEnvVarFactoryDiscoverer,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityFactory,

@@ -13,7 +13,9 @@ import java.util.function.BiConsumer;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import org.jetbrains.annotations.NotNull;
@@ -26,11 +28,11 @@ public abstract class AnnotationDecorator<T> implements Decorator<T> {
 
   protected abstract @NotNull Map<String, String> getPodAnnotations(@NotNull T context);
 
-  protected @NotNull Map<String, BiConsumer<T, HasMetadata>> getCustomDecorators() {
+  protected @NotNull Map<Class<?>, BiConsumer<T, HasMetadata>> getCustomDecorators() {
     return Map.of(
-        "Service", this::decorateService,
-        "Pod", this::decoratePod,
-        "StatefulSet", this::decorateSts);
+        Service.class, this::decorateService,
+        Pod.class, this::decoratePod,
+        StatefulSet.class, this::decorateSts);
   }
 
   protected void decorateService(@NotNull T context, @NotNull HasMetadata service) {
@@ -93,8 +95,7 @@ public abstract class AnnotationDecorator<T> implements Decorator<T> {
     var decoratorMap = getCustomDecorators();
 
     resources.forEach(resource -> {
-      String kind = resource.getKind();
-      var decorator = decoratorMap.getOrDefault(kind, this::defaultDecorator);
+      var decorator = decoratorMap.getOrDefault(resource.getClass(), this::defaultDecorator);
       decorator.accept(context, resource);
     });
   }
