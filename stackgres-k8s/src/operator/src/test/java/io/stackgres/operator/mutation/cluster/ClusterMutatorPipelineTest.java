@@ -9,7 +9,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth8.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,8 +23,6 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
-import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
@@ -69,35 +66,6 @@ class ClusterMutatorPipelineTest {
     StackGresBackupConfig backupConfig = Fixtures.backupConfig().loadDefault().get();
     Mockito.when(backupConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backupConfig));
-  }
-
-  @Test
-  void givenBackupConfig_ObjectStorageIsCreated() {
-    String backupName = StringUtils.getRandomClusterName();
-    final StackGresCluster cluster = review.getRequest().getObject();
-    cluster.getSpec().getConfiguration().setBackupConfig(backupName);
-    review.getRequest().getObject().getMetadata().setAnnotations(new HashMap<>());
-    review.getRequest().getObject().getMetadata().getAnnotations()
-        .put(StackGresContext.VERSION_KEY, StackGresVersion.V_1_2.getVersion());
-
-    StackGresCluster mutateCluster = mutate(review);
-
-    String namespace = cluster.getMetadata().getNamespace();
-    StackGresClusterConfiguration configuration = mutateCluster.getSpec().getConfiguration();
-    StackGresClusterBackupConfiguration backupConfiguration = configuration.getBackups().get(0);
-    assertThat(configuration).isNotNull();
-    assertThat(configuration.getBackupConfig()).isNull();
-    assertThat(configuration.getBackupPath()).isNull();
-    assertThat(backupConfiguration).isNotNull();
-    assertThat(backupConfiguration.getObjectStorage()).isEqualTo(backupName);
-    assertThat(backupConfiguration.getPath()).isNotEmpty();
-
-    Optional<StackGresObjectStorage> objectStorageCreated = objectStorageFinder
-        .findByNameAndNamespace(backupName, namespace);
-    assertThat(objectStorageCreated).isPresent();
-    StackGresObjectStorage objStorage = objectStorageCreated.orElseThrow();
-    assertThat(objStorage.getMetadata().getName()).isEqualTo(backupName);
-    assertThat(objStorage.getMetadata().getNamespace()).isEqualTo(namespace);
   }
 
   @Test

@@ -27,13 +27,14 @@ class StackGresVersionTest {
 
   @Test
   void givenStackGresValidVersion_shouldNotFail() {
+    setStackGresVersion(StackGresVersion.LATEST.getVersion());
 
     StackGresVersion.getStackGresVersion(script);
   }
 
   @Test
   void givenAValidVersion_shouldReturnTheCorrectStackGresVersion() {
-    setStackGresScriptVersion(StackGresVersion.LATEST.getVersion() + ".0");
+    setStackGresVersion(StackGresVersion.LATEST.getVersion() + ".0");
 
     var version = StackGresVersion.getStackGresVersion(script);
 
@@ -42,7 +43,7 @@ class StackGresVersionTest {
 
   @Test
   void givenASnapshotVersion_shouldReturnTheCorrectStackGresVersion() {
-    setStackGresScriptVersion(StackGresVersion.LATEST.getVersion() + ".0-SNAPSHOT");
+    setStackGresVersion(StackGresVersion.LATEST.getVersion() + ".0-SNAPSHOT");
 
     var version = StackGresVersion.getStackGresVersion(script);
 
@@ -51,7 +52,7 @@ class StackGresVersionTest {
 
   @Test
   void givenAInvalidVersion_shouldThrowAnException() {
-    setStackGresScriptVersion("0.1-SNAPSHOT");
+    setStackGresVersion("0.1-SNAPSHOT");
 
     IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
         () -> StackGresVersion.getStackGresVersion(script));
@@ -61,12 +62,12 @@ class StackGresVersionTest {
 
   @Test
   void givenACurrentVersion_shouldNotFail() {
-    setStackGresScriptVersion(StackGresProperty.OPERATOR_VERSION.getString());
+    setStackGresVersion(StackGresProperty.OPERATOR_VERSION.getString());
 
     StackGresVersion.getStackGresVersion(script);
   }
 
-  private void setStackGresScriptVersion(String configVersion) {
+  private void setStackGresVersion(String configVersion) {
     script.getMetadata().getAnnotations().put(StackGresContext.VERSION_KEY, configVersion);
   }
 }

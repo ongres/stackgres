@@ -22,6 +22,7 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.operator.common.StackGresClusterReview;
@@ -62,7 +63,8 @@ class DefaultBackupPathMutatorTest {
   @Test
   void clusterWithoutBackupPath_shouldSetIt() {
     final StackGresCluster cluster = review.getRequest().getObject();
-    cluster.getMetadata().setAnnotations(Map.of(StackGresContext.VERSION_KEY, "1.2"));
+    cluster.getMetadata().setAnnotations(
+        Map.of(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion()));
     cluster.getSpec().getConfiguration().setBackupPath(null);
     var backupConfiguration = new StackGresClusterBackupConfiguration();
     backupConfiguration.setObjectStorage("backupconf");

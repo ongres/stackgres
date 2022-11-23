@@ -12,7 +12,6 @@ import javax.enterprise.context.ApplicationScoped;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
@@ -21,14 +20,9 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 @ApplicationScoped
 public class DefaultProfileMutator extends AbstractDefaultResourceMutator<StackGresProfile> {
 
-  private static final long VERSION_1_2 = StackGresVersion.V_1_2.getVersionAsNumber();
-
   @Override
   public List<JsonPatchOperation> mutate(StackGresDistributedLogsReview review) {
-    final long version = StackGresVersion.getStackGresVersionAsNumber(
-        review.getRequest().getObject());
-    if (review.getRequest().getOperation() == Operation.CREATE
-        || (version <= VERSION_1_2 && review.getRequest().getOperation() == Operation.UPDATE)) {
+    if (review.getRequest().getOperation() == Operation.CREATE) {
       ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
       operations.addAll(addDefaultResource(review));
       return operations.build();

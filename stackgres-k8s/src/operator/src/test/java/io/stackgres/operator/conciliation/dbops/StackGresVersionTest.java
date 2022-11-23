@@ -27,12 +27,14 @@ class StackGresVersionTest {
 
   @Test
   void givenStackGresValidVersion_shouldNotFail() {
+    setStackGresVersion(StackGresVersion.LATEST.getVersion());
+
     StackGresVersion.getStackGresVersion(dbOps);
   }
 
   @Test
   void givenAValidVersion_shouldReturnTheCorrectStackGresVersion() {
-    setStackGresClusterVersion(StackGresVersion.LATEST.getVersion() + ".0");
+    setStackGresVersion(StackGresVersion.LATEST.getVersion() + ".0");
 
     var version = StackGresVersion.getStackGresVersion(dbOps);
 
@@ -41,7 +43,7 @@ class StackGresVersionTest {
 
   @Test
   void givenASnapshotVersion_shouldReturnTheCorrectStackGresVersion() {
-    setStackGresClusterVersion(StackGresVersion.LATEST.getVersion() + ".0-SNAPSHOT");
+    setStackGresVersion(StackGresVersion.LATEST.getVersion() + ".0-SNAPSHOT");
 
     var version = StackGresVersion.getStackGresVersion(dbOps);
 
@@ -50,7 +52,7 @@ class StackGresVersionTest {
 
   @Test
   void givenAInvalidVersion_shouldThrowAnException() {
-    setStackGresClusterVersion("0.1-SNAPSHOT");
+    setStackGresVersion("0.1-SNAPSHOT");
 
     IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
         () -> StackGresVersion.getStackGresVersion(dbOps));
@@ -60,12 +62,12 @@ class StackGresVersionTest {
 
   @Test
   void givenACurrentVersion_shouldNotFail() {
-    setStackGresClusterVersion(StackGresProperty.OPERATOR_VERSION.getString());
+    setStackGresVersion(StackGresProperty.OPERATOR_VERSION.getString());
 
     StackGresVersion.getStackGresVersion(dbOps);
   }
 
-  private void setStackGresClusterVersion(String configVersion) {
+  private void setStackGresVersion(String configVersion) {
     dbOps.getMetadata().getAnnotations().put(StackGresContext.VERSION_KEY, configVersion);
   }
 }

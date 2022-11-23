@@ -12,7 +12,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,17 +20,12 @@ import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.github.fge.jsonpatch.RemoveOperation;
 import com.github.fge.jsonpatch.ReplaceOperation;
 import io.stackgres.common.ManagedSqlUtil;
-import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
-import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryScriptStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlStatus;
-import io.stackgres.common.crd.sgcluster.StackGresClusterScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -59,7 +53,7 @@ class ScriptsConfigMutatorTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    mutator = new ScriptsConfigMutator(scriptFinder, scriptScheduler);
+    mutator = new ScriptsConfigMutator();
   }
 
   @Test
@@ -318,65 +312,6 @@ class ScriptsConfigMutatorTest {
 
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(scriptScheduler, times(0)).create(any());
-    verify(scriptScheduler, times(0)).update(any());
-  }
-
-  @Test
-  void updateClusterFromInitialScripts_shouldRemoveInitialScriptsAndAddManagedSql()
-      throws JsonPatchException {
-    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
-        .loadUpdateWithManagedSql().get();
-
-    review.getRequest().getObject().getMetadata().setAnnotations(new HashMap<>());
-    review.getRequest().getObject().getMetadata().getAnnotations().put(
-        StackGresContext.VERSION_KEY, StackGresVersion.V_1_2.getVersion());
-    review.getRequest().getObject().getSpec().getManagedSql().getScripts().get(1).setSgScript(
-        ManagedSqlUtil.initialDataName(review.getRequest().getObject()));
-    review.getRequest().getObject().getSpec().getManagedSql().getScripts().remove(3);
-    review.getRequest().getObject().getSpec().getManagedSql().getScripts().remove(2);
-    review.getRequest().getObject().getStatus().getManagedSql().getScripts().remove(3);
-    review.getRequest().getObject().getStatus().getManagedSql().getScripts().remove(2);
-
-    final StackGresCluster expected = JsonUtil.copy(review.getRequest().getObject());
-
-    review.getRequest().getObject().getSpec().setManagedSql(null);
-    review.getRequest().getObject().getStatus().setManagedSql(null);
-    review.getRequest().getObject().getSpec().getInitData().setScripts(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getInitData().getScripts()
-        .add(new StackGresClusterScriptEntry());
-    review.getRequest().getObject().getSpec().getInitData().getScripts().get(0)
-        .setScript("CREATE DATABASE test;");
-
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    expected.getStatus().getManagedSql().getScripts().get(1).setScripts(new ArrayList<>());
-    expected.getStatus().getManagedSql().getScripts().get(1).getScripts()
-        .add(new StackGresClusterManagedScriptEntryScriptStatus());
-    expected.getStatus().getManagedSql().getScripts().get(1).getScripts().get(0)
-        .setId(0);
-    expected.getStatus().getManagedSql().getScripts().get(1).getScripts().get(0)
-        .setVersion(0);
-    expected.getStatus().getManagedSql().getScripts().get(1).setStartedAt(
-        review.getRequest().getObject()
-        .getStatus().getManagedSql().getScripts().get(1).getStartedAt());
-    expected.getStatus().getManagedSql().getScripts().get(1).setCompletedAt(
-        review.getRequest().getObject()
-        .getStatus().getManagedSql().getScripts().get(1).getCompletedAt());
-    JsonNode expectedCluster = JsonUtil.toJson(expected);
-
-    assertEquals(3, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof RemoveOperation).count());
-    assertEquals(2, operations.stream().filter(o -> o instanceof AddOperation).count());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualCluster = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedCluster, actualCluster);
-
-    verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
   }
 

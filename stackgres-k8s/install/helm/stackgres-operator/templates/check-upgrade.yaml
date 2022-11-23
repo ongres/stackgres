@@ -8,7 +8,7 @@
     {{ if $deployment.metadata.labels.version }}
       {{ $version := $deployment.metadata.labels.version }}
       {{ if not .Values.forceUpgradeFromUnsupportedVersion }}
-        {{ if or (not (regexMatch "^(1\\.2\\.|1\\.3\\.|1\\.4\\.)" $version)) (and (not (eq $version $chart.Version)) (regexMatch "(-alpha[0-9]|-beta[0-9])" $version)) }}
+        {{ if or (not (regexMatch "^(1\\.3\\.|1\\.4|1\\.5\\.)" $version)) (and (not (eq $version $chart.Version)) (regexMatch "(-alpha[0-9]|-beta[0-9])" $version)) }}
           {{ fail (print "Upgrading from version " $version " version is not supported. You may force upgrading from an unsupported version setting the parameter \"forceUpgradeFromUnsupportedVersion\" to \"true\". If you do so do it at your own risk. It has not been tested and some functionality may break. We recommend to perform security upgrades all your SGCluster as soon as possible after upgrading from an unsupported version of the operator") }}
         {{ end }}
       {{ end }}
@@ -22,10 +22,8 @@
       {{ if $cluster.metadata.annotations }}
         {{ if (index $cluster.metadata.annotations "stackgres.io/operatorVersion") }}
           {{ $version := (index $cluster.metadata.annotations "stackgres.io/operatorVersion") }}
-          {{ if not $.Values.forceUpgradeFromUnsupportedVersion }}
-            {{ if (not (regexMatch "^(1\\.2\\.|1\\.3\\.|1\\.4\\.)" $version)) }}
-              {{ fail (print "Can not upgrade due to some SGCluster still at version " $version ". You have to run a SGDbOps of type securityUpgrade on those SGClusters first.") }}
-            {{ end }}
+          {{ if (not (regexMatch "^(1\\.3\\.|1\\.4\\.|1\\.5\\.)" $version)) }}
+            {{ fail (print "Can not upgrade due to some SGCluster still at version " $version ". You have to run a SGDbOps of type securityUpgrade on those SGClusters first.") }}
           {{ end }}
         {{ end }}
       {{ end }}
