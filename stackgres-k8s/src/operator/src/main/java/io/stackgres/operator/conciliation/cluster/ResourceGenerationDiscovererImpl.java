@@ -34,9 +34,13 @@ public class ResourceGenerationDiscovererImpl
   public List<ResourceGenerator<StackGresClusterContext>> getResourceGenerators(
       StackGresClusterContext context) {
     Integer major = context.getKubernetesVersion()
-        .map(VersionInfo::getMajor).map(Integer::parseInt).orElse(null);
+        .map(VersionInfo::getMajor)
+        .map(n -> n.replaceAll("[^0-9]", ""))
+        .map(Integer::parseInt).orElse(null);
     Integer minor = context.getKubernetesVersion()
-        .map(VersionInfo::getMinor).map(Integer::parseInt).orElse(null);
+        .map(VersionInfo::getMinor)
+        .map(n -> n.replaceAll("[^0-9]", ""))
+        .map(Integer::parseInt).orElse(null);
     return resourceHub.get(context.getVersion()).stream()
         .filter(generator -> applyKubernetesVersionBinder(major, minor, generator))
         .toList();
