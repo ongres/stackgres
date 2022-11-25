@@ -368,7 +368,7 @@
                         <br/>
                         <div class="warning">
                             <strong>That is: </strong>
-                            {{ backups[0].cronSchedule | prettyCRON(false) }}
+                            {{ tzCrontab(backups[0].cronSchedule) | prettyCRON(false) }}
                         </div>                    
 
                         <hr/>
