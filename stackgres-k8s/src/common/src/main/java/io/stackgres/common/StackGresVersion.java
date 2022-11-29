@@ -20,12 +20,12 @@ import org.jooq.lambda.Seq;
 public enum StackGresVersion {
 
   UNDEFINED,
-  V_1_2("1.2"),
   V_1_3("1.3"),
-  V_1_4("1.4");
+  V_1_4("1.4"),
+  V_1_5("1.5");
 
   public static final StackGresVersion OLDEST =
-      Seq.of(values()).findFirst().get();
+      Seq.of(values()).skip(1).findFirst().get();
 
   public static final StackGresVersion LATEST =
       Seq.of(values()).findLast().get();

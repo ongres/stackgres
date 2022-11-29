@@ -1,0 +1,128 @@
+configurations:
+  postgresconfig:
+    postgresql.conf:
+      shared_buffers: '32MB'
+  backupconfig:
+    create: false
+cluster:
+  postgres:
+    version: "13.5"
+  postgresServices:
+    primary:
+      customPorts:
+      - name: pgadmin
+        port: 9000
+        targetPort: pgadmin
+      - name: pgrest
+        port: 3000
+        targetPort: pgrest
+    replicas:
+      customPorts:
+      - name: pgadmin
+        port: 9000
+        targetPort: pgadmin
+      - name: pgrest
+        port: 3000
+        targetPort: pgrest
+  pods:
+    persistentVolume:
+      size: 128Mi
+    managementPolicy: Parallel
+    customVolumes:
+    - name: pgadmin
+      emptyDir: {}
+    - name: pgadmin-config
+      configMap:
+        name: pgadmin
+    customContainers:
+    - name: pgadmin
+      image: dpage/pgadmin4:6.14
+      imagePullPolicy: IfNotPresent
+      env:
+      - name: PGADMIN_DEFAULT_EMAIL
+        value: admin@stackgres.io
+      - name: PGADMIN_DEFAULT_PASSWORD
+        value: st4ckgr3s
+      - name: PGADMIN_LISTEN_PORT
+        value: "9000"
+      - name: PGADMIN_DISABLE_POSTFIX
+        value: "true"
+      ports:
+      - containerPort: 9000
+        name: pgadmin
+        protocol: TCP
+      volumeMounts:
+      - name: custom-pgadmin-config
+        mountPath: /pgadmin4/config_distro.py
+        subPath: config_distro.py
+      - name: custom-pgadmin
+        mountPath: /var/log/pgadmin
+        subPath: var/log/pgadmin
+      - name: custom-pgadmin
+        mountPath: /var/lib/pgadmin
+        subPath: var/lib/pgadmin
+    - name: postgrest
+      image: postgrest/postgrest:v10.0.0
+      imagePullPolicy: IfNotPresent
+      env:
+      - name: PGRST_DB_URI
+        value: postgresql:///postgres?host=/var/run/postgresql
+      - name: PGRST_DB_ANON_ROLE
+        value: postgres
+      - name: PGRST_DB_SCHEMAS
+        value: pg_catalog
+      ports:
+      - containerPort: 3000
+        name: pgrest
+        protocol: TCP
+      volumeMounts:
+      - name: socket
+        mountPath: /var/run/postgresql
+      - name: user
+        mountPath: /etc/passwd
+        subPath: etc/passwd
+        readOnly: true
+      - name: user
+        mountPath: /etc/group
+        subPath: etc/group
+        readOnly: true
+      - name: user
+        mountPath: /etc/shadow
+        subPath: etc/shadow
+        readOnly: true
+      - name: user
+        mountPath: /etc/gshadow
+        subPath: etc/gshadow
+        readOnly: true
+    customInitContainers:
+    - name: pg-controldata
+      image: postgres:13.5
+      command:
+      - sh
+      - -ecx
+      - |
+        pg_controldata /stackgres/data || true
+      volumeMounts:
+      - name: custom-containers-data
+        mountPath: /stackgres
+      - name: user
+        mountPath: /etc/passwd
+        subPath: etc/passwd
+        readOnly: true
+      - name: user
+        mountPath: /etc/group
+        subPath: etc/group
+        readOnly: true
+      - name: user
+        mountPath: /etc/shadow
+        subPath: etc/shadow
+        readOnly: true
+      - name: user
+        mountPath: /etc/gshadow
+        subPath: etc/gshadow
+        readOnly: true
+  configurations:
+    sgBackupConfig: null
+  prometheusAutobind: false
+nonProductionOptions:
+  disableClusterPodAntiAffinity: true
