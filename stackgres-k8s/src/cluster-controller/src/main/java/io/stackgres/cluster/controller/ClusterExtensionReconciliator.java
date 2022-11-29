@@ -5,10 +5,6 @@
 
 package io.stackgres.cluster.controller;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
@@ -17,7 +13,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.extension.ExtensionEventEmitter;
@@ -51,17 +46,6 @@ public class ClusterExtensionReconciliator
             .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES),
         parameters.extensionEventEmitter);
     this.eventController = parameters.eventController;
-  }
-
-  public ClusterExtensionReconciliator() {
-    super(null, null, true, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.eventController = null;
-  }
-
-  public static ClusterExtensionReconciliator create(Consumer<Parameters> consumer) {
-    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
-    return new ClusterExtensionReconciliator(parameters.findAny().get());
   }
 
   @Override

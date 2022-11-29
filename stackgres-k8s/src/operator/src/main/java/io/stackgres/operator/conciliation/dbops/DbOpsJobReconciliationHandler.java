@@ -10,7 +10,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.DbOpsUtil;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -33,11 +32,6 @@ public class DbOpsJobReconciliationHandler
       ResourceScanner<Pod> podScanner,
       ResourceWriter<Pod> podWriter) {
     super(labelFactory, jobFinder, jobWriter, podScanner, podWriter);
-  }
-
-  public DbOpsJobReconciliationHandler() {
-    super(null, null, null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

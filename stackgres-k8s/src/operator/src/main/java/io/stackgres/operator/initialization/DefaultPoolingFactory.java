@@ -8,8 +8,12 @@ package io.stackgres.operator.initialization;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
@@ -21,6 +25,17 @@ import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.param
 @ApplicationScoped
 public class DefaultPoolingFactory
     extends AbstractCustomResourceFactory<StackGresPoolingConfig> {
+
+  @Inject
+  public DefaultPoolingFactory(StackGresPropertyContext<OperatorProperty> context) {
+    super(context);
+  }
+
+  @PostConstruct
+  @Override
+  public void init() {
+    super.init();
+  }
 
   @Override
   StackGresPoolingConfig buildResource(String namespace) {

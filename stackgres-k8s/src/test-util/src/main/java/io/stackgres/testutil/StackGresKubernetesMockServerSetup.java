@@ -27,7 +27,8 @@ public final class StackGresKubernetesMockServerSetup implements Consumer<Kubern
           .load(crdFile).get();
       client.apiextensions().v1()
           .customResourceDefinitions()
-          .create(crd);
+          .resource(crd)
+          .create();
     }
   }
 

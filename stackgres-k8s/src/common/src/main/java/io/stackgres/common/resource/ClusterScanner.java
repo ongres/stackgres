@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 
@@ -23,11 +22,6 @@ public class ClusterScanner
   @Inject
   public ClusterScanner(KubernetesClient client) {
     super(client, StackGresCluster.class, StackGresClusterList.class);
-  }
-
-  public ClusterScanner() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

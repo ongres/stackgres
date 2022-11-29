@@ -415,7 +415,8 @@ public abstract class AbstractProfileDecoratorTestCase {
   private void assertContainerOnlyRequestsCpuAndMemory(
       Entry<String, StackGresProfileContainer> entry, Container container) {
     assertNotNull(container.getResources());
-    assertNull(container.getResources().getLimits());
+    assertNotNull(container.getResources().getLimits());
+    assertTrue(container.getResources().getLimits().isEmpty());
     assertEquals(
         Map.of(
             "cpu", new Quantity(entry.getValue().getCpu()),
@@ -493,8 +494,8 @@ public abstract class AbstractProfileDecoratorTestCase {
   private void assertContainerCpuAndMemoryRequestsWithoutHugePages(
       Entry<String, StackGresProfileContainer> entry, Container container) {
     assertNotNull(container.getResources());
-    assertNull(
-        container.getResources().getLimits());
+    assertNotNull(container.getResources().getLimits());
+    assertTrue(container.getResources().getLimits().isEmpty());
     assertEquals(
         Map.of(
             "cpu", new Quantity(entry.getValue().getCpu()),

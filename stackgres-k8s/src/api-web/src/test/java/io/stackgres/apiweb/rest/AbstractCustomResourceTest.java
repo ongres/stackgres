@@ -14,8 +14,8 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -40,7 +40,7 @@ public abstract class AbstractCustomResourceTest
   @Mock
   protected CustomResourceScheduler<R> scheduler;
 
-  protected CustomResourceList<R> customResources;
+  protected DefaultKubernetesResourceList<R> customResources;
   protected T dto;
   protected S service;
   protected N namespacedService;
@@ -127,7 +127,7 @@ public abstract class AbstractCustomResourceTest
     service.delete(dto);
   }
 
-  protected abstract CustomResourceList<R> getCustomResourceList();
+  protected abstract DefaultKubernetesResourceList<R> getCustomResourceList();
 
   protected abstract T getDto();
 

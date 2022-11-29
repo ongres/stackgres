@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
@@ -41,7 +40,7 @@ import io.stackgres.operator.conciliation.factory.ResourceFactory;
 @Singleton
 @OperatorVersionBinder
 @OpJob("majorVersionUpgrade")
-public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
+public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
 
   @Inject
   public DbOpsMajorVersionUpgradeJob(
@@ -55,11 +54,6 @@ public class DbOpsMajorVersionUpgradeJob extends DbOpsJob {
       DbOpsTemplatesVolumeFactory dbOpsTemplatesVolumeFactory) {
     super(podSecurityFactory, clusterStatefulSetEnvironmentVariables, labelFactory,
         dbOpsLabelFactory, jsonMapper, kubectl, dbOpsVolumeMounts, dbOpsTemplatesVolumeFactory);
-  }
-
-  public DbOpsMajorVersionUpgradeJob() {
-    super(null, null, null, null, null, null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

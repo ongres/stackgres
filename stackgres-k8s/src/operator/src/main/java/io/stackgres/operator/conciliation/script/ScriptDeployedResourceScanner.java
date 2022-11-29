@@ -16,7 +16,6 @@ import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 
@@ -34,7 +33,7 @@ public class ScriptDeployedResourceScanner extends DeployedResourcesScanner<Stac
   }
 
   @Override
-  protected StackGresKubernetesClient getClient() {
+  protected KubernetesClient getClient() {
     throw new UnsupportedOperationException();
   }
 

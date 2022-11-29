@@ -17,10 +17,8 @@ import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
@@ -45,21 +43,19 @@ public class ClusterDeployedResourceScanner extends DeployedResourcesScanner<Sta
     this.prometheusAutobind = operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND);
   }
 
-  public ClusterDeployedResourceScanner() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.client = null;
-    this.labelFactory = null;
-    this.prometheusAutobind = false;
-  }
-
   @Override
   protected Map<String, String> getGenericLabels(StackGresCluster config) {
     return labelFactory.genericLabels(config);
   }
 
   @Override
-  protected StackGresKubernetesClient getClient() {
-    return (StackGresKubernetesClient) client;
+  protected Map<String, String> getCrossNamespaceLabels(StackGresCluster config) {
+    return labelFactory.clusterCrossNamespaceLabels(config);
+  }
+
+  @Override
+  protected KubernetesClient getClient() {
+    return client;
   }
 
   @Override
@@ -74,7 +70,7 @@ public class ClusterDeployedResourceScanner extends DeployedResourcesScanner<Sta
   protected Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>> getExtraResourceOperations(
+              ? extends Resource<? extends HasMetadata>>>> getInAnyNamespaceResourceOperations(
                   StackGresCluster cluster) {
     if (prometheusAutobind && Optional.of(cluster)
         .map(StackGresCluster::getSpec)
@@ -82,7 +78,7 @@ public class ClusterDeployedResourceScanner extends DeployedResourcesScanner<Sta
         .orElse(false)) {
       return PROMETHEUS_RESOURCE_OPERATIONS;
     }
-    return super.getExtraResourceOperations(cluster);
+    return super.getInAnyNamespaceResourceOperations(cluster);
   }
 
 }

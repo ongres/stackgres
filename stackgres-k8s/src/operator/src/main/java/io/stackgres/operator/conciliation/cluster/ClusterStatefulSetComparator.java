@@ -15,7 +15,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -36,12 +35,6 @@ public class ClusterStatefulSetComparator extends StatefulSetComparator {
       LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.podScanner = podScanner;
     this.labelFactory = labelFactory;
-  }
-
-  public ClusterStatefulSetComparator() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.podScanner = null;
-    this.labelFactory = null;
   }
 
   @Override

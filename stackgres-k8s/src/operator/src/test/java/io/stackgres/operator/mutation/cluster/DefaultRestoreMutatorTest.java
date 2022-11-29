@@ -65,11 +65,8 @@ class DefaultRestoreMutatorTest {
         .readPropertiesAs(defaultRestoreValues, StackGresClusterRestore.class);
     when(defaultRestoreFactory.buildResource()).thenReturn(restore);
 
-    mutator = new DefaultRestoreMutator();
-    mutator.setDefaultRestoreFactory(defaultRestoreFactory);
-    mutator.setObjectMapper(JSON_MAPPER);
-    mutator.init();
-
+    mutator = new DefaultRestoreMutator(
+        JSON_MAPPER, defaultRestoreFactory);
   }
 
   @Test

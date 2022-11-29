@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 
@@ -23,11 +22,6 @@ public class PoolingConfigFinder
   @Inject
   public PoolingConfigFinder(KubernetesClient client) {
     super(client, StackGresPoolingConfig.class, StackGresPoolingConfigList.class);
-  }
-
-  public PoolingConfigFinder() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

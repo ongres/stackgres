@@ -56,7 +56,7 @@ public class ClusterControllerReconciliator
 
   public ClusterControllerReconciliator() {
     super();
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.clusterScheduler = null;
     this.postgresBootstrapReconciliator = null;
     this.extensionReconciliator = null;

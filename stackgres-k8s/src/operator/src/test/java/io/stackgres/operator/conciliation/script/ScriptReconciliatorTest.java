@@ -64,13 +64,14 @@ class ScriptReconciliatorTest {
 
   @BeforeEach
   void setUp() {
-    reconciliator = new ScriptReconciliator();
-    reconciliator.setScanner(scriptScanner);
-    reconciliator.setConciliator(scriptConciliator);
-    reconciliator.setHandlerDelegator(handlerDelegator);
-    reconciliator.setEventController(eventController);
-    reconciliator.setStatusManager(statusManager);
-    reconciliator.setScriptScheduler(scriptScheduler);
+    ScriptReconciliator.Parameters parameters = new ScriptReconciliator.Parameters();
+    parameters.scanner = scriptScanner;
+    parameters.conciliator = scriptConciliator;
+    parameters.handlerDelegator = handlerDelegator;
+    parameters.eventController = eventController;
+    parameters.statusManager = statusManager;
+    parameters.scriptScheduler = scriptScheduler;
+    reconciliator = new ScriptReconciliator(parameters);
   }
 
   @Test

@@ -62,9 +62,8 @@ class ScriptResourceQuarkusTest implements AuthenticatedResourceTest {
     mockServer.getClient().resources(
         StackGresScript.class,
         StackGresScriptList.class)
-        .inNamespace(script.getMetadata().getNamespace())
-        .withName(script.getMetadata().getName())
-        .create(script);
+        .resource(script)
+        .create();
   }
 
   @AfterEach

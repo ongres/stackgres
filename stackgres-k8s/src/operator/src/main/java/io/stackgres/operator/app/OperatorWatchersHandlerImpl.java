@@ -12,8 +12,8 @@ import java.util.function.Consumer;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -108,7 +108,7 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
   }
 
   private <T extends CustomResource<?, ?>,
-      L extends CustomResourceList<T>> WatcherMonitor<T> createWatcher(
+      L extends DefaultKubernetesResourceList<T>> WatcherMonitor<T> createWatcher(
       @NotNull Class<T> crClass, @NotNull Class<L> listClass, @NotNull Consumer<Action> consumer) {
 
     return new WatcherMonitor<>(crClass.getSimpleName(),

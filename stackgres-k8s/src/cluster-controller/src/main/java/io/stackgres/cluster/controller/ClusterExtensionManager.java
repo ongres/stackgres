@@ -8,7 +8,6 @@ package io.stackgres.cluster.controller;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionManager;
@@ -22,11 +21,6 @@ public class ClusterExtensionManager extends ExtensionManager {
     super(
         clusterExtensionMetadataManager,
         new WebClientFactory(), new FileSystemHandler());
-  }
-
-  public ClusterExtensionManager() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

@@ -77,8 +77,7 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>2.11.2.Final</quarkus.version>
-    <kubernetes-client.version>5.12.3</kubernetes-client.version>
+    <quarkus.version>2.14.2.Final</quarkus.version>
     <jool.version>0.9.14</jool.version>
     <immutables.version>2.9.0</immutables.version>
     <checkstyle.version>10.3.2</checkstyle.version>
@@ -130,13 +129,6 @@
 
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>kubernetes-client-bom</artifactId>
-        <version>${kubernetes-client.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
       <dependency>
         <groupId>io.quarkus.platform</groupId>
         <artifactId>quarkus-bom</artifactId>

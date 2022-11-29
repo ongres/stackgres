@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.storages.AwsS3Storage;
@@ -17,6 +18,7 @@ import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
 import org.junit.jupiter.api.Test;
@@ -28,8 +30,9 @@ class ObjectStorageDefaultValuesMutatorTest
     extends DefaultValuesMutatorTest<StackGresObjectStorage, ObjectStorageReview> {
 
   @Override
-  protected DefaultValuesMutator<StackGresObjectStorage, ObjectStorageReview> getMutatorInstance() {
-    return new ObjectStorageDefaultValuesMutator();
+  protected DefaultValuesMutator<StackGresObjectStorage, ObjectStorageReview> getMutatorInstance(
+      DefaultCustomResourceFactory<StackGresObjectStorage> factory, JsonMapper jsonMapper) {
+    return new ObjectStorageDefaultValuesMutator(factory, jsonMapper);
   }
 
   @Override

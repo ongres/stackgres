@@ -9,11 +9,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import com.google.common.collect.Maps;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresPropertyContext;
 
@@ -21,20 +19,23 @@ public abstract class AbstractCustomResourceFactory<T>
     implements DefaultCustomResourceFactory<T> {
 
   protected static final JavaPropsMapper MAPPER = new JavaPropsMapper();
+  private final StackGresPropertyContext<OperatorProperty> context;
   protected Properties defaultValues;
-
-  private StackGresPropertyContext<OperatorProperty> context;
   private String installedNamespace;
 
-  @PostConstruct
-  public void init() {
-    loadDefaultProperties();
-    installedNamespace = context.get(OperatorProperty.OPERATOR_NAMESPACE)
-        .orElseThrow(() -> new IllegalStateException("Operator not configured properly"));
+  protected AbstractCustomResourceFactory(StackGresPropertyContext<OperatorProperty> context) {
+    this.context = context;
   }
 
-  protected void loadDefaultProperties() {
-    defaultValues = getDefaultPropertiesFile();
+  public AbstractCustomResourceFactory() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.context = null;
+  }
+
+  public void init() {
+    this.defaultValues = getDefaultPropertiesFile();
+    this.installedNamespace = context.get(OperatorProperty.OPERATOR_NAMESPACE)
+        .orElseThrow(() -> new IllegalStateException("Operator not configured properly"));
   }
 
   protected <S> S buildFromDefaults(Class<S> clazz) {
@@ -47,11 +48,6 @@ public abstract class AbstractCustomResourceFactory<T>
 
   protected Map<String, String> getDefaultValues() {
     return Maps.fromProperties(defaultValues);
-  }
-
-  @Inject
-  public void setContext(StackGresPropertyContext<OperatorProperty> context) {
-    this.context = context;
   }
 
   abstract Properties getDefaultPropertiesFile();

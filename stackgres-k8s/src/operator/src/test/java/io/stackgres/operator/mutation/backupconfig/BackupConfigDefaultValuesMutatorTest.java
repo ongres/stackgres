@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
@@ -17,6 +18,7 @@ import io.stackgres.common.crd.storages.AwsS3Storage;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
 import org.junit.jupiter.api.Test;
@@ -28,8 +30,9 @@ class BackupConfigDefaultValuesMutatorTest
     extends DefaultValuesMutatorTest<StackGresBackupConfig, BackupConfigReview> {
 
   @Override
-  protected DefaultValuesMutator<StackGresBackupConfig, BackupConfigReview> getMutatorInstance() {
-    return new BackupConfigDefaultValuesMutator();
+  protected DefaultValuesMutator<StackGresBackupConfig, BackupConfigReview> getMutatorInstance(
+      DefaultCustomResourceFactory<StackGresBackupConfig> factory, JsonMapper jsonMapper) {
+    return new BackupConfigDefaultValuesMutator(factory, jsonMapper);
   }
 
   @Override

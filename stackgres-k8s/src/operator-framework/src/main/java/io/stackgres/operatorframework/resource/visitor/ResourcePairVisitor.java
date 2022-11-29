@@ -1188,8 +1188,8 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<IntOrString, T> visitIntOrString(PairVisitor<IntOrString, T> pairVisitor) {
     return pairVisitor.visit()
-        .visit(IntOrString::getIntVal, IntOrString::setIntVal)
-        .visit(IntOrString::getStrVal, IntOrString::setStrVal);
+        .visit(IntOrString::getIntVal, IntOrString::setValue)
+        .visit(IntOrString::getStrVal, IntOrString::setValue);
   }
 
   /**
@@ -1222,7 +1222,6 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<ObjectMeta, T> visitMetadata(PairVisitor<ObjectMeta, T> pairVisitor) {
     return pairVisitor.visit()
-        .visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
         .visit(ObjectMeta::getName)
         .visit(ObjectMeta::getNamespace)
         .visitListWith(ObjectMeta::getOwnerReferences, ObjectMeta::setOwnerReferences,
@@ -1274,7 +1273,7 @@ public class ResourcePairVisitor<T, C> {
    */
   public PairVisitor<ObjectMeta, T> visitMetadataWithoutLabels(
       PairVisitor<ObjectMeta, T> pairVisitor) {
-    return pairVisitor.visit().visit(ObjectMeta::getClusterName, ObjectMeta::setClusterName)
+    return pairVisitor.visit()
         .visit(ObjectMeta::getName).visit(ObjectMeta::getNamespace)
         .visitMap(ObjectMeta::getAdditionalProperties,
             additionalPropertiesSetter(

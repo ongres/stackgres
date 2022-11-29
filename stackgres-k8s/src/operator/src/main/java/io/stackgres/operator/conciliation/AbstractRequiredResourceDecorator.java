@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 
@@ -22,6 +23,12 @@ public abstract class AbstractRequiredResourceDecorator<T>
       ResourceGenerationDiscoverer<T> generatorsDiscoverer) {
     this.decoratorDiscoverer = decoratorDiscoverer;
     this.generatorsDiscoverer = generatorsDiscoverer;
+  }
+
+  public AbstractRequiredResourceDecorator() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.decoratorDiscoverer = null;
+    this.generatorsDiscoverer = null;
   }
 
   @Override

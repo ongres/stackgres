@@ -10,6 +10,7 @@ import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.CdiUtil;
 
 public abstract class AbstractResourceWriter<T extends HasMetadata,
     L extends KubernetesResourceList<T>, R extends Resource<T>>
@@ -21,26 +22,32 @@ public abstract class AbstractResourceWriter<T extends HasMetadata,
     this.client = client;
   }
 
+  public AbstractResourceWriter() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.client = null;
+  }
+
   @Override
   public T create(T resource) {
     return getResourceEndpoints(client)
         .inNamespace(resource.getMetadata().getNamespace())
-        .create(resource);
+        .resource(resource)
+        .create();
   }
 
   @Override
   public T update(T resource) {
     return getResourceEndpoints(client)
         .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
-        .patch(resource);
+        .resource(resource)
+        .patch();
   }
 
   @Override
   public void delete(T resource) {
     getResourceEndpoints(client)
         .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
+        .resource(resource)
         .delete();
   }
 

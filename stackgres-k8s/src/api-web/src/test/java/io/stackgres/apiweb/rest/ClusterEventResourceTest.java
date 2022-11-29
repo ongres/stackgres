@@ -71,7 +71,7 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
   @Test
   void ifEventsAreCreated_itShouldReturnThenInAnArray() {
     mockServer.getClient().v1().events().inNamespace("test-namespace")
-        .create(new EventBuilder()
+        .resource(new EventBuilder()
             .withNewMetadata()
             .withNamespace("test-namespace")
             .withName("test.1")
@@ -85,9 +85,10 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
                 .withName("test")
                 .withUid("1")
                 .build())
-            .build());
+            .build())
+        .create();
     mockServer.getClient().v1().events().inNamespace("test-namespace")
-        .create(new EventBuilder()
+        .resource(new EventBuilder()
             .withNewMetadata()
             .withNamespace("test-namespace")
             .withName("test.2")
@@ -101,9 +102,10 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
                 .withName("test")
                 .withUid("1")
                 .build())
-            .build());
+            .build())
+        .create();
     mockServer.getClient().v1().events().inNamespace("test-namespace")
-        .create(new EventBuilder()
+        .resource(new EventBuilder()
             .withNewMetadata()
             .withNamespace("test-namespace")
             .withName("test.3")
@@ -117,9 +119,10 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
                 .withName("test-0")
                 .withUid("1")
                 .build())
-            .build());
+            .build())
+        .create();
     mockServer.getClient().v1().events().inNamespace("test-namespace")
-        .create(new EventBuilder()
+        .resource(new EventBuilder()
             .withNewMetadata()
             .withNamespace("test-namespace")
             .withName("test.4")
@@ -133,9 +136,10 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
                 .withName("test-operation")
                 .withUid("1")
                 .build())
-            .build());
+            .build())
+        .create();
     mockServer.getClient().v1().events().inNamespace("test-namespace")
-        .create(new EventBuilder()
+        .resource(new EventBuilder()
             .withNewMetadata()
             .withNamespace("test-namespace")
             .withName("test.5")
@@ -149,7 +153,8 @@ class ClusterEventResourceTest implements AuthenticatedResourceTest {
                 .withName("test")
                 .withUid("1")
                 .build())
-            .build());
+            .build())
+        .create();
     given()
         .when()
         .header(AUTHENTICATION_HEADER)

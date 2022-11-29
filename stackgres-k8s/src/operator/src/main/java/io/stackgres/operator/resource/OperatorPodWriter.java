@@ -30,25 +30,22 @@ public class OperatorPodWriter implements ResourceWriter<Pod> {
   @Override
   public Pod create(@NotNull Pod resource) {
     return client.pods()
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
-        .create(resource);
+        .resource(resource)
+        .create();
   }
 
   @Override
   public Pod update(@NotNull Pod resource) {
     return client.pods()
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
+        .resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace(resource);
+        .replace();
   }
 
   @Override
   public void delete(@NotNull Pod resource) {
     client.pods()
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
+        .resource(resource)
         .delete();
   }
 }

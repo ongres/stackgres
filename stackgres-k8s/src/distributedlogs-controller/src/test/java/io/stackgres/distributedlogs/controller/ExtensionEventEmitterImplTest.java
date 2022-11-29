@@ -21,7 +21,6 @@ import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.event.DistributedLogsEventEmitter;
-import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.DistributedLogsFinder;
 import io.stackgres.distributedlogs.common.ExtensionEventReason;
@@ -35,7 +34,6 @@ import org.junit.jupiter.api.Test;
 class ExtensionEventEmitterImplTest {
 
   @InjectMock
-  @EventEmitterType(StackGresDistributedLogs.class)
   DistributedLogsEventEmitter eventEmitter;
 
   @InjectMock

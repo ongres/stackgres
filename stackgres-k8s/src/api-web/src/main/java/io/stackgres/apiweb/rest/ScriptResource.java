@@ -24,7 +24,6 @@ import io.stackgres.apiweb.dto.script.ScriptDto;
 import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -65,13 +64,6 @@ public class ScriptResource
     this.secretWriter = secretWriter;
     this.configMapWriter = configMapWriter;
     this.configMapFinder = configMapFinder;
-  }
-
-  public ScriptResource() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.secretWriter = null;
-    this.configMapWriter = null;
-    this.configMapFinder = null;
   }
 
   @Override

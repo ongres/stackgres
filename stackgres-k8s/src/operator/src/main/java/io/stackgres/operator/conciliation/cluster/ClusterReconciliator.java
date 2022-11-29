@@ -8,9 +8,11 @@ package io.stackgres.operator.conciliation.cluster;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
@@ -19,11 +21,13 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.event.EventEmitter;
-import io.stackgres.common.event.EventEmitterType;
+import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.ClusterPatchResumer;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
+import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
@@ -33,17 +37,32 @@ import org.slf4j.helpers.MessageFormatter;
 public class ClusterReconciliator
     extends AbstractReconciliator<StackGresCluster> {
 
-  public ClusterReconciliator() {
-    super(StackGresCluster.KIND);
+  @Dependent
+  static class Parameters {
+    @Inject CustomResourceScanner<StackGresCluster> scanner;
+    @Inject Conciliator<StackGresCluster> conciliator;
+    @Inject HandlerDelegator<StackGresCluster> handlerDelegator;
+    @Inject KubernetesClient client;
+    @Inject StatusManager<StackGresCluster, StackGresClusterCondition> statusManager;
+    @Inject EventEmitter<StackGresCluster> eventController;
+    @Inject CustomResourceScheduler<StackGresCluster> clusterScheduler;
+    @Inject ComparisonDelegator<StackGresCluster> resourceComparator;
   }
 
-  private StatusManager<StackGresCluster, StackGresClusterCondition> statusManager;
+  private final StatusManager<StackGresCluster, StackGresClusterCondition> statusManager;
+  private final EventEmitter<StackGresCluster> eventController;
+  private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
+  private final ClusterPatchResumer patchResumer;
 
-  private EventEmitter<StackGresCluster> eventController;
-
-  private CustomResourceScheduler<StackGresCluster> clusterScheduler;
-
-  private ClusterPatchResumer patchResumer;
+  @Inject
+  public ClusterReconciliator(Parameters parameters) {
+    super(parameters.scanner, parameters.conciliator, parameters.handlerDelegator,
+        parameters.client, StackGresCluster.KIND);
+    this.statusManager = parameters.statusManager;
+    this.eventController = parameters.eventController;
+    this.clusterScheduler = parameters.clusterScheduler;
+    this.patchResumer = new ClusterPatchResumer(parameters.resourceComparator);
+  }
 
   void onStart(@Observes StartupEvent ev) {
     start();
@@ -128,26 +147,4 @@ public class ClusterReconciliator
         message + ": " + ex.getMessage(), cluster);
   }
 
-  @Inject
-  public void setStatusManager(
-      StatusManager<StackGresCluster, StackGresClusterCondition> statusManager) {
-    this.statusManager = statusManager;
-  }
-
-  @Inject
-  public void setEventController(
-      @EventEmitterType(StackGresCluster.class)
-          EventEmitter<StackGresCluster> eventController) {
-    this.eventController = eventController;
-  }
-
-  @Inject
-  public void setClusterScheduler(CustomResourceScheduler<StackGresCluster> clusterScheduler) {
-    this.clusterScheduler = clusterScheduler;
-  }
-
-  @Inject
-  public void setResourceComparator(ComparisonDelegator<StackGresCluster> resourceComparator) {
-    this.patchResumer = new ClusterPatchResumer(resourceComparator);
-  }
 }

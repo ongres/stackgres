@@ -36,6 +36,7 @@ public class CrdUtils {
         .filter(path -> Optional.ofNullable(path.getFileName())
             .map(name -> name.endsWith(".yaml")).orElse(false))
         .forEach(Unchecked.consumer(path -> client.apiextensions().v1().customResourceDefinitions()
-            .create(yamlMapper.readValue(path.toFile(), CustomResourceDefinition.class))));
+            .resource(yamlMapper.readValue(path.toFile(), CustomResourceDefinition.class))
+            .create()));
   }
 }

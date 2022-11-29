@@ -7,7 +7,6 @@ package io.stackgres.operator.mutation.cluster;
 
 import java.util.List;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -26,32 +25,31 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 @ApplicationScoped
 public class DefaultRestoreMutator implements ClusterMutator {
 
-  private ObjectMapper jsonMapper;
+  private final ObjectMapper jsonMapper;
 
-  private JsonPointer restorePointer;
-  private JsonNode defaultNode;
+  private final JsonPointer restorePointer;
+  private final JsonNode defaultNode;
 
-  private DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory;
+  @Inject
+  public DefaultRestoreMutator(ObjectMapper jsonMapper,
+      DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory) {
+    this.jsonMapper = jsonMapper;
 
-  @PostConstruct
-  public void init() throws NoSuchFieldException {
     String initDataJson = getJsonMappingField("initData",
         StackGresClusterSpec.class);
 
     String restoreJsonField = getJsonMappingField("restore",
         StackGresClusterInitData.class);
 
-    restorePointer = SPEC_POINTER
+    this.restorePointer = SPEC_POINTER
         .append(initDataJson).append(restoreJsonField);
 
     StackGresClusterRestore defaultRestore = defaultRestoreFactory.buildResource();
-    defaultNode = jsonMapper.valueToTree(defaultRestore);
-
+    this.defaultNode = jsonMapper.valueToTree(defaultRestore);
   }
 
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
-
     final StackGresClusterInitData initData = review.getRequest().getObject().getSpec()
         .getInitData();
 
@@ -67,20 +65,9 @@ public class DefaultRestoreMutator implements ClusterMutator {
 
         return operations.build();
       }
-
     }
 
     return List.of();
   }
 
-  @Inject
-  public void setDefaultRestoreFactory(
-      DefaultCustomResourceFactory<StackGresClusterRestore> defaultRestoreFactory) {
-    this.defaultRestoreFactory = defaultRestoreFactory;
-  }
-
-  @Inject
-  public void setObjectMapper(ObjectMapper jsonMapper) {
-    this.jsonMapper = jsonMapper;
-  }
 }

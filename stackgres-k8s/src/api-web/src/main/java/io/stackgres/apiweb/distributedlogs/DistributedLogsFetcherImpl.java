@@ -25,7 +25,6 @@ import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.PatroniUtil;
@@ -56,12 +55,6 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
     super();
     this.secretFinder = secretFinder;
     this.postgresConnectionManager = postgresConnectionManager;
-  }
-
-  public DistributedLogsFetcherImpl() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.secretFinder = null;
-    this.postgresConnectionManager = null;
   }
 
   @Override

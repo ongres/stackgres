@@ -14,14 +14,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.resource.CustomResourceScanner;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
@@ -35,26 +33,40 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   private static final String STACKGRES_IO_RECONCILIATION = StackGresContext
       .RECONCILIATION_PAUSE_KEY;
 
-  private CustomResourceScanner<T> scanner;
-
-  private Conciliator<T> conciliator;
-
-  private HandlerDelegator<T> handlerDelegator;
-
-  private KubernetesClient client;
-
+  private final CustomResourceScanner<T> scanner;
+  private final Conciliator<T> conciliator;
+  private final HandlerDelegator<T> handlerDelegator;
+  private final KubernetesClient client;
   private final String reconciliationName;
-
   private final ExecutorService executorService;
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
 
   private final CompletableFuture<Void> stopped = new CompletableFuture<>();
   private boolean close = false;
 
-  protected AbstractReconciliator(String reconciliationName) {
+  protected AbstractReconciliator(
+      CustomResourceScanner<T> scanner,
+      Conciliator<T> conciliator,
+      HandlerDelegator<T> handlerDelegator,
+      KubernetesClient client,
+      String reconciliationName) {
+    this.scanner = scanner;
+    this.conciliator = conciliator;
+    this.handlerDelegator = handlerDelegator;
+    this.client = client;
     this.reconciliationName = reconciliationName;
     this.executorService = Executors.newSingleThreadExecutor(
         r -> new Thread(r, reconciliationName + "-ReconciliationLoop"));
+  }
+
+  public AbstractReconciliator() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.scanner = null;
+    this.conciliator = null;
+    this.handlerDelegator = null;
+    this.client = null;
+    this.reconciliationName = null;
+    this.executorService = null;
   }
 
   protected void start() {
@@ -189,28 +201,8 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
 
   public abstract void onError(Exception e, T context);
 
-  @Inject
-  public void setScanner(CustomResourceScanner<T> scanner) {
-    this.scanner = scanner;
-  }
-
-  @Inject
-  public void setConciliator(Conciliator<T> conciliator) {
-    this.conciliator = conciliator;
-  }
-
-  @Inject
-  public void setHandlerDelegator(HandlerDelegator<T> handlerDelegator) {
-    this.handlerDelegator = handlerDelegator;
-  }
-
-  public StackGresKubernetesClient getClient() {
-    return (StackGresKubernetesClient) client;
-  }
-
-  @Inject
-  public void setClient(KubernetesClient client) {
-    this.client = client;
+  public KubernetesClient getClient() {
+    return client;
   }
 
 }

@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
@@ -21,6 +23,7 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbounce
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerBlocklist;
+import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
@@ -28,6 +31,13 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 public class PgBouncerDefaultValuesMutator
     extends DefaultValuesMutator<StackGresPoolingConfig, PoolingReview>
     implements PgBouncerMutator {
+
+  @Inject
+  public PgBouncerDefaultValuesMutator(
+      DefaultCustomResourceFactory<StackGresPoolingConfig> factory,
+      ObjectMapper jsonMapper) {
+    super(factory, jsonMapper);
+  }
 
   @Override
   public JsonNode getSourceNode(StackGresPoolingConfig resource) {

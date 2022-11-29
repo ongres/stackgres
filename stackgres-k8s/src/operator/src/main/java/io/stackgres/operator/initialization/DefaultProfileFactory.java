@@ -7,8 +7,12 @@ package io.stackgres.operator.initialization;
 
 import java.util.Properties;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
@@ -19,6 +23,17 @@ public class DefaultProfileFactory extends AbstractCustomResourceFactory<StackGr
   public static final String NAME = "defaultprofile";
   public static final String INSTANCE_PROFILE_DEFAULT_VALUES =
       "/instance-profile-default-values.properties";
+
+  @Inject
+  public DefaultProfileFactory(StackGresPropertyContext<OperatorProperty> context) {
+    super(context);
+  }
+
+  @PostConstruct
+  @Override
+  public void init() {
+    super.init();
+  }
 
   @Override
   Properties getDefaultPropertiesFile() {

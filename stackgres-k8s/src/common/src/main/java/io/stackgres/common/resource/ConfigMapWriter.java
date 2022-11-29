@@ -13,7 +13,6 @@ import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.CdiUtil;
 
 @ApplicationScoped
 public class ConfigMapWriter extends AbstractResourceWriter<
@@ -22,11 +21,6 @@ public class ConfigMapWriter extends AbstractResourceWriter<
   @Inject
   public ConfigMapWriter(KubernetesClient client) {
     super(client);
-  }
-
-  public ConfigMapWriter() {
-    super(null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

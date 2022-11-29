@@ -10,18 +10,17 @@ import java.util.function.Function;
 
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?, ?>,
-    L extends CustomResourceList<T>>
+    L extends DefaultKubernetesResourceList<T>>
     implements CustomResourceScheduler<T> {
 
   @NotNull
@@ -43,15 +42,16 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
   public T create(T resource) {
     return getCustomResourceEndpoints()
         .inNamespace(resource.getMetadata().getNamespace())
-        .create(resource);
+        .resource(resource)
+        .create();
   }
 
   @Override
   public T update(T resource) {
     return getCustomResourceEndpoints()
         .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
-        .patch(resource);
+        .resource(resource)
+        .patch();
   }
 
   @Override
@@ -73,9 +73,9 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
           setter.accept(resourceToUpdate, resource);
           return getCustomResourceEndpoints()
               .inNamespace(resource.getMetadata().getNamespace())
-              .withName(resource.getMetadata().getName())
+              .resource(resourceToUpdate)
               .lockResourceVersion(resourceToUpdate.getMetadata().getResourceVersion())
-              .replace(resourceToUpdate);
+              .replace();
         });
   }
 
@@ -83,15 +83,26 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
   public <S> T updateStatus(T resource, Function<T, S> statusGetter,
       BiConsumer<T, S> statusSetter) {
     return KubernetesClientUtil.retryOnConflict(
-        () -> ((StackGresKubernetesClient) client).updateStatus(customResourceClass,
-            customResourceListClass, resource, statusGetter, statusSetter));
+        () -> {
+          var resourceToUpdate = getCustomResourceEndpoints()
+              .inNamespace(resource.getMetadata().getNamespace())
+              .withName(resource.getMetadata().getName())
+              .get();
+          var resourceStatus = statusGetter.apply(resource);
+          statusSetter.accept(resourceToUpdate, resourceStatus);
+          return getCustomResourceEndpoints()
+              .inNamespace(resource.getMetadata().getNamespace())
+              .resource(resourceToUpdate)
+              .lockResourceVersion(resourceToUpdate.getMetadata().getResourceVersion())
+              .replace();
+        });
   }
 
   @Override
   public void delete(T resource) {
     getCustomResourceEndpoints()
         .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
+        .resource(resource)
         .delete();
   }
 

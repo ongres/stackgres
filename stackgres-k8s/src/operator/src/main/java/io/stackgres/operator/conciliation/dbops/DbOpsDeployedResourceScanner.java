@@ -20,9 +20,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactoryForDbOps;
-import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
@@ -42,20 +40,14 @@ public class DbOpsDeployedResourceScanner extends DeployedResourcesScanner<Stack
     this.labelFactory = labelFactory;
   }
 
-  public DbOpsDeployedResourceScanner() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.client = null;
-    this.labelFactory = null;
-  }
-
   @Override
   protected Map<String, String> getGenericLabels(StackGresDbOps config) {
     return labelFactory.genericLabels(config);
   }
 
   @Override
-  protected StackGresKubernetesClient getClient() {
-    return (StackGresKubernetesClient) client;
+  protected KubernetesClient getClient() {
+    return client;
   }
 
   @Override

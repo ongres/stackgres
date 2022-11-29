@@ -13,7 +13,6 @@ import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.CdiUtil;
 
 @ApplicationScoped
 public class SecretWriter extends AbstractResourceWriter<Secret, SecretList, Resource<Secret>> {
@@ -21,11 +20,6 @@ public class SecretWriter extends AbstractResourceWriter<Secret, SecretList, Res
   @Inject
   public SecretWriter(KubernetesClient client) {
     super(client);
-  }
-
-  public SecretWriter() {
-    super(null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

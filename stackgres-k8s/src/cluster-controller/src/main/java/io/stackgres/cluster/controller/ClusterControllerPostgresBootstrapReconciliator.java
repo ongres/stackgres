@@ -17,7 +17,6 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterBootstrapEventReason;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.postgres.PostgresBootstrapReconciliator;
 import io.stackgres.common.resource.ResourceFinder;
@@ -40,12 +39,6 @@ public class ClusterControllerPostgresBootstrapReconciliator
     super(parameters.endpointsFinder, parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME));
     this.eventController = parameters.eventController;
-  }
-
-  public ClusterControllerPostgresBootstrapReconciliator() {
-    super(null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.eventController = null;
   }
 
   public static ClusterControllerPostgresBootstrapReconciliator create(

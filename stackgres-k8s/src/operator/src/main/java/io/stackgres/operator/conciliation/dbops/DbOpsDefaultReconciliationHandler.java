@@ -6,7 +6,9 @@
 package io.stackgres.operator.conciliation.dbops;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.conciliation.AbstractReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
@@ -15,5 +17,10 @@ import io.stackgres.operator.conciliation.ReconciliationScope;
 @ApplicationScoped
 public class DbOpsDefaultReconciliationHandler
     extends AbstractReconciliationHandler<StackGresDbOps> {
+
+  @Inject
+  public DbOpsDefaultReconciliationHandler(KubernetesClient client) {
+    super(client);
+  }
 
 }

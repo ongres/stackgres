@@ -16,9 +16,7 @@ import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
@@ -38,20 +36,14 @@ public class DistributedLogsDeployedResourceScanner
     this.labelFactory = labelFactory;
   }
 
-  public DistributedLogsDeployedResourceScanner() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.client = null;
-    this.labelFactory = null;
-  }
-
   @Override
   protected Map<String, String> getGenericLabels(StackGresDistributedLogs config) {
     return labelFactory.genericLabels(config);
   }
 
   @Override
-  protected StackGresKubernetesClient getClient() {
-    return (StackGresKubernetesClient) client;
+  protected KubernetesClient getClient() {
+    return client;
   }
 
   @Override

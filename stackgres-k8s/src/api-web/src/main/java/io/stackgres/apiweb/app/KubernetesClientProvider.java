@@ -12,8 +12,8 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.quarkus.arc.Priority;
 import io.quarkus.security.identity.SecurityIdentity;
 import org.eclipse.microprofile.jwt.Claim;
@@ -44,17 +44,17 @@ public class KubernetesClientProvider {
       LOGGER.debug("Impersonate user {}", impersonated);
       config = new ConfigBuilder()
           .withImpersonateUsername(impersonated)
-          .withImpersonateGroup("system:authenticated")
+          .withImpersonateGroups("system:authenticated")
           .build();
     } else {
       config = new ConfigBuilder().build();
     }
 
-    return new DefaultKubernetesClient(config);
+    return new KubernetesClientBuilder().withConfig(config).build();
   }
 
   public KubernetesClient createDefault() {
-    return new DefaultKubernetesClient();
+    return new KubernetesClientBuilder().build();
   }
 
 }

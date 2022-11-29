@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactory;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.common.resource.ResourceFinder;
@@ -55,6 +56,15 @@ public abstract class AbstractJobReconciliationHandler<T extends CustomResource<
     this.jobWriter = jobWriter;
     this.podScanner = podScanner;
     this.podWriter = podWriter;
+  }
+
+  public AbstractJobReconciliationHandler() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.labelFactory = null;
+    this.jobFinder = null;
+    this.jobWriter = null;
+    this.podScanner = null;
+    this.podWriter = null;
   }
 
   @Override

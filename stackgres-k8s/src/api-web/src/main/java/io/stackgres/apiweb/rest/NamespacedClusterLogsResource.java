@@ -32,7 +32,6 @@ import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -55,12 +54,6 @@ public class NamespacedClusterLogsResource {
       DistributedLogsFetcher distributedLogsFetcher) {
     this.clusterFinder = clusterFinder;
     this.distributedLogsFetcher = distributedLogsFetcher;
-  }
-
-  public NamespacedClusterLogsResource() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.clusterFinder = null;
-    this.distributedLogsFetcher = null;
   }
 
   /**

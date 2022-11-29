@@ -13,8 +13,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
@@ -69,7 +69,7 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
   }
 
   @Override
-  protected CustomResourceList<StackGresObjectStorage> getCustomResourceList() {
+  protected DefaultKubernetesResourceList<StackGresObjectStorage> getCustomResourceList() {
     StackGresBackupConfigList stackGresBackupConfigList = Fixtures.backupConfigList()
         .loadDefault().get();
 

@@ -12,7 +12,6 @@ import io.fabric8.kubernetes.client.WatcherException;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.event.EventEmitter;
-import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.distributedlogs.common.DistributedLogsControllerEventReason;
 import io.stackgres.operatorframework.resource.AbstractResourceWatcherFactory;
@@ -28,8 +27,7 @@ public class ResourceWatcherFactory extends AbstractResourceWatcherFactory {
    */
   @Inject
   public ResourceWatcherFactory(
-      @EventEmitterType(StackGresDistributedLogs.class)
-          EventEmitter<StackGresDistributedLogs> eventEmitter,
+      EventEmitter<StackGresDistributedLogs> eventEmitter,
       CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder) {
     super();
     this.eventEmitter = eventEmitter;

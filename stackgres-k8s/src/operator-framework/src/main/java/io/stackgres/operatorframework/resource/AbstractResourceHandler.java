@@ -64,7 +64,7 @@ public abstract class AbstractResourceHandler<T extends ResourceHandlerContext>
 
   @Override
   public boolean delete(KubernetesClient client, HasMetadata resource) {
-    return client.resource(resource).delete();
+    return client.resource(resource).delete().isEmpty();
   }
 
   @SuppressWarnings("unchecked")

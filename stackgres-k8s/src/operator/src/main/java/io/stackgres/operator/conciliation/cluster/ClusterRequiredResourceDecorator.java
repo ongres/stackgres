@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.cluster;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecorator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
@@ -22,11 +21,6 @@ public class ClusterRequiredResourceDecorator
       DecoratorDiscoverer<StackGresClusterContext> decoratorDiscoverer,
       ResourceGenerationDiscoverer<StackGresClusterContext> generators) {
     super(decoratorDiscoverer, generators);
-  }
-
-  public ClusterRequiredResourceDecorator() {
-    super(null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

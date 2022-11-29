@@ -8,13 +8,14 @@ package io.stackgres.common.resource;
 import java.util.List;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.CustomResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.CdiUtil;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, ?>,
-    L extends CustomResourceList<T>>
+    L extends DefaultKubernetesResourceList<T>>
     implements CustomResourceScanner<T> {
 
   private final KubernetesClient client;
@@ -25,10 +26,16 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, 
   protected AbstractCustomResourceScanner(KubernetesClient client,
       Class<T> customResourceClass,
       Class<L> customResourceListClass) {
-    super();
     this.client = client;
     this.customResourceClass = customResourceClass;
     this.customResourceListClass = customResourceListClass;
+  }
+
+  public AbstractCustomResourceScanner() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.client = null;
+    this.customResourceClass = null;
+    this.customResourceListClass = null;
   }
 
   @Override

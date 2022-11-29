@@ -5,13 +5,18 @@
 
 package io.stackgres.testutil;
 
-import java.io.File;
-import java.util.Optional;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.function.Supplier;
 
-import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.fabric8.mockwebserver.dsl.MockServerExpectation;
+import okhttp3.mockwebserver.RecordedRequest;
+import org.junit.runner.Description;
+import org.junit.runners.model.Statement;
 
 public class KubernetesServerSupplier implements Supplier<KubernetesServer> {
   KubernetesServer server;
@@ -23,20 +28,106 @@ public class KubernetesServerSupplier implements Supplier<KubernetesServer> {
   @Override
   public synchronized KubernetesServer get() {
     if (server == null) {
-      server = new KubernetesServer(true, true);
+      KubernetesServer server = new KubernetesServer(true, true);
       server.before();
-      final NamespacedKubernetesClient client = server.getClient();
-
-      File file = CrdUtils.getCrdsFolder();
-      for (File crdFile : Optional.ofNullable(file.listFiles()).orElse(new File[0])) {
-        if (!crdFile.getName().endsWith(".yaml")) {
-          continue;
-        }
-        CustomResourceDefinition crd =
-            client.apiextensions().v1().customResourceDefinitions().load(crdFile).get();
-        client.apiextensions().v1().customResourceDefinitions().create(crd);
-      }
+      server = new WrappedKubernetesServer(server);
+      this.server = server;
     }
     return server;
+  }
+
+  @SuppressWarnings("deprecation")
+  static class WrappedKubernetesServer extends KubernetesServer {
+    final KubernetesServer server;
+    final NamespacedKubernetesClient client;
+
+    WrappedKubernetesServer(KubernetesServer server) {
+      this.server = server;
+      this.client = (NamespacedKubernetesClient) Proxy
+          .newProxyInstance(NamespacedKubernetesClient.class.getClassLoader(),
+              new Class[] { NamespacedKubernetesClient.class },
+              new KubernetesClientInvocationHandler(server.getClient()));
+    }
+
+    public Statement apply(Statement base, Description description) {
+      return server.apply(base, description);
+    }
+
+    public int hashCode() {
+      return server.hashCode();
+    }
+
+    public void before() {
+      server.before();
+    }
+
+    public void after() {
+      server.after();
+    }
+
+    public NamespacedKubernetesClient getClient() {
+      return client;
+    }
+
+    public MockServerExpectation expect() {
+      return server.expect();
+    }
+
+    public <T> void expectAndReturnAsJson(String path, int code, T body) {
+      server.expectAndReturnAsJson(path, code, body);
+    }
+
+    public <T> void expectAndReturnAsJson(String method, String path, int code, T body) {
+      server.expectAndReturnAsJson(method, path, code, body);
+    }
+
+    public void expectAndReturnAsString(String path, int code, String body) {
+      server.expectAndReturnAsString(path, code, body);
+    }
+
+    public void expectAndReturnAsString(String method, String path, int code, String body) {
+      server.expectAndReturnAsString(method, path, code, body);
+    }
+
+    public KubernetesMockServer getKubernetesMockServer() {
+      return server.getKubernetesMockServer();
+    }
+
+    public RecordedRequest getLastRequest() throws InterruptedException {
+      return server.getLastRequest();
+    }
+
+    public boolean equals(Object obj) {
+      return server.equals(obj);
+    }
+
+    public String toString() {
+      return server.toString();
+    }
+  }
+
+  static class KubernetesClientInvocationHandler implements InvocationHandler {
+
+    final NamespacedKubernetesClient client;
+
+    KubernetesClientInvocationHandler(NamespacedKubernetesClient client) {
+      this.client = client;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      if ("close".equals(method.getName())) {
+        return null;
+      }
+      try {
+        return method.invoke(client, args);
+      } catch (Exception ex) {
+        if (ex.getCause() != null) {
+          throw ex.getCause();
+        } else {
+          throw ex;
+        }
+      }
+    }
   }
 }

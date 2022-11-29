@@ -18,7 +18,6 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.InternetDomainName;
@@ -29,15 +28,10 @@ import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.client.internal.SerializationUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.tuple.Tuple;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ResourceUtil {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
 
   private static final int DNS_SUBDOMAIN_NAME_MAX_LENGTH = 253;
   private static final int DNS_LABEL_MAX_LENGTH = 63;
@@ -159,22 +153,6 @@ public class ResourceUtil {
 
   public static String getNameWithHashPattern(@NotNull String name) {
     return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
-  }
-
-  /**
-   * Log in debug the YAML of kubernetes resources passed as argument.
-   *
-   * @param resource KubernetesResource that has metadata
-   */
-  public static void logAsYaml(HasMetadata resource) {
-    try {
-      if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("{}: {}", resource.getClass().getSimpleName(),
-            SerializationUtils.dumpWithoutRuntimeStateAsYaml(resource));
-      }
-    } catch (JsonProcessingException e) {
-      LOGGER.debug("Error dump as Yaml:", e);
-    }
   }
 
   /**

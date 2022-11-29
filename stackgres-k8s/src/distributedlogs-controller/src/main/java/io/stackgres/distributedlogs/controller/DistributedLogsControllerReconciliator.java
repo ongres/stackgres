@@ -62,7 +62,7 @@ public class DistributedLogsControllerReconciliator
 
   public DistributedLogsControllerReconciliator() {
     super();
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.postgresBootstrapReconciliator = null;
     this.extensionReconciliator = null;
     this.clusterReconciliator = null;

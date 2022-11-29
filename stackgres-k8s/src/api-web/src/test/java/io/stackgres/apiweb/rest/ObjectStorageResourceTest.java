@@ -108,7 +108,6 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
             (Answer<StackGresObjectStorage>) invocationOnMock -> invocationOnMock
                 .getArgument(0, StackGresObjectStorage.class)
         );
-    objectStorageTuple.target().getMetadata().setNamespace(null);
     objectStorageTuple.target().getSpec().getS3().getCredentials()
         .setAccessKey(StringUtils.getRandomString());
     objectStorageTuple.target().getSpec().getS3().getCredentials()

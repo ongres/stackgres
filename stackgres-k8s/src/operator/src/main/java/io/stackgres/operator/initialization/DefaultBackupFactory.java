@@ -7,8 +7,12 @@ package io.stackgres.operator.initialization;
 
 import java.util.Properties;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
@@ -18,6 +22,17 @@ public class DefaultBackupFactory extends AbstractCustomResourceFactory<StackGre
 
   public static final String BACKUP_DEFAULT_VALUES = "/backup-default-values.properties";
   public static final String NAME = "defaultbackupconfig";
+
+  @Inject
+  public DefaultBackupFactory(StackGresPropertyContext<OperatorProperty> context) {
+    super(context);
+  }
+
+  @PostConstruct
+  @Override
+  public void init() {
+    super.init();
+  }
 
   @Override
   StackGresBackupConfig buildResource(String namespace) {

@@ -18,7 +18,6 @@ import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.apiweb.dto.script.ScriptStatus;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptFrom;
@@ -34,11 +33,6 @@ public class ScriptTransformer
   public ScriptTransformer(ObjectMapper mapper) {
     super();
     this.mapper = mapper;
-  }
-
-  public ScriptTransformer() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.mapper = null;
   }
 
   @Override

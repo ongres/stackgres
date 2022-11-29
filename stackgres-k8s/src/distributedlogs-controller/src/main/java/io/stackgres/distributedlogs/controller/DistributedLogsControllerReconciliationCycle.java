@@ -83,7 +83,7 @@ public class DistributedLogsControllerReconciliationCycle
 
   public DistributedLogsControllerReconciliationCycle() {
     super(null, null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.propertyContext = null;
     this.eventController = null;
     this.labelFactory = null;

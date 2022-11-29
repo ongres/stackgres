@@ -284,6 +284,7 @@ public class PairComparatorTest {
     leftMeta.getMetadata().setLabels(Maps.newHashMap(ImmutableMap.of()));
     ConfigMap rightMeta = new ConfigMap();
     rightMeta.setMetadata(new ObjectMeta());
+    rightMeta.getMetadata().setLabels(null);
     Assertions.assertFalse(ResourcePairVisitor.equals(leftMeta, rightMeta));
   }
 

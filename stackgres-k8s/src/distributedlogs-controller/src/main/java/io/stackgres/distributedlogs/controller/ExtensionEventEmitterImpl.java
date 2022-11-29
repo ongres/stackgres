@@ -14,7 +14,6 @@ import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.event.EventEmitter;
-import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.extension.ExtensionEventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.distributedlogs.common.ExtensionEventReason;
@@ -38,7 +37,6 @@ public class ExtensionEventEmitterImpl implements ExtensionEventEmitter {
   @Inject
   public ExtensionEventEmitterImpl(
       CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder,
-      @EventEmitterType(StackGresDistributedLogs.class)
       EventEmitter<StackGresDistributedLogs> eventEmitter) {
     this.distributedLogsFinder = distributedLogsFinder;
     this.eventEmitter = eventEmitter;

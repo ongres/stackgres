@@ -12,7 +12,6 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.event.EventEmitter;
-import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.AbstractResourceWatcherFactory;
 
@@ -29,8 +28,7 @@ public class ResourceWatcherFactory extends AbstractResourceWatcherFactory {
   @Inject
   public ResourceWatcherFactory(
       ResourceFinder<Service> serviceFinder,
-      @EventEmitterType(Service.class)
-          EventEmitter<Service> eventEmitter) {
+      EventEmitter<Service> eventEmitter) {
     super();
     this.serviceFinder = serviceFinder;
     this.eventEmitter = eventEmitter;

@@ -20,11 +20,13 @@ public class DbOpsScheduler
 
   @Override
   public StackGresDbOps update(StackGresDbOps resource) {
+    if (resource.getMetadata().getResourceVersion() == null) {
+      return super.update(resource);
+    }
     return client.resources(StackGresDbOps.class, StackGresDbOpsList.class)
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
+        .resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace(resource);
+        .replace();
   }
 
 }

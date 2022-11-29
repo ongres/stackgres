@@ -10,7 +10,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import io.fabric8.kubernetes.client.CustomResourceList;
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
@@ -26,7 +26,7 @@ class DistributedLogsResourceTest
     DistributedLogsResource, NamespacedDistributedLogsResource> {
 
   @Override
-  protected CustomResourceList<StackGresDistributedLogs> getCustomResourceList() {
+  protected DefaultKubernetesResourceList<StackGresDistributedLogs> getCustomResourceList() {
     return Fixtures.distributedLogsList().loadDefault().get();
   }
 

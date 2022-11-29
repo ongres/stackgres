@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 
@@ -23,11 +22,6 @@ public class DistributedLogsFinder
   @Inject
   public DistributedLogsFinder(KubernetesClient client) {
     super(client, StackGresDistributedLogs.class, StackGresDistributedLogsList.class);
-  }
-
-  public DistributedLogsFinder() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

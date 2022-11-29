@@ -7,7 +7,7 @@ package io.stackgres.common.crd.sgpgconfig;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.fabric8.kubernetes.client.CustomResourceList;
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.sundr.builder.annotations.Buildable;
 
@@ -15,7 +15,8 @@ import io.sundr.builder.annotations.Buildable;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
-public final class StackGresPostgresConfigList extends CustomResourceList<StackGresPostgresConfig> {
+public final class StackGresPostgresConfigList
+    extends DefaultKubernetesResourceList<StackGresPostgresConfig> {
 
   private static final long serialVersionUID = 1L;
 

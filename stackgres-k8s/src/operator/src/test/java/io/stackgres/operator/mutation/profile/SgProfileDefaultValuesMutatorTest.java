@@ -6,11 +6,13 @@
 package io.stackgres.operator.mutation.profile;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +23,9 @@ class SgProfileDefaultValuesMutatorTest
     extends DefaultValuesMutatorTest<StackGresProfile, SgProfileReview> {
 
   @Override
-  protected DefaultValuesMutator<StackGresProfile, SgProfileReview> getMutatorInstance() {
-    return new SgProfileDefaultValuesMutator();
+  protected DefaultValuesMutator<StackGresProfile, SgProfileReview> getMutatorInstance(
+      DefaultCustomResourceFactory<StackGresProfile> factory, JsonMapper jsonMapper) {
+    return new SgProfileDefaultValuesMutator(factory, jsonMapper);
   }
 
   @Override

@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsList;
 
@@ -23,11 +22,6 @@ public class DbOpsFinder
   @Inject
   public DbOpsFinder(KubernetesClient client) {
     super(client, StackGresDbOps.class, StackGresDbOpsList.class);
-  }
-
-  public DbOpsFinder() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

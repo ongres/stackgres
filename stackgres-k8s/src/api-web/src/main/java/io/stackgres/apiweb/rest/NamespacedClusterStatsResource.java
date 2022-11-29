@@ -15,7 +15,6 @@ import javax.ws.rs.PathParam;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,11 +32,6 @@ public class NamespacedClusterStatsResource {
   public NamespacedClusterStatsResource(
       CustomResourceFinder<ClusterStatsDto> clusterResourceStatsFinder) {
     this.clusterResourceStatsFinder = clusterResourceStatsFinder;
-  }
-
-  public NamespacedClusterStatsResource() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.clusterResourceStatsFinder = null;
   }
 
   /**

@@ -10,7 +10,6 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 
 @ApplicationScoped
-@EventEmitterType(StackGresDistributedLogs.class)
 public class DistributedLogsEventEmitter extends AbstractEventEmitter<StackGresDistributedLogs> {
 
 }

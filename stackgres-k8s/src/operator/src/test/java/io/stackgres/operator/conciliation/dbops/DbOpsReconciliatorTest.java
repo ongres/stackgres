@@ -46,9 +46,9 @@ class DbOpsReconciliatorTest {
 
   private final StackGresDbOps dbOps = Fixtures.dbOps().loadRestart().get();
   @Mock
-  CustomResourceScanner<StackGresDbOps> dbOpsScanner;
+  CustomResourceScanner<StackGresDbOps> scanner;
   @Mock
-  Conciliator<StackGresDbOps> dbOpsConciliator;
+  Conciliator<StackGresDbOps> conciliator;
   @Mock
   HandlerDelegator<StackGresDbOps> handlerDelegator;
   @Mock
@@ -64,19 +64,20 @@ class DbOpsReconciliatorTest {
 
   @BeforeEach
   void setUp() {
-    reconciliator = new DbOpsReconciliator();
-    reconciliator.setScanner(dbOpsScanner);
-    reconciliator.setConciliator(dbOpsConciliator);
-    reconciliator.setHandlerDelegator(handlerDelegator);
-    reconciliator.setEventController(eventController);
-    reconciliator.setStatusManager(statusManager);
-    reconciliator.setDbOpsScheduler(dbOpsScheduler);
-    reconciliator.setResourceComparator(resourceComparator);
+    DbOpsReconciliator.Parameters parameters = new DbOpsReconciliator.Parameters();
+    parameters.scanner = scanner;
+    parameters.conciliator = conciliator;
+    parameters.handlerDelegator = handlerDelegator;
+    parameters.eventController = eventController;
+    parameters.statusManager = statusManager;
+    parameters.dbOpsScheduler = dbOpsScheduler;
+    parameters.resourceComparator = resourceComparator;
+    reconciliator = new DbOpsReconciliator(parameters);
   }
 
   @Test
   void allCreations_shouldBePerformed() {
-    when(dbOpsScanner.getResources()).thenReturn(Collections.singletonList(dbOps));
+    when(scanner.getResources()).thenReturn(Collections.singletonList(dbOps));
 
     final List<HasMetadata> creations = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
@@ -84,7 +85,7 @@ class DbOpsReconciliatorTest {
     creations.forEach(resource -> when(handlerDelegator.create(dbOps, resource))
         .thenReturn(resource));
 
-    when(dbOpsConciliator.evalReconciliationState(dbOps))
+    when(conciliator.evalReconciliationState(dbOps))
         .thenReturn(new ReconciliationResult(
             creations,
             Collections.emptyList(),
@@ -92,14 +93,14 @@ class DbOpsReconciliatorTest {
 
     reconciliator.reconciliationCycle();
 
-    verify(dbOpsScanner).getResources();
-    verify(dbOpsConciliator).evalReconciliationState(dbOps);
+    verify(scanner).getResources();
+    verify(conciliator).evalReconciliationState(dbOps);
     creations.forEach(resource -> verify(handlerDelegator).create(dbOps, resource));
   }
 
   @Test
   void allPatches_shouldBePerformed() {
-    when(dbOpsScanner.getResources()).thenReturn(Collections.singletonList(dbOps));
+    when(scanner.getResources()).thenReturn(Collections.singletonList(dbOps));
 
     final List<Tuple2<HasMetadata, HasMetadata>> patches = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test")
@@ -109,7 +110,7 @@ class DbOpsReconciliatorTest {
     patches.forEach(resource -> when(handlerDelegator.patch(dbOps, resource.v1, resource.v2))
         .thenReturn(resource.v1));
 
-    when(dbOpsConciliator.evalReconciliationState(dbOps))
+    when(conciliator.evalReconciliationState(dbOps))
         .thenReturn(new ReconciliationResult(
             Collections.emptyList(),
             patches,
@@ -117,21 +118,21 @@ class DbOpsReconciliatorTest {
 
     reconciliator.reconciliationCycle();
 
-    verify(dbOpsScanner).getResources();
-    verify(dbOpsConciliator).evalReconciliationState(dbOps);
+    verify(scanner).getResources();
+    verify(conciliator).evalReconciliationState(dbOps);
     patches.forEach(resource -> verify(handlerDelegator).patch(dbOps, resource.v1, resource.v2));
   }
 
   @Test
   void allDeletions_shouldBePerformed() {
-    when(dbOpsScanner.getResources()).thenReturn(Collections.singletonList(dbOps));
+    when(scanner.getResources()).thenReturn(Collections.singletonList(dbOps));
 
     final List<HasMetadata> deletions = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
 
     deletions.forEach(resource -> doNothing().when(handlerDelegator).delete(dbOps, resource));
 
-    when(dbOpsConciliator.evalReconciliationState(dbOps))
+    when(conciliator.evalReconciliationState(dbOps))
         .thenReturn(new ReconciliationResult(
             Collections.emptyList(),
             Collections.emptyList(),
@@ -139,8 +140,8 @@ class DbOpsReconciliatorTest {
 
     reconciliator.reconciliationCycle();
 
-    verify(dbOpsScanner).getResources();
-    verify(dbOpsConciliator).evalReconciliationState(dbOps);
+    verify(scanner).getResources();
+    verify(conciliator).evalReconciliationState(dbOps);
     deletions.forEach(resource -> verify(handlerDelegator).delete(dbOps, resource));
   }
 
@@ -151,9 +152,9 @@ class DbOpsReconciliatorTest {
     int concurrentExecutions = new Random().nextInt(2) + 2;
 
     doAnswer(new AnswersWithDelay(delay, new Returns(Collections.singletonList(dbOps))))
-        .when(dbOpsScanner).getResources();
+        .when(scanner).getResources();
 
-    when(dbOpsConciliator.evalReconciliationState(dbOps))
+    when(conciliator.evalReconciliationState(dbOps))
         .thenReturn(new ReconciliationResult(
             Collections.emptyList(),
             Collections.emptyList(),
@@ -173,8 +174,8 @@ class DbOpsReconciliatorTest {
             end - start,
             greaterThanOrEqualTo(delay * concurrentExecutions));
 
-    verify(dbOpsScanner, times(concurrentExecutions)).getResources();
-    verify(dbOpsConciliator, times(concurrentExecutions)).evalReconciliationState(dbOps);
+    verify(scanner, times(concurrentExecutions)).getResources();
+    verify(conciliator, times(concurrentExecutions)).evalReconciliationState(dbOps);
 
   }
 }

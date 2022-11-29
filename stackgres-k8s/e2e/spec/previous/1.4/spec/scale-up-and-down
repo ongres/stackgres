@@ -288,7 +288,7 @@ check_cluster_pod_count() {
   local EXPECTED_INSTANCES="$1"
   local ACTUAL_INSTANCES
   ACTUAL_INSTANCES="$(get_all_cluster_pod_count)"
-  if [ "$ACTUAL_INSTANCES" -eq "$EXPECTED_INSTANCES" ]
+  if [ "$ACTUAL_INSTANCES" = "$EXPECTED_INSTANCES" ]
   then
     echo "SUCCESS. The number of instances returned by stackgres/sgclusters is $EXPECTED_INSTANCES"
   else
@@ -297,7 +297,7 @@ check_cluster_pod_count() {
   fi
 
   ACTUAL_INSTANCES="$(get_cluster_pod_count)"
-  if [ "$ACTUAL_INSTANCES" -eq "$EXPECTED_INSTANCES" ]
+  if [ "$ACTUAL_INSTANCES" = "$EXPECTED_INSTANCES" ]
   then
     echo "SUCCESS. The number of instances returned by stackgres/<namespace>/sgcluster/<name> is $EXPECTED_INSTANCES"
   else
@@ -306,7 +306,7 @@ check_cluster_pod_count() {
   fi
 
   ACTUAL_INSTANCES="$(get_cluster_stats_pod_count)"
-  if [ "$ACTUAL_INSTANCES" -eq "$EXPECTED_INSTANCES" ]
+  if [ "$ACTUAL_INSTANCES" = "$EXPECTED_INSTANCES" ]
   then
     echo "SUCCESS. The number of instances returned by stackgres/<namespace>/sgcluster/<name>/stats is $EXPECTED_INSTANCES"
   else

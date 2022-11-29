@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -24,7 +23,6 @@ import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.internal.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,22 +119,6 @@ public interface ResourceUtil {
       String crdName) {
     return Optional.ofNullable(client.apiextensions().v1().customResourceDefinitions()
         .withName(crdName).get());
-  }
-
-  /**
-   * Log in debug the YAML of kubernetes resources passed as argument.
-   *
-   * @param resource KubernetesResource that has metadata
-   */
-  static void logAsYaml(HasMetadata resource) {
-    if (LOGGER.isDebugEnabled()) {
-      try {
-        LOGGER.debug("{}: {}", resource.getClass().getSimpleName(),
-            SerializationUtils.dumpWithoutRuntimeStateAsYaml(resource));
-      } catch (JsonProcessingException e) {
-        LOGGER.debug("Error dump as Yaml:", e);
-      }
-    }
   }
 
   /**

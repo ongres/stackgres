@@ -10,7 +10,6 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 @ApplicationScoped
-@EventEmitterType(StackGresCluster.class)
 public class ClusterEventEmitter extends AbstractEventEmitter<StackGresCluster> {
 
 }

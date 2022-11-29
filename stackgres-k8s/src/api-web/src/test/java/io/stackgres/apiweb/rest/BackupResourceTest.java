@@ -11,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import io.fabric8.kubernetes.client.CustomResourceList;
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.stackgres.apiweb.dto.backup.BackupDto;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
@@ -28,7 +28,7 @@ class BackupResourceTest extends AbstractCustomResourceTest
       <BackupDto, StackGresBackup, BackupResource, NamespacedBackupResource> {
 
   @Override
-  protected CustomResourceList<StackGresBackup> getCustomResourceList() {
+  protected DefaultKubernetesResourceList<StackGresBackup> getCustomResourceList() {
     return Fixtures.backupList().loadDefault().withJustFirstElement().get();
   }
 

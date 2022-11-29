@@ -10,7 +10,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.client.CustomResourceList;
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
@@ -27,7 +27,7 @@ class PostgresConfigResourceTest extends AbstractDependencyCustomResourceTest
       PostgresConfigResource, NamespacedPostgresConfigResource> {
 
   @Override
-  protected CustomResourceList<StackGresPostgresConfig> getCustomResourceList() {
+  protected DefaultKubernetesResourceList<StackGresPostgresConfig> getCustomResourceList() {
     return Fixtures.postgresConfigList().loadDefault().get();
   }
 

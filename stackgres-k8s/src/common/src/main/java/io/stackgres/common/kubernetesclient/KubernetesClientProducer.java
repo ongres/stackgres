@@ -14,7 +14,7 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.StackGresKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,28 +23,35 @@ public class KubernetesClientProducer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KubernetesClientProducer.class);
 
-  private final StackGresKubernetesClient targetKubernetesClient =
-      new StackGresDefaultKubernetesClient();
-
-  private final KubernetesClientInvocationHandler invocationHandler =
-      new KubernetesClientInvocationHandler(targetKubernetesClient);
-
-  private final StackGresKubernetesClient proxyClient = (StackGresKubernetesClient) Proxy
-      .newProxyInstance(KubernetesClientProducer.class.getClassLoader(),
-          new Class[] {StackGresKubernetesClient.class},
-          invocationHandler);
+  private volatile KubernetesClient client;
+  private volatile KubernetesClient proxyClient;
 
   @Produces
   public KubernetesClient create() {
-    LOGGER.debug("Returning proxy instance of StackGresKubernetesClient");
+    LOGGER.trace("Returning proxy instance of Kubernetes Client");
+    if (proxyClient == null) {
+      createClient();
+    }
     return proxyClient;
+  }
+
+  private synchronized void createClient() {
+    if (proxyClient == null) {
+      LOGGER.info("Creating proxy instance of Kubernetes client");
+      client = new KubernetesClientBuilder().build();
+
+      proxyClient = (KubernetesClient) Proxy
+          .newProxyInstance(KubernetesClientProducer.class.getClassLoader(),
+              new Class[] { KubernetesClient.class },
+              new KubernetesClientInvocationHandler(client));
+    }
   }
 
   @PreDestroy
   public void preDestroy() {
-    LOGGER.info("Closing instance of StackGresKubernetesClient");
+    LOGGER.info("Closing Kubernetes client");
     try {
-      targetKubernetesClient.close();
+      client.close();
     } catch (Exception ex) {
       LOGGER.warn("Can not close Kubernetes client", ex);
     }
@@ -52,20 +59,20 @@ public class KubernetesClientProducer {
 
   private static class KubernetesClientInvocationHandler implements InvocationHandler {
 
-    private final StackGresKubernetesClient kubernetesClient;
+    private final KubernetesClient client;
 
-    public KubernetesClientInvocationHandler(StackGresKubernetesClient kubernetesClient) {
-      this.kubernetesClient = kubernetesClient;
+    public KubernetesClientInvocationHandler(KubernetesClient client) {
+      this.client = client;
     }
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       if ("close".equals(method.getName())) {
-        LOGGER.warn("Ignoring close call of KuberneteClient instance.");
+        LOGGER.trace("Ignoring close call of KuberneteClient instance.");
         return null;
       }
       try {
-        return method.invoke(kubernetesClient, args);
+        return method.invoke(client, args);
       } catch (Exception ex) {
         if (ex.getCause() != null) {
           throw ex.getCause();

@@ -13,7 +13,6 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.ScalableResource;
-import io.stackgres.common.CdiUtil;
 
 @ApplicationScoped
 public class JobWriter extends AbstractResourceWriter<Job, JobList, ScalableResource<Job>> {
@@ -21,11 +20,6 @@ public class JobWriter extends AbstractResourceWriter<Job, JobList, ScalableReso
   @Inject
   public JobWriter(KubernetesClient client) {
     super(client);
-  }
-
-  public JobWriter() {
-    super(null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

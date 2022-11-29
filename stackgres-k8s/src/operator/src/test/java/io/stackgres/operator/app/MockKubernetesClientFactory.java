@@ -20,8 +20,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.quarkus.test.Mock;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.operator.AbstractStackGresOperatorIt;
@@ -65,12 +65,14 @@ public class MockKubernetesClientFactory {
         updateToken();
       }
       String[] auth = this.auth.get();
-      return new DefaultKubernetesClient(
-          new ConfigBuilder()
+      return new KubernetesClientBuilder()
+          .withConfig(
+              new ConfigBuilder()
               .withNamespace(OperatorProperty.OPERATOR_NAMESPACE.getString())
               .withCaCertData(auth[0])
               .withOauthToken(auth[1])
-              .build());
+              .build())
+          .build();
     }
     return serverSupplier.get().getClient();
   }

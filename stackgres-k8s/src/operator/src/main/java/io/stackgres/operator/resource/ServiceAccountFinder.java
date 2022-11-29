@@ -34,26 +34,30 @@ public class ServiceAccountFinder implements ResourceFinder<ServiceAccount>,
 
   @Override
   public Optional<ServiceAccount> findByNameAndNamespace(String name, String namespace) {
-    return Optional.ofNullable(client.serviceAccounts().inNamespace(namespace)
-        .withName(name).get());
+    return Optional.ofNullable(client.serviceAccounts()
+        .inNamespace(namespace)
+        .withName(name)
+        .get());
   }
 
   @Override
   public ServiceAccount create(@NotNull ServiceAccount resource) {
-    return client.serviceAccounts().inNamespace(resource.getMetadata().getNamespace())
-        .create(resource);
+    return client.serviceAccounts()
+        .resource(resource)
+        .create();
   }
 
   @Override
   public ServiceAccount update(@NotNull ServiceAccount resource) {
-    return client.serviceAccounts().inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
+    return client.serviceAccounts()
+        .resource(resource)
         .patch(resource);
   }
 
   @Override
   public void delete(@NotNull ServiceAccount resource) {
-    client.serviceAccounts().inNamespace(resource.getMetadata().getNamespace())
-        .delete(resource);
+    client.serviceAccounts()
+        .resource(resource)
+        .delete();
   }
 }

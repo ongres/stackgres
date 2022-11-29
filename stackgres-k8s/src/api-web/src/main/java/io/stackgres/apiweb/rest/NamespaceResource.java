@@ -15,7 +15,6 @@ import javax.ws.rs.Path;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.resource.ResourceScanner;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -34,11 +33,6 @@ public class NamespaceResource {
   public NamespaceResource(ResourceScanner<Namespace> namespaceScanner) {
     super();
     this.namespaceScanner = namespaceScanner;
-  }
-
-  public NamespaceResource() {
-    this.namespaceScanner = null;
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Operation(

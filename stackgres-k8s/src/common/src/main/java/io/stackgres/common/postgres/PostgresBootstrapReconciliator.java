@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
@@ -30,9 +31,14 @@ public abstract class PostgresBootstrapReconciliator {
   protected PostgresBootstrapReconciliator(
       ResourceFinder<Endpoints> endpointsFinder,
       String podName) {
-    super();
     this.endpointsFinder = endpointsFinder;
     this.podName = podName;
+  }
+
+  public PostgresBootstrapReconciliator() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.endpointsFinder = null;
+    this.podName = null;
   }
 
   public ReconciliationResult<Boolean> reconcile(KubernetesClient client, ClusterContext context)
