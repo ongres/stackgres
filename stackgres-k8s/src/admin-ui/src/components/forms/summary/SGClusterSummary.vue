@@ -397,10 +397,36 @@
                         </li>
                     </ul>
 
+                    <ul class="section" v-if="hasProp(cluster, 'data.spec.replicateFrom')">
+                        <li>
+                            <strong class="sectionTitle">
+                                Replicate From
+                            </strong>
+                            <ul>
+                                <li>
+                                    <strong class="label">Source:</strong>
+                                    <span class="value">
+                                        <template v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.sgCluster')">
+                                            SGCluster
+                                        </template>
+                                    </span>
+                                </li>
+                                <li v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.sgCluster')">
+                                    <strong class="label">Cluster:</strong>
+                                    <span class="value">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.data.spec.replicateFrom.instance.sgCluster" target="_blank">
+                                            {{ cluster.data.spec.replicateFrom.instance.sgCluster }}
+                                        </router-link>
+                                    </span>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+
                     <ul class="section" v-if="( showDefaults || ( (cluster.data.spec.replication.role != 'ha-read') || (cluster.data.spec.replication.mode != 'async') || cluster.data.spec.replication.hasOwnProperty('groups') ) )">
                         <li>
                             <strong class="sectionTitle">
-                                Replication
+                                Pods Replication
                             </strong>
                             <ul>
                                 <li v-if="(showDefaults || (cluster.data.spec.replication.role != 'ha-read') )">
