@@ -490,6 +490,42 @@
                 </template>
             </fieldset>
 
+            <fieldset class="step" :class="(currentStep == 'replicate-from') && 'active'" data-fieldset="replicate-from">
+                <div class="header">
+                    <h2>Replicate From</h2>
+                </div>
+
+                <p>Use this option to initialize the cluster with the data from an existing source.</p><br/><br/>
+
+                <div class="fields">
+                    <div class="row-50">
+                        <div class="col">
+                            <label for="spec.replicateFrom">Replication Source</label>
+                            <select v-model="replicateFromSource" data-field="spec.replicateFrom.source" @change="setReplicationSource(replicateFromSource)">
+                                <option value="">No Replication</option>
+                                <option value="cluster">Cluster</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom')"></span>
+                        </div>
+
+                        <template v-if="replicateFromSource.length">
+                            <template v-if="(replicateFromSource == 'cluster')">
+                                <div class="col">
+                                    <label for="spec.replicateFrom.instance.sgCluster">Cluster</label>
+                                    <select v-model="replicateFrom.instance.sgCluster" data-field="spec.replicateFrom.instance.sgCluster">
+                                        <option value="">Select a cluster</option>
+                                        <option v-for="cluster in sgclusters" v-if="(cluster.data.metadata.namespace == $route.params.namespace)">
+                                            {{ cluster.name }}
+                                        </option>
+                                    </select>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance.sgCluster')"></span>
+                                </div>
+                            </template>
+                        </template>
+                    </div>
+                </div>
+            </fieldset>
+
             <fieldset class="step" :class="(currentStep == 'scripts') && 'active'" data-fieldset="scripts">
                 <div class="header">
                     <h2>Managed SQL</h2>
@@ -811,7 +847,7 @@
                 </div>
             </fieldset>
 
-            <fieldset class="step" :class="(currentStep == 'replication') && 'active'" data-fieldset="replication">
+            <fieldset class="step" :class="(currentStep == 'pods-replication') && 'active'" data-fieldset="pods-replication">
                 <div class="header">
                     <h2>Replication</h2>
                 </div>
@@ -1629,7 +1665,7 @@
                 previewCRD: {},
                 showSummary: false,
                 advancedMode: false,
-                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'scripts', 'sidecars', 'replication', 'services', 'metadata', 'scheduling', 'non-production'],
+                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'replicate-from', 'scripts', 'sidecars', 'pods-replication', 'services', 'metadata', 'scheduling', 'non-production'],
                 currentStep: 'cluster',
                 errorStep: [],
                 editMode: (vm.$route.name === 'EditCluster'),
@@ -1655,6 +1691,8 @@
                 distributedLogs: '',
                 retention: '',
                 prometheusAutobind: false,
+                replicateFrom: {},
+                replicateFromSource: '',
                 replication: {
                     role: 'ha-read',
                     mode: 'async',
@@ -1784,6 +1822,9 @@
             sgobjectstorages () {
                 return store.state.sgobjectstorages
             },
+            sgclusters () {
+                return store.state.sgclusters
+            },
             shortPostgresVersion () {
                 if (this.postgresVersion == 'latest')
                     return Object.keys(store.state.postgresVersions[this.flavor]).sort().reverse()[0];
@@ -1877,6 +1918,8 @@
                             };
                             vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
                             vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
+                            vm.replicateFrom = vm.hasProp(c, 'data.spec.replicateFrom') ? c.data.spec.replicateFrom : {};
+                            vm.replicateFromSource = vm.hasProp(c, 'data.spec.replicateFrom.instance.sgCluster') ? 'cluster' : '';
                             vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
                             vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
                             vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
@@ -2276,6 +2319,9 @@
                         ...( vc.hasScripts(vc.managedSql.scripts) && {
                             "managedSql": managedSql
                         } || {"managedSql": null} ),
+                        ...( vc.replicateFromSource.length && {
+                            "replicateFrom": vc.replicateFrom
+                        } || {"replicateFrom": null} ),
                         "replication": {
                             "role": this.replication.role,
                             "mode": this.replication.mode,
@@ -2879,6 +2925,20 @@
                         + ' ' + this.cronSchedule[index].month
                         + ' ' + this.cronSchedule[index].dow, false);
             },
+
+            setReplicationSource(source) {
+                const vc = this;
+
+                switch(source) {
+                    case '':
+                        vc.replicateFrom = {};
+                        break;
+                        
+                    case 'cluster':
+                        vc.replicateFrom['instance'] = { sgCluster: '' }
+                        break;                        
+                }
+            }
         
         },
 
@@ -3307,6 +3367,11 @@
 
     .cron > * {
         flex-grow: 1;
+    }
+
+    form#createCluster {
+        width: 1080px;
+        max-width: 100%;
     }
 
 </style>

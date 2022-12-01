@@ -51,6 +51,29 @@ describe('Create SGCluster', () => {
             } 
         })
 
+        // Create SGCluster dependency for spec.replicateFrom
+        cy.createCRD('sgclusters', {
+            metadata: {
+                name: 'rep-sgcluster-' + resourceName, 
+                namespace: namespace
+            },
+            spec: {
+                instances: 1, 
+                pods: {
+                    persistentVolume: {
+                        size: "128Mi"
+                    }
+                },
+                nonProductionOptions: {
+                    disableClusterPodAntiAffinity: true
+                },
+                postgres: {
+                    version: "latest",
+                    flavor: "vanilla"
+                }
+            }  
+        });
+
     });
 
     beforeEach( () => {
@@ -69,6 +92,8 @@ describe('Create SGCluster', () => {
         cy.deleteCluster(namespace, 'babelfish-' + resourceName);
 
         cy.deleteCluster(namespace, 'advanced-' + resourceName);
+
+        cy.deleteCluster(namespace, 'rep-sgcluster-' + resourceName);
 
         cy.deleteCRD('sgobjectstorages', {
             metadata: {
@@ -151,15 +176,15 @@ describe('Create SGCluster', () => {
         cy.get('form#createCluster li[data-step="extensions"]')
             .click()
 
-        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.amcheck"].enableExtension')
+        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.db_info"].enableExtension')
             .click()
-        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.autoinc"].enableExtension')
+        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.pg_repack"].enableExtension')
             .click()
-        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.bedquilt"].enableExtension')
+        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.plpgsql_check"].enableExtension')
             .click()
-        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.bloom"].enableExtension')
+        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.http"].enableExtension')
             .click()
-        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.citext"].enableExtension')
+        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.hostname"].enableExtension')
             .click()
 
         // Test managed backups configuration
@@ -234,6 +259,16 @@ describe('Create SGCluster', () => {
             .clear()
             .type('2')
 
+        // Test replicate from 
+        cy.get('form#createCluster li[data-step="replicate-from"]')
+        .click()
+
+        cy.get('select[data-field="spec.replicateFrom.source"]') 
+            .select('cluster')
+
+        cy.get('select[data-field="spec.replicateFrom.instance.sgCluster"]') 
+            .select('rep-sgcluster-' + resourceName)
+
         // Test scripts
         cy.get('form#createCluster li[data-step="scripts"]')
             .click()
@@ -262,7 +297,7 @@ describe('Create SGCluster', () => {
             .click()
 
         // Test Replication
-        cy.get('form#createCluster li[data-step="replication"]')
+        cy.get('form#createCluster li[data-step="pods-replication"]')
             .click()
         
         cy.get('select[data-field="spec.replication.role"]')
@@ -438,11 +473,11 @@ describe('Create SGCluster', () => {
             .its('request.body.spec.postgres.extensions')
             .should('have.lengthOf', 5)
             .then((list) => Cypress._.map(list, 'name'))
-            .should('include', "amcheck")
-            .and('include', "autoinc")
-            .and('include', "bedquilt")
-            .and('include', "bloom")
-            .and('include', "citext")
+            .should('include', "db_info")
+            .and('include', "pg_repack")
+            .and('include', "plpgsql_check")
+            .and('include', "http")
+            .and('include', "hostname")
         cy.get('@postCluster')
             .its('request.body.spec.configurations.backups')
             .its(0)
@@ -539,16 +574,16 @@ describe('Create SGCluster', () => {
         cy.get('form#createCluster li[data-step="extensions"]')
             .click()
 
-        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.amcheck"].enableExtension')
+        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.db_info"].enableExtension')
             .should('be.enabled')
             .click()
-        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.autoinc"].enableExtension')
+        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.pg_repack"].enableExtension')
             .should('be.enabled')
-        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.bedquilt"].enableExtension')
+        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.plpgsql_check"].enableExtension')
             .should('be.enabled')
-        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.bloom"].enableExtension')
+        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.http"].enableExtension')
             .should('be.enabled')
-        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.citext"].enableExtension')
+        cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.hostname"].enableExtension')
             .should('be.enabled')
 
         // Test managed backups configuration
@@ -674,7 +709,7 @@ describe('Create SGCluster', () => {
             .click()
 
         // Test Replication
-        cy.get('form#createCluster li[data-step="replication"]')
+        cy.get('form#createCluster li[data-step="pods-replication"]')
             .click()
         
         cy.get('select[data-field="spec.replication.role"]')
@@ -977,10 +1012,10 @@ describe('Create SGCluster', () => {
             .its('request.body.spec.postgres.extensions')
             .should('have.lengthOf', 4)
             .then((list) => Cypress._.map(list, 'name'))
-            .should('include', "autoinc")
-            .and('include', "bedquilt")
-            .and('include', "bloom")
-            .and('include', "citext")
+            .should('include', "pg_repack")
+            .and('include', "plpgsql_check")
+            .and('include', "http")
+            .and('include', "hostname")
         cy.get('@putCluster')
             .its('request.body.spec.configurations.backups')
             .its(0)
