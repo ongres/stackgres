@@ -123,7 +123,7 @@
                     </tr>
                     <template v-if="hasProp(cluster, 'data.spec.replicateFrom')">
                         <tr>
-                            <td class="label" rowspan="2">
+                            <td class="label" :rowspan="hasProp(cluster, 'data.spec.replicateFrom.instance.sgCluster') ? 2 : 15">
                                 Replicate From
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom')"></span>
                             </td>
@@ -134,6 +134,9 @@
                             <td colspan="2">
                                 <template v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.sgCluster')">
                                    SGCluster
+                                </template>
+                                <template v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.external')">
+                                   External PostgreSQL
                                 </template>
                             </td>
                         </tr>
@@ -149,6 +152,148 @@
                                 </router-link>
                             </td>
                         </tr>
+                        <template v-else-if="hasProp(cluster, 'data.spec.replicateFrom.instance.external')">
+                            <tr>
+                                <td class="label">
+                                    Host
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance.external.host')"></span>
+                                </td>
+                                <td colspan="2">
+                                   {{ cluster.data.spec.replicateFrom.instance.external.host }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
+                                    Port
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance.external.port')"></span>
+                                </td>
+                                <td colspan="2">
+                                   {{ cluster.data.spec.replicateFrom.instance.external.port }}
+                                </td>
+                            </tr>
+                        </template>
+                        <template v-if="hasProp(cluster, 'data.spec.replicateFrom.users')">
+                            <tr>
+                                <td class="label" :rowspan="4">
+                                    Superuser Credentials
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser')"></span>
+                                </td>
+                                <td class="label">
+                                    Username Secret Name
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser.username.name')"></span>
+                                </td>
+                                <td>
+                                    {{ cluster.data.spec.replicateFrom.users.superuser.username.name }} 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
+                                    Username Secret Key
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser.username.key')"></span>
+                                </td>
+                                <td>
+                                    {{ cluster.data.spec.replicateFrom.users.superuser.username.key }} 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
+                                    Password Secret Name
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser.password.name')"></span>
+                                </td>
+                                <td>
+                                    {{ cluster.data.spec.replicateFrom.users.superuser.password.name }} 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
+                                    Password Secret Key
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser.password.key')"></span>
+                                </td>
+                                <td>
+                                    {{ cluster.data.spec.replicateFrom.users.superuser.password.key }} 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label" :rowspan="4">
+                                    Replication User Credentials
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication')"></span>
+                                </td>
+                                <td class="label">
+                                    Username Secret Name
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication.username.name')"></span>
+                                </td>
+                                <td>
+                                    {{ cluster.data.spec.replicateFrom.users.replication.username.name }} 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
+                                    Username Secret Key
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication.username.key')"></span>
+                                </td>
+                                <td>
+                                    {{ cluster.data.spec.replicateFrom.users.replication.username.key }} 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
+                                    Password Secret Name
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication.password.name')"></span>
+                                </td>
+                                <td>
+                                    {{ cluster.data.spec.replicateFrom.users.replication.password.name }} 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
+                                    Password Secret Key
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication.password.key')"></span>
+                                </td>
+                                <td>
+                                    {{ cluster.data.spec.replicateFrom.users.replication.password.key }} 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label" :rowspan="4">
+                                    Authenticator User Credentials
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator')"></span>
+                                </td>
+                                <td class="label">
+                                    Username Secret Name
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator.username.name')"></span>
+                                </td>
+                                <td>
+                                    {{ cluster.data.spec.replicateFrom.users.authenticator.username.name }} 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
+                                    Username Secret Key
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator.username.key')"></span>
+                                </td>
+                                <td>
+                                    {{ cluster.data.spec.replicateFrom.users.authenticator.username.key }} 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
+                                    Password Secret Name
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator.password.name')"></span>
+                                </td>
+                                <td>
+                                    {{ cluster.data.spec.replicateFrom.users.authenticator.password.name }} 
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
+                                    Password Secret Key
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator.password.key')"></span>
+                                </td>
+                                <td>
+                                    {{ cluster.data.spec.replicateFrom.users.authenticator.password.key }} 
+                                </td>
+                            </tr>
+                        </template>
                     </template>
                     <tr>
                         <td class="label" :rowspan="( Object.keys(cluster.data.spec.replication).length + (cluster.data.spec.replication.hasOwnProperty('groups') && (cluster.data.spec.replication.groups.length - 1) ) )">

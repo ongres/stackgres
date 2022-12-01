@@ -409,6 +409,9 @@
                                         <template v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.sgCluster')">
                                             SGCluster
                                         </template>
+                                        <template v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.external')">
+                                            External PostgreSQL
+                                        </template>
                                     </span>
                                 </li>
                                 <li v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.sgCluster')">
@@ -418,6 +421,139 @@
                                             {{ cluster.data.spec.replicateFrom.instance.sgCluster }}
                                         </router-link>
                                     </span>
+                                </li>
+                                <li v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.external')">
+                                    <strong class="sectionTitle">
+                                        Instance Specs
+                                    </strong>
+                                    <ul>
+                                        <li>
+                                            <strong class="label">Host:</strong>
+                                            <span class="value">{{ cluster.data.spec.replicateFrom.instance.external.host }}</span>
+                                        </li>
+                                        <li>
+                                            <strong class="label">Port:</strong>
+                                            <span class="value">{{ cluster.data.spec.replicateFrom.instance.external.port }}</span>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li v-if="hasProp(cluster, 'data.spec.replicateFrom.users')">
+                                    <strong class="sectionTitle">
+                                        Users Credentials
+                                    </strong>
+                                    <ul>
+                                        <li>
+                                            <strong class="sectionTitle">
+                                                Superuser
+                                            </strong>
+                                            <ul>
+                                                <li>
+                                                    <strong class="sectionTitle">
+                                                        Username
+                                                    </strong>
+                                                    <ul>
+                                                        <li>
+                                                            <strong class="label">Secret Name:</strong>
+                                                            <span class="value">{{ cluster.data.spec.replicateFrom.users.superuser.username.name }}</span>
+                                                        </li>
+                                                        <li>
+                                                            <strong class="label">Secret Key:</strong>
+                                                            <span class="value">{{ cluster.data.spec.replicateFrom.users.superuser.username.key }}</span>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <strong class="sectionTitle">
+                                                        Password
+                                                    </strong>
+                                                    <ul>
+                                                        <li>
+                                                            <strong class="label">Secret Name:</strong>
+                                                            <span class="value">{{ cluster.data.spec.replicateFrom.users.superuser.password.name }}</span>
+                                                        </li>
+                                                        <li>
+                                                            <strong class="label">Secret Key:</strong>
+                                                            <span class="value">{{ cluster.data.spec.replicateFrom.users.superuser.password.key }}</span>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <strong class="sectionTitle">
+                                                Replication
+                                            </strong>
+                                            <ul>
+                                                <li>
+                                                    <strong class="sectionTitle">
+                                                        Username
+                                                    </strong>
+                                                    <ul>
+                                                        <li>
+                                                            <strong class="label">Secret Name:</strong>
+                                                            <span class="value">{{ cluster.data.spec.replicateFrom.users.replication.username.name }}</span>
+                                                        </li>
+                                                        <li>
+                                                            <strong class="label">Secret Key:</strong>
+                                                            <span class="value">{{ cluster.data.spec.replicateFrom.users.replication.username.key }}</span>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <strong class="sectionTitle">
+                                                        Password
+                                                    </strong>
+                                                    <ul>
+                                                        <li>
+                                                            <strong class="label">Secret Name:</strong>
+                                                            <span class="value">{{ cluster.data.spec.replicateFrom.users.replication.password.name }}</span>
+                                                        </li>
+                                                        <li>
+                                                            <strong class="label">Secret Key:</strong>
+                                                            <span class="value">{{ cluster.data.spec.replicateFrom.users.replication.password.key }}</span>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <strong class="sectionTitle">
+                                                Authenticator
+                                            </strong>
+                                            <ul>
+                                                <li>
+                                                    <strong class="sectionTitle">
+                                                        Username
+                                                    </strong>
+                                                    <ul>
+                                                        <li>
+                                                            <strong class="label">Secret Name:</strong>
+                                                            <span class="value">{{ cluster.data.spec.replicateFrom.users.authenticator.username.name }}</span>
+                                                        </li>
+                                                        <li>
+                                                            <strong class="label">Secret Key:</strong>
+                                                            <span class="value">{{ cluster.data.spec.replicateFrom.users.authenticator.username.key }}</span>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <strong class="sectionTitle">
+                                                        Password
+                                                    </strong>
+                                                    <ul>
+                                                        <li>
+                                                            <strong class="label">Secret Name:</strong>
+                                                            <span class="value">{{ cluster.data.spec.replicateFrom.users.authenticator.password.name }}</span>
+                                                        </li>
+                                                        <li>
+                                                            <strong class="label">Secret Key:</strong>
+                                                            <span class="value">{{ cluster.data.spec.replicateFrom.users.authenticator.password.key }}</span>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
                                 </li>
                             </ul>
                         </li>
