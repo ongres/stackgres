@@ -5,14 +5,15 @@
   tags:
     - stackgres-runner-v2
   variables:
-    IMAGE_TAG_SUFFIX: ""
+    IMAGE_TAG_SUFFIX: "-release"
+    IMAGE_PUSH_TAG_SUFFIX: ""
   script:
     - |
       set -e
       [ "$DEBUG" != true ] || set -x
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       export IMAGE_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_SHORT_SHA"}$IMAGE_TAG_SUFFIX"
-      export IMAGE_PUSH_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}$IMAGE_TAG_SUFFIX"
+      export IMAGE_PUSH_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}$IMAGE_PUSH_TAG_SUFFIX"
       [ -n "$IMAGE_NAME" ]
       export IMAGE_PULL_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:$IMAGE_TAG"
       export IMAGE_PUSH_NAME="docker.io/$IMAGE_NAME:$IMAGE_PUSH_TAG"
@@ -57,91 +58,76 @@
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
 
-deploy operator jvm image:
+.deploy jvm image:
   extends: .deploy image
   variables:
-    IMAGE_TAG_SUFFIX: "-jvm"
+    IMAGE_TAG_SUFFIX: "-release-jvm"
+    IMAGE_PUSH_TAG_SUFFIX: "-jvm"
+
+deploy operator jvm image:
+  extends: .deploy jvm image
+  variables:
     IMAGE_NAME: "stackgres/operator"
 
 deploy restapi jvm image:
-  extends: .deploy image
+  extends: .deploy jvm image
   variables:
-    IMAGE_TAG_SUFFIX: "-jvm"
     IMAGE_NAME: "stackgres/restapi"
 
 deploy jobs jvm image:
-  extends: .deploy image
+  extends: .deploy jvm image
   variables:
-    IMAGE_TAG_SUFFIX: "-jvm"
     IMAGE_NAME: "stackgres/jobs"
 
 deploy cluster-controller jvm image:
-  extends: .deploy image
+  extends: .deploy jvm image
   variables:
-    IMAGE_TAG_SUFFIX: "-jvm"
     IMAGE_NAME: "stackgres/cluster-controller"
 
 deploy distributedlogs-controller jvm image:
+  extends: .deploy jvm image
+  variables:
+    IMAGE_NAME: "stackgres/distributedlogs-controller"
+
+.deploy native image:
   extends: .deploy image
   variables:
-    IMAGE_TAG_SUFFIX: "-jvm"
-    IMAGE_NAME: "stackgres/distributedlogs-controller"
+    IMAGE_TAG_SUFFIX: "-release"
+    IMAGE_PUSH_TAG_SUFFIX: ""
+  only:
+    variables:
+      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
+      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
 
 deploy operator native image:
-  extends: .deploy image
+  extends: .deploy native image
   variables:
-    IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/operator"
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
 
 deploy restapi native image:
-  extends: .deploy image
+  extends: .deploy native image
   variables:
-    IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/restapi"
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
 
 deploy job native image:
-  extends: .deploy image
+  extends: .deploy native image
   variables:
-    IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/jobs"
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-
-deploy adminui image:
-  extends: .deploy image
-  variables:
-    IMAGE_TAG_SUFFIX: ""
-    IMAGE_NAME: "stackgres/admin-ui"
 
 deploy cluster-controller native image:
-  extends: .deploy image
+  extends: .deploy native image
   variables:
-    IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/cluster-controller"
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
 
 deploy distributedlogs-controller native image:
-  extends: .deploy image
+  extends: .deploy native image
   variables:
-    IMAGE_TAG_SUFFIX: ""
     IMAGE_NAME: "stackgres/distributedlogs-controller"
-  only:
-    variables:
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+
+deploy adminui image:
+  extends: .deploy native image
+  variables:
+    IMAGE_NAME: "stackgres/admin-ui"
 
 deploy helm packages and templates:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
@@ -151,11 +137,10 @@ deploy helm packages and templates:
   script:
     - |
       set -e
-      STACKGRES_VERSION=$(grep '<artifactId>stackgres-parent</artifactId>' "stackgres-k8s/src/pom.xml" -A 2 -B 2 \
-        | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)
+      STACKGRES_VERSION="$(sh stackgres-k8s/ci/build/version.sh)"
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-      sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-packages stackgres-k8s/install/helm/target/packages
-      sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-templates stackgres-k8s/install/helm/target/templates
+      sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-release-packages stackgres-k8s/install/helm/target/packages
+      sh stackgres-k8s/ci/build/build-gitlab.sh extract helm-release-templates stackgres-k8s/install/helm/target/templates
       mkdir -p "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres"
       cp -a stackgres-k8s/install/helm/target/templates \
         "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION"

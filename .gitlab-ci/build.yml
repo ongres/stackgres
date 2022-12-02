@@ -10,18 +10,18 @@ build:
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
         --copy stackgres-k8s/ci/build/target/junit-build.hashes.xml \
         --copy .m2 \
-        --extract stackgres-operator-framework:'stackgres-k8s/src/operator-framework/target/surefire-reports/TEST-*.xml' \
-        --extract stackgres-common:'stackgres-k8s/src/common/target/surefire-reports/TEST-*.xml' \
-        --extract stackgres-operator:'stackgres-k8s/src/operator/target/surefire-reports/TEST-*.xml' \
-        --extract stackgres-restapi:'stackgres-k8s/src/api-web/target/surefire-reports/TEST-*.xml' \
-        --extract stackgres-jobs:'stackgres-k8s/src/jobs/target/surefire-reports/TEST-*.xml' \
-        --extract stackgres-cluster-controller:'stackgres-k8s/src/cluster-controller/target/surefire-reports/TEST-*.xml' \
-        --extract stackgres-distributedlogs-controller:'stackgres-k8s/src/distributedlogs-controller/target/surefire-reports/TEST-*.xml' \
-        --extract stackgres-restapi:'stackgres-k8s/src/api-web/target/swagger*' \
-        stackgres-parent stackgres-operator-framework \
-        stackgres-test-util stackgres-common \
-        stackgres-operator stackgres-restapi stackgres-jobs \
-        stackgres-cluster-controller stackgres-distributedlogs-controller
+        --extract operator-framework-java:'stackgres-k8s/src/operator-framework/target/surefire-reports/TEST-*.xml' \
+        --extract common-java:'stackgres-k8s/src/common/target/surefire-reports/TEST-*.xml' \
+        --extract operator-java:'stackgres-k8s/src/operator/target/surefire-reports/TEST-*.xml' \
+        --extract restapi-java:'stackgres-k8s/src/api-web/target/surefire-reports/TEST-*.xml' \
+        --extract jobs-java:'stackgres-k8s/src/jobs/target/surefire-reports/TEST-*.xml' \
+        --extract cluster-controller-java:'stackgres-k8s/src/cluster-controller/target/surefire-reports/TEST-*.xml' \
+        --extract distributedlogs-controller-java:'stackgres-k8s/src/distributedlogs-controller/target/surefire-reports/TEST-*.xml' \
+        --extract restapi-java:'stackgres-k8s/src/api-web/target/swagger*' \
+        parent-java operator-framework-java \
+        test-util-java common-java \
+        operator-java restapi-java jobs-java \
+        cluster-controller-java distributedlogs-controller-java
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,

@@ -74,7 +74,6 @@
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "current"
       - $SKIP_NATIVE != "true"  && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_NATIVE
 
@@ -284,7 +283,6 @@ build admin-ui image arm64:
   only:
     variables:
       - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
-      - $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME == "current"
       - $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_NATIVE
 

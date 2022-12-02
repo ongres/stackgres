@@ -1,4 +1,5 @@
 ARG BASE_IMAGE
+
 FROM "$BASE_IMAGE"
   USER root:root
   WORKDIR '/app/'
@@ -22,5 +23,10 @@ FROM "$BASE_IMAGE"
   USER jboss:jboss
   EXPOSE 8080
   EXPOSE 8443
+
+  ARG STACKGRES_VERSION
+  LABEL io.stackgres.version="$STACKGRES_VERSION"
+  ENV STACKGRES_VERSION=$STACKGRES_VERSION
+  ENV OPERATOR_VERSION=$STACKGRES_VERSION
 
   CMD '/app/stackgres-cluster-controller.sh'

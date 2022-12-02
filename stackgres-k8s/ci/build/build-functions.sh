@@ -21,13 +21,15 @@ module_image_name() {
   local MODULE="$1"
   local SOURCE_IMAGE_NAME="$2"
   local MODULE_PLATFORM="$3"
+  local MODULE_FILTERED_SOURCES
   local MODULE_SOURCES
   local MODULE_PLATFORM_DEPENDENT
   local MODULE_DOCKERFILE
   local MODULE_HASH
-  MODULE_SOURCES="$(module_list_of_files "$MODULE" sources)"
+  MODULE_SOURCES="$(module_list "$MODULE" sources)"
   MODULE_PLATFORM_DEPENDENT="$(jq -r ".modules[\"$MODULE\"].platform_dependent | . != null and ." stackgres-k8s/ci/build/target/config.json)"
   MODULE_DOCKERFILE="$(jq -r ".modules[\"$MODULE\"].dockerfile.path" stackgres-k8s/ci/build/target/config.json)"
+  MODULE_ARTIFACTS="$(module_list "$MODULE" artifacts)"
   {
     echo "${BUILDER_VERSION%.*}"
     echo "$SOURCE_IMAGE_NAME"
@@ -35,7 +37,20 @@ module_image_name() {
     if [ "$MODULE_DOCKERFILE" != null ]
     then
       path_hash "$MODULE_DOCKERFILE"
+      for MODULE_ARTIFACT in $MODULE_ARTIFACTS
+      do
+        path_hash "$MODULE_ARTIFACT" 2>/dev/null || true
+      done
     fi
+    eval "set -e; $(
+        jq -r ".modules[\"$MODULE\"].filtered_sources | if . == null then [] else . end | .[]" stackgres-k8s/ci/build/target/config.json \
+          | while read -r HASH_COMMAND
+            do
+              cat << EOF
+$HASH_COMMAND
+EOF
+              done
+      )"
     for MODULE_SOURCE in $MODULE_SOURCES
     do
       path_hash "$MODULE_SOURCE"
@@ -173,7 +188,7 @@ build_module_image() {
   fi
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
   MODULE_DOCKERFILE="$(jq -r ".modules[\"$MODULE\"].dockerfile | if . != null then .path else null end" stackgres-k8s/ci/build/target/config.json)"
-  MODULE_ARTIFACTS="$(module_list_of_files "$MODULE" artifacts)"
+  MODULE_ARTIFACTS="$(module_list "$MODULE" artifacts)"
   (
   echo '*'
   for MODULE_ARTIFACT in $MODULE_ARTIFACTS
@@ -189,7 +204,9 @@ build_module_image() {
           | map(.key + \" \" + .value + \"\")[]" stackgres-k8s/ci/build/target/config.json \
         | while read -r KEY VALUE
           do
-            printf 'ARG %s\n' "$KEY"
+            printf 'ARG %s\n' "$(eval 'cat << EOF
+$KEY
+EOF')"
           done
     eval "cat '$MODULE_DOCKERFILE'$(
         jq -r ".modules[\"$MODULE\"].dockerfile.seds[]" stackgres-k8s/ci/build/target/config.json \
@@ -227,18 +244,18 @@ EOF
         | map(.key + \" \" + .value + \"\")[]" stackgres-k8s/ci/build/target/config.json \
       | while read -r KEY VALUE
         do
-          printf '%s %s=%s' '--build-arg' "$KEY" "$(eval "printf '%s' \"$VALUE\"")"
+          printf ' %s %s=%s' '--build-arg' "$KEY" "$(eval "printf '%s' \"$VALUE\"")"
         done) \
     -f "stackgres-k8s/ci/build/target/Dockerfile.$MODULE" .
 }
 
-module_list_of_files() {
+module_list() {
   [ "$#" -ge 2 ] || false
   local MODULE="$1"
   local MODULE_FILES_PATH="$2"
   local MODULE_FILES
   MODULE_FILES="$(
-    jq -r ".modules[\"$MODULE\"][\"$MODULE_FILES_PATH\"] | if . != null then .[] else [][] end" stackgres-k8s/ci/build/target/config.json
+    jq -r ".modules[\"$MODULE\"][\"$MODULE_FILES_PATH\"] | if . != null then if (.|type) == \"array\" then . else (to_entries | map(.value)) end else [] end | sort | .[]" stackgres-k8s/ci/build/target/config.json
     )"
   printf '%s' "$MODULE_FILES"
 }

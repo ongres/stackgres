@@ -4,8 +4,7 @@ set -e
 
 cd "$(dirname "$0")"
 
-STACKGRES_VERSION=$(grep '<artifactId>stackgres-parent</artifactId>' "../../src/pom.xml" -A 2 -B 2 \
- | grep -o '<version>\([^<]\+\)</version>' | tr '<>' '  ' | cut -d ' ' -f 3)
+STACKGRES_VERSION="$(sh ../../ci/build/version.sh)"
 IMAGE_TAG="${STACKGRES_VERSION}"
 if [ "${STACKGRES_VERSION##*-}" = "SNAPSHOT" ]
 then
