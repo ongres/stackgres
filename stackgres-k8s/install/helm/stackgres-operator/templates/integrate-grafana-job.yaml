@@ -1,4 +1,5 @@
 {{- if .Values.grafana.autoEmbed }}
+{{- if .Values.qutePreprocess }}#grafana.preprocess.start{{- end}}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -125,4 +126,5 @@ spec:
             name: {{ .Release.Name }}-grafana-dashboard
             {{- end }}
       {{- end }}
+{{- if .Values.qutePreprocess }}#grafana.preprocess.end{{- end}}
 {{ end }}

@@ -96,5 +96,5 @@ sed -i 's/#grafana.preprocess.end/{\/if}/g' $OUTPUT_TEMPLATE
 sed -i 's/#comment.preprocess.start/{|/g' $OUTPUT_TEMPLATE
 sed -i 's/#comment.preprocess.end/|}/g' $OUTPUT_TEMPLATE
 
-sed -i 's/password:.*/password: {webapi-password}/g' $OUTPUT_TEMPLATE
-sed -i 's/clearPassword:.*/clearPassword: {webapi-password-clear}/g' $OUTPUT_TEMPLATE
+sed -i 's/password: \".*\"/password: {webapi-password}/g' $OUTPUT_TEMPLATE
+sed -i 's/clearPassword: \".*\"/clearPassword: {webapi-password-clear}/g' $OUTPUT_TEMPLATE
