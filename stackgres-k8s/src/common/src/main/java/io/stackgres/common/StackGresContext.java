@@ -41,7 +41,6 @@ public interface StackGresContext {
   String REST_K8SUSER_KEY = "k8sUsername";
   String REST_PASSWORD_KEY = "password";
 
-  String MANAGED_BY_SERVER_SIDE_APPLY_KEY = STACKGRES_KEY_PREFIX + "managed-by-server-side-apply";
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
   String RECONCILIATION_PAUSE_UNTIL_RESTART_KEY =

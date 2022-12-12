@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.StackGresContext;
 import org.jooq.lambda.Seq;
 
 public abstract class AbstractComparator
@@ -22,8 +21,6 @@ public abstract class AbstractComparator
 
   static final SimpleIgnorePatch MANAGED_FIELDS_IGNORE_PATCH =
       new SimpleIgnorePatch("/metadata/managedFields", "add");
-  static final AnnotationsIgnorePatch MANAGED_BY_SERVER_SIDE_APPLY_IGNORE_PATCH =
-      new AnnotationsIgnorePatch(StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY);
 
   @Override
   public ArrayNode getJsonDiff(HasMetadata required, HasMetadata deployed) {
@@ -32,7 +29,6 @@ public abstract class AbstractComparator
       JsonNode singleDiff = diff.get(index);
       JsonPatch patch = new JsonPatch(singleDiff);
       if (MANAGED_FIELDS_IGNORE_PATCH.matches(patch)
-          || MANAGED_BY_SERVER_SIDE_APPLY_IGNORE_PATCH.matches(patch)
           || Arrays.stream(getPatchPattersToIgnore())
           .anyMatch(patchPattern -> patchPattern.matches(patch))) {
         diff.remove(index);

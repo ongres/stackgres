@@ -20,13 +20,16 @@ public class ClusterScriptComparator extends AbstractComparator {
 
   private static final IgnorePatch[] IGNORE_PATTERS = {
       new AnnotationsIgnorePatch(
-          StackGresContext.MANAGED_BY_SERVER_SIDE_APPLY_KEY,
           StackGresContext.VERSION_KEY),
       new PatchPattern(Pattern
           .compile("/spec/scripts/\\d+/id"),
           "add"),
       new PatchPattern(Pattern
           .compile("/spec/scripts/\\d+/version"),
+          "add"),
+      new SimpleIgnorePatch("/spec/managedVersions",
+          "add"),
+      new SimpleIgnorePatch("/status",
           "add"),
   };
 

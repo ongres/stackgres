@@ -27,6 +27,12 @@ public class ServiceComparator extends AbstractComparator {
       new SimpleIgnorePatch("/spec/type",
           "add",
           "ClusterIP"),
+      new SimpleIgnorePatch("/spec/clusterIPs",
+          "add"),
+      new SimpleIgnorePatch("/spec/ipFamilies",
+          "add"),
+      new SimpleIgnorePatch("/spec/ipFamilyPolicy",
+          "add"),
       new SimpleIgnorePatch("/status",
           "add"),
   };

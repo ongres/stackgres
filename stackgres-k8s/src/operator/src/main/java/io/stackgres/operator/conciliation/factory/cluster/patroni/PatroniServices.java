@@ -75,10 +75,7 @@ public class PatroniServices implements
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
-    final String namespace = cluster.getMetadata().getNamespace();
-
-    final Map<String, String> labels = labelFactory.genericLabels(cluster);
-    Service config = createConfigService(namespace, configName(context), labels);
+    Service config = createConfigService(context);
     Service rest = createPatroniRestService(context);
     Seq<HasMetadata> services = Seq.of(config, rest);
 
@@ -112,13 +109,13 @@ public class PatroniServices implements
         .orElse(true);
   }
 
-  private Service createConfigService(String namespace, String serviceName,
-      Map<String, String> labels) {
+  private Service createConfigService(StackGresClusterContext context) {
+    final StackGresCluster cluster = context.getSource();
     return new ServiceBuilder()
         .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(serviceName)
-        .withLabels(labels)
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(configName(context))
+        .withLabels(labelFactory.clusterLabels(cluster))
         .endMetadata()
         .withNewSpec()
         .withClusterIP(NO_CLUSTER_IP)
