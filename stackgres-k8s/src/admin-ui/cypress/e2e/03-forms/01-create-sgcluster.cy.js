@@ -259,15 +259,54 @@ describe('Create SGCluster', () => {
             .clear()
             .type('2')
 
-        // Test replicate from 
+        // Test replicate from external instance
         cy.get('form#createCluster li[data-step="replicate-from"]')
         .click()
 
         cy.get('select[data-field="spec.replicateFrom.source"]') 
-            .select('cluster')
+            .select('external')
 
-        cy.get('select[data-field="spec.replicateFrom.instance.sgCluster"]') 
-            .select('rep-sgcluster-' + resourceName)
+        cy.get('input[data-field="spec.replicateFrom.instance.external.host"]') 
+            .type('host')
+
+        cy.get('input[data-field="spec.replicateFrom.instance.external.port"]') 
+            .type('1111')
+        
+        cy.get('input[data-field="spec.replicateFrom.users.superuser.username.name"]') 
+            .type('name')
+        
+        cy.get('input[data-field="spec.replicateFrom.users.superuser.username.key"]') 
+            .type('key')
+        
+        cy.get('input[data-field="spec.replicateFrom.users.superuser.password.name"]') 
+            .type('name')
+        
+        cy.get('input[data-field="spec.replicateFrom.users.superuser.password.key"]') 
+            .type('key')
+
+        cy.get('input[data-field="spec.replicateFrom.users.replication.username.name"]') 
+            .type('name')
+        
+        cy.get('input[data-field="spec.replicateFrom.users.replication.username.key"]') 
+            .type('key')
+        
+        cy.get('input[data-field="spec.replicateFrom.users.replication.password.name"]') 
+            .type('name')
+        
+        cy.get('input[data-field="spec.replicateFrom.users.replication.password.key"]') 
+            .type('key')
+
+        cy.get('input[data-field="spec.replicateFrom.users.authenticator.username.name"]') 
+            .type('name')
+        
+        cy.get('input[data-field="spec.replicateFrom.users.authenticator.username.key"]') 
+            .type('key')
+        
+        cy.get('input[data-field="spec.replicateFrom.users.authenticator.password.name"]') 
+            .type('name')
+        
+        cy.get('input[data-field="spec.replicateFrom.users.authenticator.password.key"]') 
+            .type('key')
 
         // Test scripts
         cy.get('form#createCluster li[data-step="scripts"]')
@@ -502,6 +541,22 @@ describe('Create SGCluster', () => {
             .its('request.body.spec.prometheusAutobind')
             .should('eq', true)
         cy.get('@postCluster')
+            .its('request.body.spec.replicateFrom')
+            .should('nested.include', {"instance.external.host": 'host'})
+            .and('nested.include', {"instance.external.port": '1111'})
+            .and('nested.include', {"users.superuser.username.name": 'name'})
+            .and('nested.include', {"users.superuser.username.key": 'key'})
+            .and('nested.include', {"users.superuser.password.name": 'name'})
+            .and('nested.include', {"users.superuser.password.key": 'key'})
+            .and('nested.include', {"users.replication.username.name": 'name'})
+            .and('nested.include', {"users.replication.username.key": 'key'})
+            .and('nested.include', {"users.replication.password.name": 'name'})
+            .and('nested.include', {"users.replication.password.key": 'key'})
+            .and('nested.include', {"users.authenticator.username.name": 'name'})
+            .and('nested.include', {"users.authenticator.username.key": 'key'})
+            .and('nested.include', {"users.authenticator.password.name": 'name'})
+            .and('nested.include', {"users.authenticator.password.key": 'key'})
+        cy.get('@postCluster')
             .its('request.body.spec.replication')
             .should('nested.include', {"role": 'ha'})
             .and('nested.include', {"mode": 'sync'})
@@ -669,6 +724,17 @@ describe('Create SGCluster', () => {
         // Performance details
         cy.get('input[data-field="spec.initialData.restore.downloadDiskConcurrency"]') 
             .should('be.disabled')
+
+        // Test replicate from external instance
+        cy.get('form#createCluster li[data-step="replicate-from"]')
+        .click()
+
+        cy.get('select[data-field="spec.replicateFrom.source"]') 
+            .should('have.value', 'external')
+            .select('cluster')
+
+        cy.get('select[data-field="spec.replicateFrom.instance.sgCluster"]')
+            .select('rep-sgcluster-' + resourceName)
 
         // Test scripts
         cy.get('form#createCluster li[data-step="scripts"]')
@@ -1032,6 +1098,9 @@ describe('Create SGCluster', () => {
             .should('nested.include', {"fromBackup.name": "ui-0"})
             .and('nested.include', {"downloadDiskConcurrency": 2})
             .and('have.nested.property', "fromBackup.pointInTimeRecovery.restoreToTimestamp")
+        cy.get('@putCluster')
+            .its('request.body.spec.replicateFrom')
+            .should('nested.include', {"instance.sgCluster": 'rep-sgcluster-' + resourceName})
         cy.get('@putCluster')
             .its('request.body.spec.managedSql')
             .should('nested.include', {"scripts[1].scriptSpec.scripts[0].script": 'test-' + resourceName})

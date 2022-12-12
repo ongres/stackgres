@@ -503,16 +503,28 @@
                             <label for="spec.replicateFrom">Replication Source</label>
                             <select v-model="replicateFromSource" data-field="spec.replicateFrom.source" @change="setReplicationSource(replicateFromSource)">
                                 <option value="">No Replication</option>
-                                <option value="cluster">Cluster</option>
+                                <option value="cluster">Local SGCluster</option>
+                                <option value="external">External PostgreSQL Instance</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom')"></span>
                         </div>
+                    </div>
 
-                        <template v-if="replicateFromSource.length">
-                            <template v-if="(replicateFromSource == 'cluster')">
+                    <template v-if="replicateFromSource.length">
+                        <template v-if="(replicateFromSource == 'cluster')">
+                            <div class="header">
+                                <h3>
+                                    SGCluster Specs
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance')"></span>
+                                </h3>
+                            </div>
+                            <div class="row-50">
                                 <div class="col">
-                                    <label for="spec.replicateFrom.instance.sgCluster">Cluster</label>
-                                    <select v-model="replicateFrom.instance.sgCluster" data-field="spec.replicateFrom.instance.sgCluster">
+                                    <label for="spec.replicateFrom.instance.sgCluster">
+                                        Cluster
+                                        <span class="req">*</span>
+                                    </label>
+                                    <select v-model="replicateFrom.instance.sgCluster" data-field="spec.replicateFrom.instance.sgCluster" required>
                                         <option value="">Select a cluster</option>
                                         <option v-for="cluster in sgclusters" v-if="(cluster.data.metadata.namespace == $route.params.namespace)">
                                             {{ cluster.name }}
@@ -520,9 +532,158 @@
                                     </select>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance.sgCluster')"></span>
                                 </div>
-                            </template>
+                            </div>
                         </template>
-                    </div>
+                        <template v-else-if="(replicateFromSource == 'external')">
+                            <div class="header">
+                                <h3>
+                                    External Instance Specs
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance.external')"></span>
+                                </h3>
+                            </div>
+                            <div class="row-50">
+                                <div class="col">
+                                    <label for="spec.replicateFrom.instance.external.host">
+                                        Host
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.instance.external.host" data-field="spec.replicateFrom.instance.external.host" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance.external.host')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.instance.external.port">
+                                        Port
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required type="number" min="0" v-model="replicateFrom.instance.external.port" data-field="spec.replicateFrom.instance.external.port" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance.external.port')"></span>
+                                </div>
+                            </div>
+
+                            <div class="header">
+                                <h3>
+                                    Superuser Credentials
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser')"></span>
+                                </h3>
+                            </div>
+                            <div class="row-50">
+                                <div class="col">
+                                    <label for="spec.replicateFrom.users.superuser.username.name">
+                                        User Secret Name
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.users.superuser.username.name" data-field="spec.replicateFrom.users.superuser.username.name" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser.username.name')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.users.superuser.username.key">
+                                        User Secret Key
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.users.superuser.username.key" data-field="spec.replicateFrom.users.superuser.username.key" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser.username.key')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.users.superuser.password.name">
+                                        Password Secret Name
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.users.superuser.password.name" data-field="spec.replicateFrom.users.superuser.password.name" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser.password.name')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.users.superuser.password.key">
+                                        Password Secret Key
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.users.superuser.password.key" data-field="spec.replicateFrom.users.superuser.password.key" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser.password.key')"></span>
+                                </div>
+                            </div>
+
+                            <div class="header">
+                                <h3>
+                                    Replication User Credentials
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication')"></span>
+                                </h3>
+                            </div>
+                            <div class="row-50">
+                                <div class="col">
+                                    <label for="spec.replicateFrom.users.replication.username.name">
+                                        User Secret Name
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.users.replication.username.name" data-field="spec.replicateFrom.users.replication.username.name" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication.username.name')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.users.replication.username.key">
+                                        User Secret Key
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.users.replication.username.key" data-field="spec.replicateFrom.users.replication.username.key" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication.username.key')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.users.replication.password.name">
+                                        Password Secret Name
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.users.replication.password.name" data-field="spec.replicateFrom.users.replication.password.name" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication.password.name')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.users.replication.password.key">
+                                        Password Secret Key
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.users.replication.password.key" data-field="spec.replicateFrom.users.replication.password.key" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication.password.key')"></span>
+                                </div>
+                            </div>
+
+                            <div class="header">
+                                <h3>
+                                    Authenticator User Credentials
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator')"></span>
+                                </h3>
+                            </div>
+                            <div class="row-50">
+                                <div class="col">
+                                    <label for="spec.replicateFrom.users.authenticator.username.name">
+                                        User Secret Name
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.users.authenticator.username.name" data-field="spec.replicateFrom.users.authenticator.username.name" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator.username.name')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.users.authenticator.username.key">
+                                        User Secret Key
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.users.authenticator.username.key" data-field="spec.replicateFrom.users.authenticator.username.key" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator.username.key')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.users.authenticator.password.name">
+                                        Password Secret Name
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.users.authenticator.password.name" data-field="spec.replicateFrom.users.authenticator.password.name" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator.password.name')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.users.authenticator.password.key">
+                                        Password Secret Key
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input required v-model="replicateFrom.users.authenticator.password.key" data-field="spec.replicateFrom.users.authenticator.password.key" autocomplete="off">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator.password.key')"></span>
+                                </div>
+                            </div>
+                        </template>
+                    </template>
                 </div>
             </fieldset>
 
@@ -1919,7 +2080,7 @@
                             vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
                             vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
                             vm.replicateFrom = vm.hasProp(c, 'data.spec.replicateFrom') ? c.data.spec.replicateFrom : {};
-                            vm.replicateFromSource = vm.hasProp(c, 'data.spec.replicateFrom.instance.sgCluster') ? 'cluster' : '';
+                            vm.replicateFromSource = vm.hasProp(c, 'data.spec.replicateFrom.instance.sgCluster') ? 'cluster' : (vm.hasProp(c, 'data.spec.replicateFrom.instance.external') && 'external');
                             vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
                             vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
                             vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
@@ -2936,7 +3097,51 @@
                         
                     case 'cluster':
                         vc.replicateFrom['instance'] = { sgCluster: '' }
-                        break;                        
+                        break;
+
+                    case 'external':
+                        vc.replicateFrom['instance'] = { external: {
+                            host: '',
+                            port: ''
+                        } }
+                        break;
+                }
+
+                if(['external', 'sgobjectstorage'].includes(source)) {
+                    vc.replicateFrom['users'] = {
+                        superuser: {
+                            username: { 
+                                name: '',
+                                key: ''
+                            },
+                            password: { 
+                                name: '',
+                                key: ''
+                            }
+                        },
+                        replication: {
+                            username: { 
+                                name: '',
+                                key: ''
+                            },
+                            password: { 
+                                name: '',
+                                key: ''
+                            }
+                        },
+                        authenticator: {
+                            username: { 
+                                name: '',
+                                key: ''
+                            },
+                            password: { 
+                                name: '',
+                                key: ''
+                            }
+                        }
+                    }
+                } else if (vc.replicateFrom.hasOwnProperty('users')) {
+                    delete vc.replicateFrom.users
                 }
             }
         
