@@ -68,12 +68,11 @@ get_current_wal_file() {
 
 check_automatic_backup() {
   local NODE="${1:-0}"
-  local CUSTOM_COLUMNS=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
 
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" --ignore-not-found
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
-  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-      -o custom-columns="$CUSTOM_COLUMNS" \
-      | tail -n +2 | grep " Running   " | wc -l)" -gt 0 ]'
+
+  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o name | wc -l)" -gt 0 ]'
   then
     echo "SUCCESS. The automatic backup CR is running"
   else
@@ -82,8 +81,8 @@ check_automatic_backup() {
   fi
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-      -o custom-columns="$CUSTOM_COLUMNS" \
-      | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
+    --template "{{ range .items }}{{ .status.process.status }} {{ .status.backupInformation.sourcePod }}{{ print \"\n\" }}{{ end }}" \
+    | grep "^Completed ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
   then
     echo "SUCCESS. The automatic backup CR has completed"
   else
@@ -96,14 +95,13 @@ check_timelines(){
   local BACKUP_LINE
   local EXPECTED_TIMELINE
   local ACTUAL_TIMELINE
-  local CUSTOM_COLUMNS=NAME:.metadata.name,PHASE:.status.process.status,WAL_FILE:.status.backupInformation.startWalFile,TIMELINE:.status.backupInformation.timeline
   BACKUP_LINE="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-    -o custom-columns="$CUSTOM_COLUMNS" \
-    | tail -n +2 | sed 's/\s\+/ /g' | grep "Completed")"
+    --template "{{ range .items }}{{ .status.process.status }} {{ .status.backupInformation.startWalFile }} {{ .status.backupInformation.timeline }}{{ print \"\n\" }}{{ end }}" \
+    | grep "^Completed " | tail -n 1)"
 
-  EXPECTED_TIMELINE="$(echo "$BACKUP_LINE" | cut -d ' ' -f 3)"
+  EXPECTED_TIMELINE="$(echo "$BACKUP_LINE" | cut -d ' ' -f 2)"
   EXPECTED_TIMELINE="$(printf "%d" 0x$(expr substr "$EXPECTED_TIMELINE" 1 8))"
-  ACTUAL_TIMELINE="$(echo "$BACKUP_LINE" | cut -d ' ' -f 4)"
+  ACTUAL_TIMELINE="$(echo "$BACKUP_LINE" | cut -d ' ' -f 3)"
 
   if [ "$EXPECTED_TIMELINE" != "$ACTUAL_TIMELINE" ]
   then
@@ -115,28 +113,26 @@ check_timelines(){
 }
 
 check_control_data(){
-  local CUSTOM_COLUMNS=NAME:.metadata.name,PHASE:.status.process.status
-
   local EXPECTED_CONTROL_DATA_LENGTH
   EXPECTED_CONTROL_DATA_LENGTH="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni \
     -- bash -c 'pg_controldata --pgdata=$PG_DATA_PATH' | wc -l)"
-  kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o custom-columns="$CUSTOM_COLUMNS" \
-    | tail -n +2 | grep "Completed" | awk '{print $1}' | while read BACKUP_NAME
-    do
-      local ACTUAL_CONTROL_DATA_LENGTH
-      ACTUAL_CONTROL_DATA_LENGTH="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json \
-        | jq '.status.backupInformation.controlData | length')"
+  kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
+    --template '{{ range .items }}{{ .metadata.name }} {{ .status.process.status }}{{ print \"\n\" }}{{ end }}' \
+    | grep " Completed$" \
+    | while read BACKUP_NAME STATUS
+      do
+        local ACTUAL_CONTROL_DATA_LENGTH
+        ACTUAL_CONTROL_DATA_LENGTH="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json \
+          | jq '.status.backupInformation.controlData | length')"
 
-      if [ "$EXPECTED_CONTROL_DATA_LENGTH" != "$ACTUAL_CONTROL_DATA_LENGTH" ]
-      then
-        echo "FAIL. Backup $BACKUP_NAME has invalid controlData. Expected $EXPECTED_CONTROL_DATA_LENGTH fields, found $ACTUAL_CONTROL_DATA_LENGTH"
-        return 1
-      else
-        echo "Backup $BACKUP_NAME has valid controlData"
-      fi
-
-    done
-
+        if [ "$EXPECTED_CONTROL_DATA_LENGTH" != "$ACTUAL_CONTROL_DATA_LENGTH" ]
+        then
+          echo "FAIL. Backup $BACKUP_NAME has invalid controlData. Expected $EXPECTED_CONTROL_DATA_LENGTH fields, found $ACTUAL_CONTROL_DATA_LENGTH"
+          return 1
+        else
+          echo "Backup $BACKUP_NAME has valid controlData"
+        fi
+      done
 }
 
 check_automatic_backup_cr() {
@@ -153,15 +149,20 @@ check_automatic_backup_cr() {
 
 is_automatic_backup_cr_completed() {
   local NODE="${1:-0}"
-  local CUSTOM_COLUMNS=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
   local BACKUP_NAME
 
   BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-    -o custom-columns="$CUSTOM_COLUMNS" \
-    | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
+    --template "{{ range .items }}{{ .status.internalName }} {{ .status.process.status }} {{ .status.backupInformation.sourcePod }}{{ print \"\n\" }}{{ end }}" \
+    | grep " Completed ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
-  [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
+  if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
       exec-with-env backup -- wal-g backup-list | grep "^$BACKUP_NAME " | wc -l)" -gt 0 ]
+  then
+    echo "SUCCESS. The automatic backup is available"
+  else
+    echo "FAIL. The automatic backup is not available"
+    return 1
+  fi
 }
 
 check_manual_backup() {
@@ -173,18 +174,17 @@ check_manual_backup() {
   local BACKUP_3_NAME
   BACKUP_3_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)-3")"
   local ACTUAL_BACKUP_NAME
-  local CUSTOM_COLUMNS=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
 
   # Avoid automatic backups while testing manual backups
   disable_cronSchedule
   
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" --ignore-not-found
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
 
   create_backup "$BACKUP_NAME" false
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-      -o custom-columns="$CUSTOM_COLUMNS" \
-      | tail -n +2 | grep " Running   " | wc -l)" -gt 0 ]'
+      -o name | wc -l)" -gt 0 ]'
   then
     echo "SUCCESS. The manual backup CR is running"
   else
@@ -193,8 +193,8 @@ check_manual_backup() {
   fi
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-      -o custom-columns="$CUSTOM_COLUMNS" \
-      | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
+    --template "{{ .status.process.status }} {{ .status.backupInformation.sourcePod }}{{ end }}" \
+    | grep "^Completed ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
   then
     echo "SUCCESS. The manual backup CR has complete"
   else
@@ -203,8 +203,8 @@ check_manual_backup() {
   fi
 
   ACTUAL_BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    -o custom-columns="$CUSTOM_COLUMNS" \
-    | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
+    --template "{{ .status.internalName }} {{ .status.process.status }} {{ .status.backupInformation.sourcePod }}" \
+    | grep " Completed ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
   if [ -z "$ACTUAL_BACKUP_NAME" ]
   then
@@ -221,14 +221,14 @@ check_manual_backup() {
     return 1
   fi
 
-  check_is_managed_lifecycle_value false
+  check_is_managed_lifecycle_value "$BACKUP_NAME" false
 
   kubectl patch sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json \
     --patch '[{"op":"replace","path":"/spec/managedLifecycle","value":true}]'
 
   create_backup "$BACKUP_2_NAME" true
 
-  wait_until check_is_managed_lifecycle_value true
+  wait_until check_is_managed_lifecycle_value "$BACKUP_NAME" true
 
   local DEFAULT_ANNOTATION
   DEFAULT_ANNOTATION="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json | jq '.metadata.annotations["stackgres.io/operatorVersion"]')"
@@ -259,11 +259,11 @@ check_manual_backup() {
     return 1
   fi
 
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" --ignore-not-found
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_2_NAME"
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_3_NAME"
 
-  # Avoid automatic backups while testing manual backups
-
+  # Enable automatic backups after testing manual backups
   enable_cronSchedule
   
   if wait_until eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
@@ -290,11 +290,11 @@ EOF
 }
 
 check_is_managed_lifecycle_value() {
-  local CUSTOM_COLUMNS=MANAGED_LYFECYCLE:.status.process.managedLifecycle,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
+  local BACKUP_NAME="$1"
   local ACTUAL_MANAGED_LYFECYCLE
   ACTUAL_MANAGED_LYFECYCLE="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    -o custom-columns="$CUSTOM_COLUMNS" \
-    | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
+    --template "{{ .status.process.managedLifecycle }} {{ .status.process.status }} {{ .status.backupInformation.sourcePod }}" \
+    | grep " Completed ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
   if [ "$ACTUAL_MANAGED_LYFECYCLE" != "$1" ]
   then
@@ -307,10 +307,10 @@ check_is_managed_lifecycle_value() {
 
 check_backup_retention() {
   local NODE="${1:-0}"
-  local CUSTOM_COLUMNS=NAME:.metadata.name,BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-      -o custom-columns="$CUSTOM_COLUMNS" | tail -n +2 | grep " Completed   ${CLUSTER_NAME}-${NODE}$" | wc -l)" -ge 2 ]'
+    --template "{{ range .items }}{{ .status.process.status }} {{ .status.backupInformation.sourcePod }}{{ print \"\n\" }}{{ end }}" \
+    | grep "^Completed ${CLUSTER_NAME}-${NODE}$" | wc -l)" -ge 2 ]'
   then
     echo "SUCCESS. The maximum retainable backups are available"
   else
