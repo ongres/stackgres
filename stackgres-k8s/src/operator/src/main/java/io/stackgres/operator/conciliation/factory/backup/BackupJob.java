@@ -115,8 +115,9 @@ public class BackupJob
   public static boolean skipBackupJobCreation(StackGresBackupContext context) {
     return isBackupCopy(context)
         || isScheduledBackupJob(context)
+        || isBackupJobFinished(context)
         || (!isBackupJobFinished(context)
-        && isBackupConfigNotConfigured(context));
+            && isBackupConfigNotConfigured(context));
   }
 
   private static boolean isBackupCopy(StackGresBackupContext context) {
