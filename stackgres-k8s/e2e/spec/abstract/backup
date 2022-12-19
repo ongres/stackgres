@@ -193,7 +193,7 @@ check_manual_backup() {
   fi
 
   if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    --template "{{ .status.process.status }} {{ .status.backupInformation.sourcePod }}{{ end }}" \
+    --template "{{ .status.process.status }} {{ .status.backupInformation.sourcePod }}" \
     | grep "^Completed ${CLUSTER_NAME}-${NODE}$" | wc -l)" -gt 0 ]'
   then
     echo "SUCCESS. The manual backup CR has complete"
