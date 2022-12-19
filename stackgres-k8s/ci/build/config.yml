@@ -6,7 +6,7 @@ modules:
     type: java
     path: stackgres-k8s/src/.
     target_image: alpine:3.13.10
-    build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.4
+    build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.5
     filtered_sources:
       - sh stackgres-k8s/ci/build/redact-version.sh
     sources:
