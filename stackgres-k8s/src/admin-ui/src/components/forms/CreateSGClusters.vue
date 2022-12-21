@@ -503,38 +503,18 @@
                             <label for="spec.replicateFrom">Replication Source</label>
                             <select v-model="replicateFromSource" data-field="spec.replicateFrom.source" @change="setReplicationSource(replicateFromSource)">
                                 <option value="">No Replication</option>
-                                <option value="cluster">Local SGCluster</option>
-                                <option value="external">External PostgreSQL Instance</option>
+                                <option value="cluster">Local Cluster</option>
+                                <option value="external">External Instance</option>
+                                <option value="storage">Object Storage</option>
+                                <option disabled>- OR -</option>
+                                <option value="external-storage">External Instance + Object Storage</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom')"></span>
                         </div>
                     </div>
 
                     <template v-if="replicateFromSource.length">
-                        <template v-if="(replicateFromSource == 'cluster')">
-                            <div class="header">
-                                <h3>
-                                    SGCluster Specs
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance')"></span>
-                                </h3>
-                            </div>
-                            <div class="row-50">
-                                <div class="col">
-                                    <label for="spec.replicateFrom.instance.sgCluster">
-                                        Cluster
-                                        <span class="req">*</span>
-                                    </label>
-                                    <select v-model="replicateFrom.instance.sgCluster" data-field="spec.replicateFrom.instance.sgCluster" required>
-                                        <option value="">Select a cluster</option>
-                                        <option v-for="cluster in sgclusters" v-if="(cluster.data.metadata.namespace == $route.params.namespace)">
-                                            {{ cluster.name }}
-                                        </option>
-                                    </select>
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance.sgCluster')"></span>
-                                </div>
-                            </div>
-                        </template>
-                        <template v-else-if="(replicateFromSource == 'external')">
+                        <template v-if="replicateFromSource.includes('external')">
                             <div class="header">
                                 <h3>
                                     External Instance Specs
@@ -559,7 +539,91 @@
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance.external.port')"></span>
                                 </div>
                             </div>
-
+                        </template>
+                        <template v-if="replicateFromSource.includes('storage')">
+                            <div class="header">
+                                <h3>
+                                    WAL Shipping Specs
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.storage')"></span>
+                                </h3>
+                            </div>
+                            <div class="row-50">
+                                <div class="col">
+                                    <label for="spec.replicateFrom.storage.sgObjectStorage">
+                                        Object Storage
+                                        <span class="req">*</span>
+                                    </label>
+                                    <select v-model="replicateFrom.storage.sgObjectStorage" data-field="spec.replicateFrom.storage.sgObjectStorage" required>
+                                        <option value="">Select a storage</option>
+                                        <option v-for="storage in sgobjectstorages" v-if="(storage.data.metadata.namespace == $route.params.namespace)">
+                                            {{ storage.name }}
+                                        </option>
+                                    </select>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.storage.sgObjectStorage')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.storage.path">
+                                        Path
+                                        <span class="req">*</span>
+                                    </label>
+                                    <input v-model="replicateFrom.storage.path" data-field="spec.replicateFrom.storage.path" required/>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.storage.path')"></span>
+                                </div>
+                            </div>
+                            <div class="header">
+                                <h3>
+                                    Performance Specs
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.storage.performance')"></span>
+                                </h3>
+                            </div>
+                            <div class="row-50">
+                                <div class="col">
+                                    <label for="spec.replicateFrom.storage.performance.downloadConcurrency">
+                                        Download Concurrency
+                                    </label>
+                                    <input type="number" v-model="replicateFrom.storage.performance.downloadConcurrency" data-field="spec.replicateFrom.storage.performance.downloadConcurrency" />
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.storage.performance.downloadConcurrency')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.storage.performance.maxDiskBandwidth">
+                                        Maximum Disk Bandwidth
+                                    </label>
+                                    <input type="number" v-model="replicateFrom.storage.performance.maxDiskBandwidth" data-field="spec.replicateFrom.storage.performance.maxDiskBandwidth" />
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.storage.performance.maxDiskBandwidth')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.replicateFrom.storage.performance.maxNetworkBandwidth">
+                                        Maximum Network Bandwidth
+                                    </label>
+                                    <input type="number" v-model="replicateFrom.storage.performance.maxNetworkBandwidth" data-field="spec.replicateFrom.storage.performance.maxNetworkBandwidth" />
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.storage.performance.maxNetworkBandwidth')"></span>
+                                </div>
+                            </div>
+                        </template>
+                        <template v-if="(replicateFromSource == 'cluster')">
+                            <div class="header">
+                                <h3>
+                                    SGCluster Specs
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance')"></span>
+                                </h3>
+                            </div>
+                            <div class="row-50">
+                                <div class="col">
+                                    <label for="spec.replicateFrom.instance.sgCluster">
+                                        Cluster
+                                        <span class="req">*</span>
+                                    </label>
+                                    <select v-model="replicateFrom.instance.sgCluster" data-field="spec.replicateFrom.instance.sgCluster" required>
+                                        <option value="">Select a cluster</option>
+                                        <option v-for="cluster in sgclusters" v-if="(cluster.data.metadata.namespace == $route.params.namespace)">
+                                            {{ cluster.name }}
+                                        </option>
+                                    </select>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance.sgCluster')"></span>
+                                </div>
+                            </div>
+                        </template>
+                        <template v-if="['external', 'storage', 'external-storage'].includes(replicateFromSource)">
                             <div class="header">
                                 <h3>
                                     Superuser Credentials
@@ -2080,7 +2144,7 @@
                             vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
                             vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
                             vm.replicateFrom = vm.hasProp(c, 'data.spec.replicateFrom') ? c.data.spec.replicateFrom : {};
-                            vm.replicateFromSource = vm.hasProp(c, 'data.spec.replicateFrom.instance.sgCluster') ? 'cluster' : (vm.hasProp(c, 'data.spec.replicateFrom.instance.external') && 'external');
+                            vm.replicateFromSource = vm.getReplicationSource(c);
                             vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
                             vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
                             vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
@@ -3096,18 +3160,70 @@
                         break;
                         
                     case 'cluster':
-                        vc.replicateFrom['instance'] = { sgCluster: '' }
+                        vc.replicateFrom['instance'] = { 
+                            sgCluster: '' 
+                        }
                         break;
 
                     case 'external':
-                        vc.replicateFrom['instance'] = { external: {
-                            host: '',
-                            port: ''
-                        } }
+                        if(!vc.hasProp(vc.replicateFrom, 'instance.external')) {
+                            vc.replicateFrom['instance'] = { 
+                                external: {
+                                    host: '',
+                                    port: ''
+                                } 
+                            }
+                        }
+
+                        if(vc.replicateFrom.hasOwnProperty('storage')) {
+                            delete vc.replicateFrom.storage
+                        }
+
+                        break;
+                    case 'storage':
+                        if(!vc.replicateFrom.hasOwnProperty('storage')) {
+                            vc.replicateFrom['storage'] = {
+                                sgObjectStorage: '',
+                                path: '',
+                                performance: {
+                                    downloadConcurrency: '',
+                                    maxDiskBandwidth: '',
+                                    maxNetworkBandwidth: ''
+                                }
+                            }
+                        }
+
+                        if(vc.replicateFrom.hasOwnProperty('instance')) {
+                            delete vc.replicateFrom.instance
+                        }
+                        
+                        break;
+                    case 'external-storage':
+
+                        if(!vc.replicateFrom.hasOwnProperty('instance')) {
+                            vc.replicateFrom['instance'] = { 
+                                external: {
+                                    host: '',
+                                    port: ''
+                                } 
+                            }
+                        } 
+
+                        if(!vc.replicateFrom.hasOwnProperty('storage')) {
+                            vc.replicateFrom['storage'] = {
+                                sgObjectStorage: '',
+                                path: '',
+                                performance: {
+                                    downloadConcurrency: '',
+                                    maxDiskBandwidth: '',
+                                    maxNetworkBandwidth: ''
+                                }
+                            }
+                        }
                         break;
                 }
 
-                if(['external', 'sgobjectstorage'].includes(source)) {
+                if(['external', 'storage', 'external-storage'].includes(source) && !vc.replicateFrom.hasOwnProperty('users')) {
                     vc.replicateFrom['users'] = {
                         superuser: {
                             username: { 
@@ -3140,8 +3256,32 @@
                             }
                         }
                     }
-                } else if (vc.replicateFrom.hasOwnProperty('users')) {
-                    delete vc.replicateFrom.users
+                } else if (!['external', 'storage', 'external-storage'].includes(source)) {
+                    if (vc.replicateFrom.hasOwnProperty('users')) {
+                        delete vc.replicateFrom.users
+                    }
+
+                    if (vc.replicateFrom.hasOwnProperty('storage')) {
+                        delete vc.replicateFrom.storage
+                    }
+                }
+            },
+
+            getReplicationSource(cluster) {
+                const vc = this;
+
+                if(!vc.hasProp(cluster, 'data.spec.replicateFrom')) {
+                    return ''
+                } else {
+                    if(vc.hasProp(cluster, 'data.spec.replicateFrom.instance.sgCluster')) {
+                        return 'cluster' 
+                    } else if (vc.hasProp(cluster, 'data.spec.replicateFrom.instance.external') && vc.hasProp(cluster, 'data.spec.replicateFrom.storage')) {
+                        return 'external-storage'
+                    } else if (vc.hasProp(cluster, 'data.spec.replicateFrom.instance.external')) {
+                        return 'external'
+                    } else if (vc.hasProp(cluster, 'data.spec.replicateFrom.storage')) {
+                        return 'storage'   
+                    }
                 }
             }
         
