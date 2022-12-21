@@ -291,17 +291,18 @@ EOF
 
 check_is_managed_lifecycle_value() {
   local BACKUP_NAME="$1"
+  local EXPECTED_MANAGED_LYFECYCLE="$2"
   local ACTUAL_MANAGED_LYFECYCLE
   ACTUAL_MANAGED_LYFECYCLE="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
     --template "{{ .status.process.managedLifecycle }} {{ .status.process.status }} {{ .status.backupInformation.sourcePod }}" \
     | grep " Completed ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
-  if [ "$ACTUAL_MANAGED_LYFECYCLE" != "$1" ]
+  if [ "$ACTUAL_MANAGED_LYFECYCLE" != "$EXPECTED_MANAGED_LYFECYCLE" ]
   then
-    echo "FAIL. Backup /status/process/managedLifecycle expected to be $1 but was $ACTUAL_MANAGED_LYFECYCLE"
+    echo "FAIL. Backup /status/process/managedLifecycle expected to be $EXPECTED_MANAGED_LYFECYCLE but was $ACTUAL_MANAGED_LYFECYCLE"
     return 1
   else
-    echo "SUCCESS. Backup /status/process/managedLifecycle was $1"
+    echo "SUCCESS. Backup /status/process/managedLifecycle was $EXPECTED_MANAGED_LYFECYCLE"
   fi
 }
 
