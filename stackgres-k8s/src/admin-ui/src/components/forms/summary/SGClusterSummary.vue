@@ -271,7 +271,7 @@
                                                 </li>
                                                 <li v-if="( showDefaults || ( hasProp(baseScript, 'scriptSpec.managedVersions') && !baseScript.scriptSpec.managedVersions) )">
                                                     <strong class="label">Managed Versions:</strong>
-                                                    <span class="value">{{ hasProp(baseScript, 'scriptSpec.managedVersions') ? isEnabled(baseScript.managedVersions) : 'Enabled' }}</span>
+                                                    <span class="value">{{ hasProp(baseScript, 'scriptSpec.managedVersions') && isEnabled(baseScript.scriptSpec.managedVersions) }}</span>
                                                 </li>
                                                 <li v-if="baseScript.hasOwnProperty('scriptSpec')">
                                                     <strong class="sectionTitle">Script Entries</strong>
@@ -366,7 +366,7 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="showDefaults || cluster.data.spec.pods.disableConnectionPooling || hasProp(cluster, 'data.spec.configurations.sgPoolingConfig') || cluster.data.spec.pods.disablePostgresUtil || cluster.data.spec.pods.disableMetricsExporter || cluster.data.spec.prometheusAutobind">
+                    <ul class="section" v-if="showDefaults || cluster.data.spec.pods.disableConnectionPooling || hasProp(cluster, 'data.spec.configurations.sgPoolingConfig') || cluster.data.spec.pods.disablePostgresUtil || cluster.data.spec.pods.disableMetricsExporter || cluster.data.spec.prometheusAutobind || hasProp(cluster, 'data.spec.distributedLogs.sgDistributedLogs')">
                         <li>
                             <strong class="sectionTitle">Sidecars</strong>
                             <ul>
@@ -686,27 +686,27 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="showDefaults || hasProp(cluster, 'data.spec.postgresServices')">
+                    <ul class="section" v-if="showDefaults || !cluster.data.spec.postgresServices.primary.enabled || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || !cluster.data.spec.postgresServices.replicas.enabled || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP')">
                         <li>
                             <strong class="sectionTitle">Customize generated Kubernetes service</strong>
                             <ul>
-                                <li v-if="showDefaults || hasProp(cluster, 'data.spec.postgresServices.primary')">
+                                <li v-if="showDefaults || !cluster.data.spec.postgresServices.primary.enabled || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP')">
                                     <strong class="sectionTitle">Primary Service</strong>
-                                    <span v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.primary.enabled') )"><strong>:</strong> {{ hasProp(cluster, 'data.spec.postgresServices.primary.enabled') ? isEnabled(cluster.data.spec.postgresServices.primary.enabled) : 'Enabled' }}</span>
-                                    <ul>
-                                        <li v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.primary.type') )">
+                                    <span v-if="( showDefaults || !cluster.data.spec.postgresServices.primary.enabled )"><strong>:</strong> {{ isEnabled(cluster.data.spec.postgresServices.primary.enabled) }}</span>
+                                    <ul v-if="( showDefaults || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') )">
+                                        <li>
                                             <strong class="label">Type:</strong>
-                                            <span class="value">{{ hasProp(cluster, 'data.spec.postgresServices.primary.type') ? cluster.data.spec.postgresServices.primary.type : 'ClusterIP' }}</span>
+                                            <span class="value">{{ cluster.data.spec.postgresServices.primary.type }}</span>
                                         </li>
                                     </ul>
                                 </li>
-                                <li v-if="showDefaults || hasProp(cluster, 'data.spec.postgresServices.replicas')">
+                                <li v-if="showDefaults || !cluster.data.spec.postgresServices.replicas.enabled || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP')">
                                     <strong class="sectionTitle">Replicas Service</strong>
-                                    <span v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.replicas.enabled') )"><strong>:</strong> {{ hasProp(cluster, 'data.spec.postgresServices.replicas.enabled') ? isEnabled(cluster.data.spec.postgresServices.replicas.enabled) : 'Enabled' }}</span>
-                                    <ul>
-                                        <li v-if="( showDefaults || hasProp(cluster, 'data.spec.postgresServices.replicas.type') )">
+                                    <span v-if="( showDefaults || !cluster.data.spec.postgresServices.replicas.enabled )"><strong>:</strong> {{ isEnabled(cluster.data.spec.postgresServices.replicas.enabled) }}</span>
+                                    <ul v-if="( showDefaults || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') )">
+                                        <li>
                                             <strong class="label">Type:</strong>
-                                            <span class="value">{{ hasProp(cluster, 'data.spec.postgresServices.replicas.type') ? cluster.data.spec.postgresServices.replicas.type : 'ClusterIP' }}</span>
+                                            <span class="value">{{ cluster.data.spec.postgresServices.replicas.type }}</span>
                                         </li>
                                     </ul>
                                 </li>
@@ -953,7 +953,7 @@
                             <ul>
                                 <li>
                                     <strong class="sectionTitle">Cluster Pod Anti Affinity</strong>
-                                    <span><strong>:</strong> {{ hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? isEnabled(cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity) : 'Enabled' }}</span>
+                                    <span><strong>:</strong> {{ hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? isEnabled(cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity, true) : 'Enabled'}}</span>
                                 </li>
                             </ul>
                         </li>

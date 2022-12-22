@@ -44,9 +44,13 @@
 </template>
 
 <script>
+    import {mixin} from '../../mixins/mixin'
+
     export default {
         name: 'SGBackupSummary',
 
+        mixins: [mixin],
+        
         props: ['crd', 'showDefaults']
 	}
 </script>
