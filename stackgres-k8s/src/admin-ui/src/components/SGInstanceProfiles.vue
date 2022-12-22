@@ -95,55 +95,275 @@
 					<div class="info"></div>
 				</div>
 			</template>
+			
 			<template v-else>
-				<h2>Profile Details</h2>
-				<div class="configurationDetails" v-for="conf in config" v-if="conf.name == $route.params.name">
-					<table class="crdDetails">
-						<tbody>
-							<tr>
-								<td class="label">Name <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.metadata.name')"></span></td>
-								<td>{{ conf.name }}</td>
-							</tr>
-							<tr>
-								<td class="label">RAM <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span></td>
-								<td class="textRight">{{ conf.data.spec.memory }}</td>
-							</tr>
-							<tr v-if="hasProp(conf, 'data.spec.hugePages.hugepages-2Mi')">
-								<td class="label">Huge Pages 2Mi <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.hugePages.hugepages-2Mi')"></span></td>
-								<td class="textRight">{{ conf.data.spec.hugePages['hugepages-2Mi']}}</td>
-							</tr>
-							<tr v-if="hasProp(conf, 'data.spec.hugePages.hugepages-1Gi')">
-								<td class="label">Huge Pages 1Gi <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.hugePages.hugepages-1Gi')"></span></td>
-								<td class="textRight">{{ conf.data.spec.hugePages['hugepages-1Gi']}}</td>
-							</tr>							
-							<tr>
-								<td class="label">CPU <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span></td>
-								<td class="textRight">{{ conf.data.spec.cpu }}</td>
-							</tr>
-							<tr v-if="conf.data.status.clusters.length || ((typeof logsClusters.find(l => ( (l.data.metadata.namespace == conf.data.metadata.namespace) && (l.data.spec.sgInstanceProfile == conf.name) ))) != 'undefined' )">
-								<td class="label">Used on <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.status.clusters').replace('[SGClusters](https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/)', 'resources')"></span></td>
-								<td class="usedOn">
-									<ul>
-										<li v-for="cluster in conf.data.status.clusters">
-											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster" title="Cluster Details">
-												{{ cluster }}
-												<span class="eyeIcon"></span>
-											</router-link>
-										</li>
-										<template v-for="lcluster in logsClusters">
-											<li v-if="(lcluster.data.metadata.namespace == conf.data.metadata.namespace) && (lcluster.data.spec.sgInstanceProfile == conf.name)">
-												<router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + lcluster.name" title="Logs Server Details">
-													{{ lcluster.name }}
+				<template v-for="conf in config" v-if="conf.name == $route.params.name">
+					<h2>Profile Details</h2>
+					<div class="configurationDetails">
+						<table class="crdDetails">
+							<tbody>
+								<tr>
+									<td class="label">Name <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.metadata.name')"></span></td>
+									<td :colspan="2">{{ conf.name }}</td>
+								</tr>
+								<tr>
+									<td class="label">RAM <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.memory')"></span></td>
+									<td :colspan="2" class="textRight">{{ conf.data.spec.memory }}</td>
+								</tr>
+								<tr>
+									<td class="label">CPU <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.cpu')"></span></td>
+									<td :colspan="2" class="textRight">{{ conf.data.spec.cpu }}</td>
+								</tr>
+								<template v-if="hasProp(conf, 'data.spec.hugePages')">
+									<tr v-for="(value, key, index) in conf.data.spec.hugePages">
+										<td v-if="!index" class="label" :rowspan="Object.keys(conf.data.spec.hugePages).length">
+											Huge Pages
+											<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.hugePages')"></span>
+										</td>
+										<td class="label">
+											Huge Pages {{ key.slice(-3) }}
+											<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.hugePages.' + key)"></span>
+										</td>
+										<td class="textRight">
+											{{ value }}
+										</td>
+									</tr>
+								</template>				
+								<tr v-if="conf.data.status.clusters.length || ((typeof logsClusters.find(l => ( (l.data.metadata.namespace == conf.data.metadata.namespace) && (l.data.spec.sgInstanceProfile == conf.name) ))) != 'undefined' )">
+									<td class="label">Used on <span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.status.clusters').replace('[SGClusters](https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/)', 'resources')"></span></td>
+									<td class="usedOn">
+										<ul>
+											<li v-for="cluster in conf.data.status.clusters">
+												<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster" title="Cluster Details">
+													{{ cluster }}
 													<span class="eyeIcon"></span>
 												</router-link>
 											</li>
+											<template v-for="lcluster in logsClusters">
+												<li v-if="(lcluster.data.metadata.namespace == conf.data.metadata.namespace) && (lcluster.data.spec.sgInstanceProfile == conf.name)">
+													<router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + lcluster.name" title="Logs Server Details">
+														{{ lcluster.name }}
+														<span class="eyeIcon"></span>
+													</router-link>
+												</li>
+											</template>
+										</ul>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<template v-if="conf.data.spec.hasOwnProperty('containers')">
+						<h2>
+							Containers Specs
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.containers')"></span>
+						</h2>
+						<div class="configurationDetails">
+							<table class="crdDetails">
+								<tbody>
+									<template v-for="(container, containerName) in conf.data.spec.containers">
+										<tr>
+											<td class="label" :rowspan="(2 + ( container.hasOwnProperty('hugePages') && Object.keys(container.hugePages).length ) )">
+												{{ containerName }}
+											</td>
+											<td class="label">
+												CPU
+												<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.containers.additionalProperties.properties.cpu')"></span>
+											</td>    
+											<td colspan="2">
+												{{ container.cpu }}
+											</td>
+										</tr>
+										<tr>
+											<td class="label">
+												Memory
+												<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.containers.additionalProperties.properties.memory')"></span>
+											</td>    
+											<td colspan="2">
+												{{ container.memory }}
+											</td>
+										</tr>
+										<template v-if="container.hasOwnProperty('hugePages')">
+											<tr>
+												<td class="label" :rowspan="Object.keys(container.hugePages).length">
+													Huge Pages
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.containers.additionalProperties.properties.hugePages')"></span>
+												</td>
+												<td class="label">
+													Huge Pages {{ container.hugePages.hasOwnProperty('hugepages-2Mi') ? '2Mi' : '1Gi' }}
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.containers.additionalProperties.properties.hugePages.properties.' + (container.hugePages.hasOwnProperty('hugepages-2Mi') ? 'hugepages-2Mi' : 'hugepages-1Gi') )"></span>
+												</td>
+												<td class="textRight">
+													{{ container.hugePages.hasOwnProperty('hugepages-2Mi') ? container.hugePages['hugepages-2Mi'] : container.hugePages['hugepages-1Gi'] }}
+												</td>
+											</tr>
+											<tr v-if="( container.hugePages.hasOwnProperty('hugepages-2Mi') && container.hugePages.hasOwnProperty('hugepages-1Gi') )">
+												<td class="label">
+													Huge Pages 1Gi
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.containers.additionalProperties.properties.hugePages.properties.hugepages-1Gi')"></span>
+												</td>
+												<td class="textRight">
+													{{ container.hugePages['hugepages-1Gi'] }}
+												</td>
+											</tr>
 										</template>
-									</ul>
-								</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
+									</template>
+								</tbody>
+							</table>
+						</div>
+					</template>
+
+					<template v-if="conf.data.spec.hasOwnProperty('initContainers')">
+						<h2>
+							Init Containers Specs
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.initContainers')"></span>
+						</h2>
+						<div class="configurationDetails">
+							<table class="crdDetails">
+								<tbody>
+									<template v-for="(container, containerName) in conf.data.spec.initContainers">
+										<tr>
+											<td class="label" :rowspan="(2 + ( container.hasOwnProperty('hugePages') && Object.keys(container.hugePages).length ) )">
+												{{ containerName }}
+											</td>
+											<td class="label">
+												CPU
+												<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.initContainers.additionalProperties.properties.cpu')"></span>
+											</td>    
+											<td colspan="2">
+												{{ container.cpu }}
+											</td>
+										</tr>
+										<tr>
+											<td class="label">
+												Memory
+												<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.initContainers.additionalProperties.properties.memory')"></span>
+											</td>    
+											<td colspan="2">
+												{{ container.memory }}
+											</td>
+										</tr>
+										<template v-if="container.hasOwnProperty('hugePages')">
+											<tr>
+												<td class="label" :rowspan="Object.keys(container.hugePages).length">
+													Huge Pages
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.initContainers.additionalProperties.properties.hugePages')"></span>
+												</td>
+												<td class="label">
+													Huge Pages {{ container.hugePages.hasOwnProperty('hugepages-2Mi') ? '2Mi' : '1Gi' }}
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.initContainers.additionalProperties.properties.hugePages.properties.' + (container.hugePages.hasOwnProperty('hugepages-2Mi') ? 'hugepages-2Mi' : 'hugepages-1Gi') )"></span>
+												</td>
+												<td class="textRight">
+													{{ container.hugePages.hasOwnProperty('hugepages-2Mi') ? container.hugePages['hugepages-2Mi'] : container.hugePages['hugepages-1Gi'] }}
+												</td>
+											</tr>
+											<tr v-if="( container.hugePages.hasOwnProperty('hugepages-2Mi') && container.hugePages.hasOwnProperty('hugepages-1Gi') )">
+												<td class="label">
+													Huge Pages 1Gi
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.initContainers.additionalProperties.properties.hugePages.properties.hugepages-1Gi')"></span>
+												</td>
+												<td class="textRight">
+													{{ container.hugePages['hugepages-1Gi'] }}
+												</td>
+											</tr>
+										</template>
+									</template>
+								</tbody>
+							</table>
+						</div>
+					</template>
+
+					<template v-if="conf.data.spec.hasOwnProperty('requests')">
+						<h2>
+							Requests Specs
+							<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.requests')"></span>
+						</h2>
+						
+						<div class="configurationDetails">
+							<table class="crdDetails">
+								<tbody>
+									<tr v-if="conf.data.spec.requests.hasOwnProperty('cpu')">
+										<td class="label">
+											CPU
+											<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.requests.cpu')"></span>
+										</td>    
+										<td colspan="3">
+											{{ conf.data.spec.requests.cpu }}
+										</td>
+									</tr>
+									<tr v-if="conf.data.spec.requests.hasOwnProperty('memory')">
+										<td class="label">
+											Memory
+											<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.requests.memory')"></span>
+										</td>    
+										<td colspan="3">
+											{{ conf.data.spec.requests.memory }}
+										</td>
+									</tr>
+									<template v-if="conf.data.spec.requests.hasOwnProperty('containers')">
+										<template v-for="(container, containerName, index) in conf.data.spec.requests.containers">
+											<tr>
+												<td class="label" v-if="!index" :rowspan="( Object.keys(conf.data.spec.requests.containers).length * 2)">
+													Containers
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.requests.containers')"></span>
+												</td>
+												<td class="label" rowspan="2">
+													{{ containerName }}
+												</td>
+												<td class="label">
+													CPU
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.requests.containers.additionalProperties.properties.cpu')"></span>
+												</td>    
+												<td>
+													{{ container.cpu }}
+												</td>
+											</tr>
+											<tr>
+												<td class="label">
+													Memory
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.requests.containers.additionalProperties.properties.memory')"></span>
+												</td>    
+												<td colspan="2">
+													{{ container.memory }}
+												</td>
+											</tr>
+										</template>
+									</template>
+									<template v-if="conf.data.spec.requests.hasOwnProperty('initContainers')">
+										<template v-for="(container, containerName, index) in conf.data.spec.requests.initContainers">
+											<tr>
+												<td class="label" v-if="!index" :rowspan="( Object.keys(conf.data.spec.requests.initContainers).length * 2)">
+													Init Containers
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.requests.initContainers')"></span>
+												</td>
+												<td class="label" rowspan="2">
+													{{ containerName }}
+												</td>
+												<td class="label">
+													CPU
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.requests.initContainers.additionalProperties.properties.cpu')"></span>
+												</td>    
+												<td>
+													{{ container.cpu }}
+												</td>
+											</tr>
+											<tr>
+												<td class="label">
+													Memory
+													<span class="helpTooltip" :data-tooltip="getTooltip('sgprofile.spec.requests.initContainers.additionalProperties.properties.memory')"></span>
+												</td>    
+												<td colspan="2">
+													{{ container.memory }}
+												</td>
+											</tr>
+										</template>
+									</template>
+								</tbody>
+							</table>
+						</div>
+					</template>
+				</template>
 			</template>
 		</div>
 	</div>
