@@ -407,10 +407,16 @@
                                     <strong class="label">Source:</strong>
                                     <span class="value">
                                         <template v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.sgCluster')">
-                                            SGCluster
+                                            Local Cluster
                                         </template>
                                         <template v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.external')">
-                                            External PostgreSQL
+                                            External Instance
+                                        </template>
+                                        <template v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.external') && hasProp(cluster, 'data.spec.replicateFrom.storage')">
+                                             + 
+                                        </template>
+                                        <template v-if="hasProp(cluster, 'data.spec.replicateFrom.storage')">
+                                            Object Storage
                                         </template>
                                     </span>
                                 </li>
@@ -424,7 +430,7 @@
                                 </li>
                                 <li v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.external')">
                                     <strong class="sectionTitle">
-                                        Instance Specs
+                                        External Instance Specs
                                     </strong>
                                     <ul>
                                         <li>
@@ -434,6 +440,48 @@
                                         <li>
                                             <strong class="label">Port:</strong>
                                             <span class="value">{{ cluster.data.spec.replicateFrom.instance.external.port }}</span>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li v-if="hasProp(cluster, 'data.spec.replicateFrom.storage')">
+                                    <strong class="sectionTitle">
+                                        Storage Specs
+                                    </strong>
+                                    <ul>
+                                        <li>
+                                            <strong class="label">Object Storage:</strong>
+                                            <span class="value">
+                                                <router-link :to="'/' + $route.params.namespace + '/sgobjectstorage/' + cluster.data.spec.replicateFrom.storage.sgObjectStorage" target="_blank">
+                                                    {{ cluster.data.spec.replicateFrom.storage.sgObjectStorage }}
+                                                </router-link>
+                                            </span>
+                                        </li>
+                                        <li>
+                                            <strong class="label">Path:</strong>
+                                            <span class="value">{{ cluster.data.spec.replicateFrom.storage.path }}</span>
+                                        </li>
+                                        <li v-if="(
+                                            hasProp(cluster, 'data.spec.replicateFrom.storage.performance') && (
+                                            cluster.data.spec.replicateFrom.storage.performance.downloadConcurrency.length ||
+                                            cluster.data.spec.replicateFrom.storage.performance.maxNetworkBandwidth.length ||
+                                            cluster.data.spec.replicateFrom.storage.performance.maxDiskBandwidth.length) )">
+                                            <strong class="sectionTitle">
+                                                Performance Specs
+                                            </strong>
+                                            <ul>
+                                                <li v-if="cluster.data.spec.replicateFrom.storage.performance.downloadConcurrency.length">
+                                                    <strong class="label">Download Concurrency:</strong>
+                                                    <span class="value">{{ cluster.data.spec.replicateFrom.storage.performance.downloadConcurrency }}</span>
+                                                </li>
+                                                <li v-if="cluster.data.spec.replicateFrom.storage.performance.maxDiskBandwidth.length">
+                                                    <strong class="label">Maximum Disk Bandwidth:</strong>
+                                                    <span class="value">{{ cluster.data.spec.replicateFrom.storage.performance.maxDiskBandwidth }}</span>
+                                                </li>
+                                                <li v-if="cluster.data.spec.replicateFrom.storage.performance.maxNetworkBandwidth.length">
+                                                    <strong class="label">Maximum Network Bandwidth:</strong>
+                                                    <span class="value">{{ cluster.data.spec.replicateFrom.storage.performance.maxNetworkBandwidth }}</span>
+                                                </li>
+                                            </ul>
                                         </li>
                                     </ul>
                                 </li>

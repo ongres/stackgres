@@ -264,14 +264,29 @@ describe('Create SGCluster', () => {
         .click()
 
         cy.get('select[data-field="spec.replicateFrom.source"]') 
-            .select('external')
+            .select('external-storage')
 
         cy.get('input[data-field="spec.replicateFrom.instance.external.host"]') 
             .type('host')
 
         cy.get('input[data-field="spec.replicateFrom.instance.external.port"]') 
             .type('1111')
+
+        cy.get('select[data-field="spec.replicateFrom.storage.sgObjectStorage"]')
+            .select('storage-' + resourceName)
+
+        cy.get('input[data-field="spec.replicateFrom.storage.path"]')
+            .type('/path')
+
+        cy.get('input[data-field="spec.replicateFrom.storage.performance.downloadConcurrency"]')
+            .type(1)
         
+        cy.get('input[data-field="spec.replicateFrom.storage.performance.maxDiskBandwidth"]')
+            .type(2)
+
+        cy.get('input[data-field="spec.replicateFrom.storage.performance.maxNetworkBandwidth"]')
+            .type(3)
+
         cy.get('input[data-field="spec.replicateFrom.users.superuser.username.name"]') 
             .type('name')
         
@@ -544,6 +559,11 @@ describe('Create SGCluster', () => {
             .its('request.body.spec.replicateFrom')
             .should('nested.include', {"instance.external.host": 'host'})
             .and('nested.include', {"instance.external.port": '1111'})
+            .and('nested.include', {"storage.sgObjectStorage": 'storage-' + resourceName})
+            .and('nested.include', {"storage.path": '/path'})
+            .and('nested.include', {"storage.performance.downloadConcurrency": '1'})
+            .and('nested.include', {"storage.performance.maxDiskBandwidth": '2'})
+            .and('nested.include', {"storage.performance.maxNetworkBandwidth": '3'})
             .and('nested.include', {"users.superuser.username.name": 'name'})
             .and('nested.include', {"users.superuser.username.key": 'key'})
             .and('nested.include', {"users.superuser.password.name": 'name'})
@@ -730,7 +750,7 @@ describe('Create SGCluster', () => {
         .click()
 
         cy.get('select[data-field="spec.replicateFrom.source"]') 
-            .should('have.value', 'external')
+            .should('have.value', 'external-storage')
             .select('cluster')
 
         cy.get('select[data-field="spec.replicateFrom.instance.sgCluster"]')
