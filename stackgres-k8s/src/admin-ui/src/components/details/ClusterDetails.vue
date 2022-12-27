@@ -41,6 +41,56 @@
                         </td>
                         <td colspan="3">{{ cluster.data.spec.postgres.version }}</td>
                     </tr>
+                    <template v-if="hasProp(cluster,'data.spec.postgres.ssl.enabled') && cluster.data.spec.postgres.ssl.enabled">
+                        <tr>
+                            <td class="label" :rowspan="4">
+                                SSL Connections
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl')"></span>
+                            </td>
+                            <td class="label" :rowspan="2">
+                                Certificate Secret Key Selector
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.certificateSecretKeySelector')"></span>
+                            </td>
+                            <td class="label">
+                                Secret Name
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.certificateSecretKeySelector.name')"></span>
+                            </td>
+                            <td>
+                                {{ cluster.data.spec.postgres.ssl.certificateSecretKeySelector.name }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label">
+                                Secret Key
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.certificateSecretKeySelector.key')"></span>
+                            </td>
+                            <td>
+                                {{ cluster.data.spec.postgres.ssl.certificateSecretKeySelector.key }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label" :rowspan="2">
+                                Private Key Secret Key Selector
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.privateKeySecretKeySelector')"></span>
+                            </td>
+                            <td class="label">
+                                Secret Name
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.name')"></span>
+                            </td>
+                            <td>
+                                {{ cluster.data.spec.postgres.ssl.privateKeySecretKeySelector.name }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label">
+                                Secret Key
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.key')"></span>
+                            </td>
+                            <td>
+                                {{ cluster.data.spec.postgres.ssl.privateKeySecretKeySelector.key }}
+                            </td>
+                        </tr>
+                    </template>
                     <tr>
                         <td class="label">
                             Instances

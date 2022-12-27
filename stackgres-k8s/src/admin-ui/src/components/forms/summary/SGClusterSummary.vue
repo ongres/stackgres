@@ -54,7 +54,7 @@
                                         </li>
                                     </ul>
                                 </li>
-                                <li v-if="showDefaults || (cluster.data.spec.postgres.flavor != 'vanilla') || (cluster.data.spec.postgres.version != 'latest') || hasProp(cluster, 'data.spec.configurations.sgPostgresConfig')">
+                                <li v-if="showDefaults || (cluster.data.spec.postgres.flavor != 'vanilla') || (cluster.data.spec.postgres.version != 'latest') || hasProp(cluster, 'data.spec.configurations.sgPostgresConfig') || hasProp(cluster, 'data.spec.postgres.ssl')">
                                     <strong class="sectionTitle">Postgres</strong>
                                     <ul>
                                         <li v-if="(cluster.data.spec.postgres.flavor != 'vanilla') || showDefaults">
@@ -79,6 +79,37 @@
                                                 </template>
                                             </span>
                                             </span>
+                                        </li>
+                                        <li v-if="hasProp(cluster, 'data.spec.postgres.ssl.enabled') && cluster.data.spec.postgres.ssl.enabled">
+                                            <strong>SSL Connections:</strong> Enabled
+                                            <ul>
+                                                <li>
+                                                    <strong class="sectionTitle">Certificate Secret Key Selector:</strong>
+                                                    <ul>
+                                                        <li>
+                                                            <strong class="label">Name:</strong>
+                                                            <span class="value">{{ cluster.data.spec.postgres.ssl.certificateSecretKeySelector.name }}</span>
+                                                        </li>
+                                                        <li>
+                                                            <strong class="label">Key:</strong>
+                                                            <span class="value">{{ cluster.data.spec.postgres.ssl.certificateSecretKeySelector.key }}</span>
+                                                        </li>                                                                            
+                                                    </ul>
+                                                </li>
+                                                <li>
+                                                    <strong class="sectionTitle">Private Key Secret Key Selector:</strong>
+                                                    <ul>
+                                                        <li>
+                                                            <strong class="label">Name:</strong>
+                                                            <span class="value">{{ cluster.data.spec.postgres.ssl.privateKeySecretKeySelector.name }}</span>
+                                                        </li>
+                                                        <li>
+                                                            <strong class="label">Key:</strong>
+                                                            <span class="value">{{ cluster.data.spec.postgres.ssl.privateKeySecretKeySelector.key }}</span>
+                                                        </li>                                                                            
+                                                    </ul>
+                                                </li>
+                                            </ul>
                                         </li>
                                     </ul>
                                 </li>
