@@ -95,6 +95,10 @@ spec:
 EOF
 
   wait_until is_backup_phase "$CLUSTER_NAMESPACE" "$BACKUP_NAME" "Completed"
+
+  openssl req -x509 -nodes -subj "/CN=localhost" \
+    -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365
+  kubectl -n "$CLUSTER_NAMESPACE" create secret tls cert-cluster --cert=cert.pem --key=key.pem
 }
 
 e2e_test_uninstall() {
