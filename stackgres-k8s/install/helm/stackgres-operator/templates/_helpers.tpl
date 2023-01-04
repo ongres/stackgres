@@ -1,12 +1,12 @@
 {{- define "kubectl.image" }}
-{{- if semverCompare ">=1.24" .Capabilities.KubeVersion.Version -}}
-{{- printf "ongres/kubectl:v1.24.3-build-6.16" -}}
+{{- if semverCompare ">=1.25" .Capabilities.KubeVersion.Version -}}
+{{- printf "ongres/kubectl:v1.25.5-build-6.19" -}}
 {{- else if semverCompare ">=1.21" .Capabilities.KubeVersion.Version -}}
-{{- printf "ongres/kubectl:v1.22.12-build-6.16" -}}
+{{- printf "ongres/kubectl:v1.22.17-build-6.19" -}}
 {{- else if semverCompare ">=1.18" .Capabilities.KubeVersion.Version -}}
-{{- printf "ongres/kubectl:v1.19.16-build-6.16" -}}
+{{- printf "ongres/kubectl:v1.19.16-build-6.19" -}}
 {{- else -}}
-{{- printf "ongres/kubectl:v1.24.3-build-6.16" -}}
+{{- printf "ongres/kubectl:v1.25.5-build-6.19" -}}
 {{- end -}}
 {{- end -}}
 
