@@ -1,0 +1,344 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "properties": {
+        "adminui": {
+            "type": "object",
+            "properties": {
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "pullPolicy": {
+                            "type": "string"
+                        },
+                        "tag": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "resources": {
+                    "type": "object"
+                },
+                "service": {
+                    "type": "object",
+                    "properties": {
+                        "exposeHTTP": {
+                            "type": "boolean"
+                        },
+                        "type": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "authentication": {
+            "type": "object",
+            "properties": {
+                "oidc": {
+                    "type": "object"
+                },
+                "resetPassword": {
+                    "type": "boolean"
+                },
+                "secretRef": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "type": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "cert": {
+            "type": "object",
+            "properties": {
+                "autoapprove": {
+                    "type": "boolean"
+                },
+                "certManager": {
+                    "type": "object",
+                    "properties": {
+                        "autoConfigure": {
+                            "type": "boolean"
+                        },
+                        "duration": {
+                            "type": "string"
+                        },
+                        "encoding": {
+                            "type": "string"
+                        },
+                        "renewBefore": {
+                            "type": "string"
+                        },
+                        "size": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "createForOperator": {
+                    "type": "boolean"
+                },
+                "createForWebApi": {
+                    "type": "boolean"
+                },
+                "resetCerts": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "containerRegistry": {
+            "type": "string"
+        },
+        "deploy": {
+            "type": "object",
+            "properties": {
+                "operator": {
+                    "type": "boolean"
+                },
+                "restapi": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "developer": {
+            "type": "object"
+        },
+        "extensions": {
+            "type": "object",
+            "properties": {
+                "cache": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean"
+                        },
+                        "persistentVolume": {
+                            "type": "object",
+                            "properties": {
+                                "size": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "preloadedExtensions": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "repositoryUrls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "grafana": {
+            "type": "object",
+            "properties": {
+                "autoEmbed": {
+                    "type": "boolean"
+                },
+                "datasourceName": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "schema": {
+                    "type": "string"
+                },
+                "user": {
+                    "type": "string"
+                }
+            }
+        },
+        "imagePullPolicy": {
+            "type": "string"
+        },
+        "initClusterRole": {
+            "type": "string"
+        },
+        "jobs": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "array"
+                },
+                "annotations": {
+                    "type": "array"
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "pullPolicy": {
+                            "type": "string"
+                        },
+                        "tag": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nodeSelector": {
+                    "type": "array"
+                },
+                "resources": {
+                    "type": "array"
+                },
+                "tolerations": {
+                    "type": "array"
+                }
+            }
+        },
+        "operator": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "array"
+                },
+                "annotations": {
+                    "type": "array"
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "pullPolicy": {
+                            "type": "string"
+                        },
+                        "tag": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "nodeSelector": {
+                    "type": "array"
+                },
+                "resources": {
+                    "type": "array"
+                },
+                "service": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "serviceAccount": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "tolerations": {
+                    "type": "array"
+                }
+            }
+        },
+        "prometheus": {
+            "type": "object",
+            "properties": {
+                "allowAutobind": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "rbac": {
+            "type": "object",
+            "properties": {
+                "create": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "restapi": {
+            "type": "object",
+            "properties": {
+                "affinity": {
+                    "type": "array"
+                },
+                "annotations": {
+                    "type": "array"
+                },
+                "image": {
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "type": "string"
+                        },
+                        "pullPolicy": {
+                            "type": "string"
+                        },
+                        "tag": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nodeSelector": {
+                    "type": "array"
+                },
+                "resources": {
+                    "type": "array"
+                },
+                "service": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "serviceAccount": {
+                    "type": "object",
+                    "properties": {
+                        "annotations": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "tolerations": {
+                    "type": "array"
+                }
+            }
+        },
+        "serviceAccount": {
+            "type": "object",
+            "properties": {
+                "create": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}
