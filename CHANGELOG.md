@@ -1,3 +1,47 @@
+# :rocket: Release 1.4.1 (2022-01-06)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.4.1 update the ubi base images for OpenShift certification compliance.
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+Nothing new here! :eyes: 
+
+### Web Console
+
+Nothing new here! :eyes: 
+
+## :bug: FIXES
+
+* Updated ongres/kubectl images to `1.25.5-build-6.19` `1.22.17-build-6.19` `1.19.16-build-6.19` versions.
+* Updated stackgres base images to `openjdk-17-runtime:1.14-7` version.
+
+### Web Console
+
+Nothing new here! :eyes: 
+
+## :construction: KNOWN ISSUES
+
+* Installation fails in EKS 1.22+ due to CSR not returning the certificate ([#1732](https://gitlab.com/ongresinc/stackgres/-/issues/1732)). Use cert-manager as a workaround. 
+* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.4.1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.3.3)
+
 # :rocket: Release 1.4.0 (2022-11-23)
 
 ## :notepad_spiral: NOTES
