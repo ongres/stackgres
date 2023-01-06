@@ -5,25 +5,25 @@ operator:
     name: "stackgres/operator"
     tag: "1.4.1"
     pullPolicy: "IfNotPresent"
-  annotations: []
-  affinity: []
-  nodeSelector: []
+  annotations: {}
+  affinity: {}
+  nodeSelector: {}
   serviceAccount:
     annotations: {}
   service:
     annotations: {}
   tolerations: []
-  resources: []
+  resources: {}
 restapi:
   name: stackgres-restapi
   image:
     name: "stackgres/restapi"
     tag: "1.4.1"
     pullPolicy: "IfNotPresent"
-  resources: []
-  affinity: []
-  annotations: []
-  nodeSelector: []
+  resources: {}
+  affinity: {}
+  annotations: {}
+  nodeSelector: {}
   serviceAccount:
     annotations: {}
   service:
@@ -35,11 +35,11 @@ jobs:
     name: "stackgres/jobs"
     tag: "1.4.1"
     pullPolicy: "IfNotPresent"
-  resources: []
-  annotations: []
+  resources: {}
+  annotations: {}
   tolerations: []
-  nodeSelector: []
-  affinity: []
+  nodeSelector: {}
+  affinity: {}
 adminui:
   name: stackgres-adminui
   image:
