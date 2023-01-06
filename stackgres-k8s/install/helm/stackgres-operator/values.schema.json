@@ -180,10 +180,10 @@
             "type": "object",
             "properties": {
                 "affinity": {
-                    "type": "array"
+                    "type": "object"
                 },
                 "annotations": {
-                    "type": "array"
+                    "type": "object"
                 },
                 "image": {
                     "type": "object",
@@ -203,10 +203,10 @@
                     "type": "string"
                 },
                 "nodeSelector": {
-                    "type": "array"
+                    "type": "object"
                 },
                 "resources": {
-                    "type": "array"
+                    "type": "object"
                 },
                 "tolerations": {
                     "type": "array"
@@ -217,10 +217,10 @@
             "type": "object",
             "properties": {
                 "affinity": {
-                    "type": "array"
+                    "type": "object"
                 },
                 "annotations": {
-                    "type": "array"
+                    "type": "object"
                 },
                 "image": {
                     "type": "object",
@@ -237,10 +237,10 @@
                     }
                 },
                 "nodeSelector": {
-                    "type": "array"
+                    "type": "object"
                 },
                 "resources": {
-                    "type": "array"
+                    "type": "object"
                 },
                 "service": {
                     "type": "object",
@@ -283,10 +283,10 @@
             "type": "object",
             "properties": {
                 "affinity": {
-                    "type": "array"
+                    "type": "object"
                 },
                 "annotations": {
-                    "type": "array"
+                    "type": "object"
                 },
                 "image": {
                     "type": "object",
@@ -306,10 +306,10 @@
                     "type": "string"
                 },
                 "nodeSelector": {
-                    "type": "array"
+                    "type": "object"
                 },
                 "resources": {
-                    "type": "array"
+                    "type": "object"
                 },
                 "service": {
                     "type": "object",
