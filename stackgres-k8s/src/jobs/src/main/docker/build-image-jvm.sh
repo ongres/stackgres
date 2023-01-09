@@ -2,7 +2,7 @@
 
 set -e
 
-BASE_IMAGE="registry.access.redhat.com/ubi8/openjdk-17-runtime:1.14-7"
+BASE_IMAGE="registry.access.redhat.com/ubi8/openjdk-17-runtime:1.14-8"
 
 JOBS_IMAGE_NAME="${JOBS_IMAGE_NAME:-"stackgres/jobs:main-jvm"}"
 TARGET_JOBS_IMAGE_NAME="${TARGET_JOBS_IMAGE_NAME:-$JOBS_IMAGE_NAME}"

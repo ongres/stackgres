@@ -6,7 +6,8 @@ StackGres 1.4.1 update the ubi base images for OpenShift certification complianc
 
 ## :sparkles: NEW FEATURES AND CHANGES
 
-Nothing new here! :eyes: 
+* Updated ongres/kubectl images to `1.25.5-build-6.19` `1.22.17-build-6.19` `1.19.16-build-6.19` versions.
+* Updated stackgres base images to `openjdk-17-runtime:1.14-8` version.
 
 ### Web Console
 
@@ -14,8 +15,7 @@ Nothing new here! :eyes:
 
 ## :bug: FIXES
 
-* Updated ongres/kubectl images to `1.25.5-build-6.19` `1.22.17-build-6.19` `1.19.16-build-6.19` versions.
-* Updated stackgres base images to `openjdk-17-runtime:1.14-7` version.
+Nothing new here! :eyes: 
 
 ### Web Console
 
@@ -23,7 +23,6 @@ Nothing new here! :eyes:
 
 ## :construction: KNOWN ISSUES
 
-* Installation fails in EKS 1.22+ due to CSR not returning the certificate ([#1732](https://gitlab.com/ongresinc/stackgres/-/issues/1732)). Use cert-manager as a workaround. 
 * Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
 * Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
 
