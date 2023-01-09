@@ -172,7 +172,7 @@ modules:
     type: jvm-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8/openjdk-17:1.14-8
+    target_image: registry.access.redhat.com/ubi8/openjdk-17:1.14-9
     dockerfile: &jvm-image-args
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.jvm
       args:
@@ -227,7 +227,7 @@ modules:
     type: ui-image
     platform_dependent: true
     path: stackgres-k8s/src/admin-ui
-    target_image: registry.access.redhat.com/ubi8/nginx-120:1-74
+    target_image: registry.access.redhat.com/ubi8/nginx-120:1-74.1669834626
     dockerfile:
       path: stackgres-k8s/src/admin-ui/docker/Dockerfile
       args:
