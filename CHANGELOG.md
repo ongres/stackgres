@@ -7,7 +7,7 @@ StackGres 1.4.1 update the ubi base images for OpenShift certification complianc
 ## :sparkles: NEW FEATURES AND CHANGES
 
 * Updated ongres/kubectl images to `1.25.5-build-6.19` `1.22.17-build-6.19` `1.19.16-build-6.19` versions.
-* Updated stackgres base images to `openjdk-17-runtime:1.14-8` version.
+* Updated stackgres base images to `openjdk-17-runtime:1.14-8` version
 
 ### Web Console
 
