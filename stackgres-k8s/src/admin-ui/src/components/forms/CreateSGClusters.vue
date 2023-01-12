@@ -319,7 +319,7 @@
                                 required
                             >
                                 <option value="" disabled>{{ sgobjectstorages.length ? 'Select Storage' : 'No object storage available' }}</option>
-                                <option v-for="storage in sgobjectstorages">{{ storage.name }}</option>
+                                <option v-for="storage in sgobjectstorages" v-if="storage.data.metadata.namespace == namespace">{{ storage.name }}</option>
                                 <template v-if="iCan('create', 'sgobjectstorages', $route.params.namespace)">
                                     <option value="" disabled v-if="sgobjectstorages.length">– OR –</option>
                                     <option value="createNewResource">Create new object storage</option>
