@@ -166,6 +166,55 @@
                         </div>
                     </div>
 
+                    <div class="row-50">
+                        <h3>SSL Connections</h3>
+                        <p>
+                            By default, support for SSL connections to Postgres is disabled, to enable it configure this section. SSL connections will be handled by Envoy using Postgres filter’s SSL termination.
+                        </p>
+                        <div class="col">
+                            <label>SSL Connections</label>  
+                            <label for="enableSSL" class="switch yes-no">
+                                Enable
+                                <input type="checkbox" id="enableSSL" v-model="ssl.enabled" data-switch="YES" data-field="spec.postgres.ssl.enabled">
+                            </label>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.enabled')"></span>
+                        </div>
+                    </div>
+                    <div class="row-50" v-if="ssl.enabled">
+                        <div class="col">
+                            <label for="spec.postgres.ssl.certificateSecretKeySelector.name">
+                                SSL Certificate Secret Name
+                                <span class="req">*</span>
+                            </label>
+                            <input required v-model="ssl.certificateSecretKeySelector.name" data-field="spec.postgres.ssl.certificateSecretKeySelector.name" autocomplete="off">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.certificateSecretKeySelector.name')"></span>
+                        </div>
+                        <div class="col">
+                            <label for="spec.postgres.ssl.certificateSecretKeySelector.key">
+                                SSL Certificate Secret Key
+                                <span class="req">*</span>
+                            </label>
+                            <input required v-model="ssl.certificateSecretKeySelector.key" data-field="spec.postgres.ssl.certificateSecretKeySelector.key" autocomplete="off">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.certificateSecretKeySelector.key')"></span>
+                        </div>
+                        <div class="col">
+                            <label for="spec.postgres.ssl.privateKeySecretKeySelector.name">
+                                SSL Private Key Secret Name
+                                <span class="req">*</span>
+                            </label>
+                            <input required v-model="ssl.privateKeySecretKeySelector.name" data-field="spec.postgres.ssl.privateKeySecretKeySelector.name" autocomplete="off">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.name')"></span>
+                        </div>
+                        <div class="col">
+                            <label for="spec.postgres.ssl.privateKeySecretKeySelector.key">
+                                SSL Private Key Secret Key
+                                <span class="req">*</span>
+                            </label>
+                            <input required v-model="ssl.privateKeySecretKeySelector.key" data-field="spec.postgres.ssl.privateKeySecretKeySelector.key" autocomplete="off">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.key')"></span>
+                        </div>
+                    </div>
+
                     <hr/>
 
                     <div class="row-50">
@@ -1901,7 +1950,17 @@
                 babelfishFeatureGates: false,
                 postgresVersion: 'latest',
                 flavor: 'vanilla',
-                featureGates: true,
+                ssl: {
+                    enabled: false,
+                    certificateSecretKeySelector: {
+                        name: '',
+                        key: ''
+                    },
+                    privateKeySecretKeySelector: {
+                        name: '',
+                        key: ''
+                    }
+                },
                 instances: 1,
                 resourceProfile: '',
                 pgConfig: '',
@@ -2103,12 +2162,16 @@
 
                             vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
                             vm.babelfishFeatureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
+                            
                             if (vm.postgresVersion != c.data.spec.postgres.version) {
                                 vm.postgresVersion = c.data.spec.postgres.version;
                                 vm.getFlavorExtensions()
                             }
-                            vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
-                            vm.featureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
+
+                            if(vm.hasProp(c, 'data.spec.postgres.ssl.enabled') && c.data.spec.postgres.ssl.enabled) {
+                                vm.ssl = c.data.spec.postgres.ssl
+                            }
+                            
                             vm.instances = c.data.spec.instances;
                             vm.resourceProfile = c.data.spec.sgInstanceProfile;
                             vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
@@ -2609,7 +2672,10 @@
                             ...(this.selectedExtensions.length && {
                                 "extensions": this.selectedExtensions
                             } || {"extensions": null} ),
-                            "flavor": this.flavor
+                            "flavor": this.flavor,
+                            ...(this.ssl.enabled && {
+                                "ssl": this.ssl
+                            } || {"ssl": null} )
                         }
 
                     }
