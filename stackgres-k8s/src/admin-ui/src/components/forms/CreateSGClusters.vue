@@ -173,7 +173,10 @@
                         </p>
                         <div class="col">
                             <label>SSL Connections</label>  
-                            <label for="enableSSL" class="switch yes-no">Enable<input type="checkbox" id="enableSSL" v-model="ssl.enabled" data-switch="YES"></label>
+                            <label for="enableSSL" class="switch yes-no">
+                                Enable
+                                <input type="checkbox" id="enableSSL" v-model="ssl.enabled" data-switch="YES" data-field="spec.postgres.ssl.enabled">
+                            </label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.enabled')"></span>
                         </div>
                     </div>
@@ -2159,10 +2162,16 @@
 
                             vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
                             vm.babelfishFeatureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
+                            
                             if (vm.postgresVersion != c.data.spec.postgres.version) {
                                 vm.postgresVersion = c.data.spec.postgres.version;
                                 vm.getFlavorExtensions()
                             }
+
+                            if(vm.hasProp(c, 'data.spec.postgres.ssl.enabled') && c.data.spec.postgres.ssl.enabled) {
+                                vm.ssl = c.data.spec.postgres.ssl
+                            }
+                            
                             vm.instances = c.data.spec.instances;
                             vm.resourceProfile = c.data.spec.sgInstanceProfile;
                             vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
@@ -2483,7 +2492,7 @@
                   return;
                 }
 
-                if (!previous && vc.editMode) {
+                if (!previous) {
                     sgApi
                     .getResourceDetails('sgclusters', this.namespace, this.name)
                     .then(function (response) {

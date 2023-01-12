@@ -157,11 +157,24 @@ describe('Create SGCluster', () => {
         cy.get('input[data-field="metadata.name"]')
             .type('advanced-' + resourceName)
         
-        // Test version
+        // Test postgres version
         cy.get('ul[data-field="spec.postgres.version"] li').first()
             .click()
         cy.get('ul[data-field="spec.postgres.version"] a[data-val="' + Cypress.env('postgres_version') + '"]')
             .click()
+
+        // Enable SSL Connections
+        cy.get('input[data-field="spec.postgres.ssl.enabled"]')
+            .click()
+        
+        cy.get('input[data-field="spec.postgres.ssl.certificateSecretKeySelector.name"]')
+            .type('cert-cluster')
+        cy.get('input[data-field="spec.postgres.ssl.certificateSecretKeySelector.key"]')
+            .type('tls.crt')
+        cy.get('input[data-field="spec.postgres.ssl.privateKeySecretKeySelector.name"]')
+            .type('cert-cluster')
+        cy.get('input[data-field="spec.postgres.ssl.privateKeySecretKeySelector.key"]')
+            .type('tls.key')
         
         // Test instances
         cy.get('select[data-field="spec.instances"]')
@@ -524,6 +537,13 @@ describe('Create SGCluster', () => {
             .its('request.body.spec.pods.persistentVolume.size')
             .should('eq', "2Gi")
         cy.get('@postCluster')
+            .its('request.body.spec.postgres.ssl')
+            .should('nested.include', {"enabled": true})
+            .and('nested.include', {"certificateSecretKeySelector.name": "cert-cluster"})
+            .and('nested.include', {"certificateSecretKeySelector.key": "tls.crt"})
+            .and('nested.include', {"privateKeySecretKeySelector.name": "cert-cluster"})
+            .and('nested.include', {"privateKeySecretKeySelector.key": "tls.key"})
+        cy.get('@postCluster')
             .its('request.body.spec.postgres.extensions')
             .should('have.lengthOf', 5)
             .then((list) => Cypress._.map(list, 'name'))
@@ -644,6 +664,10 @@ describe('Create SGCluster', () => {
         // Test Volume Size
         cy.get('input[data-field="spec.pods.persistentVolume.size"]')
             .should('have.value', '2')
+
+        // Disable SSL Connections
+        cy.get('input[data-field="spec.postgres.ssl.enabled"]')
+            .click()
 
         // Test some extensions
         cy.get('form#createCluster li[data-step="extensions"]')
@@ -1094,6 +1118,9 @@ describe('Create SGCluster', () => {
         cy.get('@putCluster')
             .its('request.body.spec.pods.persistentVolume.size')
             .should('eq', "2Gi")
+        cy.get('@putCluster')
+            .its('request.body.spec.postgres.ssl')
+            .should('be.null')
         cy.get('@putCluster')
             .its('request.body.spec.postgres.extensions')
             .should('have.lengthOf', 4)

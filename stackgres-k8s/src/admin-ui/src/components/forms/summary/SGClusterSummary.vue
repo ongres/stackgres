@@ -84,7 +84,7 @@
                                             <strong>SSL Connections:</strong> Enabled
                                             <ul>
                                                 <li>
-                                                    <strong class="sectionTitle">Certificate Secret Key Selector:</strong>
+                                                    <strong class="sectionTitle">Certificate Secret Key Selector</strong>
                                                     <ul>
                                                         <li>
                                                             <strong class="label">Name:</strong>
@@ -97,7 +97,7 @@
                                                     </ul>
                                                 </li>
                                                 <li>
-                                                    <strong class="sectionTitle">Private Key Secret Key Selector:</strong>
+                                                    <strong class="sectionTitle">Private Key Secret Key Selector</strong>
                                                     <ul>
                                                         <li>
                                                             <strong class="label">Name:</strong>
