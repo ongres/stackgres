@@ -498,9 +498,16 @@ export const mixin = {
             fetch('/admin/info/sg-tooltips.json')
             .then(response => response.json())
             .then(data => {
-              var tooltips = data.components.schemas;
+              /* var tooltips = data.components.schemas;
               vc.cleanupTooltips(tooltips)
-              store.commit('setTooltips', tooltips)
+              store.commit('setTooltips', tooltips) */
+
+              let openApiSchema = $.extend(true,{},data.components.schemas);
+              store.commit('setOpenApiSchema', openApiSchema);
+              
+              let tooltips = $.extend(true,{},data.components.schemas);
+              vc.cleanupTooltips(tooltips);
+              store.commit('setTooltips', tooltips);
             })
             .catch((error) => {
               console.log(error);

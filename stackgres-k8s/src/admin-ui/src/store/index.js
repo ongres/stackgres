@@ -48,6 +48,7 @@ export default new Vuex.Store({
     },
     tooltipsText: 'Click on a question mark to get help and tips about that field.',
     tooltips: {},
+    openApiSchema: {},
     deleteItem: {
       kind: '',
       namespace: '',
@@ -279,6 +280,10 @@ export default new Vuex.Store({
 
     setTooltipsText (state, tooltipsText) {
       state.tooltipsText = tooltipsText;
+    },
+
+    setOpenApiSchema (state, schema) {
+      state.openApiSchema = schema
     },
 
     showLogs (state, show) {
