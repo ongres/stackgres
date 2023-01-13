@@ -1,0 +1,18 @@
+# Use the 'create api' subcommand to add watches to this file.
+- group: charts.stackgres.io
+  version: v1
+  kind: StackGresOperator
+  chart: helm-charts/stackgres-operator
+  watchDependentResources: false
+  overrideValues:
+    adminui.image.name: stackgres/admin-ui
+    adminui.image.tag: 1.4.1
+    containerRegistry: docker.io
+    initClusterRole: stackgres-operator-controller-manager
+    jobs.image.name: stackgres/jobs
+    jobs.image.tag: 1.4.1
+    operator.image.name: stackgres/operator
+    operator.image.tag: 1.4.1
+    restapi.image.name: stackgres/restapi
+    restapi.image.tag: 1.4.1
+#+kubebuilder:scaffold:watch
