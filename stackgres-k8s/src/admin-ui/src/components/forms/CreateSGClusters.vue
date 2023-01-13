@@ -1033,11 +1033,11 @@
 
                         <div class="col">
                             <label for="spec.configurations.sgPoolingConfig">Connection Pooling</label>  
-                            <label for="connPooling" class="switch yes-no">Enable<input type="checkbox" id="connPooling" v-model="connPooling" data-switch="NO"></label>
+                            <label for="connPooling" class="switch yes-no" @click="connectionPoolingConfig = ''">Enable<input type="checkbox" id="connPooling" v-model="connPooling" data-switch="NO"></label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>
                         </div>
 
-                        <div class="col">
+                        <div class="col" v-if="connPooling">
                             <label for="connectionPoolingConfig">Connection Pooling Configuration</label>
                             <select v-model="connectionPoolingConfig" class="connectionPoolingConfig" :disabled="!connPooling" @change="(connectionPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (connectionPoolingConfig == 'createNewResource') && (connectionPoolingConfig = '') )">
                                 <option value="" selected>Default</option>

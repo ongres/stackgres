@@ -617,7 +617,7 @@
                                 </td>
                             </template>
                         </tr>
-                        <tr>
+                        <tr v-if="!cluster.data.spec.pods.disableConnectionPooling">
                             <td class="label">
                                 Connection Pooling
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>

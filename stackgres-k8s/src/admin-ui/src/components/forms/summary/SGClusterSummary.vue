@@ -373,8 +373,8 @@
                                 <li v-if="showDefaults || cluster.data.spec.pods.disableConnectionPooling || hasProp(cluster, 'data.spec.configurations.sgPoolingConfig')">
                                     <strong class="sectionTitle">Connection Pooling</strong>
                                     <span v-if="showDefaults || cluster.data.spec.pods.disableConnectionPooling"><strong>:</strong> {{ isEnabled(cluster.data.spec.pods.disableConnectionPooling, true) }}</span>
-                                    <ul>
-                                        <li v-if="showDefaults || hasProp(cluster, 'data.spec.configurations.sgPoolingConfig')">
+                                    <ul v-if="(showDefaults && !cluster.data.spec.pods.disableConnectionPooling) || hasProp(cluster, 'data.spec.configurations.sgPoolingConfig')">
+                                        <li>
                                             <strong class="label">Connection Pooling Configuration:</strong>
                                             <span class="value">
                                                 <template v-if="hasProp(cluster, 'data.spec.configurations.sgPoolingConfig')">
