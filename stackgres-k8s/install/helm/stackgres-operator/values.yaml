@@ -109,6 +109,7 @@ authentication:
   secretRef:
     name: ""
   oidc: {}
+  #  tlsVerification: <string> # required, certificate-validation, none
   #  authServerUrl: <string>
   #  clientId: <string>
   #  credentialsSecret: <string>

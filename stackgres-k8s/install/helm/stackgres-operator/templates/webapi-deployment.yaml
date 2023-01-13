@@ -128,6 +128,10 @@ spec:
           - name: QUARKUS_OIDC_AUTH_SERVER_URL
             value: "{{ .Values.authentication.oidc.authServerUrl }}"
           {{- end }}
+          {{- if .Values.authentication.oidc.tlsVerification }}
+          - name: QUARKUS_OIDC_TLS_VERIFICATION
+            value: "{{ .Values.authentication.oidc.tlsVerification }}"
+          {{- end }}
           {{- if or (.Values.authentication.oidc.clientId) (.Values.authentication.oidc.clientIdSecretRef) }}
           - name: QUARKUS_OIDC_CLIENT_ID
             {{- if and (.Values.authentication.oidc.clientId) (not .Values.authentication.oidc.clientIdSecretRef) }}

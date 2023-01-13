@@ -50,9 +50,11 @@ data:
       server_name  localhost;
 
       listen       9080;
-      listen       9443 ssl;
+      listen       9443 ssl http2;
       ssl_certificate         /etc/operator/certs/server.crt;
       ssl_certificate_key     /etc/operator/certs/root.key;
+      ssl_protocols           TLSv1.2 TLSv1.3;
+      ssl_ciphers             ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-CHACHA20-POLY1305;
       root   /opt/app-root/src;
       index index.html;
 
@@ -78,12 +80,17 @@ data:
 
       location ~ ^/stackgres {
         proxy_redirect off;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Port $my_forwarded_port;
+        proxy_http_version                 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host  $host;
+        proxy_set_header X-Forwarded-Port  $my_forwarded_port;
         proxy_set_header X-Forwarded-Server $host;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_buffers                      4 256k;
+        proxy_buffer_size                  128k;
+        proxy_busy_buffers_size            256k;
         {{ if and .Values.developer.externalRestApiIp .Values.developer.externalRestApiPort }}
         proxy_pass http://{{ .Values.restapi.name }}-api:8080;
         {{- else }}
@@ -105,6 +112,16 @@ data:
         proxy_hide_header X-Frame-Options;
         proxy_pass "${GRAFANA_SCHEMA}://${GRAFANA_WEB_HOST}";
       }
+
+      location = /favicon.ico {
+        log_not_found off;
+      }
+
+      gzip            on;
+      gzip_vary       on;
+      gzip_proxied    any;
+      gzip_comp_level 6;
+      gzip_types      text/plain text/css text/xml application/json application/javascript application/rss+xml application/atom+xml image/svg+xml;
     }
 {{- if .Values.qutePreprocess }}#comment.preprocess.end{{- end}}
 {{- end }}
