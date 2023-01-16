@@ -7,7 +7,7 @@ description: Details about setting up a Kubernetes cluster and some StackGres de
 
 # Setting up a Kubernetes Cluster
 
-You obviously need a Kubernetes cluster to run this tutorial. In general, any Kubernetes-compliant cluster from version 1.18 to 1.23 should work. Some Kubernetes clusters require some specific adjustments. Please see [StackGres documentation on K8s environments](https://stackgres.io/doc/latest/install/prerequisites/k8s/) for specific notes on RKE.
+You obviously need a Kubernetes cluster to run this tutorial. In general, any Kubernetes-compliant cluster from version 1.18 to 1.24 should work. Some Kubernetes clusters require some specific adjustments. Please see [StackGres documentation on K8s environments](https://stackgres.io/doc/latest/install/prerequisites/k8s/) for specific notes on RKE.
 
 The lab demo will be performed on an [Amazon EKS](https://aws.amazon.com/eks/) cluster. If you wish to create also an EKS environment, you may run the steps detailed below (you will need to have installed [awscli](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html) and [eksctl](https://github.com/weaveworks/eksctl/releases)):
 
