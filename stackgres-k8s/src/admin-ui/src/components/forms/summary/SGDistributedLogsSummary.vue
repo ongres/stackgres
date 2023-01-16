@@ -65,11 +65,11 @@
             </li>
         </ul>
 
-        <ul class="section" v-if="showDefaults || hasProp(crd, 'data.spec.postgresServices')">
+        <ul class="section" v-if="showDefaults || (crd.data.spec.postgresServices.primary.type != 'ClusterIP') || !crd.data.spec.postgresServices.replicas.enabled || (crd.data.spec.postgresServices.replicas.type != 'ClusterIP')">
             <li>
                 <strong class="sectionTitle">Customize generated Kubernetes service</strong>
                 <ul>
-                    <li v-if="showDefaults || (hasProp(crd, 'data.spec.postgresServices.primary.type') && crd.data.spec.postgresServices.primary.type != 'ClusterIP')">
+                    <li v-if="showDefaults || (crd.data.spec.postgresServices.primary.type != 'ClusterIP')">
                         <strong class="sectionTitle">Primary Service</strong>
                         <span v-if="showDefaults"><strong>:</strong> Enabled</span>
                         <ul>
@@ -79,11 +79,11 @@
                             </li>
                         </ul>
                     </li>
-                    <li v-if="showDefaults || hasProp(crd, 'data.spec.postgresServices.replicas')">
+                    <li v-if="showDefaults || !crd.data.spec.postgresServices.replicas.enabled || (crd.data.spec.postgresServices.replicas.type != 'ClusterIP')">
                         <strong class="sectionTitle">Replicas Service</strong>
-                        <span v-if="( showDefaults || hasProp(crd, 'data.spec.postgresServices.replicas.enabled') )"><strong>:</strong> {{ hasProp(crd, 'data.spec.postgresServices.replicas.enabled') ? isEnabled(crd.data.spec.postgresServices.replicas.enabled) : 'Enabled' }}</span>
+                        <span v-if="( showDefaults || !crd.data.spec.postgresServices.replicas.enabled )"><strong>:</strong> {{ isEnabled(crd.data.spec.postgresServices.replicas.enabled) }}</span>
                         <ul>
-                            <li v-if="( showDefaults || hasProp(crd, 'data.spec.postgresServices.replicas.type') )">
+                            <li v-if="( showDefaults || (crd.data.spec.postgresServices.replicas.type != 'ClusterIP') )">
                                 <strong class="label">Type:</strong>
                                 <span class="value">{{ hasProp(crd, 'data.spec.postgresServices.replicas.type') ? crd.data.spec.postgresServices.replicas.type : 'ClusterIP' }}</span>
                             </li>
@@ -206,7 +206,7 @@
                 <ul>
                     <li>
                         <strong class="sectionTitle">Cluster Pod Anti Affinity: </strong>
-                        <span>{{ hasProp(crd, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? isEnabled(crd.data.spec.nonProductionOptions.disableClusterPodAntiAffinity) : 'Enabled' }}</span>
+                        <span>{{ hasProp(crd, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? isEnabled(crd.data.spec.nonProductionOptions.disableClusterPodAntiAffinity, true) : 'Enabled' }}</span>
                     </li>
                 </ul>
             </li>

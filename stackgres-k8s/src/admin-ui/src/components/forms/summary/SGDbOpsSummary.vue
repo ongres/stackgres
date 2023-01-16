@@ -114,7 +114,7 @@
             </li>
         </ul>
         
-        <ul class="section" v-else-if="crd.data.spec.op == 'securityUpgrade'">
+        <ul class="section" v-else-if="(crd.data.spec.op == 'securityUpgrade' && (showDefaults || (crd.data.spec.securityUpgrade.method != 'InPlace')))">
             <li>
                 <strong class="sectionTitle">Security Upgrade Details</strong>
                 <ul>
@@ -178,7 +178,7 @@
             </li>
         </ul>
 
-        <ul class="section" v-if="( (crd.data.spec.op == 'vacuum') && ( showDefaults || (crd.data.spec.vacuum.full || crd.data.spec.vacuum.freeze || crd.data.spec.vacuum.analyze || crd.data.spec.vacuum.disablePageSkipping) ) )">
+        <ul class="section" v-if="( (crd.data.spec.op == 'vacuum') && ( showDefaults || (crd.data.spec.vacuum.full || crd.data.spec.vacuum.freeze || !crd.data.spec.vacuum.analyze || crd.data.spec.vacuum.disablePageSkipping || hasProp(crd, 'data.spec.vacuum.databases')) ) )">
             <li>
                 <strong class="sectionTitle">Vacuum Details</strong>
                 <ul>
@@ -190,7 +190,7 @@
                         <strong class="label">Freeze:</strong>
                         <span class="value">{{ isEnabled(crd.data.spec.vacuum.freeze) }}</span>
                     </li>
-                    <li v-if="( showDefaults || crd.data.spec.vacuum.analyze )">
+                    <li v-if="( showDefaults || !crd.data.spec.vacuum.analyze )">
                         <strong class="label">Analyze:</strong>
                         <span class="value">{{ isEnabled(crd.data.spec.vacuum.analyze) }}</span>
                     </li>
@@ -236,7 +236,7 @@
             <li>
                 <strong class="sectionTitle">Benchmark Details</strong>
                 <ul>
-                    <li>
+                    <li v-if="(showDefaults || crd.data.spec.benchmark.type != 'pgbench')">
                         <strong class="label">Type:</strong>
                         <span class="value">{{ crd.data.spec.benchmark.type }}</span>
                     </li>
@@ -248,7 +248,7 @@
                     <li v-if="(crd.data.spec.benchmark.type == 'pgbench')">
                         <strong class="sectionTitle">PgBench Details</strong>
                         <ul>
-                            <li v-if="( showDefaults || (crd.data.spec.benchmark.pgbench.databaseSize != '1Gi') )">
+                            <li>
                                 <strong class="label">Database Size:</strong>
                                 <span class="value">{{ crd.data.spec.benchmark.pgbench.databaseSize }}</span>
                             </li>
@@ -307,24 +307,24 @@
                                     Database: 
                                     <span class="value">{{ db.name }}</span>
                                 </strong>
-                                <ul v-if="( showDefaults || ( db.noOrder || db.waitTimeout || db.noKillBackend || db.noAnalyze || db.excludeExtension ) )">
-                                    <li v-if="(showDefaults || db.noOrder)">
+                                <ul>
+                                    <li>
                                         <strong class="label">Order:</strong>
                                         <span class="value">{{ isEnabled(db.noOrder, true) }}</span>
                                     </li>
-                                    <li v-if="(showDefaults || db.noKillBackend)">
+                                    <li>
                                         <strong class="label">Kill Backend:</strong>
                                         <span class="value">{{ isEnabled(db.noKillBackend, true) }}</span>
                                     </li>
-                                    <li v-if="(showDefaults || db.noAnalyze)">
+                                    <li>
                                         <strong class="label">Analyze:</strong>
                                         <span class="value">{{ isEnabled(db.noAnalyze, true) }}</span>
                                     </li>
-                                    <li v-if="(showDefaults || db.excludeExtension)">
+                                    <li>
                                         <strong class="label">Exclude Extension:</strong>
                                         <span class="value">{{ isEnabled(db.excludeExtensions) }}</span>
                                     </li>
-                                    <li v-if="(showDefaults || db.waitTimeout)">
+                                    <li>
                                         <strong class="label">Wait Timeout:</strong>
                                         <span class="value">{{ db.waitTimeout ? getIsoDuration(db.waitTimeout) : 'No Timeout'}}</span>
                                     </li>
