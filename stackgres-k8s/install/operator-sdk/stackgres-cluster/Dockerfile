@@ -2,6 +2,6 @@
 FROM quay.io/operator-framework/helm-operator:v1.26.0
 
 ENV HOME=/opt/helm
-COPY watches.yaml ${HOME}/watches.yaml
-COPY helm-charts  ${HOME}/helm-charts
+COPY operator-sdk/stackgres-cluster/watches.yaml ${HOME}/watches.yaml
+COPY operator-sdk/stackgres-cluster/helm-charts  ${HOME}/helm-charts
 WORKDIR ${HOME}

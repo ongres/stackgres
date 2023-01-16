@@ -77,7 +77,7 @@ run: helm-operator ## Run against the configured Kubernetes cluster in ~/.kube/c
 
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	docker build -t ${IMG} .
+	docker build -t ${IMG} -f Dockerfile ../..
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -160,6 +160,11 @@ bundle: kustomize ## Generate bundle manifests and metadata, then validate gener
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle $(BUNDLE_GEN_FLAGS)
 	operator-sdk bundle validate ./bundle
+
+.PHONY: bundle-openshift
+bundle-openshift: bundle
+	yq -y -s '.[0] * .[1]' bundle/manifests/stackgres-operator.clusterserviceversion.yaml openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml > bundle/manifests/stackgres-operator.clusterserviceversion.yaml.bak && mv bundle/manifests/stackgres-operator.clusterserviceversion.yaml.bak bundle/manifests/stackgres-operator.clusterserviceversion.yaml
+	yq -y -s '.[0] * .[1]' bundle/metadata/annotations.yaml openshift-operator-bundle/metadata/annotations.yaml > bundle/metadata/annotations.yaml.bak && mv bundle/metadata/annotations.yaml.bak bundle/metadata/annotations.yaml
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.

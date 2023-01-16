@@ -1,0 +1,22 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    marketplace.openshift.io/remote-workflow: "https://marketplace.redhat.com/en-us/operators/stackgres/pricing?utm_source=openshift_console"
+    marketplace.openshift.io/support-workflow: "https://marketplace.redhat.com/en-us/operators/stackgres/support?utm_source=openshift_console"
+spec:
+  relatedImages:
+    - name: kubectl_1_25_5
+      image: ongres/kubectl:v1.25.5-build-6.19
+    - name: kube-rbac-proxy_0_13_0
+      image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
+    - name: stackgres-operator-helm_1_4_1
+      image: registry.gitlab.com/ongresinc/stackgres/stackgres/stackgres-operator-helm:1.4.1
+    - name: stackgres-operator_1_4_1
+      image: docker.io/stackgres/operator:1.4.1
+    - name: stackgres-restapi_1_4_1
+      image: docker.io/stackgres/restapi:1.4.1
+    - name: stackgres-admin-ui_1_4_1
+      image: docker.io/stackgres/admin-ui:1.4.1
+    - name: stackgres-jobs_1_4_1
+      image: docker.io/stackgres/jobs:1.4.1

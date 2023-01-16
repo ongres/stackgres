@@ -93,10 +93,10 @@ spec:
         resources:
           limits:
             cpu: 500m
-            memory: 128Mi
+            memory: 256Mi
           requests:
             cpu: 10m
-            memory: 64Mi
+            memory: 128Mi
       initContainers:
       - command:
         - sh
@@ -114,8 +114,8 @@ spec:
         name: default
         securityContext:
           runAsNonRoot: true
-          runAsUser: 1000
-          runAsGroup: 1000
+          # runAsUser: 1000
+          # runAsGroup: 1000
           allowPrivilegeEscalation: false
           capabilities:
             drop:
@@ -125,9 +125,9 @@ spec:
         resources:
           limits:
             cpu: 500m
-            memory: 128Mi
+            memory: 256Mi
           requests:
             cpu: 10m
-            memory: 64Mi
+            memory: 128Mi
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10
