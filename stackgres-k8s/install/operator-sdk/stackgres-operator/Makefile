@@ -29,7 +29,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
 # stackgres.io/stackgres-operator-bundle:$VERSION and stackgres.io/stackgres-operator-catalog:$VERSION.
-IMAGE_TAG_BASE ?= registry.gitlab.com/ongresinc/stackgres/stackgres/stackgres-operator-helm
+IMAGE_TAG_BASE ?= registry.gitlab.com/ongresinc/stackgres/stackgres/helm-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -77,7 +77,7 @@ run: helm-operator ## Run against the configured Kubernetes cluster in ~/.kube/c
 
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	docker build -t ${IMG} -f Dockerfile ../..
+	docker build -t ${IMG} -f Dockerfile --build-arg BASE_IMAGE=quay.io/operator-framework/helm-operator:v1.26.0 ../../../..
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -168,7 +168,7 @@ bundle-openshift: bundle
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
-	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) --build-arg BASE_IMAGE=scratch ../../../..
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
