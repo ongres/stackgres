@@ -1019,9 +1019,8 @@
                                         </td>
                                         <td>
                                             <template v-if="hasProp(script, 'scriptFrom.secretKeyRef')">
-                                                <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)" :data-content-tooltip="('#script-' + baseIndex + '-' + index)">
+                                                <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)" :data-content-tooltip="('#script-' + baseIndex + '-' + index)" class="eye-icon">
                                                     View Key Reference
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
                                                 </a>
                                                 <div :id="'script-' + baseIndex + '-' + index" class="hidden">
                                                     <strong>Name</strong>: {{  script.scriptFrom.secretKeyRef.name }}<br/><br/>
@@ -1029,9 +1028,8 @@
                                                 </div>
                                             </template>
                                             <template v-else>
-                                                <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)" :data-content-tooltip="('#script-' + baseIndex + '-' + index)"> 
+                                                <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)" :data-content-tooltip="('#script-' + baseIndex + '-' + index)" class="eye-icon"> 
                                                     View Script
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
                                                 </a>
                                                 <div :id="'script-'+ baseIndex + '-' + index" class="hidden">
                                                     <pre v-if="script.hasOwnProperty('script')">{{ script.script }}</pre>
@@ -1437,4 +1435,18 @@
 	th.textRight > span {
     	margin-right: 10px;
 	}
+
+    .eye-icon {
+        padding-right: 29px;
+    }
+
+    .eye-icon:after {
+        content: '';
+        width: 18px;
+        height: 14px;
+        transform: scale(0.85);
+        display: inline-block;
+        position: absolute;
+        right: 10px;
+    }
 </style>
