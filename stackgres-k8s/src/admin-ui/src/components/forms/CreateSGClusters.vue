@@ -846,9 +846,9 @@
                              <div class="row-50 noMargin">
                                 <div class="col">
                                     <label for="spec.managedSql.scripts.scriptSource">Source</label>
-                                    <select v-model="scriptSource[baseIndex].base" :disabled="editMode && isDefaultScript(baseScript.sgScript)" @change="setBaseScriptSource(baseIndex)" :data-field="'spec.managedSql.scripts.scriptSource[' + baseIndex + ']'">
+                                    <select v-model="scriptSource[baseIndex].base" :disabled="editMode && isDefaultScript(baseScript.sgScript) && baseScript.hasOwnProperty('scriptSpec')" @change="setBaseScriptSource(baseIndex)" :data-field="'spec.managedSql.scripts.scriptSource[' + baseIndex + ']'">
                                         <option value="" selected>Select source script...</option>
-                                        <option v-for="script in sgscripts" v-if="( (script.data.metadata.namespace == $route.params.namespace) && ( (!editMode && !isDefaultScript(baseScript.sgScript) || (editMode) ) ) )">
+                                        <option v-for="script in sgscripts" v-if="(script.data.metadata.namespace == $route.params.namespace)">
                                             {{ script.name }}
                                         </option>
                                         <template v-if="iCan('create', 'sgscripts', $route.params.namespace)">
@@ -2378,7 +2378,7 @@
 
             setBaseScriptSource( baseIndex ) {
                 const vc = this;
-                
+
                 if(vc.scriptSource[baseIndex].base != 'createNewScript') {
                     vc.managedSql.scripts[baseIndex].sgScript = vc.scriptSource[baseIndex].base;
                     
