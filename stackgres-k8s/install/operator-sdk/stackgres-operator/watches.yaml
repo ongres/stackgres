@@ -8,7 +8,6 @@
     adminui.image.name: stackgres/admin-ui
     adminui.image.tag: 1.4.1
     containerRegistry: docker.io
-    initClusterRole: stackgres-operator-controller-manager
     jobs.image.name: stackgres/jobs
     jobs.image.tag: 1.4.1
     operator.image.name: stackgres/operator
