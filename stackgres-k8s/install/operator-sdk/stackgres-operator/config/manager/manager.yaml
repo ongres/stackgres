@@ -102,8 +102,7 @@ spec:
         - sh
         - -ec
         - |
-          kubectl get ns stackgres || kubectl create ns stackgres
-          cat << EOF | kubectl apply -n stackgres -f -
+          cat << EOF | kubectl apply -f -
           apiVersion: charts.stackgres.io/v1
           kind: StackGresOperator
           metadata:
