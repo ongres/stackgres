@@ -6,12 +6,14 @@
   watchDependentResources: false
   overrideValues:
     adminui.image.name: stackgres/admin-ui
-    adminui.image.tag: 1.4.1
+    adminui.image.tag: "1.4.1"
     containerRegistry: docker.io
     jobs.image.name: stackgres/jobs
-    jobs.image.tag: 1.4.1
+    jobs.image.tag: "1.4.1"
     operator.image.name: stackgres/operator
-    operator.image.tag: 1.4.1
+    operator.image.tag: "1.4.1"
     restapi.image.name: stackgres/restapi
-    restapi.image.tag: 1.4.1
+    restapi.image.tag: "1.4.1"
+    deploy.operator: true
+    deploy.restapi: true
 #+kubebuilder:scaffold:watch
