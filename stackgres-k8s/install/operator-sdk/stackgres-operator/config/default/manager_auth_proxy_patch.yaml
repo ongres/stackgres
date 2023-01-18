@@ -56,4 +56,3 @@ spec:
         - "--leader-election-id=stackgres-operator"
         - "--max-concurrent-reconciles=1"
         - "--reconcile-period=1000000h"
-        - "--zap-devel"
