@@ -463,9 +463,16 @@ $(document).ready(function(){
   $(document).on('mouseenter', '.hasTooltip', function(){
     const c = $(this).children('span').first();
     $(this).append('<i class="auxTooltip">' + c.text() + '</i>');
-    if(c.width() < $(this).find('.auxTooltip').first().width()){
-      $('#nameTooltip .info').text(c.text());
-      $('#nameTooltip').addClass('show');
+    if($(this).hasClass('extName')) {
+      if((c.width() - 40) < $(this).find('.auxTooltip').first().width()){
+        $('#nameTooltip .info').text(c.text());
+        $('#nameTooltip').addClass('show');
+      }
+    } else {
+      if(c.width() < $(this).find('.auxTooltip').first().width()){
+        $('#nameTooltip .info').text(c.text());
+        $('#nameTooltip').addClass('show');
+      }
     }
       
   });
