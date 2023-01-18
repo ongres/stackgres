@@ -96,23 +96,23 @@ spec:
         - sh
         - -ec
         - |
-          NAME="$(kubectl get clusterserviceversions.operators.coreos.com -o name \
-            | grep '^clusterserviceversions.operators.coreos.com/stackgres-operator' \
+          OPERATOR_NAME="$(kubectl get operators.operators.coreos.com -o name \
+            | grep '^operator.operators.coreos.com/stackgres-operator' \
             | head -n 1 | cut -d / -f 2)"
-          test -n "$NAME"
-          UID="$(kubectl get clusterserviceversions.operators.coreos.com "$NAME" --template '{{ .metadata.uid }}')"
-          test -n "$UID"
+          test -n "$OPERATOR_NAME"
+          OPERATOR_UID="$(kubectl get operators.operators.coreos.com "$OPERATOR_NAME" --template '{{ .metadata.uid }}')"
+          test -n "$OPERATOR_UID"
           cat << EOF | kubectl apply -f -
           apiVersion: charts.stackgres.io/v1
           kind: StackGresOperator
           metadata:
             name: stackgres-operator
           spec:
-            unamespacedOwnerRefereces:
-            - apiVersion: operators.coreos.com/v1alpha1
-              kind: StackGresOperator
-              name: $NAME
-              uid: $UID
+            clusterOwnerRefereces:
+            - apiVersion: operators.coreos.com/v1
+              kind: Operator
+              name: $OPERATOR_NAME
+              uid: $OPERATOR_UID
           EOF
         image: ongres/kubectl:v1.25.5-build-6.19
         name: default

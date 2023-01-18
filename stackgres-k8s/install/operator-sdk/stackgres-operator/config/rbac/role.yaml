@@ -33,6 +33,13 @@ rules:
 ## Rules for charts.stackgres.io/v1, Kind: StackGresOperator
 ##
 - apiGroups:
+  - operators.coreos.com
+  resources:
+  - operators
+  verbs:
+  - get
+  - list
+- apiGroups:
   - charts.stackgres.io
   resources:
   - stackgresoperators

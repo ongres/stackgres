@@ -1,7 +1,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-{{- with .unamespacedOwnerRefereces }}
+{{- with .Values.clusterOwnerRefereces }}
   ownerReferences:
     {{- toYaml . | nindent 4 }}
 {{- end }}
