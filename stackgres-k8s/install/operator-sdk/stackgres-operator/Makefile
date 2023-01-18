@@ -5,6 +5,8 @@
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
 VERSION ?= 1.4.1
 IMAGE_TAG ?= $(VERSION)
+HELM_OPERATOR_BASE_IMAGE ?= quay.io/operator-framework/helm-operator:v1.26.0
+BUNDLE_BASE_IMAGE ?= scratch
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -78,7 +80,7 @@ run: helm-operator ## Run against the configured Kubernetes cluster in ~/.kube/c
 
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	docker build -t ${IMG} -f Dockerfile --build-arg BASE_IMAGE=quay.io/operator-framework/helm-operator:v1.26.0 ../../../..
+	docker build -t ${IMG} -f Dockerfile --build-arg BASE_IMAGE=$(HELM_OPERATOR_BASE_IMAGE) ../../../..
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -90,14 +92,14 @@ docker-push: ## Push docker image with the manager.
 # - have enable BuildKit, More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 # - be able to push the image for your registry (i.e. if you do not inform a valid value via IMG=<myregistry/image:<tag>> than the export will fail)
 # To properly provided solutions that supports more than one platform you should use this option.
-PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
+PLATFORMS ?= linux/arm64,linux/amd64
 .PHONY: docker-buildx
 docker-buildx: test ## Build and push docker image for the manager for cross-platform support
 	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
 	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
 	- docker buildx create --name project-v3-builder
 	docker buildx use project-v3-builder
-	- docker buildx build --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross .
+	- docker buildx build --build-arg BASE_IMAGE=$(HELM_OPERATOR_BASE_IMAGE) --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross .
 	- docker buildx rm project-v3-builder
 	rm Dockerfile.cross
 
@@ -170,7 +172,7 @@ bundle-openshift: bundle
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
-	docker build -f Dockerfile.bundle -t $(BUNDLE_IMG) --build-arg BASE_IMAGE=scratch ../../../..
+	docker build -f Dockerfile.bundle -t $(BUNDLE_IMG) --build-arg BASE_IMAGE="$(BUNDLE_BASE_IMAGE)" ../../../..
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
