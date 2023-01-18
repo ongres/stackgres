@@ -22,17 +22,21 @@
 {{- $upgradeSecrets := false }}
 {{- $operatorSecret := lookup "v1" "Secret" .Release.Namespace (include "cert-name" .) }}
 {{- if $operatorSecret }}
-  {{- if or (not (index $operatorSecret "tls.key")) (not (index $operatorSecret "tls.crt")) }}
+  {{- if or (not (index $operatorSecret.data "tls.key")) (not (index $operatorSecret.data "tls.crt")) }}
     {{- $upgradeSecrets = true }}
   {{- end }}
+{{- else }}
+  {{- $upgradeSecrets = true }}
 {{- end }}
 {{- $webSecret := lookup "v1" "Secret" .Release.Namespace (include "web-cert-name" .) }}
 {{- if $webSecret }}
-  {{- if or (not (index $webSecret "tls.key")) (not (index $webSecret "tls.crt")) }}
+  {{- if or (not (index $webSecret.data "tls.key")) (not (index $webSecret.data "tls.crt")) }}
     {{- $upgradeSecrets = true }}
   {{- end }}
+{{- else }}
+  {{- $upgradeSecrets = true }}
 {{- end }}
-{{- if or $upgradeSecrets .Values.cert.resetCerts }}true{{- end }}
+{{- if or $upgradeSecrets .Values.cert.resetCerts }}true{{- else }}false{{- end }}
 {{- end }}
 
 {{- define "stackgres.operator.upgradeCrds" }}
@@ -58,6 +62,6 @@
     {{- end }}
   {{- end }}
 {{- end }}
-{{- if or $noStackGresCrdAvailable $upgradeCrds }}true{{- end }}
+{{- if or $noStackGresCrdAvailable $upgradeCrds }}true{{- else }}false{{- end }}
 {{- end }}
 
