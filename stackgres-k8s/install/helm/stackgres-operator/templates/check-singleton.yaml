@@ -1,4 +1,4 @@
-{{ if and .Release.IsInstall .deploy.operator }}
+{{ if and .Release.IsInstall .Values.deploy.operator }}
 {{ $deployments := lookup "apps/v1" "Deployment" "" "" }}
 {{ range $deployments }}
   {{ if eq .metadata.labels.group "stackgres.io" }}
