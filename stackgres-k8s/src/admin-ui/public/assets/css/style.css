@@ -171,15 +171,22 @@ a:hover {
     cursor: pointer;
 }
 
-tr.base td:not(.phase) a.noColor, tr.base td:not(.phase) a.noColor:hover {
+tr.base td:not(.phase) a.noColor, tr.base td:not(.phase) a.noColor:hover, .extensionsList .hasTooltip span span {
     width: 100%;
     display: inline-block;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+tr.base td:not(.phase) a.noColor, tr.base td:not(.phase) a.noColor:hover {
     line-height: 43px;
     height: 40px;
     padding: 0 20px;
+}
+
+.extensionsList .hasTooltip span.name span {
+    width: calc(100% - 40px);
 }
 
 tr.base td.hasTooltip:not(.phase) > span a.noColor {
@@ -4222,14 +4229,14 @@ table tr.no-results td {
     text-align: center;
 }
 
-td.hasTooltip {
+td.hasTooltip, span.hasTooltip {
     /* overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap; */
     position: relative;
 }
 
-td.hasTooltip > span {
+td.hasTooltip > span, span.hasTooltip > span {
     position: absolute;
     left: 20px;
     right: 5px;
@@ -4237,6 +4244,13 @@ td.hasTooltip > span {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.extensionsList .hasTooltip > span {
+    position: relative;
+    width: 200px;
+    left: 0;
+    top: 7px;
 }
 
 td.hasTooltip.textRight > span {

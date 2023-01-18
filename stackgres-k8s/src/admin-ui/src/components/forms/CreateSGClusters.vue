@@ -299,11 +299,13 @@
                             v-if="( ( (extLicense == 'opensource') && (ext.name != 'timescaledb_tsl') ) || ( (extLicense == 'nonopensource') && (ext.name == 'timescaledb_tsl') ) ) && (!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)) && ext.versions.length" 
                             class="extension" 
                             :class="( (viewExtension == index) && 'show')">
-                            <label class="hoverTooltip">
+                            <label>
                                 <input type="checkbox" class="plain enableExtension" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length || !ext.selectedVersion.length" :data-field="'spec.postgres.extensions.' + ext.name" />
-                                <span class="name">
-                                    {{ ext.name }}
-                                    <a v-if="ext.hasOwnProperty('url') && ext.url" :href="ext.url" class="newTab" target="_blank"></a>
+                                <span class="hasTooltip extName">
+                                    <span class="name">
+                                        <span>{{ ext.name }}</span>
+                                        <a v-if="ext.hasOwnProperty('url') && ext.url" :href="ext.url" class="newTab" target="_blank"></a>
+                                    </span>
                                 </span>
                                 <span class="version">
                                     <select v-model="ext.selectedVersion" class="extVersion" @change="updateExtVersion(ext.name, ext.selectedVersion)">
@@ -312,15 +314,17 @@
                                         <option v-for="v in ext.versions">{{ v }}</option>
                                     </select>
                                 </span>
-                                <span class="description firstLetter">
-                                    {{ ext.abstract }}
+                                <span class="hasTooltip">
+                                    <span class="description firstLetter">
+                                        <span>{{ ext.abstract }}</span>
+                                    </span>
                                 </span>
                             </label>
                             <button type="button" class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
 
                             <div v-if="(viewExtension == index)" class="extDetails">
                                 <div class="header">
-                                    <h3>Description</h3>
+                                    <h3>{{ ext.name }}</h3>
                                 </div>
                                 <div class="description">
                                     {{ ext.description }}
@@ -341,6 +345,9 @@
                             </div>
                         </li>
                     </ul>
+                </div>
+                <div id="nameTooltip">
+                    <div class="info"></div>
                 </div>
             </fieldset>
 
@@ -3664,8 +3671,6 @@
         float: right;
     }
 
-    
-
     .extHead span.name, .extensionsList span.name {
         width: 180px;
         display: inline-block;
@@ -3683,7 +3688,7 @@
     .extHead span.description, .extensionsList span.description {
         display: inline-block;
         margin-left: 15px;
-        width: 515px;
+        width: calc(100% - 350px);
     }
 
     .extensionsList span.description {
@@ -3699,6 +3704,8 @@
         height: 11px;
         display: inline-block;
         transform: translate(4px, 1px);
+        position: absolute;
+        right: 20px;
     }
 
     .contentTooltip #clusterDetails {
