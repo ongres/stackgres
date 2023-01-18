@@ -15,7 +15,12 @@ spec:
   - name: v1
     schema:
       openAPIV3Schema:
-        description: StackGresOperator is the Schema for the stackgresoperators API
+        description: |
+          *WARNING*: Do not create more than one StackGresOperator to avoid misbehaviours. The single StackGresOperator should be created automatically.
+
+          See also https://stackgres.io/doc/latest/install/operator/parameters/
+
+          StackGresOperator is the Schema for the stackgresoperators API.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
