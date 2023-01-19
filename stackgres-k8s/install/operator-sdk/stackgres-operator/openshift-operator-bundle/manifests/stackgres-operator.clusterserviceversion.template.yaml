@@ -11,12 +11,12 @@ spec:
     - name: kube-rbac-proxy_0_13_0
       image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
     - name: stackgres-operator-helm
-      image: quay.io/stackgres/helm-operator:1.4.1-openshift
+      image: quay.io/stackgres/helm-operator:${VERSION}-openshift
     - name: stackgres-operator
-      image: docker.io/stackgres/operator:1.4.1
+      image: docker.io/stackgres/operator:${VERSION}
     - name: stackgres-restapi
-      image: docker.io/stackgres/restapi:1.4.1
+      image: docker.io/stackgres/restapi:${VERSION}
     - name: stackgres-admin-ui
-      image: docker.io/stackgres/admin-ui:1.4.1
+      image: docker.io/stackgres/admin-ui:${VERSION}
     - name: stackgres-jobs
-      image: docker.io/stackgres/jobs:1.4.1
+      image: docker.io/stackgres/jobs:${VERSION}

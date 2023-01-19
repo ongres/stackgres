@@ -11,7 +11,7 @@
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       cat << EOF > build-image.sh
       if docker manifest inspect "$TARGET_IMAGE_NAME" 2>/dev/null \
-        && [ "DO_IMAGES" != true ]
+        && [ "$DO_IMAGES" != true ]
       then
         echo "$TARGET_IMAGE_NAME" already exists
         exit
@@ -47,7 +47,7 @@
         fi
         )"
       if docker manifest inspect "$TARGET_IMAGE_NAME" >/dev/null 2>&1 \
-        && [ "DO_IMAGES" != true ]
+        && [ "$DO_IMAGES" != true ]
       then
         exit
       fi

@@ -4,13 +4,13 @@ metadata:
   annotations:
     alm-examples: '[]'
     capabilities: Basic Install
-  name: stackgres-operator.v1.4.1
+  name: stackgres-operator.v${VERSION}
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions: {}
   description: StackGres Operator
-  displayName: stackgres-operator
+  displayName: StackGres Operator
   icon:
   - base64data: |
       PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFk
@@ -234,7 +234,7 @@ spec:
     name: Guilherme Elias
   - email: jorsol@ongres.com
     name: Jorge Solorzano
-  maturity: alpha
+  maturity: stable
   provider:
     name: OnGres
     url: https://stackgres.io
@@ -243,14 +243,14 @@ spec:
     name: kubectl_1_25_5
   - image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
     name: kube-rbac-proxy_0_13_0
-  - image: quay.io/stackgres/helm-operator:1.4.1
+  - image: quay.io/stackgres/helm-operator:${VERSION}
     name: stackgres-operator-helm
-  - image: docker.io/stackgres/operator:1.4.1
+  - image: docker.io/stackgres/operator:${VERSION}
     name: stackgres-operator
-  - image: docker.io/stackgres/restapi:1.4.1
+  - image: docker.io/stackgres/restapi:${VERSION}
     name: stackgres-restapi
-  - image: docker.io/stackgres/admin-ui:1.4.1
+  - image: docker.io/stackgres/admin-ui:${VERSION}
     name: stackgres-admin-ui
-  - image: docker.io/stackgres/jobs:1.4.1
+  - image: docker.io/stackgres/jobs:${VERSION}
     name: stackgres-jobs
-  version: 1.4.1
+  version: ${VERSION}

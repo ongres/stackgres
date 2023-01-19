@@ -6,9 +6,7 @@ spec:
   # Default values copied from <project_dir>/helm-charts/stackgres-operator/values.yaml
   adminui:
     image:
-      name: stackgres/admin-ui
       pullPolicy: IfNotPresent
-      tag: 1.4.1
     name: stackgres-adminui
     resources: {}
     service:
@@ -64,9 +62,7 @@ spec:
     affinity: {}
     annotations: {}
     image:
-      name: stackgres/jobs
       pullPolicy: IfNotPresent
-      tag: 1.4.1
     name: stackgres-jobs
     nodeSelector: {}
     resources: {}
@@ -75,9 +71,7 @@ spec:
     affinity: {}
     annotations: {}
     image:
-      name: stackgres/operator
       pullPolicy: IfNotPresent
-      tag: 1.4.1
     nodeSelector: {}
     resources: {}
     service:
@@ -93,9 +87,7 @@ spec:
     affinity: {}
     annotations: {}
     image:
-      name: stackgres/restapi
       pullPolicy: IfNotPresent
-      tag: 1.4.1
     name: stackgres-restapi
     nodeSelector: {}
     resources: {}
