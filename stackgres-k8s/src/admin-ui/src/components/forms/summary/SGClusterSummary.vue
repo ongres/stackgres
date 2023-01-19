@@ -189,7 +189,13 @@
                                     <strong class="label">Compression Method:</strong>
                                     <span class="value">{{ backup.compression }}</span>
                                 </li>
-                                <li v-if="( showDefaults || ( backup.performance.maxNetworkBandwidth.length || backup.performance.maxDiskBandwidth.length || (backup.performance.uploadDiskConcurrency != 1) ) )">
+                                <li v-if="( 
+                                    showDefaults || ( 
+                                        ( (hasProp(backup, 'performance.maxNetworkBandwidth')) && (backup.performance.maxNetworkBandwidth.length) )|| 
+                                        ( (hasProp(backup, 'performance.maxDiskBandwidth')) && (backup.performance.maxDiskBandwidth.length) )|| 
+                                        (backup.performance.uploadDiskConcurrency != 1) 
+                                    ) 
+                                )">
                                     <strong class="sectionTitle">Performance Specs</strong>
                                     <ul>
                                         <li v-if="( showDefaults || ( hasProp(backup, 'performance.maxNetworkBandwidth') && backup.performance.maxNetworkBandwidth.length) )">
@@ -493,9 +499,11 @@
                                         </li>
                                         <li v-if="(
                                             hasProp(cluster, 'data.spec.replicateFrom.storage.performance') && (
-                                            cluster.data.spec.replicateFrom.storage.performance.downloadConcurrency.length ||
-                                            cluster.data.spec.replicateFrom.storage.performance.maxNetworkBandwidth.length ||
-                                            cluster.data.spec.replicateFrom.storage.performance.maxDiskBandwidth.length) )">
+                                                ( (hasProp(cluster, 'data.spec.replicateFrom.storage.performance.downloadConcurrency')) && (cluster.data.spec.replicateFrom.storage.performance.downloadConcurrency.length) )||
+                                                ( (hasProp(cluster, 'data.spec.replicateFrom.storage.performance.maxNetworkBandwidth')) & (cluster.data.spec.replicateFrom.storage.performance.maxNetworkBandwidth.length) ) ||
+                                                ( (hasProp(cluster, 'data.spec.replicateFrom.storage.performance.maxDiskBandwidth')) && (cluster.data.spec.replicateFrom.storage.performance.maxDiskBandwidth.length) )
+                                            ) 
+                                        )">
                                             <strong class="sectionTitle">
                                                 Performance Specs
                                             </strong>
