@@ -822,17 +822,6 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.managedSql.scripts')"></span>
                             </h3>
                         </div>
-
-                        <div class="row row-50 noMargin">
-                            <div class="col">
-                                <label for="spec.managedSql.continueOnSGScriptError">Continue on SGScripts Error</label>  
-                                <label for="continueOnSGScriptError" class="switch yes-no" data-field="spec.managedSql.continueOnSGScriptError">
-                                    Enable
-                                    <input type="checkbox" id="continueOnSGScriptError" v-model="managedSql.continueOnSGScriptError" data-switch="NO">
-                                </label>
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.managedSql.continueOnSGScriptError').replace(/true/g, 'Enabled').replace('false','Disabled')"></span>
-                            </div>
-                        </div>
                         
                         <fieldset v-for="(baseScript, baseIndex) in managedSql.scripts">
                             <div class="header">
@@ -1023,6 +1012,19 @@
                         </fieldset>
                         <div class="fieldsetFooter" :class="!managedSql.scripts.length && 'topBorder'">
                             <a class="addRow" @click="pushScriptSet()">Add Script</a>
+                        </div>
+                        
+                        <br/><br/>
+                        
+                        <div v-if="hasScripts(managedSql.scripts)" class="row row-50 noMargin">
+                            <div class="col">
+                                <label for="spec.managedSql.continueOnSGScriptError">Continue on SGScripts Error</label>  
+                                <label for="continueOnSGScriptError" class="switch yes-no" data-field="spec.managedSql.continueOnSGScriptError">
+                                    Enable
+                                    <input type="checkbox" id="continueOnSGScriptError" v-model="managedSql.continueOnSGScriptError" data-switch="NO">
+                                </label>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.managedSql.continueOnSGScriptError').replace(/true/g, 'Enabled').replace('false','Disabled')"></span>
+                            </div>
                         </div>
                     </div>
                 </div>

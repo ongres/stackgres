@@ -261,10 +261,6 @@
                         <li>
                             <strong class="sectionTitle">Managed SQL</strong>
                             <ul>
-                                <li v-if="( showDefaults || (cluster.data.spec.managedSql.hasOwnProperty('continueOnSGScriptError') && cluster.data.spec.managedSql.continueOnSGScriptError) )">
-                                    <strong class="label">Continue on SGScript Error:</strong>
-                                    <span class="value">{{ hasProp(cluster, 'data.spec.managedSql.continueOnSGScriptError') ? isEnabled(cluster.data.spec.managedSql.continueOnSGScriptError) : 'Disabled' }}</span>
-                                </li>
                                 <li>
                                     <strong class="sectionTitle">Scripts</strong>
                                     <ul>
@@ -367,6 +363,10 @@
                                             </ul>
                                         </li>
                                     </ul>
+                                </li>
+                                <li v-if="( showDefaults || (cluster.data.spec.managedSql.hasOwnProperty('continueOnSGScriptError') && cluster.data.spec.managedSql.continueOnSGScriptError) )">
+                                    <strong class="label">Continue on SGScript Error:</strong>
+                                    <span class="value">{{ hasProp(cluster, 'data.spec.managedSql.continueOnSGScriptError') ? isEnabled(cluster.data.spec.managedSql.continueOnSGScriptError) : 'Disabled' }}</span>
                                 </li>
                             </ul>
                         </li>
