@@ -868,13 +868,13 @@
 
             <div class="scripts" v-if="hasProp(cluster, 'data.spec.managedSql')">
                 <h2>Managed SQL <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.managedSql')"></span></h2>
-               
-                <template v-for="(baseScript, baseIndex) in cluster.data.spec.managedSql.scripts">
-					<div class="configurationDetails">
-						<table class="crdDetails">
-							<tbody>
+                
+                <div class="configurationDetails">
+                    <table class="crdDetails">
+                        <tbody>
+                            <template v-for="(baseScript, baseIndex) in cluster.data.spec.managedSql.scripts">
 								<tr>
-                                    <td :rowspan="999">
+                                    <td rowspan="4">
                                         Script #{{ baseIndex + 1 }}
                                     </td>
 									<td class="label">
@@ -927,122 +927,131 @@
                                         </td>
                                     </tr>
                                 </template>
-							</tbody>
-						</table>
-					</div>
 
-                    <div class="configurationDetails hidden" :id="'baseScript-' + baseIndex" v-if="baseScript.hasOwnProperty('scriptSpec')">
-                        <h2>Script Entries <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts')"></span></h2>
+                                <div class="configurationDetails hidden" :id="'baseScript-' + baseIndex" v-if="baseScript.hasOwnProperty('scriptSpec')">
+                                    <h2>Script Entries <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts')"></span></h2>
 
-                        <table class="crdDetails" v-for="(script, index) in baseScript.scriptSpec.scripts">
-                            <tbody>
-                                <template>
-                                    <tr>
-                                        <td :rowspan="999">
-                                            Entry #{{ index + 1 }}
-                                        </td>
-                                        <td class="label">
-                                            ID
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.id')"></span>
-                                        </td>
-                                        <td class="textRight">
-                                            {{ script.id }}
-                                        </td>
-                                    </tr>
-                                    <tr v-if="script.hasOwnProperty('name')">
-                                        <td class="label">
-                                            Name
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.name')"></span>
-                                        </td>
-                                        <td>
-                                            {{ script.name }}
-                                        </td>
-                                    </tr>
-                                    <tr v-if="script.hasOwnProperty('version')">
-                                        <td class="label">
-                                            Version
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.version')"></span>
-                                        </td>
-                                        <td class="textRight">
-                                            {{ script.version }}
-                                        </td>
-                                    </tr>
-                                    <tr v-if="script.hasOwnProperty('database')">
-                                        <td class="label">
-                                            Database
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.database')"></span>
-                                        </td>
-                                        <td>
-                                            {{ script.database }}
-                                        </td>
-                                    </tr>
-                                    <tr v-if="script.hasOwnProperty('user')">
-                                        <td class="label">
-                                            User
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.user')"></span>
-                                        </td>
-                                        <td>
-                                            {{ script.user }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">
-                                            Retry on Error
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.retryOnError').replace(/false/g, 'Disabled').replace(/true/g, 'Disabled')"></span>
-                                        </td>
-                                        <td>
-                                            {{ script.hasOwnProperty('retryOnError') ? isEnabled(script.retryOnError) : 'Disabled' }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">
-                                            Store Status in Database
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.storeStatusInDatabase').replace(/false/g, 'Disabled').replace(/true/g, 'Disabled')"></span>
-                                        </td>
-                                        <td>
-                                            {{ script.hasOwnProperty('storeStatusInDatabase') ? isEnabled(script.storeStatusInDatabase) : 'Disabled' }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">
-                                            Wrap in Transaction
-                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.wrapInTransaction').replace('If not set', 'If Disabled')"></span>
-                                        </td>
-                                        <td class="upper">
-                                            {{ script.hasOwnProperty('wrapInTransaction') ? script.wrapInTransaction : 'Disabled' }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">
-                                            Script
-                                            <span class="helpTooltip" :data-tooltip="( script.hasOwnProperty('scriptFrom') ? getTooltip('sgscript.spec.scripts.scriptFrom') : getTooltip('sgscript.spec.scripts.script') )"></span>
-                                        </td>
-                                        <td>
-                                            <template v-if="hasProp(script, 'scriptFrom.secretKeyRef')">
-                                                <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)" :data-content-tooltip="('#script-' + baseIndex + '-' + index)" class="eye-icon">
-                                                    View Key Reference
-                                                </a>
-                                                <div :id="'script-' + baseIndex + '-' + index" class="hidden">
-                                                    <strong>Name</strong>: {{  script.scriptFrom.secretKeyRef.name }}<br/><br/>
-                                                    <strong>Key</strong>: {{  script.scriptFrom.secretKeyRef.key }}
-                                                </div>
+                                    <table class="crdDetails" v-for="(script, index) in baseScript.scriptSpec.scripts">
+                                        <tbody>
+                                            <template>
+                                                <tr>
+                                                    <td :rowspan="999">
+                                                        Entry #{{ index + 1 }}
+                                                    </td>
+                                                    <td class="label">
+                                                        ID
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.id')"></span>
+                                                    </td>
+                                                    <td class="textRight">
+                                                        {{ script.id }}
+                                                    </td>
+                                                </tr>
+                                                <tr v-if="script.hasOwnProperty('name')">
+                                                    <td class="label">
+                                                        Name
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.name')"></span>
+                                                    </td>
+                                                    <td>
+                                                        {{ script.name }}
+                                                    </td>
+                                                </tr>
+                                                <tr v-if="script.hasOwnProperty('version')">
+                                                    <td class="label">
+                                                        Version
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.version')"></span>
+                                                    </td>
+                                                    <td class="textRight">
+                                                        {{ script.version }}
+                                                    </td>
+                                                </tr>
+                                                <tr v-if="script.hasOwnProperty('database')">
+                                                    <td class="label">
+                                                        Database
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.database')"></span>
+                                                    </td>
+                                                    <td>
+                                                        {{ script.database }}
+                                                    </td>
+                                                </tr>
+                                                <tr v-if="script.hasOwnProperty('user')">
+                                                    <td class="label">
+                                                        User
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.user')"></span>
+                                                    </td>
+                                                    <td>
+                                                        {{ script.user }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="label">
+                                                        Retry on Error
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.retryOnError').replace(/false/g, 'Disabled').replace(/true/g, 'Disabled')"></span>
+                                                    </td>
+                                                    <td>
+                                                        {{ script.hasOwnProperty('retryOnError') ? isEnabled(script.retryOnError) : 'Disabled' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="label">
+                                                        Store Status in Database
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.storeStatusInDatabase').replace(/false/g, 'Disabled').replace(/true/g, 'Disabled')"></span>
+                                                    </td>
+                                                    <td>
+                                                        {{ script.hasOwnProperty('storeStatusInDatabase') ? isEnabled(script.storeStatusInDatabase) : 'Disabled' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="label">
+                                                        Wrap in Transaction
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.wrapInTransaction').replace('If not set', 'If Disabled')"></span>
+                                                    </td>
+                                                    <td class="upper">
+                                                        {{ script.hasOwnProperty('wrapInTransaction') ? script.wrapInTransaction : 'Disabled' }}
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="label">
+                                                        Script
+                                                        <span class="helpTooltip" :data-tooltip="( script.hasOwnProperty('scriptFrom') ? getTooltip('sgscript.spec.scripts.scriptFrom') : getTooltip('sgscript.spec.scripts.script') )"></span>
+                                                    </td>
+                                                    <td>
+                                                        <template v-if="hasProp(script, 'scriptFrom.secretKeyRef')">
+                                                            <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)" :data-content-tooltip="('#script-' + baseIndex + '-' + index)" class="eye-icon">
+                                                                View Key Reference
+                                                            </a>
+                                                            <div :id="'script-' + baseIndex + '-' + index" class="hidden">
+                                                                <strong>Name</strong>: {{  script.scriptFrom.secretKeyRef.name }}<br/><br/>
+                                                                <strong>Key</strong>: {{  script.scriptFrom.secretKeyRef.key }}
+                                                            </div>
+                                                        </template>
+                                                        <template v-else>
+                                                            <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)" :data-content-tooltip="('#script-' + baseIndex + '-' + index)" class="eye-icon"> 
+                                                                View Script
+                                                            </a>
+                                                            <div :id="'script-'+ baseIndex + '-' + index" class="hidden">
+                                                                <pre v-if="script.hasOwnProperty('script')">{{ script.script }}</pre>
+                                                                <pre v-else-if="hasProp(script, 'scriptFrom.configMapScript')">{{ script.scriptFrom.configMapScript }}</pre>
+                                                            </div>
+                                                        </template>
+                                                    </td>
+                                                </tr>
                                             </template>
-                                            <template v-else>
-                                                <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)" :data-content-tooltip="('#script-' + baseIndex + '-' + index)" class="eye-icon"> 
-                                                    View Script
-                                                </a>
-                                                <div :id="'script-'+ baseIndex + '-' + index" class="hidden">
-                                                    <pre v-if="script.hasOwnProperty('script')">{{ script.script }}</pre>
-                                                    <pre v-else-if="hasProp(script, 'scriptFrom.configMapScript')">{{ script.scriptFrom.configMapScript }}</pre>
-                                                </div>
-                                            </template>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                    </div>				
-				</template>
+                                        </tbody>
+                                    </table>
+                                </div>	
+				            </template>
+                            <tr>
+                                <td class="label">
+                                    Continue on SGScript Error   
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.managedSql.continueOnSGScriptError').replace(/true/g, 'Enabled').replace('false','Disabled')"></span>
+                                </td>
+                                <td colspan="2">
+                                    {{ isEnabled(cluster.data.spec.managedSql.continueOnSGScriptError) }}
+                                </td>
+                            </tr>
+						</tbody>
+					</table>
+				</div>
             </div>
 
             <div class="resourcesMetadata" v-if="hasProp(cluster, 'data.spec.metadata.annotations') && Object.keys(cluster.data.spec.metadata.annotations).length">
