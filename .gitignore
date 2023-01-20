@@ -12,6 +12,9 @@ factoryConfiguration.json
 ### VS code ###
 .vscode/
 
+### Apple ###
+.DS_Store
+
 ### IntelliJ ###
 
 *.iml
