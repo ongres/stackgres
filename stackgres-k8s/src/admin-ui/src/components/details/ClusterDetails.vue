@@ -519,20 +519,11 @@
                     </tr>
                     <template v-if="hasProp(cluster, 'data.spec.initialData.restore')">
                         <tr :set="backup = backups.find( b => (b.data.metadata.name == cluster.data.spec.initialData.restore.fromBackup.name) )">
-                            <td class="label" :rowspan="1 + Object.keys(cluster.data.spec.initialData.restore.fromBackup).length + ( (typeof backup !== 'undefined') ? 1 : 0)">
+                            <td class="label" :rowspan="Object.keys(cluster.data.spec.initialData.restore.fromBackup).length + ( (typeof backup !== 'undefined') ? 2 : 0)">
                                 Initial Data
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData')"></span>
                             </td>
-                            <td class="label">
-                                Download Disk Concurrency
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
-                            </td>
-                            <td colspan="2" class="textRight">
-                                {{ hasProp(cluster , 'data.spec.initialData.restore.downloadDiskConcurrency') ? cluster.data.spec.initialData.restore.downloadDiskConcurrency : '1' }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="label" :rowspan="(cluster.data.spec.initialData.restore.fromBackup.hasOwnProperty('pointInTimeRecovery') ? 1 : 0) + ((typeof backup !== 'undefined') ? 2 : 1)">
+                            <td class="label" :rowspan="(cluster.data.spec.initialData.restore.fromBackup.hasOwnProperty('pointInTimeRecovery') ? 2 : 1) + ((typeof backup !== 'undefined') ? 2 : 1)">
                                 Restore from Backup
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
                             </td>
@@ -554,7 +545,7 @@
                         </tr>
                         <tr v-if="(typeof backup !== 'undefined')">
                             <td class="label">
-                                Date
+                                Backup Date
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.stored')"></span>
                             </td>
                             <td class="timestamp">
@@ -572,22 +563,33 @@
                                 </template>
                             </td>
                         </tr>
-                        <tr v-if="cluster.data.spec.initialData.restore.fromBackup.hasOwnProperty('pointInTimeRecovery')">
+                        <template v-if="cluster.data.spec.initialData.restore.fromBackup.hasOwnProperty('pointInTimeRecovery')">
+                            <tr>
+                                <td class="label">
+                                    Point-in-Time Recovery
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
+                                </td>
+                                <td class="timestamp">
+                                    <span class='date'>
+                                        {{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('date') }}
+                                    </span>
+                                    <span class='time'>
+                                        {{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('time') }}
+                                    </span>
+                                    <span class='ms'>
+                                        {{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('ms') }}
+                                    </span>
+                                    <span class='tzOffset'>{{ showTzOffset() }}</span>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr>
                             <td class="label">
-                                Point-in-Time Recovery
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
+                                Download Disk Concurrency
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
                             </td>
-                            <td class="timestamp">
-                                <span class='date'>
-                                    {{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('date') }}
-                                </span>
-                                <span class='time'>
-                                    {{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('time') }}
-                                </span>
-                                <span class='ms'>
-                                    {{ cluster.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp | formatTimestamp('ms') }}
-                                </span>
-                                <span class='tzOffset'>{{ showTzOffset() }}</span>
+                            <td class="textRight">
+                                {{ hasProp(cluster , 'data.spec.initialData.restore.downloadDiskConcurrency') ? cluster.data.spec.initialData.restore.downloadDiskConcurrency : '1' }}
                             </td>
                         </tr>
                     </template>	
