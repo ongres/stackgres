@@ -135,6 +135,12 @@
                         
                         <div class="row-50">
                             <div class="col">
+                                <label for="spec.postgresServices.replicas.enabled">Service</label>  
+                                <label disabled for="postgresServicesPrimary" class="switch yes-no" data-field="spec.postgresServices.replicas.enabled">Enable<input disabled type="checkbox" id="postgresServicesPrimary" v-model="postgresServicesPrimary" data-switch="YES"></label>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.replicas.enabled')"></span>
+                            </div>
+
+                            <div class="col">
                                 <label for="spec.postgresServices.primary.type">Type</label>
                                 <select v-model="postgresServicesPrimaryType" required data-field="spec.postgresServices.primary.type">    
                                     <option selected>ClusterIP</option>
@@ -142,6 +148,15 @@
                                     <option>NodePort</option>
                                 </select>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.primary.type')"></span>
+                            </div>
+                        
+                            <div class="col">
+                                <label>Load Balancer IP</label>
+                                <input 
+                                    v-model="postgresServicesPrimaryLoadBalancerIP" 
+                                    autocomplete="off" 
+                                    data-field="spec.postgresServices.primary.loadBalancerIP">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.primary.loadBalancerIP')"></span>
                             </div>
                         </div>
 
@@ -192,6 +207,15 @@
                                     <option>NodePort</option>
                                 </select>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.replicas.type')"></span>
+                            </div>
+
+                            <div class="col">
+                                <label>Load Balancer IP</label>
+                                <input 
+                                    v-model="postgresServicesReplicasLoadBalancerIP" 
+                                    autocomplete="off" 
+                                    data-field="spec.postgresServices.replicas.loadBalancerIP">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.replicas.loadBalancerIP')"></span>
                             </div>
                         </div>
 
@@ -506,7 +530,9 @@
                 annotationsAllText: '',
                 annotationsPods: [ { annotation: '', value: '' } ],
                 annotationsServices: [ { annotation: '', value: '' } ],
+                postgresServicesPrimary: true,
                 postgresServicesPrimaryType: 'ClusterIP',
+                postgresServicesPrimaryLoadBalancerIP: '',
                 /*
                     TO-DO: Once services annotations are implemented on the backend
                     -
@@ -514,6 +540,7 @@
                 */
                 postgresServicesReplicas: true,
                 postgresServicesReplicasType: 'ClusterIP',
+                postgresServicesReplicasLoadBalancerIP: ''
                 /*
                     TO-DO: Once services annotations are implemented on the backend
                     - 
@@ -583,6 +610,7 @@
                             vm.annotationsPods = vm.hasProp(c, 'data.spec.metadata.annotations.pods') ? vm.unparseProps(c.data.spec.metadata.annotations.pods) : [];
                             vm.annotationsServices = vm.hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
                             vm.postgresServicesPrimaryType = vm.hasProp(c, 'data.spec.postgresServices.primary.type') ? c.data.spec.postgresServices.primary.type : 'ClusterIP';
+                            vm.postgresServicesPrimaryLoadBalancerIP = vm.hasProp(c, 'data.spec.postgresServices.primary.loadBalancerIP') ? c.data.spec.postgresServices.primary.loadBalancerIP : '';
                             /*
                                 TO-DO: Once services annotations are implemented on the backend
                                 -
@@ -590,6 +618,7 @@
                             */
                             vm.postgresServicesReplicas = vm.hasProp(c, 'data.spec.postgresServices.replicas.enabled') ? c.data.spec.postgresServices.replicas.enabled : false;
                             vm.postgresServicesReplicasType = vm.hasProp(c, 'data.spec.postgresServices.replicas.type') ? c.data.spec.postgresServices.replicas.type : 'ClusterIP';
+                            vm.postgresServicesReplicasLoadBalancerIP = vm.hasProp(c, 'data.spec.postgresServices.replicas.loadBalancerIP') ? c.data.spec.postgresServices.replicas.loadBalancerIP : '';
                             /*
                                 TO-DO: Once services annotations are implemented on the backend
                                 -
@@ -670,9 +699,13 @@
                             }
                         }) ),
                         "postgresServices": {
+                            ...(this.hasProp(previous, 'spec.postgresServices') && previous.spec.postgresServices),
                             "primary": {
                                 ...(this.hasProp(previous, 'spec.postgresServices.primary') && previous.spec.postgresServices.primary),
                                 "type": this.postgresServicesPrimaryType,
+                                ...(this.postgresServicesPrimaryLoadBalancerIP.length && {
+                                    "loadBalancerIP": this.postgresServicesPrimaryLoadBalancerIP
+                                })
                                 /*
                                     TO-DO: Once services annotations are implemented on the backend
                                     -
@@ -683,6 +716,9 @@
                                 ...(this.hasProp(previous, 'spec.postgresServices.replicas') && previous.spec.postgresServices.replicas),
                                 "enabled": this.postgresServicesReplicas,
                                 "type": this.postgresServicesReplicasType,
+                                ...(this.postgresServicesReplicasLoadBalancerIP.length && {
+                                    "loadBalancerIP": this.postgresServicesReplicasLoadBalancerIP
+                                })
                                 /*
                                     TO-DO: Once services annotations are implemented on the backend
                                     -

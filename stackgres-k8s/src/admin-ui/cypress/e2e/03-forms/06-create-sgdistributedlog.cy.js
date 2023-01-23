@@ -125,8 +125,16 @@ describe('Create SGDistributedLog', () => {
         cy.get('select[data-field="spec.postgresServices.primary.type"]')
             .select('LoadBalancer')
         
+        cy.get('input[data-field="spec.postgresServices.primary.loadBalancerIP"]')
+            .clear()
+            .type('1.2.3.4')
+        
         cy.get('select[data-field="spec.postgresServices.replicas.type"]')
             .select('NodePort')
+        
+        cy.get('input[data-field="spec.postgresServices.replicas.loadBalancerIP"]')
+            .clear()
+            .type('1.2.3.4')
 
         // Test Metadata
         cy.get('form#createLogsServer li[data-step="metadata"]')

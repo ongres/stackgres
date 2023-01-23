@@ -402,15 +402,23 @@ describe('Create SGCluster', () => {
             .clear()
             .type('1')
 
-        // Test Postgres Services types
+        // Test Postgres Services
         cy.get('form#createCluster li[data-step="services"]')
             .click()
 
         cy.get('select[data-field="spec.postgresServices.primary.type"]')
             .select('LoadBalancer')
         
+        cy.get('input[data-field="spec.postgresServices.primary.loadBalancerIP"]')
+            .clear()
+            .type('1.2.3.4')
+        
         cy.get('select[data-field="spec.postgresServices.replicas.type"]')
             .select('NodePort')
+        
+        cy.get('input[data-field="spec.postgresServices.replicas.loadBalancerIP"]')
+            .clear()
+            .type('1.2.3.4')
 
         // Test Metadata
         cy.get('form#createCluster li[data-step="metadata"]')
@@ -610,7 +618,9 @@ describe('Create SGCluster', () => {
         cy.get('@postCluster')
             .its('request.body.spec.postgresServices')
             .should('nested.include', {"primary.type": 'LoadBalancer'})
+            .and('nested.include', {"primary.loadBalancerIP": '1.2.3.4'})
             .and('nested.include', {"replicas.type": 'NodePort'})
+            .and('nested.include', {"replicas.loadBalancerIP": '1.2.3.4'})
         cy.get('@postCluster')
             .its('request.body.spec.metadata')
             .should('nested.include', {"labels.clusterPods.label": 'value'})
@@ -866,7 +876,7 @@ describe('Create SGCluster', () => {
             .clear()
             .type('2')
 
-        // Test Postgres Services types
+        // Test Postgres Services
         cy.get('form#createCluster li[data-step="services"]')
             .click()
 
@@ -874,9 +884,17 @@ describe('Create SGCluster', () => {
             .should('have.value', 'LoadBalancer')
             .select('NodePort')
         
+        cy.get('input[data-field="spec.postgresServices.primary.loadBalancerIP"]')
+            .clear()
+            .type('4.3.2.1')
+        
         cy.get('select[data-field="spec.postgresServices.replicas.type"]')
             .should('have.value', 'NodePort')
             .select('LoadBalancer')
+        
+        cy.get('input[data-field="spec.postgresServices.replicas.loadBalancerIP"]')
+            .clear()
+            .type('4.3.2.1')
 
         // Test Metadata
         cy.get('form#createCluster li[data-step="metadata"]')
@@ -1171,7 +1189,9 @@ describe('Create SGCluster', () => {
         cy.get('@putCluster')
             .its('request.body.spec.postgresServices')
             .should('nested.include', {"primary.type": 'NodePort'})
+            .and('nested.include', {"primary.loadBalancerIP": '4.3.2.1'})
             .and('nested.include', {"replicas.type": 'LoadBalancer'})
+            .and('nested.include', {"replicas.loadBalancerIP": '4.3.2.1'})
         cy.get('@putCluster')
             .its('request.body.spec.metadata')
             .should('nested.include', {"labels.clusterPods.label1": 'value1'})

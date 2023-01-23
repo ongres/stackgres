@@ -1261,6 +1261,15 @@
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.type')"></span>
                         </div>
+
+                        <div class="col">
+                            <label>Load Balancer IP</label>
+                            <input 
+                                v-model="postgresServicesPrimaryLoadBalancerIP" 
+                                autocomplete="off" 
+                                data-field="spec.postgresServices.primary.loadBalancerIP">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.loadBalancerIP')"></span>
+                        </div>
                     </div>
 
                     <div class="header">
@@ -1285,6 +1294,15 @@
                                 <option>NodePort</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.type')"></span>
+                        </div>
+
+                        <div class="col">
+                            <label>Load Balancer IP</label>
+                            <input 
+                                v-model="postgresServicesReplicasLoadBalancerIP" 
+                                autocomplete="off" 
+                                data-field="spec.postgresServices.replicas.loadBalancerIP">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.loadBalancerIP')"></span>
                         </div>
                     </div>
                 </div>
@@ -2020,9 +2038,11 @@
                 annotationsServices: [ { annotation: '', value: '' } ],
                 postgresServicesPrimary: true,
                 postgresServicesPrimaryType: 'ClusterIP',
+                postgresServicesPrimaryLoadBalancerIP: '',
                 postgresServicesPrimaryAnnotations: [ { annotation: '', value: '' } ],
                 postgresServicesReplicas: true,
                 postgresServicesReplicasType: 'ClusterIP',
+                postgresServicesReplicasLoadBalancerIP: '',
                 postgresServicesReplicasAnnotations: [ { annotation: '', value: '' } ],
                 searchExtension: '',
                 extLicense: 'opensource',
@@ -2279,9 +2299,11 @@
                             vm.annotationsServices = vm.hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
                             vm.postgresServicesPrimary = vm.hasProp(c, 'data.spec.postgresServices.primary.enabled') ? c.data.spec.postgresServices.primary.enabled : false;
                             vm.postgresServicesPrimaryType = vm.hasProp(c, 'data.spec.postgresServices.primary.type') ? c.data.spec.postgresServices.primary.type : 'ClusterIP';
+                            vm.postgresServicesPrimaryLoadBalancerIP = vm.hasProp(c, 'data.spec.postgresServices.primary.loadBalancerIP') ? c.data.spec.postgresServices.primary.loadBalancerIP : '';
                             vm.postgresServicesPrimaryAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.primaryService') ?  vm.unparseProps(c.data.spec.metadata.annotations.primaryService) : [];
                             vm.postgresServicesReplicas = vm.hasProp(c, 'data.spec.postgresServices.replicas.enabled') ? c.data.spec.postgresServices.replicas.enabled : false;
                             vm.postgresServicesReplicasType = vm.hasProp(c, 'data.spec.postgresServices.replicas.type') ? c.data.spec.postgresServices.replicas.type : 'ClusterIP';
+                            vm.postgresServicesReplicasLoadBalancerIP = vm.hasProp(c, 'data.spec.postgresServices.replicas.loadBalancerIP') ? c.data.spec.postgresServices.replicas.loadBalancerIP : '';
                             vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.replicasService') ?  vm.unparseProps(c.data.spec.metadata.annotations.replicasService) : [];
                             vm.selectedExtensions = vm.hasProp(c, 'data.spec.postgres.extensions') ? c.data.spec.postgres.extensions : [];
 
@@ -2668,11 +2690,17 @@
                                 ...(this.hasProp(previous, 'spec.postgresServices.primary') && previous.spec.postgresServices.primary),
                                 "enabled": this.postgresServicesPrimary,
                                 "type": this.postgresServicesPrimaryType,
+                                ...(this.postgresServicesPrimaryLoadBalancerIP.length && {
+                                    "loadBalancerIP": this.postgresServicesPrimaryLoadBalancerIP
+                                })
                             },
                             "replicas": {
                                 ...(this.hasProp(previous, 'spec.postgresServices.replicas') && previous.spec.postgresServices.replicas),
                                 "enabled": this.postgresServicesReplicas,
                                 "type": this.postgresServicesReplicasType,
+                                ...(this.postgresServicesReplicasLoadBalancerIP.length && {
+                                    "loadBalancerIP": this.postgresServicesReplicasLoadBalancerIP
+                                })
                             }
                         },
                         "postgres": {
