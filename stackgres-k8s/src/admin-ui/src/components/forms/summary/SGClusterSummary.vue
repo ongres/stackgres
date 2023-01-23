@@ -250,9 +250,9 @@
                                     <span class='tzOffset'>{{ showTzOffset() }}</span>
                                 </span>
                             </li>
-                            <li v-if="hasProp(cluster, 'data.spec.initialData.restore.downloadDiskConcurrency')">
+                            <li v-if="showDefaults || hasProp(cluster, 'data.spec.initialData.restore.downloadDiskConcurrency')">
                                 <strong class="label">Download Disk Concurrency:</strong>
-                                <span class="value">{{ cluster.data.spec.initialData.restore.downloadDiskConcurrency }}</span>
+                                <span class="value">{{ hasProp(cluster, 'data.spec.initialData.restore.downloadDiskConcurrency') ? cluster.data.spec.initialData.restore.downloadDiskConcurrency : 1 }}</span>
                             </li>
                         </ul>
                     </ul>

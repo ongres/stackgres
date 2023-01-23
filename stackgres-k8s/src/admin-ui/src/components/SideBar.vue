@@ -444,12 +444,10 @@
 
 			$(document).on("mouseover", ".collapsed #ns-set", function(){
 				$("#current-namespace").addClass("open");
-				$("#ns-select").show();
 			});
 
 			$(document).on("mouseleave", ".collapsed #ns-set", function(){
 				$("#current-namespace").removeClass("open");
-				$("#ns-select").hide();
 			});
 
 		},
@@ -748,6 +746,11 @@
 		border-left: none;
 		background-color: var(--bgColor);
 		box-shadow: 2px 2px 5px rgba(0,0,0,.1);
+		display: none;
+	}
+
+	.collapsed #current-namespace.open + li > #ns-select {
+		display: block;
 	}
 
 	.collapsed #ns-select li:first-of-type {

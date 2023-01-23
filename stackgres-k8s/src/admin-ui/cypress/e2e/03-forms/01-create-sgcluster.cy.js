@@ -264,7 +264,11 @@ describe('Create SGCluster', () => {
             .select('ui-0')
         
         // Set PITR
-        cy.get('label[for="spec.initialData.restore.fromBackup.pointInTimeRecovery"] + input') 
+        cy.get('input[data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery"]')
+            .click()
+
+        cy.get('input[data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp"]')
+            .clear()
             .type('9999-01-01 00:00:00')
         
         // Performance details
@@ -772,7 +776,10 @@ describe('Create SGCluster', () => {
             .should('be.disabled')
         
         // Set PITR
-        cy.get('label[for="spec.initialData.restore.fromBackup.pointInTimeRecovery"] + input') 
+        cy.get('input[data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery"]') 
+            .should('be.disabled')
+        
+        cy.get('input[data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp"]') 
             .should('be.disabled')
         
         // Performance details

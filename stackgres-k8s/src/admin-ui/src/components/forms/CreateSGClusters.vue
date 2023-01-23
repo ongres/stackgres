@@ -507,7 +507,7 @@
                                         <input v-model="restoreBackup" disabled>
                                     </template>
                                     <template v-else>
-                                        <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : initDatepicker()" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
+                                        <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : (!hasPITR() && (pitr = ''))" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
                                             <option value="">Select a Backup</option>
                                             <template v-for="backup in sgbackups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.process.status === 'Completed') && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
                                                 <option :value="backup.name">
@@ -523,19 +523,33 @@
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
                                 </div>
 
-                                <template v-if="!editMode || (editMode && pitr.length)">
-                                    <div class="col" :class="!restoreBackup.length && 'hidden'">
-                                        <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery">Point-in-Time Recovery (PITR)</label>
-                                        <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :value="pitrTimezone" :disabled="!restoreBackup.length || editMode">
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
-                                    </div>
-                                </template>
-
                                 <div class="col" v-if="restoreBackup.length">
                                     <label for="spec.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
-                                    <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="0" :disabled="editMode">
+                                    <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="1" :disabled="editMode">
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
                                 </div>
+
+                                <template v-if="( (!editMode && hasPITR()) || (editMode && pitr.length) )">
+                                    <div class="col">
+                                        <label>Point-in-Time Recovery (PITR)</label>  
+                                        <label for="enablePITR" class="switch yes-no" @change="initDatepicker()" :disabled="editMode">
+                                            Enable
+                                            <input type="checkbox" id="enablePITR" v-model="enablePITR" data-switch="NO" data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery" :disabled="editMode">
+                                        </label>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
+                                    </div>
+
+                                    <div class="col" :class="!enablePITR && 'hidden'">
+                                        <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">Restore To Timestamp</label>
+                                        <template v-if="editMode">
+                                            <input disabled :value="pitrTimezone" data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">
+                                        </template>
+                                        <template v-else>
+                                            <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :disabled="!enablePITR" data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">
+                                        </template>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp')"></span>
+                                    </div>
+                                </template>
                             </fieldset>
                             <br/><br/><br/>
                         </template>
@@ -1997,8 +2011,9 @@
                 connPooling: true,
                 connectionPoolingConfig: '',
                 restoreBackup: '',
+                enablePITR: false,
                 pitr: '',
-                downloadDiskConcurrency: '',
+                downloadDiskConcurrency: 1,
                 distributedLogs: '',
                 retention: '',
                 prometheusAutobind: false,
@@ -2308,8 +2323,10 @@
                             vm.selectedExtensions = vm.hasProp(c, 'data.spec.postgres.extensions') ? c.data.spec.postgres.extensions : [];
 
                             vm.restoreBackup = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.name') ? c.data.spec.initialData.restore.fromBackup.name : '';
+                            vm.downloadDiskConcurrency = vm.hasProp(c, 'data.spec.initialData.restore.downloadDiskConcurrency') ? c.data.spec.initialData.restore.downloadDiskConcurrency : 1;
                             vm.pitr = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp') ? c.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp : ''
-                            vm.downloadDiskConcurrency = vm.hasProp(c, 'data.spec.initialData.restore.downloadDiskConcurrency') ? c.data.spec.initialData.restore.downloadDiskConcurrency : '';
+                            vm.enablePITR = (vm.pitr.length > 0);
+                            $('.datePicker').val(vm.pitrTimezone);
                             
                             vm.editReady = vm.advancedMode = true
                             return false
@@ -2627,7 +2644,7 @@
                                                     } || {"pointInTimeRecovery": null})
                                                 }
                                             } || {"fromBackup": null}),
-                                            ...(this.downloadDiskConcurrency.toString().length && {
+                                            ...((this.downloadDiskConcurrency != 1) && {
                                                 "downloadDiskConcurrency": this.downloadDiskConcurrency 
                                             } || {"downloadDiskConcurrency": null} )
                                         },
@@ -2926,60 +2943,81 @@
             },
 
             parseExtensions(ext) {
-                ext.forEach(function(ext){
-                    ext['selectedVersion'] = ext.versions.length ? ext.versions[0] : ''
-                })
-            return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
-        },
+                    ext.forEach(function(ext){
+                        ext['selectedVersion'] = ext.versions.length ? ext.versions[0] : ''
+                    })
+                return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
+            },
+
+            hasPITR() {
+                const vc = this;
+
+                if(!vc.restoreBackup.length) {
+                    return false
+                } else {
+                    const baseBk = store.state.sgbackups.find( (bk) => (bk.data.metadata.name == vc.restoreBackup) );
+                    const postBk = store.state.sgbackups.find( (bk) => (
+                        (bk.data.spec.sgCluster == baseBk.data.spec.sgCluster) && 
+                        (bk.data.status.process.status == 'Completed') &&
+                        moment(bk.data.status.process.timing.stored).isAfter(moment(baseBk.data.status.process.timing.stored))
+                    ) )
+                    if (typeof postBk == 'undefined') {
+                        return true
+                    } else {
+                        vc.enablePITR = false;
+                        return false
+                    }
+                }
+            },
 
             initDatepicker() {
                 const vc = this;
-                let minDate = null;
-                let maxDate = null;
 
-                store.state.sgbackups.forEach(function(fromBackup, index) {
-                    
-                    if( fromBackup.data.metadata.name == vc.restoreBackup ) {
-                        minDate = new Date(new Date(fromBackup.data.status.process.timing.stored).getTime());
-
-                        for(var i = index + 1; i < store.state.sgbackups.length; i++) {
-                            let nextBackup = store.state.sgbackups[i];
-                            
-                            if( (nextBackup.data.metadata.namespace == fromBackup.data.metadata.namespace) && (nextBackup.data.status.process.status == 'Completed') ) {
-                                maxDate = new Date(new Date(nextBackup.data.status.process.timing.stored).getTime());
-                                return false;
-                            }
-                        }
-
-                        return false;
-                    }
-
-                })
-                
-                if(!maxDate)
-                    maxDate = new Date(new Date().getTime());
-
-                // Load datepicker
-                require('daterangepicker');
-
-                $('.daterangepicker').remove();
                 vc.pitr = '';
-                $(document).find('.datePicker').daterangepicker({
-                    "autoApply": true,
-                    "singleDatePicker": true,
-                    "timePicker": true,
-                    "opens": "right",
-                    "minDate": minDate,
-                    "maxDate": maxDate,
-                    "timePicker24Hour": true,
-                    "timePickerSeconds": true,
-                    locale: {
-                        cancelLabel: "Clear",
-                        format: 'YYYY-MM-DD HH:mm:ss'
+
+                if(!vc.enablePITR) {
+                    $('.daterangepicker').remove();
+                } else if (vc.hasPITR()) { // Initialize PITR datepicker only if there's no backup newer than the chosen one
+                    
+                    const baseBk = store.state.sgbackups.find( (bk) => (bk.data.metadata.name == vc.restoreBackup) );
+                    
+                    // Load datepicker
+                    require('daterangepicker');
+
+                    $('.daterangepicker').remove();
+                    $(document).find('.datePicker').daterangepicker({
+                        "autoApply": true,
+                        "singleDatePicker": true,
+                        "timePicker": true,
+                        "opens": "right",
+                        "minDate": (store.state.timezone == 'local') ? new Date(new Date(baseBk.data.status.process.timing.stored).getTime()) : moment(new Date(new Date(baseBk.data.status.process.timing.stored).getTime())).utc(),
+                        "maxDate": moment(),
+                        "timePicker24Hour": true,
+                        "timePickerSeconds": true,
+                        locale: {
+                            cancelLabel: "Clear",
+                            format: 'YYYY-MM-DD HH:mm:ss'
+                        }
+                    }, function(start, end, label) {
+                        vc.pitr = (store.state.timezone == 'local') ? start.utc().format() : ( start.format('YYYY-MM-DDTHH:mm:ss') + 'Z' );
+                        $('.datePicker').val(vc.pitrTimezone);
+                    })
+                    .on('apply.daterangepicker', function(ev, picker) {
+                        if(!vc.pitrTimezone.length) {
+                            $('.datePicker').val('');    
+                        } else {
+                            $('.datePicker').val(vc.pitrTimezone);
+                        }
+                    })
+                    .on('cancel.daterangepicker', function(ev, picker) {
+                        vc.pitr = '';
+                        $('.datePicker').val('');
+                    });
+
+                    if($('.datePicker').val().length && !vc.pitr.length) {
+                        vc.pitr = ( $('.datePicker').val() + 'Z' ).replace(' ', 'T');
                     }
-                }, function(start, end, label) {
-                    vc.pitr = (store.state.timezone == 'local') ? start.utc().format() : ( start.format('YYYY-MM-DDTHH:mm:ss') + 'Z' )
-                });
+                }
             },
 
             addNodeSelectorRequirement(affinity) {
