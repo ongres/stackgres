@@ -694,27 +694,35 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="showDefaults || !cluster.data.spec.postgresServices.primary.enabled || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || !cluster.data.spec.postgresServices.replicas.enabled || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP')">
+                    <ul class="section" v-if="showDefaults || !cluster.data.spec.postgresServices.primary.enabled || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || !cluster.data.spec.postgresServices.replicas.enabled || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP')">
                         <li>
                             <strong class="sectionTitle">Customize generated Kubernetes service</strong>
                             <ul>
-                                <li v-if="showDefaults || !cluster.data.spec.postgresServices.primary.enabled || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP')">
+                                <li v-if="showDefaults || !cluster.data.spec.postgresServices.primary.enabled || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP')">
                                     <strong class="sectionTitle">Primary Service</strong>
-                                    <span v-if="( showDefaults || !cluster.data.spec.postgresServices.primary.enabled )"><strong>:</strong> {{ isEnabled(cluster.data.spec.postgresServices.primary.enabled) }}</span>
-                                    <ul v-if="( showDefaults || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') )">
-                                        <li>
+                                    <span><strong>:</strong> {{ isEnabled(cluster.data.spec.postgresServices.primary.enabled) }}</span>
+                                    <ul v-if="( showDefaults || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP') )">
+                                        <li v-if="( showDefaults || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') )">
                                             <strong class="label">Type:</strong>
                                             <span class="value">{{ cluster.data.spec.postgresServices.primary.type }}</span>
                                         </li>
+                                        <li v-if="cluster.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP')">
+                                            <strong class="label">Load Balancer IP:</strong>
+                                            <span class="value">{{ cluster.data.spec.postgresServices.primary.loadBalancerIP }}</span>
+                                        </li>
                                     </ul>
                                 </li>
-                                <li v-if="showDefaults || !cluster.data.spec.postgresServices.replicas.enabled || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP')">
+                                <li v-if="showDefaults || !cluster.data.spec.postgresServices.replicas.enabled || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP')">
                                     <strong class="sectionTitle">Replicas Service</strong>
-                                    <span v-if="( showDefaults || !cluster.data.spec.postgresServices.replicas.enabled )"><strong>:</strong> {{ isEnabled(cluster.data.spec.postgresServices.replicas.enabled) }}</span>
-                                    <ul v-if="( showDefaults || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') )">
-                                        <li>
+                                    <span><strong>:</strong> {{ isEnabled(cluster.data.spec.postgresServices.replicas.enabled) }}</span>
+                                    <ul v-if="( showDefaults || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP'))">
+                                        <li v-if="( showDefaults || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') )">
                                             <strong class="label">Type:</strong>
                                             <span class="value">{{ cluster.data.spec.postgresServices.replicas.type }}</span>
+                                        </li>
+                                        <li v-if="cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP')">
+                                            <strong class="label">Load Balancer IP:</strong>
+                                            <span class="value">{{ cluster.data.spec.postgresServices.replicas.loadBalancerIP }}</span>
                                         </li>
                                     </ul>
                                 </li>
