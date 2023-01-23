@@ -358,7 +358,11 @@
                                                 </li>
                                                 <li v-else-if="baseScript.hasOwnProperty('sgScript')">
                                                     <strong class="label">SGScript:</strong>
-                                                    <span class="value">{{ baseScript.sgScript }}</span>
+                                                    <span class="value">
+                                                        <router-link :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.sgScript" target="_blank">
+                                                            {{ baseScript.sgScript }}
+                                                        </router-link>
+                                                    </span>
                                                 </li>
                                             </ul>
                                         </li>
