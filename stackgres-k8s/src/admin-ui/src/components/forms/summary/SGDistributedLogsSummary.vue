@@ -65,27 +65,35 @@
             </li>
         </ul>
 
-        <ul class="section" v-if="showDefaults || (crd.data.spec.postgresServices.primary.type != 'ClusterIP') || !crd.data.spec.postgresServices.replicas.enabled || (crd.data.spec.postgresServices.replicas.type != 'ClusterIP')">
+        <ul class="section" v-if="showDefaults || (crd.data.spec.postgresServices.primary.type != 'ClusterIP') || !crd.data.spec.postgresServices.replicas.enabled || (crd.data.spec.postgresServices.replicas.type != 'ClusterIP') || crd.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP') || crd.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP')">
             <li>
                 <strong class="sectionTitle">Customize generated Kubernetes service</strong>
                 <ul>
-                    <li v-if="showDefaults || (crd.data.spec.postgresServices.primary.type != 'ClusterIP')">
+                    <li v-if="showDefaults || (crd.data.spec.postgresServices.primary.type != 'ClusterIP') || crd.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP')">
                         <strong class="sectionTitle">Primary Service</strong>
-                        <span v-if="showDefaults"><strong>:</strong> Enabled</span>
-                        <ul>
-                            <li v-if="( showDefaults || hasProp(crd, 'data.spec.postgresServices.primary.type') )">
+                        <span><strong>:</strong> Enabled</span>
+                        <ul v-if="( showDefaults || (crd.data.spec.postgresServices.primary.type != 'ClusterIP') || crd.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP') )">
+                            <li v-if="( showDefaults || (crd.data.spec.postgresServices.primary.type != 'ClusterIP') )">
                                 <strong class="label">Type:</strong>
-                                <span class="value">{{ hasProp(crd, 'data.spec.postgresServices.primary.type') ? crd.data.spec.postgresServices.primary.type : 'ClusterIP' }}</span>
+                                <span class="value">{{ crd.data.spec.postgresServices.primary.type }}</span>
+                            </li>
+                            <li v-if="crd.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP')">
+                                <strong class="label">Load Balancer IP:</strong>
+                                <span class="value">{{ crd.data.spec.postgresServices.primary.loadBalancerIP }}</span>
                             </li>
                         </ul>
                     </li>
-                    <li v-if="showDefaults || !crd.data.spec.postgresServices.replicas.enabled || (crd.data.spec.postgresServices.replicas.type != 'ClusterIP')">
+                    <li v-if="showDefaults || !crd.data.spec.postgresServices.replicas.enabled || (crd.data.spec.postgresServices.replicas.type != 'ClusterIP') || crd.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP')">
                         <strong class="sectionTitle">Replicas Service</strong>
-                        <span v-if="( showDefaults || !crd.data.spec.postgresServices.replicas.enabled )"><strong>:</strong> {{ isEnabled(crd.data.spec.postgresServices.replicas.enabled) }}</span>
-                        <ul>
+                        <span><strong>:</strong> {{ isEnabled(crd.data.spec.postgresServices.replicas.enabled) }}</span>
+                        <ul v-if="( showDefaults || (crd.data.spec.postgresServices.replicas.type != 'ClusterIP') || crd.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP'))">
                             <li v-if="( showDefaults || (crd.data.spec.postgresServices.replicas.type != 'ClusterIP') )">
                                 <strong class="label">Type:</strong>
-                                <span class="value">{{ hasProp(crd, 'data.spec.postgresServices.replicas.type') ? crd.data.spec.postgresServices.replicas.type : 'ClusterIP' }}</span>
+                                <span class="value">{{ crd.data.spec.postgresServices.replicas.type }}</span>
+                            </li>
+                            <li v-if="crd.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP')">
+                                <strong class="label">Load Balancer IP:</strong>
+                                <span class="value">{{ crd.data.spec.postgresServices.replicas.loadBalancerIP }}</span>
                             </li>
                         </ul>
                     </li>

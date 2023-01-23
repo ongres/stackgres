@@ -220,7 +220,7 @@
                             <table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="crdDetails">
                                 <tbody>
                                     <tr>
-                                        <td class="label capitalize" rowspan="3">
+                                        <td class="label capitalize" :rowspan="(service.hasOwnProperty('loadBalancerIP') ? 4 : 3)">
                                             {{ serviceName }}
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.'+serviceName)"></span>
                                         </td>
@@ -228,7 +228,7 @@
                                             Status
                                             <span class="helpTooltip" :data-tooltip="service.enabled ? getTooltip('sgdistributedlogs.spec.postgresServices.replicas.enabled') : getTooltip('sgdistributedlogs.spec.postgresServices.replicas.enabled').replace('replicas', 'primary')"></span>
                                         </td>
-                                        <td colspan="2">
+                                        <td :colspan="(service.hasOwnProperty('loadBalancerIP') ? 3 : 2)">
                                             <template v-if="serviceName == 'primary'">
                                                Enabled
                                             </template>
@@ -252,6 +252,15 @@
                                         </td>
                                         <td colspan="2">
                                             {{ service.type }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="service.hasOwnProperty('loadBalancerIP')">
+                                        <td class="label">
+                                            Load Balancer IP
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.'+serviceName+'.loadBalancerIP')"></span>
+                                        </td>
+                                        <td colspan="2">
+                                            {{ service.loadBalancerIP }}
                                         </td>
                                     </tr>
                                 </tbody>
