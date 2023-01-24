@@ -1,0 +1,4 @@
+annotations:
+  # Red Hat annotations.
+  com.redhat.openshift.versions: v4.8-v4.11
+

@@ -1,0 +1,31 @@
+# permissions for end users to edit stackgresoperators.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: stackgresoperator-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: stackgres-operator
+    app.kubernetes.io/part-of: stackgres-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: stackgresoperator-editor-role
+rules:
+- apiGroups:
+  - charts.stackgres.io
+  resources:
+  - stackgresoperators
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - charts.stackgres.io
+  resources:
+  - stackgresoperators/status
+  verbs:
+  - get

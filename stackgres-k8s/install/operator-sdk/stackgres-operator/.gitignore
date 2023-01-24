@@ -1,0 +1,4 @@
+bin
+bundle*
+config/manifests/bases/stackgres-operator.clusterserviceversion.yaml
+openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml

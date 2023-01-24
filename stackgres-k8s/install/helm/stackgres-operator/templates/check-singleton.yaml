@@ -1,0 +1,10 @@
+{{ if and .Release.IsInstall .Values.deploy.operator }}
+{{ $deployments := lookup "apps/v1" "Deployment" "" "" }}
+{{ range $deployments.items }}
+  {{ if .metadata.labels }}
+    {{ if eq .metadata.labels.group "stackgres.io" }}
+      {{ fail (print "StackGres Operator Helm Chart can only install one operator instance. Multiple operator instances is not supported.") }}
+    {{ end }}
+  {{ end }}
+{{ end }}
+{{ end }}
