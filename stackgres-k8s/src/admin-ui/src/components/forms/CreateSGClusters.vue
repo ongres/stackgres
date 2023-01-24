@@ -2491,8 +2491,6 @@
 
             cleanupScripts(managedSql) {
                 const vc = this;
-                let scripts = [];
-                
                 managedSql.scripts.forEach( (baseScript, baseIndex) => {
                     if(baseScript.hasOwnProperty('scriptSpec')) {
                         baseScript.scriptSpec.scripts.forEach( (script, index) => {
@@ -2501,21 +2499,9 @@
                                     delete script[key]
                                 }
                             })
-
-                            if (
-                                ( (vc.scriptSource[baseIndex].entries[index] == 'raw') && script.hasOwnProperty('script') && script.script.length) || 
-                                (baseScript.hasOwnProperty('sgScript') && !baseScript.sgScript.endsWith('-default') ) ||
-                                ( (vc.scriptSource[baseIndex].entries[index] != 'raw') && script.scriptFrom[vc.scriptSource[baseIndex].entries[index]].key.length && script.scriptFrom[vc.scriptSource[baseIndex].entries[index]].name.length )
-                            ) {
-                                scripts.push(baseScript)
-                            }
                         })
-                    } else if (baseScript.hasOwnProperty('sgScript')) {
-                        scripts.push(baseScript)
                     }
                 })
-
-                managedSql.scripts = scripts;
 
                 return managedSql;
 
