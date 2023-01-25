@@ -160,6 +160,7 @@ endif
 .PHONY: bundle
 bundle: kustomize ## Generate bundle manifests and metadata, then validate generated files.
 	sed 's/\$${VERSION}/$(VERSION)/g' config/manifests/bases/stackgres-operator.clusterserviceversion.template.yaml > config/manifests/bases/stackgres-operator.clusterserviceversion.yaml
+	sed 's/\$${VERSION}/$(VERSION)/g' config/manager/kustomization.template.yaml > config/manager/kustomization.yaml
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle $(BUNDLE_GEN_FLAGS)

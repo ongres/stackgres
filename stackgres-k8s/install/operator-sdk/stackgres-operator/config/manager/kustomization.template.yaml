@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: quay.io/stackgres/helm-operator
-  newTag: 1.4.1-openshift
+  newTag: ${VERSION}
