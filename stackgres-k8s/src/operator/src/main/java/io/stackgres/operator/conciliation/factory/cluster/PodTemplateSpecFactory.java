@@ -240,6 +240,8 @@ public class PodTemplateSpecFactory
                 .map(ContainerPortBuilder::new)
                 .map(containerPortBuilder -> containerPortBuilder.withName(
                     StackGresPort.CUSTOM.getName(containerPortBuilder.getName())))
+                .map(containerPortBuilder -> containerPortBuilder.getProtocol() == null
+                    ? containerPortBuilder.withProtocol("TCP") : containerPortBuilder)
                 .map(ContainerPortBuilder::build)
                 .toList()))
             .map(ContainerBuilder::build)

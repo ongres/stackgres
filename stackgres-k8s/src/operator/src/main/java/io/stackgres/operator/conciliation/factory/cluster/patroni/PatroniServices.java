@@ -321,6 +321,9 @@ public class PatroniServices implements
           StackGresPort.CUSTOM.getName(
               builder.buildTargetPort().getStrVal())));
     }
+    if (builder.getProtocol() == null) {
+      builder.withProtocol("TCP");
+    }
     return builder;
   }
 
