@@ -3,7 +3,7 @@ imagePullPolicy: "IfNotPresent"
 operator:
   image:
     name: "stackgres/operator"
-    tag: "main-jvm"
+    tag: "main-1.4-jvm"
     pullPolicy: "IfNotPresent"
   annotations: {}
   affinity: {}
@@ -12,13 +12,13 @@ operator:
     annotations: {}
   service:
     annotations: {}
-  tolerations: {}
+  tolerations: []
   resources: {}
 restapi:
   name: stackgres-restapi
   image:
     name: "stackgres/restapi"
-    tag: "main-jvm"
+    tag: "main-1.4-jvm"
     pullPolicy: "IfNotPresent"
   resources: {}
   affinity: {}
@@ -28,23 +28,23 @@ restapi:
     annotations: {}
   service:
     annotations: {}
-  tolerations: {}
+  tolerations: []
 jobs:
   name: stackgres-jobs
   image:
     name: "stackgres/jobs"
-    tag: "main-jvm"
+    tag: "main-1.4-jvm"
     pullPolicy: "IfNotPresent"
   resources: {}
   annotations: {}
-  tolerations: {}
+  tolerations: []
   nodeSelector: {}
   affinity: {}
 adminui:
   name: stackgres-adminui
   image:
     name: "stackgres/admin-ui"
-    tag: "main"
+    tag: "main-1.4"
     pullPolicy: "IfNotPresent"
   resources: {}
   service:

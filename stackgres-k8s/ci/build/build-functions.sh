@@ -209,7 +209,7 @@ $KEY
 EOF')"
           done
     eval "cat '$MODULE_DOCKERFILE'$(
-        jq -r ".modules[\"$MODULE\"].dockerfile.seds[]" stackgres-k8s/ci/build/target/config.json \
+        jq -r ".modules[\"$MODULE\"].dockerfile.seds | if . == null then [] else . end | .[]" stackgres-k8s/ci/build/target/config.json \
           | while read -r SED_EXPRESSION
             do
               cat << EOF | tr -d '\n'

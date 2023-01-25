@@ -1,12 +1,12 @@
 {{- define "kubectl.image" }}
 {{- if semverCompare ">=1.24" .Capabilities.KubeVersion.Version -}}
-{{- printf "ongres/kubectl:v1.24.3-build-6.16" -}}
+{{- printf "ongres/kubectl:v1.25.5-build-6.19" -}}
 {{- else if semverCompare ">=1.21" .Capabilities.KubeVersion.Version -}}
-{{- printf "ongres/kubectl:v1.22.12-build-6.16" -}}
+{{- printf "ongres/kubectl:v1.22.17-build-6.19" -}}
 {{- else if semverCompare ">=1.18" .Capabilities.KubeVersion.Version -}}
-{{- printf "ongres/kubectl:v1.19.16-build-6.16" -}}
+{{- printf "ongres/kubectl:v1.19.16-build-6.19" -}}
 {{- else -}}
-{{- printf "ongres/kubectl:v1.24.3-build-6.16" -}}
+{{- printf "ongres/kubectl:v1.25.5-build-6.19" -}}
 {{- end -}}
 {{- end -}}
 
@@ -22,17 +22,21 @@
 {{- $upgradeSecrets := false }}
 {{- $operatorSecret := lookup "v1" "Secret" .Release.Namespace (include "cert-name" .) }}
 {{- if $operatorSecret }}
-  {{- if or (not (index $operatorSecret "tls.key")) (not (index $operatorSecret "tls.crt")) }}
+  {{- if or (not (index $operatorSecret.data "tls.key")) (not (index $operatorSecret.data "tls.crt")) }}
     {{- $upgradeSecrets = true }}
   {{- end }}
+{{- else }}
+  {{- $upgradeSecrets = true }}
 {{- end }}
 {{- $webSecret := lookup "v1" "Secret" .Release.Namespace (include "web-cert-name" .) }}
 {{- if $webSecret }}
-  {{- if or (not (index $webSecret "tls.key")) (not (index $webSecret "tls.crt")) }}
+  {{- if or (not (index $webSecret.data "tls.key")) (not (index $webSecret.data "tls.crt")) }}
     {{- $upgradeSecrets = true }}
   {{- end }}
+{{- else }}
+  {{- $upgradeSecrets = true }}
 {{- end }}
-{{- if or $upgradeSecrets .Values.cert.resetCerts }}true{{- end }}
+{{- if or $upgradeSecrets .Values.cert.resetCerts }}true{{- else }}false{{- end }}
 {{- end }}
 
 {{- define "stackgres.operator.upgradeCrds" }}
@@ -58,6 +62,6 @@
     {{- end }}
   {{- end }}
 {{- end }}
-{{- if or $noStackGresCrdAvailable $upgradeCrds }}true{{- end }}
+{{- if or $noStackGresCrdAvailable $upgradeCrds }}true{{- else }}false{{- end }}
 {{- end }}
 
