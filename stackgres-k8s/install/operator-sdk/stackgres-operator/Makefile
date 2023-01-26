@@ -3,7 +3,8 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= $(shell sh ../../../../stackgres-k8s/ci/build/version.sh)
+STACKGRES_VERSION ?= $(shell sh ../../../../stackgres-k8s/ci/build/version.sh)
+VERSION = $(shell echo $(STACKGRES_VERSION) | tr A-Z a-z)
 IMAGE_TAG ?= $(VERSION)
 HELM_OPERATOR_BASE_IMAGE ?= quay.io/operator-framework/helm-operator:v1.26.0
 BUNDLE_BASE_IMAGE ?= scratch
