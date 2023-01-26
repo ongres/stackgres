@@ -30,9 +30,9 @@ nothing new here! :eyes:
 to upgrade from a previous installation of the stackgres operator's helm chart you will have to upgrade the helm chart release.
  for more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
 
-to upgrade stackgres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+to upgrade stackgres operator's (upgrade only works starting from 1.2 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
 
-`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.4.1/helm/stackgres-operator.tgz`
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.4.2/helm/stackgres-operator.tgz`
 
 > important: this release is incompatible with previous `alpha` or `beta` versions. upgrading from those versions will require uninstalling completely stackgres including all clusters and stackgres crds (those in `stackgres.io` group) first.
 
