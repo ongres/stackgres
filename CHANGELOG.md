@@ -40,48 +40,48 @@ thank you for all the issues created, ideas, and code contributions by the stack
 
 ## :twisted_rightwards_arrows: [full list of commits](https://gitlab.com/ongresinc/stackgres/-/commits/1.4.2)
 
-# :rocket: release 1.4.1 (2022-01-06)
+# :rocket: Release 1.4.1 (2022-01-06)
 
-## :notepad_spiral: notes
+## :notepad_spiral: NOTES
 
-StackGres 1.4.1 update the ubi base images for openshift certification compliance.
+StackGres 1.4.1 is out, we finally reached OpenShift 4.8-4.11 certification! :confetti_ball: :tada:
 
-## :sparkles: new features and changes
+## :sparkles: NEW FEATURES AND CHANGES
 
-* updated ongres/kubectl images to `1.25.5-build-6.19` `1.22.17-build-6.19` `1.19.16-build-6.19` versions.
-* updated stackgres base images to `openjdk-17-runtime:1.14-8` version
+* Updated ongres/kubectl images to `1.25.5-build-6.19` `1.22.17-build-6.19` `1.19.16-build-6.19` versions.
+* Updated stackgres base images to `openjdk-17-runtime:1.14-8` version
 
-### web console
+## Web Console
 
-nothing new here! :eyes: 
+Nothing new here! :eyes:
 
-## :bug: fixes
+## :bug: FIXES
 
-nothing new here! :eyes: 
+Nothing new here! :eyes:
 
-### web console
+## Web Console
 
-nothing new here! :eyes: 
+Nothing new here! :eyes:
 
-## :construction: known issues
+## :construction: KNOWN ISSUES
 
-* major version upgrade fails if some extensions version are not available for the target postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
-* backups may be restored with inconsistencies when performed with a postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
 
-## :up: upgrade
+## :up: UPGRADE
 
-to upgrade from a previous installation of the stackgres operator's helm chart you will have to upgrade the helm chart release.
- for more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
 
-to upgrade stackgres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+To upgrade StackGres operator's (upgrade only works starting from 1.2 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
 
 `helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.4.1/helm/stackgres-operator.tgz`
 
-> important: this release is incompatible with previous `alpha` or `beta` versions. upgrading from those versions will require uninstalling completely stackgres including all clusters and stackgres crds (those in `stackgres.io` group) first.
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
 
-thank you for all the issues created, ideas, and code contributions by the stackgres community!
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
 
-## :twisted_rightwards_arrows: [full list of commits](https://gitlab.com/ongresinc/stackgres/-/commits/1.4.1)
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.4.1)
 
 # :rocket: Release 1.4.0 (2022-11-23)
 
