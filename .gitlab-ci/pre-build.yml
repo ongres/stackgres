@@ -10,7 +10,8 @@
       TARGET_IMAGE_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME-$ARCH"
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       cat << EOF > build-image.sh
-      if docker manifest inspect "$TARGET_IMAGE_NAME" 2>/dev/null
+      if docker manifest inspect "$TARGET_IMAGE_NAME" 2>/dev/null \
+        && [ "$DO_IMAGES" != true ]
       then
         echo "$TARGET_IMAGE_NAME" already exists
         exit
@@ -45,10 +46,14 @@
           echo arm64
         fi
         )"
-      if docker manifest inspect "$TARGET_IMAGE_NAME" >/dev/null 2>&1
+      if docker manifest inspect "$TARGET_IMAGE_NAME" >/dev/null 2>&1 \
+        && [ "$DO_IMAGES" != true ]
       then
         exit
       fi
+      docker pull "$CI_REGISTRY/$CI_PROJECT_PATH/placeholder"
+      docker tag "$CI_REGISTRY/$CI_PROJECT_PATH/placeholder" "$TARGET_IMAGE_NAME"
+      docker push "$TARGET_IMAGE_NAME"
       docker manifest rm "$TARGET_IMAGE_NAME" 2>/dev/null || true
       docker manifest create "$TARGET_IMAGE_NAME" $(
         for ARCH in $ARCH_LIST

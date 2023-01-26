@@ -2,6 +2,10 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
+{{- with .Values.clusterOwnerRefereces }}
+  ownerReferences:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
   name: {{ (printf "%s-%s" .Values.restapi.name .Values.authentication.user) }}
   namespace: {{ .Release.Namespace }}
   annotations:
