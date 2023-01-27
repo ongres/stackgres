@@ -3,7 +3,7 @@
 #
 # Build the image with:
 #
-# docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t "registry.gitlab.com/ongresinc/stackgres/ci:1.15-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)" stackgres-k8s/ci/build/
+# docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t "registry.gitlab.com/ongresinc/stackgres/ci:1.16-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)" stackgres-k8s/ci/build/
 #
 ###
 
@@ -33,3 +33,5 @@ FROM docker.io/docker:20.10
     RUN wget -q -O /bin/k9s "https://github.com/derailed/k9s/releases/download/v0.25.18/k9s_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz"
     RUN chmod a+x /bin/k9s
     RUN apk add aws-cli
+    RUN wget https://github.com/operator-framework/operator-sdk/releases/download/v1.26.0/operator-sdk_linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64) -O /bin/operator-sdk
+    RUN chmod a+x /bin/operator-sdk

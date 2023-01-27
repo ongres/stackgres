@@ -51,6 +51,7 @@ update_crc_config() {
     -p '[{"op":"replace","path":"/spec/externalIP/policy","value":{"allowedCIDRs":["0.0.0.0/0"]}}]'
   kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.22/deploy/local-path-storage.yaml
   ~/.crc/bin/oc/oc adm policy add-scc-to-user hostmount-anyuid -n local-path-storage -z local-path-provisioner-service-account
+  kubectl get storageclass -o name | xargs -I % kubectl annotate % --overwrite storageclass.kubernetes.io/is-default-class=false
   kubectl annotate storageclass local-path --overwrite storageclass.kubernetes.io/is-default-class=true
 }
 
@@ -112,6 +113,8 @@ reset_k8s() {
   if [ "$1" != true ]
   then
     crc delete -f || true
+    virsh destroy crc || true
+    virsh undefine crc || true
   else
     crc stop -f || true
   fi
@@ -134,6 +137,7 @@ reset_k8s() {
   then
     screen -dmS crc-daemon -L -Logfile "$HOME/.crc/crc-daemon.log" crc daemon
   fi
+  export PATH="$PATH:/usr/sbin"
   crc start \
     --pull-secret-file "$HOME/.crc/pull-secret" \
     --cpus "$K8S_CRC_CPUS" \

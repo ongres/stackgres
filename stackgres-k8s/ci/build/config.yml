@@ -181,7 +181,7 @@ modules:
     type: jvm-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8/openjdk-17:1.14-4.1666624568
+    target_image: registry.access.redhat.com/ubi8/openjdk-17:1.14-10
     dockerfile: &jvm-image-dockerfile
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.jvm
       args: &jvm-image-args
@@ -249,7 +249,7 @@ modules:
     type: ui-image
     platform_dependent: true
     path: stackgres-k8s/src/admin-ui
-    target_image: registry.access.redhat.com/ubi8/nginx-120:1-74
+    target_image: registry.access.redhat.com/ubi8/nginx-120:1-84
     dockerfile:
       path: stackgres-k8s/src/admin-ui/docker/Dockerfile
       args:
@@ -264,7 +264,7 @@ modules:
     type: native-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8-minimal:8.7-923
+    target_image: registry.access.redhat.com/ubi8-minimal:8.7-1049
     dockerfile: &native-image-dockerfile
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.native
       args: &native-image-args
@@ -348,7 +348,8 @@ modules:
         sed 's/^\(version\|appVersion\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
     sources:
       - stackgres-k8s/install/helm/build-helm-packages.sh
-    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.15
+      - stackgres-k8s/src/pom.xml
+    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.16
     build_commands:
       - export HOME=/project
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-packages.sh
@@ -374,12 +375,35 @@ modules:
         sed 's/^\(version\|appVersion\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
     sources:
       - stackgres-k8s/install/helm/build-helm-templates.sh
-    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.15
+      - stackgres-k8s/src/pom.xml
+    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.16
     build_commands:
       - export HOME=/project
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-templates.sh
     artifacts:
       - stackgres-k8s/install/helm/target/templates
+  helm-operator-openshift-bundle:
+    type: operator-bundle
+    target_image: alpine:3.13.10
+    sources:
+      - stackgres-k8s/install/operator-sdk/stackgres-operator
+    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.16
+    build_commands:
+      - make -C stackgres-k8s/install/operator-sdk/stackgres-operator bundle-openshift
+    artifacts:
+      - stackgres-k8s/install/operator-sdk/stackgres-operator/bundle
+  helm-operator-openshift-image:
+    type: helm-operator-image
+    platform_dependent: true
+    path: stackgres-k8s/install/operator-sdk/stackgres-operator
+    target_image: quay.io/operator-framework/helm-operator:v1.26.0
+    dockerfile:
+      path: stackgres-k8s/install/operator-sdk/stackgres-operator/Dockerfile
+      args:
+        BASE_IMAGE: $TARGET_IMAGE_NAME
+    artifacts:
+      - stackgres-k8s/install/operator-sdk/stackgres-operator
+      - stackgres-k8s/install/helm/stackgres-operator
   documentation:
     type: documentation
     target_image: alpine:3.13.10
@@ -535,3 +559,6 @@ stages:
   - distributedlogs-controller-native-release-image: distributedlogs-controller-native
   - helm-release-packages: null
   - helm-release-templates: null
+  - helm-operator-openshift-bundle: helm-packages
+  - helm-operator-openshift-image: helm-operator-openshift-bundle
+  - documentation: stackgres-restapi
