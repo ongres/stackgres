@@ -3,14 +3,188 @@ kind: ClusterServiceVersion
 metadata:
   annotations:
     alm-examples: '[]'
-    capabilities: Basic Install
+    capabilities: Auto Pilot
   name: stackgres-operator.v${VERSION}
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions: {}
-  description: StackGres Operator
   displayName: StackGres Operator
+  version: ${VERSION}
+  minKubeVersion: 1.18
+  maxKubeVersion: 1.25
+  maturity: stable
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - database-management
+  - automation
+  - postgresql
+  links:
+  - name: Stackgres Operator
+    url: https://stackgres-operator.domain
+  maintainers:
+  - email: matteom@ongres.com
+    name: Matteo Melli
+  - email: gelias@ongres.com
+    name: Guilherme Elias
+  - email: jorsol@ongres.com
+    name: Jorge Solorzano
+  provider:
+    name: OnGres
+    url: https://stackgres.io
+  relatedImages:
+  - image: ongres/kubectl:v1.25.5-build-6.19
+    name: kubectl_1_25_5
+  - image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
+    name: kube-rbac-proxy_0_13_0
+  - image: quay.io/stackgres/helm-operator:${VERSION}
+    name: stackgres-operator-helm
+  - image: docker.io/stackgres/operator:${VERSION}
+    name: stackgres-operator
+  - image: docker.io/stackgres/restapi:${VERSION}
+    name: stackgres-restapi
+  - image: docker.io/stackgres/admin-ui:${VERSION}
+    name: stackgres-admin-ui
+  - image: docker.io/stackgres/jobs:${VERSION}
+    name: stackgres-jobs
+  description: |
+    The StackGres Operator bundle install the [StackGres Operator](https://stackgres.io) instance automatically in the same namespace where the StackGres Operator bundle was installed.
+
+    For more installation options have a look at the [Operator Parameters](https://stackgres.io/doc/latest/install/operator/parameters/) section for a described list and change them by editing the StackGresOperator CR created in the same namespace where the StackGres Operator bundle was installed.
+
+    If you want to enable StackGres integration with Prometheus and Grafana, please, read the next section.
+
+    ## Creating and customizing your Postgres Clusters
+
+    The next step is an optional one, but it will show you how to play with the StackGres versatility.
+
+    You can instruct StackGres to create your cluster with different hardware specification using the [Custom Resource](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (AKA CR) [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-instance-profiles/) as follow
+
+    ```
+    cat << EOF | kubectl apply -f -
+    apiVersion: stackgres.io/v1
+    kind: SGInstanceProfile
+    metadata:
+    namespace: my-cluster
+    name: size-small
+    spec:
+    cpu: "2"
+    memory: "4Gi"
+    EOF
+    ``` 
+
+    But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig](https://stackgres.io/doc/latest/reference/crd/sgpgconfig/) or the PGBouncer setting with [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolingconfig/) and more, like the backup storage specification using [SGObjectStorage](https://stackgres.io/doc/latest/reference/crd/sgobjectstorage/)
+
+    The next code snippets will show you how to play with these CRs.
+
+    Start with PostgreSQL configuration using th SGPostgresConfig as follow
+
+    ```
+    cat << EOF | kubectl apply -f -
+    apiVersion: stackgres.io/v1
+    kind: SGPostgresConfig
+    metadata:
+    namespace: my-cluster
+    name: pgconfig1
+    spec:
+    postgresVersion: "12"
+    postgresql.conf:
+      shared_buffers: '512MB'
+      random_page_cost: '1.5'
+      password_encryption: 'scram-sha-256'
+      log_checkpoints: 'on'
+    EOF
+    ```
+
+    You can easily declare the StackGres supported variables and setup your specific configuration.
+
+    The pooling CR, is a key piece of a cluster (currently PgBouncer as the default software fot this), as it provides connection scaling capabilities. We’ll cover all more details about this in the [Customizing Pooling configuration section](https://stackgres.io/doc/latest/administration/cluster/pool/).
+
+    For better performance and stability, it is recommended to use pool_mode in transaction. An example configuration would be like this:
+
+    ```
+    cat << EOF | kubectl apply -f -
+    apiVersion: stackgres.io/v1
+    kind: SGPoolingConfig
+    metadata:
+    namespace: my-cluster
+    name: poolconfig1
+    spec:
+    pgBouncer:
+      pgbouncer.ini:
+        pgbouncer:
+          pool_mode: transaction
+          max_client_conn: '1000'
+          default_pool_size: '80'
+    EOF
+    ``` 
+
+    All the necessary steps were performed to create your first StackGres Cluster, lets do it.
+
+    ```
+    cat << EOF | kubectl apply -f -
+    apiVersion: stackgres.io/v1
+    kind: SGCluster
+    metadata:
+    namespace: my-cluster
+    name: cluster
+    spec:
+    postgres:
+      version: '12.3'
+    instances: 3
+    sgInstanceProfile: 'size-small'
+    pods:
+      persistentVolume:
+        size: '10Gi'
+    configurations:
+      sgPostgresConfig: 'pgconfig1'
+      sgPoolingConfig: 'poolconfig1'
+    EOF
+    ```
+
+    Look up to the yaml into the here doc above, every CR previously being included in the right place in the SGCluster CR creation.
+
+    Awesome, now you can relax and wait for the SGCluster spinning up.
+
+    ## Accessing the cluster
+
+    Once the cluster is up and running, we need to expose the main entrypoint port for being accessed remotely:
+
+    > *WARNING*: You don’t expose in production to 0.0.0.0 interface, rather than that you need to place the IP of an internal interface to be able to connect remotely within you private network.
+
+    ```
+    kubectl port-forward -n my-cluster --address 0.0.0.0 statefulset/cluster 7777:7432
+    ```
+
+    In the namespace of the cluster, you should be able to see a set of secrets, we’ll get the main superuser password:
+
+    ```
+    kubectl get secrets -n my-cluster cluster -o jsonpath='{.data.superuser-password}' | base64 -d
+    ```
+
+    You should be able to connect by issuing any client application with the connection string as follows:
+
+    ```
+    psql -h <the ip of the cluster> -p 7777 -U postgres
+    ```
+
+    It is also possible to open a direct port-forward towards the main Postgres pod as follows:
+
+    ```
+    kubectl port-forward cluster-0 --address 0.0.0.0 7777:5432
+    ```
   icon:
   - base64data: |
       PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFk
@@ -207,50 +381,3 @@ spec:
       LjctMS4xLTQtM2gtNy45YzAuNCw1LjEsNS4xLDguOSwxMiw4LjlDMzUyLjcsNjUuNiwzNTYuOCw2
       Mi4yLDM1Ni44LDU3Ljd6Ii8+CjwvZz4KPC9zdmc+Cg==
     mediatype: image/svg+xml
-  install:
-    spec:
-      deployments: null
-    strategy: ""
-  installModes:
-  - supported: false
-    type: OwnNamespace
-  - supported: false
-    type: SingleNamespace
-  - supported: false
-    type: MultiNamespace
-  - supported: true
-    type: AllNamespaces
-  keywords:
-  - database-management
-  - automation
-  - postgresql
-  links:
-  - name: Stackgres Operator
-    url: https://stackgres-operator.domain
-  maintainers:
-  - email: matteom@ongres.com
-    name: Matteo Melli
-  - email: gelias@ongres.com
-    name: Guilherme Elias
-  - email: jorsol@ongres.com
-    name: Jorge Solorzano
-  maturity: stable
-  provider:
-    name: OnGres
-    url: https://stackgres.io
-  relatedImages:
-  - image: ongres/kubectl:v1.25.5-build-6.19
-    name: kubectl_1_25_5
-  - image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
-    name: kube-rbac-proxy_0_13_0
-  - image: quay.io/stackgres/helm-operator:${VERSION}
-    name: stackgres-operator-helm
-  - image: docker.io/stackgres/operator:${VERSION}
-    name: stackgres-operator
-  - image: docker.io/stackgres/restapi:${VERSION}
-    name: stackgres-restapi
-  - image: docker.io/stackgres/admin-ui:${VERSION}
-    name: stackgres-admin-ui
-  - image: docker.io/stackgres/jobs:${VERSION}
-    name: stackgres-jobs
-  version: ${VERSION}
