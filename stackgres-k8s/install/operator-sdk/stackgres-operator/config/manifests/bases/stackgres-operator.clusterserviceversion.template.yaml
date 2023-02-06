@@ -4,6 +4,7 @@ metadata:
   annotations:
     alm-examples: '[]'
     capabilities: Auto Pilot
+    operatorhub.io/ui-metadata-max-k8s-version: "1.25"
   name: stackgres-operator.v${VERSION}
   namespace: placeholder
 spec:
@@ -11,8 +12,7 @@ spec:
   customresourcedefinitions: {}
   displayName: StackGres Operator
   version: ${VERSION}
-  minKubeVersion: 1.18
-  maxKubeVersion: 1.25
+  minKubeVersion: "1.18"
   maturity: stable
   install:
     spec:
