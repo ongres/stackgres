@@ -1,4 +1,13 @@
 ## Append samples you want in your CSV to this file as resources ##
 resources:
 - charts_v1_stackgresoperator.yaml
+- SGCluster.yaml
+- SGInstanceProfile.yaml
+- SGPostgresConfig.yaml
+- SGPoolingConfig.yaml
+- SGDistributedLogs.yaml
+- SGObjectStorage.yaml
+- SGScript.yaml
+- SGBackup.yaml
+- SGDbOps.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

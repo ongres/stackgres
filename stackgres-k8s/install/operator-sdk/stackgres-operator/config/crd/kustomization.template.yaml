@@ -3,13 +3,5 @@
 # It should be run by config/default
 resources:
 - bases/charts.stackgres.io_stackgresoperators.yaml
-- bases/SGBackup.yaml
-- bases/SGCluster.yaml
-- bases/SGDbOps.yaml
-- bases/SGDistributedLogs.yaml
-- bases/SGInstanceProfile.yaml
-- bases/SGPoolingConfig.yaml
-- bases/SGPostgresConfig.yaml
-- bases/SGObjectStorage.yaml
-- bases/SGScript.yaml
+${STACKGRES_CRDS}
 #+kubebuilder:scaffold:crdkustomizeresource

@@ -2,4 +2,7 @@ bin
 bundle*
 config/manifests/bases/stackgres-operator.clusterserviceversion.yaml
 config/manager/kustomization.yaml
+config/crd/kustomization.yaml
+config/crd/bases/
+!config/crd/bases/charts.stackgres.io_stackgresoperators.yaml
 openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml

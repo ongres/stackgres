@@ -9,7 +9,58 @@ metadata:
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
-  customresourcedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - kind: StackGresOperator
+      name: stackgresoperators.charts.stackgres.io
+      version: v1
+      description: StackGres Operator Configuration
+      displayName: Default StackGres Operator Configuration
+    - kind: SGCluster
+      name: sgclusters.stackgres.io
+      version: v1
+      description: StackGres Cluster
+      displayName: Demo StackGres Cluster
+    - kind: SGInstanceProfile
+      name: sginstanceprofiles.stackgres.io
+      version: v1
+      description: StackGres Instance Profile
+      displayName: Demo StackGres Instance Profile
+    - kind: SGPostgresConfig
+      name: sgpgconfigs.stackgres.io
+      version: v1
+      description: StackGres Postgres Configuration
+      displayName: Demo StackGres Postgres Configuration
+    - kind: SGPoolingConfig
+      name: sgpoolconfigs.stackgres.io
+      version: v1
+      description: StackGres Pooling Configuration
+      displayName: Demo StackGres Pooling Configuration
+    - kind: SGScript
+      name: sgscripts.stackgres.io
+      version: v1
+      description: StackGres Script
+      displayName: Demo StackGres Script
+    - kind: SGObjectStorage
+      name: sgobjectstorages.stackgres.io
+      version: v1beta1
+      description: StackGres Object Storage
+      displayName: Demo StackGres Object Storage
+    - kind: SGBackup
+      name: sgbackups.stackgres.io
+      version: v1
+      description: StackGres Backup
+      displayName: Demo StackGres Backup
+    - kind: SGDbOps
+      name: sgdbops.stackgres.io
+      version: v1
+      description: StackGres Database Operation
+      displayName: Demo StackGres Database Operation
+    - kind: SGDistributedLogs
+      name: sgdistributedlogs.stackgres.io
+      version: v1
+      description: StackGres Distributed Logs
+      displayName: Demo StackGres Distributed Logs
   displayName: StackGres Operator
   version: ${VERSION}
   minKubeVersion: "1.18"
@@ -32,8 +83,18 @@ spec:
   - automation
   - postgresql
   links:
-  - name: Stackgres Operator
-    url: https://stackgres-operator.domain
+  - name: StackGres Web
+    url: https://stackgres.io
+  - name: StackGres Docs
+    url: https://stackgres.io/doc
+  - name: StackGres GitLab
+    url: https://gitlab.com/ongresinc/stackgres
+  - name: StackGres Issues
+    url: https://gitlab.com/ongresinc/stackgres/-/issues
+  - name: StackGres Releases
+    url: https://gitlab.com/ongresinc/stackgres/-/releases
+  - name: StackGres GitHub
+    url: https://github.com/ongres/stackgres
   maintainers:
   - email: matteom@ongres.com
     name: Matteo Melli
@@ -41,9 +102,11 @@ spec:
     name: Guilherme Elias
   - email: jorsol@ongres.com
     name: Jorge Solorzano
+  - email: aht@ongres.com
+    name: Alvaro Hernandez Tortosa
   provider:
     name: OnGres
-    url: https://stackgres.io
+    url: https://ongres.com
   relatedImages:
   - image: ongres/kubectl:v1.25.5-build-6.19
     name: kubectl_1_25_5

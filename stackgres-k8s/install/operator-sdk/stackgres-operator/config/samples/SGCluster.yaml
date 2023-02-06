@@ -1,0 +1,45 @@
+apiVersion: stackgres.io/v1
+kind: SGCluster
+metadata:
+  namespace: demo-db
+  name: demo-db
+spec:
+  postgres:
+    version: '14.4'
+    extensions:
+    - name: 'pg_repack'
+    - name: 'pg_trgm'
+  instances: 3
+  sgInstanceProfile: 'size-m'
+  pods:
+    persistentVolume:
+      size: '5Ti'
+      storageClass: 'ssd-data'
+    scheduling:
+      tolerations:
+        - key: "stackgres"
+          operator: "Exists"
+          effect: "NoSchedule"
+  configurations:
+    sgPostgresConfig: 'pgconfig'
+    sgPoolingConfig: 'poolconfig'
+    backups:
+    - sgObjectStorage: 'backupconfig'
+      cronSchedule: '30 02 */4 * *'
+      retention: 4
+      compression: lz4
+      performance:
+        maxDiskBandwidth: 26214400 #25 MB per seceod
+        maxNetworkBandwidth: 52428800 #50 MB per second
+        uploadDiskConcurrency: 2
+  distributedLogs:
+    sgDistributedLogs: 'distributedlogs'
+  managedSql:
+    scripts:
+      - sgScript: create-db-script
+  postgresServices:
+    primary:
+      type: ClusterIP
+    replicas:
+      type: ClusterIP
+  prometheusAutobind: true

@@ -1,0 +1,8 @@
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: demo-restart-op
+  namespace: demo-db
+spec:
+  sgCluster: demo-db
+  op: restart
