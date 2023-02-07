@@ -144,7 +144,11 @@ rules:
   resources:
   - customresourcedefinitions
   verbs:
-  - '*'
+  - list
+  - get
+  - watch
+  - patch
+  - update
 - apiGroups:
   - stackgres.io
   resources:
