@@ -1,0 +1,89 @@
+specDescriptors:
+  distributedLogs.sgDistributedLogs:
+    displayName: SGDistributedLogs Reference
+  replicateFrom.instance.sgCluster:
+    displayName: Replicate From Instance SGCluster Reference
+  postgres.ssl.certificateSecretKeySelector:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  postgres.ssl.certificateSecretKeySelector.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  postgres.ssl.privateKeySecretKeySelector:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  postgres.ssl.privateKeySecretKeySelector.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  replicateFrom.users.superuser.username:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  replicateFrom.users.superuser.username.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  replicateFrom.users.superuser.password:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  replicateFrom.users.superuser.password.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  replicateFrom.users.replication.username:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  replicateFrom.users.replication.username.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  replicateFrom.users.replication.password:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  replicateFrom.users.replication.password.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  replicateFrom.users.authenticator.username:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  replicateFrom.users.authenticator.username.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  replicateFrom.users.authenticator.password:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  replicateFrom.users.authenticator.password.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  pods.scheduling.nodeAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:nodeAffinity'
+  pods.scheduling.podAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAffinity'
+  pods.scheduling.podAntiAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAntiAffinity'
+  pods.scheduling.backup.nodeAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:nodeAffinity'
+  pods.scheduling.backup.podAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAffinity'
+  pods.scheduling.backup.podAntiAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAntiAffinity'
+
+specIgnore:
+- postgresServices.primary.customPorts
+- postgresServices.replicas.customPorts
+- pods.customVolumes
+- pods.customContainers
+- pods.customInitContainers
+- pods.scheduling.nodeAffinity
+- pods.scheduling.podAffinity
+- pods.scheduling.podAntiAffinity
+- pods.scheduling.backup.nodeAffinity
+- pods.scheduling.backup.podAffinity
+- pods.scheduling.backup.podAntiAffinity
+
+statusDescriptors:
+  conditions:
+    x-descriptors:
+    - 'urn:alm:descriptor:io.kubernetes.conditions'

@@ -12,6 +12,7 @@ metadata:
     operatorhub.io/ui-metadata-max-k8s-version: "1.25"
     categories: Database
     repository: https://gitlab.com/ongresinc/stackgres
+    containerImage: docker.io/stackgres/operator@sha256:e7a49e34bf8a39577534d7724de0b99b3091e27d1441bf623f65178bd8e6e2af
 spec:
   displayName: StackGres
   provider:
@@ -23,56 +24,21 @@ spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - kind: SGCluster
-      name: sgclusters.stackgres.io
-      version: v1
-      displayName: StackGres Cluster
-      description: Main CRD, manages Postgres clusters (one or more Postgres pods)
-    - kind: SGInstanceProfile
-      name: sginstanceprofiles.stackgres.io
-      version: v1
-      displayName: StackGres Instance Profile
-      description: Instance Profiles are like "t-shirt" sizes, used for pods sizing
-    - kind: SGPostgresConfig
-      name: sgpgconfigs.stackgres.io
-      version: v1
-      displayName: StackGres Postgres Configuration
-      description: Strongly validated customized Postgres configuration (postgresql.conf)
-    - kind: SGPoolingConfig
-      name: sgpoolconfigs.stackgres.io
-      version: v1
-      displayName: StackGres Connection Pooling Configuration
-      description: Customized PgBouncer (connection pooler) configuration
-    - kind: SGObjectStorage
-      name: sgobjectstorages.stackgres.io
-      version: v1beta1
-      displayName: StackGres Object Storage
-      description: Handle to an existing Object Storage (e.g. S3), used to store backups
-    - kind: SGBackup
-      name: sgbackups.stackgres.io
-      version: v1
-      displayName: StackGres Backup
-      description: Handle to a performed (or to be performed, if run manually) backup
-    - kind: SGDbOps
-      name: sgdbops.stackgres.io
-      version: v1
-      displayName: StackGres Database Operation
-      description: Day 2 Operations, including upgrades, restarts, vacuum, repack, etc
-    - kind: SGScript
-      name: sgscripts.stackgres.io
-      version: v1
-      displayName: StackGres Script
-      description: Managed SQL Scripts, used for initial SQL commands or migrations
-    - kind: SGDistributedLogs
-      name: sgdistributedlogs.stackgres.io
-      version: v1
-      displayName: StackGres Distributed Logs
-      description: Multi-tenant logs server, to aggregate Postgres logs. Fully managed
-    - kind: StackGresOperator
-      name: stackgresoperators.charts.stackgres.io
-      version: v1
-      displayName: StackGres Operator Configuration
-      description: Operator configuration for OLM-based installations (equivalent to values.yaml with Helm)
+$(
+  yq -r '.[].kind' config/crd/bases/crd-descriptors.yaml \
+    | while read KIND
+      do
+        yq -y --arg KIND "$KIND" 'map(select(.kind == $KIND))' \
+          config/crd/bases/crd-descriptors.yaml
+        yq -y -s --arg ROOT_KEY "spec" -f extract-descriptors-from-openapi.jq \
+          config/crd/bases/"$KIND".yaml config/crd/bases/"$KIND".descriptors.yaml \
+          | sed 's/^/  /'
+        yq -y -s --arg ROOT_KEY "status" -f extract-descriptors-from-openapi.jq \
+          config/crd/bases/"$KIND".yaml config/crd/bases/"$KIND".descriptors.yaml \
+          | sed 's/^/  /'
+      done \
+    | sed 's/^/    /'
+)
   install:
     spec:
       deployments: null
@@ -118,131 +84,9 @@ spec:
   - image: docker.io/stackgres/jobs:${VERSION}
     name: stackgres-jobs
   description: |
-    The StackGres Operator bundle install the [StackGres Operator](https://stackgres.io) instance automatically in the same namespace where the StackGres Operator bundle was installed.
-
-    For more installation options have a look at the [Operator Parameters](https://stackgres.io/doc/latest/install/operator/parameters/) section for a described list and change them by editing the StackGresOperator CR created in the same namespace where the StackGres Operator bundle was installed.
-
-    If you want to enable StackGres integration with Prometheus and Grafana, please, read the next section.
-
-    ## Creating and customizing your Postgres Clusters
-
-    The next step is an optional one, but it will show you how to play with the StackGres versatility.
-
-    You can instruct StackGres to create your cluster with different hardware specification using the [Custom Resource](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (AKA CR) [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-instance-profiles/) as follow
-
-    ```
-    cat << EOF | kubectl apply -f -
-    apiVersion: stackgres.io/v1
-    kind: SGInstanceProfile
-    metadata:
-    namespace: my-cluster
-    name: size-small
-    spec:
-    cpu: "2"
-    memory: "4Gi"
-    EOF
-    ``` 
-
-    But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig](https://stackgres.io/doc/latest/reference/crd/sgpgconfig/) or the PGBouncer setting with [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolingconfig/) and more, like the backup storage specification using [SGObjectStorage](https://stackgres.io/doc/latest/reference/crd/sgobjectstorage/)
-
-    The next code snippets will show you how to play with these CRs.
-
-    Start with PostgreSQL configuration using th SGPostgresConfig as follow
-
-    ```
-    cat << EOF | kubectl apply -f -
-    apiVersion: stackgres.io/v1
-    kind: SGPostgresConfig
-    metadata:
-    namespace: my-cluster
-    name: pgconfig1
-    spec:
-    postgresVersion: "12"
-    postgresql.conf:
-      shared_buffers: '512MB'
-      random_page_cost: '1.5'
-      password_encryption: 'scram-sha-256'
-      log_checkpoints: 'on'
-    EOF
-    ```
-
-    You can easily declare the StackGres supported variables and setup your specific configuration.
-
-    The pooling CR, is a key piece of a cluster (currently PgBouncer as the default software fot this), as it provides connection scaling capabilities. We’ll cover all more details about this in the [Customizing Pooling configuration section](https://stackgres.io/doc/latest/administration/cluster/pool/).
-
-    For better performance and stability, it is recommended to use pool_mode in transaction. An example configuration would be like this:
-
-    ```
-    cat << EOF | kubectl apply -f -
-    apiVersion: stackgres.io/v1
-    kind: SGPoolingConfig
-    metadata:
-    namespace: my-cluster
-    name: poolconfig1
-    spec:
-    pgBouncer:
-      pgbouncer.ini:
-        pgbouncer:
-          pool_mode: transaction
-          max_client_conn: '1000'
-          default_pool_size: '80'
-    EOF
-    ``` 
-
-    All the necessary steps were performed to create your first StackGres Cluster, lets do it.
-
-    ```
-    cat << EOF | kubectl apply -f -
-    apiVersion: stackgres.io/v1
-    kind: SGCluster
-    metadata:
-    namespace: my-cluster
-    name: cluster
-    spec:
-    postgres:
-      version: '12.3'
-    instances: 3
-    sgInstanceProfile: 'size-small'
-    pods:
-      persistentVolume:
-        size: '10Gi'
-    configurations:
-      sgPostgresConfig: 'pgconfig1'
-      sgPoolingConfig: 'poolconfig1'
-    EOF
-    ```
-
-    Look up to the yaml into the here doc above, every CR previously being included in the right place in the SGCluster CR creation.
-
-    Awesome, now you can relax and wait for the SGCluster spinning up.
-
-    ## Accessing the cluster
-
-    Once the cluster is up and running, we need to expose the main entrypoint port for being accessed remotely:
-
-    > *WARNING*: You don’t expose in production to 0.0.0.0 interface, rather than that you need to place the IP of an internal interface to be able to connect remotely within you private network.
-
-    ```
-    kubectl port-forward -n my-cluster --address 0.0.0.0 statefulset/cluster 7777:7432
-    ```
-
-    In the namespace of the cluster, you should be able to see a set of secrets, we’ll get the main superuser password:
-
-    ```
-    kubectl get secrets -n my-cluster cluster -o jsonpath='{.data.superuser-password}' | base64 -d
-    ```
-
-    You should be able to connect by issuing any client application with the connection string as follows:
-
-    ```
-    psql -h <the ip of the cluster> -p 7777 -U postgres
-    ```
-
-    It is also possible to open a direct port-forward towards the main Postgres pod as follows:
-
-    ```
-    kubectl port-forward cluster-0 --address 0.0.0.0 7777:5432
-    ```
+$(
+  sed 's/^/    /' config/manifests/bases/stackgres-operator.clusterserviceversion.description.txt
+)
   icon:
   - base64data: |
       PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MDAg

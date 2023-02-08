@@ -3,6 +3,8 @@ bundle*
 config/manifests/bases/stackgres-operator.clusterserviceversion.yaml
 config/manager/kustomization.yaml
 config/crd/kustomization.yaml
-config/crd/bases/
-!config/crd/bases/charts.stackgres.io_stackgresoperators.yaml
+config/crd/bases/*
+!config/crd/bases/StackGresOperator.yaml
+!config/crd/bases/crd-descriptors.yaml
+!config/crd/bases/*.descriptors.yaml
 openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml

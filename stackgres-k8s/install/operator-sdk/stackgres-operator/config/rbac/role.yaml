@@ -147,6 +147,7 @@ rules:
   - list
   - get
   - watch
+  - create
   - patch
   - update
 - apiGroups:

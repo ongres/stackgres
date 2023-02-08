@@ -8,7 +8,7 @@ spec:
   names:
     kind: StackGresOperator
     listKind: StackGresOperatorList
-    plural: stackgresoperators
+    plural: stackgresoperators 
     singular: stackgresoperator
   scope: Namespaced
   versions:

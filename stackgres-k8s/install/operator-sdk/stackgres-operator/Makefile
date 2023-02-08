@@ -169,18 +169,12 @@ endif
 
 .PHONY: bundle
 bundle: kustomize ## Generate bundle manifests and metadata, then validate generated files.
-	sed 's/\$${VERSION}/$(VERSION)/g' \
-		config/manifests/bases/stackgres-operator.clusterserviceversion.template.yaml \
+	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/manifests/bases/stackgres-operator.clusterserviceversion.template.yaml)\nEOF")" \
 		> config/manifests/bases/stackgres-operator.clusterserviceversion.yaml
-	sed 's/\$${VERSION}/$(VERSION)/g' \
-		config/manager/kustomization.template.yaml \
+	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/manager/kustomization.template.yaml)\nEOF")" \
 		> config/manager/kustomization.yaml
 	cp -a "$(PROJECT_DIR)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
-	sed -i '/^SGBackupConfig\.yaml$$/d' config/crd/bases/index.txt
-	yq -y 'del(.spec.versions[1])' config/crd/bases/SGBackup.yaml > config/crd/bases/SGBackup.yaml.tmp
-	mv config/crd/bases/SGBackup.yaml.tmp config/crd/bases/SGBackup.yaml
-	sed "s#\\\$${STACKGRES_CRDS}#$$(sed 's#^#- bases/#' config/crd/bases/index.txt | tr '\n' ';' | sed 's#;#\\n#g')#" \
-		config/crd/kustomization.template.yaml \
+	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/crd/kustomization.template.yaml)\nEOF")" \
 		> config/crd/kustomization.yaml
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
@@ -190,8 +184,7 @@ bundle: kustomize ## Generate bundle manifests and metadata, then validate gener
 .PHONY: bundle-openshift
 bundle-openshift: IMAGE_TAG := $(IMAGE_TAG)-openshift
 bundle-openshift: bundle
-	sed 's/\$${VERSION}/$(VERSION)/g' \
-		openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.template.yaml \
+	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.template.yaml)\nEOF")" \
 		> openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml
 	yq -y -s '.[0] * .[1]' \
 		bundle/manifests/stackgres-operator.clusterserviceversion.yaml \

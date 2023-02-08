@@ -1,0 +1,4 @@
+statusDescriptors:
+  conditions:
+    x-descriptors:
+    - 'urn:alm:descriptor:io.kubernetes.conditions'
