@@ -63,12 +63,9 @@ public class DefaultPostgresDelegator implements ClusterMutator {
         .map(Unchecked.function(this::getMutator));
   }
 
-  private DefaultPostgresMutator getMutator(PostgresConfigurationFactory factory)
-      throws NoSuchFieldException {
-    final DefaultPostgresMutator mutator = new DefaultPostgresMutator();
-    mutator.setFinder(finder);
-    mutator.setScheduler(scheduler);
-    mutator.setResourceFactory(factory);
+  private DefaultPostgresMutator getMutator(PostgresConfigurationFactory factory) {
+    final DefaultPostgresMutator mutator = new DefaultPostgresMutator(
+        factory, finder, scheduler);
     mutator.init();
     return mutator;
   }

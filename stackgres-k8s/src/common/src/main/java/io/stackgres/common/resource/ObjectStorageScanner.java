@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorageList;
 
@@ -22,8 +21,4 @@ public class ObjectStorageScanner extends AbstractCustomResourceScanner<
     super(client, StackGresObjectStorage.class, StackGresObjectStorageList.class);
   }
 
-  public ObjectStorageScanner() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-  }
 }

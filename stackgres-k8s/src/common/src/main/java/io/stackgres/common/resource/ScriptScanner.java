@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptList;
 
@@ -23,11 +22,6 @@ public class ScriptScanner
   @Inject
   public ScriptScanner(KubernetesClient client) {
     super(client, StackGresScript.class, StackGresScriptList.class);
-  }
-
-  public ScriptScanner() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

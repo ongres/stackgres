@@ -20,6 +20,7 @@ import java.util.Optional;
 import javax.ws.rs.core.UriBuilder;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.WebClientFactory.WebClient;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -49,6 +50,12 @@ public abstract class ExtensionMetadataManager {
                                   List<URI> extensionsRepositoryUrls) {
     this.webClientFactory = webClientFactory;
     this.extensionsRepositoryUris = extensionsRepositoryUrls;
+  }
+
+  public ExtensionMetadataManager() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.webClientFactory = null;
+    this.extensionsRepositoryUris = null;
   }
 
   public URI getExtensionRepositoryUri(URI extensionsRepositoryUri) {

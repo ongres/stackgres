@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -24,11 +23,6 @@ public class EventController extends EventEmitter {
   @Inject
   public EventController(CustomResourceFinder<StackGresCluster> clusterFinder) {
     this.clusterFinder = clusterFinder;
-  }
-
-  public EventController() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.clusterFinder = null;
   }
 
   /**

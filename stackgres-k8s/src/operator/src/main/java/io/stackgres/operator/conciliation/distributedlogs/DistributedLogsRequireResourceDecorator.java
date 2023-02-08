@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.distributedlogs;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecorator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
@@ -22,11 +21,6 @@ public class DistributedLogsRequireResourceDecorator
       DecoratorDiscoverer<StackGresDistributedLogsContext> decoratorDiscoverer,
       ResourceGenerationDiscoverer<StackGresDistributedLogsContext> generatorsDiscoverer) {
     super(decoratorDiscoverer, generatorsDiscoverer);
-  }
-
-  public DistributedLogsRequireResourceDecorator() {
-    super(null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

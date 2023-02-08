@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,11 +32,16 @@ public class PgConfigDefaultValuesMutator
   public static PgConfigDefaultValuesMutator create(
       DefaultCustomResourceFactory<StackGresPostgresConfig> factory,
       ObjectMapper objectMapper) {
-    PgConfigDefaultValuesMutator mutator = new PgConfigDefaultValuesMutator();
-    mutator.setFactory(factory);
-    mutator.setObjectMapper(objectMapper);
-    mutator.init();
+    PgConfigDefaultValuesMutator mutator = new PgConfigDefaultValuesMutator(
+        factory, objectMapper);
     return mutator;
+  }
+
+  @Inject
+  public PgConfigDefaultValuesMutator(
+      DefaultCustomResourceFactory<StackGresPostgresConfig> factory,
+      ObjectMapper jsonMapper) {
+    super(factory, jsonMapper);
   }
 
   @Override

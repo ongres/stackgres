@@ -18,7 +18,6 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
@@ -36,7 +35,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniService
 @Singleton
 @OperatorVersionBinder
 @BenchmarkJob("pgbench")
-public class PgbenchBenchmark extends DbOpsJob {
+public class PgbenchBenchmark extends AbstractDbOpsJob {
 
   @Inject
   public PgbenchBenchmark(
@@ -50,11 +49,6 @@ public class PgbenchBenchmark extends DbOpsJob {
       DbOpsTemplatesVolumeFactory dbOpsTemplatesVolumeFactory) {
     super(podSecurityFactory, clusterStatefulSetEnvironmentVariables, labelFactory,
         dbOpsLabelFactory, jsonMapper, kubectl, dbOpsVolumeMounts, dbOpsTemplatesVolumeFactory);
-  }
-
-  public PgbenchBenchmark() {
-    super(null, null, null, null, null, null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

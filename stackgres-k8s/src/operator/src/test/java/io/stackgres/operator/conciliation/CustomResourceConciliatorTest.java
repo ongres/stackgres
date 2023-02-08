@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.resource.CustomResourceScanner;
 import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.BeforeEach;
@@ -256,18 +257,19 @@ class CustomResourceConciliatorTest {
 
   private AbstractReconciliator<CustomResource<Object, Object>> buildConciliator() {
     final AbstractReconciliator<CustomResource<Object, Object>> reconciliator =
-        new TestReconciliator();
-    reconciliator.setConciliator(conciliator);
-    reconciliator.setScanner(scanner);
-    reconciliator.setHandlerDelegator(handlerDelegator);
+        new TestReconciliator(scanner, conciliator, handlerDelegator, null);
     return reconciliator;
   }
 
   public static class TestReconciliator
       extends AbstractReconciliator<CustomResource<Object, Object>> {
 
-    TestReconciliator() {
-      super("Test");
+    TestReconciliator(
+        CustomResourceScanner<CustomResource<Object, Object>> scanner,
+        Conciliator<CustomResource<Object, Object>> conciliator,
+        HandlerDelegator<CustomResource<Object, Object>> handlerDelegator,
+        KubernetesClient client) {
+      super(scanner, conciliator, handlerDelegator, client, "Test");
     }
 
     @Override

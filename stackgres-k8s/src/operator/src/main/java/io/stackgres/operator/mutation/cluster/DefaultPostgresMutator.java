@@ -7,17 +7,37 @@ package io.stackgres.operator.mutation.cluster;
 
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public class DefaultPostgresMutator
     extends AbstractDefaultResourceMutator<StackGresPostgresConfig>
     implements ClusterConfigurationMutator {
+
+  @Inject
+  public DefaultPostgresMutator(
+      DefaultCustomResourceFactory<StackGresPostgresConfig> resourceFactory,
+      CustomResourceFinder<StackGresPostgresConfig> finder,
+      CustomResourceScheduler<StackGresPostgresConfig> scheduler) {
+    super(resourceFactory, finder, scheduler);
+  }
+
+  @PostConstruct
+  @Override
+  public void init() {
+    super.init();
+  }
 
   @Override
   public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
@@ -37,12 +57,12 @@ public class DefaultPostgresMutator
   }
 
   @Override
-  public JsonPointer getTargetPointer() throws NoSuchFieldException {
+  public JsonPointer getTargetPointer() {
     return getTargetPointer("postgresConfig");
   }
 
   @Override
-  public JsonPointer getTargetPointer(String field) throws NoSuchFieldException {
+  public JsonPointer getTargetPointer(String field) {
     return getConfigurationTargetPointer(field);
   }
 }

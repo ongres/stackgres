@@ -14,64 +14,89 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.StackGresKubernetesClient;
-import io.stackgres.common.resource.ResourceWriter;
+import org.jooq.lambda.Seq;
 
 public abstract class DeployedResourcesScanner<T extends CustomResource<?, ?>> {
 
   public List<HasMetadata> getDeployedResources(T config) {
     final String kind = HasMetadata.getKind(config.getClass());
-    final Map<String, String> genericClusterLabels = getGenericLabels(config);
+    final Map<String, String> genericLabels = getGenericLabels(config);
+    final Map<String, String> crossNamespaceLabels = getCrossNamespaceLabels(config);
 
-    StackGresKubernetesClient stackGresClient = getClient();
+    KubernetesClient client = getClient();
 
     Stream<HasMetadata> inNamespace = getInNamepspaceResourceOperations()
-        .keySet()
+        .values()
         .stream()
-        .flatMap(clazz -> stackGresClient.findManagedIntents(
-            clazz,
-            ResourceWriter.STACKGRES_FIELD_MANAGER,
-            genericClusterLabels,
-            config.getMetadata().getNamespace())
-            .stream());
+        .filter(op -> !genericLabels.isEmpty())
+        .flatMap(emptyOnNotFound(op -> op.apply(client)
+            .inNamespace(config.getMetadata().getNamespace())
+            .withLabels(genericLabels)
+            .list()
+            .getItems()
+            .stream()));
 
-    Stream<HasMetadata> extra = getExtraResourceOperations(config)
-        .keySet()
+    Stream<HasMetadata> inAnyNamespace = getInAnyNamespaceResourceOperations(config)
+        .values()
         .stream()
-        .flatMap(clazz -> stackGresClient.findManagedIntents(
-            clazz,
-            ResourceWriter.STACKGRES_FIELD_MANAGER,
-            genericClusterLabels,
-            config.getMetadata().getNamespace())
-            .stream());
+        .filter(op -> !crossNamespaceLabels.isEmpty())
+        .flatMap(emptyOnNotFound(op -> op.apply(client)
+            .inAnyNamespace()
+            .withLabels(crossNamespaceLabels)
+            .list()
+            .getItems()
+            .stream()));
 
-    List<HasMetadata> deployedResources = Stream.concat(inNamespace, extra)
+    List<HasMetadata> deployedResources = Seq.seq(inNamespace)
         .filter(resource -> resource.getMetadata().getOwnerReferences()
-            .stream().anyMatch(ownerReference -> ownerReference.getKind()
-                .equals(kind)
+            .stream().anyMatch(ownerReference -> ownerReference.getKind().equals(kind)
                 && ownerReference.getName().equals(config.getMetadata().getName())
                 && ownerReference.getUid().equals(config.getMetadata().getUid())))
+        .append(inAnyNamespace)
         .toList();
 
     return deployedResources;
   }
 
-  protected abstract Map<String, String> getGenericLabels(T config);
+  private <P, R> Function<P, Stream<R>> emptyOnNotFound(Function<P, Stream<R>> function) {
+    return param -> {
+      try {
+        return function.apply(param);
+      } catch (KubernetesClientException ex) {
+        if (ex.getCode() == 404) {
+          return Stream.of();
+        }
+        throw ex;
+      }
+    };
+  }
 
-  protected abstract StackGresKubernetesClient getClient();
+  protected Map<String, String> getGenericLabels(T config) {
+    return Map.of();
+  }
+
+  protected Map<String, String> getCrossNamespaceLabels(T config) {
+    return Map.of();
+  }
+
+  protected abstract KubernetesClient getClient();
 
   protected Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>> getExtraResourceOperations(T config) {
+              ? extends Resource<? extends HasMetadata>>>>
+      getInAnyNamespaceResourceOperations(T config) {
     return Map.of();
   }
 
-  protected abstract Map<Class<? extends HasMetadata>,
+  protected Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations();
+              ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations() {
+    return Map.of();
+  }
 
 }

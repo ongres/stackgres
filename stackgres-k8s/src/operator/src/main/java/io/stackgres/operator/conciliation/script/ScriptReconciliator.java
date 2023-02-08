@@ -6,17 +6,21 @@
 package io.stackgres.operator.conciliation.script;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgscript.ScriptEventReason;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.event.EventEmitter;
-import io.stackgres.common.event.EventEmitterType;
+import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
+import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -24,15 +28,29 @@ import org.slf4j.helpers.MessageFormatter;
 public class ScriptReconciliator
     extends AbstractReconciliator<StackGresScript> {
 
-  public ScriptReconciliator() {
-    super(StackGresScript.KIND);
+  @Dependent
+  public static class Parameters {
+    @Inject CustomResourceScanner<StackGresScript> scanner;
+    @Inject Conciliator<StackGresScript> conciliator;
+    @Inject HandlerDelegator<StackGresScript> handlerDelegator;
+    @Inject KubernetesClient client;
+    @Inject EventEmitter<StackGresScript> eventController;
+    @Inject CustomResourceScheduler<StackGresScript> scriptScheduler;
+    @Inject ScriptStatusManager statusManager;
   }
 
-  private EventEmitter<StackGresScript> eventController;
+  private final EventEmitter<StackGresScript> eventController;
+  private final CustomResourceScheduler<StackGresScript> scriptScheduler;
+  private final ScriptStatusManager statusManager;
 
-  private CustomResourceScheduler<StackGresScript> scriptScheduler;
-
-  private ScriptStatusManager statusManager;
+  @Inject
+  public ScriptReconciliator(Parameters parameters) {
+    super(parameters.scanner, parameters.conciliator, parameters.handlerDelegator,
+        parameters.client, StackGresScript.KIND);
+    this.eventController = parameters.eventController;
+    this.scriptScheduler = parameters.scriptScheduler;
+    this.statusManager = parameters.statusManager;
+  }
 
   void onStart(@Observes StartupEvent ev) {
     start();
@@ -73,23 +91,6 @@ public class ScriptReconciliator
         }).getMessage();
     eventController.sendEvent(ScriptEventReason.SCRIPT_CONFIG_ERROR,
         message + ": " + ex.getMessage(), script);
-  }
-
-  @Inject
-  public void setScriptScheduler(CustomResourceScheduler<StackGresScript> scriptScheduler) {
-    this.scriptScheduler = scriptScheduler;
-  }
-
-  @Inject
-  public void setEventController(
-      @EventEmitterType(StackGresScript.class)
-      EventEmitter<StackGresScript> eventController) {
-    this.eventController = eventController;
-  }
-
-  @Inject
-  public void setStatusManager(ScriptStatusManager statusManager) {
-    this.statusManager = statusManager;
   }
 
 }

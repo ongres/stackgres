@@ -16,7 +16,6 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.LabelFactoryForCluster;
@@ -35,7 +34,7 @@ import org.jooq.lambda.Seq;
 @Singleton
 @OperatorVersionBinder
 @OpJob("vacuum")
-public class DbOpsVacuumJob extends DbOpsJob {
+public class DbOpsVacuumJob extends AbstractDbOpsJob {
 
   @Inject
   public DbOpsVacuumJob(
@@ -49,11 +48,6 @@ public class DbOpsVacuumJob extends DbOpsJob {
       DbOpsTemplatesVolumeFactory dbOpsTemplatesVolumeFactory) {
     super(podSecurityFactory, clusterStatefulSetEnvironmentVariables, labelFactory,
         dbOpsLabelFactory, jsonMapper, kubectl, dbOpsVolumeMounts, dbOpsTemplatesVolumeFactory);
-  }
-
-  public DbOpsVacuumJob() {
-    super(null, null, null, null, null, null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

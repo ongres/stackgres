@@ -19,13 +19,13 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.internal.PatchUtils;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 
 @ApplicationScoped
@@ -47,9 +47,18 @@ public class PodTestUtil {
   KubernetesClient client;
 
   public static void assertPodEquals(Pod expected, Pod actual) {
-    var pm = PatchUtils.patchMapper();
-    String expectedJson = pm.valueToTree(expected).toPrettyString();
-    String actualJson = pm.valueToTree(actual).toPrettyString();
+    expected = JsonUtil.copy(expected);
+    expected.getMetadata().setCreationTimestamp(null);
+    expected.getMetadata().setGeneration(null);
+    expected.getMetadata().setResourceVersion(null);
+    expected.getMetadata().setUid(null);
+    actual = JsonUtil.copy(actual);
+    actual.getMetadata().setCreationTimestamp(null);
+    actual.getMetadata().setGeneration(null);
+    actual.getMetadata().setResourceVersion(null);
+    actual.getMetadata().setUid(null);
+    String expectedJson = JsonUtil.jsonMapper().valueToTree(expected).toPrettyString();
+    String actualJson = JsonUtil.jsonMapper().valueToTree(actual).toPrettyString();
     assertEquals(expectedJson, actualJson);
   }
 

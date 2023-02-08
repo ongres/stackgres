@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.client.internal.patchmixins.ObjectMetaMixIn;
+import io.fabric8.kubernetes.client.dsl.internal.ObjectMetaMixIn;
 import io.fabric8.zjsonpatch.JsonDiff;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

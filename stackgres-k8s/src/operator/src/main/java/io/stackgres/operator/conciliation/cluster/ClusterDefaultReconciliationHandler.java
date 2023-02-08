@@ -6,7 +6,9 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.AbstractReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
@@ -15,5 +17,10 @@ import io.stackgres.operator.conciliation.ReconciliationScope;
 @ApplicationScoped
 public class ClusterDefaultReconciliationHandler
     extends AbstractReconciliationHandler<StackGresCluster> {
+
+  @Inject
+  public ClusterDefaultReconciliationHandler(KubernetesClient client) {
+    super(client);
+  }
 
 }

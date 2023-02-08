@@ -14,7 +14,6 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.cluster.common.StackGresClusterContext;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.operatorframework.resource.AbstractResourceHandlerSelector;
 import io.stackgres.operatorframework.resource.ResourceHandler;
 import org.jooq.lambda.Seq;
@@ -29,11 +28,6 @@ public class ClusterResourceHandlerSelector
   public ClusterResourceHandlerSelector(
       @Any Instance<ResourceHandler<StackGresClusterContext>> handlers) {
     this.handlers = handlers;
-  }
-
-  public ClusterResourceHandlerSelector() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.handlers = null;
   }
 
   @Override

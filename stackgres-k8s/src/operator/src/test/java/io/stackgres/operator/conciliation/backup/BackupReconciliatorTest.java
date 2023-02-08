@@ -49,9 +49,9 @@ class BackupReconciliatorTest {
 
   private final StackGresBackup backup = Fixtures.backup().loadDefault().get();
   @Mock
-  CustomResourceScanner<StackGresBackup> backupScanner;
+  CustomResourceScanner<StackGresBackup> scanner;
   @Mock
-  Conciliator<StackGresBackup> backupConciliator;
+  Conciliator<StackGresBackup> conciliator;
   @Mock
   HandlerDelegator<StackGresBackup> handlerDelegator;
   @Mock
@@ -71,18 +71,20 @@ class BackupReconciliatorTest {
 
   @BeforeEach
   void setUp() {
-    reconciliator = new BackupReconciliator();
-    reconciliator.setScanner(backupScanner);
-    reconciliator.setConciliator(backupConciliator);
-    reconciliator.setHandlerDelegator(handlerDelegator);
-    reconciliator.setEventController(eventController);
-    reconciliator.setBackupScheduler(backupScheduler);
-    reconciliator.setResourceComparator(resourceComparator);
+    BackupReconciliator.Parameters parameters = new BackupReconciliator.Parameters();
+    parameters.scanner = scanner;
+    parameters.backupScheduler = backupScheduler;
+    parameters.conciliator = conciliator;
+    parameters.handlerDelegator = handlerDelegator;
+    parameters.eventController = eventController;
+    parameters.backupScheduler = backupScheduler;
+    parameters.resourceComparator = resourceComparator;
+    reconciliator = new BackupReconciliator(parameters);
   }
 
   @Test
   void allCreations_shouldBePerformed() {
-    when(backupScanner.getResources()).thenReturn(Collections.singletonList(backup));
+    when(scanner.getResources()).thenReturn(Collections.singletonList(backup));
 
     final List<HasMetadata> creations = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
@@ -90,7 +92,7 @@ class BackupReconciliatorTest {
     creations.forEach(resource -> when(handlerDelegator.create(backup, resource))
         .thenReturn(resource));
 
-    when(backupConciliator.evalReconciliationState(backup))
+    when(conciliator.evalReconciliationState(backup))
         .thenReturn(new ReconciliationResult(
             creations,
             Collections.emptyList(),
@@ -98,14 +100,14 @@ class BackupReconciliatorTest {
 
     reconciliator.reconciliationCycle();
 
-    verify(backupScanner).getResources();
-    verify(backupConciliator).evalReconciliationState(backup);
+    verify(scanner).getResources();
+    verify(conciliator).evalReconciliationState(backup);
     creations.forEach(resource -> verify(handlerDelegator).create(backup, resource));
   }
 
   @Test
   void allPatches_shouldBePerformed() {
-    when(backupScanner.getResources()).thenReturn(Collections.singletonList(backup));
+    when(scanner.getResources()).thenReturn(Collections.singletonList(backup));
 
     final List<Tuple2<HasMetadata, HasMetadata>> patches = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test")
@@ -115,7 +117,7 @@ class BackupReconciliatorTest {
     patches.forEach(resource -> when(handlerDelegator.patch(backup, resource.v1, resource.v2))
         .thenReturn(resource.v1));
 
-    when(backupConciliator.evalReconciliationState(backup))
+    when(conciliator.evalReconciliationState(backup))
         .thenReturn(new ReconciliationResult(
             Collections.emptyList(),
             patches,
@@ -123,21 +125,21 @@ class BackupReconciliatorTest {
 
     reconciliator.reconciliationCycle();
 
-    verify(backupScanner).getResources();
-    verify(backupConciliator).evalReconciliationState(backup);
+    verify(scanner).getResources();
+    verify(conciliator).evalReconciliationState(backup);
     patches.forEach(resource -> verify(handlerDelegator).patch(backup, resource.v1, resource.v2));
   }
 
   @Test
   void allDeletions_shouldBePerformed() {
-    when(backupScanner.getResources()).thenReturn(Collections.singletonList(backup));
+    when(scanner.getResources()).thenReturn(Collections.singletonList(backup));
 
     final List<HasMetadata> deletions = KubernetessMockResourceGenerationUtil
         .buildResources("test", "test");
 
     deletions.forEach(resource -> doNothing().when(handlerDelegator).delete(backup, resource));
 
-    when(backupConciliator.evalReconciliationState(backup))
+    when(conciliator.evalReconciliationState(backup))
         .thenReturn(new ReconciliationResult(
             Collections.emptyList(),
             Collections.emptyList(),
@@ -145,8 +147,8 @@ class BackupReconciliatorTest {
 
     reconciliator.reconciliationCycle();
 
-    verify(backupScanner).getResources();
-    verify(backupConciliator).evalReconciliationState(backup);
+    verify(scanner).getResources();
+    verify(conciliator).evalReconciliationState(backup);
     deletions.forEach(resource -> verify(handlerDelegator).delete(backup, resource));
   }
 
@@ -157,9 +159,9 @@ class BackupReconciliatorTest {
     int concurrentExecutions = new Random().nextInt(2) + 2;
 
     doAnswer(new AnswersWithDelay(delay, new Returns(Collections.singletonList(backup))))
-        .when(backupScanner).getResources();
+        .when(scanner).getResources();
 
-    when(backupConciliator.evalReconciliationState(backup))
+    when(conciliator.evalReconciliationState(backup))
         .thenReturn(new ReconciliationResult(
             Collections.emptyList(),
             Collections.emptyList(),
@@ -179,8 +181,8 @@ class BackupReconciliatorTest {
             end - start,
             greaterThanOrEqualTo(delay * concurrentExecutions));
 
-    verify(backupScanner, times(concurrentExecutions)).getResources();
-    verify(backupConciliator, times(concurrentExecutions)).evalReconciliationState(backup);
+    verify(scanner, times(concurrentExecutions)).getResources();
+    verify(conciliator, times(concurrentExecutions)).evalReconciliationState(backup);
 
   }
 }

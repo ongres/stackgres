@@ -28,7 +28,7 @@ public class StorageClassFinder implements
 
   @Override
   public Optional<StorageClass> findByName(String name) {
-    return Optional.ofNullable(client.storage().storageClasses().withName(name).get());
+    return Optional.ofNullable(client.storage().v1().storageClasses().withName(name).get());
   }
 
   @Override
@@ -38,7 +38,7 @@ public class StorageClassFinder implements
 
   @Override
   public List<StorageClass> findResources() {
-    return client.storage().storageClasses().list().getItems();
+    return client.storage().v1().storageClasses().list().getItems();
   }
 
   @Override

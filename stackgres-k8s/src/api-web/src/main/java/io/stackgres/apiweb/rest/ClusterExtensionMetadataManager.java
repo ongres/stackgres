@@ -13,7 +13,6 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.config.WebApiPropertyContext;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import org.jooq.lambda.Seq;
@@ -30,11 +29,6 @@ public class ClusterExtensionMetadataManager extends ExtensionMetadataManager {
             WebApiProperty.EXTENSIONS_REPOSITORY_URLS))
             .map(URI::create)
             .collect(ImmutableList.toImmutableList()));
-  }
-
-  public ClusterExtensionMetadataManager() {
-    super(null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

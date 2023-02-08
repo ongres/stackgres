@@ -19,6 +19,7 @@ import java.util.function.BiFunction;
 import java.util.zip.GZIPInputStream;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.FileSystemHandler;
@@ -48,12 +49,19 @@ public abstract class ExtensionManager {
   private final WebClientFactory webClientFactory;
   private final FileSystemHandler fileSystemHandler;
 
-  public ExtensionManager(ExtensionMetadataManager extensionMetadataManager,
+  protected ExtensionManager(ExtensionMetadataManager extensionMetadataManager,
       WebClientFactory webClientFactory,
       FileSystemHandler fileSystemHandler) {
     this.extensionMetadataManager = extensionMetadataManager;
     this.webClientFactory = webClientFactory;
     this.fileSystemHandler = fileSystemHandler;
+  }
+
+  public ExtensionManager() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.extensionMetadataManager = null;
+    this.webClientFactory = null;
+    this.fileSystemHandler = null;
   }
 
   public ExtensionMetadataManager getMetadataManager() {

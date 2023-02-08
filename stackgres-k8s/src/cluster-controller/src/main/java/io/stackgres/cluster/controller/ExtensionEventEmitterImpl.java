@@ -15,7 +15,6 @@ import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.event.EventEmitter;
-import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.extension.ExtensionEventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 
@@ -34,8 +33,7 @@ public class ExtensionEventEmitterImpl implements ExtensionEventEmitter {
 
   @Inject
   public ExtensionEventEmitterImpl(
-      @EventEmitterType(StackGresCluster.class)
-          EventEmitter<StackGresCluster> clusterEventEmitter,
+      EventEmitter<StackGresCluster> clusterEventEmitter,
       CustomResourceFinder<StackGresCluster> clusterFinder) {
     this.clusterEventEmitter = clusterEventEmitter;
     this.clusterFinder = clusterFinder;

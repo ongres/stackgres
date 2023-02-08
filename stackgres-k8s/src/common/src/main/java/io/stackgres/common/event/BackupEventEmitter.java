@@ -10,7 +10,6 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 
 @ApplicationScoped
-@EventEmitterType(StackGresBackup.class)
 public class BackupEventEmitter extends AbstractEventEmitter<StackGresBackup> {
 
 }

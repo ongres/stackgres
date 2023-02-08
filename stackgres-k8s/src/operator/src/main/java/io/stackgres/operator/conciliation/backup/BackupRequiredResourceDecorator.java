@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.backup;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecorator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
@@ -24,8 +23,4 @@ public class BackupRequiredResourceDecorator
     super(decoratorDiscoverer, generators);
   }
 
-  public BackupRequiredResourceDecorator() {
-    super(null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-  }
 }

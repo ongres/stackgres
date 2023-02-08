@@ -2,7 +2,7 @@ image: null
 
 variables:
   SG_CI_IMAGE_NAME: "ci:1.16"
-  BUILDER_IMAGE_NAME: "builder:1.4"
+  BUILDER_IMAGE_NAME: "builder:1.5"
   SKIP_NATIVE: "false"
   SKIP_E2E: "false"
   SKIP_DEPLOY: "false"

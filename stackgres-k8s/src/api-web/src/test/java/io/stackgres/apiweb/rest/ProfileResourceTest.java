@@ -9,7 +9,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import io.fabric8.kubernetes.client.CustomResourceList;
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.profile.ProfileDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
@@ -24,7 +24,7 @@ class ProfileResourceTest extends AbstractDependencyCustomResourceTest
       <ProfileDto, StackGresProfile, ProfileResource, NamespacedProfileResource> {
 
   @Override
-  protected CustomResourceList<StackGresProfile> getCustomResourceList() {
+  protected DefaultKubernetesResourceList<StackGresProfile> getCustomResourceList() {
     return Fixtures.instanceProfileList().loadDefault().get();
   }
 

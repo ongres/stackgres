@@ -9,10 +9,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
@@ -22,9 +24,11 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConditi
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatusCluster;
 import io.stackgres.common.event.EventEmitter;
-import io.stackgres.common.event.EventEmitterType;
+import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
+import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
 import org.slf4j.helpers.MessageFormatter;
@@ -32,17 +36,34 @@ import org.slf4j.helpers.MessageFormatter;
 @ApplicationScoped
 public class DistributedLogsReconciliator extends AbstractReconciliator<StackGresDistributedLogs> {
 
-  public DistributedLogsReconciliator() {
-    super(StackGresDistributedLogs.KIND);
+  @Dependent
+  static class Parameters {
+    @Inject CustomResourceScanner<StackGresDistributedLogs> scanner;
+    @Inject Conciliator<StackGresDistributedLogs> conciliator;
+    @Inject HandlerDelegator<StackGresDistributedLogs> handlerDelegator;
+    @Inject KubernetesClient client;
+    @Inject ConnectedClustersScanner connectedClustersScanner;
+    @Inject CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
+    @Inject StatusManager<StackGresDistributedLogs,
+        StackGresDistributedLogsCondition> statusManager;
+    @Inject EventEmitter<StackGresDistributedLogs> eventController;
   }
 
-  private ConnectedClustersScanner connectedClustersScanner;
+  private final ConnectedClustersScanner connectedClustersScanner;
+  private final CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
+  private final StatusManager<StackGresDistributedLogs,
+      StackGresDistributedLogsCondition> statusManager;
+  private final EventEmitter<StackGresDistributedLogs> eventController;
 
-  private CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
-
-  private StatusManager<StackGresDistributedLogs, StackGresDistributedLogsCondition> statusManager;
-
-  private EventEmitter<StackGresDistributedLogs> eventController;
+  @Inject
+  public DistributedLogsReconciliator(Parameters parameters) {
+    super(parameters.scanner, parameters.conciliator, parameters.handlerDelegator,
+        parameters.client, StackGresDistributedLogs.KIND);
+    this.connectedClustersScanner = parameters.connectedClustersScanner;
+    this.distributedLogsScheduler = parameters.distributedLogsScheduler;
+    this.statusManager = parameters.statusManager;
+    this.eventController = parameters.eventController;
+  }
 
   void onStart(@Observes StartupEvent ev) {
     start();
@@ -128,27 +149,4 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
         message + ": " + ex.getMessage(), context);
   }
 
-  @Inject
-  public void setConnectedClustersScanner(ConnectedClustersScanner connectedClustersScanner) {
-    this.connectedClustersScanner = connectedClustersScanner;
-  }
-
-  @Inject
-  public void setDistributedLogsScheduler(
-      CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler) {
-    this.distributedLogsScheduler = distributedLogsScheduler;
-  }
-
-  @Inject
-  public void setStatusManager(
-      StatusManager<StackGresDistributedLogs, StackGresDistributedLogsCondition> statusManager) {
-    this.statusManager = statusManager;
-  }
-
-  @Inject
-  public void setEventController(
-      @EventEmitterType(StackGresDistributedLogs.class)
-      EventEmitter<StackGresDistributedLogs> eventController) {
-    this.eventController = eventController;
-  }
 }

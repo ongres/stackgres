@@ -70,9 +70,8 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     mockServer.getClient().resources(
         StackGresCluster.class,
         StackGresClusterList.class)
-        .inNamespace(cluster.getMetadata().getNamespace())
-        .withName(cluster.getMetadata().getName())
-        .create(cluster);
+        .resource(cluster)
+        .create();
 
     Service primary = new ServiceBuilder()
         .withNewMetadata()
@@ -99,9 +98,13 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .endSpec()
         .build();
     mockServer.getClient().services()
-        .inNamespace(cluster.getMetadata().getNamespace()).create(primary);
+        .inNamespace(cluster.getMetadata().getNamespace())
+        .resource(primary)
+        .create();
     mockServer.getClient().services()
-        .inNamespace(cluster.getMetadata().getNamespace()).create(replicas);
+        .inNamespace(cluster.getMetadata().getNamespace())
+        .resource(replicas)
+        .create();
   }
 
   @AfterEach

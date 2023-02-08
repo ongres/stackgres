@@ -15,7 +15,7 @@ import javax.inject.Inject;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.fabric8.kubernetes.client.internal.readiness.Readiness;
+import io.fabric8.kubernetes.client.readiness.Readiness;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;

@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodList;
@@ -43,7 +44,6 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.client.CustomResourceList;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsFetcher;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsQueryParameters;
@@ -700,7 +700,7 @@ class ClusterResourceMockedTest extends
   }
 
   @Override
-  protected CustomResourceList<StackGresCluster> getCustomResourceList() {
+  protected DefaultKubernetesResourceList<StackGresCluster> getCustomResourceList() {
     return Fixtures.clusterList().loadDefault().get();
   }
 

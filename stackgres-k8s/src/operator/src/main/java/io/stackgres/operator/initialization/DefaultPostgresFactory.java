@@ -8,9 +8,13 @@ package io.stackgres.operator.initialization;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
@@ -23,9 +27,17 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
 
   private @NotNull String postgresVersion;
 
-  public DefaultPostgresFactory() {
+  @Inject
+  public DefaultPostgresFactory(StackGresPropertyContext<OperatorProperty> context) {
+    super(context);
     this.postgresVersion = StackGresComponent.POSTGRESQL.getLatest().getMajorVersion(
         StackGresComponent.LATEST);
+  }
+
+  @PostConstruct
+  @Override
+  public void init() {
+    super.init();
   }
 
   @Override

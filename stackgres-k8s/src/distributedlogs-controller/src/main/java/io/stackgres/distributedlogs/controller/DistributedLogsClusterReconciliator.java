@@ -19,7 +19,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.StackGresContainer;
@@ -65,16 +64,6 @@ public class DistributedLogsClusterReconciliator {
     this.configManager = parameters.configReconciliator;
     this.eventController = parameters.eventController;
     this.pvcSizeReconciliator = parameters.persistentVolumeSizeReconciliator;
-  }
-
-  public DistributedLogsClusterReconciliator() {
-    super();
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.propertyContext = null;
-    this.databaseManager = null;
-    this.configManager = null;
-    this.eventController = null;
-    this.pvcSizeReconciliator = null;
   }
 
   public static DistributedLogsClusterReconciliator create(Consumer<Parameters> consumer) {

@@ -18,13 +18,13 @@ import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator
 
 public interface ClusterConfigurationMutator extends JsonPatchMutatorUtil {
 
-  default JsonPointer getConfigurationTargetPointer(String field) throws NoSuchFieldException {
+  default JsonPointer getConfigurationTargetPointer(String field) {
     String jsonField =
         getJsonMappingField(field, StackGresClusterConfiguration.class);
     return getConfigurationTargetPointer().append(jsonField);
   }
 
-  default JsonPointer getConfigurationTargetPointer() throws NoSuchFieldException {
+  default JsonPointer getConfigurationTargetPointer() {
     String jsonField =
         getJsonMappingField("configuration", StackGresClusterSpec.class);
 
@@ -36,16 +36,12 @@ public interface ClusterConfigurationMutator extends JsonPatchMutatorUtil {
     StackGresClusterConfiguration configuration = spec.getConfiguration();
 
     if (configuration == null) {
-      try {
-        configuration = new StackGresClusterConfiguration();
-        spec.setConfiguration(configuration);
-        final JsonPointer confPointer = getConfigurationTargetPointer();
-        final AddOperation configurationAdd = new AddOperation(confPointer,
-            JsonPatchMutator.FACTORY.objectNode());
-        return List.of(configurationAdd);
-      } catch (NoSuchFieldException e) {
-        return List.of();
-      }
+      configuration = new StackGresClusterConfiguration();
+      spec.setConfiguration(configuration);
+      final JsonPointer confPointer = getConfigurationTargetPointer();
+      final AddOperation configurationAdd = new AddOperation(confPointer,
+          JsonPatchMutator.FACTORY.objectNode());
+      return List.of(configurationAdd);
     }
 
     return List.of();

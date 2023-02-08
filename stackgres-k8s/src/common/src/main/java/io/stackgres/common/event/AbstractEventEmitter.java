@@ -100,7 +100,7 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
     final String name = involvedObject.getMetadata().getName() + "." + id;
     return client.v1().events()
         .inNamespace(namespace)
-        .create(new EventBuilder()
+        .resource(new EventBuilder()
             .withNewMetadata()
             .withNamespace(namespace)
             .withName(name)
@@ -116,7 +116,8 @@ public abstract class AbstractEventEmitter<T extends HasMetadata> implements Eve
                 .withComponent(reason.component())
                 .build())
             .withInvolvedObject(ResourceUtil.getObjectReference(involvedObject))
-            .build());
+            .build())
+        .create();
   }
 
   @Inject

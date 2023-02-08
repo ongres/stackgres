@@ -36,7 +36,6 @@ import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.apiweb.transformer.ScriptTransformer;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
@@ -99,19 +98,6 @@ public class ClusterResource
     this.secretFinder = secretFinder;
     this.configMapFinder = configMapFinder;
     this.serviceFinder = serviceFinder;
-  }
-
-  public ClusterResource() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.clusterScanner = null;
-    this.scriptScheduler = null;
-    this.secretWriter = null;
-    this.configMapWriter = null;
-    this.scriptFinder = null;
-    this.scriptTransformer = null;
-    this.secretFinder = null;
-    this.configMapFinder = null;
-    this.serviceFinder = null;
   }
 
   @Operation(

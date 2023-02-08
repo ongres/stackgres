@@ -35,10 +35,13 @@ public interface JsonPatchMutatorUtil {
     return value == null || value.isEmpty();
   }
 
-  default @NotNull String getJsonMappingField(@NotNull String field, @NotNull Class<?> clazz)
-      throws NoSuchFieldException {
-    JsonProperty annotation = clazz.getDeclaredField(field).getAnnotation(JsonProperty.class);
-    return annotation != null ? annotation.value() : field;
+  default @NotNull String getJsonMappingField(@NotNull String field, @NotNull Class<?> clazz) {
+    try {
+      JsonProperty annotation = clazz.getDeclaredField(field).getAnnotation(JsonProperty.class);
+      return annotation != null ? annotation.value() : field;
+    } catch (NoSuchFieldException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   default JsonPatchOperation buildAddOperation(JsonPointer path, String value) {

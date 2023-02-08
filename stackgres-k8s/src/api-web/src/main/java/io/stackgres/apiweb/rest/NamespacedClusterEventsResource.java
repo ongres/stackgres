@@ -25,7 +25,6 @@ import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.event.EventDto;
 import io.stackgres.apiweb.dto.event.ObjectReference;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -52,12 +51,6 @@ public class NamespacedClusterEventsResource {
       CustomResourceScanner<StackGresDbOps> dbOpsScanner) {
     this.scanner = scanner;
     this.dbOpsScanner = dbOpsScanner;
-  }
-
-  public NamespacedClusterEventsResource() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.scanner = null;
-    this.dbOpsScanner = null;
   }
 
   @Operation(

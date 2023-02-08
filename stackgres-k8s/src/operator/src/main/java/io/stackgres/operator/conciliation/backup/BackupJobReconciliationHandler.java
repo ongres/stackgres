@@ -12,7 +12,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactoryForBackup;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -37,11 +36,6 @@ public class BackupJobReconciliationHandler
       ResourceScanner<Pod> podScanner,
       ResourceWriter<Pod> podWriter) {
     super(labelFactory, jobFinder, jobWriter, podScanner, podWriter);
-  }
-
-  public BackupJobReconciliationHandler() {
-    super(null, null, null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

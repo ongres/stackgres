@@ -5,17 +5,12 @@
 
 package io.stackgres.distributedlogs.controller;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.postgres.PostgresBootstrapReconciliator;
 import io.stackgres.common.resource.ResourceFinder;
@@ -40,18 +35,6 @@ public class DistributedLogsControllerPostgresBootstrapReconciliator
     super(parameters.endpointsFinder, parameters.propertyContext
         .getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME));
     this.eventController = parameters.eventController;
-  }
-
-  public static DistributedLogsControllerPostgresBootstrapReconciliator create(
-      Consumer<Parameters> consumer) {
-    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
-    return new DistributedLogsControllerPostgresBootstrapReconciliator(parameters.findAny().get());
-  }
-
-  public DistributedLogsControllerPostgresBootstrapReconciliator() {
-    super(null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.eventController = null;
   }
 
   @Override

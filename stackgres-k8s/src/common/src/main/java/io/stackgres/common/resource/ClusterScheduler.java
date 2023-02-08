@@ -20,11 +20,13 @@ public class ClusterScheduler extends
 
   @Override
   public StackGresCluster update(StackGresCluster resource) {
+    if (resource.getMetadata().getResourceVersion() == null) {
+      return super.update(resource);
+    }
     return client.resources(StackGresCluster.class, StackGresClusterList.class)
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
+        .resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace(resource);
+        .replace();
   }
 
 }

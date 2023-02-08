@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.resource;
 
-import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -14,7 +12,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
-import io.stackgres.common.StackGresKubernetesClient;
+import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import io.stackgres.common.prometheus.PodMonitor;
 import io.stackgres.common.prometheus.PodMonitorList;
 import io.stackgres.common.resource.ResourceWriter;
@@ -31,30 +29,32 @@ public class PodMonitorWriter implements ResourceWriter<PodMonitor> {
 
   @Override
   public PodMonitor create(PodMonitor resource) {
-    return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
-        .withFieldManager(STACKGRES_FIELD_MANAGER)
-        .withForce(true)
-        .build(),
-        resource, Optional.empty());
+    return client.resources(PodMonitor.class)
+        .resource(resource)
+        .patch(new PatchContext.Builder()
+            .withPatchType(PatchType.SERVER_SIDE_APPLY)
+            .withFieldManager(STACKGRES_FIELD_MANAGER)
+            .withForce(true)
+            .build(),
+            resource);
   }
 
   @Override
   public PodMonitor update(PodMonitor resource) {
-    return ((StackGresKubernetesClient) client).serverSideApply(new PatchContext.Builder()
-        .withFieldManager(STACKGRES_FIELD_MANAGER)
-        .withForce(true)
-        .build(),
-        resource, Optional.ofNullable(getPodMonitorClient()
-            .inNamespace(resource.getMetadata().getNamespace())
-            .withName(resource.getMetadata().getName())
-            .get()));
+    return client.resources(PodMonitor.class)
+        .resource(resource)
+        .patch(new PatchContext.Builder()
+            .withPatchType(PatchType.SERVER_SIDE_APPLY)
+            .withFieldManager(STACKGRES_FIELD_MANAGER)
+            .withForce(true)
+            .build(),
+            resource);
   }
 
   @Override
   public void delete(PodMonitor resource) {
     getPodMonitorClient()
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
+        .resource(resource)
         .delete();
   }
 

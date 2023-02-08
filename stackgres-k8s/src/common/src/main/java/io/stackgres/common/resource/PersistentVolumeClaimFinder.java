@@ -14,7 +14,6 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 
 @ApplicationScoped
 public class PersistentVolumeClaimFinder implements
@@ -26,11 +25,6 @@ public class PersistentVolumeClaimFinder implements
   @Inject
   public PersistentVolumeClaimFinder(KubernetesClient client) {
     this.client = client;
-  }
-
-  public PersistentVolumeClaimFinder() {
-    this.client = null;
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

@@ -10,7 +10,6 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 
 @ApplicationScoped
-@EventEmitterType(StackGresScript.class)
 public class ScriptEventEmitter extends AbstractEventEmitter<StackGresScript> {
 
 }

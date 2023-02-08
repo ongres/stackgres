@@ -23,7 +23,6 @@ import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.dto.cluster.KubernetesPod;
 import io.stackgres.apiweb.resource.PatroniStatsScripts;
 import io.stackgres.apiweb.resource.PodStats;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
@@ -39,11 +38,6 @@ public class ClusterStatsTransformer
   @Inject
   public ClusterStatsTransformer(ClusterPodTransformer clusterPodTransformer) {
     this.clusterPodTransformer = clusterPodTransformer;
-  }
-
-  public ClusterStatsTransformer() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.clusterPodTransformer = null;
   }
 
   public ClusterStatsDto toDtoWithAllPodStats(

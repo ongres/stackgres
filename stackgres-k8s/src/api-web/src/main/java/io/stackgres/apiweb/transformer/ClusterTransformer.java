@@ -21,7 +21,6 @@ import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedSqlStatus;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
@@ -49,13 +48,6 @@ public class ClusterTransformer
     this.context = context;
     this.clusterPodTransformer = clusterPodTransformer;
     this.mapper = mapper;
-  }
-
-  public ClusterTransformer() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.context = null;
-    this.clusterPodTransformer = null;
-    this.mapper = null;
   }
 
   @Override

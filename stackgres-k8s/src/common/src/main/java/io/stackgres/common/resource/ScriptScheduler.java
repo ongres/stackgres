@@ -20,11 +20,13 @@ public class ScriptScheduler extends
 
   @Override
   public StackGresScript update(StackGresScript resource) {
+    if (resource.getMetadata().getResourceVersion() == null) {
+      return super.update(resource);
+    }
     return client.resources(StackGresScript.class, StackGresScriptList.class)
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
+        .resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace(resource);
+        .replace();
   }
 
 }

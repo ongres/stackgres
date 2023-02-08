@@ -22,7 +22,6 @@ import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.event.ClusterEventEmitter;
-import io.stackgres.common.event.EventEmitterType;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.operatorframework.resource.EventReason;
@@ -35,7 +34,6 @@ import org.junit.jupiter.api.Test;
 class ExtensionEventEmitterImplTest {
 
   @InjectMock
-  @EventEmitterType(StackGresCluster.class)
   ClusterEventEmitter eventEmitter;
 
   @InjectMock

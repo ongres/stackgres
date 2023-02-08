@@ -8,10 +8,12 @@ package io.stackgres.operator.mutation.pgbouncer;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,8 +24,9 @@ class PgBouncerDefaultValuesMutatorTest
     extends DefaultValuesMutatorTest<StackGresPoolingConfig, PoolingReview> {
 
   @Override
-  protected DefaultValuesMutator<StackGresPoolingConfig, PoolingReview> getMutatorInstance() {
-    return new PgBouncerDefaultValuesMutator();
+  protected DefaultValuesMutator<StackGresPoolingConfig, PoolingReview> getMutatorInstance(
+      DefaultCustomResourceFactory<StackGresPoolingConfig> factory, JsonMapper jsonMapper) {
+    return new PgBouncerDefaultValuesMutator(factory, jsonMapper);
   }
 
   @Override

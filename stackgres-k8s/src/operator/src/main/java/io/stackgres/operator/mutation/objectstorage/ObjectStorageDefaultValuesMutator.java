@@ -8,18 +8,28 @@ package io.stackgres.operator.mutation.objectstorage;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.common.ObjectStorageReview;
+import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 
 @ApplicationScoped
 public class ObjectStorageDefaultValuesMutator
     extends DefaultValuesMutator<StackGresObjectStorage, ObjectStorageReview>
     implements ObjectStorageMutator {
+
+  @Inject
+  public ObjectStorageDefaultValuesMutator(
+      DefaultCustomResourceFactory<StackGresObjectStorage> factory,
+      ObjectMapper jsonMapper) {
+    super(factory, jsonMapper);
+  }
 
   @Override
   public JsonNode getTargetNode(StackGresObjectStorage resource) {

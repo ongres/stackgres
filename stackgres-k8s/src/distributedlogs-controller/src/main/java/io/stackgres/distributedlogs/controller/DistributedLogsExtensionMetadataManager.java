@@ -11,7 +11,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.collect.ImmutableList;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionMetadataManager;
@@ -30,11 +29,6 @@ public class DistributedLogsExtensionMetadataManager extends ExtensionMetadataMa
             .DISTRIBUTEDLOGS_CONTROLLER_EXTENSIONS_REPOSITORY_URLS))
             .map(URI::create)
             .collect(ImmutableList.toImmutableList()));
-  }
-
-  public DistributedLogsExtensionMetadataManager() {
-    super(null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

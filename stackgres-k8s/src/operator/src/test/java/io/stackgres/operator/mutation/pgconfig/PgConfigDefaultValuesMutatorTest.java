@@ -8,10 +8,12 @@ package io.stackgres.operator.mutation.pgconfig;
 import java.util.HashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.DefaultValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,8 +27,9 @@ class PgConfigDefaultValuesMutatorTest
     extends DefaultValuesMutatorTest<StackGresPostgresConfig, PgConfigReview> {
 
   @Override
-  protected DefaultValuesMutator<StackGresPostgresConfig, PgConfigReview> getMutatorInstance() {
-    return new PgConfigDefaultValuesMutator();
+  protected DefaultValuesMutator<StackGresPostgresConfig, PgConfigReview> getMutatorInstance(
+      DefaultCustomResourceFactory<StackGresPostgresConfig> factory, JsonMapper jsonMapper) {
+    return new PgConfigDefaultValuesMutator(factory, jsonMapper);
   }
 
   @Override

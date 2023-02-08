@@ -47,12 +47,13 @@ class SecretResourceTest implements AuthenticatedResourceTest {
     final String randomPlainValue = StringUtil.generateRandom();
 
     mockServer.getClient().secrets().inNamespace("test")
-        .create(new SecretBuilder()
+        .resource(new SecretBuilder()
             .withData(ImmutableMap.of("testKey", randomPlainValue))
             .withNewMetadata()
             .withName("testSecret")
             .endMetadata()
-            .build());
+            .build())
+        .create();
 
     given()
         .when()

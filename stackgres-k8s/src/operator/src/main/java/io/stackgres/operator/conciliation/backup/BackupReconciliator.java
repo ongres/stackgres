@@ -6,19 +6,23 @@
 package io.stackgres.operator.conciliation.backup;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgbackup.BackupEventReason;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.event.EventEmitter;
-import io.stackgres.common.event.EventEmitterType;
+import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.PatchResumer;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
+import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -26,17 +30,32 @@ import org.slf4j.helpers.MessageFormatter;
 public class BackupReconciliator
     extends AbstractReconciliator<StackGresBackup> {
 
-  public BackupReconciliator() {
-    super(StackGresBackup.KIND);
+  @Dependent
+  static class Parameters {
+    @Inject CustomResourceScanner<StackGresBackup> scanner;
+    @Inject Conciliator<StackGresBackup> conciliator;
+    @Inject HandlerDelegator<StackGresBackup> handlerDelegator;
+    @Inject KubernetesClient client;
+    @Inject EventEmitter<StackGresBackup> eventController;
+    @Inject ComparisonDelegator<StackGresBackup> resourceComparator;
+    @Inject CustomResourceScheduler<StackGresBackup> backupScheduler;
+    @Inject BackupStatusManager statusManager;
   }
 
-  private EventEmitter<StackGresBackup> eventController;
+  private final EventEmitter<StackGresBackup> eventController;
+  private final PatchResumer<StackGresBackup> patchResumer;
+  private final CustomResourceScheduler<StackGresBackup> backupScheduler;
+  private final BackupStatusManager statusManager;
 
-  private PatchResumer<StackGresBackup> patchResumer;
-
-  private CustomResourceScheduler<StackGresBackup> backupScheduler;
-
-  private BackupStatusManager statusManager;
+  @Inject
+  public BackupReconciliator(Parameters parameters) {
+    super(parameters.scanner, parameters.conciliator, parameters.handlerDelegator,
+        parameters.client, StackGresBackup.KIND);
+    this.eventController = parameters.eventController;
+    this.patchResumer = new PatchResumer<>(parameters.resourceComparator);
+    this.backupScheduler = parameters.backupScheduler;
+    this.statusManager = parameters.statusManager;
+  }
 
   void onStart(@Observes StartupEvent ev) {
     start();
@@ -82,28 +101,6 @@ public class BackupReconciliator
         }).getMessage();
     eventController.sendEvent(BackupEventReason.BACKUP_CONFIG_ERROR,
         message + ": " + ex.getMessage(), backup);
-  }
-
-  @Inject
-  public void setResourceComparator(ComparisonDelegator<StackGresBackup> resourceComparator) {
-    this.patchResumer = new PatchResumer<>(resourceComparator);
-  }
-
-  @Inject
-  public void setBackupScheduler(CustomResourceScheduler<StackGresBackup> backupScheduler) {
-    this.backupScheduler = backupScheduler;
-  }
-
-  @Inject
-  public void setEventController(
-      @EventEmitterType(StackGresBackup.class)
-      EventEmitter<StackGresBackup> eventController) {
-    this.eventController = eventController;
-  }
-
-  @Inject
-  public void setStatusManager(BackupStatusManager statusManager) {
-    this.statusManager = statusManager;
   }
 
 }

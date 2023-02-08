@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 
@@ -22,11 +21,6 @@ public class ProfileConfigFinder extends AbstractCustomResourceFinder<StackGresP
   @Inject
   public ProfileConfigFinder(KubernetesClient client) {
     super(client, StackGresProfile.class, StackGresProfileList.class);
-  }
-
-  public ProfileConfigFinder() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

@@ -79,7 +79,7 @@ public class ClusterControllerReconciliationCycle
 
   public ClusterControllerReconciliationCycle() {
     super(null, null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.propertyContext = null;
     this.eventController = null;
     this.labelFactory = null;

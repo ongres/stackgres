@@ -14,6 +14,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -48,7 +49,6 @@ public class PodExecutor {
             .inContainer(container)
             .writingOutput(outputStream)
             .writingError(errorStream)
-            .writingErrorChannel(errorCodeStream)
             .usingListener(new PodExecListener(outputStream, pod, args, completableFuture,
                 errorStream, container, errorCodeStream))
             .exec(args)) {
@@ -100,12 +100,19 @@ public class PodExecutor {
             new String(errorCodeStream.toByteArray(), StandardCharsets.UTF_8),
             Status.class);
 
-        int exitCode = status.getStatus().equals("Success") ? 0
-            : Integer.parseInt(status.getDetails().getCauses().stream()
-                .filter(cause -> cause.getReason() != null)
-                .filter(cause -> cause.getReason().equals("ExitCode"))
-                .map(StatusCause::getMessage)
-                .findFirst().orElse("-1"));
+        final int exitCode;
+        if (Optional.ofNullable(status)
+            .map(Status::getStatus)
+            .filter(statusValue -> !statusValue.equals("Success"))
+            .isPresent()) {
+          exitCode = Integer.parseInt(status.getDetails().getCauses().stream()
+              .filter(cause -> cause.getReason() != null)
+              .filter(cause -> cause.getReason().equals("ExitCode"))
+              .map(StatusCause::getMessage)
+              .findFirst().orElse("-1"));
+        } else {
+          exitCode = 0;
+        }
         if (exitCode != 0) {
           try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
               outputStream.toByteArray());

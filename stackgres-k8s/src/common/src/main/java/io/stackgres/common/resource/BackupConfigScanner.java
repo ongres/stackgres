@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
 
@@ -23,11 +22,6 @@ public class BackupConfigScanner
   @Inject
   public BackupConfigScanner(KubernetesClient client) {
     super(client, StackGresBackupConfig.class, StackGresBackupConfigList.class);
-  }
-
-  public BackupConfigScanner() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

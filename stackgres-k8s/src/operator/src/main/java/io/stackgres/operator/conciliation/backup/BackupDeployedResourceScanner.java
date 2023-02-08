@@ -17,9 +17,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactoryForBackup;
-import io.stackgres.common.StackGresKubernetesClient;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
@@ -39,18 +37,14 @@ public class BackupDeployedResourceScanner extends DeployedResourcesScanner<Stac
     this.labelFactory = labelFactory;
   }
 
-  public BackupDeployedResourceScanner() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.client = null;
-    this.labelFactory = null;
-  }
-
+  @Override
   protected Map<String, String> getGenericLabels(StackGresBackup config) {
     return labelFactory.genericLabels(config);
   }
 
-  protected StackGresKubernetesClient getClient() {
-    return (StackGresKubernetesClient) client;
+  @Override
+  protected KubernetesClient getClient() {
+    return client;
   }
 
   @Override

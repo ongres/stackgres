@@ -30,25 +30,22 @@ public class OperatorPersistentVolumeClaimWriter implements ResourceWriter<Persi
   @Override
   public PersistentVolumeClaim create(@NotNull PersistentVolumeClaim resource) {
     return client.persistentVolumeClaims()
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
-        .create(resource);
+        .resource(resource)
+        .create();
   }
 
   @Override
   public PersistentVolumeClaim update(@NotNull PersistentVolumeClaim resource) {
     return client.persistentVolumeClaims()
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
+        .resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace(resource);
+        .replace();
   }
 
   @Override
   public void delete(@NotNull PersistentVolumeClaim resource) {
     client.persistentVolumeClaims()
-        .inNamespace(resource.getMetadata().getNamespace())
-        .withName(resource.getMetadata().getName())
+        .resource(resource)
         .delete();
   }
 }

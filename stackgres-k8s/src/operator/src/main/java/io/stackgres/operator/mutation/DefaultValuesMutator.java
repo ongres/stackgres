@@ -7,14 +7,12 @@ package io.stackgres.operator.mutation;
 
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
@@ -23,26 +21,20 @@ public abstract class DefaultValuesMutator<R extends CustomResource<?, ?>,
     T extends AdmissionReview<R>>
     implements JsonPatchMutator<T> {
 
-  private ObjectMapper jsonMapper;
+  private final ObjectMapper jsonMapper;
 
-  private DefaultCustomResourceFactory<R> factory;
+  private final JsonNode defaultNode;
 
-  private JsonNode defaultNode;
-
-  @PostConstruct
-  public void init() {
-    R defaultResource = factory.buildResource();
-    defaultNode = getSourceNode(defaultResource);
-  }
-
-  @Inject
-  public void setFactory(DefaultCustomResourceFactory<R> factory) {
-    this.factory = factory;
-  }
-
-  @Inject
-  public void setObjectMapper(ObjectMapper jsonMapper) {
+  protected DefaultValuesMutator(DefaultCustomResourceFactory<R> factory,
+      ObjectMapper jsonMapper) {
     this.jsonMapper = jsonMapper;
+    this.defaultNode = getSourceNode(factory.buildResource());
+  }
+
+  public DefaultValuesMutator() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.jsonMapper = null;
+    this.defaultNode = null;
   }
 
   protected abstract JsonNode getSourceNode(R resource);

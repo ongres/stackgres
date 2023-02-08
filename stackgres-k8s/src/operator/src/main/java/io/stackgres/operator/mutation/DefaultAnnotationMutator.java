@@ -8,11 +8,13 @@ package io.stackgres.operator.mutation;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
+import com.github.fge.jsonpatch.ReplaceOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -47,7 +49,8 @@ public interface DefaultAnnotationMutator
 
   private List<JsonPatchOperation> getAnnotationsPatches(R resource) {
     Optional<Map<String, String>> crAnnotations = Optional
-        .ofNullable(resource.getMetadata().getAnnotations());
+        .ofNullable(resource.getMetadata().getAnnotations())
+        .filter(Predicate.not(Map::isEmpty));
 
     Map<String, String> givenAnnotations = crAnnotations.orElseGet(Map::of);
 
@@ -65,7 +68,7 @@ public interface DefaultAnnotationMutator
     ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
 
     if (crAnnotations.isEmpty()) {
-      operations.add(new AddOperation(ANNOTATION_POINTER, FACTORY.objectNode()));
+      operations.add(new ReplaceOperation(ANNOTATION_POINTER, FACTORY.objectNode()));
     }
 
     operations.addAll(buildAnnotationsToAdd(annotationsToAdd));

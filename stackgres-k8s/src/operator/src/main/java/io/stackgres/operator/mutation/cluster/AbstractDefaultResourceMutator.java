@@ -8,12 +8,10 @@ package io.stackgres.operator.mutation.cluster;
 import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-
 import com.github.fge.jackson.jsonpointer.JsonPointer;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -24,20 +22,32 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 public abstract class AbstractDefaultResourceMutator<T extends CustomResource<?, ?>>
     implements ClusterMutator {
 
-  @Inject
-  DefaultCustomResourceFactory<T> resourceFactory;
+  protected final DefaultCustomResourceFactory<T> resourceFactory;
 
-  @Inject
-  CustomResourceFinder<T> finder;
+  protected final CustomResourceFinder<T> finder;
 
-  @Inject
-  CustomResourceScheduler<T> scheduler;
+  protected final CustomResourceScheduler<T> scheduler;
 
   private transient JsonPointer targetPointer;
 
-  @PostConstruct
-  public void init() throws NoSuchFieldException {
-    targetPointer = getTargetPointer();
+  protected AbstractDefaultResourceMutator(
+      DefaultCustomResourceFactory<T> resourceFactory,
+      CustomResourceFinder<T> finder,
+      CustomResourceScheduler<T> scheduler) {
+    this.resourceFactory = resourceFactory;
+    this.finder = finder;
+    this.scheduler = scheduler;
+  }
+
+  public AbstractDefaultResourceMutator() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.resourceFactory = null;
+    this.finder = null;
+    this.scheduler = null;
+  }
+
+  public void init() {
+    this.targetPointer = getTargetPointer();
   }
 
   @Override
@@ -75,17 +85,6 @@ public abstract class AbstractDefaultResourceMutator<T extends CustomResource<?,
 
   protected abstract String getTargetPropertyValue(StackGresCluster targetCluster);
 
-  protected abstract JsonPointer getTargetPointer() throws NoSuchFieldException;
+  protected abstract JsonPointer getTargetPointer();
 
-  public void setResourceFactory(DefaultCustomResourceFactory<T> resourceFactory) {
-    this.resourceFactory = resourceFactory;
-  }
-
-  public void setFinder(CustomResourceFinder<T> finder) {
-    this.finder = finder;
-  }
-
-  public void setScheduler(CustomResourceScheduler<T> scheduler) {
-    this.scheduler = scheduler;
-  }
 }

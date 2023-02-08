@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.DbOpsUtil;
 import io.stackgres.common.KubectlUtil;
@@ -46,7 +47,7 @@ import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
-public abstract class DbOpsJob implements JobFactory {
+public abstract class AbstractDbOpsJob implements JobFactory {
 
   private static final Pattern UPPERCASE_PATTERN = Pattern.compile("(\\p{javaUpperCase})");
 
@@ -59,7 +60,8 @@ public abstract class DbOpsJob implements JobFactory {
   private final DbOpsVolumeMounts dbOpsVolumeMounts;
   private final DbOpsTemplatesVolumeFactory dbOpsTemplatesVolumeFactory;
 
-  protected DbOpsJob(ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
+  protected AbstractDbOpsJob(
+      ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory,
       DbOpsEnvironmentVariables clusterEnvironmentVariables,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       LabelFactoryForDbOps dbOpsLabelFactory,
@@ -81,6 +83,18 @@ public abstract class DbOpsJob implements JobFactory {
     this.kubectl = kubectl;
     this.dbOpsVolumeMounts = dbOpsVolumeMounts;
     this.dbOpsTemplatesVolumeFactory = dbOpsTemplatesVolumeFactory;
+  }
+
+  public AbstractDbOpsJob() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.podSecurityFactory = null;
+    this.clusterEnvironmentVariables = null;
+    this.labelFactory = null;
+    this.dbOpsLabelFactory = null;
+    this.conditions = null;
+    this.kubectl = null;
+    this.dbOpsVolumeMounts = null;
+    this.dbOpsTemplatesVolumeFactory = null;
   }
 
   public String jobName(StackGresDbOps dbOps) {

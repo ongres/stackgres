@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -34,14 +35,23 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
   private final boolean skipSharedLibrariesOverwrites;
   private final ExtensionEventEmitter extensionEventEmitter;
 
-  public ExtensionReconciliator(String podName,
-                                ExtensionManager extensionManager,
-                                boolean skipSharedLibrariesOverwrites,
-                                ExtensionEventEmitter extensionEventEmitter) {
+  protected ExtensionReconciliator(
+      String podName,
+      ExtensionManager extensionManager,
+      boolean skipSharedLibrariesOverwrites,
+      ExtensionEventEmitter extensionEventEmitter) {
     this.podName = podName;
     this.extensionManager = extensionManager;
     this.skipSharedLibrariesOverwrites = skipSharedLibrariesOverwrites;
     this.extensionEventEmitter = extensionEventEmitter;
+  }
+
+  public ExtensionReconciliator() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.podName = null;
+    this.extensionManager = null;
+    this.skipSharedLibrariesOverwrites = false;
+    this.extensionEventEmitter = null;
   }
 
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",

@@ -161,7 +161,6 @@ public class BabelfishCompass extends SgApplication {
         .list().getItems().get(0);
     try {
       pod = client.resource(pod)
-          .inNamespace(namespace)
           .waitUntilReady(30, TimeUnit.SECONDS);
     } catch (KubernetesClientTimeoutException e) {
       throw new WebApplicationException(e.getMessage());
@@ -177,7 +176,7 @@ public class BabelfishCompass extends SgApplication {
       logsFile = Files.createTempFile(LOGS, null);
       reportFile = Files.createTempFile(REPORT, null);
 
-      PodResource<Pod> withName = client.pods()
+      PodResource withName = client.pods()
           .inNamespace(pod.getMetadata().getNamespace())
           .withName(pod.getMetadata().getName());
       withName
@@ -216,7 +215,7 @@ public class BabelfishCompass extends SgApplication {
   private void cleanupKubernetesResources(HasMetadata... resources) {
     for (HasMetadata resource : resources) {
       try {
-        client.resource(resource).inNamespace(resource.getMetadata().getNamespace()).delete();
+        client.resource(resource).delete();
       } catch (KubernetesClientException e) {
         LOGGER.warn("Could not delete the resource: {}", resource.getMetadata().getName());
       }

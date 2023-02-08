@@ -13,7 +13,6 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceFinder;
@@ -39,11 +38,6 @@ public class ClusterStatefulSetReconciliationHandler
       ResourceFinder<Endpoints> endpointsFinder, ObjectMapper objectMapper) {
     super(labelFactory, statefulSetFinder, statefulSetWriter, podScanner, podWriter, pvcScanner,
         pvcWriter, endpointsFinder, objectMapper);
-  }
-
-  public ClusterStatefulSetReconciliationHandler() {
-    super(null, null, null, null, null, null, null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

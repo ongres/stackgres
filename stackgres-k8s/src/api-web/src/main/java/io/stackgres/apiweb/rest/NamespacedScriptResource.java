@@ -16,7 +16,6 @@ import javax.ws.rs.Path;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.script.ScriptDto;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
@@ -38,11 +37,6 @@ public class NamespacedScriptResource
   @Inject
   public NamespacedScriptResource(ScriptResource scriptResource) {
     this.scriptResource = scriptResource;
-  }
-
-  public NamespacedScriptResource() {
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.scriptResource = null;
   }
 
   @Override

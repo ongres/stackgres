@@ -89,8 +89,10 @@ public class PairUpdaterTest {
     rightMeta.setMetadata(new ObjectMeta());
     ResourcePairVisitor.update(leftMeta, rightMeta);
     Assertions.assertNotNull(leftMeta.getMetadata());
-    Assertions.assertNull(leftMeta.getMetadata().getAnnotations());
-    Assertions.assertNull(leftMeta.getMetadata().getLabels());
+    Assertions.assertNotNull(leftMeta.getMetadata().getAnnotations());
+    Assertions.assertTrue(leftMeta.getMetadata().getAnnotations().isEmpty());
+    Assertions.assertNotNull(leftMeta.getMetadata().getLabels());
+    Assertions.assertTrue(leftMeta.getMetadata().getLabels().isEmpty());
     Assertions.assertNotNull(leftMeta.getMetadata().getAdditionalProperties());
     Assertions.assertEquals(0, leftMeta.getMetadata().getAdditionalProperties().size());
     Assertions.assertEquals(0, leftMeta.getMetadata().getOwnerReferences().size());
@@ -352,7 +354,8 @@ public class PairUpdaterTest {
     rightMeta.setMetadata(new ObjectMeta());
     ResourcePairVisitor.update(leftMeta, rightMeta);
     Assertions.assertNotNull(leftMeta.getMetadata());
-    Assertions.assertNull(leftMeta.getMetadata().getLabels());
+    Assertions.assertNotNull(leftMeta.getMetadata().getLabels());
+    Assertions.assertTrue(leftMeta.getMetadata().getLabels().isEmpty());
   }
 
   @Test
@@ -364,7 +367,8 @@ public class PairUpdaterTest {
     rightMeta.setMetadata(new ObjectMeta());
     ResourcePairVisitor.update(leftMeta, rightMeta);
     Assertions.assertNotNull(leftMeta.getMetadata());
-    Assertions.assertNull(leftMeta.getMetadata().getLabels());
+    Assertions.assertNotNull(leftMeta.getMetadata().getLabels());
+    Assertions.assertTrue(leftMeta.getMetadata().getLabels().isEmpty());
   }
 
   @Test

@@ -5,16 +5,11 @@
 
 package io.stackgres.distributedlogs.controller;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.extension.ExtensionReconciliator;
@@ -51,17 +46,6 @@ public class DistributedLogsExtensionReconciliator
             .DISTRIBUTEDLOGS_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES),
         parameters.extensionEventEmitter);
     this.eventController = parameters.eventController;
-  }
-
-  public DistributedLogsExtensionReconciliator() {
-    super(null, null, true, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
-    this.eventController = null;
-  }
-
-  public static DistributedLogsExtensionReconciliator create(Consumer<Parameters> consumer) {
-    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
-    return new DistributedLogsExtensionReconciliator(parameters.findAny().get());
   }
 
   @Override

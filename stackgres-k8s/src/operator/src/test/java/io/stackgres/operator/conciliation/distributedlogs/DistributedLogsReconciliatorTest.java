@@ -48,9 +48,9 @@ class DistributedLogsReconciliatorTest {
   private final StackGresDistributedLogs distributedlogs =
       Fixtures.distributedLogs().loadDefault().get();
   @Mock
-  CustomResourceScanner<StackGresDistributedLogs> distributedlogsScanner;
+  CustomResourceScanner<StackGresDistributedLogs> scanner;
   @Mock
-  Conciliator<StackGresDistributedLogs> distributedlogsConciliator;
+  Conciliator<StackGresDistributedLogs> conciliator;
   @Mock
   HandlerDelegator<StackGresDistributedLogs> handlerDelegator;
   @Mock
@@ -66,19 +66,21 @@ class DistributedLogsReconciliatorTest {
 
   @BeforeEach
   void setUp() {
-    reconciliator = new DistributedLogsReconciliator();
-    reconciliator.setScanner(distributedlogsScanner);
-    reconciliator.setConciliator(distributedlogsConciliator);
-    reconciliator.setHandlerDelegator(handlerDelegator);
-    reconciliator.setEventController(eventController);
-    reconciliator.setStatusManager(statusManager);
-    reconciliator.setDistributedLogsScheduler(distributedlogsScheduler);
-    reconciliator.setConnectedClustersScanner(connectedClustersScanner);
+    final DistributedLogsReconciliator.Parameters parameters =
+        new DistributedLogsReconciliator.Parameters();
+    parameters.scanner = scanner;
+    parameters.conciliator = conciliator;
+    parameters.handlerDelegator = handlerDelegator;
+    parameters.eventController = eventController;
+    parameters.statusManager = statusManager;
+    parameters.distributedLogsScheduler = distributedlogsScheduler;
+    parameters.connectedClustersScanner = connectedClustersScanner;
+    reconciliator = new DistributedLogsReconciliator(parameters);
   }
 
   @Test
   void allCreations_shouldBePerformed() {
-    when(distributedlogsScanner.getResources())
+    when(scanner.getResources())
         .thenReturn(Collections.singletonList(distributedlogs));
 
     final List<HasMetadata> creations = KubernetessMockResourceGenerationUtil
@@ -87,7 +89,7 @@ class DistributedLogsReconciliatorTest {
     creations.forEach(resource -> when(handlerDelegator.create(distributedlogs, resource))
         .thenReturn(resource));
 
-    when(distributedlogsConciliator.evalReconciliationState(distributedlogs))
+    when(conciliator.evalReconciliationState(distributedlogs))
         .thenReturn(new ReconciliationResult(
             creations,
             Collections.emptyList(),
@@ -95,14 +97,14 @@ class DistributedLogsReconciliatorTest {
 
     reconciliator.reconciliationCycle();
 
-    verify(distributedlogsScanner).getResources();
-    verify(distributedlogsConciliator).evalReconciliationState(distributedlogs);
+    verify(scanner).getResources();
+    verify(conciliator).evalReconciliationState(distributedlogs);
     creations.forEach(resource -> verify(handlerDelegator).create(distributedlogs, resource));
   }
 
   @Test
   void allPatches_shouldBePerformed() {
-    when(distributedlogsScanner.getResources())
+    when(scanner.getResources())
         .thenReturn(Collections.singletonList(distributedlogs));
 
     final List<Tuple2<HasMetadata, HasMetadata>> patches = KubernetessMockResourceGenerationUtil
@@ -114,7 +116,7 @@ class DistributedLogsReconciliatorTest {
         resource -> when(handlerDelegator.patch(distributedlogs, resource.v1, resource.v2))
         .thenReturn(resource.v1));
 
-    when(distributedlogsConciliator.evalReconciliationState(distributedlogs))
+    when(conciliator.evalReconciliationState(distributedlogs))
         .thenReturn(new ReconciliationResult(
             Collections.emptyList(),
             patches,
@@ -122,15 +124,15 @@ class DistributedLogsReconciliatorTest {
 
     reconciliator.reconciliationCycle();
 
-    verify(distributedlogsScanner).getResources();
-    verify(distributedlogsConciliator).evalReconciliationState(distributedlogs);
+    verify(scanner).getResources();
+    verify(conciliator).evalReconciliationState(distributedlogs);
     patches.forEach(resource -> verify(handlerDelegator)
         .patch(distributedlogs, resource.v1, resource.v2));
   }
 
   @Test
   void allDeletions_shouldBePerformed() {
-    when(distributedlogsScanner.getResources())
+    when(scanner.getResources())
         .thenReturn(Collections.singletonList(distributedlogs));
 
     final List<HasMetadata> deletions = KubernetessMockResourceGenerationUtil
@@ -139,7 +141,7 @@ class DistributedLogsReconciliatorTest {
     deletions.forEach(resource -> doNothing().when(handlerDelegator)
         .delete(distributedlogs, resource));
 
-    when(distributedlogsConciliator.evalReconciliationState(distributedlogs))
+    when(conciliator.evalReconciliationState(distributedlogs))
         .thenReturn(new ReconciliationResult(
             Collections.emptyList(),
             Collections.emptyList(),
@@ -147,8 +149,8 @@ class DistributedLogsReconciliatorTest {
 
     reconciliator.reconciliationCycle();
 
-    verify(distributedlogsScanner).getResources();
-    verify(distributedlogsConciliator).evalReconciliationState(distributedlogs);
+    verify(scanner).getResources();
+    verify(conciliator).evalReconciliationState(distributedlogs);
     deletions.forEach(resource -> verify(handlerDelegator)
         .delete(distributedlogs, resource));
   }
@@ -160,9 +162,9 @@ class DistributedLogsReconciliatorTest {
     int concurrentExecutions = new Random().nextInt(2) + 2;
 
     doAnswer(new AnswersWithDelay(delay, new Returns(Collections.singletonList(distributedlogs))))
-        .when(distributedlogsScanner).getResources();
+        .when(scanner).getResources();
 
-    when(distributedlogsConciliator.evalReconciliationState(distributedlogs))
+    when(conciliator.evalReconciliationState(distributedlogs))
         .thenReturn(new ReconciliationResult(
             Collections.emptyList(),
             Collections.emptyList(),
@@ -182,8 +184,8 @@ class DistributedLogsReconciliatorTest {
             end - start,
             greaterThanOrEqualTo(delay * concurrentExecutions));
 
-    verify(distributedlogsScanner, times(concurrentExecutions)).getResources();
-    verify(distributedlogsConciliator, times(concurrentExecutions))
+    verify(scanner, times(concurrentExecutions)).getResources();
+    verify(conciliator, times(concurrentExecutions))
         .evalReconciliationState(distributedlogs);
 
   }

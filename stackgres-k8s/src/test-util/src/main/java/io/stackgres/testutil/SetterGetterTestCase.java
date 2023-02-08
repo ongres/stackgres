@@ -91,6 +91,7 @@ public abstract class SetterGetterTestCase {
         assertTrue(getMethod != null || isMethod != null, "Get method " + getMethodName + " or "
             + isMethodName + " not found in class "
             + targetClazz.getName() + " and field " + fieldName);
+        @SuppressWarnings("null")
         Class<?> getMethodReturnType =
             getMethod != null ? getMethod.getReturnType() : isMethod.getReturnType();
         assertSame(field.getType(), getMethodReturnType, "Get method " + getMethodName

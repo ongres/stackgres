@@ -37,13 +37,12 @@ public abstract class DefaultValuesMutatorTest
   @BeforeEach
   void setUp() {
     when(factory.buildResource()).thenReturn(getDefaultResource());
-    mutator = getMutatorInstance();
-    mutator.setFactory(factory);
-    mutator.setObjectMapper(JSON_MAPPER);
-    mutator.init();
+    mutator = getMutatorInstance(factory, JSON_MAPPER);
   }
 
-  protected abstract DefaultValuesMutator<R, T> getMutatorInstance();
+  protected abstract DefaultValuesMutator<R, T> getMutatorInstance(
+      DefaultCustomResourceFactory<R> factory,
+      JsonMapper jsonMapper);
 
   protected abstract T getEmptyReview();
 

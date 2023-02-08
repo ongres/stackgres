@@ -16,7 +16,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
@@ -49,11 +48,6 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
   public PatroniConfigEndpoints(ObjectMapper objectMapper,
       LabelFactoryForCluster<StackGresCluster> labelFactory) {
     super(objectMapper, labelFactory);
-  }
-
-  public PatroniConfigEndpoints() {
-    super(null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
   @Override

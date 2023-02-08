@@ -6,18 +6,23 @@
 package io.stackgres.operator.conciliation.dbops;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgcluster.DbOpsEventReason;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.PatchResumer;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
+import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -25,17 +30,32 @@ import org.slf4j.helpers.MessageFormatter;
 public class DbOpsReconciliator
     extends AbstractReconciliator<StackGresDbOps> {
 
-  public DbOpsReconciliator() {
-    super(StackGresDbOps.KIND);
+  @Dependent
+  static class Parameters {
+    @Inject CustomResourceScanner<StackGresDbOps> scanner;
+    @Inject Conciliator<StackGresDbOps> conciliator;
+    @Inject HandlerDelegator<StackGresDbOps> handlerDelegator;
+    @Inject KubernetesClient client;
+    @Inject EventEmitter<StackGresDbOps> eventController;
+    @Inject ComparisonDelegator<StackGresDbOps> resourceComparator;
+    @Inject DbOpsStatusManager statusManager;
+    @Inject CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
   }
 
-  private EventEmitter<StackGresDbOps> eventController;
+  private final EventEmitter<StackGresDbOps> eventController;
+  private final PatchResumer<StackGresDbOps> patchResumer;
+  private final DbOpsStatusManager statusManager;
+  private final CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
 
-  private PatchResumer<StackGresDbOps> patchResumer;
-
-  private DbOpsStatusManager statusManager;
-
-  private CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
+  @Inject
+  public DbOpsReconciliator(Parameters parameters) {
+    super(parameters.scanner, parameters.conciliator, parameters.handlerDelegator,
+        parameters.client, StackGresDbOps.KIND);
+    this.eventController = parameters.eventController;
+    this.patchResumer = new PatchResumer<>(parameters.resourceComparator);
+    this.statusManager = parameters.statusManager;
+    this.dbOpsScheduler = parameters.dbOpsScheduler;
+  }
 
   void onStart(@Observes StartupEvent ev) {
     start();
@@ -81,26 +101,6 @@ public class DbOpsReconciliator
         }).getMessage();
     eventController.sendEvent(DbOpsEventReason.DBOPS_CONFIG_ERROR,
         message + ": " + ex.getMessage(), dbOps);
-  }
-
-  @Inject
-  public void setEventController(EventEmitter<StackGresDbOps> eventController) {
-    this.eventController = eventController;
-  }
-
-  @Inject
-  public void setResourceComparator(ComparisonDelegator<StackGresDbOps> resourceComparator) {
-    this.patchResumer = new PatchResumer<>(resourceComparator);
-  }
-
-  @Inject
-  public void setStatusManager(DbOpsStatusManager statusManager) {
-    this.statusManager = statusManager;
-  }
-
-  @Inject
-  public void setDbOpsScheduler(CustomResourceScheduler<StackGresDbOps> dbOpsScheduler) {
-    this.dbOpsScheduler = dbOpsScheduler;
   }
 
 }

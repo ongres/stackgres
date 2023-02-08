@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 
@@ -20,11 +19,6 @@ public class ProfileScanner
   @Inject
   public ProfileScanner(KubernetesClient client) {
     super(client, StackGresProfile.class, StackGresProfileList.class);
-  }
-
-  public ProfileScanner() {
-    super(null, null, null);
-    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy();
   }
 
 }

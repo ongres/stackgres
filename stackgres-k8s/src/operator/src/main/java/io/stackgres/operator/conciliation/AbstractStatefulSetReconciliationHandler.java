@@ -36,6 +36,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
@@ -97,6 +98,19 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     this.pvcWriter = pvcWriter;
     this.endpointsFinder = endpointsFinder;
     this.objectMapper = objectMapper;
+  }
+
+  public AbstractStatefulSetReconciliationHandler() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.labelFactory = null;
+    this.statefulSetFinder = null;
+    this.statefulSetWriter = null;
+    this.podScanner = null;
+    this.podWriter = null;
+    this.pvcScanner = null;
+    this.pvcWriter = null;
+    this.endpointsFinder = null;
+    this.objectMapper = null;
   }
 
   @Override

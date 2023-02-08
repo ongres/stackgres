@@ -6,7 +6,9 @@
 package io.stackgres.operator.conciliation.script;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operator.conciliation.AbstractReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
@@ -15,5 +17,10 @@ import io.stackgres.operator.conciliation.ReconciliationScope;
 @ApplicationScoped
 public class ScriptDefaultReconciliationHandler
     extends AbstractReconciliationHandler<StackGresScript> {
+
+  @Inject
+  public ScriptDefaultReconciliationHandler(KubernetesClient client) {
+    super(client);
+  }
 
 }
