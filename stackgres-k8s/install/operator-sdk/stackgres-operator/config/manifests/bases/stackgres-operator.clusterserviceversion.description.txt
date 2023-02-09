@@ -1,125 +1,31 @@
-The StackGres Operator bundle install the [StackGres Operator](https://stackgres.io) instance automatically in the same namespace where the StackGres Operator bundle was installed.
 
-For more installation options have a look at the [Operator Parameters](https://stackgres.io/doc/latest/install/operator/parameters/) section for a described list and change them by editing the StackGresOperator CR created in the same namespace where the StackGres Operator bundle was installed.
+[StackGres](https://stackgres.io) is the **Stack** required for enterprise production Post**Gres**. A fully-featured platform to run Postgres on Kubernetes. Fully Open Source, StackGres supports both a declarative approach suitable for GitOps workflows and a complete Web Console for the best user experience.
 
-If you want to enable StackGres integration with Prometheus and Grafana, please, read the next section.
+Built by [OnGres](https://ongres.com) ("**On** Post**Gres**"), StackGres requires little to no prior Postgres experience. StackGres can perform fully automated deployments; fully automated database operations ("Day 2 operations") and comes with advanced database tuning by default. Yet remaining highly customizable for Postgres expert DBAs.
 
-## Creating and customizing your Postgres Clusters
+[StackGres features](https://stackgres.io/features/) include, among others:
 
-The next step is an optional one, but it will show you how to play with the StackGres versatility.
+* **High Availability with automated failover**. StackGres relies on [Patroni](https://github.com/zalando/patroni), and its built-in and fully automatic.
+* **Integrated connection pooling**. Built-in, by default, like it should be for production workloads.
+* **Automatic backups with lifecycle policies**. Backup your clusters automatically to any object store. Apply retention policies. Restoration supports PITR.
+* **Advanced replication modes**, including async, sync and group replication. It also supports cascading replication and standby clusters on separate Kubernetes clusters for disaster recovery.
+* **More than 150 Postgres extensions**. The Postgres platform with [the largest number of extensions in the world](https://stackgres.io/extensions/). With new extensions added continuously.
+* **Observability**. Fully integrated with the Prometheus stack. Includes pre-defined, Postgres-specific dashboards and alerts.
+* **Fully-featured Web Console**. Perform any operation from the Web Console. Supports SSO, fine-grained RBAC and a REST API.
+* **Distributed Logs**. StackGres developed a mechanism to ship logs from all pods to a central log server, managed by StackGres, that store logs in Postgres. Query your logs with SQL or from the Web Console!
+* **Automated Day 2 Operations**. Minor and major version upgrades, container upgrades, controlled restart, vacuum, repack, even benchmarks!
+* **Expertly tuned by default**. From the creators of [CONF](https://postgresqlco.nf), StackGres pre-tunes your Postgres servers with more than 40 parameters tuned by default.
+* **100% Open Source**. No "premium version with advanced features", no production usage restrictions. Just Open Source.
+* **[24/7 Support](https://stackgres.io/pricing/) Available from OnGres**
 
-You can instruct StackGres to create your cluster with different hardware specification using the [Custom Resource](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (AKA CR) [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-instance-profiles/) as follow
 
-```
-cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
-kind: SGInstanceProfile
-metadata:
-namespace: my-cluster
-name: size-small
-spec:
-cpu: "2"
-memory: "4Gi"
-EOF
-``` 
+## Installation and documentation
 
-But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig](https://stackgres.io/doc/latest/reference/crd/sgpgconfig/) or the PGBouncer setting with [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolingconfig/) and more, like the backup storage specification using [SGObjectStorage](https://stackgres.io/doc/latest/reference/crd/sgobjectstorage/)
+Installation:
+* For a quick test, you can follow our [quickstart](https://stackgres.io/doc/latest/demo/quickstart/).
+* Or a more in-depth [tutorial](https://stackgres.io/doc/latest/tutorial/).
+* [Production installations](https://stackgres.io/doc/latest/install/).
 
-The next code snippets will show you how to play with these CRs.
+All the documentation is available at [stackgres.io/doc](https://stackgres.io/doc/latest/install/).
 
-Start with PostgreSQL configuration using th SGPostgresConfig as follow
-
-```
-cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
-kind: SGPostgresConfig
-metadata:
-namespace: my-cluster
-name: pgconfig1
-spec:
-postgresVersion: "12"
-postgresql.conf:
-  shared_buffers: '512MB'
-  random_page_cost: '1.5'
-  password_encryption: 'scram-sha-256'
-  log_checkpoints: 'on'
-EOF
-```
-
-You can easily declare the StackGres supported variables and setup your specific configuration.
-
-The pooling CR, is a key piece of a cluster (currently PgBouncer as the default software fot this), as it provides connection scaling capabilities. We’ll cover all more details about this in the [Customizing Pooling configuration section](https://stackgres.io/doc/latest/administration/cluster/pool/).
-
-For better performance and stability, it is recommended to use pool_mode in transaction. An example configuration would be like this:
-
-```
-cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
-kind: SGPoolingConfig
-metadata:
-namespace: my-cluster
-name: poolconfig1
-spec:
-pgBouncer:
-  pgbouncer.ini:
-    pgbouncer:
-      pool_mode: transaction
-      max_client_conn: '1000'
-      default_pool_size: '80'
-EOF
-``` 
-
-All the necessary steps were performed to create your first StackGres Cluster, lets do it.
-
-```
-cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
-kind: SGCluster
-metadata:
-namespace: my-cluster
-name: cluster
-spec:
-postgres:
-  version: '12.3'
-instances: 3
-sgInstanceProfile: 'size-small'
-pods:
-  persistentVolume:
-    size: '10Gi'
-configurations:
-  sgPostgresConfig: 'pgconfig1'
-  sgPoolingConfig: 'poolconfig1'
-EOF
-```
-
-Look up to the yaml into the here doc above, every CR previously being included in the right place in the SGCluster CR creation.
-
-Awesome, now you can relax and wait for the SGCluster spinning up.
-
-## Accessing the cluster
-
-Once the cluster is up and running, we need to expose the main entrypoint port for being accessed remotely:
-
-> *WARNING*: You don’t expose in production to 0.0.0.0 interface, rather than that you need to place the IP of an internal interface to be able to connect remotely within you private network.
-
-```
-kubectl port-forward -n my-cluster --address 0.0.0.0 statefulset/cluster 7777:7432
-```
-
-In the namespace of the cluster, you should be able to see a set of secrets, we’ll get the main superuser password:
-
-```
-kubectl get secrets -n my-cluster cluster -o jsonpath='{.data.superuser-password}' | base64 -d
-```
-
-You should be able to connect by issuing any client application with the connection string as follows:
-
-```
-psql -h <the ip of the cluster> -p 7777 -U postgres
-```
-
-It is also possible to open a direct port-forward towards the main Postgres pod as follows:
-
-```
-kubectl port-forward cluster-0 --address 0.0.0.0 7777:5432
-```
+Join our [Slack](https://slack.stackgres.io) and/or [Discord](https://discord.stackgres.io) Public Communities for Community support.
