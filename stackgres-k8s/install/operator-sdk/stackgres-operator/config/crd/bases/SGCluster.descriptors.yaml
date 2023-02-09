@@ -1,4 +1,13 @@
 specDescriptors:
+  instances:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podCount'
+  replication.syncInstances:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podCount'
+  replication.groups.instances:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podCount'
   distributedLogs.sgDistributedLogs:
     displayName: SGDistributedLogs Reference
   replicateFrom.instance.sgCluster:
@@ -60,6 +69,8 @@ specDescriptors:
   pods.scheduling.podAntiAffinity:
     x-descriptors:
     - 'urn:alm:descriptor:com.tectonic.ui:podAntiAffinity'
+  pods.scheduling.tolerations: {}
+  pods.scheduling.topologySpreadConstraints: {}
   pods.scheduling.backup.nodeAffinity:
     x-descriptors:
     - 'urn:alm:descriptor:com.tectonic.ui:nodeAffinity'
@@ -69,6 +80,9 @@ specDescriptors:
   pods.scheduling.backup.podAntiAffinity:
     x-descriptors:
     - 'urn:alm:descriptor:com.tectonic.ui:podAntiAffinity'
+  pods.scheduling.backup.tolerations: {}
+  configurations.backups.sgObjectStorage:
+    displayName: Configurations Backups SGObjectStorage
 
 specIgnore:
 - postgresServices.primary.customPorts
@@ -79,9 +93,12 @@ specIgnore:
 - pods.scheduling.nodeAffinity
 - pods.scheduling.podAffinity
 - pods.scheduling.podAntiAffinity
+- pods.scheduling.topologySpreadConstraints
+- pods.scheduling.tolerations
 - pods.scheduling.backup.nodeAffinity
 - pods.scheduling.backup.podAffinity
 - pods.scheduling.backup.podAntiAffinity
+- pods.scheduling.backup.tolerations
 
 statusDescriptors:
   conditions:

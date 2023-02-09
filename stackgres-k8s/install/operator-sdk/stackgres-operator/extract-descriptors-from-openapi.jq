@@ -3,14 +3,14 @@
     | . as $root
     | paths
     | . as $path
-    | select(["object", "array", "boolean", "string", "integer"]
-        | any(. == ($root | getpath($path)
-            | select(type == "object")
-            | .type)))
-    | del(.[] | select(. == "items" or . == "properties"))
+    | ($root | getpath($path)) as $field
+    | select($field | (type == "object" and has("type"))) 
+    | del(.[] | select(. == "items" or . == "properties" or . == "additionalProperties"))
     | map(sub("\\.";"\\."))
     | join(".")
     | . as $section_path
+    | select((["boolean", "string", "integer"]
+        | any(. == $field.type)) or ($source[1][$ROOT_KEY + "Descriptors"] | has($section_path)))
     | select($source[1][$ROOT_KEY + "Ignore"]
         | if . != null then . else [] end
         | any(. as $ignore_path | $section_path | startswith($ignore_path + "."))
@@ -27,7 +27,6 @@
             | map(split("")
                 | .[0] |= ascii_upcase
                 | join(""))
-            | map(if . == "Sg" then "StackGres" else . end)
             | reduce .[] as $word (
                 {};
                 if .previous == null
@@ -42,9 +41,17 @@
                 end
                 | .previous = $word)
             | .join
+            | sub("Sg Cluster"; "SGCluster")
+            | sub("Sg Instance Profile"; "SGInstanceProfile")
+            | sub("Sg Postgres Config"; "SGPostgresConfig")
+            | sub("Sg Pooling Config"; "SGPoolingConfig")
+            | sub("Sg Object Storage"; "SGObjectStorage")
+            | sub("Sg Script"; "SGScript")
+            | sub("Sg Backup"; "SGBackup")
+            | sub("Sg Distributed Logs"; "SGDistributedLogs")
             ),
         "x-descriptors": (
-            if "boolean" == ($root | getpath($path) | .type)
+            if "boolean" == ($field.type)
             then
               [ "urn:alm:descriptor:com.tectonic.ui:booleanSwitch" ]
             else
@@ -58,13 +65,9 @@
       }
   ]
 | from_entries
-| . * ($source[1]
+| . * ($source[1][$ROOT_KEY + "Descriptors"]
     | if . != null
-      then .[$ROOT_KEY + "Descriptors"]
-          | if . != null
-            then .
-            else {}
-            end
+      then .
       else {}
       end)
 | to_entries

@@ -1,3 +1,6 @@
+specDescriptors:
+  sgCluster:
+    displayName: Target SGCluster
 statusDescriptors:
   conditions:
     x-descriptors:
