@@ -28,4 +28,4 @@ Installation:
 
 All the documentation is available at [stackgres.io/doc](https://stackgres.io/doc/latest/install/).
 
-Join our [Slack](https://slack.stackgres.io) and/or [Discord](https://discord.stackgres.io) Public Communities for Community support.
+Join the [Slack](https://slack.stackgres.io) and/or [Discord](https://discord.stackgres.io) Public Communities for Community support.
