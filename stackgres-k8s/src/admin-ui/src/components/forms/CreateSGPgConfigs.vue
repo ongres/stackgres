@@ -116,7 +116,7 @@
                     store.state.sgpgconfigs.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.pgConfigVersion = conf.data.spec.postgresVersion;
-                            vm.pgConfigParams = conf.data.spec["postgresql.conf"];
+                            vm.pgConfigParams = vm.getParams(conf);
                             vm.configClusters = [...conf.data.status.clusters]
                             config = conf;
                             
@@ -214,10 +214,35 @@
                         });
                     }
                 }
+            },
+
+            getParams(conf) {
+                const vc = this;
+                const customParams = [];
+
+                var configParams = conf.data.status["postgresql.conf"];
+                var defaultParams = conf.data.status["defaultParameters"];
+                var configParamsObj = {};
+
+                configParams.forEach(function(item) {
+                    configParamsObj[item.parameter] = item.value
+                });
+                
+                if(JSON.stringify(configParamsObj) !== JSON.stringify(defaultParams)) {
+                    for(const key in configParamsObj) {
+                        if(defaultParams.hasOwnProperty(key)) {
+                            if(configParamsObj[key] !== defaultParams[key]) {
+                                customParams.push(key + "='" + configParamsObj[key] + "'")
+                            }
+                        } else {
+                            customParams.push(key + "='" + configParamsObj[key] + "'")
+                        }
+                    }
+                }
+
+                return customParams.join('\n')
             }
-
         }
-
     }
 </script>
 
