@@ -10,12 +10,6 @@ spec:
         pool_mode: session
         max_client_conn: '2000'
         default_pool_size: '100'
-        log_connections: '1'
-        log_disconnections: '1'
-        log_stats: '1'
-        server_idle_timeout: '120'
-        client_idle_timeout: '30'
-        query_wait_timeout: '300'
       databases:
         demo:
           pool_size: 400

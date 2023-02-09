@@ -4,5 +4,5 @@ metadata:
   namespace: demo-db
   name: size-m
 spec:
-  cpu: "37"
-  memory: "150Gi"
+  cpu: "4"
+  memory: "8Gi"

@@ -5,5 +5,5 @@ metadata:
   namespace: demo-db
 spec:
   persistentVolume:
-    size: 50Gi
+    size: 20Gi
 
