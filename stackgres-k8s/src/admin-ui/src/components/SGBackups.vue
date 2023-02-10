@@ -308,7 +308,10 @@
 										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.spec.sgCluster')"></span>
 									</td>
 									<td>
-										{{ back.data.spec.sgCluster }}
+										<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + back.data.spec.sgCluster" title="Cluster Details">
+											{{ back.data.spec.sgCluster }}
+											<span class="eyeIcon"></span>
+										</router-link>
 									</td>
 								</tr>
 								<tr>
