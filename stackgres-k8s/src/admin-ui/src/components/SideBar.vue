@@ -693,7 +693,7 @@
 		display: block;
 		position: fixed;
 		left: 350px;
-		z-index: 2;
+		z-index: 12;
 		overflow: auto;
 		padding-left: 0;
 		border: 1px solid var(--borderColor);
