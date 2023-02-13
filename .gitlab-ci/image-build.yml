@@ -380,6 +380,40 @@ build helm operator image multi archs:
     IMAGE_SUFFIX: ''
     IMAGE_BASE_NAME: stackgres/helm-operator
 
+build helm operator bundle image amd64:
+  extends: .build image
+  tags:
+    - stackgres-runner-v2
+    - linux-amd64
+  variables:
+    IMAGE_SUFFIX: '-amd64'
+    IMAGE_BASE_NAME: stackgres/helm-operator-bundle
+    LOCK_FILE: stackgres-helm-operator-bundle-build-image
+    IMAGE_MODULE_NAME: helm-operator-bundle-image
+
+build helm operator bundle image arm64:
+  extends: .build image
+  tags:
+    - stackgres-runner-v2
+    - linux-arm64
+  variables:
+    IMAGE_SUFFIX: '-arm64'
+    IMAGE_BASE_NAME: stackgres/helm-operator-bundle
+    LOCK_FILE: stackgres-helm-operator-bundle-build-image
+    IMAGE_MODULE_NAME: helm-operator-bundle-image
+  only:
+    variables:
+      - $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_ARM
+
+build helm operator bundle image multi archs:
+  extends: .build image multi archs
+  tags:
+    - stackgres-runner-v2
+  variables:
+    IMAGE_SUFFIX: ''
+    IMAGE_BASE_NAME: stackgres/helm-operator-bundle
+
 build helm operator openshift image amd64:
   extends: .build image
   tags:
