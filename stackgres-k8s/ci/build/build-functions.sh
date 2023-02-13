@@ -64,7 +64,7 @@ copy_from_image() {
   # shellcheck disable=SC2046
   docker_run -i $(! test -t 1 || printf '%s' '-t') --rm \
     --platform "$SOURCE_IMAGE_PLATFORM" \
-    --volume "$(pwd):/project-target" \
+    --volume "${PROJECT_PATH:-$(pwd)}:/project-target" \
     --user "$BUILD_UID" \
     "$SOURCE_IMAGE_NAME" \
     sh -ec $(echo "$-" | grep -v -q x || printf '%s' '-x') \
@@ -133,7 +133,7 @@ EOF
   # shellcheck disable=SC2046
   docker_run -i $(! test -t 1 || printf '%s' '-t') --rm \
     --volume "/var/run/docker.sock:/var/run/docker.sock" \
-    --volume "$(pwd):/project" \
+    --volume "${PROJECT_PATH:-$(pwd)}:/project" \
     --workdir /project \
     --user "$BUILD_UID" \
     --env "PRE_BUILD_COMMANDS=$PRE_BUILD_COMMANDS" \
@@ -369,7 +369,7 @@ extract_from_image() {
   local IMAGE_PLATFORM
   IMAGE_PLATFORM="$(get_image_platform "$IMAGE_NAME")"
   docker_run --rm --entrypoint /bin/sh --platform "$IMAGE_PLATFORM" \
-    -u "$(id -u)" -v "$(pwd):/out" "$IMAGE_NAME" \
+    -u "$(id -u)" -v "${PROJECT_PATH:-$(pwd)}:/out" "$IMAGE_NAME" \
     -c "$(cat << EOF
 for FILE in $*
 do
