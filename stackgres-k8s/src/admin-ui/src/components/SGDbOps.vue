@@ -468,7 +468,10 @@
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.sgCluster')"></span>
                                 </td>
                                 <td colspan="2">
-                                    {{ op.data.spec.sgCluster }}
+                                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + op.data.spec.sgCluster" title="Cluster Details">
+                                        {{ op.data.spec.sgCluster }}
+                                        <span class="eyeIcon"></span>
+                                    </router-link>
                                 </td>
                             </tr>
                             <tr>
