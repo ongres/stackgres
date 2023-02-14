@@ -39,6 +39,28 @@
                 </div>
             </div>
 
+            <template v-if="Object.keys(defaultParams).length">
+                <div class="paramDetails">
+                    <hr/>
+                    <h2>Default Parameters</h2><br/>
+                    <p>StackGres will set some default parameters to your configuration. If no value is specifically set for the parameters below, they will be set to the following default values:</p><br/><br/>
+                
+                    <table class="defaultParams">
+                        <tbody>
+                            <tr v-for="value, key in defaultParams">
+                                <td class="label">
+                                    {{ key }}
+                                    <!--<a v-if="(typeof param.documentationLink !== 'undefined')" :href="param.documentationLink" target="_blank" :title="'Read documentation about ' + param.parameter" class="paramDoc"></a>-->
+                                </td>
+                                <td class="paramValue">
+                                    {{ value }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+
             <hr/>
             
             <template v-if="editMode">
@@ -89,6 +111,8 @@
                 pgConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 pgConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 pgConfigParams: '',
+                pgConfigParamsObj: null,
+                defaultParams: '',
                 pgConfigVersion: '',
                 configClusters: []
             }
@@ -117,10 +141,12 @@
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.pgConfigVersion = conf.data.spec.postgresVersion;
                             vm.pgConfigParams = vm.getParams(conf);
-                            vm.configClusters = [...conf.data.status.clusters]
+                            vm.pgConfigParamsObj = conf.data.status["postgresql.conf"];
+                            vm.defaultParams = conf.data.status["defaultParameters"];
+                            vm.configClusters = [...conf.data.status.clusters];
                             config = conf;
                             
-                            vm.editReady = true
+                            vm.editReady = true;
                             return false;
                         }
                     });    
@@ -137,6 +163,10 @@
 
             createPGConfig(preview = false, previous) {
                 const vc = this;
+
+                if(vc.editMode) {
+                    vc.unifyParams();
+                }
 
                 if (!vc.checkRequired()) {
                     return;
@@ -241,6 +271,42 @@
                 }
 
                 return customParams.join('\n')
+            }, 
+
+            unifyParams() {
+                const vc = this;
+                const inputParamsObj = {};
+                const initialParamsObj = {};
+                const finalParamsArr = [];
+                
+                var inputParams = vc.pgConfigParams.split('\n');
+                var initialParams = vc.pgConfigParamsObj;
+                
+                
+               
+                initialParams.forEach(function(item) {
+                    initialParamsObj[item.parameter] = item.value
+                });
+
+                inputParams.forEach(function(item) {
+                    inputParamsObj[item.substring(0, item.indexOf('='))] = (item.substring(item.indexOf('=')+2, item.length-1))
+                });
+
+                for(const key in inputParamsObj) {
+                    if(initialParamsObj.hasOwnProperty(key)) {
+                        if(initialParamsObj[key] !== inputParamsObj[key]) {
+                            initialParamsObj[key] = inputParamsObj[key]
+                        }
+                    } else {
+                        initialParamsObj[key] = inputParamsObj[key]
+                    }
+                }
+
+                for(const key in initialParamsObj) {
+                    finalParamsArr.push(key + "='" + initialParamsObj[key] + "'")
+                }
+
+                return finalParamsArr.join('\n')
             }
         }
     }

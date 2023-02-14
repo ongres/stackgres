@@ -466,7 +466,7 @@ table.crdDetails td a:hover {
     padding-right: 0;
 }
 
-.configurationDetails + .paramDetails, .crdDetails + .crdDetails {
+.configurationDetails + .paramDetails, .crdDetails + .crdDetails, #cretaePgConfig .paramDetails {
     margin-top: 30px;
 }
 
