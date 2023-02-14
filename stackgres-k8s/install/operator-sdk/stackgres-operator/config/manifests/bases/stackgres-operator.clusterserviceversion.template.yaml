@@ -9,7 +9,7 @@ metadata:
       Fully Open Source.
     alm-examples: '[]'
     capabilities: Deep Insights
-    operatorhub.io/ui-metadata-max-k8s-version: "1.25"
+    operatorhub.io/ui-metadata-max-k8s-version: "1.25.999"
     categories: Database
     repository: https://gitlab.com/ongresinc/stackgres
     containerImage: docker.io/stackgres/operator@sha256:e7a49e34bf8a39577534d7724de0b99b3091e27d1441bf623f65178bd8e6e2af
@@ -19,7 +19,7 @@ spec:
     name: OnGres
     url: https://ongres.com
   version: ${VERSION}
-  minKubeVersion: "1.18"
+  minKubeVersion: "1.18.0"
   maturity: stable
   apiservicedefinitions: {}
   customresourcedefinitions:

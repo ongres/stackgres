@@ -30,7 +30,7 @@ rules:
   - create
 
 ##
-## Rules for charts.stackgres.io/v1, Kind: StackGresOperator
+## Rules for stackgres.io/v1, Kind: SGOperatorConfig
 ##
 - apiGroups:
   - operators.coreos.com
@@ -40,11 +40,11 @@ rules:
   - get
   - list
 - apiGroups:
-  - charts.stackgres.io
+  - stackgres.io
   resources:
-  - stackgresoperators
-  - stackgresoperators/status
-  - stackgresoperators/finalizers
+  - sgoperatorconfigs
+  - sgoperatorconfigs/status
+  - sgoperatorconfigs/finalizers
   verbs:
   - create
   - delete

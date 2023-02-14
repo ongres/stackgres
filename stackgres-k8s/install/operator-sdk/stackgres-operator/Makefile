@@ -176,6 +176,8 @@ bundle: kustomize ## Generate bundle manifests and metadata, then validate gener
 	cp -a "$(PROJECT_DIR)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
 	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/crd/kustomization.template.yaml)\nEOF")" \
 		> config/crd/kustomization.yaml
+	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" eval "$$(printf "cat << EOF\n$$(cat config/manager/manager.template.yaml)\nEOF")" \
+		> config/manager/manager.yaml
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle $(BUNDLE_GEN_FLAGS)
@@ -183,6 +185,7 @@ bundle: kustomize ## Generate bundle manifests and metadata, then validate gener
 
 .PHONY: bundle-openshift
 bundle-openshift: IMAGE_TAG := $(IMAGE_TAG)-openshift
+bundle-openshift: OPENSHIFT_BUNDLE := true
 bundle-openshift: bundle
 	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.template.yaml)\nEOF")" \
 		> openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml

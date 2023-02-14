@@ -1,5 +1,5 @@
-apiVersion: charts.stackgres.io/v1
-kind: StackGresOperator
+apiVersion: stackgres.io/v1
+kind: SGOperatorConfig
 metadata:
   name: stackgres-operator
 spec:

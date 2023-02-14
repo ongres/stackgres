@@ -64,6 +64,7 @@ spec:
         - --leader-elect
         - --leader-election-id=stackgres-operator
         image: controller:latest
+        imagePullPolicy: IfNotPresent
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
@@ -96,30 +97,38 @@ spec:
         - sh
         - -ec
         - |
-          OPERATOR_NAME="$(kubectl get operators.operators.coreos.com -o name \
+          OPERATOR_NAME="\$(kubectl get operators.operators.coreos.com -o name \
             | grep '^operator.operators.coreos.com/stackgres-operator' \
             | head -n 1 | cut -d / -f 2)"
-          test -n "$OPERATOR_NAME"
-          OPERATOR_UID="$(kubectl get operators.operators.coreos.com "$OPERATOR_NAME" --template '{{ .metadata.uid }}')"
-          test -n "$OPERATOR_UID"
+          test -n "\$OPERATOR_NAME"
+          OPERATOR_UID="\$(kubectl get operators.operators.coreos.com "\$OPERATOR_NAME" --template '{{ .metadata.uid }}')"
+          test -n "\$OPERATOR_UID"
           cat << EOF | kubectl apply -f -
-          apiVersion: charts.stackgres.io/v1
-          kind: StackGresOperator
+          apiVersion: stackgres.io/v1
+          kind: SGOperatorConfig
           metadata:
             name: stackgres-operator
           spec:
             clusterOwnerRefereces:
             - apiVersion: operators.coreos.com/v1
               kind: Operator
-              name: $OPERATOR_NAME
-              uid: $OPERATOR_UID
+              name: \$OPERATOR_NAME
+              uid: \$OPERATOR_UID
           EOF
         image: ongres/kubectl:v1.25.5-build-6.19
+        imagePullPolicy: IfNotPresent
         name: default
         securityContext:
           runAsNonRoot: true
-          # runAsUser: 1000
-          # runAsGroup: 1000
+$(
+if [ "$OPENSHIFT_BUNDLE" != true ]
+then
+  cat << EOF
+          runAsUser: 1000
+          runAsGroup: 1000
+EOF
+fi
+)
           allowPrivilegeEscalation: false
           capabilities:
             drop:

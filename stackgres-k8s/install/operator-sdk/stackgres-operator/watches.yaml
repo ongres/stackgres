@@ -1,7 +1,7 @@
 # Use the 'create api' subcommand to add watches to this file.
-- group: charts.stackgres.io
+- group: stackgres.io
   version: v1
-  kind: StackGresOperator
+  kind: SGOperatorConfig
   chart: helm-charts/stackgres-operator
   watchDependentResources: false
   overrideValues:
