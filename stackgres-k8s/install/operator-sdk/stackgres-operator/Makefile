@@ -178,6 +178,8 @@ bundle: kustomize ## Generate bundle manifests and metadata, then validate gener
 		> config/crd/kustomization.yaml
 	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" eval "$$(printf "cat << EOF\n$$(cat config/manager/manager.template.yaml)\nEOF")" \
 		> config/manager/manager.yaml
+	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat watches.template.yaml)\nEOF")" \
+		> watches.yaml
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle $(BUNDLE_GEN_FLAGS)

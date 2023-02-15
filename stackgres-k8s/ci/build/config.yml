@@ -330,6 +330,7 @@ modules:
       - make -C stackgres-k8s/install/operator-sdk/stackgres-operator bundle
     artifacts:
       - stackgres-k8s/install/operator-sdk/stackgres-operator/bundle
+      - stackgres-k8s/install/operator-sdk/stackgres-operator/watches.yaml
   helm-operator-image:
     type: helm-operator-image
     platform_dependent: true
@@ -363,6 +364,7 @@ modules:
       - make -C stackgres-k8s/install/operator-sdk/stackgres-operator bundle-openshift
     artifacts:
       - stackgres-k8s/install/operator-sdk/stackgres-operator/bundle
+      - stackgres-k8s/install/operator-sdk/stackgres-operator/watches.yaml
   helm-operator-openshift-image:
     type: helm-operator-image
     platform_dependent: true

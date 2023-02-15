@@ -9,3 +9,4 @@ config/crd/bases/*
 !config/crd/bases/*.descriptors.yaml
 openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml
 config/manager/manager.yaml
+watches.yaml
