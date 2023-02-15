@@ -43,7 +43,7 @@
                 <div class="paramDetails">
                     <hr/>
                     <h2>Default Parameters</h2><br/>
-                    <p>StackGres will set some default parameters to your configuration. If no value is specifically set for the parameters below, they will be set to the following default values:</p><br/><br/>
+                    <p>StackGres has set some default parameters to your configuration. If no value is specifically set for them, they will remain with the following default values:</p><br/><br/>
                 
                     <table class="defaultParams">
                         <tbody>
@@ -164,10 +164,6 @@
             createPGConfig(preview = false, previous) {
                 const vc = this;
 
-                if(vc.editMode) {
-                    vc.unifyParams();
-                }
-
                 if (!vc.checkRequired()) {
                     return;
                 }
@@ -198,7 +194,7 @@
                     "spec": {
                         ...(this.hasProp(previous, 'spec') && previous.spec),
                         "postgresVersion": this.pgConfigVersion,
-                        "postgresql.conf": this.pgConfigParams
+                        "postgresql.conf": this.editMode ? vc.unifyParams() : this.pgConfigParams
                     }
                 }
 
@@ -262,10 +258,10 @@
                     for(const key in configParamsObj) {
                         if(defaultParams.hasOwnProperty(key)) {
                             if(configParamsObj[key] !== defaultParams[key]) {
-                                customParams.push(key + "='" + configParamsObj[key] + "'")
+                                customParams.push(key + "=" + configParamsObj[key])
                             }
                         } else {
-                            customParams.push(key + "='" + configParamsObj[key] + "'")
+                            customParams.push(key + "=" + configParamsObj[key])
                         }
                     }
                 }
@@ -282,14 +278,24 @@
                 var inputParams = vc.pgConfigParams.split('\n');
                 var initialParams = vc.pgConfigParamsObj;
                 
-                
-               
                 initialParams.forEach(function(item) {
                     initialParamsObj[item.parameter] = item.value
                 });
 
                 inputParams.forEach(function(item) {
-                    inputParamsObj[item.substring(0, item.indexOf('='))] = (item.substring(item.indexOf('=')+2, item.length-1))
+                    const indexOfEqual = item.indexOf('=');
+                    const key = item.substring(0, indexOfEqual);
+                    var value = (item.substring(indexOfEqual+1, item.length));
+                    
+                    if(value.startsWith("'")) {
+                        value = value.substring(1)
+                    }
+
+                    if(value.endsWith("'")) {
+                        value = value.substring(0, value.length-1)
+                    }
+
+                    inputParamsObj[key] = value
                 });
 
                 for(const key in inputParamsObj) {
