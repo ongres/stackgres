@@ -377,6 +377,17 @@ modules:
     artifacts:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
       - stackgres-k8s/install/helm/stackgres-operator
+  helm-operator-openshift-bundle-image:
+    type: helm-operator-image
+    platform_dependent: true
+    path: stackgres-k8s/install/operator-sdk/stackgres-operator
+    target_image: scratch
+    dockerfile:
+      path: stackgres-k8s/install/operator-sdk/stackgres-operator/Dockerfile.bundle
+      args:
+        BASE_IMAGE: $TARGET_IMAGE_NAME
+    artifacts:
+      - stackgres-k8s/install/operator-sdk/stackgres-operator
   documentation:
     type: documentation
     target_image: alpine:3.13.10
@@ -441,4 +452,5 @@ stages:
   - helm-operator-bundle-image: helm-operator-bundle
   - helm-operator-openshift-bundle: helm-packages
   - helm-operator-openshift-image: helm-operator-openshift-bundle
+  - helm-operator-openshift-bundle-image: helm-operator-openshift-bundle
   - documentation: stackgres-restapi
