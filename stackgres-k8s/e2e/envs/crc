@@ -18,7 +18,6 @@
 #
 CRC_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
 CRC_ENABLE_DAEMON="${CRC_ENABLE_DAEMON:-true}"
-export CRC_NODE_PID="${CRC_NODE_PID:-}"
 
 if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
 then
@@ -215,18 +214,15 @@ tag_image_k8s() {
 }
 
 crc_start_debug_node() {
-  if [ "$CRC_USES_DEBUG_POD" = true ]
-  then
-    screen -ls 2>/dev/null | grep '\.crc-debug' \
-      | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
-      | xargs -r -I % kill %
+  screen -ls 2>/dev/null | grep '\.crc-debug' \
+    | tr '[:space:]' ' ' | cut -d ' ' -f 2 | cut -d . -f 1 \
+    | xargs -r -I % kill %
 
-    local NODE
-    NODE="$(kubectl get node -o name)"
-    NODE="$(printf '%s' "$NODE" | head -n 1)"
-    screen -dmS crc-debug -L -Logfile "$HOME/.crc/crc-debug.log" \
-      ~/.crc/bin/oc/oc debug -q "$NODE" -- sh -c 'while true; do sleep 300; done'
-  fi
+  local NODE
+  NODE="$(kubectl get node -o name)"
+  NODE="$(printf '%s' "$NODE" | head -n 1)"
+  screen -dmS crc-debug -L -Logfile "$HOME/.crc/crc-debug.log" \
+    ~/.crc/bin/oc/oc debug -n default -q "$NODE" -- sh -c 'while true; do sleep 300; done'
 
   wait_until crc_run_on_node true
 }
@@ -236,21 +232,10 @@ crc_run_on_node() {
   NODE="$(kubectl get node -o name)"
   NODE="$(printf '%s' "$NODE" | head -n 1)"
 
-  if [ "$CRC_USES_DEBUG_POD" = true ]
-  then
-    PID="$(kubectl exec "${NODE#node/}-debug" -- sh -c \
-      'for FILE in /proc/[0-9]*; do cat "$FILE/cmdline" 2>/dev/null | tr "\0" " " | grep -q "^\([^ ]*/\)\?kubelet " && echo "${FILE##*/}" && exit; done')"
-    kubectl exec -i "${NODE#node/}-debug" -- \
-      nsenter --target "$PID" --mount --uts --ipc --net --pid "$@"
-  else
-    if [ -z "$CRC_NODE_PID" ]
-    then
-      PID="$(~/.crc/bin/oc/oc debug -q "$NODE" -- sh -c \
-        'for FILE in /proc/[0-9]*; do cat "$FILE/cmdline" 2>/dev/null | tr "\0" " " | grep -q "^\([^ ]*/\)\?kubelet " && echo "${FILE##*/}" && exit; done')"
-      CRC_NODE_PID="$PID"
-    fi
-    ~/.crc/bin/oc/oc debug -q "$NODE" -- nsenter --target "$CRC_NODE_PID" --mount --uts --ipc --net --pid "$@"
-  fi
+  PID="$(kubectl exec "${NODE#node/}-debug" -- sh -c \
+    'for FILE in /proc/[0-9]*; do cat "$FILE/cmdline" 2>/dev/null | tr "\0" " " | grep -q "^\([^ ]*/\)\?kubelet " && echo "${FILE##*/}" && exit; done')"
+  kubectl exec -i "${NODE#node/}-debug" -- \
+    nsenter --target "$PID" --mount --uts --ipc --net --pid "$@"
 }
 
 excluded_namespaces() {
