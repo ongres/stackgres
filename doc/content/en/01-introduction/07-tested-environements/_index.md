@@ -1,10 +1,10 @@
 ---
-title: "Tested environments"
+title: "Tested Environments"
 weight: 7
 url: intro/tested-environments
 ---
 
-Stackgres was tested and validated in the follow environments:
+StackGres was tested and validated in the following environments:
 
 | Cloud Provider | Kubernetes versions |
 |----------------|---------------------|

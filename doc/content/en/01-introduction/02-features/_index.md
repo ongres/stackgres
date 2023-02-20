@@ -2,7 +2,7 @@
 title: "Features"
 weight: 2
 url: intro/features
-description: Details about StackGres features.
+description: Details about StackGres' features.
 ---
 
 * Running on Kubernetes. Embracing multi-cloud and on-premise.

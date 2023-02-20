@@ -1,11 +1,9 @@
 ---
-title: Create a simple cluster
+title: Creating a simple cluster
 weight: 3
 url: tutorial/simple-cluster
 description: Details about how to create a simple StackGres cluster.
 ---
-
-# Create a simple StackGres cluster
 
 ## Cluster creation
 

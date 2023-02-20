@@ -2,12 +2,12 @@
 title: "Licensing"
 weight: 5
 url: intro/license
-description: Details about StackGres license.
+description: Details about StackGres' license.
 ---
 
-StackGres source code is licensed under the OSI-approved open source license [GNU Affero General
- Public License version 3 (AGPLv3)](https://www.gnu.org/licenses/agpl-3.0.en.html). All the source code is available on the
- [gitlab repository](https://gitlab.com/ongresinc/stackgres).
+StackGres' source code is licensed under the OSI-approved open source license [GNU Affero General
+ Public License version 3 (AGPLv3)](https://www.gnu.org/licenses/agpl-3.0.en.html). All source code is available at the
+ [GitLab repository](https://gitlab.com/ongresinc/stackgres).
 
 We respect others who switch to or are directly built as source-available software, but we don’t
  follow this approach. We love the concept of GitLab’s stewardship, and in the same spirit, we

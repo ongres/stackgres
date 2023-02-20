@@ -2,7 +2,7 @@
 title: "What is StackGres?"
 weight: 1
 url: intro/about
-description: Details about what is StackGres.
+description: Details about what StackGres is.
 ---
 
 > StackGres - Enterprise-grade, Full Stack PostgreSQL on Kubernetes
@@ -15,9 +15,9 @@ It's not only PostgreSQL. It requires connection pooling, automatic failover and
 backups and DR, centralized logging… we have built them all: a Postgres Stack.
 
 Postgres is not just the database. It is also all the ecosystem around it. If Postgres would be the
-Linux kernel, we need a PostgreSQL Distribution, surrounding PostgreSQL, to complement it with the
+Linux kernel, we need a PostgreSQL distribution, surrounding PostgreSQL, to complement it with the
 components that are required for a production deployment. This is what we call a PostgreSQL Stack.
-And the stack needs to be curated. There are often several software for the same functionality. And
+And the stack needs to be curated. There are often several software distributions for the same functionality. And
 not all is of the same quality or maturity. There are many pros and cons, and they are often not
 easy to evaluate. It is better to have an opinionated selection of components, that can be packaged
 and configured to work together in a predictable and trusted way.

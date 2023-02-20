@@ -94,7 +94,7 @@ showToc: true
 | Fluentd | 1.15.3 |
 | Babelfish Compass | 2022.10 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -117,7 +117,7 @@ showToc: true
 | Fluentd | 1.15.3 |
 | Babelfish Compass | 2022.10 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -140,7 +140,7 @@ showToc: true
 | Fluentd | 1.15.3 |
 | Babelfish Compass | 2022.10 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -161,7 +161,7 @@ showToc: true
 | Fluentd | 1.15.0 |
 | Babelfish Compass | 2022.04 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -182,7 +182,7 @@ showToc: true
 | Fluentd | 1.13.3 |
 | Babelfish Compass | 2022.02 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -203,7 +203,7 @@ showToc: true
 | Fluentd | 1.13.3 |
 | Babelfish Compass | 2022.02 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -224,7 +224,7 @@ showToc: true
 | Fluentd | 1.13.3 |
 | Babelfish Compass | 2022.02 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -245,7 +245,7 @@ showToc: true
 | Fluentd | 1.13.3 |
 | Babelfish Compass | 2022.02 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -266,7 +266,7 @@ showToc: true
 | Fluentd | 1.13.3 |
 | Babelfish Compass | 2022.02 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -287,7 +287,7 @@ showToc: true
 | Fluentd | 1.13.3 |
 | Babelfish Compass | 2022.02 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -308,7 +308,7 @@ showToc: true
 | Fluentd | 1.13.3 |
 | Babelfish Compass | 2022.02 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -329,7 +329,7 @@ showToc: true
 | Fluentd | 1.13.3 |
 | Babelfish Compass | 2022.02 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -350,7 +350,7 @@ showToc: true
 | Fluentd | 1.13.3 |
 | Babelfish Compass | 2022.02 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -370,7 +370,7 @@ showToc: true
 | Fluent-Bit | 1.8.1 |
 | Fluentd | 1.13.2 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -390,7 +390,7 @@ showToc: true
 | Fluent-Bit | 1.8.1 |
 | Fluentd | 1.13.2 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -410,7 +410,7 @@ showToc: true
 | Fluent-Bit | 1.8.1 |
 | Fluentd | 1.13.2 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -430,7 +430,7 @@ showToc: true
 | Fluent-Bit | 1.8.1 |
 | Fluentd | 1.13.2 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
 
@@ -449,7 +449,7 @@ showToc: true
 | Fluent-Bit | 1.8.1 |
 | Fluentd | 1.13.2 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions/02-v1" %}})
 
@@ -468,7 +468,7 @@ showToc: true
 | Fluent-Bit | 1.8.1 |
 | Fluentd | 1.13.2 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions/02-v1" %}})
 
@@ -486,7 +486,7 @@ showToc: true
 | Fluent-Bit | 1.8.1 |
 | Fluentd | 1.13.2 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions/01-v0" %}})
 
@@ -504,7 +504,7 @@ showToc: true
 | Fluent-Bit | 1.7.5 |
 | Fluentd | 1.12.1 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions/01-v0" %}})
 
@@ -522,7 +522,7 @@ showToc: true
 | Fluent-Bit | 1.7.5 |
 | Fluentd | 1.12.1 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions/01-v0" %}})
 
@@ -540,7 +540,7 @@ showToc: true
 | Fluent-Bit | 1.7.5 |
 | Fluentd | 1.12.1 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions/01-v0" %}})
 
@@ -558,7 +558,7 @@ showToc: true
 | Fluent-Bit | 1.7.5 |
 | Fluentd | 1.12.1 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 * [Extensions list]({{% relref "/01-introduction/08-extensions/01-v0" %}})
 
@@ -575,7 +575,7 @@ showToc: true
 | Fluent-Bit | 1.6.10 |
 | Fluentd | 1.12.1 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 All extensions below are available for both PostgreSQL 11 and 12:
 
@@ -615,7 +615,7 @@ All extensions below are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.6 |
 | Fluentd | 1.9.3 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 All extensions below are available for both PostgreSQL 11 and 12:
 
@@ -642,7 +642,7 @@ All extensions below are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.6 |
 | Fluentd | 1.9.3 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 All extensions below are available for both PostgreSQL 11 and 12:
 
@@ -669,7 +669,7 @@ All extensions below are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.4 |
 | Fluentd | 1.9.3 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 All extensions below are available for both PostgreSQL 11 and 12:
 
@@ -696,7 +696,7 @@ All extensions below are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.4 |
 | Fluentd | 1.9.3 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 All extensions below are available for both PostgreSQL 11 and 12:
 
@@ -723,7 +723,7 @@ All extensions below are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.4 |
 | Fluentd | 1.9.3 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 All extensions below are available for both PostgreSQL 11 and 12:
 
@@ -750,7 +750,7 @@ All extensions below are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.4 |
 | Fluentd | 1.9.3 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 All extensions below are available for both PostgreSQL 11 and 12:
 
@@ -777,7 +777,7 @@ All extensions below are available for both PostgreSQL 11 and 12:
 | Fluent-Bit | 1.4.4 |
 | Fluentd | 1.9.3 |
 
-### Additional extensions included on StackGres
+### Additional Extensions Included on StackGres
 
 All extensions below are available for both PostgreSQL 11 and 12:
 

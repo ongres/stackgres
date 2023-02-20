@@ -1,0 +1,11 @@
+## Building
+
+You can build the doc in the following way:
+
+```
+doc/build.sh
+docker run -v "$(pwd)/doc:/src" -p 8313:8313 klakegg/hugo:0.81.0-ubuntu server --bind 0.0.0.0 --port 8313
+```
+
+This will copy the required CRD YAML files to the doc sources and start a Hugo server to preview the docs.
+Then you can go to http://localhost:8313
