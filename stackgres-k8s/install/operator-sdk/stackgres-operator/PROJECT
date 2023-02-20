@@ -10,6 +10,6 @@ resources:
     crdVersion: v1
     namespaced: true
   group: stackgres.io
-  kind: SGOperatorConfig
+  kind: SGConfig
   version: v1
 version: "3"

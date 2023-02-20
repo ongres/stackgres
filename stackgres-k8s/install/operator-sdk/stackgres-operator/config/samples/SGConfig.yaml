@@ -1,5 +1,5 @@
 apiVersion: stackgres.io/v1
-kind: SGOperatorConfig
+kind: SGConfig
 metadata:
   name: stackgres-operator
 spec:

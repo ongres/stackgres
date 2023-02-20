@@ -1,15 +1,15 @@
-# permissions for end users to edit sgoperatorconfigs.
+# permissions for end users to edit sgconfigs.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
     app.kubernetes.io/name: clusterrole
-    app.kubernetes.io/instance: sgoperatorconfig-editor-role
+    app.kubernetes.io/instance: sgconfig-editor-role
     app.kubernetes.io/component: rbac
     app.kubernetes.io/created-by: stackgres-operator
     app.kubernetes.io/part-of: stackgres-operator
     app.kubernetes.io/managed-by: kustomize
-  name: sgoperatorconfig-editor-role
+  name: sgconfig-editor-role
 rules:
 - apiGroups:
   - stackgres.io
@@ -26,6 +26,6 @@ rules:
 - apiGroups:
   - stackgres.io
   resources:
-  - sgoperatorconfigs/status
+  - sgconfigs/status
   verbs:
   - get
