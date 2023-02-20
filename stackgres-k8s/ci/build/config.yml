@@ -172,7 +172,7 @@ modules:
     type: jvm-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8/openjdk-17:1.14-10
+    target_image: registry.access.redhat.com/ubi8/openjdk-17:1.14-10.1675788279
     dockerfile: &jvm-image-args
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.jvm
       args:
@@ -241,7 +241,7 @@ modules:
     type: native-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8-minimal:8.7-1049
+    target_image: registry.access.redhat.com/ubi8-minimal:8.7-1049.1675784874
     dockerfile: &native-image-args
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.native
       args:
