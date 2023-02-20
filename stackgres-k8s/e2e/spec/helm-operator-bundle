@@ -41,7 +41,8 @@ e2e_test_install() {
     fi
   fi
 
-  k8s_async_cleanup || true
+  kubectl delete sgoperatorconfig -A --all --wait
+  k8s_async_cleanup
 
   if [ "$E2E_ENV" != "minishift" ] && [ "$E2E_ENV" != "crc" ] && [ "$E2E_ENV" != "microshift" ]
   then
@@ -84,7 +85,8 @@ get_helm_operator_images() {
 }
 
 e2e_test_uninstall() {
-  k8s_async_cleanup || true
+  kubectl delete sgoperatorconfig -A --all --wait
+  k8s_async_cleanup
 
   kubectl create namespace "${OPERATOR_NAMESPACE}"
   install_operator_only
