@@ -11,10 +11,13 @@ This runbook will show you how to install [Supabase](https://supabase.com/) on K
 
 ## Scenario
 
-This runbook we'll assume that you already have a Kubernetes cluster with the StackGres operator installed.
-We will create an SGCluster with a configuration that fits Supabase' requirements. 
+In this runbook we'll assume that you already have a Kubernetes cluster with the StackGres operator installed.
+We will create an SGCluster with a configuration that fits Supabase's requirements. 
+You can find the example resources in the [apps-on-stackgres GitHub repository](https://github.com/ongres/apps-on-stackgres/tree/main/examples/supabase).
 
-### SGCluster
+We will create a StackGres Postgres cluster, install Supabase using Helm, and test the setup with a simple Hello World example.
+
+## Creating an SGCluster
 
 We will create an SGCluster in the usual way, with some additional configuration:
 
@@ -28,11 +31,11 @@ spec:
   instances: 2
   pods:
     persistentVolume:
-      size: '2Gi'
+      size: '5Gi'
   configurations:
     sgPoolingConfig: supabase-db
   postgres:
-    version: '14.4'
+    version: '14'
     extensions:
       - name: pgsodium
       - name: pg_graphql
@@ -76,7 +79,7 @@ spec:
   scripts:
     - name: 00-reset-auth
       script: |
-        alter role authenticator rename to sg_authenticator;
+        drop role authenticator;
     - name: 01-initial-schema
       script: |
         -- Set up realtime
@@ -106,8 +109,8 @@ spec:
 ```
 
 We omitted the full scripts for readability.
-You can find the full version [here](TODO).
-The scripts are based on the unofficial Supabase Helm chart.
+You can find the full version [here](https://github.com/ongres/apps-on-stackgres/blob/main/examples/supabase/script.yaml).
+The scripts are based on the (unofficial) [Supabase Helm chart](https://github.com/supabase-community/supabase-kubernetes).
 
 In order to create the SGCluster, we need to create these three resources:
 
@@ -134,7 +137,7 @@ kubectl describe sgcluster supabase-db
 
 After our SGCluster is up-and-running, we continue with the installation of Supabase.
 
-### Supabase
+## Installing Supabase
 
 We use the unofficial Supabase Helm chart for creating the Kubernetes resources.
 We will need to make some small adjustments, so the easiest is to clone the repository and edit the provided values:
@@ -142,14 +145,14 @@ We will need to make some small adjustments, so the easiest is to clone the repo
 ```
 git clone https://github.com/supabase-community/supabase-kubernetes
 cd supabase-kubernetes/charts/supabase
-cp values.example.yaml my-values.yaml
+wget https://raw.githubusercontent.com/ongres/apps-on-stackgres/main/examples/supabase/values.stackgres.yaml -O values.stackgres.yaml
 ```
 
-We edit the contents of our `my-values.yaml`, to disable the database creation (since we use our own), to change the db host names, and URLs of the Supabase API and Studio.
-For a first test it's sufficient to use a local port forwarding, so our example uses `localhost` addresses instead of Kubernetes ingress resources.
-You might want to change this depending on your Kubernetes cluster and cloud setup.
+We edit the contents of our `values.stackgres.yaml`, to disable the database creation (since we use our own), to change the db host names, and URLs of the Supabase API and Studio.
+For a first test, it's sufficient to use a local port forwarding, so our example uses `localhost` addresses instead of Kubernetes ingress resources.
+You need to change this depending on your Kubernetes cluster and cloud setup, for example using Kubernetes ingresses with your correct host name, or exposing the `demo-supabase-kong` and `demo-supabase-studio` service in any other way.
 
-You can find the full contents of our example `my-values.yaml` [here](TODO).
+You can find the full contents of our example `values.stackgres.yaml` [here](https://github.com/ongres/apps-on-stackgres/blob/main/examples/supabase/values.stackgres.yaml).
 
 Before we can install the Supabase Helm chart, we also need to set up some secrets with the Supabase auth keys, and also our SGCluster credentials.
 
@@ -182,7 +185,7 @@ kubectl -n default create secret generic demo-supabase-db \
 Then, we can install the Helm chart:
 
 ```
-helm install demo -f my-values.yaml .
+helm install demo -f values.stackgres.yaml .
 ```
 
 After the resources have been created, we can watch the status of the pods:
@@ -214,19 +217,89 @@ Navigating the browser to [http://localhost:3000/project/default/](http://localh
 
 Congratulations! You're now running Supabase on top of a production-ready Postgres cluster.
 
-### Supabase Hello World
+## Running a Supabase Hello World
 
 For a quick test, we can use on of the Supabase quickstarts, for example the [React quickstart](https://supabase.com/docs/guides/getting-started/quickstarts/reactjs).
 
+We will go through this quickstart in the following.
 
-## TODO
+At first, we can create a table in our Postgres database, that we now could access via any StackGres utility, or the Supabase SQL Editor.
+In the Supabase dashboard, you can select the default project and go to the [SQL Editor](http://localhost:3000/project/default/sql)
+
+You can execute the following SQL to create a table `countries` with some data:
+
+```sql
+-- Create the table
+CREATE TABLE countries (
+id SERIAL PRIMARY KEY,
+name VARCHAR(255) NOT NULL
+);
+-- Insert some sample data into the table
+INSERT INTO countries (name) VALUES ('United States');
+INSERT INTO countries (name) VALUES ('Canada');
+INSERT INTO countries (name) VALUES ('Mexico');
+```
+
+Then, you can create the React example using the `npm` and `npx` command line tools:
 
 ```
-PASSWORD=$(< /dev/urandom tr -dc '$/;._A-Z-a-z-0-9' | head -c${1:-20};echo;)
-kubectl create secret generic supabase-admin-password --from-literal=supabase-admin-password.sql="alter user supabase_admin with password '$PASSWORD';"
+npx create-react-app my-app
+cd my-app && npm install @supabase/supabase-js
 ```
 
+This creates a new application under `my-app` and installs the `supabase-js` dependency.
 
+You can change the JS file under `src/index.js` to the following JavaScript:
+
+```js
+import { createClient } from '@supabase/supabase-js'
+
+// create client with API URL & public anon key
+const supabase = createClient('http://localhost:8000/', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.ewogICAgInJvbGUiOiAiYW5vbiIsCiAgICAiaXNzIjogInN1cGFiYXNlIiwKICAgICJpYXQiOiAxNjc1NDAwNDAwLAogICAgImV4cCI6IDE4MzMxNjY4MDAKfQ.ztuiBzjaVoFHmoljUXWmnuDN6QU2WgJICeqwyzyZO88')
+
+async function getCountries() {
+    const countries = await supabase.from('countries').select()
+    console.log(countries.data)
+}
+
+getCountries()
+```
+
+As you can see, we're using the Supabase URL that for now uses the locally-forwarded port, and the public anon key with which we've created the secret before.
+
+You can start the app with `npm start`, which will choose a port that isn't used locally -- for us that will be `3001` -- and which will make our app available under [http://localhost:3001](http://localhost:3001).
+If you open the browser's console, you can see the output with the three countries.
+
+You can also add some code to add a new country, for example by appending the following code to your `index.js` file:
+
+```js
+
+async function addCountry(country) {
+    await supabase.from('countries')
+        .insert({'name':country});
+}
+
+addCountry('Colombia');
+getCountries()
+```
+
+Saving the JS file will refresh the page and show the updated list of four countries.
+
+To double-check, we can of course also log into our Postgres database and query all countries by using the StackGres utilities:
+
+```
+kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,stackgres.io/cluster=true,role=master -o name)" -c postgres-util -- psql -c 'select * from countries'
+```
+
+```
+ id |     name
+----+---------------
+  1 | United States
+  2 | Canada
+  3 | Mexico
+  4 | Colombia
+(4 rows)
+```
 
 ## Cleanup
 
