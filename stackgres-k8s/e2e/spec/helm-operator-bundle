@@ -42,7 +42,7 @@ e2e_test_install() {
   fi
 
   ! kubectl get sgconfig || kubectl delete sgconfig -A --all --wait
-  k8s_async_cleanup
+  k8s_async_cleanup || true
 
   if [ "$E2E_ENV" != "minishift" ] && [ "$E2E_ENV" != "crc" ] && [ "$E2E_ENV" != "microshift" ]
   then
@@ -103,7 +103,7 @@ properly_tag_not_found_import_images() {
 
 e2e_test_uninstall() {
   ! kubectl get sgconfig || kubectl delete sgconfig -A --all --wait
-  k8s_async_cleanup
+  k8s_async_cleanup || true
 
   kubectl create namespace "${OPERATOR_NAMESPACE}"
   install_operator_only
@@ -112,6 +112,9 @@ e2e_test_uninstall() {
 
 e2e_test() {
   run_test "Check that generated helm operator bundle is functional" test_bundle
+
+  ! kubectl get sgconfig || kubectl delete sgconfig -A --all --wait
+  k8s_async_cleanup || true
 }
 
 test_bundle() {
