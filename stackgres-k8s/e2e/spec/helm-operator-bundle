@@ -46,6 +46,8 @@ e2e_test_install() {
 
   if [ "$E2E_ENV" != "minishift" ] && [ "$E2E_ENV" != "crc" ] && [ "$E2E_ENV" != "microshift" ]
   then
+    properly_tag_not_found_import_images &
+    trap_kill "$!"
     kubectl delete clusterrole system:controller:operator-lifecycle-manager 2>/dev/null \
       || ! kubectl get clusterrole system:controller:operator-lifecycle-manager 2>/dev/null
     wait_until eval '! kubectl get namespace olm > /dev/null 2>&1'
@@ -83,6 +85,20 @@ get_helm_operator_images() {
   fi
   echo "${HELM_OPERATOR_IMAGE_NAME%:*}:$NATIVE_TAG"
   echo "${HELM_OPERATOR_BUNDLE_IMAGE_NAME%:*}:$NATIVE_TAG"
+}
+
+properly_tag_not_found_import_images() {
+  echo "Looking for import-* images to tag properly"
+  event_watch  --follow \
+    | stdbuf -o0 grep '\simage "\(docker\.io/library/import-[^@]\+@sha256:[^"]\+\)": not found' \
+    | stdbuf -o0 sed 's#^.*\simage "\(docker\.io/library/import-[^@]\+@sha256:[^"]\+\)": not found.*$#\1#' \
+    | (
+      while read IMAGE_NAME
+      do
+        echo "Detected import-* image $IMAGE_NAME to tag properly into k8s env $E2E_ENV"
+        tag_image_k8s "${IMAGE_NAME#docker.io/library/}" "$IMAGE_NAME"
+      done
+      )
 }
 
 e2e_test_uninstall() {
