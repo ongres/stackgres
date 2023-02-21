@@ -283,19 +283,21 @@
                 });
 
                 inputParams.forEach(function(item) {
-                    const indexOfEqual = item.indexOf('=');
-                    const key = item.substring(0, indexOfEqual);
-                    var value = (item.substring(indexOfEqual+1, item.length));
-                    
-                    if(value.startsWith("'")) {
-                        value = value.substring(1)
-                    }
+                    if(item.length) {
+                        const indexOfEqual = item.indexOf('=');
+                        const key = item.substring(0, indexOfEqual);
+                        var value = (item.substring(indexOfEqual+1, item.length));
+                        
+                        if(value.startsWith("'")) {
+                            value = value.substring(1)
+                        }
 
-                    if(value.endsWith("'")) {
-                        value = value.substring(0, value.length-1)
-                    }
+                        if(value.endsWith("'")) {
+                            value = value.substring(0, value.length-1)
+                        }
 
-                    inputParamsObj[key] = value
+                        inputParamsObj[key] = value
+                    }
                 });
 
                 for(const key in inputParamsObj) {
