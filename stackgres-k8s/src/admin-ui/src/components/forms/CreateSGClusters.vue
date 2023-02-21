@@ -841,7 +841,7 @@
                             <div class="header">
                                 <h4>SGScript #{{baseIndex+1 }}</h4>
                                 <div class="addRow" v-if="(baseScript.sgScript != (name + '-default') )">
-                                    <a @click="spliceArray(managedSql.scripts, baseIndex) && spliceArray(scriptSource, baseIndex)">Delete Script</a>
+                                    <a @click="spliceArray(managedSql.scripts, baseIndex), spliceArray(scriptSource, baseIndex)">Delete Script</a>
                                     <template v-if="baseIndex">
                                         <span class="separator"></span>
                                         <a @click="moveArrayItem(managedSql.scripts, baseIndex, 'up')">Move Up</a>
