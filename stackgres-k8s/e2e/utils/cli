@@ -36,9 +36,11 @@ Options:
   --image-tag <tag>:      Specify the JVM image tag to use for the operator
                            images
   --reuse-operator:       Reuse an already installed operator
+  --skip-spec-uninstall:  Skip uninstallation after spec to allow post inspections
   --skip-operator-install: Skip installation of the operator
   --upgrade-from-previous-operator: Upgrade from a previous version of the
                            operator
+  --target-version:       The supported target version used to create StackGres CR
   --previous-operator-version: Set the previous version of the operator to test
   --pull-policy <policy>: Set the pull policy for the operator images
   --skip-load-operator:   Skip loading of the operator images
@@ -112,9 +114,11 @@ EOF
           --native-image-tag
           --image-tag
           --reuse-operator
+          --skip-spec-uninstall
           --skip-operator-install
           --upgrade-from-previous-operator
           --previous-operator-version
+          --target-version
           --pull-policy
           --skip-load-operator
           --load-components
@@ -228,6 +232,11 @@ cli() {
       shift "$(cli_get_parameter_shifts "$@")"
       E2E_SKIP_OPERATOR_INSTALL="$VALUE"
       ;;
+      ('--skip-spec-uninstall')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_SKIP_SPEC_UNINSTALL="$VALUE"
+      ;;
       ('--pull-policy')
       cli_set_parameter_value "$@"
       shift "$(cli_get_parameter_shifts "$@")"
@@ -288,6 +297,11 @@ cli() {
       shift "$(cli_get_parameter_shifts "$@")"
       E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR="$VALUE"
       ;;
+      ('--target-version')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      STACKGRES_TARGET_VERSION="$VALUE"
+      ;;
       ('--previous-operator-version')
       cli_set_parameter_value "$@"
       shift "$(cli_get_parameter_shifts "$@")"
@@ -324,6 +338,10 @@ cli() {
       ;;
       ('--')
       shift
+      ;;
+      ('--'*)
+      >&2 echo "Unknown parameter $1"
+      exit 1
       ;;
       (*)
       VALUE="$1"
@@ -410,6 +428,7 @@ cli_export_e2e_variables() {
     IMAGE_TAG \
     E2E_REUSE_OPERATOR_PODS \
     E2E_SKIP_OPERATOR_INSTALL \
+    E2E_SKIP_SPEC_UNINSTALL \
     E2E_OPERATOR_PULL_POLICY \
     E2E_FORCE_IMAGE_PULL \
     E2E_SKIP_OPERATOR_LOAD \
