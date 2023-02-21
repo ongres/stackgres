@@ -277,6 +277,7 @@
                 
                 var inputParams = vc.pgConfigParams.split('\n');
                 var initialParams = vc.pgConfigParamsObj;
+                var defaultParams = vc.defaultParams;
                 
                 initialParams.forEach(function(item) {
                     initialParamsObj[item.parameter] = item.value
@@ -300,18 +301,16 @@
                     }
                 });
 
-                for(const key in inputParamsObj) {
-                    if(initialParamsObj.hasOwnProperty(key)) {
-                        if(initialParamsObj[key] !== inputParamsObj[key]) {
-                            initialParamsObj[key] = inputParamsObj[key]
+                for(const key in initialParamsObj) {
+                    if(!inputParamsObj.hasOwnProperty(key)) {
+                        if(defaultParams.hasOwnProperty(key)) {
+                            inputParamsObj[key] = defaultParams[key]
                         }
-                    } else {
-                        initialParamsObj[key] = inputParamsObj[key]
                     }
                 }
 
-                for(const key in initialParamsObj) {
-                    finalParamsArr.push(key + "='" + initialParamsObj[key] + "'")
+                for(const key in inputParamsObj) {
+                    finalParamsArr.push(key + "='" + inputParamsObj[key] + "'")
                 }
 
                 return finalParamsArr.join('\n')
