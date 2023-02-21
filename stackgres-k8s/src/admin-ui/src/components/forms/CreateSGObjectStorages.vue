@@ -165,7 +165,7 @@
                         <template v-if="advancedModeStorage">
                             <div class="col">
                                 <label for="spec.s3Compatible.enablePathStyleAddressing">Enable Path Style Addressing</label>
-                                <label for="s3CompatibleEnablePathStyleAddressing" class="switch yes-no">
+                                <label for="enablePathStyleAddressing" class="switch yes-no">
                                     Bucket URL Force Path Style
                                     <input type="checkbox" id="enablePathStyleAddressing" v-model="s3CompatibleEnablePathStyleAddressing" data-switch="NO" data-field="spec.s3Compatible.enablePathStyleAddressing">
                                 </label>
