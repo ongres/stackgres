@@ -338,7 +338,10 @@ EOF
     done
     SPECS_TO_RUN=""
   fi
-  k8s_cleanup_but_operator
+  if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ]
+  then
+    k8s_cleanup_but_operator
+  fi
 done
 
 cat << EOF > "$TARGET_PATH/e2e-tests-junit-report.xml"
