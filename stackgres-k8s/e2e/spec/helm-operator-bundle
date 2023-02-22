@@ -21,6 +21,11 @@ e2e_test_extra_hash() {
 }
 
 e2e_test_install() {
+  if [ "$(uname -m)" = "aarch64" ]
+  then
+    return
+  fi
+
   if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
   then
     if [ "$E2E_SKIP_LOAD_HELM_OPERATOR" != true ]
@@ -102,6 +107,11 @@ properly_tag_not_found_import_images() {
 }
 
 e2e_test_uninstall() {
+  if [ "$(uname -m)" = "aarch64" ]
+  then
+    return
+  fi
+
   ! kubectl get sgconfig || kubectl delete sgconfig -A --all --wait
   k8s_async_cleanup || true
 
@@ -111,6 +121,12 @@ e2e_test_uninstall() {
 }
 
 e2e_test() {
+  if [ "$(uname -m)" = "aarch64" ]
+  then
+    echo "Skipping tests for architecture aarch64 since OLM official images are not built for such architecture"
+    return
+  fi
+
   run_test "Check that generated helm operator bundle is functional" test_bundle
 
   ! kubectl get sgconfig || kubectl delete sgconfig -A --all --wait
