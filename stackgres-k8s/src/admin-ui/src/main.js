@@ -596,6 +596,9 @@ $(document).ready(function(){
 
       if($(this).parent('.timeSelect'))
         $(this).siblings('select').removeClass('notValid');
+
+      if($(this).parent('label'))
+        $(this).parent('label').removeClass('notValid');
       
       let fieldset = $(this).parents('fieldset[data-fieldset]')
       let notValidFields = fieldset.find('.notValid')
