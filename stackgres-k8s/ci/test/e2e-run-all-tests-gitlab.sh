@@ -50,6 +50,8 @@ export KIND_LOG_RESOURCES="${KIND_LOG_RESOURCES:-false}"
 export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache$SUFFIX"
 export EXTENSIONS_CACHE_HOST_PATH="/containerd-cache/extensions"
 export TEMP_DIR="/tmp/$CI_PROJECT_ID"
+export E2E_TEST_REGISTRY="$CI_REGISTRY"
+export E2E_TEST_REGISTRY_PATH="$CI_PROJECT_PATH"
 
 copy_project_to_temp_dir() {
   echo "Copying project files ..."
@@ -86,15 +88,18 @@ run_all_tests_loop() {
       done
   echo
 
-  echo "Retrieving cache..."
-  export IS_WEB
-  E2E_EXCLUDES_BY_HASH="$(
-    E2E_TEST_REGISTRY="$CI_REGISTRY" \
-    E2E_TEST_REGISTRY_PATH="$CI_PROJECT_PATH" \
-    sh stackgres-k8s/e2e/e2e get_already_passed_tests)"
-  echo 'done'
-
-  echo
+  if [ "$E2E_SKIP_TEST_CACHE" != true ]
+  then
+    echo "Retrieving cache..."
+    export IS_WEB
+    E2E_EXCLUDES_BY_HASH="$(sh stackgres-k8s/e2e/e2e get_already_passed_tests)"
+    echo 'done'
+  
+    echo
+  else
+    echo "Skipping cache, all tests will be executed!"
+    E2E_EXCLUDES_BY_HASH=""
+  fi
 
   echo "Retrieved image digests:"
   sort stackgres-k8s/e2e/target/all-test-result-images | uniq \
@@ -193,7 +198,7 @@ run_all_tests() {
     then
       break
     fi
-    echo "Something bad happened, will retry $E2E_FAILURE_RETRY times more in 10 seconds..."
+    echo "Something bad happened, will retry one more time in 10 seconds (retries left $E2E_FAILURE_RETRY)..."
     sleep 10
   done
 
@@ -202,9 +207,7 @@ run_all_tests() {
   do
     (
     set -e
-    E2E_TEST_REGISTRY="$CI_REGISTRY" \
-      E2E_TEST_REGISTRY_PATH="$CI_PROJECT_PATH" \
-      sh stackgres-k8s/e2e/e2e store_test_results
+    sh stackgres-k8s/e2e/e2e store_test_results
     )
     STORE_RESULTS_EXIT_CODE="$?"
     if [ "$STORE_RESULTS_EXIT_CODE" = 0 ]

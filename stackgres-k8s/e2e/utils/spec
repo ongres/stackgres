@@ -282,6 +282,7 @@ spec() {
     fi
     return "$EXIT_CODE"
   fi
+  store_test_result "$SPEC_NAME"
   echo "$SPEC_NAME. SUCCESS. Test took $SPEC_TIME seconds" >> "$TARGET_PATH/logs"/results.log
 }
 
@@ -388,47 +389,41 @@ calculate_spec_hashes() {
     && [ -n "$SPEC_PLATFORM" ] \
     && true || false
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" init_hash
-  local GLOBAL_SPEC_HASH
-  GLOBAL_SPEC_HASH="$(
-      ls -1d "$E2E_PATH/e2e" "$E2E_PATH/envs/$E2E_ENV" \
-        "$SPEC_PATH/default.values.yaml" "$SPEC_PATH/abstract" \
-        "$E2E_PATH/utils" | sort \
-        | while read -r FILE
-          do
-            "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
-              "$(realpath --relative-to "$PROJECT_PATH" "$FILE")"
-          done)"
-  GLOBAL_SPEC_HASH="$(printf '%s' "$GLOBAL_SPEC_HASH" | md5sum | cut -d ' ' -f 1)"
   local VARIABLES_HASH
   VARIABLES_HASH="$(get_variables_for_hash)"
   VARIABLES_HASH="$(printf '%s' "$VARIABLES_HASH" | md5sum | cut -d ' ' -f 1)"
   {
     get_all_specs
     get_all_env_specs
-  } | while read SPEC
+  } | while read SPEC_FILE
       do
+        SPEC_NAME="${SPEC_FILE##*/}"
         SPEC_HASH="$( {
-          echo "${SPEC##*spec/}"
-          echo "$GLOBAL_SPEC_HASH"
+          echo "${SPEC_FILE##*spec/}"
           "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
-              "$(realpath --relative-to "$PROJECT_PATH" "$SPEC")"
-          ls -1d "$SPEC".* 2>/dev/null | sort \
-            | while read -r FILE
+              "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_FILE")"
+          if [ ! -f "$SPEC_FILE.values.yaml" ]
+          then
+            "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+              "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/default.values.yaml")"
+          fi
+          ls -1d "$SPEC_FILE".* 2>/dev/null | sort \
+            | while read -r SPEC_SUB_FILE
               do
-                if ! [ -f "$FILE" ]
+                if ! [ -f "$SPEC_SUB_FILE" ]
                 then
                   continue
                 fi
                 "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
-                  "$(realpath --relative-to "$PROJECT_PATH" "$FILE")"
+                  "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_SUB_FILE")"
               done
           (
-          . "$SPEC"
+          . "$SPEC_FILE"
           if e2e_use_extensions
           then
             get_extensions_index_hash
           fi
-	  e2e_test_extra_hash
+	        e2e_test_extra_hash
           )
           printf '%s\n' "$HELM_MODULE_HASH"
           if [ "${IMAGE_TAG%-jvm}" = "$IMAGE_TAG" ]
@@ -444,7 +439,7 @@ calculate_spec_hashes() {
           printf '%s' "$VARIABLES_HASH"
         })"
         SPEC_HASH="$(printf '%s' "$SPEC_HASH" | md5sum | cut -d ' ' -f 1)"
-        printf '%s:%s-%s\n' "${SPEC##*spec/}" "$SPEC_HASH" "$SPEC_PLATFORM"
+        printf '%s:%s-%s\n' "${SPEC_FILE##*spec/}" "$SPEC_HASH" "$SPEC_PLATFORM"
       done
 }
 
@@ -487,11 +482,12 @@ get_already_passed_tests() {
   touch "$TARGET_PATH/already-passed-tests"
   if [ "$E2E_DO_TESTS" != true ]
   then
-    while IFS='=' read -r TEST_NAME IMAGE_NAME
+    local SPEC_NAME
+    while IFS='=' read -r SPEC_NAME IMAGE_NAME
     do
       if grep -q "^$IMAGE_NAME=" "$TARGET_PATH/test-result-image-digests"
       then
-        printf '%s\n' "$TEST_NAME" >> "$TARGET_PATH/already-passed-tests"
+        printf '%s\n' "$SPEC_NAME" >> "$TARGET_PATH/already-passed-tests"
       fi
     done < "$TARGET_PATH/test-result-images"
   fi
@@ -520,22 +516,46 @@ EOF
   docker build -f "$TARGET_PATH/Dockerfile.e2e" \
     -t "$E2E_TEST_REGISTRY/$E2E_TEST_REGISTRY_PATH/e2e-test-result$E2E_SUFFIX:$IMAGE_TAG-$SPEC_PLATFORM" \
     $(
-      while read -r TEST_NAME
+      while read -r SPEC_NAME
       do
-        IMAGE_NAME="$(grep "^$TEST_NAME=" "$TARGET_PATH/test-result-images" \
+      IMAGE_NAME="$(grep "^$SPEC_NAME=" "$TARGET_PATH/test-result-images" \
           | cut -d = -f 2-)"
         printf '%s %s ' '-t' "$IMAGE_NAME"
       done < "$TARGET_PATH/uniq-passed-tests"
     ) \
     "$TARGET_PATH"
   docker push "$E2E_TEST_REGISTRY/$E2E_TEST_REGISTRY_PATH/e2e-test-result$E2E_SUFFIX:$IMAGE_TAG-$SPEC_PLATFORM"
-  while read -r TEST_NAME
+  while read -r SPEC_NAME
   do
-    IMAGE_NAME="$(grep "^$TEST_NAME=" "$TARGET_PATH/test-result-images" \
+    IMAGE_NAME="$(grep "^$SPEC_NAME=" "$TARGET_PATH/test-result-images" \
       | cut -d = -f 2-)"
     printf '%s\n' "$IMAGE_NAME"
   done < "$TARGET_PATH/uniq-passed-tests" \
     | xargs -I % -P "$E2E_PARALLELISM" docker push %
+}
+
+store_test_result() {
+  local SPEC_NAME="$1"
+
+  [ -n "$E2E_TEST_REGISTRY" ] \
+    && [ -n "$E2E_TEST_REGISTRY_PATH" ] \
+    && true || false
+
+  cat << EOF > "$TARGET_PATH/Dockerfile.e2e.$SPEC_NAME"
+FROM alpine:3.13.5
+  COPY . /project
+EOF
+
+  local SPEC_PLATFORM
+  SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform)"
+  local IMAGE_NAME
+  IMAGE_NAME="$(grep "^$SPEC_NAME=" "$TARGET_PATH/test-result-images")"
+  IMAGE_NAME="$(printf %s "$IMAGE_NAME" | cut -d = -f 2-)"
+  # shellcheck disable=SC2046
+  docker build -f "$TARGET_PATH/Dockerfile.e2e.$SPEC_NAME" \
+    -t "$IMAGE_NAME" \
+    "$TARGET_PATH"
+  docker push "$IMAGE_NAME"
 }
 
 add_already_passed_tests_to_report() {

@@ -257,12 +257,12 @@ do
       if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_RESOURCE_LOGS" = "true" ]
       then
         echo "Snapshotting resources"
-        resource_watch --log-in-files > "$LOG_PATH/all_resources.log" 2>/dev/null || true
+        resource_watch --log-in-files >> "$LOG_PATH/all_resources.log" 2>/dev/null || true
       fi
       if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_POD_LOGS" = "true" ]
       then
         echo "Snapshotting pods logs"
-        pod_logs --log-in-files > "$LOG_PATH/all_pods.log" 2>/dev/null || true
+        pod_logs --log-in-files >> "$LOG_PATH/all_pods.log" 2>/dev/null || true
       fi
       if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_EVENT_LOGS" = "true" ]
       then

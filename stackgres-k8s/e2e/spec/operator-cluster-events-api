@@ -2,6 +2,11 @@
 
 . "$SPEC_PATH/abstract/dbops-minor-version-upgrade"
 
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/dbops-minor-version-upgrade")"
+}
+
 e2e_test_install() {
   NODE_LABEL_KEY="$(random_string)"
   NODE_LABEL_VALUE="$(random_string)"
