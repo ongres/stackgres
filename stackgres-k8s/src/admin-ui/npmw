@@ -1,15 +1,27 @@
 #!/bin/sh
 PROJECT_PATH="$(realpath "$(dirname "$0")")"
 CONTAINER_NAME="${CONTAINER_NAME:-npmw-$(printf '%x' "$(date +%s)")}"
-env > "/tmp/$CONTAINER_NAME.env"
-docker run "$([ -t 1 ] && echo '-it' || echo '-i')" \
-  --network host \
-  --rm --name "$CONTAINER_NAME" \
-  --env-file "/tmp/$CONTAINER_NAME.env" \
-  -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
-  -v /etc/shadow:/etc/shadow:ro -v /etc/gshadow:/etc/gshadow:ro \
-  -u "$(id -u):$(id -g)" \
-  $(id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/') \
-  -v "$HOME":"$HOME":rw -e PROMPT_COMMAND= \
-  -v "$PROJECT_PATH:/admin-ui:rw" -w /admin-ui \
-  "node:13.7.0" npm "$@"
+
+if [ "$E2E_NPM_BUILD_SKIP_USER_MOUNT" = true ]
+then
+  docker run "$([ -t 1 ] && echo '-it' || echo '-i')" \
+    --rm --name "$CONTAINER_NAME" \
+    --network host \
+    -u node \
+    -e PROMPT_COMMAND= \
+    -v "$PROJECT_PATH:/admin-ui:rw" -w /admin-ui \
+    "node:13.7.0" npm "$@"
+else
+  env > "/tmp/$CONTAINER_NAME.env"
+  docker run "$([ -t 1 ] && echo '-it' || echo '-i')" \
+    --network host \
+    --rm --name "$CONTAINER_NAME" \
+    --env-file "/tmp/$CONTAINER_NAME.env" \
+    -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
+    -v /etc/shadow:/etc/shadow:ro -v /etc/gshadow:/etc/gshadow:ro \
+    -u "$(id -u):$(id -g)" \
+    $(id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/') \
+    -v "$HOME":"$HOME":rw -e PROMPT_COMMAND= \
+    -v "$PROJECT_PATH:/admin-ui:rw" -w /admin-ui \
+    "node:13.7.0" npm "$@"
+fi

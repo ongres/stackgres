@@ -64,6 +64,7 @@ Some environment variables allow to control how e2e test behave:
 * `E2E_OPERATOR_OPTS`: To pass extra parameters to the operator helm chart use this variable.
 * `E2E_DISABLE_LOGS`: To diable logs of pods set this variable to true (default: false).
 * `E2E_DISABLE_CACHE`: To disable the use of local docker as a cache for images set this variable to true (default: false).
+* `E2E_NPM_BUILD_SKIP_USER_MOUNT`: Doesn't mount the local user (and its home directory nor the `/etc/` files) into the npm build container
 * `K8S_VERSION`: This set the kubernetes cluster version to setup (default: 1.16.15).
 * `K8S_REUSE`: Kubernetes cluster setup can be very expensive in terms of time. Set this environment variable to true to reuse a kubernetes cluster if already exists (default: false).
 * `K8S_EXTRA_PORT`: Allow to define a port to expose in the kind docker container with following format: `<node port>:<local port>:<local listening address>:<port protocol>`.
