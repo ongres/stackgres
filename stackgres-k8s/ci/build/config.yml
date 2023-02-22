@@ -227,7 +227,7 @@ modules:
     type: ui-image
     platform_dependent: true
     path: stackgres-k8s/src/admin-ui
-    target_image: registry.access.redhat.com/ubi8/nginx-120:1-84
+    target_image: registry.access.redhat.com/ubi8/nginx-120:1-92
     dockerfile:
       path: stackgres-k8s/src/admin-ui/docker/Dockerfile
       args:
