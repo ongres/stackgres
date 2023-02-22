@@ -837,11 +837,14 @@
                             </h3>
                         </div>
                         
-                        <fieldset v-for="(baseScript, baseIndex) in managedSql.scripts">
+                        <fieldset
+                            v-for="(baseScript, baseIndex) in managedSql.scripts"
+                            :data-field="'spec.managedSql.scripts[' + baseIndex + ']'"
+                        >
                             <div class="header">
                                 <h4>SGScript #{{baseIndex+1 }}</h4>
                                 <div class="addRow" v-if="(baseScript.sgScript != (name + '-default') )">
-                                    <a @click="spliceArray(managedSql.scripts, baseIndex) && spliceArray(scriptSource, baseIndex)">Delete Script</a>
+                                    <a class="delete" @click="spliceArray(managedSql.scripts, baseIndex), spliceArray(scriptSource, baseIndex)">Delete Script</a>
                                     <template v-if="baseIndex">
                                         <span class="separator"></span>
                                         <a @click="moveArrayItem(managedSql.scripts, baseIndex, 'up')">Move Up</a>

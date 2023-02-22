@@ -1300,4 +1300,32 @@ describe('Create SGCluster', () => {
 
     }); 
 
+    it('Make sure script source always matches its parent script', () => {
+        // Enable advanced options
+        cy.get('form#createCluster input#advancedMode')
+            .click()
+        
+        // Tests script source on script repeaters
+        cy.get('form#createCluster li[data-step="scripts"]')
+            .click()
+            
+        cy.get('select[data-field="spec.managedSql.scripts.scriptSource[0]"]')
+            .select('script-' + resourceName)
+
+        // Add new Script
+        cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
+            .click()
+
+        cy.get('select[data-field="spec.managedSql.scripts.scriptSource[1]"]')
+            .select('createNewScript')
+
+        // Remove first script
+        cy.get('.scriptFieldset > fieldset[data-field="spec.managedSql.scripts[0]"] a.delete')
+            .click()
+
+        // Validate script source has the right value
+        cy.get('select[data-field="spec.managedSql.scripts.scriptSource[0]"]')
+            .should('have.value', 'createNewScript')
+    });
+
   })

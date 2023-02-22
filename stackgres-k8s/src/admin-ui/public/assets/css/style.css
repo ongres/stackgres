@@ -3088,11 +3088,6 @@ th.actions, td.actions {
     text-transform: uppercase;
 }
 
-.delete {
-    color: var(--gray4);
-    cursor: pointer;
-}
-
 td.actions a {
     margin: 0 5px;
     cursor: pointer;
