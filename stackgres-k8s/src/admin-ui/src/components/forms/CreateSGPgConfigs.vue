@@ -284,7 +284,7 @@
                 });
 
                 inputParams.forEach(function(item) {
-                    if(item.length) {
+                    if(item.length && (item != " ")) {
                         const indexOfEqual = item.indexOf('=');
                         const key = item.substring(0, indexOfEqual);
                         var value = (item.substring(indexOfEqual+1, item.length));
