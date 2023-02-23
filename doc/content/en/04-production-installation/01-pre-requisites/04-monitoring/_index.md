@@ -2,13 +2,15 @@
 title: Monitoring
 weight: 4
 url: install/prerequisites/monitoring
-description: Details about how to setup and configure prometheus.
+description: Details about how to set up and configure Prometheus.
 showToc: true
 ---
 
-As early indicated in [Component of the Stack]({{% relref "01-introduction/04-components-of-the-stack/#monitoring" %}}) StackGres, at the moment, only supports Prometheus integration.
+As shown on page [Stack Components]({{% relref "01-introduction/04-components-of-the-stack/#monitoring" %}}), StackGres at the moment only provides an integration for Prometheus.
 
-## Monitoring, Observability and Alerting with Prometheus and Grafana
+This section shows how to enable observability, especially monitoring and alerting with StackGres, using Prometheus and Grafana.
+
+## Observability: Monitoring and Alerting
 
 Prometheus natively includes the following services:
 
@@ -16,10 +18,9 @@ Prometheus natively includes the following services:
 - Alert Manager: Handle events and send notifications to your preferred on-call platform
 
 
-## Installing Community Prometheus Stack
+## Installing the Community Prometheus Stack
 
-If the user is willing to install a full Prometheus Stack (State Metrics, Node Exporter and Grafana), there is a community chart that provides this at [kube-prometheus-stack installation instructions](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md).
-
+For a full Prometheus Stack (State Metrics, Node Exporter and Grafana), there is a community Helm chart available at [kube-prometheus-stack installation instructions](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/README.md).
 
 First, add the Prometheus Community repositories:
 
@@ -32,94 +33,104 @@ helm repo update
 Install the [Prometheus Server Operator](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus):
 
 ```bash
-helm install --create-namespace --namespace monitoring prometheus prometheus-community/kube-prometheus-stack --set grafana.enabled=true --version 12.10.6
+helm install --create-namespace --namespace monitoring \
+ --set grafana.enabled=true \
+ --version 12.10.6 \
+ prometheus prometheus-community/kube-prometheus-stack
 ```
 
-> StackGres provides more and advanced options for monitoring installation, see [Operator installation with Helm]({{% relref "04-production-installation/02-installation-via-helm/#stackgres-operator-installation" %}}) in the [Production installation session]({{% relref "04-production-installation/#monitoring" %}}).
+> StackGres provides advanced options for monitoring installation, see [Operator installation with Helm]({{% relref "04-production-installation/02-installation-via-helm/#stackgres-operator-installation" %}}) in the [Production installation section]({{% relref "04-production-installation/#monitoring" %}}).
 
-Once the operator is installed, take note of the generated secrets as you they are need to be specified at StackGres operator installation. By default are `user=admin` and `password=prom-operator`:
+Once the operator is installed, you can retrieve the generated secrets. By default, they are `user=admin` and `password=prom-operator`.
 
 ```bash
 kubectl get secret prometheus-grafana \
-    --namespace monitoring \
-    --template '{{ printf "user = %s\npassword = %s\n" (index .data "admin-user" | base64decode) (index .data "admin-password" | base64decode) }}'
+ --namespace monitoring \
+ --template '{{ printf "user = %s\npassword = %s\n" (index .data "admin-user" | base64decode) (index .data "admin-password" | base64decode) }}'
 ```
 
-Grafana's hostname also can be queried as:
+Grafana's hostname also can be queried:
 
 ```
 kubectl get --namespace monitoring deployments prometheus-grafana -o json | jq -r '.metadata.name'
 ```
 
-### Re-routing services to different ports
+### Re-Routing Services to Different Ports
 
 In a production setup, is very likely that you will be installing all the resources in a remote location, so you'll need to route the services through specific interfaces and ports.
 
-> For sake of simplicity, we will port-forward to all interfaces (0.0.0.0), although we
-> strongly recommend to only expose through internal network interfaces when dealing on production.
+> For sake of simplicity, we will port-forward to the pods on all local interfaces (`0.0.0.0`).
+> This is only for testing purposes, and we strongly recommend to only expose through secure or internal network interfaces when dealing with production workloads.
 
 ### Exposing the Grafana UI
 
-To access Grafana's dashboard remotely, it can be done through the following step (it will be available at `<your server ip>:9999`):
+To access Grafana's dashboard locally, you can forward the pod's port, so that it will be available at `localhost:9999`:
 
 ```bash
 GRAFANA_POD=$(kubectl get pods --namespace monitoring -l "app.kubernetes.io/name=grafana" -o jsonpath="{.items[0].metadata.name}")
-kubectl port-forward "$GRAFANA_POD" --address 0.0.0.0 9999:3000 --namespace monitoring
+kubectl port-forward "$GRAFANA_POD" 9999:3000 --namespace monitoring
 ```
 
 ### Exposing the Prometheus Server UI
 
+You can also access the Prometheus server, by forwarding the port of the Prometheus pod:
+
 ```bash
 POD_NAME=$(kubectl get pods --namespace monitoring -l "app=prometheus" -o jsonpath="{.items[0].metadata.name}")
-kubectl --namespace monitoring port-forward $POD_NAME --address 0.0.0.0 9090
+kubectl --namespace monitoring port-forward $POD_NAME 9090
 ```
 
-The Prometheus server serves through port 80 under `prometheus-operator-server.monitoring` DNS name.
+This will be available at `localhost:9090`.
 
-### Exposing Alert Manager
+Inside the cluster, the Prometheus server is available via the `prometheus-operator-server.monitoring` DNS name.
 
-Over port 80, Prometheus alertmanager can be accessed through `prometheus-operator-alertmanager.monitoring` DNS name.
+### Exposing the Alert Manager
 
-```
+You can also access the Prometheus alert manager, by forwarding the following port:
+
+```bash
 export POD_NAME=$(kubectl get pods --namespace monitoring -l "app=alertmanager" -o jsonpath="{.items[0].metadata.name}")
 kubectl --namespace monitoring port-forward $POD_NAME --address 0.0.0.0 9093
 ```
 
-## Pre-existing Grafana Integration and Pre-requisites
+Inside the cluster, the Prometheus alert manager can be accessed via `prometheus-operator-server.monitoring`.
+
+## Pre-Existing Grafana Integration and Pre-Requisites
 
 ### Integrating Grafana
 
-If you already have a Grafana installation in your system you can embed it automatically in the
- StackGres UI by setting the property `grafana.autoEmbed=true`:
+If you already have a Grafana installation in your system, you can embed it automatically in the StackGres UI by setting the property `grafana.autoEmbed=true`:
 
-```
+```bash
 helm install --namespace stackgres stackgres-operator {{< download-url >}}/helm/stackgres-operator.tgz \
-  --set grafana.autoEmbed=true
+ --set grafana.autoEmbed=true
 ```
 
-This method requires the installation process to be able to authenticate using administrative username and password to the Grafana's API (see [installation via helm]({{% relref "/04-production-installation/02-installation-via-helm" %}}) for more options related to automatic embedding of Grafana).
+This method requires the installation process to authenticate using Grafana's username and password (see [installation via helm]({{% relref "/04-production-installation/02-installation-via-helm" %}}) for more options related to automatic embedding of Grafana).
 
-### Manual integration
+### Manual Integration
 
-Some manual steps are required in order to achieve such integration.
+Some manual steps are required in order to manually integrate Grafana.
 
-1. Create Grafana dashboard for Postgres exporter and copy/paste share URL:
+1. Create the PostgreSQL Grafana dashboard:
 
     **Using the UI:** Click on Grafana > Create > Import > Grafana.com Dashboard 9628
 
-    Check [the dashboard](https://grafana.com/grafana/dashboards/9628) for more details.
+    Check the [PostgreSQL dashboard](https://grafana.com/grafana/dashboards/9628) for more details.
 
-2. Copy/paste Grafana's dashboard URL for the Postgres exporter:
+2. Copy Grafana's dashboard URL for the Postgres exporter:
 
     **Using the UI:** Click on Grafana > Dashboard > Manage > Select Postgres exporter dashboard > Copy URL
 
-3. Create and copy/paste Grafana API token:
+3. Create a Grafana API token:
 
     **Using the UI:** Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
 
-## Installing Grafana and create basic dashboards
+## Installing Grafana and Creating Basic Dashboards
 
-If you already installed the `prometheus-community/kube-prometheus-stack` you can skip this session. It was  Get the source repository for the Grafana charts:
+If you already installed the `prometheus-community/kube-prometheus-stack`, you can skip this session.
+
+Add the Grafana charts' source repository:
 
 ```bash
 helm repo add grafana https://grafana.github.io/helm-charts
@@ -138,16 +149,18 @@ Get the `admin` credential:
 kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 ```
 
-Expose your Grafana service at `grafana.monitoring` (port 80) through your interfaces and port 3000 to login remotely (using above secret):
+Expose your Grafana service (`grafana.monitoring`) in your cluster setup or port-forward to port `3000` locally:
 
 ```bash
 POD_NAME=$(kubectl get pods --namespace monitoring -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}")
 kubectl --namespace monitoring port-forward $POD_NAME --address 0.0.0.0 3000
 ```
 
+You will need the admin credential to log into the web console (at `localhost:3000` if you're using port forwarding).
+
 > NOTE: take note of the Grafana's URL `grafana.monitoring`, which will be used when configuring StackGres Operator.
 
-The following script, will create a basic PostgreSQL dashboard against Grafana's API (you can change grafana_host to point to the remote location):
+The following script, will create a basic PostgreSQL dashboard using Grafana's API (you can change the `grafana_host` to point to your remote location):
 
 ```bash
 grafana_host=http://localhost:3000
@@ -179,11 +192,11 @@ grafana_dashboard_url="$(curl_grafana_api -X POST -d "$dashboard_json" "$grafana
 echo ${grafana_host}${grafana_dashboard_url}
 ```
 
-The resulting URL will be the dashboard whether your PostgreSQL metrics will be show up.
+The resulting URL will point to the dashboard that displays your PostgreSQL metrics.
 
-### Monitoring Setup validation
+### Monitoring Setup Validation
 
-At this point, you should have ended with the following pods:
+At this point, you should have the following pods:
 
 ```
 # kubectl get pods -n monitoring
@@ -204,11 +217,7 @@ prometheus-prometheus-node-exporter-jbsm2                 0/1     Pending   0   
 
 ## Enable Prometheus Auto Binding in Cluster
 
-To allow the operator discover available [Prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#prometheus)
- and create required [ServiceMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitor)
- to store StackGres stats in existing instances of prometheus (only for those that are created through the
- [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)) you have to set to `true` field `.spec.prometheusAutobind` in
- your [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}):
+To allow the StackGres operator to discover available [Prometheus](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#prometheus) instances, to create required [ServiceMonitors](https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitor), to store StackGres stats in existing Prometheus instances (only for those that are created through the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator)), you have to set the field `.spec.prometheusAutobind` to `true` in your [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}):
 
 ```yaml
 apiVersion: stackgres.io/v1

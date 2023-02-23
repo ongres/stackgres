@@ -6,7 +6,7 @@ description: Details about SGDbOps configurations
 showToc: true
 ---
 
-The database operations CR represent an operation that is performed on a cluster.
+The `SGDbOps` custom resource represents database operations that are performed on a Postgres cluster.
 
 ___
 **Kind:** SGDbOps
@@ -20,10 +20,10 @@ ___
 
 **Spec**
 
-| Property                                              | Required | Updatable | Default | Type    | Description |
+| <div style="width:11rem">Property</div>               | Required | Updatable | Default | <div style="width:4rem">Type</div> | Description |
 |:------------------------------------------------------|----------|-----------|:--------|:--------|:------------|
 | sgCluster                                             | ✓        |           |         | string  | {{< crd-field-description SGDbOps.spec.sgCluster >}} |
-| [scheduling](#scheduling)                           |          |           |         | object  | {{< crd-field-description SGDbOps.spec.scheduling >}} |
+| [scheduling](#scheduling)                             |          |           |         | object  | {{< crd-field-description SGDbOps.spec.scheduling >}} |
 | op                                                    | ✓        |           |         | string  | {{< crd-field-description SGDbOps.spec.op >}} |
 | runAt                                                 |          |           |         | string  | {{< crd-field-description SGDbOps.spec.runAt >}} |
 | timeout                                               |          |           |         | string  | {{< crd-field-description SGDbOps.spec.timeout >}} |
@@ -51,15 +51,15 @@ ___
 
 ## Scheduling
 
-Holds scheduling configuration for StackGres pods to have.
+StackGres pod scheduling configuration.
 
-| Property          | Required | Updatable | Type     | Default                 | Description |
-|:------------------|----------|-----------|:---------|:------------------------|:------------|
-| nodeSelector      |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeSelector >}} |
-| tolerations       |           | ✓        | array    |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations >}}  |
-| nodeAffinity      |           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity >}} |
-| podAffinity       |           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.podAffinity >}} |
-| podAntiAffinity   |           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.podAntiAffinity >}} |
+| <div style="width:8rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default                 | Description |
+|:---------------------------------------|----------|-----------|:---------|:------------------------|:------------|
+| nodeSelector                           |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeSelector >}} |
+| tolerations                            |          | ✓         | array    |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations >}}  |
+| nodeAffinity                           |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity >}} |
+| podAffinity                            |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.podAffinity >}} |
+| podAntiAffinity                        |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.podAntiAffinity >}} |
 
 ## Benchmark
 
@@ -71,7 +71,7 @@ Holds scheduling configuration for StackGres pods to have.
 
 ## Pgbench
 
-| Property                                   | Required | Updatable | Type     | Default                      | Description |
+| <div style="width:13rem">Property</div>    | Required | Updatable | <div style="width:5rem">Type</div> | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | databaseSize                               | ✓        |           | string   |                              | {{< crd-field-description SGDbOps.spec.benchmark.pgbench.databaseSize >}} |
 | duration                                   | ✓        |           | string   |                              | {{< crd-field-description SGDbOps.spec.benchmark.pgbench.duration >}} |
@@ -81,7 +81,7 @@ Holds scheduling configuration for StackGres pods to have.
 
 ## Vacuum
 
-| Property                                   | Required | Updatable | Type     | Default                      | Description |
+| <div style="width:11rem">Property</div>    | Required | Updatable | <div style="width:5rem">Type</div>  | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | full                                       |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.vacuum.full >}} |
 | freeze                                     |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.vacuum.freeze >}} |
@@ -91,7 +91,7 @@ Holds scheduling configuration for StackGres pods to have.
 
 ## Vacuum database
 
-| Property                                   | Required | Updatable | Type     | Default                      | Description |
+| <div style="width:11rem">Property</div>    | Required | Updatable | <div style="width:5rem">Type</div> | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | name                                       | ✓        |           | string   |                              | {{< crd-field-description SGDbOps.spec.vacuum.databases.items.name >}} |
 | full                                       |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.vacuum.databases.items.full >}} |
@@ -123,20 +123,20 @@ Holds scheduling configuration for StackGres pods to have.
 
 ## Restart
 
-| Property                                   | Required | Updatable | Type     | Default                      | Description |
+| <div style="width:4rem">Property</div>     | Required | Updatable | <div style="width:4rem">Type</div> | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.restart.method >}} |
 
 ## Security Upgrade
 
-| Property                                   | Required | Updatable | Type     | Default                      | Description |
+| <div style="width:10rem">Property</div>    | Required | Updatable | <div style="width:5rem">Type</div> | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.restart.method >}} |
 | onlyPendingRestart                         |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.restart.onlyPendingRestart >}} |
 
 ## Major Version Upgrade
 
-| Property                                   | Required | Updatable | Type     | Default                      | Description |
+| <div style="width:9rem">Property</div>     | Required | Updatable | <div style="width:5rem">Type</div> | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.minorVersionUpgrade.method >}} |
 | link                                       |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.link >}} |
@@ -148,7 +148,7 @@ Holds scheduling configuration for StackGres pods to have.
 
 ## Minor Version Upgrade
 
-| Property                                   | Required | Updatable | Type     | Default                      | Description |
+| <div style="width:4rem">Property</div>     | Required | Updatable | <div style="width:4rem">Type</div> | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.minorVersionUpgrade.method >}} |
 
@@ -191,7 +191,7 @@ Holds scheduling configuration for StackGres pods to have.
 | value                                      |          |           | number   |        0.00                  | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.average.value >}} |
 | unit                                       |          |           | string   |        ms                    | {{< crd-field-description SGDbOps.status.benchmark.pgbench.latency.average.unit >}} |
 
-###### Pgbench Status Latency Standard Deviation
+##### Pgbench Status Latency Standard Deviation
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
@@ -269,7 +269,9 @@ Holds scheduling configuration for StackGres pods to have.
 | switchoverFinalized                        |          |           | string   |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.switchoverFinalized >}} |
 | failure                                    |          |           | string   |                              | {{< crd-field-description SGDbOps.status.securityUpgrade.failure >}} |
 
-Example:
+## Example
+
+Example for a Pgbench benchmark:
 
 ```yaml
 apiVersion: stackgres.io/v1

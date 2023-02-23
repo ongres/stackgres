@@ -6,13 +6,16 @@ description: Details about how to enable DEBUG messages in the operator pods.
 showToc: true
 ---
 
-# Logs Levels
+# Log Levels
 
-One of the best option to debug StackGres is by setting logs levels. Logs levels affect logs of all the StackGres
- components. Logs level are divided into categories where each belongs a category tree. A tree level is defined
- by a `.` (point) (For example, category `io.stackgres` is a sub category of `io`). For each category we can set
- a log level like `INFO`, `DEBUG` or `TRACE` (see https://quarkus.io/guides/logging#logging-levels for a complete
- list). Here is a list of category for each component of StackGres:
+One of the best options to debug StackGres is by setting log levels.
+Log levels affect the logs of all StackGres components.
+
+Log levels are divided into categories where each belongs a category tree.
+A tree level is defined by a `.` (point).
+For example, the category `io.stackgres` is a sub category of `io`.
+For each category we can set a log level such as `INFO`, `DEBUG`, or `TRACE` (see https://quarkus.io/guides/logging#logging-levels for a complete list).
+Here is a list of categories for each StackGres component:
 
 | Component                    | Category                                  |
 |:-----------------------------|-------------------------------------------|
@@ -28,25 +31,24 @@ One of the best option to debug StackGres is by setting logs levels. Logs levels
 | fluentd                      | io.stackgres.fluentd                      |
 | prometheus-postgres-exporter | io.stackgres.prometheus-postgres-exporter |
 
-To set a log level for a category you can use the following command on the Operator deployment:
+To set a log level for a specific category you can use the following command on the operator deployment:
 
-```shell
+```bash
 kubectl set env -n stackgres deployment/stackgres-operator "APP_OPTS=-Dquarkus.log.category.\"$CATEGORY\".level=$LOG_LEVEL"
 ```
 
-To make the change effective for components of a running cluster you will have to restart it when the `PendingRestart`
- condition of the `SGCluster` CR becomes `true`.
+To see the effects of a change for components in a running Postgres cluster, you will have to restart it.
+The necessity to restart is indicated in the `PendingRestart` condition of the `SGCluster` resource.
 
-If you need to set log level for a category of the REST API Controller then use following command:
+If you need to a set log level in the REST API controller, use following command:
 
-```shell
+```bash
 kubectl set env -n stackgres deployment/stackgres-restapi "APP_OPTS=-Dquarkus.log.category.\"$CATEGORY\".level=$LOG_LEVEL"
 ```
 
-## Enable Operator, REST API Controller and Local Controllers HTTP Logs
+## Enable HTTP Logs
 
-Sometimes it comes handy in order to debug complex behaviour to being able to see what are sending and receiving
- operator, REST API Controller and Local Controllers components to Kubernetes API. Operator, REST API Controller
- and Local Controllers are based on Kubernetes client that uses [OkHttp](https://square.github.io/okhttp/) library
- to perform operations with the Kubernetes API. To enable HTTP logs and see what it is sent and what is received set
- the category `okhttp3.logging.HttpLoggingInterceptor` to level `TRACE`.
+Sometimes it is helpful to debug the HTTP requests that are sent to/from the operator, REST API controller, or local controllers.
+
+The operator, REST API controller, and local controllers are based on the Kubernetes client which uses the [OkHttp](https://square.github.io/okhttp/) library.
+To enable HTTP logs to see what it is sent and received, set the category `okhttp3.logging.HttpLoggingInterceptor` to `TRACE`.

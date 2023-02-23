@@ -9,6 +9,6 @@ url: install
 
 # Production Installation
 
-StackGres installation documentation for production environment.
+StackGres installation documentation for production environments.
 
 {{% children style="li" depth="1" description="true" %}}

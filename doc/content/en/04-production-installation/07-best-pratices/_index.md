@@ -6,9 +6,10 @@ description: Recommendations about how organize all configuration files.
 showToc: true
 ---
 
-A complete StackGres cluster configurations could be organized as a collections of files inside a directory, this files could be distributed according with the environments in your infrastructure.
+A complete StackGres cluster configuration should be organized as a collection of files inside a directory.
+These files can be organized according to your infrastructure's environments.
 
-The next example shows a file distribution with two environmens, production and staging. 
+This example shows a directory structure for two environmens, production and staging. 
 
 ```text
 stackgres/
@@ -44,23 +45,24 @@ stackgres/
         └── helmfile.yaml
 ```
 
-The directory structure consists of 4 main sections per environment.
+The directory structure consists of four sections, or directories, per environment.
 
-## **Cluster**
+## Cluster
 
-Mainly for the `SGCluster` manifest and other resources like Pod disruption budget and alerts definition specifically from that cluster. 
+This directory is mainly for the `SGCluster` manifest and other cluster-related resources such as pod disruption budgets and alert definitions.
 
-## **Configurations**
+## Configurations
 
-All manifest required by the `SGCluster` like postgres configurarion, pooling, instance profile, backups, logs and also `namespaces` and `StorageClasses`.
+This directory contains configuration required by the `SGCluster`, such as Postgres configurarion, pooling, instance profiles, backups, and distributed logs, but also Kubernetes namespaces or storage classes.
+The YAML files in this directory will be applied before the cluster resources.
+The file name numbering helps ensuring that the resources are created in the correct order.
 
-## **Maintenance jobs** 
+## Maintenance jobs 
 
-All day-2 operations manifest. 
+This directory contains all day-2 operation manifests. 
 
-## **Operator**
+## Operator
 
-StackGres operator installation manifest that can include any other operator installation required for for the k8s cluster like the prometheus operator.  
+This directory contains StackGres operator installation manifests that can include any other required operator installation configuration, for example the Prometheus operator definitions.
 
-
-You can see the full manifests definition examples [here.](https://gitlab.com/ongresinc/stackgres/-/tree/main/stackgres-k8s/examples/full_example)
+You can see full manifest definition examples [here](https://gitlab.com/ongresinc/stackgres/-/tree/main/stackgres-k8s/examples/full_example).

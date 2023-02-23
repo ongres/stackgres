@@ -1,19 +1,18 @@
 ---
-title: Create the more advanced Cluster
+title: Create a More Advanced Cluster
 weight: 6
 url: tutorial/complete-cluster/create-cluster
-description: Details about how to create the database cluster.
+description: Details about how to create a sophisticated database cluster.
 ---
 
+We're now ready to create a more "advanced" cluster. The main differences to the one created before will be:
+* We explicitly set the size (t-shirt size) of the cluster.
+* We specify custom Postgres and connection pooling (PgBouncer) configurations.
+* It performs automated backups, based on the backup configuration.
+* It automatically exports metrics to Prometheus. The web console embeds Grafana dashboards.
+* Logs are sent to the distributed logs server. The logs are shown in the web console.
 
-We're now completely ready to create a more "advanced" cluster. The main differences from the one created before will be:
-* That we have explicitly set the size (t-shirt size) of the cluster.
-* We have custom Postgres and connection pooling (PgBouncer) configurations.
-* It will have automated backups, based on the backup configuration.
-* It will export metrics to Prometheus automatically. Grafana dashboards will be visible from the embedded pane in the Web Console.
-* Logs will be sent to the distributed logs server, which will in turn show them in the Web Console.
-
-Create the file `sgcluster-cluster1.yaml` and apply the following YAML file:
+Create the file `sgcluster-cluster1.yaml` which references the custom configuration resources created before:
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -44,13 +43,14 @@ spec:
     disableClusterPodAntiAffinity: true
 ```
 
-and deploy to Kubernetes:
+and deploy it to Kubernetes:
 
 ```plain
 kubectl apply -f sgcluster-cluster1.yaml
 ```
 
-You may notice that in this ocassion the pods contain one extra container. This is due to the agent (FluentBit) used to export the logs to the distributed logs server. You can check both from `kubectl -n demo get pods --watch`:
+You may notice that now the pods contain one additional container.
+This is due to the agent (FluentBit) used to export the logs to the distributed logs server:
 
 ```
 $ kubectl -n demo get pods
@@ -60,13 +60,12 @@ hol-0                         7/7     Running   0          98s
 hol-1                         7/7     Running   0          72s
 ```
 
-as well as `kubectl -n demo describe sgcluster cluster` and the Web Console the status of the newly created cluster.
+You can display the configuration and status of the newly created cluster via `kubectl -n demo describe sgcluster cluster`, as well as the web console.
 
-
-From the Web Console:
+From the web console:
 
 ![Cluster Creation](cluster-creation.png "Cluster Creation")
 
-While the cluster is being created, you may notice a blip on the distributed logs server, where a container is
-restarted. This is a normal process, and does only pause temporarily the collection of logs (no logs are lost, since
-they are buffered on the source pods). This is caused by a re-configuration which requires a container restart.
+While the cluster is being created, you may notice a blip in the distributed logs server, where a container is restarted.
+This behavior is caused by a re-configuration which requires a container restart, and only temporarily pauses the log collection.
+No logs are lost, since they are buffered on the source pods.

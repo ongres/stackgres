@@ -6,11 +6,8 @@ description: Details about SGBackup configurations
 showToc: true
 ---
 
-## Creating a backup
-
-The backup CR represent a backup of the cluster. Backups are created automatically by the CronJob
- generated using the settings in [backup configuration](#configuration) or manually by creating a
- backup CR.
+The `SGBackup` custom resource represents a backup of the Postgres cluster.
+Backups are created automatically by a cron job configured using the settings in the [backup configuration](#configuration) or manually by creating a backup custom resource.
 
 ___
 
@@ -25,10 +22,10 @@ ___
 
 **Spec**
 
-| Property                 | Required | Updatable | Type     | Default | Description |
-|:-------------------------|----------|-----------|:---------|:--------|:------------|
-| sgCluster                | ✓        |           | string   |         | {{< crd-field-description SGBackup.spec.sgCluster >}} |
-| managedLifecycle |          | ✓         | booolean | false   | {{< crd-field-description SGBackup.spec.managedLifecycle >}} |
+| <div style="width:10rem">Property</div> | Required | Updatable | <div style="width:5rem">Type</div> | Default | Description |
+|:----------------------------------------|----------|-----------|:-----------------------------------|:--------|:------------|
+| sgCluster                               | ✓        |           | string                             |         | {{< crd-field-description SGBackup.spec.sgCluster >}} |
+| managedLifecycle                        |          | ✓         | booolean                           | false   | {{< crd-field-description SGBackup.spec.managedLifecycle >}} |
 
 
 Example:
@@ -137,10 +134,10 @@ status:
 
 ## Backup Configuration
 
-| Property                               | Required | Updatable |Type     | Default   | Description |
-|:---------------------------------------|----------|-----------|:--------|:----------|:------------|
-| compression                            |          | ✓         | string  | lz4       | {{< crd-field-description SGBackup.status.sgBackupConfig.compression >}} |
-| [storage](#storage-configuration)      |          | ✓         | object  |           | {{< crd-field-description SGBackup.status.sgBackupConfig.storage >}} |
+| <div style="width:8rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default   | Description |
+|:---------------------------------------|----------|-----------|:-----------------------------------|:----------|:------------|
+| compression                            |          | ✓         | string                             | lz4       | {{< crd-field-description SGBackup.status.sgBackupConfig.compression >}} |
+| [storage](#storage-configuration)      |          | ✓         | object                             |           | {{< crd-field-description SGBackup.status.sgBackupConfig.storage >}} |
 
 ## Storage Configuration
 
@@ -156,7 +153,7 @@ status:
 
 ### S3 - Amazon Web Services S3 configuration
 
-| Property                                           | Required | Updatable | Type    | Default | Description |
+| <div style="width:8rem">Property</div>             | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
 |:---------------------------------------------------|----------|-----------|:--------|:--------|:------------|
 | bucket                                             | ✓        | ✓         | string  |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.s3.bucket >}} |
 | path                                               |          | ✓         | string  |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.s3.path >}} |
@@ -166,7 +163,7 @@ status:
 
 ### S3 - Amazon Web Services S3 Compatible configuration
 
-| Property                                           | Required | Updatable | Type    | Default | Description |
+| <div style="width:14rem">Property</div>            | Required | Updatable | <div style="width:5rem">Type</div> | Default | Description |
 |:---------------------------------------------------|----------|-----------|:--------|:--------|:------------|
 | bucket                                             | ✓        | ✓         | string  |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.s3Compatible.bucket >}} |
 | path                                               |          | ✓         | string  |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.s3Compatible.path >}} |
@@ -191,11 +188,11 @@ status:
 
 ## GSC - Google Cloud Storage configuration
 
-| Property                           | Required | Updatable | Type   | Default | Description |
-|:-----------------------------------|----------|-----------|:-------|:--------|:------------|
-| bucket                             | ✓        | ✓         | string |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.gcs.bucket >}} |
-| path                               |          | ✓         | string |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.gcs.path >}} |
-| [gcpCredentials](#gcp-credentials) | ✓        | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.gcs.gcpCredentials >}} |
+| <div style="width:8rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
+|:---------------------------------------|----------|-----------|:-------|:--------|:------------|
+| bucket                                 | ✓        | ✓         | string |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.gcs.bucket >}} |
+| path                                   |          | ✓         | string |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.gcs.path >}} |
+| [gcpCredentials](#gcp-credentials)     | ✓        | ✓         | object |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.gcs.gcpCredentials >}} |
 
 ### GCP Credentials
 
@@ -212,7 +209,7 @@ status:
 
 ## AZURE - Azure Blob Storage configuration
 
-| Property                               | Required | Updatable | Type    | Default | Description |
+| <div style="width:9rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
 |:---------------------------------------|----------|-----------|:--------|:--------|:-------------|
 | bucket                                 | ✓        | ✓         | string  |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.azureBlob.bucket >}} |
 | path                                   |          | ✓         | string  |         | {{< crd-field-description SGBackup.status.sgBackupConfig.storage.azureBlob.path >}} |

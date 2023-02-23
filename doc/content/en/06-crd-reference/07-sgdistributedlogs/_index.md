@@ -6,13 +6,12 @@ description: Details about SGDistributedLogs configurations
 showToc: true
 ---
 
-## Creating a distributed logs cluster
+The `SGDistributedLogs` custom resource represents a distributed logs cluster.
+When a Postgres cluster is configured to use distributed logs, all logs from different sources will be forwarded to the distributed logs cluster.
+Under the hood, distributed log cluster use an `SGCluster`.
+Therefore, the distributed log cluster can be queried using SQL as well, for example using *postgres-util*.
 
-The distributed logs CR represent a distributed logs cluster. When a cluster is configured to use a
- distributed logs cluster it will forward all logs from different sources to the distributed logs cluster.
-Under the hood, distributed log cluster use a SGCluster, therefore the distributed log cluster could be receive SQL queries in a *postgres-util* fashion but not with it.
-
-For more information about distributed log usage please review the [Distributed Log Cluster Administration Guide](/administration/cluster/distributedlogs/)
+For more information about distributed log usage, please check out the [Distributed Logs Tutorial](/tutorial/complete-cluster/distributed-logs/).
 ___
 
 **Kind:** SGDistributedLogs
@@ -26,7 +25,7 @@ ___
 
 **Spec**
 
-| Property                                        | Required | Updatable | Type     | Default | Description |
+| <div style="width:12rem">Property</div>         | Required | Updatable | <div style="width:4rem">Type</div> | <div style="width:6rem">Default</div> | Description |
 |:------------------------------------------------|----------|-----------|:---------|:--------|:------------|
 | [persistentVolume](#persistent-volume)          | ✓        |           | string   |         | {{< crd-field-description SGDistributedLogs.spec.persistentVolume >}} |
 | [postgresServices](#postgres-services)          |          | ✓         | object   |         | {{< crd-field-description SGDistributedLogs.spec.postgresServices >}} |
@@ -50,7 +49,7 @@ spec:
 
 ## Persistent volume
 
-| Property                                   | Required | Updatable | Type     | Default                      | Description |
+| <div style="width:7rem">Property</div>     | Required | Updatable | <div style="width:4rem">Type</div> | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
 | size                                       | ✓        |           | string   |                              | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.size >}} |
 | storageClass                               |          |           | string   | default storage class        | {{< crd-field-description SGDistributedLogs.spec.persistentVolume.storageClass >}} |
@@ -97,25 +96,25 @@ spec:
 
 ### Scheduling
 
-Holds scheduling configuration for StackGres pods to have.
+Defines scheduling configuration for StackGres pods.
 
-| Property                      | Required | Updatable | Type     | Default        | Description |
-|:------------------------------|----------|-----------|:---------|:---------------|:------------|
-| nodeSelector                  |          | ✓         | object   |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeSelector >}} |
-| tolerations                   |          | ✓         | array    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
-| nodeAffinity                  |          | ✓         | object    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity >}} |
-| podAffinity                   |          | ✓         | object    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.podAffinity >}} |
-| podAntiAffinity               |          | ✓         | object    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.podAntiAffinity >}} |
+| <div style="width:8rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
+|:---------------------------------------|----------|-----------|:-----------------------------------|:--------|:------------|
+| nodeSelector                           |          | ✓         | object                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeSelector >}} |
+| tolerations                            |          | ✓         | array                              |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
+| nodeAffinity                           |          | ✓         | object                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity >}} |
+| podAffinity                            |          | ✓         | object                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.podAffinity >}} |
+| podAntiAffinity                        |          | ✓         | object                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.podAntiAffinity >}} |
 
 ### Configurations
 
-| Property                      | Required | Updatable | Type     | Default        | Description |
-|:------------------------------|----------|-----------|:---------|:---------------|:------------|
-| sgPostgresConfig              | ✓        | ✓         | string   |                | {{< crd-field-description SGDistributedLogs.spec.configurations.sgPostgresConfig >}} |
+| <div style="width:9rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default        | Description |
+|:---------------------------------------|----------|-----------|:---------|:---------------|:------------|
+| sgPostgresConfig                       | ✓        | ✓         | string   |                | {{< crd-field-description SGDistributedLogs.spec.configurations.sgPostgresConfig >}} |
 
 ### Metadata
 
-Holds custom metadata information for StackGres generated resources to have.
+Defines custom metadata for StackGres generated Kubernetes resources.
 
 | Property                      | Required | Updatable | Type     | Default        | Description |
 |:------------------------------|----------|-----------|:---------|:---------------|:------------|
@@ -123,7 +122,7 @@ Holds custom metadata information for StackGres generated resources to have.
 
 ### Annotations
 
-Holds custom annotations for StackGres generated resources to have.
+Defines custom annotations for StackGres generated Kubernetes resources.
 
 | Property                      | Required | Updatable | Type     | Default        | Description |
 |:------------------------------|----------|-----------|:---------|:---------------|:------------|
@@ -148,12 +147,12 @@ spec:
 
 The following options should NOT be enabled in a production environment.
 
-| Property                           | Required | Updatable | Type     | Default | Description |
-|:-----------------------------------|----------|-----------|:---------|:--------|:------------|
-| disableClusterPodAntiAffinity      |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} |
-| disablePatroniResourceRequirements |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disablePatroniResourceRequirements >}} |
-| disableClusterResourceRequirements |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disableClusterResourceRequirements >}} |
-| enableSetPatroniCpuRequests        |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.enableSetPatroniCpuRequests >}} |
-| enableSetClusterCpuRequests        |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.enableSetClusterCpuRequests >}} |
-| enableSetPatroniMemoryRequests     |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.enableSetPatroniMemoryRequests >}} |
-| enableSetClusterMemoryRequests     |          | ✓         | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.enableSetClusterMemoryRequests >}} |
+| <div style="width:19rem">Property</div> | Re&shy;quired | Up&shy;datable | <div style="width:5rem">Type</div> | <div style="width:4rem">Default</div> | Description |
+|:----------------------------------------|---------------|----------------|:---------|:--------|:------------|
+| disableClusterPodAntiAffinity           |               | ✓              | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disableClusterPodAntiAffinity >}} |
+| disablePatroniResourceRequirements      |               | ✓              | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disablePatroniResourceRequirements >}} |
+| disableClusterResourceRequirements      |               | ✓              | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.disableClusterResourceRequirements >}} |
+| enableSetPatroniCpuRequests             |               | ✓              | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.enableSetPatroniCpuRequests >}} |
+| enableSetClusterCpuRequests             |               | ✓              | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.enableSetClusterCpuRequests >}} |
+| enableSetPatroniMemoryRequests          |               | ✓              | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.enableSetPatroniMemoryRequests >}} |
+| enableSetClusterMemoryRequests          |               | ✓              | boolean  | false   | {{< crd-field-description SGDistributedLogs.spec.nonProductionOptions.enableSetClusterMemoryRequests >}} |

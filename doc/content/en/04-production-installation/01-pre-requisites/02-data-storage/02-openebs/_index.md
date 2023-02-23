@@ -5,16 +5,18 @@ url: install/prerequisites/storage/openebs
 description: "Details about how to install OpenEBS and how to configure it"
 ---
 
-[OpenEBS](https://docs.openebs.io/docs/next/overview.html) turns any storage available on the Kubernetes worker nodes into local or distributed Kubernetes Persistent Volumes.
+[OpenEBS](https://docs.openebs.io/docs/next/overview.html) turns any storage available on the Kubernetes worker nodes into local or distributed Kubernetes persistent volumes.
 
-OpenEBS Local and Distributed volumes are implemented using a collection of OpenEBS Data Engines. OpenEBS Control Plane integrates deeply into Kubernetes and uses Kubernetes to manage the provisioning, scheduling and maintenance of OpenEBS Volumes.
+OpenEBS Local and Distributed Volumes are implemented using a collection of OpenEBS Data Engines.
+OpenEBS Control Plane integrates deeply into Kubernetes and uses Kubernetes to manage the provisioning, scheduling and maintenance of OpenEBS volumes.
 
 
-## Add OpenEBS to Kubernetes Cluster
+## Adding OpenEBS to Kubernetes
 
-Only the basics steps to install and start to use OpenEBS will be shown, if you want to customize your installation, check the full documentation [here](https://docs.openebs.io/docs/next/quickstart.html#how-to-setup-and-use-openebs).
+Only the basics steps to install and start to use OpenEBS will be shown.
+If you want to customize your installation, check the full documentation [here](https://docs.openebs.io/docs/next/quickstart.html#how-to-setup-and-use-openebs).
 
-### Install OpenEBS using Helm
+### Installing OpenEBS Using Helm
 
 ```
 helm repo add openebs https://openebs.github.io/charts
@@ -22,7 +24,7 @@ helm repo update
 helm install openebs --namespace openebs openebs/openebs --create-namespace
 ```
 
-The helm chart will install the OpenEBS operator on the namespace `openebs`:
+The Helm chart will install the OpenEBS operator in the namespace `openebs`:
 
 ```bash
 kubectl get pods -n openebs
@@ -34,7 +36,7 @@ openebs-ndm-vnjgp                              1/1     Running   0          59m
 openebs-ndm-wznp6                              1/1     Running   0          59m
 ```
 
-And also will add two new StorageClasses:
+And also will add two storage classes:
 
 ```bash
 kubectl get storageclasses.storage.k8s.io -l "app.kubernetes.io/managed-by=Helm"
@@ -43,15 +45,15 @@ openebs-device     openebs.io/local   Delete          WaitForFirstConsumer   fal
 openebs-hostpath   openebs.io/local   Delete          WaitForFirstConsumer   false                  80m
 ```
 
-There are 2 ways to use OpenEBS Local PV.
+There are two ways to use OpenEBS Local PV.
 
-- **openebs-hostpath:** This option will create Kubernetes Persistent Volumes that will store the data into OS host path directory at: `/var/openebs/<"postgresql-pv-name">/.` Select this option, if you don’t have any additional block devices attached to Kubernetes nodes.
+- **openebs-hostpath:** This option will create Kubernetes persistent volumes that store the data into a host directory at: `/var/openebs/<"postgresql-pv-name">/.` Select this option, if you don’t have any additional block devices attached to the Kubernetes nodes.
 
-- **openebs-device:**  This option will create Kubernetes Local PVs using the block devices attached to the node. Select this option when you want to dedicate a complete block device on a node to a StackGres PostgreSQL application pod.
+- **openebs-device:**  This option will create Kubernetes local PVs using the block devices attached to the node. Select this option if you want to dedicate a complete block device on a node to a StackGres PostgreSQL application pod.
 
-## Check the available storage devices
+## Checking the Available Storage Devices
 
-To check the available devices execute:
+To check the available devices, execute:
 
 ```bash
 kubectl get blockdevices.openebs.io -n openebs
@@ -65,9 +67,11 @@ blockdevice-eda267ed... stackgres-demo-default-pool-7350ae65-kb6w   402653184000
 
 >**Note:** You can customize which devices will be discovered and managed by OpenEBS using the instructions [here](https://docs.openebs.io/docs/next/uglocalpv-device.html#optional-block-device-tagging).
 
-Now you'll be ready to create your StackGres cluster. Do not forget using a OpenEBS Storage Class according to your use case when you create a cluster, check the required parameters in [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}})
+Now you'll be ready to create your StackGres cluster.
+Don't forget using a OpenEBS Storage Class according to your use case when you create a cluster.
+You can check the required parameters in [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}).
 
-After you create your cluster you can check that the storage devices were claimed:
+After you've created your cluster, you can check that the storage devices were claimed:
 
 ```bash
 kubectl get blockdevices.openebs.io -n openebs
@@ -80,4 +84,3 @@ blockdevice-eda267ed... stackgres-demo-default-pool-7350ae65-kb6w   402653184000
 ```
 
 Check a full installation demo [here](https://docs.openebs.io/docs/next/postgres.html).
-

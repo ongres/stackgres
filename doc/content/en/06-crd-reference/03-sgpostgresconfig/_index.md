@@ -5,11 +5,9 @@ url: reference/crd/sgpgconfig
 description: Details about SGPostgresConfig configurations
 ---
 
-A PostgreSQL configuration CR represent the configuration of a specific PostgreSQL major
- version.
+The `SGPostgresConfig` custom resource represents the PostgreSQL configuration.
 
-Have a look at [postgresqlco.nf](https://postgresqlco.nf) to help you tune and optimize your
- PostgreSQL configuration.
+> Have a look at [postgresqlco.nf](https://postgresqlco.nf) to help you tune and optimize your PostgreSQL configuration.
 
 ___
 
@@ -24,12 +22,14 @@ ___
 
 **Spec**
 
-| Property        | Required | Updatable | Type   | Default   | Description |
-|:----------------|----------|-----------|:-------|:----------|:------------|
-| postgresVersion |          |           | string | 12        | {{< crd-field-description SGPostgresConfig.spec.postgresVersion >}} |
-| postgresql.conf |          | ✓         | object | see below | {{< crd-field-description "SGPostgresConfig.spec.postgresql\.conf" >}} |
+| <div style="width:9rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default   | Description |
+|:---------------------------------------|----------|-----------|:-----------------------------------|:----------|:------------|
+| postgresVersion                        |          |           | string                             | 12        | {{< crd-field-description SGPostgresConfig.spec.postgresVersion >}} |
+| postgresql.conf                        |          | ✓         | object                             | see below | {{< crd-field-description "SGPostgresConfig.spec.postgresql\.conf" >}} |
 
-Default value of `postgresql.conf` property:
+## Default Values
+
+These are the default values of the `postgresql.conf` property:
 
 ```yaml
 listen_addresses: localhost
@@ -100,7 +100,9 @@ pg_stat_statements.track_utility: off
 jit_inline_above_cost: -1
 ```
 
-Example:
+## Example
+
+`SGPostgresConfig` example:
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -116,12 +118,13 @@ spec:
     wal_compression: 'on'
 ```
 
-To guarantee a functional postgres configuration some of the parameters specified in
- [postgres configuration documentation](https://www.postgresql.org/docs/latest/runtime-config.html)
- have been added to the blocklisted and, if specified in the configuration, an error will be returned.
- The parameters that will not be allowed in the configuration are:
+## Blocklisted Parameters
 
-| blocklisted parameters   |
+To guarantee a functional Postgres configuration, some of the parameters specified in [Postgres configuration documentation](https://www.postgresql.org/docs/latest/runtime-config.html) have been blocklisted.
+If these are specified in the CR configuration, an error will be returned.
+The blocklisted parameters are:
+
+| Blocklisted Parameters   |
 |:-------------------------|
 | listen_addresses         |
 | port                     |

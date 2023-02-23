@@ -9,6 +9,6 @@ url: api
 
 # Operator API
 
-Operator Rest API to manipulate stackgres
+The StackGres operator offers a REST API to manipulate StackGres resources via HTTP.
 
 {{% children style="li" depth="2" description="true" %}}

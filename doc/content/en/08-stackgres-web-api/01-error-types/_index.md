@@ -8,41 +8,41 @@ description: Details about the Error Codes, PostgreSQL Blocklist settings, and f
 showToc: true
 ---
 
-The operator error responses follows the [RFC 7807](https://datatracker.ietf.org/doc/rfc7807/?include_text=1).
+The operator error responses follows the [RFC 7807 - Problem Details for HTTP APIs](https://datatracker.ietf.org/doc/rfc7807/?include_text=1).
 
-That means that all of error messages follows the following structure:
+That means that all error messages follow the following structure:
 
 ``` json
 {
-  "type": "https://StackGres.io/doc/<operator-version>/07-operator-api/01-error-types/#<error-type>",
+  "type": "https://StackGres.io/doc/<operator-version>/api/responses/#<error-type>",
   "title": "The title of the error message",
-  "detail": "A human readable description of what is the problem",
-  "field": "If applicable the field that is causing the issue"
+  "detail": "A human readable description of what the problem is",
+  "field": "If applicable, the field that is causing the issue"
 }
 ```
 
 ## Error types
 
-| Type | Summary |
-| ---- | ----------- |
-| [postgres-blocklist](#postgres-blocklist) | The postgres configuration that is trying to be created or update contains blocklisted parameters |
-| [postgres-major-version-mismatch](#postgres-major-version-mismatch) | The postgres configuration that you are using is targeted to a different major version that the one that your cluster has. |
-| [invalid-configuration-reference](#invalid-configuration-reference) | The StackGres cluster you are trying to create or update holds a reference to a custom resource that don't exists  |
-| [default-configuration](#default-configuration) | An attempt to update or delete a default configuration has been detected |
-| [forbidden-configuration-deletion](#forbidden-configuration-deletion) | You are attempting to delete a custom resource that cluster depends on it |
-| [forbidden-configuration-update](#forbidden-configuration-update) | You are attempting to update a custom resource that cluster depends on it |
-| [forbidden-cluster-update](#forbidden-cluster-update) | You are trying to update a cluster property that should not be updated |
-| [invalid-storage-class](#invalid-storage-class) | You are trying to create a cluster using a storage class that doesn't exists |
-| [constraint-violation](#constraint-violation) | One of the properties of the CR that you are creating or updating violates its syntactic rules. |
-| [forbidden-authorization](#forbidden-authorization) | You don't have the permisions to access the Kubernetes resource based on the RBAC rules. |
-| [invalid-secret](#invalid-secret) | You are trying to create a cluster using a secret that doesn't exists |
-| [extension-not-found](#extension-not-found) | Any of the default or configured extensions can not be found in extensions repository |
-| [already-exists](#already-exists) | The resource already exists |
-| [postgres-parameter](#postgres-parameter) | The postgres configuration contains invalid parameters |
+| Type                                                                  | Summary                                                                                                                    |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| [postgres-blocklist](#postgres-blocklist)                             | The Postgres configuration that is trying to be created or update contains blocklisted parameters                          |
+| [postgres-major-version-mismatch](#postgres-major-version-mismatch)   | The Postgres configuration that you are using is targeted to a different major version that the one that your cluster has. |
+| [invalid-configuration-reference](#invalid-configuration-reference)   | The StackGres cluster you are trying to create or update holds a reference to a custom resource that don't exists          |
+| [default-configuration](#default-configuration)                       | An attempt to update or delete a default configuration has been detected                                                   |
+| [forbidden-configuration-deletion](#forbidden-configuration-deletion) | You are attempting to delete a custom resource that cluster depends on it                                                  |
+| [forbidden-configuration-update](#forbidden-configuration-update)     | You are attempting to update a custom resource that cluster depends on it                                                  |
+| [forbidden-cluster-update](#forbidden-cluster-update)                 | You are trying to update a cluster property that should not be updated                                                     |
+| [invalid-storage-class](#invalid-storage-class)                       | You are trying to create a cluster using a storage class that doesn't exists                                               |
+| [constraint-violation](#constraint-violation)                         | One of the properties of the CR that you are creating or updating violates its syntactic rules.                            |
+| [forbidden-authorization](#forbidden-authorization)                   | You don't have the permisions to access the Kubernetes resource based on the RBAC rules.                                   |
+| [invalid-secret](#invalid-secret)                                     | You are trying to create a cluster using a secret that doesn't exists                                                      |
+| [extension-not-found](#extension-not-found)                           | Any of the default or configured extensions can not be found in extensions repository                                      |
+| [already-exists](#already-exists)                                     | The resource already exists                                                                                                |
+| [postgres-parameter](#postgres-parameter)                             | The Postgres configuration contains invalid parameters                                                                     |
 
 ## Postgres Blocklist
 
-Some postgres configuration properties are managed automatically by StackGres, therefore you cannot include them.
+Some Postgres configuration properties are managed automatically by StackGres, therefore you cannot include them.
 
 The blocklisted configuration properties are:
 

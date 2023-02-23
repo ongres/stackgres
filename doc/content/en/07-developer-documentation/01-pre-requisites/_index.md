@@ -1,13 +1,14 @@
 ---
-title: Pre-requisites
+title: Pre-Requisites
 weight: 1
 url: developer/prerequisites
 description: Details about the necessary tools to build and use StackGres.
 ---
 
-This core of the operator is built in pure-Java and uses the Quarkus framework crafted from the best of breed Java libraries and standards and compiled to native image using GraalVM.
+The core of the operator is written purely in Java and uses the Quarkus framework crafted from the best of breed Java libraries and standards.
+The Java runtime can be compiled into a native image using GraalVM.
 
-Some of the pre-requisites to start developing on StackGres are:
+You need the following to start developing on StackGres:
 
 * [Java OpenJDK](https://adoptium.net/) 11 or higher. Alternatively, you could use the JDK from GraalVM.
 * [GraalVM Community Edition](https://github.com/graalvm/graalvm-ce-builds/releases/tag/vm-21.0.0.2) 21.0.0 (Optional. Required for native image builds).
@@ -17,4 +18,5 @@ Some of the pre-requisites to start developing on StackGres are:
 * [Helm](https://helm.sh/docs/intro/install/) 3.6.0 or higher (Optional. Required for e2e tests outside of docker or installation of charts).
 * [Kind](https://github.com/kubernetes-sigs/kind) 0.11.1 or higher (Optional. Required for e2e tests).
 
-Since StackGres is a standard Maven project, you can use any IDE you like, our team uses Eclipse and/or IntelliJ IDEA.
+StackGres is a regular Maven project, and you can use any IDE you like.
+Our team uses Eclipse and/or IntelliJ IDEA.

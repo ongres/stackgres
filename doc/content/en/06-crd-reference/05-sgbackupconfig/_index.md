@@ -6,15 +6,14 @@ description: Details about SGBackupConfig configurations
 showToc: true
 ---
 
-**WARNING**: This CRD has been deprecated and replaced by [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}) CRD and a the new section
- `.spec.configurations.backups` in the [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}) CRD.
+**WARNING**: This CRD has been deprecated and is replaced by the [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}) CRD, specified by the new section `.spec.configurations.backups` in the [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}) CRD.
 
 ## Configuration
 
-Backup configuration allow to specify when and how backups are performed. By default this is done
- at 5am UTC in a window of 1 hour, you may change this value in order to perform backups for
- another time zone and period of time.
-The backup configuration CR represent the backups configuration of the cluster.
+Backup configuration allows to specify when and how backups are performed.
+By default, this is done at 5am UTC in a window of 1 hour.
+You may change this value in order to perform backups for another time zone and period of time.
+The `SGBackupConfig` custom resource represents the backup configuration of a Postgres cluster.
 
 ___
 
@@ -70,20 +69,20 @@ spec:
 
 ## Base Backups
 
-| Property                                 | Required | Updatable |Type     | Default   | Description |
-|:-----------------------------------------|----------|-----------|:--------|:----------|:------------|
-| retention                                |          | ✓         | integer | 5         | {{< crd-field-description SGBackupConfig.spec.baseBackups.retention >}} |
-| cronSchedule                             |          | ✓         | string  | 05:00 UTC | {{< crd-field-description SGBackupConfig.spec.baseBackups.cronSchedule >}} |
-| compression                              |          | ✓         | string  | lz4       | {{< crd-field-description SGBackupConfig.spec.baseBackups.compression >}} |
-| [performance](#base-backup-performance)  |          | ✓         | object  |           | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance >}} |
+| <div style="width:7rem">Property</div>   | Required | Updatable |<div style="width:5rem">Type</div> | <div style="width:5rem">Default</div> | Description |
+|:-----------------------------------------|----------|-----------|:----------------------------------|:--------------------------------------|:------------|
+| retention                                |          | ✓         | integer                           | 5                                     | {{< crd-field-description SGBackupConfig.spec.baseBackups.retention >}} |
+| cronSchedule                             |          | ✓         | string                            | 05:00 UTC                             | {{< crd-field-description SGBackupConfig.spec.baseBackups.cronSchedule >}} |
+| compression                              |          | ✓         | string                            | lz4                                   | {{< crd-field-description SGBackupConfig.spec.baseBackups.compression >}} |
+| [performance](#base-backup-performance)  |          | ✓         | object                            |                                       | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance >}} |
 
 ## Base Backup Performance
 
-| Property                               | Required | Updatable |Type     | Default   | Description |
-|:---------------------------------------|----------|-----------|:--------|:----------|:------------|
-| maxDiskBandwitdh                       |          | ✓         | integer | unlimited | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.maxDiskBandwitdh >}} |
-| maxNetworkBandwitdh                    |          | ✓         | integer | unlimited | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.maxNetworkBandwitdh >}} |
-| uploadDiskConcurrency                  |          | ✓         | integer | 1         | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.uploadDiskConcurrency >}} |
+| <div style="width:12rem">Property</div> | Required | Updatable | <div style="width:5rem">Type</div> | <div style="width:5rem">Default</div> | Description |
+|:----------------------------------------|----------|-----------|:-----------------------------------|:--------------------------------------|:------------|
+| maxDiskBandwitdh                        |          | ✓         | integer                            | unlimited                             | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.maxDiskBandwitdh >}} |
+| maxNetworkBandwitdh                     |          | ✓         | integer                            | unlimited                             | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.maxNetworkBandwitdh >}} |
+| uploadDiskConcurrency                   |          | ✓         | integer                            | 1                                     | {{< crd-field-description SGBackupConfig.spec.baseBackups.performance.uploadDiskConcurrency >}} |
 
 ## Storage Configuration
 
@@ -99,7 +98,7 @@ spec:
 
 ### S3 - Amazon Web Services S3 configuration
 
-| Property                                           | Required | Updatable | Type    | Default | Description |
+| <div style="width:8rem">Property</div>             | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
 |:---------------------------------------------------|----------|-----------|:--------|:--------|:------------|
 | bucket                                             | ✓        | ✓         | string  |         | {{< crd-field-description SGBackupConfig.spec.storage.s3.bucket >}} |
 | path                                               |          | ✓         | string  |         | {{< crd-field-description SGBackupConfig.spec.storage.s3.path >}} |
@@ -109,7 +108,7 @@ spec:
 
 ### S3 - Amazon Web Services S3 Compatible configuration
 
-| Property                                           | Required | Updatable | Type    | Default | Description |
+| <div style="width:14rem">Property</div>            | Required | Updatable | <div style="width:5rem">Type</div> | Default | Description |
 |:---------------------------------------------------|----------|-----------|:--------|:--------|:------------|
 | bucket                                             | ✓        | ✓         | string  |         | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.bucket >}} |
 | path                                               |          | ✓         | string  |         | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.path >}} |
@@ -121,7 +120,7 @@ spec:
 
 ### Amazon Web Services Credentials
 
-| Property                                                       | Required | Updatable | Type   | Default | Description |
+| <div style="width:10rem">Property</div>                        | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
 |:---------------------------------------------------------------|----------|-----------|:-------|:--------|:------------|
 | [secretKeySelectors](#amazon-web-services-secret-key-selector) | ✓        | ✓         | object |         | {{< crd-field-description SGBackupConfig.spec.storage.s3Compatible.awsCredentials.secretKeySelectors >}} |
 
@@ -134,11 +133,11 @@ spec:
 
 ## GSC - Google Cloud Storage configuration
 
-| Property                           | Required | Updatable | Type   | Default | Description |
-|:-----------------------------------|----------|-----------|:-------|:--------|:------------|
-| bucket                             | ✓        | ✓         | string |         | {{< crd-field-description SGBackupConfig.spec.storage.gcs.bucket >}} |
-| path                               |          | ✓         | string |         | {{< crd-field-description SGBackupConfig.spec.storage.gcs.path >}} |
-| [gcpCredentials](#gcp-credentials) | ✓        | ✓         | object |         | {{< crd-field-description SGBackupConfig.spec.storage.gcs.gcpCredentials >}} |
+| <div style="width:8rem">Property</div>| Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
+|:--------------------------------------|----------|-----------|:-------|:--------|:------------|
+| bucket                                | ✓        | ✓         | string |         | {{< crd-field-description SGBackupConfig.spec.storage.gcs.bucket >}} |
+| path                                  |          | ✓         | string |         | {{< crd-field-description SGBackupConfig.spec.storage.gcs.path >}} |
+| [gcpCredentials](#gcp-credentials)    | ✓        | ✓         | object |         | {{< crd-field-description SGBackupConfig.spec.storage.gcs.gcpCredentials >}} |
 
 ### GCP Credentials
 
@@ -155,7 +154,7 @@ spec:
 
 ## AZURE - Azure Blob Storage configuration
 
-| Property                               | Required | Updatable | Type    | Default | Description |
+| <div style="width:9rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
 |:---------------------------------------|----------|-----------|:--------|:--------|:-------------|
 | bucket                                 | ✓        | ✓         | string  |         | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob.bucket >}} |
 | path                                   |          | ✓         | string  |         | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob.path >}} |
@@ -163,7 +162,7 @@ spec:
 
 ### Azure Credentials
 
-| Property                                         | Required | Updatable | Type   | Default | Description |
+| <div style="width:10rem">Property</div>          | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
 |:-------------------------------------------------|----------|-----------|:-------|:--------|:------------|
 | [secretKeySelectors](#azure-secret-key-selector) | ✓        | ✓         | object |         | {{< crd-field-description SGBackupConfig.spec.storage.azureBlob.azureCredentials.secretKeySelectors >}} |
 

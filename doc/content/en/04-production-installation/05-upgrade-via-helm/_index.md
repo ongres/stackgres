@@ -2,19 +2,23 @@
 title: "Upgrade via Helm"
 weight: 5
 url: install/helm/upgrade
-description: Details how to use helm to upgrade the operator.
+description: Details how to use Helm to upgrade the operator.
 showToc: true
 ---
 
-## Upgrade StackGres Helm repository
+This section shows how to upgrade the StackGres operator using Helm.
+
+## Upgrading the StackGres Helm Repository
+
+Upgrade the Helm repository:
 
 ```bash
 helm repo update stackgres-charts
 ```
 
-## Upgrade Operator
+## Upgrading the StackGres Operator
 
-To upgrade the operator you may use the following command:
+Upgrade the StackGres operator:
 
 ```bash
 helm upgrade --namespace stackgres stackgres-operator \
@@ -22,30 +26,29 @@ helm upgrade --namespace stackgres stackgres-operator \
   stackgres-charts/stackgres-operator
 ```
 
->**Important note:** Do not use the `--reuse-values` option from Helm since it prevent the new operator helm chart to add new default values. Pass your installation params using the values file or setting the values directly in the command using `--set-string` or `--set` option.
+Adapt the values to your specific namespace, values, and chart name.
 
-The main recommendation is to pass the same installation values in the upgrade command or use a values.yaml file.
+> **Important:** Do not use the `--reuse-values` option of Helm since this prevents the operator Helm chart from adding new default values.
+> Pass your installation params using the values file, or set the values directly in the command using the `--set-string` or `--set` options.
 
-Upgrade of an operator can serve two purpose:
+It's recommended to pass the same values or the same `value.yaml` file at upgrade time that have been used at installation time.
+
+Upgrading an operator serves two purposes:
 
 * Configuration change: to enable or disable features or to change any parameter of the current installation
-* Operator upgrade: to upgrade to another version of the Operator
+* Operator upgrade: to upgrade to another version of the operator
 
-### Upgrade clusters
+### Upgrading Clusters
 
-After the upgrade completes any new cluster that will be created, will be created with the new
- updated components.
-Existing clusters will work using the previous version of the operator. They will be able to use
- some or all the features added in the new operator version and will receive bugfixes (may require
- a [cluster restart]({{% relref "06-crd-reference/09-sgdbops#restart" %}})). To make all the new
- functionalities that the new operator version brings a
- [cluster security upgrade]({{% relref "06-crd-reference/09-sgdbops#security-upgrade" %}}) have to
- be performed. There are two methods to perform such operation: in-place and reduced-impact.
- Both methods are essentially the same but reduced-impact allow to minimize throughput reduction
- for read-only connections (draining will not be applied here) or for read-write connections when
- a single node clusters is used.
+After the upgrade completes, any new cluster will be created with the updated components.
+Existing clusters will work using the previous version of the operator.
+They will be able to use some or all the features available in the new operator version and will receive bugfixes (this may require a [cluster restart]({{% relref "06-crd-reference/09-sgdbops#restart" %}})).
 
-### Ugrade clusters YAMLs
+To make use of all the functionalities available in the updated operator version, a [cluster security upgrade]({{% relref "06-crd-reference/09-sgdbops#security-upgrade" %}}) has to be performed.
+There are two methods to perform such operation: in-place and reduced-impact.
+Both methods are essentially the same but reduced-impact allow to minimize throughput reduction for read-only connections (draining will not be applied here) or for read-write connections when a single node clusters is used.
+
+### Upgrading Clusters YAMLs
 
 After the upgrade the StackGres custom resource YAMLs may receive some expected change. Each
  release note will describe those changes and in general there is no need to perform any action
@@ -58,10 +61,10 @@ If any unexpected behavior appear please, read the following sections that inclu
 #### 1.3.0
 
 * stackgres.io/v1/SGCluster:
-    * `.spec.configurations.sgBackupConfig` has been deprecated and replaced by `.spec.configurations.backups[0].sgObjectStorage`.
-    * `.spec.configurations.backupPath` has been deprecated and replaced by `.spec.configurations.backups[0].path`.
-    * `.spec.initialData.scripts` has been deprecated and replaced by `.spec.managedSql` and stackgres.io/v1/SGScript.
-* stackgres.io/v1/SGBackupConfig has been deprecated and replaced by stackgres.io/v1beta1/SGObjectStorage and the section `.spec.configurations.backups[0]` under stackgres.io/v1/SGCluster
+    * `.spec.configurations.sgBackupConfig` has been deprecated and is replaced by `.spec.configurations.backups[0].sgObjectStorage`.
+    * `.spec.configurations.backupPath` has been deprecated and is replaced by `.spec.configurations.backups[0].path`.
+    * `.spec.initialData.scripts` has been deprecated and is replaced by `.spec.managedSql` and stackgres.io/v1/SGScript.
+* stackgres.io/v1/SGBackupConfig has been deprecated and is replaced by stackgres.io/v1beta1/SGObjectStorage and the section `.spec.configurations.backups[0]` under stackgres.io/v1/SGCluster
 * stackgres.io/v1/SGInstanceProfile
     * `.spec.containers` and `.spec.initContainers` section with default memory and CPU resources requests and limits restrictions were added. Those resources requests and limits
      are applied by default to the cluster's Pods for new stackgres.io/v1/SGCluster. For existing stackgres.io/v1/SGCluster the field `.spec.nonProductionOptions.disableClusterResourceRequirements`
@@ -70,11 +73,11 @@ If any unexpected behavior appear please, read the following sections that inclu
 #### 1.2.0
 
 * stackgres.io/v1/SGBackup
-    * `.status.sgBackupConfig.baseBackups.performance.maxDiskBandwitdh` has been deprecated and replaced by `.status.sgBackupConfig.baseBackups.performance.maxDiskBandwidth`
-    * `.status.sgBackupConfig.baseBackups.performance.maxNetworkBandwitdh` has been deprecated and replaced by `.status.sgBackupConfig.baseBackups.performance.maxNetworkBandwidth`
+    * `.status.sgBackupConfig.baseBackups.performance.maxDiskBandwitdh` has been deprecated and is replaced by `.status.sgBackupConfig.baseBackups.performance.maxDiskBandwidth`
+    * `.status.sgBackupConfig.baseBackups.performance.maxNetworkBandwitdh` has been deprecated and is replaced by `.status.sgBackupConfig.baseBackups.performance.maxNetworkBandwidth`
 * stackgres.io/v1/SGBackupConfig
-    * `.spec.baseBackups.performance.maxDiskBandwitdh` has been deprecated and replaced by `.spec.baseBackups.performance.maxDiskBandwidth`
-    * `.spec.baseBackups.performance.maxNetworkBandwitdh` has been deprecated and replaced by `.spec.baseBackups.performance.maxNetworkBandwidth`
+    * `.spec.baseBackups.performance.maxDiskBandwitdh` has been deprecated and is replaced by `.spec.baseBackups.performance.maxDiskBandwidth`
+    * `.spec.baseBackups.performance.maxNetworkBandwitdh` has been deprecated and is replaced by `.spec.baseBackups.performance.maxNetworkBandwidth`
 * stackgres.io/v1/SGCluster:
     * `.status.labelPrefix` with default value of an empty string.
 * stackgres.io/v1/SGDistributedLogs:

@@ -24,7 +24,7 @@ spec:
   memory: "8Gi"
 ```
 
-and deploy to Kubernetes:
+and deploy it to Kubernetes:
 
 ```bash
 kubectl apply -f sginstanceprofile-small.yaml
@@ -32,17 +32,15 @@ kubectl apply -f sginstanceprofile-small.yaml
 
 You may create other instance profiles with other sizes if you wish.
 
-You can list the created (available) instance profiles from the Web Console or via:
+You can list the created (available) instance profiles from the web console or via:
 
 ```bash
 $ kubectl -n demo get sginstanceprofiles
 ```
 
-An Instance Profile enforces resource requests and limits for the container where Patroni and Postgres will setting the
- Pod resource using for both requests and limits the values of `cpu` and `memory`. It also enforces resource requests
- for all the other containers under the section `.spec.containers` and `.spec.initContainers`. Those sections are filled
- with default values based on the value os `cpu` and `memory` that have been specified and can be later tuned depending
- on the resource consumption of your particular use case. 
+An instance profile enforces resource requests and limits for the container where Patroni and Postgres will set the Pod resource using the `cpu` and `memory` values for both requests and limits.
+It also enforces resource requests for all the other containers under the section `.spec.containers` and `.spec.initContainers`.
+Those sections contain the default values specified by `cpu` and `memory`, and can be tuned later depending on the requirements of your particular use case.
 You may use `kubectl describe` on the created resource to inspect the values that are injected (tuned by default):
 
 ```bash

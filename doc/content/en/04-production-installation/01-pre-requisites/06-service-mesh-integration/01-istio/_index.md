@@ -3,16 +3,17 @@ title: Istio
 weight: 1
 url: install/prerequisites/services-mesh-integration/istio
 description: |
-  Details about how to work in a k8s cluster with Istio
+  Details about how to work in a K8s cluster with Istio
 showToc: true
 ---
 
-StackGres already has an implementation of Envoy, the sidecar injected by Istio (istio-proxy) it's not compatible at the moment.
-In a k8s cluster with Istio installed you just only need to Annotate the StackGres cluster to avoid the sidecar injection from Istio.
+StackGres already uses an Envoy sidecar container.
+The sidecar injected by Istio (`istio-proxy`) is not compatible with StackGres pods at the moment.
+In a Kubernetes cluster with Istio installed, you need to annotate the StackGres cluster to avoid Istio's sidecar injection.
 
-## Annotate StackGres pods
+## Annotate StackGres Pods
 
-Before you create a StackGres cluster make sure you add the annotation `sidecar.istio.io/inject: 'false'` to the pods as is shown below:
+Before you create a StackGres cluster, make sure you add the annotation `sidecar.istio.io/inject: 'false'` to the pods, as shown below:
 
 ```
 apiVersion: stackgres.io/v1
@@ -30,5 +31,4 @@ spec:
   instances: 3
 ```
 
-This will avoid your pods enter in a `CrashLoopBackOff` state.
-
+This will avoid that your pods enter a `CrashLoopBackOff` state.

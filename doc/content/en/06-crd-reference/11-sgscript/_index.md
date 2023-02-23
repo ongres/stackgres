@@ -6,11 +6,7 @@ description: Details about SGScript configurations
 showToc: true
 ---
 
-## Configuration
-
-SGScript holds a series of versioned SQL scripts.
-
-The SGScript represents a ordered list of SQL scripts.
+The `SGScript` custom resource represents an ordered list of versioned SQL scripts.
 
 ___
 
@@ -61,15 +57,15 @@ spec:
 
 ## Script entry
 
-| Property                   | Required | Updatable | Type     | Default  | Description |
-|:---------------------------|----------|-----------|:---------|:---------|:------------|
-| name                       |          | ✓         | string   |          | {{< crd-field-description SGScript.spec.scripts.items.name >}} |
-| id                         |          |           | integer  |          | {{< crd-field-description SGScript.spec.scripts.items.id >}} |
-| version                    |          | ✓         | integer  |          | {{< crd-field-description SGScript.spec.scripts.items.version >}} |
-| database                   |          | ✓         | string   | postgres | {{< crd-field-description SGScript.spec.scripts.items.database >}} |
-| user                       |          | ✓         | string   | postgres | {{< crd-field-description SGScript.spec.scripts.items.user >}} |
-| script                     |          | ✓         | string   |          | {{< crd-field-description SGScript.spec.scripts.items.script >}} |
-| [scriptFrom](#script-from) |          | ✓         | object   |          | {{< crd-field-description SGScript.spec.scripts.items.scriptFrom >}} |
+| <div style="width:6rem">Property</div> | Required | Updatable | <div style="width:5rem">Type</div> | <div style="width:5rem">Default</div> | Description |
+|:---------------------------------------|----------|-----------|:---------|:---------|:------------|
+| name                                   |          | ✓         | string   |          | {{< crd-field-description SGScript.spec.scripts.items.name >}} |
+| id                                     |          |           | integer  |          | {{< crd-field-description SGScript.spec.scripts.items.id >}} |
+| version                                |          | ✓         | integer  |          | {{< crd-field-description SGScript.spec.scripts.items.version >}} |
+| database                               |          | ✓         | string   | postgres | {{< crd-field-description SGScript.spec.scripts.items.database >}} |
+| user                                   |          | ✓         | string   | postgres | {{< crd-field-description SGScript.spec.scripts.items.user >}} |
+| script                                 |          | ✓         | string   |          | {{< crd-field-description SGScript.spec.scripts.items.script >}} |
+| [scriptFrom](#script-from)             |          | ✓         | object   |          | {{< crd-field-description SGScript.spec.scripts.items.scriptFrom >}} |
 
 ### Script from
 
