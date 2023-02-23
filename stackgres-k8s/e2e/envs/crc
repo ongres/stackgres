@@ -25,7 +25,7 @@ then
   K8S_VERSION=1.22.3
 fi
 export K8S_CRC_CPUS="${K8S_CRC_CPUS:-4}"
-export K8S_CRC_MEMORY="${K8S_CRC_MEMORY:-18432}"
+export K8S_CRC_MEMORY="${K8S_CRC_MEMORY:-9216}"
 export K8S_CRC_DISK="${K8S_CRC_DISK:-60}"
 
 get_k8s_env_version() {
