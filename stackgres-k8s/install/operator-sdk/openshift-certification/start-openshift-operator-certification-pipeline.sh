@@ -10,9 +10,9 @@ mkdir -p "$TARGET_PATH"
 
 if [ ! -f "$TARGET_PATH"/setup-completed ]
 then
-  E2E_ENV=crc CRC_ENABLE_DAEMON=true sh -x ../../stackgres-k8s/e2e/e2e delete_k8s || true
-  rm "$TARGET_PATH"/start-completed
-  rm "$TARGET_PATH"/install-openshift-pipelines-operator-rh-completed
+  E2E_ENV=crc CRC_ENABLE_DAEMON=true sh -x "$PROJECT_PATH"/stackgres-k8s/e2e/e2e delete_k8s || true
+  rm -f "$TARGET_PATH"/start-completed
+  rm -f "$TARGET_PATH"/install-openshift-pipelines-operator-rh-completed
   if [ -n "$CRC_BACKUP_PATH" ] && [ -d "$CRC_BACKUP_PATH" ]
   then
     rm -rf ~/.crc
@@ -36,11 +36,16 @@ else
   echo
 fi
 
+alias oc="~/.crc/bin/oc/oc"
+
 if [ ! -f "$TARGET_PATH"/start-completed ]
 then
+  rm -f "$TARGET_PATH"/install-openshift-pipelines-operator-rh-completed
   E2E_ENV=crc CRC_ENABLE_DAEMON=true sh -x "$PROJECT_PATH"/stackgres-k8s/e2e/e2e reset_k8s
   touch "$TARGET_PATH"/start-completed
 else
+  oc project default
+
   echo
   echo "To restart CRC remove following file:"
   echo "$(pwd)/$TARGET_PATH/start-completed"
@@ -51,8 +56,9 @@ fi
 if ! kubectl get ns certification > /dev/null 2>&1
 then
   oc adm new-project certification
-  oc project certification
 fi
+
+oc project certification
 
 oc delete secret kubeconfig || true
 oc create secret generic kubeconfig --from-file=kubeconfig="$HOME/.kube/config"
@@ -67,12 +73,11 @@ oc adm policy add-scc-to-user anyuid -z pipeline
 
 if [ ! -f "$TARGET_PATH"/install-openshift-pipelines-operator-rh-completed ]
 then
-  rm "$TARGET_PATH"/install-openshift-pipelines-operator-rh-completed
   LATEST_OPENSHIFT_PIPELINES_OPERATOR_CSV="$(
   oc get packagemanifests openshift-pipelines-operator-rh \
       --template '{{ range .status.channels }}{{ if eq .name "latest" }}{{ .currentCSV }}{{ "\n" }}{{ end }}{{ end }}')"
 
-  cat << EOF | kubectl create -f -
+  cat << EOF | kubectl apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -91,18 +96,29 @@ EOF
   yq -y '.
       | del(.spec.tasks[0].taskref.bundle)
       | del(.spec.tasks[2].taskRef.bundle)
-      | del(.spec.tasks[3].taskRef.bundle)' \
+      | del(.spec.tasks[3].taskRef.bundle)
+      | .spec.params = (.spec.params | map(if has("type") then . else .type = "string" end))
+      ' \
     "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/community-signing-pipeline.yml \
     > "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/community-signing-pipeline.yml.tmp
   mv "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/community-signing-pipeline.yml.tmp \
     "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/community-signing-pipeline.yml
   yq -y '.
       | del(.spec.tasks[19].taskRef.bundle)
-      | del(.spec.tasks[20].taskRef.bundle)' \
+      | del(.spec.tasks[20].taskRef.bundle)
+      | .spec.params = (.spec.params | map(if has("type") then . else .type = "string" end))
+      ' \
     "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/operator-release-pipeline.yml \
     > "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/operator-release-pipeline.yml.tmp
   mv "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/operator-release-pipeline.yml.tmp \
     "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/operator-release-pipeline.yml
+  yq -y '.
+      | .spec.params = (.spec.params | map(if has("type") then . else .type = "string" end))
+      ' \
+    "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/operator-ci-pipeline.yml \
+    > "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/operator-ci-pipeline.yml.tmp
+  mv "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/operator-ci-pipeline.yml.tmp \
+    "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/operator-ci-pipeline.yml
   until kubectl get crd pipelines.tekton.dev > /dev/null 2>&1 \
     && kubectl get crd tasks.tekton.dev > /dev/null 2>&1
   do
@@ -124,7 +140,7 @@ EOF
     --scheduled \
     --confirm \
     --all > /dev/null
-  touch "$TARGET_PATH"/start-completed
+  touch "$TARGET_PATH"/install-openshift-pipelines-operator-rh-completed
 else
   echo
   echo "To reinstall openshift-pipelines-operator-rh remove following file:"
