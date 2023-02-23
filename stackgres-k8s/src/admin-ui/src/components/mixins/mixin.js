@@ -1072,8 +1072,8 @@ export const mixin = {
         let modifier = 0;
 
         crontab[1] = parseInt( crontab[1] ) + ( tzOffset * ( toLocal ? 1 : -1 ) ); // Set opposite offset if converting to UTC
-
-        if(!crontab[1].isInteger) {
+        
+        if(!Number.isInteger(crontab[1])) {
           
           // Fix minutes offset if in timezone with 30/45min offsets
           if (isParsable(crontab[0])) {
