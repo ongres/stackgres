@@ -103,7 +103,7 @@ build helm packages:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
         --extract helm-packages:stackgres-k8s/install/helm/target/packages \
-        helm-packages helm-operator-openshift-bundle
+        helm-packages helm-operator-bundle helm-operator-openshift-bundle
   retry: 2
   artifacts:
     expire_in: 1 week

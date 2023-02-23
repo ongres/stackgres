@@ -2,5 +2,14 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/charts.stackgres.io_stackgresoperators.yaml
+- bases/SGConfig.yaml
+- bases/SGBackup.yaml
+- bases/SGCluster.yaml
+- bases/SGDbOps.yaml
+- bases/SGDistributedLogs.yaml
+- bases/SGInstanceProfile.yaml
+- bases/SGPoolingConfig.yaml
+- bases/SGPostgresConfig.yaml
+- bases/SGObjectStorage.yaml
+- bases/SGScript.yaml
 #+kubebuilder:scaffold:crdkustomizeresource

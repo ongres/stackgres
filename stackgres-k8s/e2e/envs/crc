@@ -17,6 +17,7 @@
 # Download CRC pull secret from https://console.redhat.com/openshift/create/local to "$HOME/.crc/pull-secret"
 #
 CRC_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
+CRC_ENABLE_DAEMON="${CRC_ENABLE_DAEMON:-true}"
 
 if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
 then
@@ -24,7 +25,7 @@ then
   K8S_VERSION=1.22.3
 fi
 export K8S_CRC_CPUS="${K8S_CRC_CPUS:-4}"
-export K8S_CRC_MEMORY="${K8S_CRC_MEMORY:-18432}"
+export K8S_CRC_MEMORY="${K8S_CRC_MEMORY:-9216}"
 export K8S_CRC_DISK="${K8S_CRC_DISK:-60}"
 
 get_k8s_env_version() {
@@ -221,7 +222,7 @@ crc_start_debug_node() {
   NODE="$(kubectl get node -o name)"
   NODE="$(printf '%s' "$NODE" | head -n 1)"
   screen -dmS crc-debug -L -Logfile "$HOME/.crc/crc-debug.log" \
-    ~/.crc/bin/oc/oc debug -q "$NODE" -- sh -c 'while true; do sleep 300; done'
+    ~/.crc/bin/oc/oc debug -n default -q "$NODE" -- sh -c 'while true; do sleep 300; done'
 
   wait_until crc_run_on_node true
 }
@@ -232,7 +233,7 @@ crc_run_on_node() {
   NODE="$(printf '%s' "$NODE" | head -n 1)"
 
   PID="$(kubectl exec "${NODE#node/}-debug" -- sh -c \
-    'for FILE in /proc/[0-9]*; do cat "$FILE/cmdline" 2>/dev/null | tr "\0" " " | grep -q "^kubelet " && echo "${FILE##*/}" && exit; done')"
+    'for FILE in /proc/[0-9]*; do cat "$FILE/cmdline" 2>/dev/null | tr "\0" " " | grep -q "^\([^ ]*/\)\?kubelet " && echo "${FILE##*/}" && exit; done')"
   kubectl exec -i "${NODE#node/}-debug" -- \
     nsenter --target "$PID" --mount --uts --ipc --net --pid "$@"
 }

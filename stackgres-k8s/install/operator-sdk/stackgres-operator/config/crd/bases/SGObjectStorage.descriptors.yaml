@@ -1,0 +1,43 @@
+specDescriptors:
+  s3.awsCredentials.secretKeySelectors.accessKeyId:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  s3.awsCredentials.secretKeySelectors.accessKeyId.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  s3.awsCredentials.secretKeySelectors.secretAccessKey:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  s3.awsCredentials.secretKeySelectors.secretAccessKey.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  s3Compatible.awsCredentials.secretKeySelectors.accessKeyId:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  s3Compatible.awsCredentials.secretKeySelectors.accessKeyId.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  azureBlob.azureCredentials.secretKeySelectors.storageAccount:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  azureBlob.azureCredentials.secretKeySelectors.storageAccount.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  azureBlob.azureCredentials.secretKeySelectors.accessKey:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  azureBlob.azureCredentials.secretKeySelectors.accessKey.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret

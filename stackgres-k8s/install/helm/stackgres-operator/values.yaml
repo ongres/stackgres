@@ -3,7 +3,7 @@ imagePullPolicy: "IfNotPresent"
 operator:
   image:
     name: "stackgres/operator"
-    tag: "main-1.4-jvm"
+    tag: "1.4.3"
     pullPolicy: "IfNotPresent"
   annotations: {}
   affinity: {}
@@ -18,7 +18,7 @@ restapi:
   name: stackgres-restapi
   image:
     name: "stackgres/restapi"
-    tag: "main-1.4-jvm"
+    tag: "1.4.3"
     pullPolicy: "IfNotPresent"
   resources: {}
   affinity: {}
@@ -33,7 +33,7 @@ jobs:
   name: stackgres-jobs
   image:
     name: "stackgres/jobs"
-    tag: "main-1.4-jvm"
+    tag: "1.4.3"
     pullPolicy: "IfNotPresent"
   resources: {}
   annotations: {}
@@ -44,7 +44,7 @@ adminui:
   name: stackgres-adminui
   image:
     name: "stackgres/admin-ui"
-    tag: "main-1.4"
+    tag: "1.4.3"
     pullPolicy: "IfNotPresent"
   resources: {}
   service:
@@ -168,7 +168,8 @@ extensions:
   repositoryUrls:
   - https://extensions.stackgres.io/postgres/repository
   cache:
-    enabled: false
+    enabled: false # This feature is in beta and may cause failures, please use with caution and report any error to 
+                   #   https://gitlab.com/ongresinc/stackgres/-/issues/new
     preloadedExtensions:
     - x86_64/linux/timescaledb-1\.7\.4-pg12
     persistentVolume:

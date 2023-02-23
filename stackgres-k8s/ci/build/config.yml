@@ -172,7 +172,7 @@ modules:
     type: jvm-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8/openjdk-17:1.14-10
+    target_image: registry.access.redhat.com/ubi8/openjdk-17:1.14-10.1675788279
     dockerfile: &jvm-image-args
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.jvm
       args:
@@ -227,7 +227,7 @@ modules:
     type: ui-image
     platform_dependent: true
     path: stackgres-k8s/src/admin-ui
-    target_image: registry.access.redhat.com/ubi8/nginx-120:1-84
+    target_image: registry.access.redhat.com/ubi8/nginx-120:1-92
     dockerfile:
       path: stackgres-k8s/src/admin-ui/docker/Dockerfile
       args:
@@ -241,7 +241,7 @@ modules:
     type: native-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8-minimal:8.7-1049
+    target_image: registry.access.redhat.com/ubi8-minimal:8.7-1049.1675784874
     dockerfile: &native-image-args
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.native
       args:
@@ -320,6 +320,40 @@ modules:
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-templates.sh
     artifacts:
       - stackgres-k8s/install/helm/target/templates
+  helm-operator-bundle:
+    type: operator-bundle
+    target_image: alpine:3.13.10
+    sources:
+      - stackgres-k8s/install/operator-sdk/stackgres-operator
+    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.16
+    build_commands:
+      - make -C stackgres-k8s/install/operator-sdk/stackgres-operator bundle
+    artifacts:
+      - stackgres-k8s/install/operator-sdk/stackgres-operator/bundle
+      - stackgres-k8s/install/operator-sdk/stackgres-operator/watches.yaml
+  helm-operator-image:
+    type: helm-operator-image
+    platform_dependent: true
+    path: stackgres-k8s/install/operator-sdk/stackgres-operator
+    target_image: quay.io/operator-framework/helm-operator:v1.26.0
+    dockerfile:
+      path: stackgres-k8s/install/operator-sdk/stackgres-operator/Dockerfile
+      args:
+        BASE_IMAGE: $TARGET_IMAGE_NAME
+    artifacts:
+      - stackgres-k8s/install/operator-sdk/stackgres-operator
+      - stackgres-k8s/install/helm/stackgres-operator
+  helm-operator-bundle-image:
+    type: helm-operator-image
+    platform_dependent: true
+    path: stackgres-k8s/install/operator-sdk/stackgres-operator
+    target_image: scratch
+    dockerfile:
+      path: stackgres-k8s/install/operator-sdk/stackgres-operator/Dockerfile.bundle
+      args:
+        BASE_IMAGE: $TARGET_IMAGE_NAME
+    artifacts:
+      - stackgres-k8s/install/operator-sdk/stackgres-operator
   helm-operator-openshift-bundle:
     type: operator-bundle
     target_image: alpine:3.13.10
@@ -330,6 +364,7 @@ modules:
       - make -C stackgres-k8s/install/operator-sdk/stackgres-operator bundle-openshift
     artifacts:
       - stackgres-k8s/install/operator-sdk/stackgres-operator/bundle
+      - stackgres-k8s/install/operator-sdk/stackgres-operator/watches.yaml
   helm-operator-openshift-image:
     type: helm-operator-image
     platform_dependent: true
@@ -342,6 +377,17 @@ modules:
     artifacts:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
       - stackgres-k8s/install/helm/stackgres-operator
+  helm-operator-openshift-bundle-image:
+    type: helm-operator-image
+    platform_dependent: true
+    path: stackgres-k8s/install/operator-sdk/stackgres-operator
+    target_image: scratch
+    dockerfile:
+      path: stackgres-k8s/install/operator-sdk/stackgres-operator/Dockerfile.bundle
+      args:
+        BASE_IMAGE: $TARGET_IMAGE_NAME
+    artifacts:
+      - stackgres-k8s/install/operator-sdk/stackgres-operator
   documentation:
     type: documentation
     target_image: alpine:3.13.10
@@ -401,6 +447,10 @@ stages:
   - distributedlogs-controller-native-image: distributedlogs-controller-native
   - helm-packages: null
   - helm-templates: null
+  - helm-operator-bundle: helm-packages
+  - helm-operator-image: helm-operator-bundle
+  - helm-operator-bundle-image: helm-operator-bundle
   - helm-operator-openshift-bundle: helm-packages
   - helm-operator-openshift-image: helm-operator-openshift-bundle
+  - helm-operator-openshift-bundle-image: helm-operator-openshift-bundle
   - documentation: stackgres-restapi
