@@ -398,27 +398,27 @@
                         <div class="flex-center cron" data-field="spec.configurations.backups.cronSchedule">
                             <div class="col">
                                 <label for="backupConfigFullScheduleMin" title="Minute *">Minute <span class="req">*</span></label>
-                                <input v-model="cronSchedule[0].min" required id="backupConfigFullScheduleMin" @change="updateCronSchedule(0)">
+                                <input v-model="cronSchedule[0].min" required id="backupConfigFullScheduleMin" @change="updateCronSchedule(0)" data-tzdep="true">
                             </div>
 
                             <div class="col">
                                 <label for="backupConfigFullScheduleHour" title="Hour *">Hour <span class="req">*</span></label>
-                                <input v-model="cronSchedule[0].hour" required id="backupConfigFullScheduleHour" @change="updateCronSchedule(0)">
+                                <input v-model="cronSchedule[0].hour" required id="backupConfigFullScheduleHour" @change="updateCronSchedule(0)" data-tzdep="true">
                             </div>
 
                             <div class="col">
                                 <label for="backupConfigFullScheduleDOM" title="Day of Month *">Day of Month <span class="req">*</span></label>
-                                <input v-model="cronSchedule[0].dom" required id="backupConfigFullScheduleDOM" @change="updateCronSchedule(0)">
+                                <input v-model="cronSchedule[0].dom" required id="backupConfigFullScheduleDOM" @change="updateCronSchedule(0)" data-tzdep="true">
                             </div>
 
                             <div class="col">
                                 <label for="backupConfigFullScheduleMonth" title="Month *">Month <span class="req">*</span></label>
-                                <input v-model="cronSchedule[0].month" required id="backupConfigFullScheduleMonth" @change="updateCronSchedule(0)">
+                                <input v-model="cronSchedule[0].month" required id="backupConfigFullScheduleMonth" @change="updateCronSchedule(0)" data-tzdep="true">
                             </div>
 
                             <div class="col">
                                 <label for="backupConfigFullScheduleDOW" title="Day of Week *">Day of Week <span class="req">*</span></label>
-                                <input v-model="cronSchedule[0].dow" required id="backupConfigFullScheduleDOW" @change="updateCronSchedule(0)">
+                                <input v-model="cronSchedule[0].dow" required id="backupConfigFullScheduleDOW" @change="updateCronSchedule(0)" data-tzdep="true">
                             </div>
                         </div>
                         <br/>
@@ -1978,6 +1978,8 @@
         data: function() {
 
             const vm = this;
+            let tzCrontab = ( (store.state.timezone == 'local') ? vm.tzCrontab('0 5 * * *') : '0 5 * * *' ).split(' ');
+            
 
             return {
                 previewCRD: {},
@@ -2123,11 +2125,11 @@
                     sgObjectStorage: ''
                 }],
                 cronSchedule: [{
-                    min: '0',
-                    hour: '5',
-                    dom: '*',
-                    month: '*',
-                    dow: '*'
+                    min: tzCrontab[0],
+                    hour: tzCrontab[1],
+                    dom: tzCrontab[2],
+                    month: tzCrontab[3],
+                    dow: tzCrontab[4],
                 }],
             }
 
