@@ -594,6 +594,10 @@ $(document).ready(function(){
       let field = $(this).data('field');
       $('[data-field="' + field + '"]').removeClass('notValid');
 
+      if($(this).is(':radio') && $(this).parents('.optionBoxes')) {
+        $(this).parents('.optionBoxes').find('[required]').removeAttr('required')
+      }
+
       if($(this).parent('.timeSelect'))
         $(this).siblings('select').removeClass('notValid');
 

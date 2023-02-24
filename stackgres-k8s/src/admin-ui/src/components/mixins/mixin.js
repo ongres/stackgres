@@ -1246,10 +1246,10 @@ export const mixin = {
         let isValid = true;
         
         $('[required]').each(function() {
-          if ( !$(this).val() || ($(this).is(':checkbox') && !$(this).is(':checked')) ) {
+          if ( !$(this).val() || ( ($(this).is(':checkbox') || $(this).is(':radio')) && !$(this).is(':checked')) ) {
             $(this).addClass("notValid");
 
-            if($(this).is(':checkbox')) {
+            if($(this).is(':checkbox') || $(this).is(':radio')) {
               $(this).parent('label').addClass('notValid');
             }
             isValid = false;
