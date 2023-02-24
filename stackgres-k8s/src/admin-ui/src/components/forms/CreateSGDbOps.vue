@@ -40,7 +40,7 @@
                         <template v-for="operation in ['benchmark', 'vacuum', 'repack', 'securityUpgrade', 'minorVersionUpgrade', 'majorVersionUpgrade', 'restart']">
                             <label class="dbopIcon" :class="[operation, ( (op == operation) && 'active' )]" :for="operation" data-field="spec.op">
                                 {{ splitUppercase(operation) }}
-                                <input type="radio" v-model="op" data-field="spec.op" :value="operation" :id="operation">
+                                <input type="radio" required v-model="op" data-field="spec.op" :value="operation" :id="operation">
                             </label>
                         </template>
                     </div>
