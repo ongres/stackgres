@@ -35,7 +35,9 @@ helm install stackgres-operator stackgres-k8s/install/helm/stackgres-operator \
 ```
 
 This will install StackGres excluding the StackGres operator deployment.
-The `stackgres-operator` service will not point to a pod but instead to `172.17.0.1:8443` (served by the local Java process or dev mode we're about to start):
+The `stackgres-operator` service will not point to a pod but instead to `172.17.0.1:8443` (served by the local Java process or dev mode we're about to start).
+
+> You might need to adjust the IP address `172.17.0.1`, depending on your Docker and Kubernetes environment.
 
 ```bash
 $ kubectl get deployments -n stackgres
