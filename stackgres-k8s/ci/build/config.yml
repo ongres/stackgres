@@ -493,26 +493,26 @@ modules:
     <<: *restapi-jvm-image
     type: jvm-release-image
     artifacts:
-      <<: *operator-jvm-image-artifacts
-      999: stackgres-k8s/src/operator/pom.xml
+      <<: *restapi-jvm-image-artifacts
+      999: stackgres-k8s/src/restapi/pom.xml
   jobs-jvm-release-image:
     <<: *jobs-jvm-image
     type: jvm-release-image
     artifacts:
-      <<: *operator-jvm-image-artifacts
-      999: stackgres-k8s/src/operator/pom.xml
+      <<: *jobs-jvm-image-artifacts
+      999: stackgres-k8s/src/jobs/pom.xml
   cluster-controller-jvm-release-image:
     <<: *cluster-controller-jvm-image
     type: jvm-release-image
     artifacts:
-      <<: *operator-jvm-image-artifacts
-      999: stackgres-k8s/src/operator/pom.xml
+      <<: *cluster-controller-jvm-image-artifacts
+      999: stackgres-k8s/src/cluster-controller/pom.xml
   distributedlogs-controller-jvm-release-image:
     <<: *distributedlogs-controller-jvm-image
     type: jvm-release-image
     artifacts:
-      <<: *operator-jvm-image-artifacts
-      999: stackgres-k8s/src/operator/pom.xml
+      <<: *distributedlogs-controller-jvm-image-artifacts
+      999: stackgres-k8s/src/distributedlogs-controller/pom.xml
   admin-ui-release-image:
     <<: *admin-ui-image
     type: ui-image
