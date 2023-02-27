@@ -1,0 +1,15 @@
+specDescriptors:
+  scheduling.nodeAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:nodeAffinity'
+  scheduling.podAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAffinity'
+  scheduling.podAntiAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAntiAffinity'
+
+specIgnore:
+- scheduling.nodeAffinity
+- scheduling.podAffinity
+- scheduling.podAntiAffinity

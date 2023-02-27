@@ -1,0 +1,13 @@
+specDescriptors:
+  scripts.scriptFrom.secretKeyRef:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  scripts.scriptFrom.secretKeyRef.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  scripts.scriptFrom.configMapKeyRef:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:ConfigMap'
+  scripts.scriptFrom.configMapKeyRef:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:ConfigMap

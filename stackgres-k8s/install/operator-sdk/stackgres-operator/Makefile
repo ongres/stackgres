@@ -3,7 +3,8 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-STACKGRES_VERSION ?= $(shell sh ../../../../stackgres-k8s/ci/build/version.sh)
+PROJECT_DIR ?= ../../../..
+STACKGRES_VERSION ?= $(shell sh $(PROJECT_DIR)/stackgres-k8s/ci/build/version.sh)
 VERSION = $(shell echo $(STACKGRES_VERSION) | tr A-Z a-z)
 IMAGE_TAG ?= $(VERSION)
 HELM_OPERATOR_BASE_IMAGE ?= quay.io/operator-framework/helm-operator:v1.26.0
@@ -14,6 +15,13 @@ BUNDLE_BASE_IMAGE ?= scratch
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
 # - use the CHANNELS as arg of the bundle target (e.g make bundle CHANNELS=candidate,fast,stable)
 # - use environment variables to overwrite this value (e.g export CHANNELS="candidate,fast,stable")
+ifeq ($(findstring -RC,$(STACKGRES_VERSION)), -RC)
+  CHANNELS ?= candidate
+else ifeq ($(findstring -,$(STACKGRES_VERSION)), -)
+  CHANNELS ?= fast
+else
+  CHANNELS ?= stable
+endif
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
 endif
@@ -23,6 +31,7 @@ endif
 # To re-generate a bundle for any other default channel without changing the default setup, you can:
 # - use the DEFAULT_CHANNEL as arg of the bundle target (e.g make bundle DEFAULT_CHANNEL=stable)
 # - use environment variables to overwrite this value (e.g export DEFAULT_CHANNEL="stable")
+DEFAULT_CHANNEL ?= stable
 ifneq ($(origin DEFAULT_CHANNEL), undefined)
 BUNDLE_DEFAULT_CHANNEL := --default-channel=$(DEFAULT_CHANNEL)
 endif
@@ -37,7 +46,7 @@ IMAGE_TAG_BASE ?= quay.io/stackgres/helm-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
-BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
+BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:$(VERSION)
 
 # BUNDLE_GEN_FLAGS are the flags passed to the operator-sdk generate bundle command
 BUNDLE_GEN_FLAGS ?= -q --overwrite --version $(VERSION) $(BUNDLE_METADATA_OPTS)
@@ -81,7 +90,7 @@ run: helm-operator ## Run against the configured Kubernetes cluster in ~/.kube/c
 
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	docker build -t ${IMG} -f Dockerfile --build-arg BASE_IMAGE=$(HELM_OPERATOR_BASE_IMAGE) ../../../..
+	docker build -t ${IMG} -f Dockerfile --build-arg BASE_IMAGE=$(HELM_OPERATOR_BASE_IMAGE) $(PROJECT_DIR)
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -160,8 +169,17 @@ endif
 
 .PHONY: bundle
 bundle: kustomize ## Generate bundle manifests and metadata, then validate generated files.
-	sed 's/\$${VERSION}/$(VERSION)/g' config/manifests/bases/stackgres-operator.clusterserviceversion.template.yaml > config/manifests/bases/stackgres-operator.clusterserviceversion.yaml
-	sed 's/\$${VERSION}/$(VERSION)/g' config/manager/kustomization.template.yaml > config/manager/kustomization.yaml
+	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/manifests/bases/stackgres-operator.clusterserviceversion.template.yaml)\nEOF")" \
+		> config/manifests/bases/stackgres-operator.clusterserviceversion.yaml
+	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/manager/kustomization.template.yaml)\nEOF")" \
+		> config/manager/kustomization.yaml
+	cp -a "$(PROJECT_DIR)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
+	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/crd/kustomization.template.yaml)\nEOF")" \
+		> config/crd/kustomization.yaml
+	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" eval "$$(printf "cat << EOF\n$$(cat config/manager/manager.template.yaml)\nEOF")" \
+		> config/manager/manager.yaml
+	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat watches.template.yaml)\nEOF")" \
+		> watches.yaml
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle $(BUNDLE_GEN_FLAGS)
@@ -169,15 +187,24 @@ bundle: kustomize ## Generate bundle manifests and metadata, then validate gener
 
 .PHONY: bundle-openshift
 bundle-openshift: IMAGE_TAG := $(IMAGE_TAG)-openshift
+bundle-openshift: OPENSHIFT_BUNDLE := true
 bundle-openshift: bundle
-	sed 's/\$${VERSION}/$(VERSION)/g' openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.template.yaml > openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml
-	yq -y -s '.[0] * .[1]' bundle/manifests/stackgres-operator.clusterserviceversion.yaml openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml > bundle/manifests/stackgres-operator.clusterserviceversion.yaml.bak && mv bundle/manifests/stackgres-operator.clusterserviceversion.yaml.bak bundle/manifests/stackgres-operator.clusterserviceversion.yaml
-	yq -y -s '.[0] * .[1]' bundle/metadata/annotations.yaml openshift-operator-bundle/metadata/annotations.yaml > bundle/metadata/annotations.yaml.bak && mv bundle/metadata/annotations.yaml.bak bundle/metadata/annotations.yaml
+	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.template.yaml)\nEOF")" \
+		> openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml
+	yq -y -s '.[0] * .[1]' \
+		bundle/manifests/stackgres-operator.clusterserviceversion.yaml \
+		openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml \
+		> bundle/manifests/stackgres-operator.clusterserviceversion.yaml.bak && mv bundle/manifests/stackgres-operator.clusterserviceversion.yaml.bak bundle/manifests/stackgres-operator.clusterserviceversion.yaml
+	yq -y -s '.[0] * .[1]' \
+		bundle/metadata/annotations.yaml \
+		openshift-operator-bundle/metadata/annotations.yaml \
+		> bundle/metadata/annotations.yaml.bak
+	mv bundle/metadata/annotations.yaml.bak bundle/metadata/annotations.yaml
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
-	docker build -f Dockerfile.bundle -t $(BUNDLE_IMG) --build-arg BASE_IMAGE="$(BUNDLE_BASE_IMAGE)" ../../../..
+	docker build -f Dockerfile.bundle -t $(BUNDLE_IMG) --build-arg BASE_IMAGE="$(BUNDLE_BASE_IMAGE)" $(PROJECT_DIR)
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
@@ -204,7 +231,7 @@ endif
 BUNDLE_IMGS ?= $(BUNDLE_IMG)
 
 # The image tag given to the resulting catalog image (e.g. make catalog-build CATALOG_IMG=example.com/operator-catalog:v0.2.0).
-CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:v$(VERSION)
+CATALOG_IMG ?= $(IMAGE_TAG_BASE)-catalog:$(VERSION)
 
 # Set CATALOG_BASE_IMG to an existing catalog image tag to add $BUNDLE_IMGS to that image.
 ifneq ($(origin CATALOG_BASE_IMG), undefined)

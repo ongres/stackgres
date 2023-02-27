@@ -16,41 +16,44 @@
       export IMAGE_PUSH_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}$IMAGE_PUSH_TAG_SUFFIX"
       [ -n "$IMAGE_NAME" ]
       export IMAGE_PULL_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:$IMAGE_TAG"
-      export IMAGE_PUSH_NAME="docker.io/$IMAGE_NAME:$IMAGE_PUSH_TAG"
-      ARCH_LIST="amd64 $(
-        if [ "$DO_ARM" = true ] \
-          || { [ "$SKIP_ARM" != true ] && [ -n "$CI_COMMIT_TAG" ]; }
-        then
-          echo arm64
-        fi
-        )"
-      for ARCH in $ARCH_LIST
+      for IMAGE_PUSH_REGISTRY in docker.io quay.io
       do
-        docker pull "$IMAGE_PULL_NAME-$ARCH"
-        docker tag "$IMAGE_PULL_NAME-$ARCH" "$IMAGE_PUSH_NAME-$ARCH"
-      done
-      if docker manifest inspect "$IMAGE_PUSH_NAME" >/dev/null 2>&1
-      then
-        docker pull registry.gitlab.com/ongresinc/stackgres/placeholder
-        docker tag registry.gitlab.com/ongresinc/stackgres/placeholder "$IMAGE_PUSH_NAME"
-      fi
-      mv ~/.docker/config.json ~/.docker/gitlab.json
-      mv "$REGISTRY_AUTH_FILE" ~/.docker/config.json
-      for ARCH in $ARCH_LIST
-      do
-        docker push "$IMAGE_PUSH_NAME-$ARCH"
-      done
-      if docker manifest inspect "$IMAGE_PUSH_NAME" >/dev/null 2>&1
-      then
-        docker push "$IMAGE_PUSH_NAME"
-      fi
-      docker manifest rm "$IMAGE_PUSH_NAME" 2>/dev/null || true
-      docker manifest create "$IMAGE_PUSH_NAME" $(
+        export IMAGE_PUSH_NAME="$IMAGE_PUSH_REGISTRY/$IMAGE_NAME:$IMAGE_PUSH_TAG"
+        ARCH_LIST="amd64 $(
+          if [ "$DO_ARM" = true ] \
+            || { [ "$SKIP_ARM" != true ] && [ -n "$CI_COMMIT_TAG" ]; }
+          then
+            echo arm64
+          fi
+          )"
         for ARCH in $ARCH_LIST
         do
-          echo "$IMAGE_PUSH_NAME-$ARCH "
-        done)
-      docker manifest push "$IMAGE_PUSH_NAME"
+          docker pull "$IMAGE_PULL_NAME-$ARCH"
+          docker tag "$IMAGE_PULL_NAME-$ARCH" "$IMAGE_PUSH_NAME-$ARCH"
+        done
+        if docker manifest inspect "$IMAGE_PUSH_NAME" >/dev/null 2>&1
+        then
+          docker pull registry.gitlab.com/ongresinc/stackgres/placeholder
+          docker tag registry.gitlab.com/ongresinc/stackgres/placeholder "$IMAGE_PUSH_NAME"
+        fi
+        mv ~/.docker/config.json ~/.docker/gitlab.json
+        mv "$REGISTRY_AUTH_FILE" ~/.docker/config.json
+        for ARCH in $ARCH_LIST
+        do
+          docker push "$IMAGE_PUSH_NAME-$ARCH"
+        done
+        if docker manifest inspect "$IMAGE_PUSH_NAME" >/dev/null 2>&1
+        then
+          docker push "$IMAGE_PUSH_NAME"
+        fi
+        docker manifest rm "$IMAGE_PUSH_NAME" 2>/dev/null || true
+        docker manifest create "$IMAGE_PUSH_NAME" $(
+          for ARCH in $ARCH_LIST
+          do
+            echo "$IMAGE_PUSH_NAME-$ARCH "
+          done)
+        docker manifest push "$IMAGE_PUSH_NAME"
+      done
   retry: 2
   only:
     variables:
@@ -124,10 +127,32 @@ deploy distributedlogs-controller native image:
   variables:
     IMAGE_NAME: "stackgres/distributedlogs-controller"
 
-deploy adminui image:
+deploy admin-ui image:
   extends: .deploy native image
   variables:
     IMAGE_NAME: "stackgres/admin-ui"
+
+deploy helm operator image:
+  extends: .deploy image
+  variables:
+    IMAGE_NAME: "stackgres/helm-operator"
+
+deploy helm operator bundle image:
+  extends: .deploy image
+  variables:
+    IMAGE_NAME: "stackgres/helm-operator-bundle"
+
+deploy helm operator openshift image:
+  extends: .deploy image
+  variables:
+    IMAGE_NAME: "stackgres/helm-operator"
+    IMAGE_PUSH_TAG_SUFFIX: "-openshift"
+
+deploy helm operator openshift bundle image:
+  extends: .deploy image
+  variables:
+    IMAGE_NAME: "stackgres/helm-operator-bundle"
+    IMAGE_PUSH_TAG_SUFFIX: "-openshift"
 
 deploy helm packages and templates:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME

@@ -1,0 +1,15 @@
+apiVersion: stackgres.io/v1
+kind: SGPostgresConfig
+metadata:
+  namespace: demo-db
+  name: pgconfig
+spec:
+  postgresVersion: "15"
+  postgresql.conf:
+    shared_buffers: '3GB'
+    max_connections: '600'
+    work_mem: '16MB'
+    effective_cache_size: '5GB'
+    log_min_duration_statement: '1000'
+    hot_standby_feedback: 'on'
+    maintenance_work_mem: '2GB'

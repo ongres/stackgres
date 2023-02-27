@@ -362,3 +362,117 @@ release admin-ui image multi archs:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+
+.release helm operator image amd64:
+  extends: .release image
+  tags:
+    - stackgres-runner-v2
+    - linux-amd64
+  variables:
+    IMAGE_SUFFIX: '-release-amd64'
+  only:
+    variables:
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+
+.release helm operator image arm64:
+  extends: .release image
+  tags:
+    - stackgres-runner-v2
+    - linux-arm64
+  variables:
+    IMAGE_SUFFIX: '-release-arm64'
+    IMAGE_BASE_NAME: stackgres/helm-operator
+  only:
+    variables:
+      - $SKIP_DEPLOY != "true" && $SKIP_ARM != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
+      - $SKIP_DEPLOY != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+
+release helm operator image amd64:
+  extends: .release helm operator image amd64
+  variables:
+    LOCK_FILE: stackgres-helm-operator-build-image
+    IMAGE_MODULE_NAME: helm-operator-image
+
+release helm operator image arm64:
+  extends: .release helm operator image arm64
+  variables:
+    LOCK_FILE: stackgres-helm-operator-build-image
+    IMAGE_MODULE_NAME: helm-operator-image
+
+release helm operator bundle image amd64:
+  extends: .release helm operator image amd64
+  variables:
+    IMAGE_BASE_NAME: stackgres/helm-operator-bundle
+    LOCK_FILE: stackgres-helm-operator-bundle-build-image
+    IMAGE_MODULE_NAME: helm-operator-bundle-image
+
+release helm operator bundle image arm64:
+  extends: .release helm operator image arm64
+  variables:
+    IMAGE_BASE_NAME: stackgres/helm-operator-bundle
+    LOCK_FILE: stackgres-helm-operator-bundle-build-image
+    IMAGE_MODULE_NAME: helm-operator-bundle-image
+
+release helm operator openshift image amd64:
+  extends: .release helm operator image amd64
+  variables:
+    IMAGE_SUFFIX: '-release-openshift-amd64'
+    LOCK_FILE: stackgres-helm-operator-openshift-build-image
+    IMAGE_MODULE_NAME: helm-operator-openshift-image
+
+release helm operator openshift image arm64:
+  extends: .release helm operator image arm64
+  variables:
+    IMAGE_SUFFIX: '-release-openshift-arm64'
+    LOCK_FILE: stackgres-helm-operator-openshift-build-image
+    IMAGE_MODULE_NAME: helm-operator-openshift-image
+
+release helm operator openshift bundle image amd64:
+  extends: .release helm operator image amd64
+  variables:
+    IMAGE_SUFFIX: '-release-openshift-amd64'
+    IMAGE_BASE_NAME: stackgres/helm-operator-bundle
+    LOCK_FILE: stackgres-helm-operator-openshift-bundle-build-image
+    IMAGE_MODULE_NAME: helm-operator-openshift-bundle-image
+
+release helm operator openshift bundle image arm64:
+  extends: .release helm operator image arm64
+  variables:
+    IMAGE_SUFFIX: '-release-openshift-arm64'
+    IMAGE_BASE_NAME: stackgres/helm-operator-bundle
+    LOCK_FILE: stackgres-helm-operator-openshift-bundle-build-image
+    IMAGE_MODULE_NAME: helm-operator-openshift-bundle-image
+
+.release helm operator image multi archs:
+  extends: .release image multi archs
+  tags:
+    - stackgres-runner-v2
+  variables:
+    IMAGE_SUFFIX: '-release'
+    IMAGE_BASE_NAME: stackgres/helm-operator
+  only:
+    variables:
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
+      - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_DEPLOY
+
+release helm operator image multi archs:
+  extends: .release helm operator image multi archs
+
+release helm operator bundle image multi archs:
+  extends: .release helm operator image multi archs
+  variables:
+    IMAGE_BASE_NAME: stackgres/helm-operator-bundle
+
+release helm operator openshift image multi archs:
+  extends: .release helm operator image multi archs
+  variables:
+    IMAGE_SUFFIX: '-release-openshift'
+
+release helm operator openshift bundle image multi archs:
+  extends: .release helm operator image multi archs
+  variables:
+    IMAGE_SUFFIX: '-release-openshift'
+    IMAGE_BASE_NAME: stackgres/helm-operator-bundle
