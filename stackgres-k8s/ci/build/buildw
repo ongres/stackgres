@@ -2,30 +2,43 @@
 PROJECT_PATH="$(realpath "$(dirname "$0")/../../..")"
 CONTAINER_NAME="${CONTAINER_NAME:-buildw-$(printf '%x' "$(date +%s)")}"
 env > "/tmp/$CONTAINER_NAME.env"
-IMAGE="${IMAGE:-registry.gitlab.com/ongresinc/stackgres/ci:1.14-$(uname -m)}"
+IMAGE="${IMAGE:-registry.gitlab.com/ongresinc/stackgres/$(yq -r '.variables.SG_CI_IMAGE_NAME' "$PROJECT_PATH"/.gitlab-ci.yml)-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)}"
 # shellcheck disable=SC2046
-docker run $(docker run -it "$IMAGE" true > /dev/null 2>&1 && printf '%s' -i || true) -t \
-  --network bridge \
-  --rm --name "$CONTAINER_NAME" \
-  -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
-  -v /etc/shadow:/etc/shadow:ro -v /etc/gshadow:/etc/gshadow:ro \
-  $(
-  if [ "$(uname -s)" != Darwin ]
-  then
-    cat << EOF
-  -u "$(id -u):$(id -g)" $(id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/')
-EOF
-  fi
-  ) \
-  --env-file "/tmp/$CONTAINER_NAME.env" \
-  -v /tmp:/tmp \
-  -v '/var/run/docker.sock:/var/run/docker.sock:rw' \
-  -v "$HOME":"$HOME":rw \
-  -e HOME="$HOME" \
-  -e PROMPT_COMMAND= \
-  -v "$PROJECT_PATH:/project:rw" -w /project \
-  "$IMAGE" \
-  sh -ec "$*"
+if [ "$(uname -s)" != Darwin ]
+then
+  docker run $(docker run -it "$IMAGE" true > /dev/null 2>&1 && printf '%s' -i || true) -t \
+    --network bridge \
+    --rm --name "$CONTAINER_NAME" \
+    -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
+    -v /etc/shadow:/etc/shadow:ro -v /etc/gshadow:/etc/gshadow:ro \
+    -u "$(id -u):$(id -g)" $(id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/') \
+    --env-file "/tmp/$CONTAINER_NAME.env" \
+    -v /tmp:/tmp \
+    -v '/var/run/docker.sock:/var/run/docker.sock:rw' \
+    -v "$HOME":"$HOME":rw \
+    -e HOME="$HOME" \
+    -e PROMPT_COMMAND= \
+    -e PROJECT_PATH="$(pwd)" \
+    -v "$PROJECT_PATH:/project:rw" -w /project \
+    "$IMAGE" \
+    sh -ec "$*"
+else
+  docker run $(docker run -it "$IMAGE" true > /dev/null 2>&1 && printf '%s' -i || true) -t \
+    --network bridge \
+    --rm --name "$CONTAINER_NAME" \
+    -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
+    -v /etc/shadow:/etc/shadow:ro -v /etc/gshadow:/etc/gshadow:ro \
+    --env-file "/tmp/$CONTAINER_NAME.env" \
+    -v /tmp:/tmp \
+    -v '/var/run/docker.sock:/var/run/docker.sock:rw' \
+    -v "$HOME":"$HOME":rw \
+    -e HOME="$HOME" \
+    -e PROMPT_COMMAND= \
+    -e PROJECT_PATH="$(pwd)" \
+    -v "$PROJECT_PATH:/project:rw" -w /project \
+    "$IMAGE" \
+    sh -ec "$*"
+fi
 EXIT_CODE="$?"
-rm -f "/tmp/$CONTAINER_NAME.env"
+#rm -f "/tmp/$CONTAINER_NAME.env"
 exit "$EXIT_CODE"

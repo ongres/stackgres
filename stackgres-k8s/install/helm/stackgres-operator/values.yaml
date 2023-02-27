@@ -169,7 +169,8 @@ extensions:
   repositoryUrls:
   - https://extensions.stackgres.io/postgres/repository
   cache:
-    enabled: false
+    enabled: false # This feature is in beta and may cause failures, please use with caution and report any error to 
+                   #   https://gitlab.com/ongresinc/stackgres/-/issues/new
     preloadedExtensions:
     - x86_64/linux/timescaledb-1\.7\.4-pg12
     persistentVolume:

@@ -1,0 +1,7 @@
+specDescriptors:
+  sgCluster:
+    displayName: Target SGCluster
+statusDescriptors:
+  process.status:
+    x-descriptors:
+    - 'urn:alm:descriptor:io.kubernetes.phase'
