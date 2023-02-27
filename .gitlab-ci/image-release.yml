@@ -371,6 +371,7 @@ release admin-ui image multi archs:
     - linux-amd64
   variables:
     IMAGE_SUFFIX: '-release-amd64'
+    IMAGE_BASE_NAME: stackgres/helm-operator
   only:
     variables:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
