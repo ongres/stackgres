@@ -1,16 +1,17 @@
 ---
-title: PGBadger reports
+title: PgBadger Reports
 weight: 1
 url: runbooks/pgbadger-reports
-description: Details about how to generate a pgbadger report from the distributed logs server.
+description: Details about how to generate a pgBadger report from the distributed logs server.
 showToc: true
 ---
 
-This tutorial expects that you have pgbadger installed on your machine. Check the [installation procedure](http://pgbadger.darold.net/documentation.html#INSTALLATION) to get it running properly.
+This tutorial expects that you have pgBadger installed on your machine.
+Check the [installation procedure](http://pgbadger.darold.net/documentation.html#INSTALLATION) to get it running properly.
 
-## Before you start
+## Before You Start
 
-Before start, be sure that you have a `SGCluster` runing that is using a `SGDistributedLogs` server, like below:
+Before you start, be sure that you have an StackGres cluster running that is configured to use a distributed logs server, like below:
 
 ```yaml
 ---
@@ -23,12 +24,12 @@ spec:
   persistentVolume:
     size: 20Gi
 ```
-> Remember to change the `size` according with your needs.
+> Change the `size` according to your needs.
 
 
-### PostgreSQL Configuration for PGBadger
+### PostgreSQL Configuration for PgBadger
 
-To generate a pgbadger report, a few configuration parameters are necessary:
+To generate a pgBadger report, a few configuration parameters are necessary:
 
 ```yaml
 ---
@@ -53,11 +54,11 @@ spec:
     log_autovacuum_min_duration: '0'
 ```
 
-Check [pgbadger documentation](http://pgbadger.darold.net/documentation.html#POSTGRESQL-CONFIGURATION) for more tails about the necessary parameters to setup Postgres.
+Check the [pgBadger documentation](http://pgbadger.darold.net/documentation.html#POSTGRESQL-CONFIGURATION) for more tails about the necessary parameters to setup Postgres.
 
 ### Cluster configuration
 
-The final `SGCluster` should be something like this:
+The final StackGres cluster should be something like this:
 
 ```yaml
 ---
@@ -74,16 +75,16 @@ spec:
     sgDistributedLogs: my-distributed-logs
 ```
 
-## Exporting the log files into CSV
+## Exporting the Log Files into CSV
 
 Execute the command below to locate the pod of the distributed log server:
 
 ```bash
-kubectl get pods -o name -l distributed-logs-name=my-distributed-logs 
-# pod/my-distributed-logs-0
+$ kubectl get pods -o name -l distributed-logs-name=my-distributed-logs 
+pod/my-distributed-logs-0
 ```
 
-Connect on the distributed server and export the log into the CSV format:
+Connect to the distributed server and export the logs into CSV format:
 
 ```bash
 QUERY=$(cat <<EOF
@@ -120,22 +121,23 @@ EOF
 
 kubectl exec -it pod/my-distributed-logs-0 -c patroni -- psql default_my-db-cluster -At -c "${QUERY}" > data.csv
 ```
-> Add a `WHERE` clause on the `SELECT` to filter the log on the necessary period, like this:
+> Add a `WHERE` clause on the `SELECT` to filter the logs on the necessary period, like this:
 >
 > ```sql
 >  --- ...
 >  WHERE  log_time > 'begin timestamp' and log_time < 'end timestamp'
 > ```
 
-With the csv file, just call pgbadger:
+With the CSV file, invoke pgBadger:
 
 ```bash
 pgbadger --format csv --outfile pgbadger_report.html data.csv
 ```
 
-### All in one script
+### All-In-One Script
 
-PGbadger has support to a external command to get the log info, using that is possible to create a all-in-one script to generate the pgbadger report.
+PgBadger supports defining an external command to get the log info.
+Using that, it is possible to create an all-in-one script that generates the pgBadger report.
 
 ```bash
 POD=$(kubectl get pods -o name -l distributed-logs-name=my-distributed-logs)

@@ -8,18 +8,19 @@ showToc: true
 
 ## Authentication
 
-In Kubernetes, you must be authenticated (logged in) before your request can be authorized (granted permission to
-access). The same applies to the Web UI of StackGres, you can choose between two authentication mechanism,
-the first one uses a Kubernetes `Secret` to handle the username and password used by the Web UI, and
-the other mechanism, available since version 1.3.0 of StackGres, is using an OpenID Connect Provider.
+In Kubernetes, you must be authenticated (logged in) before your request can be authorized (granted permission to access).
+The same applies to StackGres' web UI.
 
-### Local `Secret` mechanism
-By default, StackGres is configured to use a local `Secret` containing the username and password to authenticate
-into the REST API, you can create users to authenticate against a Kubernetes using a special `Secret` designed
-for that purpose to log in on the Web UI.
+You can choose between two authentication mechanism:
+the first one stores the web UI username and password in a Kubernetes secret.
+The second mechanism, available since StackGres version `1.3.0`, is using an OpenID Connect (OIDC) Provider.
 
-The data that contains the secret must be in base64 format, and the password should be the concatenation of the api
-username plus the password itself.
+### Kubernetes Secret Mechanism
+By default, StackGres is configured to use Kubernetes secrets containing the username and password to authenticate REST API requests.
+You can create users that can log in on the web UI.
+
+The data that contains the secret must be in Base64 format.
+The password is stored by concatenating the username and the password and creating a SHA265 hash, similar to the following:
 
 ```yaml
 apiVersion: v1
@@ -36,18 +37,17 @@ data:
   password: "{{ user + password | sha256sum | b64enc }}"
 ```
 
-You might wonder why are two username fields in the secret, the `apiUsername` is optional and is used to "customize" the
-username used for the login Web UI, the `k8sUsername` is the username that is used to impersonate the API calls to K8s.
+You might wonder why there are two username fields in the secret.
+The `apiUsername` is optional and is used to customize the name used for the login Web UI.
+The `k8sUsername` is the username that is used to impersonate the API calls to K8s.
 
-### OpenID Connect Provider mechanism
-If StackGres is configured to use the OpenID Connect (OIDC) authentication type it will use OpenID Connect Authorization
-Code Flow supported by OpenID Connect compliant Authorization Servers such as Keycloak.
+### OpenID Connect Provider Mechanism
 
-StackGres allows to easily authenticate the users of the Web UI by redirecting them to the OpenID Connect Provider
-(e.g.: Keycloak) to login and, once the authentication is complete, return them back with the code confirming the successful
-authentication.
+If StackGres is configured to use the OpenID Connect (OIDC) authentication type, it will use the authorization code flow supported by OpenID Connect compliant authorization servers such as Keycloak.
 
-You can enable the OIDC auth type when installing StackGres using Helm, eg.:
+StackGres allows to authenticate the users of the web UI by redirecting them to the OpenID Connect Provider (e.g.: Keycloak) where they login, and, once the authentication is complete, return to the web UI with the code confirming the successful authentication.
+
+You can enable the OIDC auth type when installing StackGres using Helm, e.g.:
 
 ```bash
 helm install --namespace stackgres stackgres-operator \
@@ -59,46 +59,43 @@ helm install --namespace stackgres stackgres-operator \
 ```
 
 The `authentication.type` should be set to `oidc`, `authentication.oidc.authServerUrl` should point to your OpenID Connect
-Provider, `authentication.oidc.clientId` and `authentication.oidc.credentialsSecret` should be your corresponding Client ID
-and Secret used for authentication of StackGres with agains the OIDC Provider.
+Provider, `authentication.oidc.clientId` and `authentication.oidc.credentialsSecret` should be your corresponding client ID
+and secret used for authenticating StackGres against the OIDC provider.
 
-If you need to map a OIDC username to a different username in Kubernetes (like the `k8sUsername` in local `Secret`), your OIDC
-provider should return an additional Claim named `stackgres_k8s_username`, this way you can map an user attribute with the
-username that Kubernetes should use to validate the RBAC permisions, this can be different from one provider to another so
-please check the documentation of the OIDC Privider you are using.
+If you need to map an OIDC username to a different username in Kubernetes (similar to the `k8sUsername` in the secret), your OIDC provider should return an additional claim named `stackgres_k8s_username`.
+In this way, you can map a user attribute with the username that Kubernetes should use to validate the RBAC permissions.
+The configuration can differ from one provider to another, so please check the documentation of the OIDC provider that you are using.
 
 ## Using RBAC Authorization
 
-Role-based access control (RBAC) is a method of regulating access to computer or network resources based on the roles of
-individual users within your organization.
+Role-based access control (RBAC) is a method of regulating access to computer or network resources based on the roles of individual users within your organization.
 
-RBAC authorization uses the rbac.authorization.k8s.io API group to drive authorization decisions, allowing you to
-dynamically configure policies through the Kubernetes API.
+RBAC authorization uses the rbac.authorization.k8s.io API group to make authorization decisions, allowing you to dynamically configure policies through the Kubernetes API.
 
-> Kubernetes supports others authorizations modes like Attribute-based access control (ABAC), but the RBAC mode must be
-enabled in Kubernetes for this to work.
+> Kubernetes supports other authorization modes like attribute-based access control (ABAC), but the RBAC mode must be enabled for this to work.
 
-Kubernetes authorizes API requests using the API server. It evaluates all of the request attributes against all policies
-and allows or denies the request. All parts of an API request must be allowed by some policy in order to proceed. This
-means that permissions are denied by default.
+Kubernetes authorizes API requests using the API server.
+It evaluates all of the request attributes against the policies and allows or denies the request.
+All parts of an API request must be allowed by the policies in order to proceed.
+This means that permissions are denied by default.
 
-### API objects
+### API Objects
 
-The RBAC API declares four kinds of Kubernetes object: _Role_, _ClusterRole_, _RoleBinding_ and _ClusterRoleBinding_. You can
-describe objects, or amend them, using tools such as kubectl, just like any other Kubernetes object.
+The RBAC API declares four kinds of Kubernetes object: _Role_, _ClusterRole_, _RoleBinding_ and _ClusterRoleBinding_.
+You can describe objects, or amend them, using tools such as kubectl, just like any other Kubernetes object.
 
-> Please check https://kubernetes.io/docs/reference/access-authn-authz/rbac/#api-overview  for a comprenhensive description
-on how it works.
+> Please check https://kubernetes.io/docs/reference/access-authn-authz/rbac/#api-overview for a comprehensive description of how it works.
 
 ### ClusterRole
 
-An RBAC ClusterRole contains rules that represent a set of permissions. Permissions are purely additive (there are no "deny" rules).
+An RBAC cluster role contains rules that represent a set of permissions.
+Permissions are purely additive (there are no "deny" rules).
 
-StackGres handles different namespaces, so for the moment a ClusterRole is required to properly work.
+StackGres handles resources in different namespaces, so as of today, a cluster role is required for StackGres to work properly.
 
-#### ClusterRole example
+#### ClusterRole Example
 
-The following example shows a `ClusterRole` with basic permisions for read stackgres resources:
+The following example shows a cluster role with basic permissions to read StackGres resources:
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -138,7 +135,7 @@ rules:
 
 A role binding grants the permissions defined in a role to a user or set of users.
 
-The following example "binds" the previous `stackgres-reader` ClusterRole to the `example` user:
+The following example "binds" the previous `stackgres-reader` cluster role to the `example` user:
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -158,7 +155,7 @@ subjects:
 
 The same can be achieved with: `kubectl create clusterrolebinding sg-restapi-example-user --clusterrole=stackgres-reader --user=example`
 
-> Please note that the `example` user must also be mapped in the secret with a password to be able to login to the Web UI.
+> Please note that the `example` user must also be mapped in the secret with a password to be able to login to the web UI.
 
 ## Determine the Request Verb
 
