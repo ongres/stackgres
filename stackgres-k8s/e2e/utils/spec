@@ -274,6 +274,7 @@ spec() {
   echo "$SPEC_TIME" > "$TARGET_PATH/$SPEC_NAME.duration"
   if ! "$RESULT"
   then
+    echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.completed"
     echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.failed"
     echo "$SPEC_NAME. FAIL. See file $LOG_PATH/$SPEC_NAME.log for details" >> "$TARGET_PATH/logs/results.log"
     if [ "$E2E_SPEC_TRY_UNINSTALL_ON_FAILURE" = "true" ]
@@ -281,6 +282,9 @@ spec() {
       cleanup_spec || true
     fi
     return "$EXIT_CODE"
+  else
+    echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.completed"
+    echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.success"
   fi
   store_test_result "$SPEC_NAME"
   echo "$SPEC_NAME. SUCCESS. Test took $SPEC_TIME seconds" >> "$TARGET_PATH/logs"/results.log

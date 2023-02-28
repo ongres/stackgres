@@ -133,6 +133,14 @@ xargs_shell() {
   xargs -r -I "$PLACEHOLDER" "$SHELL" $SHELL_XTRACE "$@"
 }
 
+exec_xargs_parallel_shell() {
+  [ -n "$1" ]
+  local PLACEHOLDER="$1"
+  shift
+  # shellcheck disable=SC2086
+  exec xargs -r -I "$PLACEHOLDER" -P "$E2E_PARALLELISM" "$SHELL" $SHELL_XTRACE "$@"
+}
+
 urlencode() {
   notrace_function traceable_urlencode
 }
