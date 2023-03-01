@@ -18,17 +18,23 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 
-class ClusterEndpointComparatorTest {
+class ClusterEndpointsComparatorTest {
 
   private static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
-  private final ClusterEndpointComparator comparator = new ClusterEndpointComparator();
+  private final ClusterEndpointsComparator comparator = new ClusterEndpointsComparator(JSON_MAPPER);
 
   private final Map<String, String> defaultConfig = ImmutableMap
       .of("ttl", "30", "loop_wait", "10");
 
+  private final Map<String, String> configWithIgnoredConfigField = ImmutableMap
+      .of("ttl", "30", "loop_wait", "10", "test", "test");
+
   private final Map<String, String> defaultAnnotations = ImmutableMap
       .of("config", JSON_MAPPER.valueToTree(defaultConfig).toString());
+
+  private final Map<String, String> annotationsWithIgnoredConfigField = ImmutableMap
+      .of("config", JSON_MAPPER.valueToTree(configWithIgnoredConfigField).toString());
 
   private final Endpoints required = Fixtures.endpoints().loadRequired().get();
 
@@ -77,6 +83,27 @@ class ClusterEndpointComparatorTest {
             .withName("test")
             .withNamespace("test")
             .withAnnotations(getAnnotations("initialize", "6889156288560377979"))
+            .endMetadata()
+            .build());
+
+    assertTrue(isSameContent);
+  }
+
+  @Test
+  void configWithIgnoredFieldValue_itShouldIgnoreTheDifference() {
+    var isSameContent = comparator.isResourceContentEqual(
+        new EndpointsBuilder()
+            .withNewMetadata()
+            .withName("test")
+            .withNamespace("test")
+            .withAnnotations(defaultAnnotations)
+            .endMetadata()
+            .build(),
+            new EndpointsBuilder()
+            .withNewMetadata()
+            .withName("test")
+            .withNamespace("test")
+            .withAnnotations(annotationsWithIgnoredConfigField)
             .endMetadata()
             .build());
 

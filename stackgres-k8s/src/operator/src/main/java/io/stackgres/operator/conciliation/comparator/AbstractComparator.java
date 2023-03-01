@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import org.jooq.lambda.Seq;
 
 public abstract class AbstractComparator
     extends DefaultComparator {
@@ -28,9 +27,9 @@ public abstract class AbstractComparator
     for (int index = diff.size() - 1; index >= 0; index--) {
       JsonNode singleDiff = diff.get(index);
       JsonPatch patch = new JsonPatch(singleDiff);
-      if (MANAGED_FIELDS_IGNORE_PATCH.matches(patch)
+      if (MANAGED_FIELDS_IGNORE_PATCH.matches(required, deployed, patch)
           || Arrays.stream(getPatchPattersToIgnore())
-          .anyMatch(patchPattern -> patchPattern.matches(patch))) {
+          .anyMatch(patchPattern -> patchPattern.matches(required, deployed, patch))) {
         diff.remove(index);
       }
     }
@@ -51,7 +50,7 @@ public abstract class AbstractComparator
 
   protected interface IgnorePatch {
 
-    boolean matches(JsonPatch patch);
+    boolean matches(HasMetadata required, HasMetadata deployed, JsonPatch patch);
 
   }
 
@@ -68,13 +67,12 @@ public abstract class AbstractComparator
     }
 
     @Override
-    public boolean matches(JsonPatch patch) {
-      return patch.op.equals("add")
+    public boolean matches(HasMetadata required, HasMetadata deployed, JsonPatch patch) {
+      return (patch.op.equals("add") || patch.op.equals("replace"))
           && (paths.stream().anyMatch(patch.path::equals)
               || (
                   patch.path.equals("/metadata/annotations")
-                  && Seq.seq(patch.jsonValue.fields()).count() == keys.size()
-                  && keys.stream().allMatch(patch.jsonValue::has)
+                  && keys.stream().anyMatch(patch.jsonValue::has)
                   )
               );
     }
@@ -100,7 +98,7 @@ public abstract class AbstractComparator
     }
 
     @Override
-    public boolean matches(JsonPatch patch) {
+    public boolean matches(HasMetadata required, HasMetadata deployed, JsonPatch patch) {
       if (value != null) {
         return Objects.equals(op, patch.op)
             && Objects.equals(value, patch.value)
@@ -126,7 +124,7 @@ public abstract class AbstractComparator
     }
 
     @Override
-    public boolean matches(JsonPatch patch) {
+    public boolean matches(HasMetadata required, HasMetadata deployed, JsonPatch patch) {
       if (value != null) {
         return Objects.equals(op, patch.op)
             && Objects.equals(value, patch.value)
@@ -192,7 +190,7 @@ public abstract class AbstractComparator
     }
 
     @Override
-    public boolean matches(JsonPatch patch) {
+    public boolean matches(HasMetadata required, HasMetadata deployed, JsonPatch patch) {
       return Objects.equals(op, patch.getOp())
           && valuePatter.matcher(patch.getValue()).matches()
           && pathPattern.matcher(patch.getPath()).matches();
@@ -218,12 +216,14 @@ public abstract class AbstractComparator
     }
 
     @Override
-    public boolean matches(JsonPatch patch) {
-      if (exceptIncludes.stream().anyMatch(ignorePatch -> ignorePatch.matches(patch))) {
+    public boolean matches(HasMetadata required, HasMetadata deployed, JsonPatch patch) {
+      if (exceptIncludes.stream().anyMatch(ignorePatch -> ignorePatch.matches(
+          required, deployed, patch))) {
         return false;
       }
 
-      return excludes.stream().anyMatch(ignorePatch -> ignorePatch.matches(patch));
+      return excludes.stream().anyMatch(ignorePatch -> ignorePatch.matches(
+          required, deployed, patch));
     }
   }
 }
