@@ -133,7 +133,7 @@ modules:
     build_commands:
       - cd stackgres-k8s/src/admin-ui
       - export HOME=/project
-      - npm install
+      - npm install --verbose --unsafe-perm
       - |
         ! grep -q 'later-cov' node_modules/prettycron/node_modules/later/index.js \
           || sed -i 's/^require\(.*\);$/require(".\/later");/' node_modules/prettycron/node_modules/later/index.js

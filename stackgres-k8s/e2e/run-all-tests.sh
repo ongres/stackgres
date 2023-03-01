@@ -259,7 +259,7 @@ spec_controller() {
     SPECS_TO_RUN="$SPECS_TO_RUN $SPEC "
     if [ "$((COUNT%E2E_PARALLELISM))" -eq 0 ] || [ "$COUNT" -eq "$SPEC_COUNT" ]
     then
-      if [ "$CLEANUP" = true ] && [ "$E2E_CONTINUOUS_PARALLELIZATION" != true ]
+      if [ "$CLEANUP" = true ]
       then
         CLEANUP=false
         setup_k8s
@@ -377,7 +377,10 @@ EOF
             SPECS_FAILED="${SPECS_FAILED# *}"
             OVERALL_RESULT=false
           fi
-          CLEANUP=true
+          if [ "$E2E_CONTINUOUS_PARALLELIZATION" != true ]
+          then
+            CLEANUP=true
+          fi
         done
         if [ "$NONE_FAILED" = true ]
         then
@@ -406,8 +409,6 @@ EOF
 }
 
 (
-  exec 1> "$TARGET_PATH/specs_to_run.log"
-  exec 2>&1
   notrace_function spec_controller
 ) &
 SPEC_EMITTER_PID="$!"
