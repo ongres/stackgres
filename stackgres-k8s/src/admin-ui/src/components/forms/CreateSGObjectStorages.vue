@@ -72,7 +72,7 @@
                         Microsoft Azure Configuration
                     </h3>
 
-                    <label for="advancedModeStorage" class="floatRight">
+                    <label for="advancedModeStorage" class="floatRight" v-if="['s3', 's3Compatible'].includes(type)">
                         <span>ADVANCED OPTIONS </span>
                         <input type="checkbox" id="advancedModeStorage" name="advancedModeStorage" v-model="advancedModeStorage" class="switch">
                     </label>
