@@ -146,6 +146,17 @@
                             <strong class="label">Fetch Credentials from Metadata Service:</strong>
                             <span class="value">{{ hasProp(crd, 'data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService') ? isEnabled(crd.data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService) : 'Disabled' }}</span>
                         </li>
+                        <li v-if="hasProp(crd, 'data.spec.gcs.gcpCredentials.serviceAccountJSON')">
+                            <strong class="label">Service Account JSON:</strong>
+                            <span class="value">
+                                <span>
+                                    <a @click="setContentTooltip('#serviceAccountJSON')">{{ serviceAccountJSON }}</a>
+                                </span>
+                                <div id="serviceAccountJSON" class="hidden">
+                                    <pre>{{ crd.data.spec.gcs.gcpCredentials.serviceAccountJSON }}</pre>
+                                </div>
+                            </span>
+                        </li>
                     </template>
 
                     <template v-else-if="(crd.data.spec.type == 'azureBlob')">
@@ -180,7 +191,8 @@
 
         data: () => {
             return {
-                secretValue: ''
+                secretValue: '',
+                serviceAccountJSON: ((document.getElementById('uploadJSON') != null) && (document.getElementById('uploadJSON').files[0]) ) ? document.getElementById('uploadJSON').files[0].name : ''
             }
         },
 
