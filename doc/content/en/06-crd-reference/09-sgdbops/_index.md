@@ -58,6 +58,7 @@ StackGres pod scheduling configuration.
 | nodeSelector                           |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeSelector >}} |
 | tolerations                            |          | ✓         | array    |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations >}}  |
 | nodeAffinity                           |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity >}} |
+| priorityClassName                      |          | ✓         | string   |                         | {{< crd-field-description SGDbOps.spec.scheduling.priorityClassName >}} |
 | podAffinity                            |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.podAffinity >}} |
 | podAntiAffinity                        |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.podAntiAffinity >}} |
 
