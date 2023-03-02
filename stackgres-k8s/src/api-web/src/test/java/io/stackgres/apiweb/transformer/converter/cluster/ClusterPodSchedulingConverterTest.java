@@ -15,33 +15,37 @@ import org.junit.jupiter.api.Test;
 
 class ClusterPodSchedulingConverterTest {
 
-  StackGresClusterPodScheduling stackGresPodSchedulingFixture;
+  StackGresClusterPodScheduling podScheduling;
 
   ClusterPodSchedulingConverter converter;
 
   @BeforeEach
   public void setup() {
     this.converter = new ClusterPodSchedulingConverter();
-    this.stackGresPodSchedulingFixture = Fixtures.cluster().scheduling().loadDefault().get();
+    this.podScheduling = Fixtures.cluster().scheduling().loadDefault().get();
   }
 
   @Test
   void shouldClusterPodScheduling_hasPreferredSchedulingBehaviorAfterConversion() {
-    ClusterPodScheduling podSchedulingDto = converter.from(stackGresPodSchedulingFixture);
-
+    ClusterPodScheduling podSchedulingDto = converter.from(podScheduling);
     assertEquals(
-        stackGresPodSchedulingFixture.getNodeAffinity()
+        podScheduling.getNodeAffinity()
             .getPreferredDuringSchedulingIgnoredDuringExecution(),
         podSchedulingDto.getNodeAffinity().getPreferredDuringSchedulingIgnoredDuringExecution());
   }
 
   @Test
   void shouldClusterPodScheduling_hasRequiredSchedulingBehaviorAfterConversion() {
-    ClusterPodScheduling podSchedulingDto = converter.from(stackGresPodSchedulingFixture);
-
+    ClusterPodScheduling podSchedulingDto = converter.from(podScheduling);
     assertEquals(
-        stackGresPodSchedulingFixture.getNodeAffinity()
+        podScheduling.getNodeAffinity()
             .getRequiredDuringSchedulingIgnoredDuringExecution(),
         podSchedulingDto.getNodeAffinity().getRequiredDuringSchedulingIgnoredDuringExecution());
+  }
+
+  @Test
+  void shouldClusterPodScheduling_hasPriorityClassName() {
+    ClusterPodScheduling podSchedulingDto = converter.from(podScheduling);
+    assertEquals(podScheduling.getPriorityClassName(), podSchedulingDto.getPriorityClassName());
   }
 }

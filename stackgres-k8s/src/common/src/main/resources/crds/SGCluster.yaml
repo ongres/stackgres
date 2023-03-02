@@ -537,6 +537,10 @@ spec:
                       type: object
                       description: Pod custom scheduling, affinity and topology spread constratins configuration.
                       properties:
+                        priorityClassName:
+                          type: string
+                          description: |
+                            Priority indicates the importance of a Pod relative to other Pods. If a Pod cannot be scheduled, the scheduler tries to preempt (evict) lower priority Pods to make scheduling of the pending Pod possible.
                         nodeSelector:
                           type: object
                           additionalProperties:

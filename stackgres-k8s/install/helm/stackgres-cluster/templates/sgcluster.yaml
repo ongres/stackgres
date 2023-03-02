@@ -269,6 +269,9 @@ spec:
       nodeAffinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- with .Values.cluster.pods.scheduling.priorityClassName }}
+      priorityClassName: "{{ .Values.cluster.pods.scheduling.priorityClassName }}"
+      {{- end }}
       {{- with .Values.cluster.pods.scheduling.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

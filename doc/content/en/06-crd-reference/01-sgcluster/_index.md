@@ -359,6 +359,7 @@ Holds scheduling configuration for StackGres pods to have.
 | nodeSelector                |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} |
 | tolerations                 |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
 | nodeAffinity                |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity >}} |
+| priorityClassName           |          | ✓         | string    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.priorityClassName >}} |
 | podAffinity                 |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.podAffinity >}} |
 | podAntiAffinity             |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.podAntiAffinity >}} |
 | topologySpreadConstraints   |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.podAntiAffinity >}} |

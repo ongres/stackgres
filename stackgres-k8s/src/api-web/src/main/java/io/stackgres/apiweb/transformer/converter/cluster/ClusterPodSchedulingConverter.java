@@ -15,6 +15,7 @@ public class ClusterPodSchedulingConverter {
     podScheduling.setNodeSelector(source.getNodeSelector());
     podScheduling.setTolerations(source.getTolerations());
     podScheduling.setNodeAffinity(source.getNodeAffinity());
+    podScheduling.setPriorityClassName(source.getPriorityClassName());
     return podScheduling;
   }
 
@@ -23,6 +24,7 @@ public class ClusterPodSchedulingConverter {
     targetScheduling.setNodeSelector(sourceScheduling.getNodeSelector());
     targetScheduling.setTolerations(sourceScheduling.getTolerations());
     targetScheduling.setNodeAffinity(sourceScheduling.getNodeAffinity());
+    targetScheduling.setPriorityClassName(sourceScheduling.getPriorityClassName());
     return targetScheduling;
   }
 }
