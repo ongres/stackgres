@@ -29,7 +29,7 @@ spec:
       size: '5Gi'
 ```
 
-The contents of the file should be easily understandable. A StackGres cluster with name `simple` will be created in the `default` namespace (none specified), with two StackGres instances (which will lead to two pods), using the `latest` Postgres version --this is a handy shortcut you may use. StackGres will internally resolve this to the latest version available, and modify your CR to note the specific version used. For each pod, a 5Gi _PersistentVolume_ will be created and attached to the pods.
+The contents of the file should be easily understandable. A StackGres cluster with name `simple` will be created in the `default` namespace (none specified), with two StackGres instances (which will lead to two pods), using the `latest` Postgres version -- this is a handy shortcut you may use. StackGres will internally resolve this to the latest version available, and modify your CR to note the specific version used. For each pod, a 5Gi _PersistentVolume_ will be created and attached to the pods.
 
 ```bash
 kubectl apply -f simple.yaml -n stackgres

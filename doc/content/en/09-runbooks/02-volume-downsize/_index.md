@@ -126,7 +126,7 @@ Delete the stateful set and let the StackGres operator recreate it:
 $ kubectl delete sts -n ongres-db ongres-db --cascade=orphan
 ```
 
-> **Important Note:** Do not forget the parameter `--cascade=orphan` because this will keep the existent pods.
+> **Important Note:** Do not forget the parameter `--cascade=orphan` because this will keep the existing pods.
 
 ## Verifying the StatefulSet
 

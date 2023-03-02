@@ -7,7 +7,7 @@ showToc: true
 ---
 
 The StackGres operator and clusters can be installed using [Helm](https://helm.sh/) version >= `3.1.1`.
-As you may expect, a production environment will require to install and setup additional components alongside your StackGres operator and cluster resources.
+As you may expect, a production environment will require you to install and set up additional components alongside your StackGres operator and cluster resources.
 
 In this page, we are going through all the necessary steps to set up a production-grade environment using Helm.
 

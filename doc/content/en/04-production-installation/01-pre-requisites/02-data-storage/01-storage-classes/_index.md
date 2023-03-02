@@ -60,5 +60,5 @@ Make sure you include these parameters in order to avoid the following errors:
 `N node(s) had no available volume zone`
 
 - Losing data by accidentally removing a volume:
-`reclaimPolicy: Retain` will guarantee the volume is not deleted when a claim no longer exist.
+`reclaimPolicy: Retain` will guarantee the volume is not deleted when a claim no longer exists.
 

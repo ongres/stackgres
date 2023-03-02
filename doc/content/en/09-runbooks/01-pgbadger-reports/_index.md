@@ -54,7 +54,7 @@ spec:
     log_autovacuum_min_duration: '0'
 ```
 
-Check the [pgBadger documentation](http://pgbadger.darold.net/documentation.html#POSTGRESQL-CONFIGURATION) for more tails about the necessary parameters to setup Postgres.
+Check the [pgBadger documentation](http://pgbadger.darold.net/documentation.html#POSTGRESQL-CONFIGURATION) for more tails about the necessary parameters to set up Postgres.
 
 ### Cluster configuration
 

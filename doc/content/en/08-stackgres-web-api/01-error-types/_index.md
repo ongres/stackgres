@@ -27,15 +27,15 @@ That means that all error messages follow this structure:
 | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | [postgres-blocklist](#postgres-blocklist)                             | The Postgres configuration contains blocklisted parameters                          |
 | [postgres-major-version-mismatch](#postgres-major-version-mismatch)   | The Postgres configuration is targeted to a different major version than the current version of your cluster. |
-| [invalid-configuration-reference](#invalid-configuration-reference)   | The StackGres cluster holds a reference to a resource that don't exists.          |
+| [invalid-configuration-reference](#invalid-configuration-reference)   | The StackGres cluster holds a reference to a resource that doesn't exist.          |
 | [default-configuration](#default-configuration)                       | An attempt to update or delete a default configuration has been detected.                                                   |
 | [forbidden-configuration-deletion](#forbidden-configuration-deletion) | A resource that the cluster depends on is attempted to be deleted.                                                  |
 | [forbidden-configuration-update](#forbidden-configuration-update)     | A resource that the cluster depends on is attempted to be updated.                                                  |
 | [forbidden-cluster-update](#forbidden-cluster-update)                 | A certain cluster property that must not be updated is attempted to be updated.                                                     |
-| [invalid-storage-class](#invalid-storage-class)                       | The StackGres cluster refers to a storage class that doesn't exists.                                               |
+| [invalid-storage-class](#invalid-storage-class)                       | The StackGres cluster refers to a storage class that doesn't exist.                                               |
 | [constraint-violation](#constraint-violation)                         | One of the resource properties that is created or updated violates its syntactic rules.                            |
 | [forbidden-authorization](#forbidden-authorization)                   | You don't have permission to access the Kubernetes resource based on the RBAC rules.                                   |
-| [invalid-secret](#invalid-secret)                                     | The StackGres cluster refers to a secret that doesn't exists.                                                      |
+| [invalid-secret](#invalid-secret)                                     | The StackGres cluster refers to a secret that doesn't exist.                                                      |
 | [extension-not-found](#extension-not-found)                           | Some of the default or configured extensions can not be found in extensions repository                                      |
 | [already-exists](#already-exists)                                     | The resource already exists.                                                                                                |
 | [postgres-parameter](#postgres-parameter)                             | The Postgres configuration contains invalid parameters.                                                                     |
@@ -66,7 +66,7 @@ The blocklisted configuration properties are:
 
 ## Invalid Configuration Reference
 
-This error means that you are trying to create or update a StackGres cluster using a reference to a resource that doesn't exists in the same namespace.
+This error means that you are trying to create or update a StackGres cluster using a reference to a resource that doesn't exist in the same namespace.
 
 For example:
 
