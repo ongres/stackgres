@@ -27,6 +27,8 @@ public class ClusterPodScheduling {
 
   private NodeAffinity nodeAffinity;
 
+  private String priorityClassName;
+
   private PodAffinity podAffinity;
 
   private PodAntiAffinity podAntiAffinity;
@@ -90,6 +92,14 @@ public class ClusterPodScheduling {
 
   public void setBackup(ClusterPodSchedulingBackup backup) {
     this.backup = backup;
+  }
+
+  public String getPriorityClassName() {
+    return priorityClassName;
+  }
+
+  public void setPriorityClassName(String priorityClassName) {
+    this.priorityClassName = priorityClassName;
   }
 
   @Override
