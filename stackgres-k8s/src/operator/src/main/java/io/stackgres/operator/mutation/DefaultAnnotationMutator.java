@@ -7,6 +7,7 @@ package io.stackgres.operator.mutation;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -16,7 +17,6 @@ import com.github.fge.jsonpatch.AddOperation;
 import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.github.fge.jsonpatch.ReplaceOperation;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.StackGresContext;
@@ -82,12 +82,14 @@ public interface DefaultAnnotationMutator
 
   private Map<String, String> getDefaultAnnotationValues() {
     String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
+    Objects.requireNonNull(operatorVersion, "stackgres.operatorVersion must not be null");
+    if (operatorVersion.isBlank()) {
+      throw new IllegalStateException("stackgres.operatorVersion must not be empty");
+    }
 
     String operatorVersionKey = StackGresContext.VERSION_KEY;
 
-    return ImmutableMap.<String, String>builder()
-        .put(operatorVersionKey, operatorVersion)
-        .build();
+    return Map.of(operatorVersionKey, operatorVersion);
   }
 
   private List<JsonPatchOperation> buildAnnotationsToAdd(Map<String, String> annotations) {

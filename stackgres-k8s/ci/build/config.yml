@@ -5,7 +5,7 @@ modules:
   parent-java: &parent-java
     type: java
     path: stackgres-k8s/src/.
-    target_image: alpine:3.13.10
+    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
     build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.5
     filtered_sources:
       - sh stackgres-k8s/ci/build/redact-version.sh
@@ -120,8 +120,8 @@ modules:
   admin-ui:
     type: ui
     path: stackgres-k8s/src/admin-ui
-    target_image: alpine:3.13.10
-    build_image: node:14.19
+    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
+    build_image: registry.access.redhat.com/ubi8/nodejs-16:1-90
     sources:
       - stackgres-k8s/src/admin-ui/babel.config.js
       - stackgres-k8s/src/admin-ui/build.sh
@@ -147,7 +147,7 @@ modules:
     type: native
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: alpine:3.13.10
+    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
     build_image: *jdk_build_image
     build_env:
       <<: *mvn_build_env
@@ -181,7 +181,7 @@ modules:
     type: jvm-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8/openjdk-17:1.14-10.1675788279
+    target_image: registry.access.redhat.com/ubi8/openjdk-17-runtime:1.15-1
     dockerfile: &jvm-image-dockerfile
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.jvm
       args: &jvm-image-args
@@ -264,7 +264,7 @@ modules:
     type: native-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8-minimal:8.7-1049.1675784874
+    target_image: registry.access.redhat.com/ubi8-minimal:8.7-1085
     dockerfile: &native-image-dockerfile
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.native
       args: &native-image-args
@@ -330,7 +330,7 @@ modules:
       2: stackgres-k8s/src/distributedlogs-controller/src/main/docker/stackgres-distributedlogs-controller.native.sh
   helm-packages: &helm-packages
     type: helm
-    target_image: alpine:3.13.10
+    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
     filtered_sources:
       - |
         sed 's/^\(version\|appVersion\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-operator/Chart.yaml
@@ -360,7 +360,7 @@ modules:
       - stackgres-k8s/install/helm/target/packages
   helm-templates: &helm-templates
     type: helm
-    target_image: alpine:3.13.10
+    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
     filtered_sources:
       - |
         sed 's/^\(version\|appVersion\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-operator/Chart.yaml
@@ -389,7 +389,7 @@ modules:
       - stackgres-k8s/install/helm/target/templates
   helm-operator-bundle: &helm-operator-bundle
     type: helm-operator-bundle
-    target_image: alpine:3.13.10
+    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
     sources:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
     build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.16
@@ -423,7 +423,7 @@ modules:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
   helm-operator-openshift-bundle: &helm-operator-openshift-bundle
     type: helm-operator-bundle
-    target_image: alpine:3.13.10
+    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
     sources:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
     build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.16
@@ -457,7 +457,7 @@ modules:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
   documentation:
     type: documentation
-    target_image: alpine:3.13.10
+    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
     sources:
       - doc/build.sh
       - doc/config.toml

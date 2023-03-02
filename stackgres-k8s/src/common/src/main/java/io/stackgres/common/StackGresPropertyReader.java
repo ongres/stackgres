@@ -11,6 +11,7 @@ import java.io.UncheckedIOException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Predicate;
 
 import org.jooq.lambda.Seq;
 
@@ -73,9 +74,8 @@ public interface StackGresPropertyReader {
 
   /**
    * Return first existing value of associated system property, environment variable or application
-   * property (in this exact sequence) as an array by splitting string using comma character ",".
-   * If the value is empty it returns the an empty array. Otherwise throw a
-   * {@code RuntimeException}.
+   * property (in this exact sequence) as an array by splitting string using comma character ",". If
+   * the value is empty it returns the an empty array. Otherwise throw a {@code RuntimeException}.
    */
   default String[] getStringArray() {
     if (getString().isEmpty()) {
@@ -94,6 +94,7 @@ public interface StackGresPropertyReader {
         System.getenv(getEnvironmentVariableName()),
         getApplicationProperties().getProperty(getPropertyName()))
         .filter(Objects::nonNull)
+        .filter(Predicate.not(String::isBlank))
         .findFirst();
   }
 
@@ -103,7 +104,10 @@ public interface StackGresPropertyReader {
    */
   static Properties readApplicationProperties(Class<?> clazz) {
     Properties properties = new Properties();
-    try (InputStream is = clazz.getResourceAsStream("/application.properties")) {
+    try (InputStream is = clazz.getResourceAsStream("/stackgres.properties")) {
+      if (is == null) {
+        throw new IOException("InputStream properties file must not be null");
+      }
       properties.load(is);
     } catch (IOException e) {
       throw new UncheckedIOException("Can't read properties file", e);
