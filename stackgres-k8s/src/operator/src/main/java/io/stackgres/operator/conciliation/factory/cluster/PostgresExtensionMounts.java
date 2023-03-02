@@ -21,7 +21,6 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
-import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterContainerContext> {
@@ -60,8 +59,7 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
                 ClusterStatefulSetPath.PG_EXTENSIONS_BIN_PATH),
             volumeMountForSubPathFromPostgresData(context, clusterContext,
                 ClusterStatefulSetPath.PG_EXTRA_LIB_PATH,
-                ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH)
-        )
+                ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH))
         .addAll(context.getInstalledExtensions()
             .stream()
             .flatMap(ie -> Optional.ofNullable(ie.getExtraMounts())
@@ -126,7 +124,7 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
             ClusterStatefulSetPath.PG_UPGRADE_PATH.envVar(clusterContext),
             new EnvVarBuilder()
                 .withName("PATH")
-                .withValue(Seq.of(
+                .withValue(String.join(":",
                     ClusterStatefulSetPath.PG_BIN_PATH.path(clusterContext),
                     ClusterStatefulSetPath.PG_EXTRA_BIN_PATH.path(clusterContext),
                     "/usr/local/sbin",
@@ -134,14 +132,12 @@ public class PostgresExtensionMounts implements VolumeMountsProvider<ClusterCont
                     "/usr/sbin",
                     "/usr/bin",
                     "/sbin",
-                    "/bin")
-                    .toString(":"))
+                    "/bin"))
                 .build(),
             new EnvVarBuilder()
                 .withName("LD_LIBRARY_PATH")
                 .withValue(ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(clusterContext))
-                .build()
-        )
+                .build())
         .build();
   }
 }

@@ -13,7 +13,6 @@ import java.util.Map;
 import com.google.common.base.Preconditions;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import org.jooq.lambda.Seq;
 
 public enum ClusterStatefulSetPath implements VolumePath {
 
@@ -82,13 +81,14 @@ public enum ClusterStatefulSetPath implements VolumePath {
   PG_EXTENSION_PATH(PG_SHARE_PATH, "extension"),
   PG_RELOCATED_BASE_PATH(PG_BASE_PATH, "relocated"),
   PG_RELOCATED_PATH(PG_RELOCATED_BASE_PATH,
-      ClusterStatefulSetEnvVars.POSTGRES_VERSION.substVar()),
+      ClusterStatefulSetEnvVars.POSTGRES_VERSION.substVar(),
+      ClusterStatefulSetEnvVars.BUILD_VERSION.substVar()),
   PG_RELOCATED_LIB64_PATH(PG_RELOCATED_PATH, "usr/lib64"),
   PG_RELOCATED_BINARIES_PATH(PG_RELOCATED_PATH, "usr/lib/postgresql",
       ClusterStatefulSetEnvVars.POSTGRES_VERSION.substVar()),
   PG_RELOCATED_BIN_PATH(PG_RELOCATED_BINARIES_PATH, "bin"),
   PG_RELOCATED_LIB_PATH(PG_RELOCATED_BINARIES_PATH, "lib"),
-  PG_RELOCATED_SHARE_PATH(PG_RELOCATED_PATH, "usr/share/postgresql/",
+  PG_RELOCATED_SHARE_PATH(PG_RELOCATED_PATH, "usr/share/postgresql",
       ClusterStatefulSetEnvVars.POSTGRES_VERSION.substVar()),
   PG_RELOCATED_EXTENSION_PATH(PG_RELOCATED_SHARE_PATH, "extension"),
   PG_UPGRADE_PATH(PG_BASE_PATH, "upgrade"),
@@ -121,11 +121,11 @@ public enum ClusterStatefulSetPath implements VolumePath {
   }
 
   ClusterStatefulSetPath(String... paths) {
-    this(Seq.of(paths).toString("/"));
+    this(String.join("/", paths));
   }
 
   ClusterStatefulSetPath(ClusterStatefulSetPath parent, String... paths) {
-    this(Seq.of(parent.path).append(paths).toString("/"));
+    this(parent.path, String.join("/", paths));
   }
 
   @Override
@@ -152,13 +152,14 @@ public enum ClusterStatefulSetPath implements VolumePath {
       path.append(this.path, endIndexOf + 1, startIndexOf);
       endIndexOf = this.path.indexOf(")", startIndexOf);
       if (endIndexOf == -1) {
-        throw new RuntimeException("Path " + this.path + " do not close variable substitution."
-            + " Expected a `)` character after position " + startIndexOf);
+        throw new IllegalArgumentException(
+            "Path " + this.path + " do not close variable substitution."
+                + " Expected a `)` character after position " + startIndexOf);
       }
       String variable = this.path.substring(startIndexOf + 2, endIndexOf);
       String value = envVars.get(variable);
       if (value == null) {
-        throw new RuntimeException("Path " + this.path + " specify variable " + variable
+        throw new IllegalArgumentException("Path " + this.path + " specify variable " + variable
             + " for substitution. But was not found in map " + envVars);
       }
       path.append(value);
@@ -190,9 +191,9 @@ public enum ClusterStatefulSetPath implements VolumePath {
 
   @Override
   public String filename(Map<String, String> envVars) {
-    String path = path(envVars);
-    int indexOfLastSlash = path.lastIndexOf('/');
-    return indexOfLastSlash != -1 ? path.substring(indexOfLastSlash + 1) : path;
+    String pathFile = path(envVars);
+    int indexOfLastSlash = pathFile.lastIndexOf('/');
+    return indexOfLastSlash != -1 ? pathFile.substring(indexOfLastSlash + 1) : pathFile;
   }
 
   @Override
@@ -228,7 +229,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
 
   @Override
   public String subPath(ClusterContext context, Map<String, String> envVars,
-                        VolumePath relativeTo) {
+      VolumePath relativeTo) {
     return relativize(subPath(envVars(context, envVars)),
         relativeTo.subPath(envVars(context, envVars)));
   }
@@ -263,9 +264,7 @@ public enum ClusterStatefulSetPath implements VolumePath {
         .build();
   }
 
-  private Map<String, String> envVars(
-      ClusterContext context,
-      Map<String, String> envVars) {
+  private Map<String, String> envVars(ClusterContext context, Map<String, String> envVars) {
     Map<String, String> mergedEnvVars = new HashMap<>(context.getEnvironmentVariables());
     mergedEnvVars.putAll(envVars);
     return Map.copyOf(mergedEnvVars);

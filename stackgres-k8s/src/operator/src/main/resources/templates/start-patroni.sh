@@ -132,6 +132,4 @@ do
   fi
 done
 
-export LC_ALL=C.UTF-8
-
 PATRONI_POSTGRESQL_BIN_DIR="${LOCAL_BIN_PATH}" exec exec-with-env "${PATRONI_ENV}" -- /usr/bin/patroni "$PATRONI_CONFIG_FILE_PATH"
