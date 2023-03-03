@@ -28,10 +28,20 @@ public class ClusterPodSchedulingBackup {
 
   private PodAffinity podAffinity;
 
+  private String priorityClassName;
+
   private PodAntiAffinity podAntiAffinity;
 
   public Map<String, String> getNodeSelector() {
     return nodeSelector;
+  }
+
+  public String getPriorityClassName() {
+    return priorityClassName;
+  }
+
+  public void setPriorityClassName(String priorityClassName) {
+    this.priorityClassName = priorityClassName;
   }
 
   public void setNodeSelector(Map<String, String> nodeSelector) {

@@ -106,6 +106,7 @@ Holds scheduling configuration for StackGres pods to have.
 | nodeAffinity                  |          | ✓         | object    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity >}} |
 | podAffinity                   |          | ✓         | object    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.podAffinity >}} |
 | podAntiAffinity               |          | ✓         | object    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.podAntiAffinity >}} |
+| priorityClassName             |          | ✓         | string    |                | {{< crd-field-description SGDistributedLogs.spec.scheduling.priorityClassName >}} |
 
 ### Configurations
 

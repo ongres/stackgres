@@ -41,7 +41,6 @@ public class StackGresClusterPodScheduling {
   private NodeAffinity nodeAffinity;
 
   @JsonProperty("priorityClassName")
-  @Valid
   private String priorityClassName;
 
   @JsonProperty("podAffinity")

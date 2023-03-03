@@ -562,6 +562,10 @@ spec:
                             type: object
                           type: array
                       type: object
+                    priorityClassName:
+                      type: string
+                      description: |
+                        Priority indicates the importance of a Pod relative to other Pods. If a Pod cannot be scheduled, the scheduler tries to preempt (evict) lower priority Pods to make scheduling of the pending Pod possible.
                     podAntiAffinity:
                       description: |
                         Pod anti affinity is a group of inter pod anti affinity scheduling rules.

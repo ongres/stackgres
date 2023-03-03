@@ -59,6 +59,7 @@ Holds scheduling configuration for StackGres pods to have.
 | tolerations       |           | ✓        | array    |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations >}}  |
 | nodeAffinity      |           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity >}} |
 | podAffinity       |           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.podAffinity >}} |
+| priorityClassName |           | ✓        | string   |                         | {{< crd-field-description SGDbOps.spec.scheduling.priorityClassName >}} |
 | podAntiAffinity   |           | ✓        | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.podAntiAffinity >}} |
 
 ## Benchmark
